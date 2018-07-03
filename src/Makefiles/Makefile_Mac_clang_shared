@@ -1,0 +1,78 @@
+# --------------------- INFORMATION --------------------------------
+
+# This the Metapron3 Makefile for MacOS and the clang compiler.
+# It creates a dynamically linked (shared) library, libdds.so.
+
+# ----------------------- OFTEN OK    ------------------------------
+
+# From here on you you don't have to change anything to CONFIGURE
+# the compilation.  But you may well have to change something to 
+# get it to compile.
+
+INCL_SOURCE	= Makefiles/sources.txt
+INCL_DEPENDS	= Makefiles/depends_o.txt
+
+# If your compiler name is not given here, change it.
+CC		= g++
+
+# We compile with aggressive warnings, but we have to turn off some
+# of them as they appear in libraries in great numbers...
+
+WARN_FLAGS	= 		\
+	-Wshadow 		\
+	-Wsign-conversion 	\
+	-pedantic -Wall -Wextra  \
+	-Wcast-align -Wcast-qual \
+	-Wctor-dtor-privacy 	\
+	-Wdisabled-optimization \
+	-Winit-self 		\
+	-Wmissing-declarations 	\
+	-Wmissing-include-dirs 	\
+	-Wcomment 		\
+	-Wold-style-cast 	\
+	-Woverloaded-virtual 	\
+	-Wredundant-decls 	\
+	-Wsign-promo 		\
+	-Wstrict-overflow=1 	\
+	-Wswitch-default -Wundef \
+	-Werror 		\
+	-Wno-unused 		\
+	-Wno-unknown-pragmas 	\
+	-Wno-long-long		\
+	-Wno-format
+
+COMPILE_FLAGS	= -fPIC -O3 -flto -mtune=generic -std=c++11 \
+		$(WARN_FLAGS) 
+
+DLLBASE		= metapron3
+SHARED_LIB	= lib$(DLLBASE).so
+
+LINK_FLAGS	=		\
+	-shared			\
+	-fPIC
+
+include $(INCL_SOURCE)
+
+O_FILES 	= $(subst .cpp,.o,$(SOURCE_FILES))
+
+
+macos:	$(O_FILES)
+	$(CC) -o $(SHARED_LIB) $(O_FILES) $(LINK_FLAGS)
+
+%.o:	%.cpp
+	$(CC) $(COMPILE_FLAGS) -c $<
+
+depend:
+	makedepend -Y -- $(SOURCE_FILES)
+
+clean:
+	rm -f $(O_FILES) $(SHARED_LIB)
+
+install:
+	test -d ../test || mkdir ../test
+	test -d ../examples || mkdir ../examples
+	cp $(SHARED_LIB) ../test
+	cp $(SHARED_LIB) ../examples
+
+include $(INCL_DEPENDS)
+

@@ -1,0 +1,6 @@
+SOURCE_FILES    =               \
+        Classifier.cpp          \
+        Database.cpp            \
+        Stats.cpp               \
+        Timer.cpp               \
+        driver.cpp

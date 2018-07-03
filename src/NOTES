@@ -1,0 +1,58 @@
+Read in the database.
+
+A trace has:
+* A date
+* A country
+* A vector of peaks with sample-accurate integer times (2kHz)
+
+1. Detect wheel pairs
+* Sort the simple neighboring distances
+* Slide a +/- 5% window over the list and detect clusters of local maxima
+* On the low end
+  - A single maximum, then not much close?
+  - Two close maxima, one with a few and one with a high count?
+  - Picking up distances to neighboring cars? 3-4 close maxima
+  - Should be similar to half the number of overall peaks in the trace
+
+2. Detect longer high-count distances
+  - Could be inter-car, could be messier
+  - Could be intra-car, ca. half of wheel pairs
+
+3. See if we can match the ratio of wheel and intra distances to
+  car types in the permissible list.  Might be several possibilities.
+
+4. Try to label entire cars (will only get some of them), using not the
+  differences but the absolute peaks again.
+  - Count the rms of the match or some such
+
+5. Look at spurious peaks within the construct of 4 such peaks,
+  count them as decreasing the likelihood, then forget them
+  - Count a penalty for each
+
+6. If we have abutting cars, look at the end gaps against database
+  - Count the rms
+  - Any spurious peaks: Count the penalty
+
+7. Estimate the speed and thus the absolute geometry
+
+8. Try to count cars and allocate peaks to each unknown car
+  - End cars might miss an axle
+  - Might be multiple power cars next to one another
+
+9. Try to match absolute cars to permissible types as above,
+  counting rms and deletions/insertions
+
+10. Try to match the reconstruction to the overall trains
+
+
+
+* Direction of asymmetric cars?
+
+
+ICE2
+805 46500
+806 47400 kg
+807 52000
+808 52800
+
+19000 mm not 11460, 2500 not 3000
