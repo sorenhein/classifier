@@ -3,17 +3,12 @@
 
 #include <vector>
 #include <list>
+
 #include "Database.h"
 #include "const.h"
 
 using namespace std;
 
-
-struct Peak
-{
-  int sampleNo;
-  float value;
-};
 
 struct TrainFound
 {
@@ -42,8 +37,8 @@ class Classifier
     {
       float center;
       float sdev;
-      float lower;
-      float upper;
+      int lower;
+      int upper;
       int count;
       DiffLabel label;
 
@@ -76,7 +71,7 @@ class Classifier
     };
 
     void makeTimeDifferences(
-      const vector<Peaks>& peaks,
+      const vector<Peak>& peaks,
       vector<int>& timeDifferences) const;
 
     void detectClusters(
@@ -87,7 +82,7 @@ class Classifier
       const vector<Cluster>& clusters) const;
 
     void labelIntraIntervals(
-      const vector<Peaks>& peaks,
+      const vector<Peak>& peaks,
       vector<Interval>& intervals) const;
 
     void groupIntoCars(

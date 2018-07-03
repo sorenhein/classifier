@@ -8,6 +8,8 @@
 #define MIN_PEAKS 8
 #define CLUSTER_FACTOR 1.05
 
+#define UNUSED(x) ((void)(true ? 0 : ((x), void(), 0)))
+
 
 Classifier::Classifier()
 {
@@ -24,12 +26,12 @@ Classifier::~Classifier()
 
 
 void Classifier::makeTimeDifferences(
-  const vector<Peaks>& peaks,
+  const vector<Peak>& peaks,
   vector<int>& timeDifferences) const
 {
   const unsigned l = peaks.size();
   for (unsigned i = 1; i < l; i++)
-    timeDifferences[i-1] = peaks[i] - peaks[i-1];
+    timeDifferences[i-1] = peaks[i].sampleNo - peaks[i-1].sampleNo;
 
   sort(timeDifferences.begin(), timeDifferences.end());
 }
@@ -42,8 +44,8 @@ void Classifier::detectClusters(
   const unsigned l = timeDifferences.size();
   const unsigned cpos = 0;
 
-  const int prevCount = 0;
-  const int prevPos = -1;
+  int prevCount = 0;
+  int prevPos = -1;
 
   for (unsigned i = 0; i < l; i++)
   {
@@ -101,9 +103,9 @@ void Classifier::detectClusters(
         sumsq = df * df;
       }
 
-       const float n = static_cast<count>;
-       cluster.center = fg / n;
-       cluster.sdev = sqrt((n*sumsq - sum*sum) / (n * (n-1.)));
+       const float n = static_cast<float>(count);
+       cluster.center = sum / n;
+       cluster.sdev = sqrt((n*sumsq - sum*sum) / (n * (n-1.f)));
     }
 
     clusters.push_back(cluster);
@@ -114,15 +116,18 @@ void Classifier::detectClusters(
 void Classifier::classifyClusters(
   const vector<Cluster>& clusters) const
 {
- // TODO: Recognize the large ones
- // Set clusters[i].label to a DistLabel
+  // TODO: Recognize the large ones
+  // Set clusters[i].label to a DistLabel
+  UNUSED(clusters);
 }
 
 
 void Classifier::labelIntraIntervals(
-  const vector<Peaks>& peaks,
+  const vector<Peak>& peaks,
   vector<Interval>& intervals) const
 {
+  UNUSED(peaks);
+  UNUSED(intervals);
 }
 
 
@@ -131,6 +136,8 @@ void Classifier::groupIntoCars(
   vector<Car>& cars) const
 {
   // TODO: Group a short, an intra and a short gap into a car
+  UNUSED(intervals);
+  UNUSED(cars);
 }
 
 
@@ -143,7 +150,7 @@ void Classifier::lookupCarTypes(
   carTypes.clear();
   carTypes.resize(cars.size());
 
-  for (auto &car: Cars)
+  for (auto &car: cars)
   {
     DatabaseCar dbCar;
 
@@ -192,12 +199,12 @@ void Classifier::classify(
   vector<int> diffs;
   Classifier::makeTimeDifferences(peaks, diffs);
 
-  Clusters clusters;
+  vector<Cluster> clusters;
   Classifier::detectClusters(diffs, clusters);
 
   Classifier::classifyClusters(clusters);
 
-  vector<Interval>& intervals;
+  vector<Interval> intervals;
   Classifier::labelIntraIntervals(peaks, intervals);
 
   vector<Car> cars;
@@ -211,7 +218,7 @@ void Classifier::classify(
     db.lookupTrain(carTypes, firstCar, lastCar, carsMissing);
 
   for (unsigned i = 0, j = firstCar;
-      i < cars.size(), j <= lastCar; i++, j++)
+      i < cars.size() && j <= lastCar; i++, j++)
   {
     // TODO: Add up distances somehow.
   }

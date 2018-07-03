@@ -2,5 +2,7 @@ SOURCE_FILES    =               \
         Classifier.cpp          \
         Database.cpp            \
         Stats.cpp               \
+        SynthTrain.cpp          \
         Timer.cpp               \
+        read.cpp                \
         driver.cpp

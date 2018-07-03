@@ -43,10 +43,10 @@ TARGET		= driver
 
 include $(INCL_SOURCE)
 
-OBJ_FILES 	= $(subst .cpp,.obj,$(SOURCE_FILES)) $(VFILE).obj
+OBJ_FILES 	= $(subst .cpp,.obj,$(SOURCE_FILES))
 
 vs:	$(OBJ_FILES)
-	$(LINK) $(LINK_FLAGS1) $(OBJ_FILES) /OUT:$(TARET).exe
+	$(LINK) $(LINK_FLAGS1) $(OBJ_FILES) /OUT:$(TARGET).exe
 
 %.obj:	%.cpp
 	$(CC) $(COMPILE_FLAGS) /c $<
