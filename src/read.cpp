@@ -28,11 +28,6 @@ void readUsage(
   vector<string>& value,
   const string& err);
 
-bool readInt(
-  const string& text,
-  int& value,
-  const string& err);
-
 bool readBool(
   const string& text,
   bool& value,
@@ -134,6 +129,19 @@ void readUsage(
 bool readInt(
   const string& text,
   int& value,
+  const string& err)
+{
+  // TODO
+  UNUSED(text);
+  UNUSED(value);
+  UNUSED(err);
+  return true;
+}
+
+
+bool readFloat(
+  const string& text,
+  float& value,
   const string& err)
 {
   // TODO

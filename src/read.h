@@ -6,6 +6,16 @@ using namespace std;
 class Database;
 
 
+bool readInt(
+  const string& text,
+  int& value,
+  const string& err);
+
+bool readFloat(
+  const string& text,
+  float& value,
+  const string& err);
+
 void readCarFiles(
   Database& db,
   const string& dir);
