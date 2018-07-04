@@ -22,14 +22,17 @@ int main(int argc, char * argv[])
   Database db;
   readCarFiles(db, "../data/cars");
   readTrainFiles(db, "../data/trains");
+cout << "Read all" << endl;
 
   Classifier classifier;
   classifier.setSampleRate(2000);
   classifier.setCountry("DEU");
   classifier.setYear(2018);
+cout << "Set up classifier" << endl;
 
   SynthTrain synth;
   synth.readDisturbance("../data/disturbances/case1.txt");
+cout << "Read disturbance" << endl;
 
   vector<Peak> perfectPeaks;
   db.getPerfectPeaks("ICE1 Refurbishment", "DEU", perfectPeaks, 60);

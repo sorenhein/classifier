@@ -70,24 +70,29 @@ void SynthTrain::readDisturbance(const string& fname)
       break;
     }
 
-    const string& field = line.substr(0, sp-1);
+    const string& field = line.substr(0, sp);
     const string& rest = line.substr(sp+1);
 
-    if (field == "NOISE_PERCENT" && 
-        ! readFloat(rest, disturbance.noisePercent, err))
-      break;
-    else if (field == "INJECT_UP_TO" && 
-        ! readInt(rest, disturbance.injectUpTo, err))
-      break;
-    else if (field == "DELETE_UP_TO" && 
-        ! readInt(rest, disturbance.deleteUpTo, err))
-      break;
-    else if (field == "PRUNE_FRONT_UP_TO" && 
-        ! readInt(rest, disturbance.pruneFrontUpTo, err))
-      break;
-    else if (field == "PRUNE_BACK_UP_TO" && 
-        ! readInt(rest, disturbance.pruneBackUpTo, err))
-      break;
+    if (field == "NOISE_PERCENT")
+    {
+      if (! readFloat(rest, disturbance.noisePercent, err)) break;
+    }
+    else if (field == "INJECT_UP_TO")
+    {
+      if (! readInt(rest, disturbance.injectUpTo, err)) break;
+    }
+    else if (field == "DELETE_UP_TO")
+    {
+      if (! readInt(rest, disturbance.deleteUpTo, err)) break;
+    }
+    else if (field == "PRUNE_FRONT_UP_TO")
+    {
+      if (! readInt(rest, disturbance.pruneFrontUpTo, err)) break;
+    }
+    else if (field == "PRUNE_BACK_UP_TO")
+    {
+      if (! readInt(rest, disturbance.pruneBackUpTo, err)) break;
+    }
     else
     {
       cout << err << endl;

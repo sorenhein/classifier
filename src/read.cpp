@@ -210,7 +210,8 @@ bool readOrder(
       if (pos == string::npos)
         return false;
 
-      const string bracketed = s.substr(pos+1, s.size()-pos+2);
+      string bracketed = s.substr(pos+1);
+      bracketed.pop_back();
       if (! readInt(bracketed, count, err))
         return false;
       
@@ -656,7 +657,7 @@ void readTrainFile(
       break;
     }
 
-    const string& field = line.substr(0, sp-1);
+    const string& field = line.substr(0, sp);
     const string& rest = line.substr(sp+1);
 
     if (field == "NAME")
@@ -664,6 +665,10 @@ void readTrainFile(
     else if (field == "INTRODUCTION")
     {
       if ( ! readInt(rest, t.introduction, err)) break;
+    }
+    else if (field == "RETIREMENT")
+    {
+      if ( ! readInt(rest, t.retirement, err)) break;
     }
     else if (field == "COUNTRIES")
       readCountries(rest, t.countries);

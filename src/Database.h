@@ -49,6 +49,7 @@ struct TrainEntry
 {
   string name; // Example: "ICE1 Refurbishment"
   int introduction; // Year
+  int retirement; // Year
   vector<string> countries;
   vector<int> carNumbers;
 };

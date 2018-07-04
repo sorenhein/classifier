@@ -1,3 +1,4 @@
+Car 0 should not be used (be an error).  Sign is car direction.
 Read in the database.
 
 A trace has:
