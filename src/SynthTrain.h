@@ -19,6 +19,7 @@ class SynthTrain
       int pruneBackUpTo; // Delete trailing peaks up to this number
     };
 
+
     Disturbance disturbance;
 
     void makeNormalNoise(vector<Peak>& synthPeaks) const;
@@ -48,8 +49,10 @@ class SynthTrain
     void disturb(
       const vector<Peak>& perfectPeaks,
       vector<Peak>& synthPeaks,
-      const float origSpeed,
-      float& newSpeed) const;
+      const int origSpeed,
+      const int minSpeed,
+      const int maxSpeed,
+      int& newSpeed) const;
 };
 
 #endif

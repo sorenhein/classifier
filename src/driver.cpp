@@ -40,7 +40,7 @@ int main(int argc, char * argv[])
   {
     vector<Peak> synthPeaks;
     int newSpeed;
-    synth.disturb(perfectPeaks, synthPeaks, 60, newSpeed);
+    synth.disturb(perfectPeaks, synthPeaks, 60, 20, 250, newSpeed);
 
     TrainFound trainFound;
     classifier.classify(synthPeaks, db, trainFound);

@@ -76,7 +76,7 @@ void SynthTrain::readDisturbance(const string& fname)
     const string& rest = line.substr(sp+1);
 
     if (field == "NOISE_PERCENT" && 
-        ! readFloat(rest, disturbance.noicePercent, err))
+        ! readFloat(rest, disturbance.noisePercent, err))
       break;
     else if (field == "INJECT_UP_TO" && 
         ! readInt(rest, disturbance.injectUpTo, err))
@@ -118,11 +118,11 @@ void SynthTrain::makeNormalNoise(vector<Peak>& synthPeaks) const
 
 void SynthTrain::makeRandomInsertions(vector<Peak>& synthPeaks) const
 {
-  if (disturbance.insertUpTo == 0)
+  if (disturbance.injectUpTo == 0)
     return;
 
   const unsigned n =
-    static_cast<unsigned>(rand() % disturbance.insertUpTo);
+    static_cast<unsigned>(rand() % disturbance.injectUpTo);
 
   for (unsigned i = 0; i < n; i++)
   {
@@ -136,7 +136,7 @@ void SynthTrain::makeRandomInsertions(vector<Peak>& synthPeaks) const
     const float vRight = synthPeaks[hit+1].value;
 
     Peak newPeak;
-    newPeak.sampleNo = tLeft + 1 + (rand() % (tRight - tLeft - 2);
+    newPeak.sampleNo = tLeft + 1 + (rand() % (tRight - tLeft - 2));
     newPeak.value = (vLeft + vRight) / 2.f;
 
     synthPeaks.insert(synthPeaks.begin()+1, newPeak);
@@ -215,14 +215,14 @@ void SynthTrain::disturb(
   synthPeaks.clear();
   synthPeaks.resize(perfectPeaks.size());
 
-  synthPeaks.makeNormalNoise(synthPeaks);
-  synthPeaks.makeRandomInsertions(synthPeaks);
-  synthPeaks.makeRandomDeletions(synthPeaks);
-  synthPeaks.makeRandomFrontDeletions(synthPeaks);
-  synthPeaks.makeRandomBackDeletions(synthPeaks);
+  SynthTrain::makeNormalNoise(synthPeaks);
+  SynthTrain::makeRandomInsertions(synthPeaks);
+  SynthTrain::makeRandomDeletions(synthPeaks);
+  SynthTrain::makeRandomFrontDeletions(synthPeaks);
+  SynthTrain::makeRandomBackDeletions(synthPeaks);
 
   newSpeed = minSpeed + (rand() % (maxSpeed-minSpeed));
 
-  synthPeaks.scaleTrace(synthPeaks, origSpeed, newSpeed);
+  SynthTrain::scaleTrace(synthPeaks, origSpeed, newSpeed);
 }
 
