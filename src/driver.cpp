@@ -48,6 +48,8 @@ int main(int argc, char * argv[])
     const string trainName = db.lookupTrainName(trainFound.dbTrainNo);
 
     stats.log("ICE1", trainName);
+
+    // TODO Also stats on speed accuracy
   }
 
   stats.print("output.txt");

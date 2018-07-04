@@ -34,8 +34,6 @@
 #include "SynthTrain.h"
 #include "read.h"
 
-#define UNUSED(x) ((void)(true ? 0 : ((x), void(), 0)))
-
 
 SynthTrain::SynthTrain()
 {
@@ -109,9 +107,15 @@ void SynthTrain::makeNormalNoise(vector<Peak>& synthPeaks) const
   
   for (unsigned i = 1; i < synthPeaks.size(); i++)
   {
-    const int diff = synthPeaks[i].sampleNo - synthPeaks[i-1].sampleNo;
-    // TODO Continue
+    // The noise probably doesn't grow with the interval length,
+    // but this is a convenient way to get noise in the right ballpark.
 
+    const int diff = synthPeaks[i].sampleNo - synthPeaks[i-1].sampleNo;
+    const float sdev = static_cast<float>(diff) *
+      disturbance.noisePercent;
+
+    const int delta = static_cast<int>(round(sdev * dist(var)));
+    synthPeaks[i-1].sampleNo += delta;
   }
 }
 
@@ -197,10 +201,18 @@ void SynthTrain::scaleTrace(
    const int origSpeed,
    const int newSpeed) const
 {
-  // TODO
-  UNUSED(synthPeaks);
-  UNUSED(origSpeed);
-  UNUSED(newSpeed);
+  if (synthPeaks.size() == 0)
+    return;
+
+  const int offset = synthPeaks[0].sampleNo;
+  const float factor = static_cast<float>(newSpeed) /
+    static_cast<float>(origSpeed);
+
+  for (unsigned i = 0; i < synthPeaks.size(); i++)
+  {
+    synthPeaks[i].sampleNo = offset +
+      static_cast<int>((synthPeaks[i].sampleNo - offset) * factor);
+  }
 }
 
 

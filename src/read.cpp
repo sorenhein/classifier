@@ -3,11 +3,34 @@
 #include <fstream>
 #include <sstream>
 
+#pragma warning(push)
+#pragma warning(disable: 4365 4571 4625 4626 4774 5026 5027)
+#if defined(__CYGWIN__)
+  #include "dirent.h"
+#elif defined(_WIN32)
+  #include "dirent.h"
+  #include <windows.h>
+  #include "Shlwapi.h"
+#else
+  #include <dirent.h>
+#endif
+#pragma warning(pop)
+
+
 #include "Database.h"
 #include "read.h"
 
 #define UNUSED(x) ((void)(true ? 0 : ((x), void(), 0)))
 
+
+void tokenize(
+  const string& text,
+  vector<string>& tokens,
+  const string& delimiters);
+
+unsigned countDelimiters(
+  const string& text,
+  const string& delimiters);
 
 void resetCar(CarEntry& c);
 
@@ -25,8 +48,7 @@ bool readOrder(
 
 void readUsage(
   const string& text,
-  vector<string>& value,
-  const string& err);
+  vector<string>& value);
 
 bool readBool(
   const string& text,
@@ -38,18 +60,75 @@ bool readLevel(
   TrainLevel& value,
   const string& err);
 
+bool fillInDistances(CarEntry& c);
+
 void readCarFile(const string& fname);
 
 void readTrainFile(const string& fname);
 
 
+// tokenize splits a string into tokens separated by delimiter.
+// http://stackoverflow.com/questions/236129/split-a-string-in-c
+
+void tokenize(
+  const string& text,
+  vector<string>& tokens,
+  const string& delimiters)
+{
+  string::size_type pos, lastPos = 0;
+
+  while (true)
+  {
+    pos = text.find_first_of(delimiters, lastPos);
+    if (pos == std::string::npos)
+    {
+      pos = text.length();
+      tokens.push_back(string(text.data()+lastPos,
+        static_cast<string::size_type>(pos - lastPos)));
+      break;
+    }
+    else
+    {
+      tokens.push_back(string(text.data()+lastPos,
+        static_cast<string::size_type>(pos - lastPos)));
+    }
+    lastPos = pos + 1;
+  }
+}
+
+
+unsigned countDelimiters(
+  const string& text,
+  const string& delimiters)
+{
+  int c = 0;
+  for (unsigned i = 0; i < delimiters.length(); i++)
+    c += static_cast<int>
+      (count(text.begin(), text.end(), delimiters.at(i)));
+  return static_cast<unsigned>(c);
+}
+
+
 void getFilenames(
-  const string& dir,
+  const string& dirName,
   vector<string>& textfiles)
 {
-  // TODO
-  UNUSED(dir);
-  UNUSED(textfiles);
+  DIR *dir;
+  dirent *ent;
+
+  if ((dir = opendir(dirName.c_str())) == nullptr)
+  {
+    cout << "Bad directory " << dirName << endl;
+    return;
+  }
+
+  while ((ent = readdir(dir)) != nullptr)
+  {
+    if (ent->d_type == DT_REG)
+      textfiles.push_back(dirName + "/" + string(ent->d_name));
+  }
+
+  closedir(dir);
 }
 
 
@@ -93,9 +172,10 @@ void readCountries(
   const string& text,
   vector<string>& countries)
 {
-  // TODO: Split on comma
-  UNUSED(text);
-  UNUSED(countries);
+  const size_t c = countDelimiters(text, ",");
+  countries.resize(c+1);
+  countries.clear();
+  tokenize(text, countries, ",");
 }
 
 
@@ -105,24 +185,47 @@ bool readOrder(
   vector<int>& carNumbers,
   const string& err)
 {
-  // TODO: Split on comma, then (n), fill in vector
-  // Look up dbCarno in db
-  UNUSED(db);
-  UNUSED(text);
-  UNUSED(carNumbers);
-  UNUSED(err);
+  // Split on comma to get groups of cars.
+  const size_t c = countDelimiters(text, ",");
+  vector<string> carStrings(c+1);
+  carStrings.clear();
+  tokenize(text, carStrings, ",");
+
+  // Expand notation "802(7)" into 7 cars of type 802.
+  carNumbers.clear();
+  for (unsigned i = 0; i < carStrings.size(); i++)
+  {
+    string s = carStrings[i];
+    int count = 1;
+    if (s.back() == ')')
+    {
+      auto pos = s.find("(");
+      if (pos == string::npos)
+        return false;
+
+      const string bracketed = s.substr(pos+1, s.size()-pos+2);
+      if (! readInt(bracketed, count, err))
+        return false;
+      
+      s = s.substr(0, pos);
+    }
+
+    const int carNo = db.lookupCarNumber(s);
+    for (unsigned j = 0; j < static_cast<unsigned>(count); j++)
+      carNumbers.push_back(carNo);
+  }
   return true;
 }
 
 
 void readUsage(
   const string& text,
-  vector<string>& value,
-  const string& err)
+  vector<string>& value)
 {
-  UNUSED(text);
-  UNUSED(value);
-  UNUSED(err);
+  const size_t c = countDelimiters(text, ",");
+  value.resize(c+1);
+  value.clear();
+  tokenize(text, value, ",");
 }
 
 
@@ -131,10 +234,31 @@ bool readInt(
   int& value,
   const string& err)
 {
-  // TODO
-  UNUSED(text);
-  UNUSED(value);
-  UNUSED(err);
+  int i;
+  size_t pos;
+  try
+  {
+    i = stoi(text, &pos);
+    if (pos != text.size())
+    {
+      cout << err << endl;
+      return false;
+    }
+  }
+  catch (const invalid_argument& ia)
+  {
+    UNUSED(ia);
+    cout << err << endl;
+    return false;
+  }
+  catch (const out_of_range& ia)
+  {
+    UNUSED(ia);
+    cout << err << endl;
+    return false;
+  }
+
+  value = i;
   return true;
 }
 
@@ -144,10 +268,31 @@ bool readFloat(
   float& value,
   const string& err)
 {
-  // TODO
-  UNUSED(text);
-  UNUSED(value);
-  UNUSED(err);
+  float f;
+  size_t pos;
+  try
+  {
+    f = static_cast<float>(stod(text, &pos));
+    if (pos != text.size())
+    {
+      cout << err << endl;
+      return false;
+    }
+  }
+  catch (const invalid_argument& ia)
+  {
+    UNUSED(ia);
+    cout << err << endl;
+    return false;
+  }
+  catch (const out_of_range& ia)
+  {
+    UNUSED(ia);
+    cout << err << endl;
+    return false;
+  }
+
+  value = f;
   return true;
 }
 
@@ -157,10 +302,16 @@ bool readBool(
   bool& value,
   const string& err)
 {
-  // TODO
-  UNUSED(text);
-  UNUSED(value);
-  UNUSED(err);
+  if (text == "yes")
+    value = true;
+  else if (text == "no")
+    value = false;
+  else
+  {
+    cout << err << endl;
+    return false;
+  }
+
   return true;
 }
 
@@ -170,10 +321,85 @@ bool readLevel(
   TrainLevel& level,
   const string& err)
 {
-  // TODO
-  UNUSED(text);
-  UNUSED(level);
-  UNUSED(err);
+  if (text == "none")
+    level = TRAIN_NONE;
+  else if (text == "first")
+    level = TRAIN_FIRST;
+  else if (text == "second")
+    level = TRAIN_SECOND;
+  else
+  {
+    cout << err << endl;
+    return false;
+  }
+
+  return true;
+}
+
+
+bool fillInDistances(CarEntry& c)
+{
+  // Calculate missing distances.  Check that not over-specified.
+  // Less than some small number means that the value was not set.
+  // There are ways that the data can be consistent and still be
+  // flagged below.  This is just a quick hack.
+
+  int countEq1 = 0;
+  if (c.distFrontToWheel < 10) countEq1++;
+  if (c.distWheels < 10) countEq1++;
+  if (c.distPair < 10) countEq1++;
+  if (c.distWheelToBack < 10) countEq1++;
+
+  if (countEq1 == 4)
+  {
+    const int s1 = c.distFrontToWheel + c.distWheels + 
+      c.distPair + c.distWheelToBack;
+    if (s1 != c.length)
+      return false;
+  }
+  else if (countEq1 == 3)
+  {
+    if (c.distFrontToWheel < 10)
+      c.distFrontToWheel = c.length - c.distFrontToWheel;
+    else if (c.distWheels < 10)
+      c.distWheels = c.length - c.distWheels;
+    else if (c.distPair < 10)
+      c.distPair = c.length - c.distPair;
+    else if (c.distWheelToBack < 10)
+      c.distWheelToBack = c.length - c.distWheelToBack;
+    else
+      return false;
+  }
+  else 
+    return false;
+
+
+  int countEq2a = 0;
+  int countEq2b = 0;
+  if (c.distMiddles < 10) countEq2a++;
+  if (c.distPair < 10) countEq2b++;
+  if (c.distWheels < 10) countEq2b++;
+
+  const int s2 = c.distPair + c.distWheels;
+  if (countEq2b == 2)
+  {
+    if (countEq2a == 0)
+      c.distMiddles = s2;
+    else if (c.distMiddles != s2)
+      return false;
+  }
+  else if (countEq2b == 1)
+  {
+    if (countEq2a == 0)
+      return false;
+    else if (c.distMiddles < 10)
+      c.distMiddles = s2;
+    else if (c.distMiddles != s2)
+      return false;
+  }
+  else
+    return false;
+
   return true;
 }
 
@@ -210,7 +436,7 @@ void readCarFile(
     else if (field == "NAME")
       c.name = rest;
     else if (field == "USAGE")
-      readUsage(rest, c.usage, err);
+      readUsage(rest, c.usage);
     else if (field == "COUNTRIES")
       readCountries(rest, c.countries);
     else if (field == "INTRODUCTION" && 
@@ -263,8 +489,11 @@ void readCarFile(
   }
   fin.close();
 
-  // TODO: Calculate missing distances
-  // Check that not over-specified
+  if (! fillInDistances(c))
+  {
+    cout << "File " << fname << ": Could not fill in distances" << endl;
+    return;
+  }
 
   db.logCar(c);
 }
