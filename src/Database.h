@@ -26,7 +26,6 @@ struct CarEntry
   vector<string> countries; // Three-letter codes, e.g. DEU
   int introduction; // Year
   bool powerFlag;
-  int passengers;
   int capacity;
   TrainLevel level;
   bool restaurantFlag;
@@ -41,10 +40,8 @@ struct CarEntry
   int distPair; // In mm: Inner distance between pairs
   int distFrontToWheel; // In mm
   int distWheelToBack; // In mm
-
-  // distFrontToWheel + distWheels + distPair + distWheelToBack =
-  //   length.
-  // distMiddles = distPair + distWheels
+  int distFrontToMid1; // In mm
+  int distBackToMid2; // In mm
 };
 
 

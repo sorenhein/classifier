@@ -60,7 +60,13 @@ bool readLevel(
   TrainLevel& value,
   const string& err);
 
+bool fillInEquation(
+  int &lhs,
+  vector<int *>& rhs);
+
 bool fillInDistances(CarEntry& c);
+
+void printDistances(const CarEntry& c);
 
 void readCarFile(const string& fname);
 
@@ -140,7 +146,6 @@ void resetCar(CarEntry& c)
   c.countries.clear();
   c.introduction = 0;
   c.powerFlag = false;
-  c.passengers = 0;
   c.capacity = 0;
   c.level = TRAIN_NONE;
   c.restaurantFlag = false;
@@ -155,6 +160,8 @@ void resetCar(CarEntry& c)
   c.distPair = 1;
   c.distFrontToWheel = 1;
   c.distWheelToBack = 1;
+  c.distFrontToMid1 = 1;
+  c.distBackToMid2 = 1;
 }
 
 
@@ -234,6 +241,9 @@ bool readInt(
   int& value,
   const string& err)
 {
+  if (text == "")
+    return false;
+
   int i;
   size_t pos;
   try
@@ -268,6 +278,9 @@ bool readFloat(
   float& value,
   const string& err)
 {
+  if (text == "")
+    return false;
+
   float f;
   size_t pos;
   try
@@ -337,70 +350,142 @@ bool readLevel(
 }
 
 
-bool fillInDistances(CarEntry& c)
+bool fillInEquation(
+  int &lhs,
+  vector<int *>& rhs)
 {
-  // Calculate missing distances.  Check that not over-specified.
-  // Less than some small number means that the value was not set.
-  // There are ways that the data can be consistent and still be
-  // flagged below.  This is just a quick hack.
-
-  int countEq1 = 0;
-  if (c.distFrontToWheel < 10) countEq1++;
-  if (c.distWheels < 10) countEq1++;
-  if (c.distPair < 10) countEq1++;
-  if (c.distWheelToBack < 10) countEq1++;
-
-  if (countEq1 == 4)
-  {
-    const int s1 = c.distFrontToWheel + c.distWheels + 
-      c.distPair + c.distWheelToBack;
-    if (s1 != c.length)
-      return false;
-  }
-  else if (countEq1 == 3)
-  {
-    if (c.distFrontToWheel < 10)
-      c.distFrontToWheel = c.length - c.distFrontToWheel;
-    else if (c.distWheels < 10)
-      c.distWheels = c.length - c.distWheels;
-    else if (c.distPair < 10)
-      c.distPair = c.length - c.distPair;
-    else if (c.distWheelToBack < 10)
-      c.distWheelToBack = c.length - c.distWheelToBack;
-    else
-      return false;
-  }
-  else 
+  // Equation: lhs = sum(rhs).
+  // If all are given, check consistency.
+  // If one is missing, calculate it.
+  // Otherwise, return error.
+  
+  const unsigned l = rhs.size();
+  if (l <= 1)
     return false;
 
+  unsigned countLHS = 0;
+  if (lhs > 10) 
+  countLHS++;
 
-  int countEq2a = 0;
-  int countEq2b = 0;
-  if (c.distMiddles < 10) countEq2a++;
-  if (c.distPair < 10) countEq2b++;
-  if (c.distWheels < 10) countEq2b++;
-
-  const int s2 = c.distPair + c.distWheels;
-  if (countEq2b == 2)
+  unsigned countRHS = 0;
+  int sum = 0;
+  int miss = -1;
+  for (unsigned i = 0; i < l; i++)
   {
-    if (countEq2a == 0)
-      c.distMiddles = s2;
-    else if (c.distMiddles != s2)
+    const int r = * rhs[i];
+    if (r > 10)
+      countRHS++;
+    else
+      miss = i;
+
+    sum += r;
+  }
+
+
+  if (countRHS == l)
+  {
+    if (countLHS == 0)
+      lhs = sum;
+    else if (lhs != sum)
       return false;
   }
-  else if (countEq2b == 1)
+  else if (countRHS == l-1)
   {
-    if (countEq2a == 0)
+    if (countLHS == 0)
       return false;
-    else if (c.distMiddles < 10)
-      c.distMiddles = s2;
-    else if (c.distMiddles != s2)
-      return false;
+    else
+      * rhs[miss] = lhs - (sum - * rhs[miss]);
   }
   else
     return false;
 
   return true;
+}
+
+
+bool fillInDistances(CarEntry& c)
+{
+  // Calculate missing distances.  Check that not over-specified.
+  // Less than some small number means that the value was not set.
+  // There are probably ways that the data can be consistent and still 
+  // be flagged below.  This is just a quick hack.
+
+  // Equations:
+  //
+  // 1. distMiddles = distPair + distWheels
+  //
+  // 2. length = distFrontToWheel + distWheels + distPair + distWheelToBack
+  //
+  // distFrontToMid1 = distFrontToWheel + (1/2) * distWheels, i.e.
+  // 3. 2*distFrontToMid1 = 2*distFrontToWheel + distWheels.
+  //
+  // distBackToMid2 = distWheelToBack + (1/2) * distWheels, i.e.
+  // 4. 2*distBackToMid2 = 2*distWheelToBack + distWheels.
+
+  vector<int *> rhs2, rhs4;
+  rhs2.resize(2);
+  rhs4.resize(4);
+
+  bool done = false;
+  for (unsigned iter = 0; iter < 3 && ! done; iter++)
+  {
+    done = true;
+
+    // Equation 1
+    rhs2[0] = &c.distPair;
+    rhs2[1] = &c.distWheels;
+    if (! fillInEquation(c.distMiddles, rhs2))
+      done = false;
+
+    // Equation 2
+    rhs4[0] = &c.distFrontToMid1;
+    rhs4[1] = &c.distWheels;
+    rhs4[2] = &c.distPair;
+    rhs4[3] = &c.distBackToMid2;
+    if (! fillInEquation(c.length, rhs4))
+      done = false;
+
+    // Equation 3
+    int lhs = 2 * c.distFrontToMid1;
+    int rhsv = 2 * c.distFrontToWheel;
+    rhs2[0] = &rhsv;
+    rhs2[1] = &c.distWheels;
+    if (! fillInEquation(lhs, rhs2))
+      done = false;
+    else
+    {
+      c.distFrontToMid1 = lhs/2;
+      c.distFrontToWheel = rhsv/2;
+    }
+
+    // Equation 4
+    lhs = 2 * c.distBackToMid2;
+    rhsv = 2 * c.distWheelToBack;
+    rhs2[0] = &rhsv;
+    rhs2[1] = &c.distWheels;
+    if (! fillInEquation(lhs, rhs2))
+      done = false;
+    else
+    {
+      c.distBackToMid2 = lhs/2;
+      c.distWheelToBack = rhsv/2;
+    }
+  }
+
+  return done;
+}
+
+
+void printDistances(const CarEntry& c)
+{
+  cout << setw(18) << left << "distWheels" << c.distWheels << "\n";
+  cout << setw(18) << left << "distMiddles" << c.distMiddles << "\n";
+  cout << setw(18) << left << "distPair" << c.distPair << "\n";
+  cout << setw(18) << left << "distFrontToWheel" << c.distFrontToWheel << "\n";
+  cout << setw(18) << left << "distWheelToBack" << c.distWheelToBack << "\n";
+  cout << setw(18) << left << "distFrontToMid1" << c.distFrontToMid1 << "\n";
+  cout << setw(18) << left << "distBackToMid2" << c.distBackToMid2 << "\n";
+  cout << endl;
 }
 
 
@@ -428,7 +513,7 @@ void readCarFile(
       break;
     }
 
-    const string& field = line.substr(0, sp-1);
+    const string& field = line.substr(0, sp);
     const string& rest = line.substr(sp+1);
 
     if (field == "OFFICIAL_NAME")
@@ -439,48 +524,84 @@ void readCarFile(
       readUsage(rest, c.usage);
     else if (field == "COUNTRIES")
       readCountries(rest, c.countries);
-    else if (field == "INTRODUCTION" && 
-        ! readInt(rest, c.introduction, err))
-      break;
-    else if (field == " POWER" && ! readBool(rest, c.powerFlag, err))
-      break;
-    else if (field == "PASSENGERS" && ! readInt(rest, c.passengers, err))
-      break;
-    else if (field == "CAPACITY" && ! readInt(rest, c.capacity, err))
-      break;
-    else if (field == "LEVEL" && ! readLevel(rest, c.level, err))
-      break;
-    else if (field == " RESTAURANT" && 
-        ! readBool(rest, c.restaurantFlag, err))
-      break;
-    else if (field == "WEIGHT" && ! readInt(rest, c.weight, err))
-      break;
-    else if (field == "WHEEL_LOAD" && 
-        ! readInt(rest, c.wheelLoad, err))
-      break;
-    else if (field == "SPEED" && ! readInt(rest, c.speed, err))
-      break;
+    else if (field == "INTRODUCTION")
+    {
+      if (! readInt(rest, c.introduction, err)) break;
+    }
+    else if (field == "POWER")
+    {
+      if (! readBool(rest, c.powerFlag, err)) break;
+    }
+    else if (field == "CAPACITY")
+    {
+      if (! readInt(rest, c.capacity, err)) break;
+    }
+    else if (field == "CLASS")
+    {
+      if (! readLevel(rest, c.level, err)) break;
+    }
+    else if (field == "RESTAURANT")
+    {
+      if (! readBool(rest, c.restaurantFlag, err)) break;
+    }
+    else if (field == "WEIGHT")
+    {
+      if (! readInt(rest, c.weight, err)) break;
+    }
+    else if (field == "WHEEL_LOAD")
+    {
+      if (! readInt(rest, c.wheelLoad, err)) break;
+    }
+    else if (field == "SPEED")
+    {
+      if (! readInt(rest, c.speed, err)) break;
+    }
     else if (field == "CONFIGURATION")
       c.configurationUIC = rest;
-    else if (field == "LENGTH" && ! readInt(rest, c.length, err))
-      break;
-    else if (field == " SYMMETRY" && ! readBool(rest, c.symmetryFlag, err))
-      break;
-    else if (field == "LENGTH" && ! readInt(rest, c.length, err))
-      break;
-    else if (field == "DIST_WHEELS" && ! readInt(rest, c.distWheels, err))
-      break;
-    else if (field == "DIST_MIDDLES" && 
-        ! readInt(rest, c.distMiddles, err))
-      break;
-    else if (field == "DIST_PAIR" && ! readInt(rest, c.distPair, err))
-      break;
-    else if (field == "DIST_FRONT_TO_WHEEL" && 
-        ! readInt(rest, c.distFrontToWheel, err))
-      break;
-    else if (field == "DIST_WHEEL_TO_BACK" && 
-        ! readInt(rest, c.distWheelToBack, err))
-      break;
+    else if (field == "LENGTH")
+    {
+      if (! readInt(rest, c.length, err)) break;
+    }
+    else if (field == "SYMMETRY")
+    {
+      if (! readBool(rest, c.symmetryFlag, err)) break;
+    }
+    else if (field == "LENGTH")
+    {
+      if (! readInt(rest, c.length, err)) break;
+    }
+    else if (field == "DIST_WHEELS")
+    {
+      if (! readInt(rest, c.distWheels, err)) break;
+    }
+    else if (field == "DIST_MIDDLES")
+    {
+      if (! readInt(rest, c.distMiddles, err)) break;
+    }
+    else if (field == "DIST_PAIR")
+    {
+      if (! readInt(rest, c.distPair, err)) break;
+    }
+    else if (field == "DIST_FRONT_TO_WHEEL")
+    {
+      if (! readInt(rest, c.distFrontToWheel, err)) break;
+    }
+    else if (field == "DIST_WHEEL_TO_BACK")
+    {
+      if (! readInt(rest, c.distWheelToBack, err)) break;
+    }
+    else if (field == "DIST_FRONT_TO_MID1")
+    {
+      if (! readInt(rest, c.distFrontToMid1, err)) break;
+    }
+    else if (field == "DIST_BACK_TO_MID2")
+    {
+      if (! readInt(rest, c.distBackToMid2, err)) break;
+    }
+    else if (field == "COMMENT")
+    {
+      // Ignore
+    }
     else
     {
       cout << err << endl;
@@ -540,13 +661,16 @@ void readTrainFile(
 
     if (field == "NAME")
       t.name = rest;
-    else if (field == "INTRODUCTION" && 
-        ! readInt(rest, t.introduction, err))
-      break;
+    else if (field == "INTRODUCTION")
+    {
+      if ( ! readInt(rest, t.introduction, err)) break;
+    }
     else if (field == "COUNTRIES")
       readCountries(rest, t.countries);
-    else if (field == "ORDER" && ! readOrder(db, rest, t.carNumbers, err))
-      break;
+    else if (field == "ORDER")
+    {
+      if (! readOrder(db, rest, t.carNumbers, err)) break;
+    }
     else
     {
       cout << err << endl;
