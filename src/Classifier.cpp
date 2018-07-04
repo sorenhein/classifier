@@ -31,7 +31,7 @@ void Classifier::makeTimeDifferences(
 {
   const unsigned l = peaks.size();
   for (unsigned i = 1; i < l; i++)
-    timeDifferences[i-1] = peaks[i].sampleNo - peaks[i-1].sampleNo;
+    timeDifferences.push_back(peaks[i].sampleNo - peaks[i-1].sampleNo);
 
   sort(timeDifferences.begin(), timeDifferences.end());
 }
@@ -95,12 +95,11 @@ void Classifier::detectClusters(
       float sum = 0.;
       float sumsq = 0;
 
-
       for (unsigned j = jlo; j <= jhi; j++)
       {
         const float df = static_cast<float>(timeDifferences[j]);
         sum += df;
-        sumsq = df * df;
+        sumsq += df * df;
       }
 
        const float n = static_cast<float>(count);
@@ -201,6 +200,7 @@ void Classifier::classify(
 
   vector<Cluster> clusters;
   Classifier::detectClusters(diffs, clusters);
+Classifier::printClusters(clusters);
 
   Classifier::classifyClusters(clusters);
 
@@ -221,6 +221,19 @@ void Classifier::classify(
       i < cars.size() && j <= lastCar; i++, j++)
   {
     // TODO: Add up distances somehow.
+  }
+}
+
+
+void Classifier::printClusters(const vector<Cluster>& clusters) const
+{
+  for (auto &cluster: clusters)
+  {
+    cout << "center " << cluster.center << endl;
+    cout << "sdev " << cluster.sdev << endl;
+    cout << "range " << cluster.lower << " to " << cluster.upper << endl;
+    cout << "count " << cluster.count << endl;
+    cout << "label " << cluster.label << endl << endl;
   }
 }
 

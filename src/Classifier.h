@@ -95,6 +95,8 @@ class Classifier
       const vector<Car>& cars,
       vector<list<int>>& carTypes) const;
 
+    void printClusters(
+      const vector<Cluster>& clusters) const;
 
 
   public:

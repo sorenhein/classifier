@@ -220,6 +220,7 @@ void SynthTrain::scaleTrace(
   }
 }
 
+void printPeaks(const vector<Peak>& synthPeaks);
 
 void SynthTrain::disturb(
   const vector<Peak>& perfectPeaks,
@@ -229,8 +230,7 @@ void SynthTrain::disturb(
   const int maxSpeed,
   int& newSpeed) const
 {
-  synthPeaks.clear();
-  synthPeaks.resize(perfectPeaks.size());
+  synthPeaks = perfectPeaks;
 
   SynthTrain::makeNormalNoise(synthPeaks);
   SynthTrain::makeRandomInsertions(synthPeaks);
@@ -241,5 +241,6 @@ void SynthTrain::disturb(
   newSpeed = minSpeed + (rand() % (maxSpeed-minSpeed));
 
   SynthTrain::scaleTrace(synthPeaks, origSpeed, newSpeed);
+cout << endl << "scale " << newSpeed << endl;
 }
 

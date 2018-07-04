@@ -76,11 +76,14 @@ class Database
 {
   private:
 
+   int sampleRate; 
    vector<CarEntry> carEntries;
    
    vector<TrainEntry> trainEntries;
 
-   map<string, unsigned> offNameMap;
+   map<string, unsigned> offCarMap;
+
+   map<string, unsigned> offTrainMap;
 
 
   public:
@@ -93,13 +96,17 @@ class Database
 
     void logTrain(const TrainEntry& train);
 
-    void getPerfectPeaks(
+    void setSampleRate(const int sampleRateIn);
+
+    bool getPerfectPeaks(
       const string& trainName,
       const string& country,
       vector<Peak>& peaks,
       const int speed) const;
 
     int lookupCarNumber(const string& offName) const;
+
+    int lookupTrainNumber(const string& offName) const;
 
     string lookupTrainName(const unsigned trainNo) const;
 

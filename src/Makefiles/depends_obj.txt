@@ -1,4 +1,8 @@
-charsets.obj: charsets.h
-Metaphone3.obj: Metaphone3.h charsets.h
-entry.obj: ../include/pron.h ../include/portab.h
-wrapper.obj: ../include/pron.h ../include/portab.h Metaphone3.h
+Classifier.obj: Classifier.h Database.h const.h
+Database.obj: Database.h const.h
+Stats.obj: Stats.h
+SynthTrain.obj: SynthTrain.h Classifier.h Database.h const.h read.h
+Timer.obj: Timer.h
+read.obj: Database.h const.h read.h
+driver.obj: read.h Database.h const.h Classifier.h SynthTrain.h Timer.h
+driver.obj: Stats.h
