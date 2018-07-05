@@ -74,6 +74,10 @@ class Classifier
       const vector<Peak>& peaks,
       vector<int>& timeDifferences) const;
 
+    void KmeansOptimalClusters(
+      const vector<int>& timeDifferences,
+      vector<Cluster>& clusters) const;
+
     void detectClusters(
       const vector<int>& timeDifferences,
       vector<Cluster>& clusters) const;

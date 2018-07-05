@@ -83,7 +83,7 @@ bool Database::getPerfectPeaks(
 
     peak.sampleNo = pos;
     peaks.push_back(peak); // Second wheel, first pair
-    pos += static_cast<int>(carEntry.distMiddles * factor);
+    pos += static_cast<int>(carEntry.distPair * factor);
 
     peak.sampleNo = pos;
     peaks.push_back(peak); // First wheel, second pair

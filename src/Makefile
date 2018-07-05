@@ -49,7 +49,7 @@ vs:	$(OBJ_FILES)
 	$(LINK) $(LINK_FLAGS1) $(OBJ_FILES) /OUT:$(TARGET).exe
 
 %.obj:	%.cpp
-	$(CC) $(COMPILE_FLAGS) /c $<
+	$(CC) $(COMPILE_FLAGS) /c $< /Fo$@
 
 depend:
 	makedepend -Y -o.obj -- $(SOURCE_FILES)

@@ -6,3 +6,11 @@ Timer.obj: Timer.h
 read.obj: Database.h const.h read.h
 driver.obj: read.h Database.h const.h Classifier.h SynthTrain.h Timer.h
 driver.obj: Stats.h
+Ckmeans/Ckmeans.1d.dp.obj: Ckmeans/Ckmeans.1d.dp.h Ckmeans/within_cluster.h
+Ckmeans/dynamic_prog.obj: Ckmeans/Ckmeans.1d.dp.h Ckmeans/within_cluster.h
+Ckmeans/fill_log_linear.obj: Ckmeans/Ckmeans.1d.dp.h Ckmeans/within_cluster.h
+Ckmeans/fill_quadratic.obj: Ckmeans/Ckmeans.1d.dp.h Ckmeans/within_cluster.h
+Ckmeans/fill_SMAWK.obj: Ckmeans/Ckmeans.1d.dp.h Ckmeans/within_cluster.h
+Ckmeans/select_levels.obj: Ckmeans/Ckmeans.1d.dp.h Ckmeans/within_cluster.h
+Ckmeans/weighted_select_levels.obj: Ckmeans/Ckmeans.1d.dp.h
+Ckmeans/weighted_select_levels.obj: Ckmeans/within_cluster.h

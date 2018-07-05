@@ -4,9 +4,11 @@
 #include <algorithm>
 
 #include "Classifier.h"
+#include "Ckmeans/Ckmeans.1d.dp.h"
 
 #define MIN_PEAKS 8
 #define CLUSTER_FACTOR 1.05
+#define MAX_CLUSTERS 12
 
 #define UNUSED(x) ((void)(true ? 0 : ((x), void(), 0)))
 
@@ -34,6 +36,63 @@ void Classifier::makeTimeDifferences(
     timeDifferences.push_back(peaks[i].sampleNo - peaks[i-1].sampleNo);
 
   sort(timeDifferences.begin(), timeDifferences.end());
+}
+
+
+void Classifier::KmeansOptimalClusters(
+  const vector<int>& timeDifferences,
+  vector<Cluster>& clusters) const
+{
+  const unsigned l = timeDifferences.size();
+
+  double * x = (double *) malloc(l * sizeof(double));
+  double * y = (double *) malloc(l * sizeof(double));
+  int * Kcluster = (int *) malloc(l * sizeof(int));
+  double * centers = (double *) malloc(l * sizeof(double));
+  double * withinss = (double *) malloc(l * sizeof(double));
+  double * size = (double *) malloc(l * sizeof(double));
+  double * BIC = (double *) malloc(l * sizeof(double));
+
+  for (unsigned i = 0; i < l; i++)
+  {
+    x[i] = timeDifferences[i];
+    y[i] = 1;
+    Kcluster[i] = 1;
+  }
+
+  for (unsigned c = 0; c < MAX_CLUSTERS; c++)
+  {
+    centers[c] = 0.;
+    withinss[c] = 0.;
+    size[c] = 0.;
+    BIC[c] = 0.;
+  }
+
+  kmeans_1d_dp(x, l, y, 3, MAX_CLUSTERS,
+    Kcluster, centers, withinss, size, BIC,
+    "BIC", "linear", L2);
+  
+  const unsigned numClusters = static_cast<unsigned>(Kcluster[l-1]) + 1;
+  clusters.clear();
+  clusters.resize(numClusters);
+
+  for (unsigned i = 0; i < l; i++)
+  {
+    const unsigned c = static_cast<unsigned>(Kcluster[i]);
+    clusters[c].count++;
+    clusters[c].upper = static_cast<int>(x[i]);
+  }
+
+  for (unsigned c = 0; c < numClusters; c++)
+  {
+    clusters[c].center = static_cast<float>(centers[c]);
+    clusters[c].sdev = static_cast<float>(sqrt(withinss[c]));
+
+    if (c == 0)
+      clusters[c].lower = 0;
+    else
+      clusters[c].lower = clusters[c-1].upper + 1;
+  }
 }
 
 
@@ -202,7 +261,8 @@ void Classifier::classify(
   Classifier::makeTimeDifferences(peaks, diffs);
 
   vector<Cluster> clusters;
-  Classifier::detectClusters(diffs, clusters);
+  // Classifier::detectClusters(diffs, clusters);
+  Classifier::KmeansOptimalClusters(diffs, clusters);
 Classifier::printClusters(clusters);
 
   Classifier::classifyClusters(clusters);
