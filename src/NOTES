@@ -4,6 +4,7 @@
   large N intra
 
 A cluster should also have a median?
+Good intervals tend to be centered around the median
 
 * If we have
   - 4 gaps: Two ought to combine into a category (short, medium, large).

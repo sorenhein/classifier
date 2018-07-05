@@ -148,7 +148,7 @@ void SynthTrain::makeRandomInsertions(vector<Peak>& synthPeaks) const
     newPeak.sampleNo = tLeft + 1 + (rand() % (tRight - tLeft - 2));
     newPeak.value = (vLeft + vRight) / 2.f;
 
-    synthPeaks.insert(synthPeaks.begin()+1, newPeak);
+    synthPeaks.insert(synthPeaks.begin()+hit+1, newPeak);
   }
 }
 

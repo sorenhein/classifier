@@ -31,6 +31,7 @@ WARN_FLAGS	=		\
 	/wd4996			\
 	/wd5026			\
 	/wd5027			\
+	/wd5045			\
 	/WX
 
 # If you don't have /std:c++17, you won't get THR_STLIMPL.
