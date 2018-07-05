@@ -33,3 +33,5 @@
 
 *.bak
 *.swp
+*.csv
+src/*.txt

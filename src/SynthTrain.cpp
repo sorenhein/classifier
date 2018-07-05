@@ -220,7 +220,8 @@ void SynthTrain::scaleTrace(
   }
 }
 
-void printPeaks(const vector<Peak>& synthPeaks);
+void printPeaks(const vector<Peak>& synthPeaks, const int level);
+#define UNUSED(x) ((void)(true ? 0 : ((x), void(), 0)))
 
 void SynthTrain::disturb(
   const vector<Peak>& perfectPeaks,
@@ -240,7 +241,8 @@ void SynthTrain::disturb(
 
   newSpeed = minSpeed + (rand() % (maxSpeed-minSpeed));
 
-  SynthTrain::scaleTrace(synthPeaks, origSpeed, newSpeed);
-cout << endl << "scale " << newSpeed << endl;
+  UNUSED(origSpeed);
+  // SynthTrain::scaleTrace(synthPeaks, origSpeed, newSpeed);
+// cout << endl << "scale " << newSpeed << endl;
 }
 

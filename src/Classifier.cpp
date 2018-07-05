@@ -77,6 +77,9 @@ void Classifier::detectClusters(
       continue;
     }
 
+    // TODO: So we get the first one going down, rather than
+    // the last high one.  Should fix.
+
     // We found a new cluster.
     Cluster cluster;
     cluster.count = count;

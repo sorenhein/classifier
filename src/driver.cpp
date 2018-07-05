@@ -14,7 +14,9 @@ using namespace std;
 #define UNUSED(x) ((void)(true ? 0 : ((x), void(), 0)))
 
 
-void printPeaks(const vector<Peak>& peaks);
+void printPeaks(
+  const vector<Peak>& peaks,
+  const int level);
 
 
 int main(int argc, char * argv[])
@@ -41,7 +43,11 @@ cout << "Read disturbance" << endl;
   vector<Peak> perfectPeaks;
   db.getPerfectPeaks("ICE1 Refurbishment", "DEU", perfectPeaks, 60);
 cout << "Got perfect peaks" << endl;
-printPeaks(perfectPeaks);
+printPeaks(perfectPeaks, 1);
+
+    TrainFound trainFound2;
+    classifier.classify(perfectPeaks, db, trainFound2);
+cout << "Classified " << endl;
 
   Stats stats;
 
@@ -51,7 +57,7 @@ printPeaks(perfectPeaks);
     int newSpeed;
     synth.disturb(perfectPeaks, synthPeaks, 60, 20, 250, newSpeed);
 cout << "Got disturbed peaks " << i << endl;
-printPeaks(synthPeaks);
+printPeaks(synthPeaks, 2);
 
     TrainFound trainFound;
     classifier.classify(synthPeaks, db, trainFound);
@@ -70,10 +76,13 @@ cout << "Logged stats " << i << endl;
 }
 
 
-void printPeaks(const vector<Peak>& peaks)
+void printPeaks(
+  const vector<Peak>& peaks,
+  const int level)
 {
   for (unsigned i = 0; i < peaks.size(); i++)
-    cout << setw(4) << i << setw(12) << peaks[i].sampleNo << endl;
+    cout << peaks[i].sampleNo << ";" << level << endl;
+    // cout << setw(4) << i << setw(12) << peaks[i].sampleNo << endl;
   cout << endl;
 }
 
