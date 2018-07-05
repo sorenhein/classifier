@@ -81,17 +81,15 @@ void Classifier::KmeansOptimalClusters(
     const unsigned c = static_cast<unsigned>(Kcluster[i]);
     clusters[c].count++;
     clusters[c].upper = static_cast<int>(x[i]);
+
+    if (clusters[c].lower == 0)
+    clusters[c].lower = static_cast<int>(x[i]);
   }
 
   for (unsigned c = 0; c < numClusters; c++)
   {
     clusters[c].center = static_cast<float>(centers[c]);
     clusters[c].sdev = static_cast<float>(sqrt(withinss[c]));
-
-    if (c == 0)
-      clusters[c].lower = 0;
-    else
-      clusters[c].lower = clusters[c-1].upper + 1;
   }
 }
 

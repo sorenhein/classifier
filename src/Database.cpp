@@ -15,6 +15,13 @@ Database::Database()
   offTrainMap.clear();
 
   sampleRate = 2000; // Default in Hz
+
+  // Put a dummy car at position 0 which is not used.
+  // We're going to put reversed cars by the negative of the
+  // actual number, and this only works if we exclude 0.
+  CarEntry car;
+  car.officialName = "Dummy";
+  carEntries.push_back(car);
 }
 
 
@@ -73,25 +80,56 @@ bool Database::getPerfectPeaks(
   for (unsigned i = 0; i < l; i++)
   {
     const int carNo = carNos[i];
-    const CarEntry& carEntry = carEntries[carNo];
+    if (carNo == 0)
+    {
+      cout << "Bad car number" << endl;
+      return false;
+    }
+    else if (carNo > 0)
+    {
+      const CarEntry& carEntry = carEntries[carNo];
 
-    pos += static_cast<int>(carEntry.distFrontToWheel * factor);
+      pos += static_cast<int>(carEntry.distFrontToWheel * factor);
 
-    peak.sampleNo = pos;
-    peaks.push_back(peak); // First wheel, first pair
-    pos += static_cast<int>(carEntry.distWheels * factor);
+      peak.sampleNo = pos;
+      peaks.push_back(peak); // First wheel, first pair
+      pos += static_cast<int>(carEntry.distWheels * factor);
 
-    peak.sampleNo = pos;
-    peaks.push_back(peak); // Second wheel, first pair
-    pos += static_cast<int>(carEntry.distPair * factor);
+      peak.sampleNo = pos;
+      peaks.push_back(peak); // Second wheel, first pair
+      pos += static_cast<int>(carEntry.distPair * factor);
 
-    peak.sampleNo = pos;
-    peaks.push_back(peak); // First wheel, second pair
-    pos += static_cast<int>(carEntry.distWheels * factor);
+      peak.sampleNo = pos;
+      peaks.push_back(peak); // First wheel, second pair
+      pos += static_cast<int>(carEntry.distWheels * factor);
 
-    peak.sampleNo = pos;
-    peaks.push_back(peak); // Second wheel, second pair
-    pos += static_cast<int>(carEntry.distWheelToBack * factor);
+      peak.sampleNo = pos;
+      peaks.push_back(peak); // Second wheel, second pair
+      pos += static_cast<int>(carEntry.distWheelToBack * factor);
+    }
+    else
+    {
+      // Car is reversed.
+      const CarEntry& carEntry = carEntries[-carNo];
+
+      pos += static_cast<int>(carEntry.distWheelToBack * factor);
+
+      peak.sampleNo = pos;
+      peaks.push_back(peak); // Second wheel, second pair
+      pos += static_cast<int>(carEntry.distWheels * factor);
+
+      peak.sampleNo = pos;
+      peaks.push_back(peak); // First wheel, second pair
+      pos += static_cast<int>(carEntry.distPair * factor);
+
+      peak.sampleNo = pos;
+      peaks.push_back(peak); // Second wheel, first pair
+      pos += static_cast<int>(carEntry.distWheels * factor);
+
+      peak.sampleNo = pos;
+      peaks.push_back(peak); // First wheel, first pair
+      pos += static_cast<int>(carEntry.distFrontToWheel * factor);
+    }
   }
   return true;
 }
@@ -101,7 +139,7 @@ int Database::lookupCarNumber(const string& offName) const
 {
   auto it = offCarMap.find(offName);
   if (it == offCarMap.end())
-    return -1;
+    return 0; // Invalid number
   else
     return it->second;
 }

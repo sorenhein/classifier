@@ -218,7 +218,25 @@ bool readOrder(
       s = s.substr(0, pos);
     }
 
-    const int carNo = db.lookupCarNumber(s);
+    // Car is "backwards".
+    int reverseMultiplier = 1;
+    if (s.back() == ']')
+    {
+      auto pos = s.find("[");
+      if (pos == string::npos)
+        return false;
+
+      string bracketed = s.substr(pos+1);
+      if (bracketed != "R]")
+        return false;
+      
+      s = s.substr(0, pos);
+      reverseMultiplier = -1;
+    }
+
+    // A reversed car has the negative number.
+    const int carNo = reverseMultiplier * db.lookupCarNumber(s);
+
     for (unsigned j = 0; j < static_cast<unsigned>(count); j++)
       carNumbers.push_back(carNo);
   }
