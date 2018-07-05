@@ -36,6 +36,7 @@ class Classifier
     struct Cluster
     {
       float center;
+      float median;
       float sdev;
       int lower;
       int upper;
@@ -78,9 +79,11 @@ class Classifier
       const vector<int>& timeDifferences,
       vector<Cluster>& clusters) const;
 
-    void detectClusters(
-      const vector<int>& timeDifferences,
-      vector<Cluster>& clusters) const;
+    bool linearRegression(
+      const vector<Peak>& observedTimes,
+      const vector<Peak>& synthTimes,
+      float& scaleFactor,
+      int& timeShift) const;
 
     void classifyClusters(
       const vector<Cluster>& clusters) const;

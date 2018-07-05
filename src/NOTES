@@ -1,10 +1,15 @@
-* Hopefully we get the exact right clusters already?!
-  short 2N
-  medium N inter
-  large N intra
+How to reduce to 3 clusters, S-M-L
+----------------------------------
 
-A cluster should also have a median?
-Good intervals tend to be centered around the median
+* Get ranges for M/S and L/S for all trains that are possible
+
+* Counts should be about 2N : N : N (M = inter, large = L)
+
+* hi-lo should be similar to sdev
+  - Take median +/- 0.7 sdev or so
+  - Anything beyond that is also in the cluster, but is marginal
+* Small clusters that are < S are considered marginal S's
+
 
 * If we have
   - 4 gaps: Two ought to combine into a category (short, medium, large).

@@ -12,6 +12,22 @@
 
 #define UNUSED(x) ((void)(true ? 0 : ((x), void(), 0)))
 
+      // If we ever need sdev:
+      // float sum = 0.;
+      // float sumsq = 0;
+
+      // for (unsigned j = jlo; j <= jhi; j++)
+      // {
+        // const float df = static_cast<float>(timeDifferences[j]);
+        // sum += df;
+        // sumsq += df * df;
+      // }
+
+       // const float n = static_cast<float>(count);
+       // cluster.center = sum / n;
+       // cluster.sdev = sqrt((n*sumsq - sum*sum) / (n * (n-1.f)));
+
+
 
 Classifier::Classifier()
 {
@@ -76,6 +92,8 @@ void Classifier::KmeansOptimalClusters(
   clusters.clear();
   clusters.resize(numClusters);
 
+  vector<unsigned> lastClusterIndex(numClusters);;
+
   for (unsigned i = 0; i < l; i++)
   {
     const unsigned c = static_cast<unsigned>(Kcluster[i]);
@@ -83,92 +101,73 @@ void Classifier::KmeansOptimalClusters(
     clusters[c].upper = static_cast<int>(x[i]);
 
     if (clusters[c].lower == 0)
-    clusters[c].lower = static_cast<int>(x[i]);
+      clusters[c].lower = static_cast<int>(x[i]);
+    
+    lastClusterIndex[c] = i;
   }
 
   for (unsigned c = 0; c < numClusters; c++)
   {
     clusters[c].center = static_cast<float>(centers[c]);
     clusters[c].sdev = static_cast<float>(sqrt(withinss[c]));
+
+    const unsigned firstClusterIndex = 
+      (c == 0 ? 0 : lastClusterIndex[c-1] + 1);
+
+    const unsigned isum = firstClusterIndex + lastClusterIndex[c];
+    const unsigned imid = isum/2;
+    if (isum % 2 == 0)
+      clusters[c].median = static_cast<float>(x[imid]);
+    else
+      clusters[c].median = static_cast<float>(x[imid] + x[imid+1]) / 2.f;
   }
 }
 
 
-void Classifier::detectClusters(
-  const vector<int>& timeDifferences,
-  vector<Cluster>& clusters) const
+bool Classifier::linearRegression(
+  const vector<Peak>& observedTimes,
+  const vector<Peak>& synthTimes,
+  float& scaleFactor,
+  int& timeShift) const
 {
-  const unsigned l = timeDifferences.size();
-  const unsigned cpos = 0;
+  // x ~ scaleFactor * y + timeShift, where 
+  // x is observedTimes
+  // y is synthTimes
+  // Effectively a linear regression
 
-  int prevCount = 0;
-  int prevPos = -1;
+  const unsigned l = observedTimes.size();
+  const float lf = static_cast<float>(l);
 
-  for (unsigned i = 0; i < l; i++)
+  if (synthTimes.size() != l || l < 2)
+    return false;
+
+  float sumx = 0.f;
+  float sumy = 0.f;
+  float sumxy = 0.f;
+  float sumyy = 0.f;
+
+  for (unsigned i = 0; i< l; i++)
   {
-    const int d = timeDifferences[i];
-    const int lower = static_cast<int>(d / CLUSTER_FACTOR);
-    const int upper = static_cast<int>(d * CLUSTER_FACTOR);
+    const float x = static_cast<float>(observedTimes[i].sampleNo);
+    const float y = static_cast<float>(synthTimes[i].sampleNo);
 
-    // Count backwards.
-    unsigned jlo = i;
-    int count = 1;
-    while (jlo > 0 && timeDifferences[jlo-1] >= lower)
-    {
-      count++;
-      jlo--;
-    }
-
-    // Count forwards.
-    unsigned jhi = i;
-    while (jhi < l-1 && timeDifferences[jhi+1] <= upper)
-    {
-      count++;
-      jhi++;
-    }
-
-    if (count >= prevCount)
-    {
-      prevCount = count;
-      prevPos = i;
-      continue;
-    }
-
-    // TODO: So we get the first one going down, rather than
-    // the last high one.  Should fix.
-
-    // We found a new cluster.
-    Cluster cluster;
-    cluster.count = count;
-    cluster.lower = lower;
-    cluster.upper = upper;
-
-    if (jlo == jhi)
-    {
-      // It's a cluster of one.
-      cluster.center = static_cast<float>(i);
-      cluster.sdev = 0.;
-    }
-    else
-    {
-      // Calculate statistics.
-      float sum = 0.;
-      float sumsq = 0;
-
-      for (unsigned j = jlo; j <= jhi; j++)
-      {
-        const float df = static_cast<float>(timeDifferences[j]);
-        sum += df;
-        sumsq += df * df;
-      }
-
-       const float n = static_cast<float>(count);
-       cluster.center = sum / n;
-       cluster.sdev = sqrt((n*sumsq - sum*sum) / (n * (n-1.f)));
-    }
-
-    clusters.push_back(cluster);
+    sumx += x;
+    sumy += y;
+    sumxy += x*y;
+    sumyy += y*y;
   }
+
+  const float avgx = sumx / lf;
+  const float avgy = sumy / lf;
+  const float avgxy = sumxy / lf;
+  const float avgyy = sumyy / lf;
+
+  if (abs(avgyy - avgy * avgy) < 1.f)
+    return false;
+
+  scaleFactor = (avgx * avgy - avgxy) / (avgy * avgy - avgyy);
+  timeShift = static_cast<int>(avgx - scaleFactor * avgy);
+  return true;
 }
 
 
@@ -291,6 +290,7 @@ void Classifier::printClusters(const vector<Cluster>& clusters) const
   for (auto &cluster: clusters)
   {
     cout << "center " << cluster.center << endl;
+    cout << "median " << cluster.median << endl;
     cout << "sdev " << cluster.sdev << endl;
     cout << "range " << cluster.lower << " to " << cluster.upper << endl;
     cout << "count " << cluster.count << endl;
