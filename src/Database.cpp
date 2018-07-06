@@ -54,7 +54,8 @@ bool Database::getPerfectPeaks(
   const string& trainName,
   const string& country,
   vector<Peak>& peaks,
-  const int speed) const
+  const float speed,
+  const int offset) const
 {
   UNUSED(country);
 
@@ -63,14 +64,14 @@ bool Database::getPerfectPeaks(
     return false;
 
   peaks.clear();
-  int pos = 10000; // Start somewhere
+  int pos = offset; // Start somewhere
 
   // Distances are in mm.
   // Speed is in km/h.
   // Sample rate is in Hz = samples/s.
   // samples = sample rate * distance / (speed/3.6) 
   const float factor = static_cast<float>(sampleRate * 3.6f) /
-    static_cast<float>(speed * 1000.f);
+    (speed * 1000.f);
  
   const vector<int>& carNos = trainEntries[trainNo].carNumbers;
   const unsigned l = carNos.size();

@@ -102,7 +102,8 @@ class Database
       const string& trainName,
       const string& country,
       vector<Peak>& peaks,
-      const int speed) const;
+      const float speed,
+      const int offset = 0) const;
 
     int lookupCarNumber(const string& offName) const;
 

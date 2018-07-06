@@ -41,9 +41,10 @@ cout << "Set up classifier" << endl;
 cout << "Read disturbance" << endl;
 
   vector<Peak> perfectPeaks;
-  db.getPerfectPeaks("ICE1 Refurbishment", "DEU", perfectPeaks, 60);
+  db.getPerfectPeaks("ICE1 Refurbishment", "DEU", perfectPeaks, 
+    7.2f, -3700);
 cout << "Got perfect peaks" << endl;
-// printPeaks(perfectPeaks, 1);
+printPeaks(perfectPeaks, 1);
 
     TrainFound trainFound2;
     classifier.classify(perfectPeaks, db, trainFound2);
