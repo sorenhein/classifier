@@ -51,11 +51,8 @@ class Classifier
 
     struct Interval
     {
-      int sampleFirst;
-      float valueFirst;
-      int sampleSecond;
-      float valueSecond;
       int clusterNo;
+      DiffLabel label;
       int carNo; 
       // Real car numbers start from 0.
       // -1: inter-car gap
@@ -86,10 +83,11 @@ class Classifier
       int& timeShift) const;
 
     void classifyClusters(
-      const vector<Cluster>& clusters) const;
+      vector<Cluster>& clusters) const;
 
     void labelIntraIntervals(
       const vector<Peak>& peaks,
+      const vector<Cluster>& clusters,
       vector<Interval>& intervals) const;
 
     void groupIntoCars(

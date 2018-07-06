@@ -7,7 +7,6 @@
 #include "Ckmeans/Ckmeans.1d.dp.h"
 
 #define MIN_PEAKS 8
-#define CLUSTER_FACTOR 1.05
 #define MAX_CLUSTERS 12
 
 #define UNUSED(x) ((void)(true ? 0 : ((x), void(), 0)))
@@ -24,6 +23,24 @@ Classifier::Classifier()
 
 Classifier::~Classifier()
 {
+}
+
+
+void Classifier::setSampleRate(const int hertzIn)
+{
+  hertz = hertzIn;
+}
+
+
+void Classifier::setCountry(const string& countryIn)
+{
+  country = countryIn;
+}
+
+
+void Classifier::setYear(const int yearIn)
+{
+  year = yearIn;
 }
 
 
@@ -168,20 +185,60 @@ bool Classifier::linearRegression(
 
 
 void Classifier::classifyClusters(
-  const vector<Cluster>& clusters) const
+  vector<Cluster>& clusters) const
 {
-  // TODO: Recognize the large ones
-  // Set clusters[i].label to a DistLabel
-  UNUSED(clusters);
+  if (clusters.size() != 3)
+  {
+    // This is pretty basic for now...
+    cout << "Not 3 clusters" << endl;
+    return;
+  }
+
+  clusters[0].label = CLUSTER_WHEEL_PAIR; // Small
+  clusters[1].label = CLUSTER_INTER_CAR; // Medium
+  clusters[2].label = CLUSTER_INTRA_CAR; // Large
 }
 
 
 void Classifier::labelIntraIntervals(
   const vector<Peak>& peaks,
+  const vector<Cluster>& clusters,
   vector<Interval>& intervals) const
 {
-  UNUSED(peaks);
-  UNUSED(intervals);
+  // A bit wasteful, as this was already known in Kmeans above...
+  const unsigned lp = peaks.size();
+  if (lp < 2)
+  {
+    cout << "Too few time differences" << endl;
+    return;
+  }
+
+  intervals.clear();
+  intervals.resize(lp-1);
+
+  const unsigned lc = clusters.size();
+
+  for (unsigned i = 0; i < lp-1; i++)
+  {
+    bool found = false;
+    const int t = peaks[i+1].sampleNo - peaks[i].sampleNo;
+
+    for (unsigned c = 0; c < lc && ! found; c++)
+    {
+      if (t >= clusters[c].lower && t <= clusters[c].upper)
+      {
+        intervals[i].clusterNo = c;
+        intervals[i].label = clusters[c].label;
+        found = true;
+      }
+    }
+    
+    if (! found)
+    {
+      cout << "Out-of-interval sample" << endl;
+      return;
+    }
+  }
 }
 
 
@@ -189,8 +246,65 @@ void Classifier::groupIntoCars(
   const vector<Interval>& intervals,
   vector<Car>& cars) const
 {
+  const unsigned l = intervals.size();
+  int prevNonshort = -1;
+  int prev = -1;
+
+  for (unsigned i = 0; i < l; i++)
+  {
+    if (i == 0)
+    {
+      cout << i << " " << intervals[i].clusterNo << endl;
+      prev = intervals[i].clusterNo;
+      if (prev != CLUSTER_WHEEL_PAIR)
+        prevNonshort = prev;
+      continue;
+    }
+
+    cout << i << " " << intervals[i].clusterNo;
+
+    const int c = intervals[i].clusterNo;
+    if (c == CLUSTER_WHEEL_PAIR)
+    {
+      if (prev == CLUSTER_WHEEL_PAIR)
+        cout << " two SS";
+
+      prev = c;
+    }
+    else if (c == CLUSTER_INTRA_CAR)
+    {
+      if (prev == CLUSTER_INTRA_CAR)
+        cout << " two MM";
+      else if (prev == CLUSTER_INTER_CAR)
+        cout << " ML";
+      else if (prevNonshort == CLUSTER_INTRA_CAR)
+        cout << " MSM";
+
+      prev = c;
+      prevNonshort = c;
+    }
+    else if (c == CLUSTER_INTER_CAR)
+    {
+      if (prev == CLUSTER_INTER_CAR)
+        cout << " two LL";
+      else if (prev == CLUSTER_INTRA_CAR)
+        cout << " LM";
+      else if (prevNonshort == CLUSTER_INTER_CAR)
+        cout << " LSL";
+
+      prev = c;
+      prevNonshort = c;
+    }
+    else
+    {
+      cout << "Bad interval" << endl;
+      return;
+    }
+
+    cout << endl;
+  }
+
   // TODO: Group a short, an intra and a short gap into a car
-  UNUSED(intervals);
   UNUSED(cars);
 }
 
@@ -220,24 +334,6 @@ void Classifier::lookupCarTypes(
 }
 
 
-void Classifier::setSampleRate(const int hertzIn)
-{
-  hertz = hertzIn;
-}
-
-
-void Classifier::setCountry(const string& countryIn)
-{
-  country = countryIn;
-}
-
-
-void Classifier::setYear(const int yearIn)
-{
-  year = yearIn;
-}
-
-
 void Classifier::classify(
   const vector<Peak>& peaks,
   const Database& db,
@@ -261,7 +357,7 @@ Classifier::printClusters(clusters);
   Classifier::classifyClusters(clusters);
 
   vector<Interval> intervals;
-  Classifier::labelIntraIntervals(peaks, intervals);
+  Classifier::labelIntraIntervals(peaks, clusters, intervals);
 
   vector<Car> cars;
   Classifier::groupIntoCars(intervals, cars);
