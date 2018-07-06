@@ -236,20 +236,10 @@ if (synthPeaks[0].sampleNo > synthPeaks[1].sampleNo)
   cout << "perfect ERROR" << endl;
 
   SynthTrain::makeNormalNoise(synthPeaks);
-if (synthPeaks[0].sampleNo > synthPeaks[1].sampleNo)
-  cout << "normal ERROR" << endl;
   SynthTrain::makeRandomInsertions(synthPeaks);
-if (synthPeaks[0].sampleNo > synthPeaks[1].sampleNo)
-  cout << "insert ERROR" << endl;
   SynthTrain::makeRandomDeletions(synthPeaks);
-if (synthPeaks[0].sampleNo > synthPeaks[1].sampleNo)
-  cout << "delete ERROR" << endl;
-  SynthTrain::makeRandomFrontDeletions(synthPeaks);
-if (synthPeaks[0].sampleNo > synthPeaks[1].sampleNo)
-  cout << "front ERROR" << endl;
-  SynthTrain::makeRandomBackDeletions(synthPeaks);
-if (synthPeaks[0].sampleNo > synthPeaks[1].sampleNo)
-  cout << "back ERROR" << endl;
+  // SynthTrain::makeRandomFrontDeletions(synthPeaks);
+  // SynthTrain::makeRandomBackDeletions(synthPeaks);
 
   newSpeed = minSpeed + (rand() % (maxSpeed-minSpeed));
 

@@ -1,3 +1,7 @@
+Formula for residual error in regression:
+
+a^2 (mean(ysq) - mean(y)sq)  + mean(xsq) - mean(x)sq
+
 How to reduce to 3 clusters, S-M-L
 ----------------------------------
 

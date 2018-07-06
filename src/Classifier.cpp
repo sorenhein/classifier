@@ -12,22 +12,6 @@
 
 #define UNUSED(x) ((void)(true ? 0 : ((x), void(), 0)))
 
-      // If we ever need sdev:
-      // float sum = 0.;
-      // float sumsq = 0;
-
-      // for (unsigned j = jlo; j <= jhi; j++)
-      // {
-        // const float df = static_cast<float>(timeDifferences[j]);
-        // sum += df;
-        // sumsq += df * df;
-      // }
-
-       // const float n = static_cast<float>(count);
-       // cluster.center = sum / n;
-       // cluster.sdev = sqrt((n*sumsq - sum*sum) / (n * (n-1.f)));
-
-
 
 Classifier::Classifier()
 {
@@ -84,7 +68,8 @@ void Classifier::KmeansOptimalClusters(
     BIC[c] = 0.;
   }
 
-  kmeans_1d_dp(x, l, y, 3, MAX_CLUSTERS,
+  // kmeans_1d_dp(x, l, y, 3, MAX_CLUSTERS,
+  kmeans_1d_dp(x, l, y, 3, 3,
     Kcluster, centers, withinss, size, BIC,
     "BIC", "linear", L2);
   
@@ -93,6 +78,7 @@ void Classifier::KmeansOptimalClusters(
   clusters.resize(numClusters);
 
   vector<unsigned> lastClusterIndex(numClusters);;
+  vector<float> sum(numClusters), sumsq(numClusters);
 
   for (unsigned i = 0; i < l; i++)
   {
@@ -104,12 +90,22 @@ void Classifier::KmeansOptimalClusters(
       clusters[c].lower = static_cast<int>(x[i]);
     
     lastClusterIndex[c] = i;
+
+    const float df = static_cast<float>(timeDifferences[i]);
+    sum[c] += df;
+    sumsq[c] += df*df;
   }
 
   for (unsigned c = 0; c < numClusters; c++)
   {
     clusters[c].center = static_cast<float>(centers[c]);
-    clusters[c].sdev = static_cast<float>(sqrt(withinss[c]));
+
+    const float n = static_cast<float>(clusters[c].count);
+    if (n > 1.f)
+      clusters[c].sdev = 
+        sqrt((n*sumsq[c] - sum[c]*sum[c]) / (n * (n-1.f)));
+    else
+      clusters[c].sdev = 0.f;
 
     const unsigned firstClusterIndex = 
       (c == 0 ? 0 : lastClusterIndex[c-1] + 1);

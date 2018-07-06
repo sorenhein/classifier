@@ -43,7 +43,7 @@ cout << "Read disturbance" << endl;
   vector<Peak> perfectPeaks;
   db.getPerfectPeaks("ICE1 Refurbishment", "DEU", perfectPeaks, 60);
 cout << "Got perfect peaks" << endl;
-printPeaks(perfectPeaks, 1);
+// printPeaks(perfectPeaks, 1);
 
     TrainFound trainFound2;
     classifier.classify(perfectPeaks, db, trainFound2);
@@ -57,7 +57,7 @@ cout << "Classified " << endl;
     int newSpeed;
     synth.disturb(perfectPeaks, synthPeaks, 60, 20, 250, newSpeed);
 cout << "Got disturbed peaks " << i << endl;
-printPeaks(synthPeaks, 2);
+// printPeaks(synthPeaks, 2);
 
     TrainFound trainFound;
     classifier.classify(synthPeaks, db, trainFound);
