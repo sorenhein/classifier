@@ -62,7 +62,8 @@ bool readLevel(
 
 bool fillInEquation(
   int &lhs,
-  vector<int *>& rhs);
+  vector<int *>& rhs,
+  const unsigned len);
 
 bool fillInDistances(CarEntry& c);
 
@@ -155,7 +156,12 @@ void resetCar(CarEntry& c)
   c.configurationUIC = "";
   c.length = 4; // Something non-zero in case we divide by it
   c.symmetryFlag = false;
+
+  // Unset distances should be some small number 1..9 (not zero,
+  // which is a real distance).
   c.distWheels = 1;
+  c.distWheels1 = 1;
+  c.distWheels2 = 1;
   c.distMiddles = 2;
   c.distPair = 1;
   c.distFrontToWheel = 1;
@@ -371,28 +377,28 @@ bool readLevel(
 
 bool fillInEquation(
   int &lhs,
-  vector<int *>& rhs)
+  vector<int *>& rhs,
+  const unsigned len)
 {
   // Equation: lhs = sum(rhs).
   // If all are given, check consistency.
   // If one is missing, calculate it.
   // Otherwise, return error.
   
-  const unsigned l = rhs.size();
-  if (l <= 1)
+  if (len <= 1)
     return false;
 
   unsigned countLHS = 0;
-  if (lhs > 10) 
+  if (lhs > 10 || lhs == 0) 
   countLHS++;
 
   unsigned countRHS = 0;
   int sum = 0;
   int miss = -1;
-  for (unsigned i = 0; i < l; i++)
+  for (unsigned i = 0; i < len; i++)
   {
     const int r = * rhs[i];
-    if (r > 10)
+    if (r > 10 || r == 0)
       countRHS++;
     else
       miss = i;
@@ -401,14 +407,14 @@ bool fillInEquation(
   }
 
 
-  if (countRHS == l)
+  if (countRHS == len)
   {
     if (countLHS == 0)
       lhs = sum;
     else if (lhs != sum)
       return false;
   }
-  else if (countRHS == l-1)
+  else if (countRHS == len-1)
   {
     if (countLHS == 0)
       return false;
@@ -427,49 +433,60 @@ bool fillInDistances(CarEntry& c)
   // Calculate missing distances.  Check that not over-specified.
   // Less than some small number means that the value was not set.
   // There are probably ways that the data can be consistent and still 
-  // be flagged below.  This is just a quick hack.
-
+  // be flagged below.  This is just a quick hack (Gaussian elimination!).
+  //
   // Equations:
   //
-  // 1. distMiddles = distPair + distWheels
+  // 1. distMiddles = distPair + (1/2) * (distWheels1 + distWheels2), i.e.
+  // 2*distMiddles = 2*distPair + distWheels1 + distWheels2
   //
-  // 2. length = distFrontToWheel + distWheels + distPair + distWheelToBack
+  // 2. length = distFrontToWheel + distWheels1 + distPair + 
+  //    distWheels2 + distWheelToBack
   //
-  // distFrontToMid1 = distFrontToWheel + (1/2) * distWheels, i.e.
-  // 3. 2*distFrontToMid1 = 2*distFrontToWheel + distWheels.
+  // distFrontToMid1 = distFrontToWheel + (1/2) * distWheels1, i.e.
+  // 3. 2*distFrontToMid1 = 2*distFrontToWheel + distWheels1.
   //
-  // distBackToMid2 = distWheelToBack + (1/2) * distWheels, i.e.
-  // 4. 2*distBackToMid2 = 2*distWheelToBack + distWheels.
+  // distBackToMid2 = distWheelToBack + (1/2) * distWheels2, i.e.
+  // 4. 2*distBackToMid2 = 2*distWheelToBack + distWheels2.
 
-  vector<int *> rhs2, rhs4;
-  rhs2.resize(2);
-  rhs4.resize(4);
+  vector<int *> rhs(5);
 
   bool done = false;
+  int lhs;
+  int rhsv;
   for (unsigned iter = 0; iter < 3 && ! done; iter++)
   {
     done = true;
 
     // Equation 1
-    rhs2[0] = &c.distPair;
-    rhs2[1] = &c.distWheels;
-    if (! fillInEquation(c.distMiddles, rhs2))
+    lhs = 2 * c.distMiddles;
+    rhsv = 2 * c.distPair;
+    rhs[0] = &rhsv;
+    rhs[1] = &c.distWheels1;
+    rhs[2] = &c.distWheels2;
+    if (! fillInEquation(lhs, rhs, 3))
       done = false;
+    else
+    {
+      c.distMiddles = lhs/2;
+      c.distPair = rhsv/2;
+    }
 
     // Equation 2
-    rhs4[0] = &c.distFrontToMid1;
-    rhs4[1] = &c.distWheels;
-    rhs4[2] = &c.distPair;
-    rhs4[3] = &c.distBackToMid2;
-    if (! fillInEquation(c.length, rhs4))
+    rhs[0] = &c.distFrontToWheel;
+    rhs[1] = &c.distWheels1;
+    rhs[2] = &c.distPair;
+    rhs[3] = &c.distWheels2;
+    rhs[4] = &c.distWheelToBack;
+    if (! fillInEquation(c.length, rhs, 5))
       done = false;
 
     // Equation 3
-    int lhs = 2 * c.distFrontToMid1;
-    int rhsv = 2 * c.distFrontToWheel;
-    rhs2[0] = &rhsv;
-    rhs2[1] = &c.distWheels;
-    if (! fillInEquation(lhs, rhs2))
+    lhs = 2 * c.distFrontToMid1;
+    rhsv = 2 * c.distFrontToWheel;
+    rhs[0] = &rhsv;
+    rhs[1] = &c.distWheels1;
+    if (! fillInEquation(lhs, rhs, 2))
       done = false;
     else
     {
@@ -480,9 +497,9 @@ bool fillInDistances(CarEntry& c)
     // Equation 4
     lhs = 2 * c.distBackToMid2;
     rhsv = 2 * c.distWheelToBack;
-    rhs2[0] = &rhsv;
-    rhs2[1] = &c.distWheels;
-    if (! fillInEquation(lhs, rhs2))
+    rhs[0] = &rhsv;
+    rhs[1] = &c.distWheels2;
+    if (! fillInEquation(lhs, rhs, 2))
       done = false;
     else
     {
@@ -498,6 +515,8 @@ bool fillInDistances(CarEntry& c)
 void printDistances(const CarEntry& c)
 {
   cout << setw(18) << left << "distWheels" << c.distWheels << "\n";
+  cout << setw(18) << left << "distWheels1" << c.distWheels1 << "\n";
+  cout << setw(18) << left << "distWheels2" << c.distWheels2 << "\n";
   cout << setw(18) << left << "distMiddles" << c.distMiddles << "\n";
   cout << setw(18) << left << "distPair" << c.distPair << "\n";
   cout << setw(18) << left << "distFrontToWheel" << c.distFrontToWheel << "\n";
@@ -592,6 +611,16 @@ void readCarFile(
     else if (field == "DIST_WHEELS")
     {
       if (! readInt(rest, c.distWheels, err)) break;
+      c.distWheels1 = c.distWheels;
+      c.distWheels2 = c.distWheels;
+    }
+    else if (field == "DIST_WHEELS1")
+    {
+      if (! readInt(rest, c.distWheels1, err)) break;
+    }
+    else if (field == "DIST_WHEELS2")
+    {
+      if (! readInt(rest, c.distWheels2, err)) break;
     }
     else if (field == "DIST_MIDDLES")
     {
@@ -678,7 +707,9 @@ void readTrainFile(
     const string& field = line.substr(0, sp);
     const string& rest = line.substr(sp+1);
 
-    if (field == "NAME")
+    if (field == "OFFICIAL_NAME")
+      t.officialName = rest;
+    else if (field == "NAME")
       t.name = rest;
     else if (field == "INTRODUCTION")
     {
@@ -690,6 +721,10 @@ void readTrainFile(
     }
     else if (field == "COUNTRIES")
       readCountries(rest, t.countries);
+    else if (field == "SYMMETRY")
+    {
+      if (! readBool(rest, t.symmetryFlag, err)) break;
+    }
     else if (field == "ORDER")
     {
       if (! readOrder(db, rest, t.carNumbers, err)) break;

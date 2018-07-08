@@ -35,7 +35,14 @@ struct CarEntry
   string configurationUIC; // E.g. 2'2' or Bo'Bo'
   int length; // In mm
   bool symmetryFlag; // True if wheel geometry is symmetric
+
+  // Not all of these have to be specified simultaneously.
+  // At the moment we manage to calculate the missing ones for the
+  // combinations that occur...
+
   int distWheels;  // In mm: Distance between wheels in a pair
+  int distWheels1;  // In mm: Distance between wheels in front pair
+  int distWheels2;  // In mm: Distance between wheels in back pair
   int distMiddles; // In mm: Distance between middles of wheel pairs
   int distPair; // In mm: Inner distance between pairs
   int distFrontToWheel; // In mm
@@ -47,10 +54,12 @@ struct CarEntry
 
 struct TrainEntry
 {
+  string officialName; // Example: "X74_SWE_28" (not really official...)
   string name; // Example: "ICE1 Refurbishment"
   int introduction; // Year
   int retirement; // Year
   vector<string> countries;
+  bool symmetryFlag;
   vector<int> carNumbers;
 };
 
