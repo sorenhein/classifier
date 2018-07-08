@@ -4,6 +4,7 @@
 #include <algorithm>
 
 #include "Database.h"
+#include "const.h"
 
 #define UNUSED(x) ((void)(true ? 0 : ((x), void(), 0)))
 
@@ -15,7 +16,7 @@ Database::Database()
   offCarMap.clear();
   offTrainMap.clear();
 
-  sampleRate = 2000; // Default in Hz
+  sampleRate = SAMPLE_RATE; // Default in Hz
 
   // Put a dummy car at position 0 which is not used.
   // We're going to put reversed cars by the negative of the
@@ -85,27 +86,20 @@ void Database::logTrain(const TrainEntry& train)
 
 bool Database::getPerfectPeaks(
   const string& trainName,
-  vector<Peak>& peaks,
-  const float speed,
-  const int offset) const
+  vector<Peak>& peaks) const
 {
+  // Peaks are returned in mm.
   const int trainNo = Database::lookupTrainNumber(trainName);
   if (trainNo == -1)
     return false;
 
-  // Distances are in mm.
-  // Speed is in km/h.
-  // Sample rate is in Hz = samples/s.
-  // samples = sample rate * distance / (speed/3.6) 
-  const float factor = static_cast<float>(sampleRate * 3.6f) /
-    (speed * 1000.f);
- 
   Peak peak;
   peak.value = 1.f;
   peaks.clear();
+  
   for (auto it: trainEntries[trainNo].axles)
   {
-    peak.sampleNo = offset + static_cast<int>(it * factor);
+    peak.sampleNo = it;
     peaks.push_back(peak);
   }
 

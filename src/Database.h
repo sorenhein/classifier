@@ -103,9 +103,7 @@ class Database
 
     bool getPerfectPeaks(
       const string& trainName,
-      vector<Peak>& peaks,
-      const float speed,
-      const int offset = 0) const;
+      vector<Peak>& peaks) const; // In mm
 
     const CarEntry * lookupCar(const int carNo) const;
 

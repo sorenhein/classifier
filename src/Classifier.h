@@ -76,12 +76,6 @@ class Classifier
       const vector<int>& timeDifferences,
       vector<Cluster>& clusters) const;
 
-    bool linearRegression(
-      const vector<Peak>& observedTimes,
-      const vector<Peak>& synthTimes,
-      float& scaleFactor,
-      int& timeShift) const;
-
     void classifyClusters(
       vector<Cluster>& clusters) const;
 

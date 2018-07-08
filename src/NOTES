@@ -7,8 +7,6 @@
   deviation on the position.  Run regression on (v, a).  Also have
   a regression only on v.
 
-* Make Disturbance an object with a distance function
-
 * When disturbing, keep a list of the original peak number for later
   - Also keep track of exact peaks inserted and deleted
 

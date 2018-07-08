@@ -15,6 +15,12 @@ class SynthTrain
 
     int sampleRate;
 
+    bool makeAccel(
+      vector<Peak>& synthPeaks,
+      const float offset,
+      const float speed,
+      const float accel) const;
+
     void makeNormalNoise(
       vector<Peak>& synthPeaks,
       const int noiseSdev) const;
@@ -41,8 +47,8 @@ class SynthTrain
 
     void scaleTrace(
       vector<Peak>& synthPeaks,
-      const int origSpeed,
-      const int newSpeed) const;
+      const float origSpeed,
+      const float newSpeed) const;
       
 
   public:
@@ -57,10 +63,10 @@ class SynthTrain
       const vector<Peak>& perfectPeaks,
       const Disturb& disturb,
       vector<Peak>& synthPeaks,
-      const int origSpeed,
-      const int minSpeed,
-      const int maxSpeed,
-      int& newSpeed) const;
+      const float origSpeed,
+      const float minSpeed,
+      const float maxSpeed,
+      float& newSpeed) const;
 };
 
 #endif

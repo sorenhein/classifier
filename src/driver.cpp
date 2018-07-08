@@ -10,6 +10,8 @@
 #include "Timer.h"
 #include "Stats.h"
 
+#include "regress/PolynomialRegression.h"
+
 using namespace std;
 
 #define UNUSED(x) ((void)(true ? 0 : ((x), void(), 0)))
@@ -25,14 +27,16 @@ int main(int argc, char * argv[])
   UNUSED(argc);
   UNUSED(argv);
 
+  const int sampleRate = SAMPLE_RATE;
+
   Database db;
   readCarFiles(db, "../data/cars");
   readTrainFiles(db, "../data/trains");
-  db.setSampleRate(2000);
+  db.setSampleRate(sampleRate);
 cout << "Read all" << endl;
 
   Classifier classifier;
-  classifier.setSampleRate(2000);
+  classifier.setSampleRate(sampleRate);
   classifier.setCountry("DEU");
   classifier.setYear(2018);
 cout << "Set up classifier" << endl;
@@ -44,20 +48,59 @@ cout << "Set up classifier" << endl;
 cout << "Read disturbance" << endl;
 
   SynthTrain synth;
-  synth.setSampleRate(2000);
+  synth.setSampleRate(sampleRate);
   vector<Peak> perfectPeaks;
-  if (! db.getPerfectPeaks("ICE1_DEU_56_N", perfectPeaks, 7.2f, 0))
+  if (! db.getPerfectPeaks("ICE1_DEU_56_N", perfectPeaks))
     cout << "Bad perfect peaks" << endl;
 
-cout << "Got perfect peaks" << endl;
+cout << "Got perfect peaks in mm" << endl;
 printPeaks(perfectPeaks, 1);
 
+const int offset = 10000;
+vector<Peak> perfectPeakTimes;
+Peak peak;
+peak.value = 1.f;
+const float speed = 2.f;
+// perfectPeaks are in mm
+// sampleRate is in Hz
+// speed is in m/s.
+const float factor = static_cast<float>(sampleRate) / (1000.f * speed);
+cout << "factor " << factor << endl;
+
+for (auto& it: perfectPeaks)
+{
+  peak.sampleNo = offset + static_cast<int>(factor * it.sampleNo);
+  perfectPeakTimes.push_back(peak);
+}
+cout << "Got perfect peaktimes in samples" << endl;
+printPeaks(perfectPeakTimes, 1);
+
 vector<Peak> synthP;
-int newSpeed0;
+float newSpeed0;
 synth.disturb(perfectPeaks, disturb, synthP, 
-  60, 20, 250, newSpeed0);
+  2.0f, 2.0f, 0.00001f, newSpeed0);
 cout << "Got disturbed peaks " << endl;
 printPeaks(synthP, 2);
+
+const unsigned l = perfectPeaks.size();
+vector<double> x(l), y(l), coeffs(l);
+for (unsigned i = 0; i < l; i++)
+{
+  y[i] = static_cast<double>(perfectPeakTimes[i].sampleNo);
+  x[i] = static_cast<double>(synthP[i].sampleNo);
+}
+
+PolynomialRegression pol;
+const int order = 2;
+pol.fitIt(x, y, order, coeffs);
+
+for (unsigned i = 0; i <= order; i++)
+  cout << "i " << i << ", coeff " << coeffs[i] << endl;
+
+cout << "Orig speed " << 2.f << endl;
+cout << "New speed " << newSpeed0 << endl;
+cout << "Ratio " << newSpeed0 / 2.f << endl;
+
 
 
 exit(0);
@@ -71,9 +114,9 @@ cout << "Classified " << endl;
   for (unsigned i = 0; i < 1; i++)
   {
     vector<Peak> synthPeaks;
-    int newSpeed;
+    float newSpeed;
     synth.disturb(perfectPeaks, disturb, synthPeaks, 
-      60, 20, 250, newSpeed);
+      60.0f, 20.0f, 250.0f, newSpeed);
 cout << "Got disturbed peaks " << i << endl;
 // printPeaks(synthPeaks, 2);
 

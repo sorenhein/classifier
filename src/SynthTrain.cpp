@@ -51,6 +51,54 @@ void SynthTrain::setSampleRate(const int sampleRateIn)
 }
 
 
+bool SynthTrain::makeAccel(
+  vector<Peak>& synthPeaks,
+  const float offset,
+  const float speed,
+  const float accel) const
+{
+  // On entering, synthPeaks are in mm.
+  // On exiting, synthPeaks are in samples.
+
+  Peak peak;
+  peak.value = 1.f;
+
+  if (accel == 0.f)
+  {
+    const float factor = static_cast<float>(sampleRate) / (speed * 1000.f);
+cout << "factor makeAccel " << factor << endl;
+
+    for (auto& it: synthPeaks)
+      it.sampleNo = static_cast<int>(offset + it.sampleNo * factor);
+  }
+  else
+  {
+    const float sfirst = static_cast<float>(synthPeaks.front().sampleNo);
+    const float slast = static_cast<float>(synthPeaks.back().sampleNo);
+    const float t0 = speed / accel;
+
+    const float limit = sfirst - speed * speed / (2.f * accel);
+    if (accel < 0. && slast >= limit)
+      // Train will start to go backwards.
+      return false;
+
+    for (auto& it: synthPeaks)
+    {
+      const float root = sqrt(1.f + 2.f * (it.sampleNo - sfirst) / 
+        (sampleRate * speed * t0));
+
+      if (accel > 0.)
+        it.sampleNo = 
+          static_cast<int>(offset + sampleRate * t0 * (root-1.f));
+      else
+        it.sampleNo = 
+          static_cast<int>(offset + sampleRate * t0 * (-root-1.f));
+    }
+  }
+  return true;
+}
+
+
 void SynthTrain::makeNormalNoise(
   vector<Peak>& synthPeaks,
   const int noiseSdev) const
@@ -159,15 +207,14 @@ void SynthTrain::makeRandomBackDeletions(
 
 void SynthTrain::scaleTrace(
    vector<Peak>& synthPeaks,
-   const int origSpeed,
-   const int newSpeed) const
+   const float origSpeed,
+   const float newSpeed) const
 {
   if (synthPeaks.size() == 0)
     return;
 
   const int offset = synthPeaks[0].sampleNo;
-  const float factor = static_cast<float>(newSpeed) /
-    static_cast<float>(origSpeed);
+  const float factor = newSpeed / origSpeed;
 
   for (unsigned i = 0; i < synthPeaks.size(); i++)
   {
@@ -180,15 +227,33 @@ void printPeaks(const vector<Peak>& synthPeaks, const int level);
 #define UNUSED(x) ((void)(true ? 0 : ((x), void(), 0)))
 
 void SynthTrain::disturb(
-  const vector<Peak>& perfectPeaks,
+  const vector<Peak>& perfectPeaks, // In mm
   const Disturb& disturb,
-  vector<Peak>& synthPeaks,
-  const int origSpeed,
-  const int minSpeed,
-  const int maxSpeed,
-  int& newSpeed) const
+  vector<Peak>& synthPeaks, // In samples
+  const float minSpeed, // In m/s
+  const float maxSpeed, // In m/s
+  const float accel, // In m/s^2
+  float& newSpeed) const
 {
   synthPeaks = perfectPeaks;
+
+  if (maxSpeed == minSpeed)
+    newSpeed = minSpeed;
+  else
+  {
+    random_device rd;
+    mt19937 var(rd());
+    uniform_real_distribution<> dist(0, 1);
+
+    newSpeed = minSpeed + (maxSpeed-minSpeed) * 
+      static_cast<float>(dist(var));
+  }
+
+  if (! SynthTrain::makeAccel(synthPeaks, 0.f, newSpeed, accel))
+  {
+    cout << "makeAccel failed" << endl;
+    return;
+  }
 
   SynthTrain::makeNormalNoise(synthPeaks, disturb.getNoiseSdev());
 
@@ -205,8 +270,7 @@ void SynthTrain::disturb(
   // disturb.getBackRange(lo, hi);
   // SynthTrain::makeRandomBackDeletions(synthPeaks);
 
-  newSpeed = minSpeed + (rand() % (maxSpeed-minSpeed));
-  SynthTrain::scaleTrace(synthPeaks, origSpeed, newSpeed);
+  // SynthTrain::scaleTrace(synthPeaks, origSpeed, newSpeed);
 
 // cout << endl << "scale " << newSpeed << endl;
 }

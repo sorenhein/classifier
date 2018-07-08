@@ -138,53 +138,6 @@ void Classifier::KmeansOptimalClusters(
 }
 
 
-bool Classifier::linearRegression(
-  const vector<Peak>& observedTimes,
-  const vector<Peak>& synthTimes,
-  float& scaleFactor,
-  int& timeShift) const
-{
-  // x ~ scaleFactor * y + timeShift, where 
-  // x is observedTimes
-  // y is synthTimes
-  // Effectively a linear regression
-
-  const unsigned l = observedTimes.size();
-  const float lf = static_cast<float>(l);
-
-  if (synthTimes.size() != l || l < 2)
-    return false;
-
-  float sumx = 0.f;
-  float sumy = 0.f;
-  float sumxy = 0.f;
-  float sumyy = 0.f;
-
-  for (unsigned i = 0; i< l; i++)
-  {
-    const float x = static_cast<float>(observedTimes[i].sampleNo);
-    const float y = static_cast<float>(synthTimes[i].sampleNo);
-
-    sumx += x;
-    sumy += y;
-    sumxy += x*y;
-    sumyy += y*y;
-  }
-
-  const float avgx = sumx / lf;
-  const float avgy = sumy / lf;
-  const float avgxy = sumxy / lf;
-  const float avgyy = sumyy / lf;
-
-  if (abs(avgyy - avgy * avgy) < 1.f)
-    return false;
-
-  scaleFactor = (avgx * avgy - avgxy) / (avgy * avgy - avgyy);
-  timeShift = static_cast<int>(avgx - scaleFactor * avgy);
-  return true;
-}
-
-
 void Classifier::classifyClusters(
   vector<Cluster>& clusters) const
 {
