@@ -3,6 +3,9 @@
 
 #include "Classifier.h"
 
+class Disturb;
+
+
 using namespace std;
 
 
@@ -10,27 +13,31 @@ class SynthTrain
 {
   private:
 
-    struct Disturbance
-    {
-      float noisePercent; // Standard deviation of interval noise
-      int injectUpTo; // Inject random peaks up to this number
-      int deleteUpTo; // Delete correct peaks up to this number
-      int pruneFrontUpTo; // Delete leading peaks up to this number
-      int pruneBackUpTo; // Delete trailing peaks up to this number
-    };
+    int sampleRate;
 
+    void makeNormalNoise(
+      vector<Peak>& synthPeaks,
+      const int noiseSdev) const;
 
-    Disturbance disturbance;
+    void makeRandomInsertions(
+      vector<Peak>& synthPeaks,
+      const int lo,
+      const int hi) const;
 
-    void makeNormalNoise(vector<Peak>& synthPeaks) const;
+    void makeRandomDeletions(
+      vector<Peak>& synthPeaks,
+      const int lo,
+      const int hi) const;
 
-    void makeRandomInsertions(vector<Peak>& synthPeaks) const;
+    void makeRandomFrontDeletions(
+      vector<Peak>& synthPeaks,
+      const int lo,
+      const int hi) const;
 
-    void makeRandomDeletions(vector<Peak>& synthPeaks) const;
-
-    void makeRandomFrontDeletions(vector<Peak>& synthPeaks) const;
-
-    void makeRandomBackDeletions(vector<Peak>& synthPeaks) const;
+    void makeRandomBackDeletions(
+      vector<Peak>& synthPeaks,
+      const int lo,
+      const int hi) const;
 
     void scaleTrace(
       vector<Peak>& synthPeaks,
@@ -44,10 +51,11 @@ class SynthTrain
 
     ~SynthTrain();
 
-    void readDisturbance(const string& fname);
+    void setSampleRate(const int sampleRateIn);
 
     void disturb(
       const vector<Peak>& perfectPeaks,
+      const Disturb& disturb,
       vector<Peak>& synthPeaks,
       const int origSpeed,
       const int minSpeed,

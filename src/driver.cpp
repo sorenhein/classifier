@@ -6,6 +6,7 @@
 #include "Database.h"
 #include "Classifier.h"
 #include "SynthTrain.h"
+#include "Disturb.h"
 #include "Timer.h"
 #include "Stats.h"
 
@@ -29,7 +30,6 @@ int main(int argc, char * argv[])
   readTrainFiles(db, "../data/trains");
   db.setSampleRate(2000);
 cout << "Read all" << endl;
-exit(0);
 
   Classifier classifier;
   classifier.setSampleRate(2000);
@@ -37,15 +37,30 @@ exit(0);
   classifier.setYear(2018);
 cout << "Set up classifier" << endl;
 
-  SynthTrain synth;
-  synth.readDisturbance("../data/disturbances/case1.txt");
+  Disturb disturb;
+  if (! disturb.readFile("../data/disturbances/case1.txt"))
+    cout << "Bad disturbance file" << endl;
+
 cout << "Read disturbance" << endl;
 
+  SynthTrain synth;
+  synth.setSampleRate(2000);
   vector<Peak> perfectPeaks;
-  db.getPerfectPeaks("ICE1 Refurbishment", perfectPeaks, 
-    7.2f, -3700);
+  if (! db.getPerfectPeaks("ICE1_DEU_56_N", perfectPeaks, 7.2f, 0))
+    cout << "Bad perfect peaks" << endl;
+
 cout << "Got perfect peaks" << endl;
 printPeaks(perfectPeaks, 1);
+
+vector<Peak> synthP;
+int newSpeed0;
+synth.disturb(perfectPeaks, disturb, synthP, 
+  60, 20, 250, newSpeed0);
+cout << "Got disturbed peaks " << endl;
+printPeaks(synthP, 2);
+
+
+exit(0);
 
     TrainFound trainFound2;
     classifier.classify(perfectPeaks, db, trainFound2);
@@ -57,7 +72,8 @@ cout << "Classified " << endl;
   {
     vector<Peak> synthPeaks;
     int newSpeed;
-    synth.disturb(perfectPeaks, synthPeaks, 60, 20, 250, newSpeed);
+    synth.disturb(perfectPeaks, disturb, synthPeaks, 
+      60, 20, 250, newSpeed);
 cout << "Got disturbed peaks " << i << endl;
 // printPeaks(synthPeaks, 2);
 

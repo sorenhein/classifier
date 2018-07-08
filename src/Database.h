@@ -73,15 +73,6 @@ struct DatabaseCar
 };
 
 
-struct CarGeometry
-{
-  int distFrontToWheel; // In mm
-  int distWheels; // in mm
-  int distPair; // In mm
-  int distWheelToBack; // In mm
-};
-
-
 class Database
 {
   private:

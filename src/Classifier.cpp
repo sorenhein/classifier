@@ -5,6 +5,7 @@
 
 #include "Classifier.h"
 #include "Ckmeans/Ckmeans.1d.dp.h"
+#include "regress/PolynomialRegression.h"
 
 #define MIN_PEAKS 8
 #define MAX_CLUSTERS 12

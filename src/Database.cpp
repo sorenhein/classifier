@@ -55,7 +55,7 @@ void Database::logTrain(const TrainEntry& train)
     TrainEntry& t = trainEntries.back();
     t.officialName = officialName + "_N";
     offTrainMap[t.officialName] = trainEntries.size()-1;
-Database::printAxlesCSV(t);
+    // Database::printAxlesCSV(t);
   }
   else
   {
@@ -64,7 +64,7 @@ Database::printAxlesCSV(t);
     TrainEntry& t = trainEntries.back();
     t.officialName = officialName + "_N";
     offTrainMap[t.officialName] = trainEntries.size()-1;
-Database::printAxlesCSV(t);
+    // Database::printAxlesCSV(t);
 
     // Reversed.
     TrainEntry tr = train;
@@ -78,7 +78,7 @@ Database::printAxlesCSV(t);
     tr.officialName = officialName + "_R";
     trainEntries.push_back(tr);
     offTrainMap[tr.officialName] = trainEntries.size()-1;
-Database::printAxlesCSV(tr);
+    // Database::printAxlesCSV(tr);
   }
 }
 

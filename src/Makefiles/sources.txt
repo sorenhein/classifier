@@ -1,6 +1,7 @@
 SOURCE_FILES    =               \
                 Classifier.cpp  \
                 Database.cpp    \
+                Disturb.cpp     \
                 Stats.cpp       \
                 SynthTrain.cpp  \
                 Timer.cpp       \
@@ -12,4 +13,5 @@ SOURCE_FILES    =               \
                 Ckmeans/fill_quadratic.cpp      \
                 Ckmeans/fill_SMAWK.cpp          \
                 Ckmeans/select_levels.cpp       \
-                Ckmeans/weighted_select_levels.cpp
+                Ckmeans/weighted_select_levels.cpp \
+                regress/PolynomialRegression.cpp

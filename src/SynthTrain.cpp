@@ -25,24 +25,18 @@
 
 #include <iostream>
 #include <iomanip>
-#include <fstream>
 #include <sstream>
-#include <cstdlib>
-#include <ctime>
 #include <random>
+// #include <cstdlib>
+// #include <ctime>
 
 #include "SynthTrain.h"
-#include "read.h"
+#include "Disturb.h"
+// #include "read.h"
 
 
 SynthTrain::SynthTrain()
 {
-  disturbance.noisePercent = 0.;
-  disturbance.injectUpTo = 0;
-  disturbance.deleteUpTo = 0;
-  disturbance.pruneFrontUpTo = 0;
-  disturbance.pruneBackUpTo = 0;
-  srand(static_cast<unsigned>(time(NULL)));
 }
 
 
@@ -51,87 +45,43 @@ SynthTrain::~SynthTrain()
 }
 
 
-void SynthTrain::readDisturbance(const string& fname)
+void SynthTrain::setSampleRate(const int sampleRateIn)
 {
-  ifstream fin;
-  fin.open(fname);
-  string line;
-  while (getline(fin, line))
-  {
-    if (line == "" || line.front() == '#')
-      continue;
-
-    const string err = "File " + fname + ": Bad line '" + line + "'";
-
-    unsigned sp = line.find(" ");
-    if (sp == string::npos || sp == 0 || sp == line.size()-1)
-    {
-      cout << err << endl;
-      break;
-    }
-
-    const string& field = line.substr(0, sp);
-    const string& rest = line.substr(sp+1);
-
-    if (field == "NOISE_PERCENT")
-    {
-      if (! readFloat(rest, disturbance.noisePercent, err)) break;
-    }
-    else if (field == "INJECT_UP_TO")
-    {
-      if (! readInt(rest, disturbance.injectUpTo, err)) break;
-    }
-    else if (field == "DELETE_UP_TO")
-    {
-      if (! readInt(rest, disturbance.deleteUpTo, err)) break;
-    }
-    else if (field == "PRUNE_FRONT_UP_TO")
-    {
-      if (! readInt(rest, disturbance.pruneFrontUpTo, err)) break;
-    }
-    else if (field == "PRUNE_BACK_UP_TO")
-    {
-      if (! readInt(rest, disturbance.pruneBackUpTo, err)) break;
-    }
-    else
-    {
-      cout << err << endl;
-    }
-  }
+  sampleRate = sampleRateIn;
 }
 
 
-void SynthTrain::makeNormalNoise(vector<Peak>& synthPeaks) const
+void SynthTrain::makeNormalNoise(
+  vector<Peak>& synthPeaks,
+  const int noiseSdev) const
 {
-  if (disturbance.noisePercent == 0.)
+  // Noise standard deviation is in absolute milli-seconds.
+  if (noiseSdev == 0)
     return;
 
   random_device rd;
   mt19937 var(rd());
   normal_distribution<> dist(0, 1);
   
-  for (unsigned i = 1; i < synthPeaks.size(); i++)
+  const float factor = noiseSdev * 1000.f / sampleRate;
+
+  for (unsigned i = 0; i < synthPeaks.size(); i++)
   {
-    // The noise probably doesn't grow with the interval length,
-    // but this is a convenient way to get noise in the right ballpark.
-
-    const int diff = synthPeaks[i].sampleNo - synthPeaks[i-1].sampleNo;
-    const float sdev = static_cast<float>(diff) *
-      disturbance.noisePercent;
-
-    const int delta = static_cast<int>(round(sdev * dist(var)));
+    const int delta = static_cast<int>(round(factor * dist(var)));
     synthPeaks[i-1].sampleNo += delta;
   }
 }
 
 
-void SynthTrain::makeRandomInsertions(vector<Peak>& synthPeaks) const
+void SynthTrain::makeRandomInsertions(
+  vector<Peak>& synthPeaks,
+  const int lo,
+  const int hi) const
 {
-  if (disturbance.injectUpTo == 0)
+  if (hi == 0)
     return;
 
-  const unsigned n =
-    static_cast<unsigned>(rand() % disturbance.injectUpTo);
+  const unsigned n = lo + static_cast<unsigned>(rand() % (hi+1-lo));
 
   for (unsigned i = 0; i < n; i++)
   {
@@ -153,13 +103,15 @@ void SynthTrain::makeRandomInsertions(vector<Peak>& synthPeaks) const
 }
 
 
-void SynthTrain::makeRandomDeletions(vector<Peak>& synthPeaks) const
+void SynthTrain::makeRandomDeletions(
+  vector<Peak>& synthPeaks,
+  const int lo,
+  const int hi) const
 {
-  if (disturbance.deleteUpTo == 0)
+  if (hi == 0)
     return;
 
-  const unsigned n =
-    static_cast<unsigned>(rand() % disturbance.deleteUpTo);
+  const unsigned n = static_cast<unsigned>(rand() % (hi+1-lo));
 
   for (unsigned i = 0; i < n; i++)
   {
@@ -171,13 +123,15 @@ void SynthTrain::makeRandomDeletions(vector<Peak>& synthPeaks) const
 }
 
 
-void SynthTrain::makeRandomFrontDeletions(vector<Peak>& synthPeaks) const
+void SynthTrain::makeRandomFrontDeletions(
+  vector<Peak>& synthPeaks,
+  const int lo,
+  const int hi) const
 {
-  if (disturbance.pruneFrontUpTo == 0)
+  if (hi == 0)
     return;
 
-  const unsigned n =
-    static_cast<unsigned>(rand() % disturbance.pruneFrontUpTo);
+  const unsigned n = static_cast<unsigned>(rand() % (hi+1-lo));
   
   if (n == 0)
     return;
@@ -186,13 +140,15 @@ void SynthTrain::makeRandomFrontDeletions(vector<Peak>& synthPeaks) const
 }
 
 
-void SynthTrain::makeRandomBackDeletions(vector<Peak>& synthPeaks) const
+void SynthTrain::makeRandomBackDeletions(
+  vector<Peak>& synthPeaks,
+  const int lo,
+  const int hi) const
 {
-  if (disturbance.pruneBackUpTo == 0)
+  if (hi == 0)
     return;
 
-  const unsigned n =
-    static_cast<unsigned>(rand() % disturbance.pruneBackUpTo);
+  const unsigned n = static_cast<unsigned>(rand() % (hi+1-lo));
   
   if (n == 0)
     return;
@@ -225,6 +181,7 @@ void printPeaks(const vector<Peak>& synthPeaks, const int level);
 
 void SynthTrain::disturb(
   const vector<Peak>& perfectPeaks,
+  const Disturb& disturb,
   vector<Peak>& synthPeaks,
   const int origSpeed,
   const int minSpeed,
@@ -232,19 +189,25 @@ void SynthTrain::disturb(
   int& newSpeed) const
 {
   synthPeaks = perfectPeaks;
-if (synthPeaks[0].sampleNo > synthPeaks[1].sampleNo)
-  cout << "perfect ERROR" << endl;
 
-  SynthTrain::makeNormalNoise(synthPeaks);
-  SynthTrain::makeRandomInsertions(synthPeaks);
-  SynthTrain::makeRandomDeletions(synthPeaks);
+  SynthTrain::makeNormalNoise(synthPeaks, disturb.getNoiseSdev());
+
+  // int lo, hi;
+  // disturb.getInjectRange(lo, hi);
+  // SynthTrain::makeRandomInsertions(synthPeaks, lo, hi);
+
+  // disturb.getDeleteRange(lo, hi);
+  // SynthTrain::makeRandomDeletions(synthPeaks);
+
+  // disturb.getFrontRange(lo, hi);
   // SynthTrain::makeRandomFrontDeletions(synthPeaks);
+
+  // disturb.getBackRange(lo, hi);
   // SynthTrain::makeRandomBackDeletions(synthPeaks);
 
   newSpeed = minSpeed + (rand() % (maxSpeed-minSpeed));
+  SynthTrain::scaleTrace(synthPeaks, origSpeed, newSpeed);
 
-  UNUSED(origSpeed);
-  // SynthTrain::scaleTrace(synthPeaks, origSpeed, newSpeed);
 // cout << endl << "scale " << newSpeed << endl;
 }
 

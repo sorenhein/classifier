@@ -1,5 +1,7 @@
-Classifier.obj: Classifier.h Database.h const.h
+Classifier.obj: Classifier.h Database.h const.h Ckmeans/Ckmeans.1d.dp.h
+Classifier.obj: Ckmeans/within_cluster.h regress/PolynomialRegression.h
 Database.obj: Database.h const.h
+Disturb.obj: Disturb.h
 Stats.obj: Stats.h
 SynthTrain.obj: SynthTrain.h Classifier.h Database.h const.h read.h
 Timer.obj: Timer.h
@@ -14,3 +16,4 @@ Ckmeans/fill_SMAWK.obj: Ckmeans/Ckmeans.1d.dp.h Ckmeans/within_cluster.h
 Ckmeans/select_levels.obj: Ckmeans/Ckmeans.1d.dp.h Ckmeans/within_cluster.h
 Ckmeans/weighted_select_levels.obj: Ckmeans/Ckmeans.1d.dp.h
 Ckmeans/weighted_select_levels.obj: Ckmeans/within_cluster.h
+regress/PolynomialRegression.obj: regress/PolynomialRegression.h
