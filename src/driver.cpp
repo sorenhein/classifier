@@ -29,6 +29,7 @@ int main(int argc, char * argv[])
   readTrainFiles(db, "../data/trains");
   db.setSampleRate(2000);
 cout << "Read all" << endl;
+exit(0);
 
   Classifier classifier;
   classifier.setSampleRate(2000);

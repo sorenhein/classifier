@@ -61,6 +61,7 @@ struct TrainEntry
   vector<string> countries;
   bool symmetryFlag;
   vector<int> carNumbers;
+  vector<int> axles; // In mm starting from the first wheel
 };
 
 struct DatabaseCar
@@ -94,6 +95,8 @@ class Database
 
    map<string, unsigned> offTrainMap;
 
+   void printAxlesCSV(const TrainEntry& t) const;
+
 
   public:
 
@@ -113,6 +116,8 @@ class Database
       vector<Peak>& peaks,
       const float speed,
       const int offset = 0) const;
+
+    const CarEntry * lookupCar(const int carNo) const;
 
     int lookupCarNumber(const string& offName) const;
 

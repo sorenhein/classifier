@@ -157,17 +157,15 @@ void resetCar(CarEntry& c)
   c.length = 4; // Something non-zero in case we divide by it
   c.symmetryFlag = false;
 
-  // Unset distances should be some small number 1..9 (not zero,
-  // which is a real distance).
-  c.distWheels = 1;
-  c.distWheels1 = 1;
-  c.distWheels2 = 1;
-  c.distMiddles = 2;
-  c.distPair = 1;
-  c.distFrontToWheel = 1;
-  c.distWheelToBack = 1;
-  c.distFrontToMid1 = 1;
-  c.distBackToMid2 = 1;
+  c.distWheels = -1;
+  c.distWheels1 = -1;
+  c.distWheels2 = -1;
+  c.distMiddles = -1;
+  c.distPair = -1;
+  c.distFrontToWheel = -1;
+  c.distWheelToBack = -1;
+  c.distFrontToMid1 = -1;
+  c.distBackToMid2 = -1;
 }
 
 
@@ -389,7 +387,7 @@ bool fillInEquation(
     return false;
 
   unsigned countLHS = 0;
-  if (lhs > 10 || lhs == 0) 
+  if (lhs >= 0)
   countLHS++;
 
   unsigned countRHS = 0;
@@ -398,7 +396,7 @@ bool fillInEquation(
   for (unsigned i = 0; i < len; i++)
   {
     const int r = * rhs[i];
-    if (r > 10 || r == 0)
+    if (r >= 0)
       countRHS++;
     else
       miss = i;
@@ -680,6 +678,75 @@ void readCarFiles(
 }
 
 
+bool makeTrainAxles(
+  const Database& db,
+  TrainEntry& t)
+{
+  int pos = 0;
+  for (unsigned i = 0; i < t.carNumbers.size(); i++)
+  {
+    const int carNo = t.carNumbers[i];
+    if (carNo == 0)
+    {
+      cout << "makeTrainAxles: Bad car number" << endl;
+      return false;
+    }
+    else if (carNo > 0)
+    {
+      const CarEntry * cPtr = db.lookupCar(t.carNumbers[i]);
+      if (cPtr == nullptr)
+        return false;
+
+      pos += cPtr->distFrontToWheel;
+      t.axles.push_back(pos); // First pair, first wheel
+
+      if (cPtr->distWheels > 0)
+      {
+        pos += cPtr->distWheels1;
+        t.axles.push_back(pos); // First pair, second wheel
+      }
+
+      pos += cPtr->distPair;
+      t.axles.push_back(pos); // Second pair, first wheel
+
+      if (cPtr->distWheels2 > 0)
+      {
+        pos += cPtr->distWheels2;
+        t.axles.push_back(pos); // Second pair, second wheel
+      }
+
+      pos += cPtr->distWheelToBack;
+    }
+    else
+    {
+      // Car is reversed.
+      const CarEntry * cPtr = db.lookupCar(-t.carNumbers[i]);
+
+      pos += cPtr->distWheelToBack;
+      t.axles.push_back(pos); // Second pair, second wheel
+
+      if (cPtr->distWheels2 > 0)
+      {
+        pos += cPtr->distWheels2;
+        t.axles.push_back(pos); // Second pair, first wheel
+      }
+
+      pos += cPtr->distPair;
+      t.axles.push_back(pos); // First pair, second wheel
+
+      if (cPtr->distWheels1 > 0)
+      {
+        pos += cPtr->distWheels1;
+        t.axles.push_back(pos); // First pair, first wheel
+      }
+
+      pos += cPtr->distFrontToWheel;
+    }
+  }
+  return true;
+}
+
+
 void readTrainFile(
   Database& db,
   const string& fname)
@@ -736,6 +803,9 @@ void readTrainFile(
     }
   }
   fin.close();
+
+  if (! makeTrainAxles(db, t))
+    cout << "File " + fname + ": Could not make axles" << endl;
 
   db.logTrain(t);
 }

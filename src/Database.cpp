@@ -1,6 +1,7 @@
 #include <iostream>
 #include <iomanip>
 #include <sstream>
+#include <algorithm>
 
 #include "Database.h"
 
@@ -45,8 +46,34 @@ void Database::logCar(const CarEntry& car)
 
 void Database::logTrain(const TrainEntry& train)
 {
-  offTrainMap[train.name] = trainEntries.size();
-  trainEntries.push_back(train);
+  const string officialName = train.officialName;
+
+  if (train.symmetryFlag)
+  {
+    // One direction only.
+    trainEntries.push_back(train);
+    TrainEntry& t = trainEntries.back();
+    t.officialName = officialName + "_N";
+    offTrainMap[t.officialName] = trainEntries.size()-1;
+Database::printAxlesCSV(t);
+  }
+  else
+  {
+    // Normal.
+    trainEntries.push_back(train);
+    TrainEntry& t = trainEntries.back();
+    t.officialName = officialName + "_N";
+    offTrainMap[t.officialName] = trainEntries.size()-1;
+Database::printAxlesCSV(t);
+
+    // Reversed.
+    TrainEntry tr = train;
+    reverse(tr.axles.begin(), tr.axles.end());
+    tr.officialName = officialName + "_R";
+    trainEntries.push_back(tr);
+    offTrainMap[tr.officialName] = trainEntries.size()-1;
+Database::printAxlesCSV(tr);
+  }
 }
 
 
@@ -136,6 +163,18 @@ bool Database::getPerfectPeaks(
 }
 
 
+const CarEntry * Database::lookupCar(const int carNo) const
+{
+  if (carNo <= 0 || carNo >= static_cast<int>(carEntries.size()))
+  {
+    cout << "Bad car number" << endl;
+    return nullptr;
+  }
+  else
+    return &carEntries[carNo];
+}
+
+
 int Database::lookupCarNumber(const string& offName) const
 {
   auto it = offCarMap.find(offName);
@@ -189,5 +228,15 @@ int Database::lookupTrain(
   UNUSED(lastCar);
   UNUSED(carsMissing);
   return 0;
+}
+
+
+void Database::printAxlesCSV(const TrainEntry& t) const
+{
+  cout << t.officialName << ";";
+  for (auto it: t.axles)
+    cout << it << ";";
+
+  cout << endl;
 }
 
