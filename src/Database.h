@@ -112,7 +112,6 @@ class Database
 
     bool getPerfectPeaks(
       const string& trainName,
-      const string& country,
       vector<Peak>& peaks,
       const float speed,
       const int offset = 0) const;

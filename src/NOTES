@@ -1,64 +1,59 @@
-Formula for residual error in regression:
+2018-07-08
+----------
 
+* Database perfect peaks: Add acceleration as well as an argument
+
+* For a fixed train type, look only at random noise with a standard
+  deviation on the position.  Run regression on (v, a).  Also have
+  a regression only on v.
+
+* Make Disturbance an object with a distance function
+
+* When disturbing, keep a list of the original peak number for later
+  - Also keep track of exact peaks inserted and deleted
+
+* Look at noiseless and noisy histograms of peaks
+  - Does a given train type have a natural number of bins?
+  - Can we state this in the train file?
+  - Can we generate a string S1-M1-L2-... for this and store in train?
+
+* How to match a histogram to a train type
+  - Only valid countries
+  - Within +/- 20% of number of train peaks
+  - Histogram has roughly the right bin counts
+  - Ratios between bin positions is roughly right
+  - Levenshteyn distance below some limit
+  - For leading candidates, look at morphing the peaks
+
+* Compare best estimate of insertions and deletions with disturbance
+  - Reject if too poor
+
+
+Overall algorithm
+-----------------
+
+* Peak _positions_: 
+  - Just do double integral.
+  - Maybe force to 0.
+  - Find envelope.
+  - Detect peak positions.
+
+* Then run the train matcher.
+
+* Then look for peaks in the right places
+  - Scale by v and a and shift by d
+  - Know where there are quiet intervals as well
+  - Integrate up and down
+  - Find envelope
+  - Detect peak values
+
+* Check against laser measurements!
+
+
+
+
+
+Only read txt files ending on .txt
+
+Formula for residual error in regression: 
 a^2 (mean(ysq) - mean(y)sq)  + mean(xsq) - mean(x)sq
-
-How to reduce to 3 clusters, S-M-L
-----------------------------------
-
-* Get ranges for M/S and L/S for all trains that are possible
-
-* Counts should be about 2N : N : N (M = inter, large = L)
-
-* hi-lo should be similar to sdev
-  - Take median +/- 0.7 sdev or so
-  - Anything beyond that is also in the cluster, but is marginal
-* Small clusters that are < S are considered marginal S's
-
-
-* If we have
-  - 4 gaps: Two ought to combine into a category (short, medium, large).
-    Which ones?  Try to make the counts even 2N:N:N.
-  - 5 gaps: Ditto 3+1+1, 2+2+1, 2+1+2, 1+2+2
-  - 6 gaps: More partitions
-
-* Label S, M, L
-
-* Work in until we get to one of SLS, SMS, MSL, LSM from both sides
-  Work out until we get to the first car end beyond the end
-  Make a Levenshteyn string for this train with minimal length,
-  so round up to 4n+3.
-
-* Go through actual string from the actual start to end (starting
-  inside the completed string).
-  Fix all single and double errors:
-  - Interval overlap: A high M should be a low L etc.
-    (Single letter change)
-  - Exactly two shorts could become a single short, especially if
-    one really is on on the low end (short range has a median +/-
-    sdev, so something outside would be good)
-  - SLS: Expect MSLS...
-    SLS-MLS might be split into SLS-MSLS
-    SLS-MLM is too messed up
-
-
-
-Repeat:
-
-* Grow outwards using the clusters, can kill spurious peaks
-* Fill in missing peaks (single or double) based on L+R gaps
-
-* Look at 3D short-intra-short clusters (at most 3 or so)
-
-* Refine the filled-in peaks from this
-
-* Match car patterns to trains, only a few possibilities
-
-* Run linear regression for each option
-
-* Pick best train, speed, offset
-
-* Derive disturbance and metric for this
-  Compare to actual
-  Derive q factor
-
-

@@ -42,7 +42,7 @@ cout << "Set up classifier" << endl;
 cout << "Read disturbance" << endl;
 
   vector<Peak> perfectPeaks;
-  db.getPerfectPeaks("ICE1 Refurbishment", "DEU", perfectPeaks, 
+  db.getPerfectPeaks("ICE1 Refurbishment", perfectPeaks, 
     7.2f, -3700);
 cout << "Got perfect peaks" << endl;
 printPeaks(perfectPeaks, 1);

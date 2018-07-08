@@ -697,10 +697,13 @@ bool makeTrainAxles(
       if (cPtr == nullptr)
         return false;
 
-      pos += cPtr->distFrontToWheel;
+      if (i > 0)
+        pos += cPtr->distFrontToWheel;
+
+      if (i == 0 || cPtr->distFrontToWheel > 0)
       t.axles.push_back(pos); // First pair, first wheel
 
-      if (cPtr->distWheels > 0)
+      if (cPtr->distWheels1 > 0)
       {
         pos += cPtr->distWheels1;
         t.axles.push_back(pos); // First pair, second wheel
@@ -722,8 +725,11 @@ bool makeTrainAxles(
       // Car is reversed.
       const CarEntry * cPtr = db.lookupCar(-t.carNumbers[i]);
 
-      pos += cPtr->distWheelToBack;
-      t.axles.push_back(pos); // Second pair, second wheel
+      if (i > 0)
+        pos += cPtr->distWheelToBack;
+
+      if (i == 0 || cPtr->distWheelToBack > 0)
+        t.axles.push_back(pos); // Second pair, second wheel
 
       if (cPtr->distWheels2 > 0)
       {

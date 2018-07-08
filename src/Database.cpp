@@ -68,7 +68,13 @@ Database::printAxlesCSV(t);
 
     // Reversed.
     TrainEntry tr = train;
-    reverse(tr.axles.begin(), tr.axles.end());
+
+    const int aLast = tr.axles.back();
+    const unsigned l = tr.axles.size();
+    const vector<int> axles = tr.axles;
+    for (unsigned i = 0; i < l; i++)
+      tr.axles[i] = aLast - axles[l-i-1];
+
     tr.officialName = officialName + "_R";
     trainEntries.push_back(tr);
     offTrainMap[tr.officialName] = trainEntries.size()-1;
@@ -79,19 +85,13 @@ Database::printAxlesCSV(tr);
 
 bool Database::getPerfectPeaks(
   const string& trainName,
-  const string& country,
   vector<Peak>& peaks,
   const float speed,
   const int offset) const
 {
-  UNUSED(country);
-
   const int trainNo = Database::lookupTrainNumber(trainName);
   if (trainNo == -1)
     return false;
-
-  peaks.clear();
-  int pos = offset; // Start somewhere
 
   // Distances are in mm.
   // Speed is in km/h.
@@ -100,65 +100,15 @@ bool Database::getPerfectPeaks(
   const float factor = static_cast<float>(sampleRate * 3.6f) /
     (speed * 1000.f);
  
-  const vector<int>& carNos = trainEntries[trainNo].carNumbers;
-  const unsigned l = carNos.size();
   Peak peak;
   peak.value = 1.f;
-
-  for (unsigned i = 0; i < l; i++)
+  peaks.clear();
+  for (auto it: trainEntries[trainNo].axles)
   {
-    const int carNo = carNos[i];
-    if (carNo == 0)
-    {
-      cout << "Bad car number" << endl;
-      return false;
-    }
-    else if (carNo > 0)
-    {
-      const CarEntry& carEntry = carEntries[carNo];
-
-      pos += static_cast<int>(carEntry.distFrontToWheel * factor);
-
-      peak.sampleNo = pos;
-      peaks.push_back(peak); // First wheel, first pair
-      pos += static_cast<int>(carEntry.distWheels * factor);
-
-      peak.sampleNo = pos;
-      peaks.push_back(peak); // Second wheel, first pair
-      pos += static_cast<int>(carEntry.distPair * factor);
-
-      peak.sampleNo = pos;
-      peaks.push_back(peak); // First wheel, second pair
-      pos += static_cast<int>(carEntry.distWheels * factor);
-
-      peak.sampleNo = pos;
-      peaks.push_back(peak); // Second wheel, second pair
-      pos += static_cast<int>(carEntry.distWheelToBack * factor);
-    }
-    else
-    {
-      // Car is reversed.
-      const CarEntry& carEntry = carEntries[-carNo];
-
-      pos += static_cast<int>(carEntry.distWheelToBack * factor);
-
-      peak.sampleNo = pos;
-      peaks.push_back(peak); // Second wheel, second pair
-      pos += static_cast<int>(carEntry.distWheels * factor);
-
-      peak.sampleNo = pos;
-      peaks.push_back(peak); // First wheel, second pair
-      pos += static_cast<int>(carEntry.distPair * factor);
-
-      peak.sampleNo = pos;
-      peaks.push_back(peak); // Second wheel, first pair
-      pos += static_cast<int>(carEntry.distWheels * factor);
-
-      peak.sampleNo = pos;
-      peaks.push_back(peak); // First wheel, first pair
-      pos += static_cast<int>(carEntry.distFrontToWheel * factor);
-    }
+    peak.sampleNo = offset + static_cast<int>(it * factor);
+    peaks.push_back(peak);
   }
+
   return true;
 }
 
