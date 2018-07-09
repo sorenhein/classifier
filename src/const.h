@@ -3,9 +3,15 @@
 
 #define SAMPLE_RATE 2000 // In Hz
 
-struct Peak
+struct PeakPos
 {
-  int sampleNo;
+  int pos; // In mm
+  float value;
+};
+
+struct PeakSample
+{
+  int no; // In samples
   float value;
 };
 

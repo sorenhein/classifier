@@ -82,6 +82,8 @@ class Database
    
    vector<TrainEntry> trainEntries;
 
+   list<string> selectedTrains;
+
    map<string, unsigned> offCarMap;
 
    map<string, unsigned> offTrainMap;
@@ -101,9 +103,18 @@ class Database
 
     void setSampleRate(const int sampleRateIn);
 
+    bool select(
+      const string& countries,
+      const unsigned minAxles,
+      const unsigned maxAxles);
+
+    list<string>::iterator begin() {return selectedTrains.begin(); }
+
+    list<string>::iterator end() {return selectedTrains.end(); }
+
     bool getPerfectPeaks(
       const string& trainName,
-      vector<Peak>& peaks) const; // In mm
+      vector<PeakPos>& peaks) const; // In mm
 
     const CarEntry * lookupCar(const int carNo) const;
 

@@ -15,11 +15,19 @@
 using namespace std;
 
 #define UNUSED(x) ((void)(true ? 0 : ((x), void(), 0)))
+#define SIM_NUMBER 10
 
 
 void printPeaks(
-  const vector<Peak>& peaks,
+  const vector<PeakSample>& peaks,
   const int level);
+
+void printDataHeader();
+
+void printDataLine(
+  const string& text,
+  const float actual,
+  const double estimate);
 
 
 int main(int argc, char * argv[])
@@ -33,121 +41,121 @@ int main(int argc, char * argv[])
   readCarFiles(db, "../data/cars");
   readTrainFiles(db, "../data/trains");
   db.setSampleRate(sampleRate);
-cout << "Read all" << endl;
 
   Classifier classifier;
   classifier.setSampleRate(sampleRate);
   classifier.setCountry("DEU");
   classifier.setYear(2018);
-cout << "Set up classifier" << endl;
 
   Disturb disturb;
   if (! disturb.readFile("../data/disturbances/case1.txt"))
     cout << "Bad disturbance file" << endl;
 
-cout << "Read disturbance" << endl;
+  if (! db.select("ALL", 0, 100))
+  {
+    cout << "No trains selected" << endl;
+    exit(0);
+  }
 
   SynthTrain synth;
   synth.setSampleRate(sampleRate);
-  vector<Peak> perfectPeaks;
-  if (! db.getPerfectPeaks("ICE1_DEU_56_N", perfectPeaks))
-    cout << "Bad perfect peaks" << endl;
 
-cout << "Got perfect peaks in mm" << endl;
-printPeaks(perfectPeaks, 1);
+  vector<PeakSample> synthP;
+  PolynomialRegression pol;
+  const int order = 2;
+  const float offset = 1.f;
 
-const int offset = 10000;
-vector<Peak> perfectPeakTimes;
-Peak peak;
-peak.value = 1.f;
-const float speed = 2.f;
-// perfectPeaks are in mm
-// sampleRate is in Hz
-// speed is in m/s.
-const float factor = static_cast<float>(sampleRate) / (1000.f * speed);
-cout << "factor " << factor << endl;
-
-for (auto& it: perfectPeaks)
-{
-  peak.sampleNo = offset + static_cast<int>(factor * it.sampleNo);
-  perfectPeakTimes.push_back(peak);
-}
-cout << "Got perfect peaktimes in samples" << endl;
-printPeaks(perfectPeakTimes, 1);
-
-vector<Peak> synthP;
-float newSpeed0;
-synth.disturb(perfectPeaks, disturb, synthP, 
-  2.0f, 2.0f, 0.1f, newSpeed0);
-cout << "Got disturbed peaks " << endl;
-printPeaks(synthP, 2);
-
-const unsigned l = perfectPeaks.size();
-vector<double> x(l), y(l), coeffs(l);
-for (unsigned i = 0; i < l; i++)
-{
-  y[i] = static_cast<double>(perfectPeakTimes[i].sampleNo);
-  x[i] = static_cast<double>(synthP[i].sampleNo);
-}
-
-PolynomialRegression pol;
-const int order = 2;
-pol.fitIt(x, y, order, coeffs);
-
-for (unsigned i = 0; i <= order; i++)
-  cout << "i " << i << ", coeff " << coeffs[i] << endl;
-
-cout << "Calc speed " << sampleRate * coeffs[1] / 1000.f << endl;
-cout << "Calc accel " << 
-  sampleRate * sampleRate * coeffs[2] / 1000.f << endl;
-
-cout << "Orig speed " << 2.f << endl;
-cout << "New speed " << newSpeed0 << endl;
-cout << "Ratio " << newSpeed0 / 2.f << endl;
-
-
-
-exit(0);
-
-    TrainFound trainFound2;
-    classifier.classify(perfectPeaks, db, trainFound2);
-cout << "Classified " << endl;
-
-  Stats stats;
-
-  for (unsigned i = 0; i < 1; i++)
+  for (auto& trainName: db)
   {
-    vector<Peak> synthPeaks;
-    float newSpeed;
-    synth.disturb(perfectPeaks, disturb, synthPeaks, 
-      60.0f, 20.0f, 250.0f, newSpeed);
-cout << "Got disturbed peaks " << i << endl;
-// printPeaks(synthPeaks, 2);
+cout << "Train " << trainName << endl;
 
-    TrainFound trainFound;
-    classifier.classify(synthPeaks, db, trainFound);
-cout << "Classified " << i << endl;
+    vector<PeakPos> perfectPositions;
+    if (! db.getPerfectPeaks(trainName, perfectPositions))
+      cout << "Bad perfect positions" << endl;
 
-    const string trainName = db.lookupTrainName(trainFound.dbTrainNo);
-cout << "Got train name " << i << endl;
+// cout << "Got perfect peaks in mm" << endl;
+// printPeaks(perfectPeaks, 1);
 
-    stats.log("ICE1", trainName);
-cout << "Logged stats " << i << endl;
+    // for (float speed = 20.f; speed <= 290.f; speed += 20.f)
+    for (float speed = 20.f; speed <= 50.f; speed += 20.f)
+    {
+      // for (unsigned accel = -0.3f; accel <= 0.35f; accel += 0.1f)
+      for (float accel = -0.3f; accel <= 0.35f; accel += 0.3f)
+      {
 
-    // TODO Also stats on speed accuracy
+        for (unsigned no = 0; no < SIM_NUMBER; no++)
+        {
+          synth.disturb(perfectPositions, disturb, synthP, 
+            offset, speed, accel);
+
+// cout << "Got disturbed peaks " << endl;
+// printPeaks(synthP, 2);
+
+          const unsigned l = perfectPositions.size();
+          vector<double> x(l), y(l), coeffs(l);
+          for (unsigned i = 0; i < l; i++)
+          {
+            y[i] = static_cast<double>(perfectPositions[i].pos);
+            x[i] = static_cast<double>(synthP[i].no);
+          }
+
+          pol.fitIt(x, y, order, coeffs);
+
+          // for (unsigned i = 0; i <= order; i++)
+            // cout << "i " << i << ", coeff " << coeffs[i] << endl;
+
+          printDataHeader();
+          printDataLine("Offset", offset, coeffs[0]);
+          printDataLine("Speed", speed, 
+            sampleRate * coeffs[1] / 1000.f);
+          printDataLine("Accel", accel, 
+            2.f * sampleRate * sampleRate * coeffs[2] / 1000.f);
+          cout << endl;
+        }
+      }
+    }
   }
 
-  stats.print("output.txt");
+    // classifier.classify(perfectPeaks, db, trainFound2);
+    // Stats stats;
+    // stats.log("ICE1", trainName);
+    // stats.print("output.txt");
 }
 
 
-void printPeaks(
-  const vector<Peak>& peaks,
+void printPeaksCSV(
+  const vector<PeakSample>& peaks,
   const int level)
 {
   for (unsigned i = 0; i < peaks.size(); i++)
-    cout << peaks[i].sampleNo << ";" << level << endl;
-    // cout << setw(4) << i << setw(12) << peaks[i].sampleNo << endl;
+    cout << peaks[i].no << ";" << level << endl;
   cout << endl;
+}
+
+
+void printDataHeader()
+{
+  cout << setw(8) << left << "" <<
+    setw(10) << right << "Actual" <<
+    setw(10) << right << "Est" <<
+    setw(10) << right << "Error" << endl;
+}
+
+
+void printDataLine(
+  const string& text,
+  const float actual,
+  const double estimate)
+{
+  float dev;
+  if (actual == 0.)
+    dev = 0.f;
+  else
+    dev = 100.f * abs((actual - static_cast<float>(estimate)) / actual);
+
+  cout << setw(8) << left << text <<
+    setw(10) << right << fixed << setprecision(2) << actual <<
+    setw(10) << right << fixed << setprecision(2) << estimate <<
+    setw(9) << right << fixed << setprecision(1) << dev << "%" << endl;
 }
 

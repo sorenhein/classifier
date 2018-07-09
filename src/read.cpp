@@ -23,15 +23,6 @@
 #define UNUSED(x) ((void)(true ? 0 : ((x), void(), 0)))
 
 
-void tokenize(
-  const string& text,
-  vector<string>& tokens,
-  const string& delimiters);
-
-unsigned countDelimiters(
-  const string& text,
-  const string& delimiters);
-
 void resetCar(CarEntry& c);
 
 void resetTrain(TrainEntry& t);

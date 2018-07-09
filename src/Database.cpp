@@ -4,6 +4,7 @@
 #include <algorithm>
 
 #include "Database.h"
+#include "read.h"
 #include "const.h"
 
 #define UNUSED(x) ((void)(true ? 0 : ((x), void(), 0)))
@@ -35,6 +36,41 @@ Database::~Database()
 void Database::setSampleRate(const int sampleRateIn)
 {
   sampleRate = sampleRateIn;
+}
+
+bool Database::select(
+  const string& countries,
+  const unsigned minAxles,
+  const unsigned maxAxles)
+{
+  selectedTrains.clear();
+
+  // Make a map of country strings
+  map<string, int> countryMap;
+  if (countries != "ALL")
+  {
+    const size_t c = countDelimiters(countries, ",");
+    vector<string> vCountries(c+1);
+    vCountries.clear();
+    tokenize(countries, vCountries, ",");
+    for (auto& v: vCountries)
+      countryMap[v] = 1;
+  }
+
+  for (auto& train: trainEntries)
+  {
+    if (countries != "ALL" &&
+        countryMap.find(train.officialName) == countryMap.end())
+      continue;
+
+    const unsigned l = train.axles.size();
+    if (l < minAxles || l > maxAxles)
+      continue;
+
+    selectedTrains.push_back(train.officialName);
+  }
+
+  return (selectedTrains.size() > 0);
 }
 
 
@@ -86,20 +122,20 @@ void Database::logTrain(const TrainEntry& train)
 
 bool Database::getPerfectPeaks(
   const string& trainName,
-  vector<Peak>& peaks) const
+  vector<PeakPos>& peaks) const
 {
   // Peaks are returned in mm.
   const int trainNo = Database::lookupTrainNumber(trainName);
   if (trainNo == -1)
     return false;
 
-  Peak peak;
+  PeakPos peak;
   peak.value = 1.f;
   peaks.clear();
   
   for (auto it: trainEntries[trainNo].axles)
   {
-    peak.sampleNo = it;
+    peak.pos = it;
     peaks.push_back(peak);
   }
 

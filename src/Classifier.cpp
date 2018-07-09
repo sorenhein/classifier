@@ -46,12 +46,12 @@ void Classifier::setYear(const int yearIn)
 
 
 void Classifier::makeTimeDifferences(
-  const vector<Peak>& peaks,
+  const vector<PeakSample>& peaks,
   vector<int>& timeDifferences) const
 {
   const unsigned l = peaks.size();
   for (unsigned i = 1; i < l; i++)
-    timeDifferences.push_back(peaks[i].sampleNo - peaks[i-1].sampleNo);
+    timeDifferences.push_back(peaks[i].no - peaks[i-1].no);
 
   sort(timeDifferences.begin(), timeDifferences.end());
 }
@@ -155,7 +155,7 @@ void Classifier::classifyClusters(
 
 
 void Classifier::labelIntraIntervals(
-  const vector<Peak>& peaks,
+  const vector<PeakSample>& peaks,
   const vector<Cluster>& clusters,
   vector<Interval>& intervals) const
 {
@@ -175,7 +175,7 @@ void Classifier::labelIntraIntervals(
   for (unsigned i = 0; i < lp-1; i++)
   {
     bool found = false;
-    const int t = peaks[i+1].sampleNo - peaks[i].sampleNo;
+    const int t = peaks[i+1].no - peaks[i].no;
 
     for (unsigned c = 0; c < lc && ! found; c++)
     {
@@ -289,7 +289,7 @@ void Classifier::lookupCarTypes(
 
 
 void Classifier::classify(
-  const vector<Peak>& peaks,
+  const vector<PeakSample>& peaks,
   const Database& db,
   TrainFound& trainFound) const
 {

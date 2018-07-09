@@ -47,51 +47,97 @@ SynthTrain::~SynthTrain()
 
 void SynthTrain::setSampleRate(const int sampleRateIn)
 {
-  sampleRate = sampleRateIn;
+  sampleRate = sampleRateIn; // In Hz
 }
 
 
 bool SynthTrain::makeAccel(
-  vector<Peak>& synthPeaks,
-  const float offset,
-  const float speed,
-  const float accel) const
+  const vector<PeakPos>& peakPositions, // In mm
+  vector<PeakSample>& synthPeaks, // In samples
+  const float offset, // In m
+  const float speed, // In m/s
+  const float accel) const // In m/s^2
 {
-  // On entering, synthPeaks are in mm.
-  // On exiting, synthPeaks are in samples.
-
-  Peak peak;
+  PeakSample peak;
   peak.value = 1.f;
+  synthPeaks.clear();
+
+  const float cfactor = static_cast<float>(sampleRate) / 
+    (speed * 1000.f);
+
+  const float offsetPos = cfactor * offset;
 
   if (accel == 0.f)
   {
-    const float factor = static_cast<float>(sampleRate) / (speed * 1000.f);
+    /* 
+       s[m] = v[m/s] * t[s]
+       t[s] = s[m] / v[m/s]
+       t[samples]/fs[Hz] = (s[mm]/1000) / v[m/s]
+       t[samples] = fs[Hz] / (1000 * v[m/s])
+       offset is added on at the end.
+    */
 
-    for (auto& it: synthPeaks)
-      it.sampleNo = static_cast<int>(offset + it.sampleNo * factor);
+
+    const unsigned l = peakPositions.size();
+    for (unsigned i = 0; i < l; i++)
+    {
+      peak.no = 
+        static_cast<int>(offsetPos + cfactor * peakPositions[i].pos);
+      synthPeaks.push_back(peak);
+    }
   }
   else
   {
-    const float sfirst = static_cast<float>(synthPeaks.front().sampleNo);
-    const float slast = static_cast<float>(synthPeaks.back().sampleNo);
-    const float t0 = speed / accel;
+    /* 
+       si is the ith position in peakPositions[m].
+       s[m] = s0[m] + v[m/s] * t[s] + (1/2) * a[m/s^2] * t^2 [s^2]
+       t[s] = (-v +/- sqrt(v^2 - 2 * a * (si - s0) / a
+       t[s] = (v/a) * (+/- sqrt(1 + 2 * a * (si - s0) / v^2) - 1)
+       If a > 0, we're always on the positive branch of the parabola,
+       so we take the plus sign.
+       If a < 0, there's an upper limit on the si's that we can
+       ask for.  This is given by the sqrt argument below.
+       We take the minus sign in order to be on the growing, left
+       part of the parabola.  As the si's are assumed monotonically
+       increasing, we don't go past the maximum.
 
-    const float limit = sfirst - speed * speed / (2.f * accel);
-    if (accel < 0. && slast >= limit)
-      // Train will start to go backwards.
-      return false;
+       {si} should be monotonically increasing.
+       Corresponds to v + 2 * a * t_last > 0.
+       This is not checked, as t_last is calculated and not given.
 
-    for (auto& it: synthPeaks)
+       We need the sqrt argument to be non-negative, so
+       1 + 2 * a * (si - s0) / v^2 >= 0
+       v^2 + 2 * a * (si - s0) >= 0
+       This is given if a > 0.
+       Otherwise a >= -v^2 / (s_last - s0).
+
+       In non-SI units:
+       t[samples] = fs[Hz] * (v/a) * 
+         (+/- sqrt(1 + 2 * a * (si - s0 [mm]) / (1000 * v^2) - 1)
+    */
+
+    const float n0 = sampleRate * speed / accel;
+    const float factor = 2.f * accel / (1000.f * speed * speed);
+
+    const float sfirst = static_cast<float>(peakPositions.front().pos);
+    const float slast = static_cast<float>(peakPositions.back().pos);
+    if (speed * speed + 2.f * accel * (slast - sfirst) / 1000.f < 0.)
     {
-      const float root = sqrt(1.f + 2.f * accel * (it.sampleNo - sfirst) / 
-        (1000.f * speed * speed));
+      cout << "Bad acceleration" << endl;
+      return false;
+    }
+
+    const unsigned l = peakPositions.size();
+    for (unsigned i = 0; i < l; i++)
+    {
+      const float root = 
+        sqrt(1.f + factor * (peakPositions[i].pos - sfirst));
 
       if (accel > 0.)
-        it.sampleNo = 
-          static_cast<int>(offset + sampleRate * t0 * (root-1.f));
+        peak.no = static_cast<int>(offsetPos + n0 * (root-1.f));
       else
-        it.sampleNo = 
-          static_cast<int>(offset + sampleRate * t0 * (-root-1.f));
+        peak.no = static_cast<int>(offsetPos + n0 * (-root-1.f));
+      synthPeaks.push_back(peak);
     }
   }
   return true;
@@ -99,7 +145,7 @@ bool SynthTrain::makeAccel(
 
 
 void SynthTrain::makeNormalNoise(
-  vector<Peak>& synthPeaks,
+  vector<PeakSample>& synthPeaks,
   const int noiseSdev) const
 {
   // Noise standard deviation is in absolute milli-seconds.
@@ -115,13 +161,13 @@ void SynthTrain::makeNormalNoise(
   for (unsigned i = 0; i < synthPeaks.size(); i++)
   {
     const int delta = static_cast<int>(round(factor * dist(var)));
-    synthPeaks[i-1].sampleNo += delta;
+    synthPeaks[i-1].no += delta;
   }
 }
 
 
 void SynthTrain::makeRandomInsertions(
-  vector<Peak>& synthPeaks,
+  vector<PeakSample>& synthPeaks,
   const int lo,
   const int hi) const
 {
@@ -135,14 +181,14 @@ void SynthTrain::makeRandomInsertions(
     const unsigned hit = 
       static_cast<unsigned>(rand() % (synthPeaks.size()-1));
     
-    const int tLeft = synthPeaks[hit].sampleNo;
+    const int tLeft = synthPeaks[hit].no;
     const float vLeft = synthPeaks[hit].value;
 
-    const int tRight = synthPeaks[hit+1].sampleNo;
+    const int tRight = synthPeaks[hit+1].no;
     const float vRight = synthPeaks[hit+1].value;
 
-    Peak newPeak;
-    newPeak.sampleNo = tLeft + 1 + (rand() % (tRight - tLeft - 2));
+    PeakSample newPeak;
+    newPeak.no = tLeft + 1 + (rand() % (tRight - tLeft - 2));
     newPeak.value = (vLeft + vRight) / 2.f;
 
     synthPeaks.insert(synthPeaks.begin()+hit+1, newPeak);
@@ -151,7 +197,7 @@ void SynthTrain::makeRandomInsertions(
 
 
 void SynthTrain::makeRandomDeletions(
-  vector<Peak>& synthPeaks,
+  vector<PeakSample>& synthPeaks,
   const int lo,
   const int hi) const
 {
@@ -171,7 +217,7 @@ void SynthTrain::makeRandomDeletions(
 
 
 void SynthTrain::makeRandomFrontDeletions(
-  vector<Peak>& synthPeaks,
+  vector<PeakSample>& synthPeaks,
   const int lo,
   const int hi) const
 {
@@ -188,7 +234,7 @@ void SynthTrain::makeRandomFrontDeletions(
 
 
 void SynthTrain::makeRandomBackDeletions(
-  vector<Peak>& synthPeaks,
+  vector<PeakSample>& synthPeaks,
   const int lo,
   const int hi) const
 {
@@ -205,50 +251,37 @@ void SynthTrain::makeRandomBackDeletions(
 
 
 void SynthTrain::scaleTrace(
-   vector<Peak>& synthPeaks,
+   const vector<PeakPos>& perfectPositions,
+   vector<PeakSample>& synthPeaks,
    const float origSpeed,
    const float newSpeed) const
 {
   if (synthPeaks.size() == 0)
     return;
 
-  const int offset = synthPeaks[0].sampleNo;
+  const int offset = synthPeaks[0].no;
   const float factor = newSpeed / origSpeed;
 
   for (unsigned i = 0; i < synthPeaks.size(); i++)
   {
-    synthPeaks[i].sampleNo = offset +
-      static_cast<int>((synthPeaks[i].sampleNo - offset) * factor);
+    synthPeaks[i].no = offset +
+      static_cast<int>((perfectPositions[i].pos - offset) * factor);
   }
 }
 
-void printPeaks(const vector<Peak>& synthPeaks, const int level);
+void printPeaks(const vector<PeakSample>& synthPeaks, const int level);
 #define UNUSED(x) ((void)(true ? 0 : ((x), void(), 0)))
 
 void SynthTrain::disturb(
-  const vector<Peak>& perfectPeaks, // In mm
+  const vector<PeakPos>& perfectPositions, // In mm
   const Disturb& disturb,
-  vector<Peak>& synthPeaks, // In samples
-  const float minSpeed, // In m/s
-  const float maxSpeed, // In m/s
-  const float accel, // In m/s^2
-  float& newSpeed) const
+  vector<PeakSample>& synthPeaks, // In samples
+  const float offset, // In m
+  const float speed, // In m/s
+  const float accel) const // In m/s^2
 {
-  synthPeaks = perfectPeaks;
-
-  if (maxSpeed == minSpeed)
-    newSpeed = minSpeed;
-  else
-  {
-    random_device rd;
-    mt19937 var(rd());
-    uniform_real_distribution<> dist(0, 1);
-
-    newSpeed = minSpeed + (maxSpeed-minSpeed) * 
-      static_cast<float>(dist(var));
-  }
-
-  if (! SynthTrain::makeAccel(synthPeaks, 0.f, newSpeed, accel))
+  if (! SynthTrain::makeAccel(perfectPositions, synthPeaks, 
+    offset, speed, accel))
   {
     cout << "makeAccel failed" << endl;
     return;

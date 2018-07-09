@@ -2,6 +2,7 @@
 #define TRAIN_SYNTH_H
 
 #include "Classifier.h"
+#include "const.h"
 
 class Disturb;
 
@@ -16,37 +17,39 @@ class SynthTrain
     int sampleRate;
 
     bool makeAccel(
-      vector<Peak>& synthPeaks,
-      const float offset,
-      const float speed,
-      const float accel) const;
+      const vector<PeakPos>& perfectPositions, // In mm
+      vector<PeakSample>& synthPeaks, // In samples
+      const float offset, // In m
+      const float speed, // In m/s
+      const float accel) const; // In m/s^2
 
     void makeNormalNoise(
-      vector<Peak>& synthPeaks,
+      vector<PeakSample>& synthPeaks,
       const int noiseSdev) const;
 
     void makeRandomInsertions(
-      vector<Peak>& synthPeaks,
+      vector<PeakSample>& synthPeaks,
       const int lo,
       const int hi) const;
 
     void makeRandomDeletions(
-      vector<Peak>& synthPeaks,
+      vector<PeakSample>& synthPeaks,
       const int lo,
       const int hi) const;
 
     void makeRandomFrontDeletions(
-      vector<Peak>& synthPeaks,
+      vector<PeakSample>& synthPeaks,
       const int lo,
       const int hi) const;
 
     void makeRandomBackDeletions(
-      vector<Peak>& synthPeaks,
+      vector<PeakSample>& synthPeaks,
       const int lo,
       const int hi) const;
 
     void scaleTrace(
-      vector<Peak>& synthPeaks,
+      const vector<PeakPos>& perfectPositions, // In mm
+      vector<PeakSample>& synthPeaks, // In samples
       const float origSpeed,
       const float newSpeed) const;
       
@@ -60,13 +63,12 @@ class SynthTrain
     void setSampleRate(const int sampleRateIn);
 
     void disturb(
-      const vector<Peak>& perfectPeaks,
+      const vector<PeakPos>& perfectPositions, // In mm
       const Disturb& disturb,
-      vector<Peak>& synthPeaks,
-      const float origSpeed,
-      const float minSpeed,
-      const float maxSpeed,
-      float& newSpeed) const;
+      vector<PeakSample>& synthPeaks, // In samples
+      const float offset, // In m
+      const float speed, // In m/s
+      const float accel) const; // In m/s^2
 };
 
 #endif

@@ -1,10 +1,21 @@
 #ifndef TRAIN_READ_H
 #define TRAIN_READ_H
 
+#include <vector>
+
 using namespace std;
 
 class Database;
 
+
+void tokenize(
+  const string& text,
+  vector<string>& tokens,
+  const string& delimiters);
+
+unsigned countDelimiters(
+  const string& text,
+  const string& delimiters);
 
 bool readInt(
   const string& text,
