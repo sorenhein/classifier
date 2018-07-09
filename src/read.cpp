@@ -287,19 +287,19 @@ bool readInt(
 }
 
 
-bool readFloat(
+bool readDouble(
   const string& text,
-  float& value,
+  double& value,
   const string& err)
 {
   if (text == "")
     return false;
 
-  float f;
+  double f;
   size_t pos;
   try
   {
-    f = static_cast<float>(stod(text, &pos));
+    f = stod(text, &pos);
     if (pos != text.size())
     {
       cout << err << endl;

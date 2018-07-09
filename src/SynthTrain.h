@@ -14,14 +14,14 @@ class SynthTrain
 {
   private:
 
-    int sampleRate;
+    double sampleRate;
 
     bool makeAccel(
       const vector<PeakPos>& perfectPositions, // In mm
       vector<PeakSample>& synthPeaks, // In samples
-      const float offset, // In m
-      const float speed, // In m/s
-      const float accel) const; // In m/s^2
+      const double offset, // In m
+      const double speed, // In m/s
+      const double accel) const; // In m/s^2
 
     void makeNormalNoise(
       vector<PeakSample>& synthPeaks,
@@ -50,8 +50,8 @@ class SynthTrain
     void scaleTrace(
       const vector<PeakPos>& perfectPositions, // In mm
       vector<PeakSample>& synthPeaks, // In samples
-      const float origSpeed,
-      const float newSpeed) const;
+      const double origSpeed,
+      const double newSpeed) const;
       
 
   public:
@@ -60,15 +60,15 @@ class SynthTrain
 
     ~SynthTrain();
 
-    void setSampleRate(const int sampleRateIn);
+    void setSampleRate(const double sampleRateIn);
 
     void disturb(
       const vector<PeakPos>& perfectPositions, // In mm
       const Disturb& disturb,
       vector<PeakSample>& synthPeaks, // In samples
-      const float offset, // In m
-      const float speed, // In m/s
-      const float accel) const; // In m/s^2
+      const double offset, // In m
+      const double speed, // In m/s
+      const double accel) const; // In m/s^2
 };
 
 #endif

@@ -66,8 +66,8 @@ struct TrainEntry
 
 struct DatabaseCar
 {
-  float shortGap;
-  float longGap;
+  double shortGap;
+  double longGap;
   int count;
   int countInternal;
 };

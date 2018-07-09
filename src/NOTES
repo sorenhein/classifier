@@ -1,14 +1,13 @@
 2018-07-08
 ----------
 
-Move to doubles
 Move to meters and seconds rather than samples and milli-seconds
 
-* Database perfect peaks: Add acceleration as well as an argument
+Get estimates offset, speed and accel to work
 
-* For a fixed train type, look only at random noise with a standard
-  deviation on the position.  Run regression on (v, a).  Also have
-  a regression only on v.
+Make a Disturb printer
+
+Start to use Stats
 
 * When disturbing, keep a list of the original peak number for later
   - Also keep track of exact peaks inserted and deleted

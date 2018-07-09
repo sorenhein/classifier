@@ -22,9 +22,9 @@ bool readInt(
   int& value,
   const string& err);
 
-bool readFloat(
+bool readDouble(
   const string& text,
-  float& value,
+  double& value,
   const string& err);
 
 void readCarFiles(

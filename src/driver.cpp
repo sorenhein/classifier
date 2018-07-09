@@ -26,7 +26,7 @@ void printDataHeader();
 
 void printDataLine(
   const string& text,
-  const float actual,
+  const double actual,
   const double estimate);
 
 
@@ -63,7 +63,7 @@ int main(int argc, char * argv[])
   vector<PeakSample> synthP;
   PolynomialRegression pol;
   const int order = 2;
-  const float offset = 1.f;
+  const double offset = 1.;
 
   for (auto& trainName: db)
   {
@@ -76,11 +76,11 @@ cout << "Train " << trainName << endl;
 // cout << "Got perfect peaks in mm" << endl;
 // printPeaks(perfectPeaks, 1);
 
-    // for (float speed = 20.f; speed <= 290.f; speed += 20.f)
-    for (float speed = 20.f; speed <= 50.f; speed += 20.f)
+    // for (double speed = 20.; speed <= 290.; speed += 20.)
+    for (double speed = 20.; speed <= 50.; speed += 20.)
     {
       // for (unsigned accel = -0.3f; accel <= 0.35f; accel += 0.1f)
-      for (float accel = -0.3f; accel <= 0.35f; accel += 0.3f)
+      for (double accel = -0.3; accel <= 0.35; accel += 0.3)
       {
 
         for (unsigned no = 0; no < SIM_NUMBER; no++)
@@ -107,9 +107,9 @@ cout << "Train " << trainName << endl;
           printDataHeader();
           printDataLine("Offset", offset, coeffs[0]);
           printDataLine("Speed", speed, 
-            sampleRate * coeffs[1] / 1000.f);
+            sampleRate * coeffs[1] / 1000.);
           printDataLine("Accel", accel, 
-            2.f * sampleRate * sampleRate * coeffs[2] / 1000.f);
+            2. * sampleRate * sampleRate * coeffs[2] / 1000.);
           cout << endl;
         }
       }
@@ -144,14 +144,14 @@ void printDataHeader()
 
 void printDataLine(
   const string& text,
-  const float actual,
+  const double actual,
   const double estimate)
 {
-  float dev;
+  double dev;
   if (actual == 0.)
-    dev = 0.f;
+    dev = 0.;
   else
-    dev = 100.f * abs((actual - static_cast<float>(estimate)) / actual);
+    dev = 100. * abs((actual - estimate) / actual);
 
   cout << setw(8) << left << text <<
     setw(10) << right << fixed << setprecision(2) << actual <<

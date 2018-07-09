@@ -13,7 +13,7 @@ using namespace std;
 struct TrainFound
 {
   int dbTrainNo;
-  float distance;
+  double distance;
 };
 
 
@@ -35,9 +35,9 @@ class Classifier
 
     struct Cluster
     {
-      float center;
-      float median;
-      float sdev;
+      double center;
+      double median;
+      double sdev;
       int lower;
       int upper;
       int count;

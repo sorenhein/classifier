@@ -96,7 +96,7 @@ void Classifier::KmeansOptimalClusters(
   clusters.resize(numClusters);
 
   vector<unsigned> lastClusterIndex(numClusters);;
-  vector<float> sum(numClusters), sumsq(numClusters);
+  vector<double> sum(numClusters), sumsq(numClusters);
 
   for (unsigned i = 0; i < l; i++)
   {
@@ -109,16 +109,16 @@ void Classifier::KmeansOptimalClusters(
     
     lastClusterIndex[c] = i;
 
-    const float df = static_cast<float>(timeDifferences[i]);
+    const double df = static_cast<double>(timeDifferences[i]);
     sum[c] += df;
     sumsq[c] += df*df;
   }
 
   for (unsigned c = 0; c < numClusters; c++)
   {
-    clusters[c].center = static_cast<float>(centers[c]);
+    clusters[c].center = centers[c];
 
-    const float n = static_cast<float>(clusters[c].count);
+    const double n = static_cast<double>(clusters[c].count);
     if (n > 1.f)
       clusters[c].sdev = 
         sqrt((n*sumsq[c] - sum[c]*sum[c]) / (n * (n-1.f)));
@@ -131,9 +131,9 @@ void Classifier::KmeansOptimalClusters(
     const unsigned isum = firstClusterIndex + lastClusterIndex[c];
     const unsigned imid = isum/2;
     if (isum % 2 == 0)
-      clusters[c].median = static_cast<float>(x[imid]);
+      clusters[c].median = x[imid];
     else
-      clusters[c].median = static_cast<float>(x[imid] + x[imid+1]) / 2.f;
+      clusters[c].median = (x[imid] + x[imid+1]) / 2.f;
   }
 }
 

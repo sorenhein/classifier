@@ -6,13 +6,13 @@
 struct PeakPos
 {
   int pos; // In mm
-  float value;
+  double value;
 };
 
 struct PeakSample
 {
   int no; // In samples
-  float value;
+  double value;
 };
 
 #endif
