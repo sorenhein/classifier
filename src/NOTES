@@ -5,8 +5,6 @@ Move to meters and seconds rather than samples and milli-seconds
 
 Get estimates offset, speed and accel to work
 
-Make a Disturb printer
-
 Start to use Stats
 
 * When disturbing, keep a list of the original peak number for later

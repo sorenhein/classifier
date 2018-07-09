@@ -1,9 +1,20 @@
 #ifndef TRAIN_DISTURB_H
 #define TRAIN_DISTURB_H
 
+#include <iostream>
+#include <sstream>
+#include <fstream>
 #include <set>
 
 using namespace std;
+
+
+struct DisturbType
+{
+  int peaksMin;
+  int peaksMax;
+  set<unsigned> peaks;
+};
 
 
 class Disturb
@@ -11,27 +22,25 @@ class Disturb
   private:
 
     int noiseSdev; // In milli-seconds
+    int detectedNoiseSdev; // In milli-seconds
 
-    int injectPeaksMin;
-    int injectPeaksMax;
-    set<unsigned> injectedPeaks;
+    DisturbType injection;
+    DisturbType deletion;
+    DisturbType prunedFront;
+    DisturbType prunedBack;
 
-    int deletePeaksMin;
-    int deletePeaksMax;
-    set<unsigned> deletedPeaks;
+    DisturbType detInjection;
+    DisturbType detDeletion;
+    DisturbType detPrunedFront;
+    DisturbType detPrunedBack;
 
-    int pruneFrontMin;
-    int pruneFrontMax;
-    set<unsigned> prunedFronts;
+    void resetDisturbType(DisturbType& d);
 
-    int pruneBackMin;
-    int pruneBackMax;
-    set<unsigned> prunedBacks;
-
-    set<unsigned> detectedInjectedPeaks;
-    set<unsigned> detectedDeletedPeaks;
-    set<unsigned> detectedPrunedFronts;
-    set<unsigned> detectedPrunedBacks;
+    void printLine(
+      ofstream& fout,
+      const string& text,
+      const DisturbType& actual,
+      const DisturbType& detected) const;
 
 
   public:
@@ -75,6 +84,8 @@ class Disturb
     void detectFront(const unsigned number);
 
     void detectBack(const unsigned number);
+
+    void print(const string& fname) const;
 };
 
 #endif
