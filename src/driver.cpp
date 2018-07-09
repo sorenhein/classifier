@@ -78,7 +78,7 @@ printPeaks(perfectPeakTimes, 1);
 vector<Peak> synthP;
 float newSpeed0;
 synth.disturb(perfectPeaks, disturb, synthP, 
-  2.0f, 2.0f, 0.00001f, newSpeed0);
+  2.0f, 2.0f, 0.1f, newSpeed0);
 cout << "Got disturbed peaks " << endl;
 printPeaks(synthP, 2);
 
@@ -96,6 +96,10 @@ pol.fitIt(x, y, order, coeffs);
 
 for (unsigned i = 0; i <= order; i++)
   cout << "i " << i << ", coeff " << coeffs[i] << endl;
+
+cout << "Calc speed " << sampleRate * coeffs[1] / 1000.f << endl;
+cout << "Calc accel " << 
+  sampleRate * sampleRate * coeffs[2] / 1000.f << endl;
 
 cout << "Orig speed " << 2.f << endl;
 cout << "New speed " << newSpeed0 << endl;

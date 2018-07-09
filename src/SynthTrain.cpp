@@ -66,7 +66,6 @@ bool SynthTrain::makeAccel(
   if (accel == 0.f)
   {
     const float factor = static_cast<float>(sampleRate) / (speed * 1000.f);
-cout << "factor makeAccel " << factor << endl;
 
     for (auto& it: synthPeaks)
       it.sampleNo = static_cast<int>(offset + it.sampleNo * factor);
@@ -84,8 +83,8 @@ cout << "factor makeAccel " << factor << endl;
 
     for (auto& it: synthPeaks)
     {
-      const float root = sqrt(1.f + 2.f * (it.sampleNo - sfirst) / 
-        (sampleRate * speed * t0));
+      const float root = sqrt(1.f + 2.f * accel * (it.sampleNo - sfirst) / 
+        (1000.f * speed * speed));
 
       if (accel > 0.)
         it.sampleNo = 
