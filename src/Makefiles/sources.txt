@@ -3,6 +3,7 @@ SOURCE_FILES    =               \
                 Database.cpp    \
                 Disturb.cpp     \
                 Stats.cpp       \
+                StatEntry.cpp   \
                 SynthTrain.cpp  \
                 Timer.cpp       \
                 read.cpp        \

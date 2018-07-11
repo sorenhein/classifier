@@ -18,7 +18,11 @@ using namespace std;
 #define SIM_NUMBER 10
 
 
-void printPeaks(
+void printPeakPosCSV(
+  const vector<PeakPos>& peaks,
+  const int level);
+
+void printPeakSampleCSV(
   const vector<PeakSample>& peaks,
   const int level);
 
@@ -63,7 +67,7 @@ int main(int argc, char * argv[])
   vector<PeakSample> synthP;
   PolynomialRegression pol;
   const int order = 2;
-  const double offset = 1.;
+  // const double offset = 1.;
 
   for (auto& trainName: db)
   {
@@ -73,23 +77,25 @@ cout << "Train " << trainName << endl;
     if (! db.getPerfectPeaks(trainName, perfectPositions))
       cout << "Bad perfect positions" << endl;
 
-// cout << "Got perfect peaks in mm" << endl;
-// printPeaks(perfectPeaks, 1);
+cout << "Got perfect positions in mm, " << perfectPositions.size() << endl;
+printPeakPosCSV(perfectPositions, 1);
 
     // for (double speed = 20.; speed <= 290.; speed += 20.)
-    for (double speed = 20.; speed <= 50.; speed += 20.)
+    // for (double speed = 20.; speed <= 50.; speed += 20.)
+    for (double speed = 40.; speed <= 50.; speed += 20.)
     {
       // for (unsigned accel = -0.3f; accel <= 0.35f; accel += 0.1f)
-      for (double accel = -0.3; accel <= 0.35; accel += 0.3)
+      // for (double accel = -0.3; accel <= 0.35; accel += 0.3)
+      for (double accel = 0.3; accel <= 0.35; accel += 0.3)
       {
 
         for (unsigned no = 0; no < SIM_NUMBER; no++)
         {
           synth.disturb(perfectPositions, disturb, synthP, 
-            offset, speed, accel);
+            0., speed, accel);
 
-// cout << "Got disturbed peaks " << endl;
-// printPeaks(synthP, 2);
+cout << "Got synth times, " << synthP.size() << endl;
+printPeakSampleCSV(synthP, 2);
 
           const unsigned l = perfectPositions.size();
           vector<double> x(l), y(l), coeffs(l);
@@ -105,7 +111,7 @@ cout << "Train " << trainName << endl;
             // cout << "i " << i << ", coeff " << coeffs[i] << endl;
 
           printDataHeader();
-          printDataLine("Offset", offset, coeffs[0]);
+          printDataLine("Offset", 0., coeffs[0]);
           printDataLine("Speed", speed, 
             sampleRate * coeffs[1] / 1000.);
           printDataLine("Accel", accel, 
@@ -123,7 +129,17 @@ cout << "Train " << trainName << endl;
 }
 
 
-void printPeaksCSV(
+void printPeakPosCSV(
+  const vector<PeakPos>& peaks,
+  const int level)
+{
+  for (unsigned i = 0; i < peaks.size(); i++)
+    cout << peaks[i].pos << ";" << level << endl;
+  cout << endl;
+}
+
+
+void printPeakSampleCSV(
   const vector<PeakSample>& peaks,
   const int level)
 {
