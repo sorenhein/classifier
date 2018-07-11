@@ -28,9 +28,11 @@ class StatEntry
       ENTRY_SIZE = 4
     };
 
-    string title;
-
     vector<Entry> entries;
+
+    string avg(const unsigned index) const;
+
+    string sdev(const unsigned index) const;
 
 
   public:
@@ -39,16 +41,18 @@ class StatEntry
 
     ~StatEntry();
 
-    void setTitle(const string& text);
-
-    void log(
+    bool log(
         const vector<double>& actual,
         const vector<double>& estimate,
         const double residuals);
 
-    void printHeader(const ofstream& fname) const;
+    void printHeader(
+      ofstream& fname,
+      const string& header) const;
 
-    void print(const ofstream& fname) const;
+    void print(
+      ofstream& fname,
+      const string& header) const;
 };
 
 #endif
