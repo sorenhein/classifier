@@ -4,6 +4,7 @@ SOURCE_FILES    =               \
                 Disturb.cpp     \
                 Stats.cpp       \
                 StatEntry.cpp   \
+                StatCross.cpp   \
                 SynthTrain.cpp  \
                 Timer.cpp       \
                 read.cpp        \

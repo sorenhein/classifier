@@ -42,17 +42,17 @@ class StatEntry
     ~StatEntry();
 
     bool log(
-        const vector<double>& actual,
-        const vector<double>& estimate,
-        const double residuals);
+      const vector<double>& actual,
+      const vector<double>& estimate,
+      const double residuals);
 
     void printHeader(
-      ofstream& fname,
+      ofstream& fout,
       const string& header) const;
 
     void print(
-      ofstream& fname,
-      const string& header) const;
+      ofstream& fout,
+      const string& title) const;
 };
 
 #endif
