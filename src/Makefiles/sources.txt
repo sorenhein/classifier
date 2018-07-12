@@ -8,6 +8,7 @@ SOURCE_FILES    =               \
                 SynthTrain.cpp  \
                 Timer.cpp       \
                 read.cpp        \
+                print.cpp       \
                 driver.cpp      \
                 Ckmeans/Ckmeans.1d.dp.cpp       \
                 Ckmeans/dynamic_prog.cpp        \

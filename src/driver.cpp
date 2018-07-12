@@ -9,6 +9,7 @@
 #include "Disturb.h"
 #include "Timer.h"
 #include "Stats.h"
+#include "print.h"
 
 #include "regress/PolynomialRegression.h"
 
@@ -16,22 +17,6 @@ using namespace std;
 
 #define UNUSED(x) ((void)(true ? 0 : ((x), void(), 0)))
 #define SIM_NUMBER 10
-
-
-void printPeakPosCSV(
-  const vector<PeakPos>& peaks,
-  const int level);
-
-void printPeakSampleCSV(
-  const vector<PeakSample>& peaks,
-  const int level);
-
-void printDataHeader();
-
-void printDataLine(
-  const string& text,
-  const double actual,
-  const double estimate);
 
 
 int main(int argc, char * argv[])
@@ -127,13 +112,7 @@ cout << "Train " << trainName << endl;
           motionEstimate[1] = coeffs[1];
           motionEstimate[2] = 2. * coeffs[2];
 
-          // for (unsigned i = 0; i <= order; i++)
-            // cout << "i " << i << ", est " << motionEstimate[i] << endl;
-
-          // printDataHeader();
-          // printDataLine("Offset", 0., motionEstimate[0]);
-          // printDataLine("Speed", speed, motionEstimate[1]);
-          // printDataLine("Accel", accel, motionEstimate[2]);
+          printCorrelation(motionActual, motionEstimate);
 
           double residuals = 0.;
           stats.log(trainName, motionActual,
@@ -160,52 +139,5 @@ cout << "Train " << trainName << endl;
     // Stats stats;
     // stats.log("ICE1", trainName);
     // stats.print("output.txt");
-}
-
-
-void printPeakPosCSV(
-  const vector<PeakPos>& peaks,
-  const int level)
-{
-  for (unsigned i = 0; i < peaks.size(); i++)
-    cout << peaks[i].pos << ";" << level << endl;
-  cout << endl;
-}
-
-
-void printPeakSampleCSV(
-  const vector<PeakSample>& peaks,
-  const int level)
-{
-  for (unsigned i = 0; i < peaks.size(); i++)
-    cout << peaks[i].time << ";" << level << endl;
-  cout << endl;
-}
-
-
-void printDataHeader()
-{
-  cout << setw(8) << left << "" <<
-    setw(10) << right << "Actual" <<
-    setw(10) << right << "Est" <<
-    setw(10) << right << "Error" << endl;
-}
-
-
-void printDataLine(
-  const string& text,
-  const double actual,
-  const double estimate)
-{
-  double dev;
-  if (actual == 0.)
-    dev = 0.;
-  else
-    dev = 100. * abs((actual - estimate) / actual);
-
-  cout << setw(8) << left << text <<
-    setw(10) << right << fixed << setprecision(2) << actual <<
-    setw(10) << right << fixed << setprecision(2) << estimate <<
-    setw(9) << right << fixed << setprecision(1) << dev << "%" << endl;
 }
 
