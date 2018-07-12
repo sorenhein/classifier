@@ -15,26 +15,36 @@
 
 using namespace std;
 
-#define UNUSED(x) ((void)(true ? 0 : ((x), void(), 0)))
-#define SIM_NUMBER 10
-
 
 int main(int argc, char * argv[])
 {
-  UNUSED(argc);
-  UNUSED(argv);
+  if (argc != 2)
+  {
+    cout << "Usage: ./driver control_file\n";
+    exit(0);
+  }
+
+  Control control;
+  if (! readControlFile(control, string(argv[1])))
+  {
+    cout << "Bad control file" << string(argv[1]) << endl;
+    exit(0);
+  }
 
   Database db;
-  readCarFiles(db, "../data/cars");
-  readTrainFiles(db, "../data/trains");
+  readCarFiles(db, control.carDir);
+  readTrainFiles(db, control.trainDir);
 
   Classifier classifier;
-  classifier.setCountry("DEU");
-  classifier.setYear(2018);
+  classifier.setCountry(control.country);
+  classifier.setYear(control.year);
 
   Disturb disturb;
-  if (! disturb.readFile("../data/disturbances/case1.txt"))
+  if (! disturb.readFile(control.disturbFile))
+  {
     cout << "Bad disturbance file" << endl;
+    exit(0);
+  }
 
   if (! db.select("ALL", 0, 100))
   {
@@ -44,10 +54,9 @@ int main(int argc, char * argv[])
 
   SynthTrain synth;
 
-  vector<PeakSample> synthP;
+  vector<PeakSample> synthTimes;
   PolynomialRegression pol;
   const int order = 2;
-  // const double offset = 1.;
   
   vector<double> motionActual;
   motionActual.resize(order+1);
@@ -61,49 +70,41 @@ int main(int argc, char * argv[])
 
   for (auto& trainName: db)
   {
-cout << "Train " << trainName << endl;
+    cout << "Train " << trainName << endl;
 
     vector<PeakPos> perfectPositions;
     if (! db.getPerfectPeaks(trainName, perfectPositions))
       cout << "Bad perfect positions" << endl;
 
-// cout << "Got perfect positions in mm, " << perfectPositions.size() << endl;
-// printPeakPosCSV(perfectPositions, 1);
-
-    for (double speed = 5.; speed <= 75.; speed += 5.)
-    // for (double speed = 50.; speed <= 55.; speed += 10.)
-    // for (double speed = 20.; speed <= 50.; speed += 20.)
-    // for (double speed = 40.; speed <= 50.; speed += 20.)
+    for (double speed = control.speedMin; 
+        speed <= control.speedMax + 0.1 * control.speedStep; 
+        speed += control.speedStep)
     {
       motionActual[1] = speed;
 
-      for (double accel = -0.5; accel <= 0.55; accel += 0.1)
-      // for (double accel = 0.; accel <= 0.05; accel += 0.3)
-      // for (double accel = 0.3; accel <= 0.35; accel += 0.3)
+      for (double accel = control.accelMin; 
+          accel <= control.accelMax + 0.1 * control.accelStep; 
+          accel += control.accelStep)
       {
         motionActual[2] = accel;
 
-        for (unsigned no = 0; no < SIM_NUMBER; no++)
+        for (int no = 0; no < control.simCount; no++)
         {
           timer.start();
 
-          if (! synth.disturb(perfectPositions, disturb, synthP, 
+          if (! synth.disturb(perfectPositions, disturb, synthTimes, 
             0., speed, accel))
           {
             continue;
           }
-
-// cout << "Got synth times, " << synthP.size() << endl;
-// printPeakSampleCSV(synthP, 2);
 
           const unsigned l = perfectPositions.size();
           vector<double> x(l), y(l), coeffs(l);
           for (unsigned i = 0; i < l; i++)
           {
             y[i] = perfectPositions[i].pos;
-            x[i] = synthP[i].time;
+            x[i] = synthTimes[i].time;
           }
-
           pol.fitIt(x, y, order, coeffs);
 
           timer.stop();
@@ -111,10 +112,12 @@ cout << "Train " << trainName << endl;
           motionEstimate[0] = coeffs[0];
           motionEstimate[1] = coeffs[1];
           motionEstimate[2] = 2. * coeffs[2];
+          // As ... 0.5 * a * t^2 
 
-          printCorrelation(motionActual, motionEstimate);
+          // printCorrelation(motionActual, motionEstimate);
 
           double residuals = 0.;
+          // TODO: Calculate residuals, or find them in code
           stats.log(trainName, motionActual,
             trainName, motionEstimate, residuals);
         }
@@ -122,22 +125,14 @@ cout << "Train " << trainName << endl;
     }
   }
 
+  stats.printCrossCountCSV(control.crossCountFile);
+  stats.printCrossPercentCSV(control.crossPercentFile);
+  stats.printOverviewCSV(control.overviewFile);
+  stats.printDetailsCSV(control.detailFile);
+
   cout << "Time " << timer.str(2) << endl;
 
-// cout << "Done with loop" << endl;
-  stats.printCrossCountCSV("crosscount.csv");
-// cout << "Done with 1" << endl;
-  stats.printCrossPercentCSV("crosspercent.csv");
-// cout << "Done with 2" << endl;
-
-  stats.printOverviewCSV("overview.csv");
-// cout << "Done with 3" << endl;
-  stats.printDetailsCSV("details.csv");
-// cout << "Done with 4" << endl;
-
-    // classifier.classify(perfectPeaks, db, trainFound2);
-    // Stats stats;
-    // stats.log("ICE1", trainName);
-    // stats.print("output.txt");
 }
 
+
+    // classifier.classify(perfectPeaks, db, trainFound2);

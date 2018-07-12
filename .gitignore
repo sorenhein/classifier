@@ -35,6 +35,7 @@
 *.swp
 *.csv
 src/*.txt
+src/output/*.txt
 
 *.ipch
 *.db

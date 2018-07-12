@@ -781,6 +781,91 @@ bool makeTrainAxles(
 }
 
 
+bool readControlFile(
+  Control& c,
+  const string& fname)
+{
+  ifstream fin;
+  fin.open(fname);
+  string line;
+  while (getline(fin, line))
+  {
+    if (line == "" || line.front() == '#')
+      continue;
+
+    const string err = "File " + fname + ": Bad line '" + line + "'";
+    
+    unsigned sp = line.find(" ");
+    if (sp == string::npos || sp == 0 || sp == line.size()-1)
+    {
+      cout << err << endl;
+      fin.close();
+      return false;
+    }
+
+    const string& field = line.substr(0, sp);
+    const string& rest = line.substr(sp+1);
+
+    if (field == "CAR_DIRECTORY")
+      c.carDir = rest;
+    else if (field == "TRAIN_DIRECTORY")
+      c.trainDir = rest;
+    else if (field == "COUNTRY")
+      c.country = rest;
+    else if (field == "YEAR")
+    {
+      if ( ! readInt(rest, c.year, err)) break;
+    }
+    else if (field == "DISTURB_FILE")
+      c.disturbFile = rest;
+    else if (field == "SIM_COUNT")
+    {
+      if ( ! readInt(rest, c.simCount, err)) break;
+    }
+    else if (field == "SPEED_MIN")
+    {
+      if ( ! readDouble(rest, c.speedMin, err)) break;
+    }
+    else if (field == "SPEED_MAX")
+    {
+      if ( ! readDouble(rest, c.speedMax, err)) break;
+    }
+    else if (field == "SPEED_STEP")
+    {
+      if ( ! readDouble(rest, c.speedStep, err)) break;
+    }
+    else if (field == "ACCELERATION_MIN")
+    {
+      if ( ! readDouble(rest, c.accelMin, err)) break;
+    }
+    else if (field == "ACCELERATION_MAX")
+    {
+      if ( ! readDouble(rest, c.accelMax, err)) break;
+    }
+    else if (field == "ACCELERATION_STEP")
+    {
+      if ( ! readDouble(rest, c.accelStep, err)) break;
+    }
+    else if (field == "CROSSCOUNT_FILE")
+      c.crossCountFile = rest;
+    else if (field == "CROSSPERCENT_FILE")
+      c.crossPercentFile = rest;
+    else if (field == "OVERVIEW_FILE")
+      c.overviewFile = rest;
+    else if (field == "DETAIL_FILE")
+      c.detailFile = rest;
+    else
+    {
+      cout << err << endl;
+      break;
+    }
+  }
+
+  fin.close();
+  return true;
+}
+
+
 void readTrainFile(
   Database& db,
   const string& fname)

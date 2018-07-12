@@ -1,0 +1,16 @@
+CAR_DIRECTORY ../data/cars
+TRAIN_DIRECTORY ../data/trains
+COUNTRY DEU
+YEAR 2018
+DISTURB_FILE ../data/disturbances/case1.txt
+SIM_COUNT 10
+SPEED_MIN 5
+SPEED_MAX 75
+SPEED_STEP 5
+ACCELERATION_MIN -0.5
+ACCELERATION_MAX 0.5
+ACCELERATION_STEP 0.1
+CROSSCOUNT_FILE output/crosscount.csv
+CROSSPERCENT_FILE output/crosspercent.csv
+OVERVIEW_FILE output/overview.txt
+DETAIL_FILE output/details.txt

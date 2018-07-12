@@ -1,9 +1,6 @@
 2018-07-12
 ----------
 
-make a control file in data/control/control1.txt, where all parameters
-are set outside of compilation
-
 * When disturbing, keep a list of the original peak number for later
   - Also keep track of exact peaks inserted and deleted
 

@@ -73,5 +73,6 @@ void printCorrelation(
   printDataLine("Offset", actual[0], estimate[0]);
   printDataLine("Speed", actual[1], estimate[1]);
   printDataLine("Accel", actual[2], estimate[2]);
+  cout << "\n";
 }
 

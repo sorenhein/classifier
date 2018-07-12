@@ -3,6 +3,8 @@
 
 #include <vector>
 
+#include "struct.h"
+
 using namespace std;
 
 class Database;
@@ -26,6 +28,10 @@ bool readDouble(
   const string& text,
   double& value,
   const string& err);
+
+bool readControlFile(
+  Control& control,
+  const string& fname);
 
 void readCarFiles(
   Database& db,
