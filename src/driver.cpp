@@ -54,7 +54,7 @@ int main(int argc, char * argv[])
 
   SynthTrain synth;
 
-  vector<PeakSample> synthTimes;
+  vector<PeakTime> synthTimes;
   PolynomialRegression pol;
   const int order = 2;
   

@@ -28,8 +28,8 @@ void printPeakPosCSV(
 }
 
 
-void printPeakSampleCSV(
-  const vector<PeakSample>& peaks,
+void printPeakTimeCSV(
+  const vector<PeakTime>& peaks,
   const int level)
 {
   for (unsigned i = 0; i < peaks.size(); i++)

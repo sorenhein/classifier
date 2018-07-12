@@ -18,38 +18,38 @@ class SynthTrain
 
     bool makeAccel(
       const vector<PeakPos>& perfectPositions, // In mm
-      vector<PeakSample>& synthPeaks, // In s
+      vector<PeakTime>& synthPeaks, // In s
       const double offset, // In m
       const double speed, // In m/s
       const double accel) const; // In m/s^2
 
     void makeNormalNoise(
-      vector<PeakSample>& synthPeaks,
+      vector<PeakTime>& synthPeaks,
       const int noiseSdev) const;
 
     void makeRandomInsertions(
-      vector<PeakSample>& synthPeaks,
+      vector<PeakTime>& synthPeaks,
       const int lo,
       const int hi) const;
 
     void makeRandomDeletions(
-      vector<PeakSample>& synthPeaks,
+      vector<PeakTime>& synthPeaks,
       const int lo,
       const int hi) const;
 
     void makeRandomFrontDeletions(
-      vector<PeakSample>& synthPeaks,
+      vector<PeakTime>& synthPeaks,
       const int lo,
       const int hi) const;
 
     void makeRandomBackDeletions(
-      vector<PeakSample>& synthPeaks,
+      vector<PeakTime>& synthPeaks,
       const int lo,
       const int hi) const;
 
     void scaleTrace(
       const vector<PeakPos>& perfectPositions, // In mm
-      vector<PeakSample>& synthPeaks, // In s
+      vector<PeakTime>& synthPeaks, // In s
       const double origSpeed,
       const double newSpeed) const;
       
@@ -65,7 +65,7 @@ class SynthTrain
     bool disturb(
       const vector<PeakPos>& perfectPositions, // In mm
       const Disturb& disturb,
-      vector<PeakSample>& synthPeaks, // In s
+      vector<PeakTime>& synthPeaks, // In s
       const double offset, // In m
       const double speed, // In m/s
       const double accel) const; // In m/s^2

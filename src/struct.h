@@ -32,7 +32,7 @@ struct PeakPos
   double value;
 };
 
-struct PeakSample
+struct PeakTime
 {
   double time; // In s
   double value;

@@ -12,8 +12,8 @@ void printPeakPosCSV(
   const vector<PeakPos>& peaks,
   const int level);
 
-void printPeakSampleCSV(
-  const vector<PeakSample>& peaks,
+void printPeakTimeCSV(
+  const vector<PeakTime>& peaks,
   const int level);
 
 void printCorrelation(

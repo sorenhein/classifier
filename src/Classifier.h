@@ -68,7 +68,7 @@ class Classifier
     };
 
     void makeTimeDifferences(
-      const vector<PeakSample>& peaks,
+      const vector<PeakTime>& peaks,
       vector<double>& timeDifferences) const;
 
     void KmeansOptimalClusters(
@@ -79,7 +79,7 @@ class Classifier
       vector<Cluster>& clusters) const;
 
     void labelIntraIntervals(
-      const vector<PeakSample>& peaks,
+      const vector<PeakTime>& peaks,
       const vector<Cluster>& clusters,
       vector<Interval>& intervals) const;
 
@@ -107,7 +107,7 @@ class Classifier
     void setYear(const int yearIn);
 
     void classify(
-      const vector<PeakSample>& peaks,
+      const vector<PeakTime>& peaks,
       const Database& db,
       TrainFound& trainFound) const;
 };

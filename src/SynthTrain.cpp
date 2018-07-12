@@ -26,12 +26,12 @@ SynthTrain::~SynthTrain()
 
 bool SynthTrain::makeAccel(
   const vector<PeakPos>& peakPositions, // In m
-  vector<PeakSample>& synthPeaks, // In s
+  vector<PeakTime>& synthPeaks, // In s
   const double offset, // In m
   const double speed, // In m/s
   const double accel) const // In m/s^2
 {
-  PeakSample peak;
+  PeakTime peak;
   peak.value = 1.;
   synthPeaks.clear();
 
@@ -104,7 +104,7 @@ bool SynthTrain::makeAccel(
 
 
 void SynthTrain::makeNormalNoise(
-  vector<PeakSample>& synthPeaks,
+  vector<PeakTime>& synthPeaks,
   const int noiseSdev) const
 {
   // Noise standard deviation is in absolute milli-seconds.
@@ -145,7 +145,7 @@ void SynthTrain::makeNormalNoise(
 
 
 void SynthTrain::makeRandomInsertions(
-  vector<PeakSample>& synthPeaks,
+  vector<PeakTime>& synthPeaks,
   const int lo,
   const int hi) const
 {
@@ -169,7 +169,7 @@ void SynthTrain::makeRandomInsertions(
     const double tRight = synthPeaks[hit+1].time;
     const double vRight = synthPeaks[hit+1].value;
 
-    PeakSample newPeak;
+    PeakTime newPeak;
     newPeak.time = tLeft + (tRight - tLeft) * dist(var);
     newPeak.value = (vLeft + vRight) / 2.;
 
@@ -179,7 +179,7 @@ void SynthTrain::makeRandomInsertions(
 
 
 void SynthTrain::makeRandomDeletions(
-  vector<PeakSample>& synthPeaks,
+  vector<PeakTime>& synthPeaks,
   const int lo,
   const int hi) const
 {
@@ -199,7 +199,7 @@ void SynthTrain::makeRandomDeletions(
 
 
 void SynthTrain::makeRandomFrontDeletions(
-  vector<PeakSample>& synthPeaks,
+  vector<PeakTime>& synthPeaks,
   const int lo,
   const int hi) const
 {
@@ -216,7 +216,7 @@ void SynthTrain::makeRandomFrontDeletions(
 
 
 void SynthTrain::makeRandomBackDeletions(
-  vector<PeakSample>& synthPeaks,
+  vector<PeakTime>& synthPeaks,
   const int lo,
   const int hi) const
 {
@@ -234,7 +234,7 @@ void SynthTrain::makeRandomBackDeletions(
 
 void SynthTrain::scaleTrace(
    const vector<PeakPos>& perfectPositions,
-   vector<PeakSample>& synthPeaks,
+   vector<PeakTime>& synthPeaks,
    const double origSpeed,
    const double newSpeed) const
 {
@@ -251,12 +251,11 @@ void SynthTrain::scaleTrace(
   }
 }
 
-void printPeaks(const vector<PeakSample>& synthPeaks, const int level);
 
 bool SynthTrain::disturb(
   const vector<PeakPos>& perfectPositions, // In m
   const Disturb& disturb,
-  vector<PeakSample>& synthPeaks, // In samples
+  vector<PeakTime>& synthPeaks, // In samples
   const double offset, // In m
   const double speed, // In m/s
   const double accel) const // In m/s^2
