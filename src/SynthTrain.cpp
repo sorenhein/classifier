@@ -1,38 +1,17 @@
 /* 
    Makes a synthethic trace of peaks corresponding to a given train
    type.  Only the peak times and not the peak amplitudes are modeled
-   realistically.  The peak times are subject to several disturbances
+   realistically.  The peak times are subject to several disturbances.
    controlled by five parameters:
-
-   - noicePercent set the standard deviation of the (normally
-     distributed) noise on the interval length between two ideal
-     peaks.
-
-   - injectUpTo sets the maximum number (uniformly distributed between
-     0 and this number) of peaks that are randomly inserted anywhere
-     in the trace.  "Anywhere includes up to +/- 2% beyond the
-     actual length of the train.
-   
-   - deleteUpTo is analogous and sets the maximum number of peaks
-     that are randomly deleted among the actual peaks.
-
-   - pruneFrontUpTo sets the maximum number of actual leading 
-     (consecutive) peaks that are randomly deleted at the front of
-     a train.
-
-   - pruneBackUpTo is similar for the back.
  */
 
 #include <iostream>
 #include <iomanip>
 #include <sstream>
 #include <random>
-// #include <cstdlib>
-// #include <ctime>
 
 #include "SynthTrain.h"
 #include "Disturb.h"
-// #include "read.h"
 
 
 SynthTrain::SynthTrain()
@@ -52,7 +31,7 @@ void SynthTrain::setSampleRate(const double sampleRateIn)
 
 
 bool SynthTrain::makeAccel(
-  const vector<PeakPos>& peakPositions, // In mm
+  const vector<PeakPos>& peakPositions, // In m
   vector<PeakSample>& synthPeaks, // In samples
   const double offset, // In m
   const double speed, // In m/s
@@ -62,7 +41,7 @@ bool SynthTrain::makeAccel(
   peak.value = 1.;
   synthPeaks.clear();
 
-  const double cfactor = sampleRate / (speed * 1000.);
+  const double cfactor = sampleRate / speed;
 
   const double offsetPos = cfactor * offset;
 
@@ -71,8 +50,8 @@ bool SynthTrain::makeAccel(
     /* 
        s[m] = v[m/s] * t[s]
        t[s] = s[m] / v[m/s]
-       t[samples]/fs[Hz] = (s[mm]/1000) / v[m/s]
-       t[samples] = fs[Hz] / (1000 * v[m/s])
+       t[samples]/fs[Hz] = s[m] / v[m/s]
+       t[samples] = fs[Hz] / v[m/s]
        offset is added on at the end.
     */
 
@@ -112,15 +91,15 @@ bool SynthTrain::makeAccel(
 
        In non-SI units:
        t[samples] = fs[Hz] * (v/a) * 
-         (+/- sqrt(1 + 2 * a * (si - s0 [mm]) / (1000 * v^2) - 1)
+         (+/- sqrt(1 + 2 * a * (si - s0 [m]) / v^2) - 1)
     */
 
     const double n0 = sampleRate * speed / accel;
-    const double factor = 2. * accel / (1000. * speed * speed);
+    const double factor = 2. * accel / (speed * speed);
 
     const double sfirst = peakPositions.front().pos;
     const double slast = peakPositions.back().pos;
-    if (speed * speed + 2. * accel * (slast - sfirst) / 1000. < 0.)
+    if (speed * speed + 2. * accel * (slast - sfirst) < 0.)
     {
       cout << "Bad acceleration" << endl;
       return false;
@@ -266,10 +245,9 @@ void SynthTrain::scaleTrace(
 }
 
 void printPeaks(const vector<PeakSample>& synthPeaks, const int level);
-#define UNUSED(x) ((void)(true ? 0 : ((x), void(), 0)))
 
 bool SynthTrain::disturb(
-  const vector<PeakPos>& perfectPositions, // In mm
+  const vector<PeakPos>& perfectPositions, // In m
   const Disturb& disturb,
   vector<PeakSample>& synthPeaks, // In samples
   const double offset, // In m

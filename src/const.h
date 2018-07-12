@@ -5,7 +5,7 @@
 
 struct PeakPos
 {
-  int pos; // In mm
+  double pos; // In m
   double value;
 };
 

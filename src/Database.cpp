@@ -92,7 +92,6 @@ void Database::logTrain(const TrainEntry& train)
     TrainEntry& t = trainEntries.back();
     t.officialName = officialName + "_N";
     offTrainMap[t.officialName] = trainEntries.size()-1;
-    // Database::printAxlesCSV(t);
   }
   else
   {
@@ -101,7 +100,6 @@ void Database::logTrain(const TrainEntry& train)
     TrainEntry& t = trainEntries.back();
     t.officialName = officialName + "_N";
     offTrainMap[t.officialName] = trainEntries.size()-1;
-    // Database::printAxlesCSV(t);
 
     // Reversed.
     TrainEntry tr = train;
@@ -115,16 +113,14 @@ void Database::logTrain(const TrainEntry& train)
     tr.officialName = officialName + "_R";
     trainEntries.push_back(tr);
     offTrainMap[tr.officialName] = trainEntries.size()-1;
-    // Database::printAxlesCSV(tr);
   }
 }
 
 
 bool Database::getPerfectPeaks(
   const string& trainName,
-  vector<PeakPos>& peaks) const
+  vector<PeakPos>& peaks) const // In m
 {
-  // Peaks are returned in mm.
   const int trainNo = Database::lookupTrainNumber(trainName);
   if (trainNo == -1)
     return false;
@@ -135,7 +131,7 @@ bool Database::getPerfectPeaks(
   
   for (auto it: trainEntries[trainNo].axles)
   {
-    peak.pos = it;
+    peak.pos = it / 1000.;
     peaks.push_back(peak);
   }
 

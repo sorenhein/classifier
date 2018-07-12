@@ -125,10 +125,10 @@ cout << "Train " << trainName << endl;
           // for (unsigned i = 0; i <= order; i++)
             // cout << "i " << i << ", coeff " << coeffs[i] << endl;
 
-          motionEstimate[0] = coeffs[0] / 1000.;
-          motionEstimate[1] = sampleRate * coeffs[1] / 1000.;
+          motionEstimate[0] = coeffs[0];
+          motionEstimate[1] = sampleRate * coeffs[1];
           motionEstimate[2] = 
-            2. * sampleRate * sampleRate * coeffs[2] / 1000.;
+            2. * sampleRate * sampleRate * coeffs[2];
 
           if (motionEstimate[0] > 50. || motionEstimate[0] < -50.)
           {
