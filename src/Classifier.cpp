@@ -300,6 +300,8 @@ void Classifier::classify(
   // Classifier::detectClusters(diffs, clusters);
   Classifier::KmeansOptimalClusters(diffs, clusters);
 Classifier::printClusters(clusters);
+cout << "---" << endl << endl;;
+return;
 
   Classifier::classifyClusters(clusters);
 

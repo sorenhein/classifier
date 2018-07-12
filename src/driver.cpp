@@ -68,7 +68,8 @@ int main(int argc, char * argv[])
   Stats stats;
   Timer timer;
 
-  for (auto& trainName: db)
+  const string trainName = "ICE1_DEU_56_N";
+  // for (auto& trainName: db)
   {
     cout << "Train " << trainName << endl;
 
@@ -97,6 +98,9 @@ int main(int argc, char * argv[])
           {
             continue;
           }
+
+TrainFound trainFound;
+classifier.classify(synthTimes, db, trainFound);
 
           const unsigned l = perfectPositions.size();
           vector<double> x(l), y(l), coeffs(l);
