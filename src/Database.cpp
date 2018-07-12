@@ -5,7 +5,7 @@
 
 #include "Database.h"
 #include "read.h"
-#include "const.h"
+#include "struct.h"
 
 #define UNUSED(x) ((void)(true ? 0 : ((x), void(), 0)))
 
@@ -16,8 +16,6 @@ Database::Database()
   trainEntries.clear();
   offCarMap.clear();
   offTrainMap.clear();
-
-  sampleRate = SAMPLE_RATE; // Default in Hz
 
   // Put a dummy car at position 0 which is not used.
   // We're going to put reversed cars by the negative of the
@@ -32,11 +30,6 @@ Database::~Database()
 {
 }
 
-
-void Database::setSampleRate(const int sampleRateIn)
-{
-  sampleRate = sampleRateIn;
-}
 
 bool Database::select(
   const string& countries,

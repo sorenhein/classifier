@@ -5,7 +5,7 @@
 #include <list>
 
 #include "Database.h"
-#include "const.h"
+#include "struct.h"
 
 using namespace std;
 
@@ -21,7 +21,6 @@ class Classifier
 {
   private:
 
-    int hertz;
     string country;
     int year;
 
@@ -104,7 +103,6 @@ class Classifier
 
     ~Classifier();
 
-    void setSampleRate(const int hertzIn);
     void setCountry(const string& countryIn);
     void setYear(const int yearIn);
 

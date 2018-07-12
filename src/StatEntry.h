@@ -19,15 +19,6 @@ class StatEntry
       double sumsq;
     };
 
-    enum EntryOrder
-    {
-      ENTRY_OFFSET = 0,
-      ENTRY_SPEED = 1,
-      ENTRY_ACCEL = 2,
-      ENTRY_RESIDUAL = 3,
-      ENTRY_SIZE = 4
-    };
-
     vector<Entry> entries;
 
     string avg(

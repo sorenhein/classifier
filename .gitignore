@@ -44,3 +44,4 @@ src/*.txt
 *.vcxproj
 *.pdb
 *.sln
+*.opendb

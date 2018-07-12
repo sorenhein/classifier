@@ -1,7 +1,5 @@
-#ifndef TRAIN_CONST_H
-#define TRAIN_CONST_H
-
-#define SAMPLE_RATE 2000 // In Hz
+#ifndef TRAIN_STRUCT_H
+#define TRAIN_STRUCT_H
 
 struct PeakPos
 {

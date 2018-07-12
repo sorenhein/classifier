@@ -2,7 +2,7 @@
 #define TRAIN_SYNTH_H
 
 #include "Classifier.h"
-#include "const.h"
+#include "struct.h"
 
 class Disturb;
 
@@ -18,7 +18,7 @@ class SynthTrain
 
     bool makeAccel(
       const vector<PeakPos>& perfectPositions, // In mm
-      vector<PeakSample>& synthPeaks, // In samples
+      vector<PeakSample>& synthPeaks, // In s
       const double offset, // In m
       const double speed, // In m/s
       const double accel) const; // In m/s^2
@@ -49,7 +49,7 @@ class SynthTrain
 
     void scaleTrace(
       const vector<PeakPos>& perfectPositions, // In mm
-      vector<PeakSample>& synthPeaks, // In samples
+      vector<PeakSample>& synthPeaks, // In s
       const double origSpeed,
       const double newSpeed) const;
       
@@ -65,7 +65,7 @@ class SynthTrain
     bool disturb(
       const vector<PeakPos>& perfectPositions, // In mm
       const Disturb& disturb,
-      vector<PeakSample>& synthPeaks, // In samples
+      vector<PeakSample>& synthPeaks, // In s
       const double offset, // In m
       const double speed, // In m/s
       const double accel) const; // In m/s^2

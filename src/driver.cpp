@@ -39,15 +39,11 @@ int main(int argc, char * argv[])
   UNUSED(argc);
   UNUSED(argv);
 
-  const int sampleRate = SAMPLE_RATE;
-
   Database db;
   readCarFiles(db, "../data/cars");
   readTrainFiles(db, "../data/trains");
-  db.setSampleRate(sampleRate);
 
   Classifier classifier;
-  classifier.setSampleRate(sampleRate);
   classifier.setCountry("DEU");
   classifier.setYear(2018);
 
@@ -62,7 +58,6 @@ int main(int argc, char * argv[])
   }
 
   SynthTrain synth;
-  synth.setSampleRate(sampleRate);
 
   vector<PeakSample> synthP;
   PolynomialRegression pol;
@@ -77,6 +72,7 @@ int main(int argc, char * argv[])
   motionEstimate.resize(order+1);
 
   Stats stats;
+  Timer timer;
 
   for (auto& trainName: db)
   {
@@ -104,6 +100,8 @@ cout << "Train " << trainName << endl;
 
         for (unsigned no = 0; no < SIM_NUMBER; no++)
         {
+          timer.start();
+
           if (! synth.disturb(perfectPositions, disturb, synthP, 
             0., speed, accel))
           {
@@ -122,6 +120,8 @@ cout << "Train " << trainName << endl;
           }
 
           pol.fitIt(x, y, order, coeffs);
+
+          timer.stop();
 
           motionEstimate[0] = coeffs[0];
           motionEstimate[1] = coeffs[1];
@@ -142,6 +142,8 @@ cout << "Train " << trainName << endl;
       }
     }
   }
+
+  cout << "Time " << timer.str(2) << endl;
 
 // cout << "Done with loop" << endl;
   stats.printCrossCountCSV("crosscount.csv");

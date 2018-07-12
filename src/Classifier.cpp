@@ -16,7 +16,6 @@
 Classifier::Classifier()
 {
   // Default values.
-  hertz = 2000;
   country = "DEU";
   year = 2018;
 }
@@ -24,12 +23,6 @@ Classifier::Classifier()
 
 Classifier::~Classifier()
 {
-}
-
-
-void Classifier::setSampleRate(const int hertzIn)
-{
-  hertz = hertzIn;
 }
 
 
@@ -337,10 +330,10 @@ void Classifier::printClusters(const vector<Cluster>& clusters) const
   {
     cout << "center " << cluster.center << endl;
     cout << "median " << cluster.median << endl;
-    cout << "sdev " << cluster.sdev << endl;
-    cout << "range " << cluster.lower << " to " << cluster.upper << endl;
-    cout << "count " << cluster.count << endl;
-    cout << "label " << cluster.label << endl << endl;
+    cout << "sdev   " << cluster.sdev << endl;
+    cout << "range  " << cluster.lower << " to " << cluster.upper << endl;
+    cout << "count  " << cluster.count << endl;
+    cout << "label  " << cluster.label << endl << endl;
   }
 }
 

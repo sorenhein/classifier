@@ -24,12 +24,6 @@ SynthTrain::~SynthTrain()
 }
 
 
-void SynthTrain::setSampleRate(const double sampleRateIn)
-{
-  sampleRate = sampleRateIn; // In Hz
-}
-
-
 bool SynthTrain::makeAccel(
   const vector<PeakPos>& peakPositions, // In m
   vector<PeakSample>& synthPeaks, // In s

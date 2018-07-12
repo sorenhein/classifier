@@ -8,7 +8,8 @@
 StatEntry::StatEntry()
 {
   entries.clear();
-  entries.resize(ENTRY_SIZE);
+  entries.resize(4);
+  // offset, speed, accel, residuals
 }
 
 
@@ -40,8 +41,8 @@ bool StatEntry::log(
     entries[i].sumsq += delta * delta;
   }
 
-  entries[ENTRY_RESIDUAL].count++;
-  entries[ENTRY_RESIDUAL].sum += residuals;
+  entries[3].count++;
+  entries[3].sum += residuals;
   return true;
 }
 

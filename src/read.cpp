@@ -6,9 +6,9 @@
 #pragma warning(push)
 #pragma warning(disable: 4365 4571 4625 4626 4774 5026 5027)
 #if defined(__CYGWIN__)
-  #include "dirent.h"
+  #include "dirent/dirent.h"
 #elif defined(_WIN32)
-  #include "dirent.h"
+  #include "dirent/dirent.h"
   #include <windows.h>
   #include "Shlwapi.h"
 #else

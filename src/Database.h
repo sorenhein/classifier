@@ -5,7 +5,7 @@
 #include <list>
 #include <map>
 
-#include "const.h"
+#include "struct.h"
 
 using namespace std;
 
@@ -77,7 +77,6 @@ class Database
 {
   private:
 
-   int sampleRate; 
    vector<CarEntry> carEntries;
    
    vector<TrainEntry> trainEntries;
@@ -100,8 +99,6 @@ class Database
     void logCar(const CarEntry& car);
 
     void logTrain(const TrainEntry& train);
-
-    void setSampleRate(const int sampleRateIn);
 
     bool select(
       const string& countries,
