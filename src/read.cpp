@@ -51,6 +51,10 @@ bool readLevel(
   TrainLevel& value,
   const string& err);
 
+void toUpper(string& text);
+
+FileFormat ext2format(const string& text);
+
 bool fillInEquation(
   int &lhs,
   vector<int *>& rhs,
@@ -123,7 +127,19 @@ void getFilenames(
   while ((ent = readdir(dir)) != nullptr)
   {
     if (ent->d_type == DT_REG)
+    {
+      // Only files ending on .txt
+      const string name = string(ent->d_name);
+      const unsigned p = name.find_last_of('.');
+      if (p == string::npos || p == name.size()-1)
+        continue;
+      const string ext = name.substr(p+1);
+      const FileFormat f = ext2format(ext);
+      if (f != FILE_TXT)
+        continue;
+
       textfiles.push_back(dirName + "/" + string(ent->d_name));
+    }
   }
 
   closedir(dir);
@@ -361,6 +377,27 @@ bool readLevel(
   }
 
   return true;
+}
+
+
+void toUpper(string& text)
+{
+  for (unsigned i = 0; i < text.size(); i++)
+    text.at(i) = static_cast<char>(toupper(static_cast<int>(text.at(i))));
+}
+
+
+FileFormat ext2format(const string& text)
+{
+  string st = text;
+  toUpper(st);
+
+  if (st == "TXT")
+    return FILE_TXT;
+  else if (st == "CSV")
+    return FILE_CSV;
+  else
+    return FILE_SIZE;
 }
 
 

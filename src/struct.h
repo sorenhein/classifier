@@ -13,4 +13,11 @@ struct PeakSample
   double value;
 };
 
+enum FileFormat
+{
+  FILE_TXT = 0,
+  FILE_CSV = 1,
+  FILE_SIZE = 2
+};
+
 #endif

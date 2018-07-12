@@ -1,11 +1,6 @@
 2018-07-12
 ----------
 
-Why are the short trains, especially MERIDIAN_DEU_8_N, so poor?
-Even at 0 m/s^2.
-
-Move to meters and seconds rather than samples and milli-seconds
-
 make a control file in data/control/control1.txt, where all parameters
 are set outside of compilation
 
@@ -49,11 +44,6 @@ Overall algorithm
 
 * Check against laser measurements!
 
-
-
-
-
-Only read txt files ending on .txt
 
 Formula for residual error in regression: 
 a^2 (mean(ysq) - mean(y)sq)  + mean(xsq) - mean(x)sq
