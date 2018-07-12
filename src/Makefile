@@ -36,9 +36,9 @@ WARN_FLAGS	=		\
 
 # If you don't have /std:c++17, you won't get THR_STLIMPL.
 
-COMPILE_FLAGS	= /O2 /Oi /Ot /Oy /Ox /GL /EHs /std:c++17 $(WARN_FLAGS)
+COMPILE_FLAGS	= /O2 /Oi /Ot /Oy /Ox /GL /EHs /Zi /std:c++17 $(WARN_FLAGS)
 
-LINK_FLAGS1	= /LTCG
+LINK_FLAGS1	= /LTCG /DEBUG
 
 TARGET		= driver
 

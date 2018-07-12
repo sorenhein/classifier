@@ -1,11 +1,13 @@
-2018-07-08
+2018-07-12
 ----------
+
+Why are the short trains, especially MERIDIAN_DEU_8_N, so poor?
+Even at 0 m/s^2.
 
 Move to meters and seconds rather than samples and milli-seconds
 
-Get estimates offset, speed and accel to work
-
-Start to use Stats
+make a control file in data/control/control1.txt, where all parameters
+are set outside of compilation
 
 * When disturbing, keep a list of the original peak number for later
   - Also keep track of exact peaks inserted and deleted

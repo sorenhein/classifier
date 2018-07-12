@@ -62,7 +62,7 @@ class SynthTrain
 
     void setSampleRate(const double sampleRateIn);
 
-    void disturb(
+    bool disturb(
       const vector<PeakPos>& perfectPositions, // In mm
       const Disturb& disturb,
       vector<PeakSample>& synthPeaks, // In samples

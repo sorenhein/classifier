@@ -86,28 +86,31 @@ cout << "Train " << trainName << endl;
     if (! db.getPerfectPeaks(trainName, perfectPositions))
       cout << "Bad perfect positions" << endl;
 
-cout << "Got perfect positions in mm, " << perfectPositions.size() << endl;
-printPeakPosCSV(perfectPositions, 1);
+// cout << "Got perfect positions in mm, " << perfectPositions.size() << endl;
+// printPeakPosCSV(perfectPositions, 1);
 
-    // for (double speed = 20.; speed <= 290.; speed += 20.)
+    for (double speed = 5.; speed <= 75.; speed += 5.)
     // for (double speed = 20.; speed <= 50.; speed += 20.)
-    for (double speed = 40.; speed <= 50.; speed += 20.)
+    // for (double speed = 40.; speed <= 50.; speed += 20.)
     {
       motionActual[1] = speed;
 
-      // for (unsigned accel = -0.3f; accel <= 0.35f; accel += 0.1f)
+      for (double accel = -0.5; accel <= 0.55; accel += 0.1)
       // for (double accel = -0.3; accel <= 0.35; accel += 0.3)
-      for (double accel = 0.3; accel <= 0.35; accel += 0.3)
+      // for (double accel = 0.3; accel <= 0.35; accel += 0.3)
       {
         motionActual[2] = accel;
 
         for (unsigned no = 0; no < SIM_NUMBER; no++)
         {
-          synth.disturb(perfectPositions, disturb, synthP, 
-            0., speed, accel);
+          if (! synth.disturb(perfectPositions, disturb, synthP, 
+            0., speed, accel))
+          {
+            continue;
+          }
 
-cout << "Got synth times, " << synthP.size() << endl;
-printPeakSampleCSV(synthP, 2);
+// cout << "Got synth times, " << synthP.size() << endl;
+// printPeakSampleCSV(synthP, 2);
 
           const unsigned l = perfectPositions.size();
           vector<double> x(l), y(l), coeffs(l);
@@ -122,15 +125,20 @@ printPeakSampleCSV(synthP, 2);
           // for (unsigned i = 0; i <= order; i++)
             // cout << "i " << i << ", coeff " << coeffs[i] << endl;
 
-          motionEstimate[0] = coeffs[0];
+          motionEstimate[0] = coeffs[0] / 1000.;
           motionEstimate[1] = sampleRate * coeffs[1] / 1000.;
           motionEstimate[2] = 
             2. * sampleRate * sampleRate * coeffs[2] / 1000.;
 
-          printDataHeader();
-          printDataLine("Offset", 0., motionEstimate[0]);
-          printDataLine("Speed", speed, motionEstimate[1]);
-          printDataLine("Accel", accel, motionEstimate[2]);
+          if (motionEstimate[0] > 50. || motionEstimate[0] < -50.)
+          {
+            cout << "HERE\n";
+          }
+
+          // printDataHeader();
+          // printDataLine("Offset", 0., motionEstimate[0]);
+          // printDataLine("Speed", speed, motionEstimate[1]);
+          // printDataLine("Accel", accel, motionEstimate[2]);
 
           double residuals = 0.;
           stats.log(trainName, motionActual,
@@ -140,16 +148,16 @@ printPeakSampleCSV(synthP, 2);
     }
   }
 
-cout << "Done with loop" << endl;
+// cout << "Done with loop" << endl;
   stats.printCrossCountCSV("crosscount.csv");
-cout << "Done with 1" << endl;
+// cout << "Done with 1" << endl;
   stats.printCrossPercentCSV("crosspercent.csv");
-cout << "Done with 2" << endl;
+// cout << "Done with 2" << endl;
 
   stats.printOverviewCSV("overview.csv");
-cout << "Done with 3" << endl;
+// cout << "Done with 3" << endl;
   stats.printDetailsCSV("details.csv");
-cout << "Done with 4" << endl;
+// cout << "Done with 4" << endl;
 
     // classifier.classify(perfectPeaks, db, trainFound2);
     // Stats stats;

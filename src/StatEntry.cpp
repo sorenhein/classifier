@@ -25,7 +25,7 @@ bool StatEntry::log(
   const unsigned l = actual.size();
 
   // Either (offset, v) or (offset, v, a).
-  if (l != 1 && l != 2)
+  if (l != 2 && l != 3)
     return false;
 
   if (estimate.size() != l)
@@ -46,19 +46,23 @@ bool StatEntry::log(
 }
 
 
-string StatEntry::avg(const unsigned index) const
+string StatEntry::avg(
+  const unsigned index,
+  const unsigned prec) const
 {
   if (entries[index].count == 0)
     return "-";
 
   stringstream ss;
-  ss << fixed << setprecision(2) << 
+  ss << fixed << setprecision(prec) << 
     entries[index].sum / entries[index].count;
   return ss.str();
 }
 
 
-string StatEntry::sdev(const unsigned index) const
+string StatEntry::sdev(
+  const unsigned index,
+  const unsigned prec) const
 {
   if (entries[index].count == 0)
     return "-";
@@ -69,7 +73,7 @@ string StatEntry::sdev(const unsigned index) const
     sqrt((n * entries[index].sumsq -
         entries[index].sum * entries[index].sum) / (n * (n-1.)));
 
-  ss << fixed << setprecision(2) << sdev;
+  ss << fixed << setprecision(prec) << sdev;
   return ss.str();
 }
 
@@ -78,19 +82,19 @@ void StatEntry::printHeader(
   ofstream& fout,
   const string& header) const
 {
-  fout << setw(16) << header << " | " <<
+  fout << setw(17) << header << " | " <<
     setw(6) << "count" << " | " <<
-    setw(16) << "offset [m]" << " | " <<
+    setw(12) << "offset [m]" << " | " <<
     setw(12) << "speed [m/s]" << " | " <<
     setw(12) << "accel [m/s2]" << " | " <<
-    setw(7) << right << "RMS [m]" << endl;
+    setw(7) << right << "RMS [m]" << "\n";
 
-  fout << setw(16) << "" << " | " <<
+  fout << setw(17) << "" << " | " <<
     setw(6) << "" << " | " <<
     setw(6) << right << "avg" << setw(6) << "sdev" << " | " <<
     setw(6) << right << "avg" << setw(6) << "sdev" << " | " <<
     setw(6) << right << "avg" << setw(6) << "sdev" << " | " <<
-    setw(7) << right << "avg" << endl;
+    setw(7) << right << "avg" << "\n";
 }
 
 
@@ -98,7 +102,10 @@ void StatEntry::print(
   ofstream& fout,
   const string& title) const
 {
-  fout << setw(16) << title << " | " <<
+  if (entries[0].count == 0)
+    return;
+
+  fout << setw(17) << title << " | " <<
     setw(6) << entries[0].count << " | " <<
     setw(6) << right << StatEntry::avg(0) << 
     setw(6) << StatEntry::sdev(0) << " | " <<
@@ -106,6 +113,6 @@ void StatEntry::print(
     setw(6) << StatEntry::sdev(1) << " | " <<
     setw(6) << right << StatEntry::avg(2) << 
     setw(6) << StatEntry::sdev(2) << " | " <<
-    setw(6) << StatEntry::avg(3) << endl;
+    setw(7) << StatEntry::avg(3) << "\n";
 }
 

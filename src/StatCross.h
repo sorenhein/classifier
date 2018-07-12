@@ -27,8 +27,8 @@ class StatCross
     unsigned nameToNumber(const string& name);
 
     string percent(
-      const double num,
-      const double denom) const;
+      const int num,
+      const int denom) const;
 
 
   public:

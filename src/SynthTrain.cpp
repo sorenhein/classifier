@@ -66,7 +66,7 @@ bool SynthTrain::makeAccel(
 
   const double offsetPos = cfactor * offset;
 
-  if (accel == 0.)
+  if (abs(accel) < 1.e-3)
   {
     /* 
        s[m] = v[m/s] * t[s]
@@ -96,7 +96,7 @@ bool SynthTrain::makeAccel(
        so we take the plus sign.
        If a < 0, there's an upper limit on the si's that we can
        ask for.  This is given by the sqrt argument below.
-       We take the minus sign in order to be on the growing, left
+       We take the plus sign in order to be on the growing
        part of the parabola.  As the si's are assumed monotonically
        increasing, we don't go past the maximum.
 
@@ -132,10 +132,7 @@ bool SynthTrain::makeAccel(
       const double root = 
         sqrt(1. + factor * (peakPositions[i].pos - sfirst));
 
-      if (accel > 0.)
-        peak.no = static_cast<int>(offsetPos + n0 * (root-1.));
-      else
-        peak.no = static_cast<int>(offsetPos + n0 * (-root-1.));
+      peak.no = static_cast<int>(offsetPos + n0 * (root-1.));
       synthPeaks.push_back(peak);
     }
   }
@@ -271,7 +268,7 @@ void SynthTrain::scaleTrace(
 void printPeaks(const vector<PeakSample>& synthPeaks, const int level);
 #define UNUSED(x) ((void)(true ? 0 : ((x), void(), 0)))
 
-void SynthTrain::disturb(
+bool SynthTrain::disturb(
   const vector<PeakPos>& perfectPositions, // In mm
   const Disturb& disturb,
   vector<PeakSample>& synthPeaks, // In samples
@@ -283,7 +280,7 @@ void SynthTrain::disturb(
     offset, speed, accel))
   {
     cout << "makeAccel failed" << endl;
-    return;
+    return false;
   }
 
   SynthTrain::makeNormalNoise(synthPeaks, disturb.getNoiseSdev());
@@ -304,5 +301,7 @@ void SynthTrain::disturb(
   // SynthTrain::scaleTrace(synthPeaks, origSpeed, newSpeed);
 
 // cout << endl << "scale " << newSpeed << endl;
+  return true;
 }
+
 

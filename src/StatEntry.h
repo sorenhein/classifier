@@ -30,9 +30,13 @@ class StatEntry
 
     vector<Entry> entries;
 
-    string avg(const unsigned index) const;
+    string avg(
+      const unsigned index,
+      const unsigned prec = 2) const;
 
-    string sdev(const unsigned index) const;
+    string sdev(
+      const unsigned index,
+      const unsigned prec = 2) const;
 
 
   public:

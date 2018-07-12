@@ -35,3 +35,12 @@
 *.swp
 *.csv
 src/*.txt
+
+*.ipch
+*.db
+*.suo
+*.user
+*.filters
+*.vcxproj
+*.pdb
+*.sln

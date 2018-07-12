@@ -7,14 +7,15 @@
 
 #define DEFAULT_SIZE 20
 #define DEFAULT_INCR 10
+#define SEPARATOR ";"
 
 
 StatCross::StatCross()
 {
   numEntries = 0;
-  StatCross::resize(DEFAULT_SIZE);
   nameMap.clear();
   numberMap.clear();
+  StatCross::resize(DEFAULT_SIZE);
 }
 
 
@@ -41,10 +42,7 @@ unsigned StatCross::nameToNumber(const string& name)
   if (it == nameMap.end())
   {
     if (numEntries == countEntries.size())
-    {
       StatCross::resize(numEntries + DEFAULT_INCR);
-        numberMap.resize(numEntries + DEFAULT_INCR);
-    }
     
     nameMap[name] = numEntries;
     numberMap[numEntries] = name;
@@ -68,15 +66,15 @@ void StatCross::log(
 
 
 string StatCross::percent(
-  const double num,
-  const double denom) const
+  const int num,
+  const int denom) const
 {
-  if (denom == 0.)
+  if (denom == 0 || num == 0)
     return "";
 
   stringstream ss;
   ss << fixed << setprecision(2) << 
-    100. * num / denom << "%";
+    100. * num / static_cast<double>(denom) << "%";
   return ss.str();
 }
 
@@ -87,16 +85,20 @@ void StatCross::printCountCSV(const string& fname) const
   ofstream fout;
   fout.open(fname);
 
-  string s = ",count";
+  string s = string(SEPARATOR) + "count";
   for (unsigned i = 0; i < numEntries; i++)
-    s += "," + numberMap[i];
+    s += SEPARATOR + numberMap[i];
   fout << s << endl;
 
   for (unsigned i = 0; i < numEntries; i++)
   {
-    s = numberMap[i] + "," + to_string(countEntries[i]);
-    for (unsigned j = 0; i < numEntries; j++)
-      s += "," + to_string(countCross[i][j]);
+    s = numberMap[i] + SEPARATOR + to_string(countEntries[i]);
+    for (unsigned j = 0; j < numEntries; j++)
+    {
+      s += SEPARATOR;
+      if (countCross[i][j] > 0)
+        s += to_string(countCross[i][j]);
+    }
     fout << s << endl;
   }
 
@@ -109,16 +111,16 @@ void StatCross::printPercentCSV(const string& fname) const
   ofstream fout;
   fout.open(fname);
 
-  string s = ",count";
+  string s = string(SEPARATOR) + "count";
   for (unsigned i = 0; i < numEntries; i++)
-    s += "," + numberMap[i];
+    s += SEPARATOR + numberMap[i];
   fout << s << endl;
 
   for (unsigned i = 0; i < numEntries; i++)
   {
-    s = numberMap[i] + "," + to_string(countEntries[i]);
-    for (unsigned j = 0; i < numEntries; j++)
-      s += "," + StatCross::percent(countEntries[i], countCross[i][j]);
+    s = numberMap[i] + SEPARATOR + to_string(countEntries[i]);
+    for (unsigned j = 0; j < numEntries; j++)
+      s += SEPARATOR + StatCross::percent(countEntries[i], countCross[i][j]);
     fout << s << endl;
   }
 

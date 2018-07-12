@@ -10,7 +10,7 @@
 
 #define ACCEL_STEP 0.05 // m/s^2
 #define ACCEL_MAX 1.5 // m/s^2
-#define ACCEL_MAX_INDEX 100
+#define ACCEL_MAX_INDEX 60
 
 
 Stats::Stats()
@@ -67,7 +67,7 @@ void Stats::log(
 
   trainMap[trainActual].log(motionActual, motionEstimate, residuals);
   speedMap[speedIndex].log(motionActual, motionEstimate, residuals);
-  accelMap[speedIndex].log(motionActual, motionEstimate, residuals);
+  accelMap[accelIndex].log(motionActual, motionEstimate, residuals);
 
   auto its = trainSpeedMap.find(trainActual);
   if (its == trainSpeedMap.end())
@@ -78,7 +78,7 @@ void Stats::log(
   auto ita = trainAccelMap.find(trainActual);
   if (ita == trainAccelMap.end())
     trainAccelMap[trainActual].resize(SPEED_MAX_INDEX);
-  trainAccelMap[trainActual][speedIndex].log
+  trainAccelMap[trainActual][accelIndex].log
     (motionActual, motionEstimate, residuals);
 }
 
@@ -107,8 +107,8 @@ void Stats::printSpeed(
       3.6 * speed << "km/h";
 
     sMap[i].print(fout, ss.str());
-    fout << "\n";
   }
+  fout << "\n";
 }
 
 
@@ -118,13 +118,13 @@ void Stats::printAccel(
 {
   for (unsigned i = 0; i < aMap.size(); i++)
   {
-    const double accel = (i - ACCEL_MAX) * ACCEL_STEP;
+    const double accel = i * ACCEL_STEP - ACCEL_MAX;
     stringstream ss;
     ss << fixed << setprecision(2) << accel << "m/s^2";
 
     aMap[i].print(fout, ss.str());
-    fout << "\n";
   }
+  fout << "\n";
 }
 
 
@@ -141,14 +141,14 @@ void Stats::printOverviewCSV(const string& fname) const
   {
     const string& trainName = itt.first;
     itt.second.print(fout, trainName);
-    fout << "\n";
   }
+  fout << "\n";
 
   it->second.printHeader(fout, "Speed");
   Stats::printSpeed(fout, speedMap);
 
   it->second.printHeader(fout, "Acceleration");
-  Stats::printAccel(fout, speedMap);
+  Stats::printAccel(fout, accelMap);
 
   fout.close();
 }
