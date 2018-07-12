@@ -32,7 +32,7 @@ void SynthTrain::setSampleRate(const double sampleRateIn)
 
 bool SynthTrain::makeAccel(
   const vector<PeakPos>& peakPositions, // In m
-  vector<PeakSample>& synthPeaks, // In samples
+  vector<PeakSample>& synthPeaks, // In s
   const double offset, // In m
   const double speed, // In m/s
   const double accel) const // In m/s^2
@@ -41,9 +41,7 @@ bool SynthTrain::makeAccel(
   peak.value = 1.;
   synthPeaks.clear();
 
-  const double cfactor = sampleRate / speed;
-
-  const double offsetPos = cfactor * offset;
+  const double offsetPos = offset / speed;
 
   if (abs(accel) < 1.e-3)
   {
@@ -59,8 +57,7 @@ bool SynthTrain::makeAccel(
     const unsigned l = peakPositions.size();
     for (unsigned i = 0; i < l; i++)
     {
-      peak.no = 
-        static_cast<int>(offsetPos + cfactor * peakPositions[i].pos);
+      peak.time = offsetPos + peakPositions[i].pos / speed;
       synthPeaks.push_back(peak);
     }
   }
@@ -88,22 +85,15 @@ bool SynthTrain::makeAccel(
        v^2 + 2 * a * (si - s0) >= 0
        This is given if a > 0.
        Otherwise a >= -v^2 / (s_last - s0).
-
-       In non-SI units:
-       t[samples] = fs[Hz] * (v/a) * 
-         (+/- sqrt(1 + 2 * a * (si - s0 [m]) / v^2) - 1)
     */
 
-    const double n0 = sampleRate * speed / accel;
+    const double t0 = speed / accel;
     const double factor = 2. * accel / (speed * speed);
 
     const double sfirst = peakPositions.front().pos;
     const double slast = peakPositions.back().pos;
     if (speed * speed + 2. * accel * (slast - sfirst) < 0.)
-    {
-      cout << "Bad acceleration" << endl;
       return false;
-    }
 
     const unsigned l = peakPositions.size();
     for (unsigned i = 0; i < l; i++)
@@ -111,7 +101,7 @@ bool SynthTrain::makeAccel(
       const double root = 
         sqrt(1. + factor * (peakPositions[i].pos - sfirst));
 
-      peak.no = static_cast<int>(offsetPos + n0 * (root-1.));
+      peak.time = offsetPos + t0 * (root-1.);
       synthPeaks.push_back(peak);
     }
   }
@@ -131,12 +121,31 @@ void SynthTrain::makeNormalNoise(
   mt19937 var(rd());
   normal_distribution<> dist(0, 1);
   
-  const double factor = noiseSdev * 1000. / sampleRate;
+  const double factor = noiseSdev / 1000.;
 
-  for (unsigned i = 0; i < synthPeaks.size(); i++)
+  const unsigned l = synthPeaks.size();
+  for (unsigned i = 0; i < l; i++)
   {
-    const int delta = static_cast<int>(round(factor * dist(var)));
-    synthPeaks[i-1].no += delta;
+    double gapBefore;
+    if (i == 0)
+      gapBefore = -1.; // Something big and negative
+    else
+      gapBefore = synthPeaks[i-1].time - synthPeaks[i].time;
+
+    double gapAfter;
+    if (i == l-1)
+      gapAfter = 1.; // Something big and positive
+    else
+      gapAfter = synthPeaks[i+1].time - synthPeaks[i].time;
+
+    double noise;
+    do
+    {
+      noise = factor * dist(var);
+    }
+    while (noise <= gapBefore || noise >= gapAfter);
+
+    synthPeaks[i-1].time += noise;
   }
 }
 
@@ -151,19 +160,23 @@ void SynthTrain::makeRandomInsertions(
 
   const unsigned n = lo + static_cast<unsigned>(rand() % (hi+1-lo));
 
+  random_device rd;
+  mt19937 var(rd());
+  uniform_real_distribution<> dist(0, 1);
+
   for (unsigned i = 0; i < n; i++)
   {
     const unsigned hit = 
       static_cast<unsigned>(rand() % (synthPeaks.size()-1));
     
-    const int tLeft = synthPeaks[hit].no;
+    const double tLeft = synthPeaks[hit].time;
     const double vLeft = synthPeaks[hit].value;
 
-    const int tRight = synthPeaks[hit+1].no;
+    const double tRight = synthPeaks[hit+1].time;
     const double vRight = synthPeaks[hit+1].value;
 
     PeakSample newPeak;
-    newPeak.no = tLeft + 1 + (rand() % (tRight - tLeft - 2));
+    newPeak.time = tLeft + (tRight - tLeft) * dist(var);
     newPeak.value = (vLeft + vRight) / 2.;
 
     synthPeaks.insert(synthPeaks.begin()+hit+1, newPeak);
@@ -234,12 +247,12 @@ void SynthTrain::scaleTrace(
   if (synthPeaks.size() == 0)
     return;
 
-  const int offset = synthPeaks[0].no;
+  const double offset = synthPeaks[0].time;
   const double factor = newSpeed / origSpeed;
 
   for (unsigned i = 0; i < synthPeaks.size(); i++)
   {
-    synthPeaks[i].no = offset +
+    synthPeaks[i].time = offset +
       static_cast<int>((perfectPositions[i].pos - offset) * factor);
   }
 }
@@ -257,7 +270,6 @@ bool SynthTrain::disturb(
   if (! SynthTrain::makeAccel(perfectPositions, synthPeaks, 
     offset, speed, accel))
   {
-    cout << "makeAccel failed" << endl;
     return false;
   }
 

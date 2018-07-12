@@ -47,18 +47,18 @@ void Classifier::setYear(const int yearIn)
 
 void Classifier::makeTimeDifferences(
   const vector<PeakSample>& peaks,
-  vector<int>& timeDifferences) const
+  vector<double>& timeDifferences) const
 {
   const unsigned l = peaks.size();
   for (unsigned i = 1; i < l; i++)
-    timeDifferences.push_back(peaks[i].no - peaks[i-1].no);
+    timeDifferences.push_back(peaks[i].time - peaks[i-1].time);
 
   sort(timeDifferences.begin(), timeDifferences.end());
 }
 
 
 void Classifier::KmeansOptimalClusters(
-  const vector<int>& timeDifferences,
+  const vector<double>& timeDifferences,
   vector<Cluster>& clusters) const
 {
   const unsigned l = timeDifferences.size();
@@ -109,7 +109,7 @@ void Classifier::KmeansOptimalClusters(
     
     lastClusterIndex[c] = i;
 
-    const double df = static_cast<double>(timeDifferences[i]);
+    const double df = timeDifferences[i];
     sum[c] += df;
     sumsq[c] += df*df;
   }
@@ -175,7 +175,7 @@ void Classifier::labelIntraIntervals(
   for (unsigned i = 0; i < lp-1; i++)
   {
     bool found = false;
-    const int t = peaks[i+1].no - peaks[i].no;
+    const double t = peaks[i+1].time - peaks[i].time;
 
     for (unsigned c = 0; c < lc && ! found; c++)
     {
@@ -300,7 +300,7 @@ void Classifier::classify(
     return;
   }
 
-  vector<int> diffs;
+  vector<double> diffs;
   Classifier::makeTimeDifferences(peaks, diffs);
 
   vector<Cluster> clusters;

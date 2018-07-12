@@ -11,7 +11,7 @@ struct PeakPos
 
 struct PeakSample
 {
-  int no; // In samples
+  double time; // In s
   double value;
 };
 

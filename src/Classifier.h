@@ -70,10 +70,10 @@ class Classifier
 
     void makeTimeDifferences(
       const vector<PeakSample>& peaks,
-      vector<int>& timeDifferences) const;
+      vector<double>& timeDifferences) const;
 
     void KmeansOptimalClusters(
-      const vector<int>& timeDifferences,
+      const vector<double>& timeDifferences,
       vector<Cluster>& clusters) const;
 
     void classifyClusters(

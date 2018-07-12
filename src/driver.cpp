@@ -90,13 +90,14 @@ cout << "Train " << trainName << endl;
 // printPeakPosCSV(perfectPositions, 1);
 
     for (double speed = 5.; speed <= 75.; speed += 5.)
+    // for (double speed = 50.; speed <= 55.; speed += 10.)
     // for (double speed = 20.; speed <= 50.; speed += 20.)
     // for (double speed = 40.; speed <= 50.; speed += 20.)
     {
       motionActual[1] = speed;
 
       for (double accel = -0.5; accel <= 0.55; accel += 0.1)
-      // for (double accel = -0.3; accel <= 0.35; accel += 0.3)
+      // for (double accel = 0.; accel <= 0.05; accel += 0.3)
       // for (double accel = 0.3; accel <= 0.35; accel += 0.3)
       {
         motionActual[2] = accel;
@@ -116,24 +117,18 @@ cout << "Train " << trainName << endl;
           vector<double> x(l), y(l), coeffs(l);
           for (unsigned i = 0; i < l; i++)
           {
-            y[i] = static_cast<double>(perfectPositions[i].pos);
-            x[i] = static_cast<double>(synthP[i].no);
+            y[i] = perfectPositions[i].pos;
+            x[i] = synthP[i].time;
           }
 
           pol.fitIt(x, y, order, coeffs);
 
-          // for (unsigned i = 0; i <= order; i++)
-            // cout << "i " << i << ", coeff " << coeffs[i] << endl;
-
           motionEstimate[0] = coeffs[0];
-          motionEstimate[1] = sampleRate * coeffs[1];
-          motionEstimate[2] = 
-            2. * sampleRate * sampleRate * coeffs[2];
+          motionEstimate[1] = coeffs[1];
+          motionEstimate[2] = 2. * coeffs[2];
 
-          if (motionEstimate[0] > 50. || motionEstimate[0] < -50.)
-          {
-            cout << "HERE\n";
-          }
+          // for (unsigned i = 0; i <= order; i++)
+            // cout << "i " << i << ", est " << motionEstimate[i] << endl;
 
           // printDataHeader();
           // printDataLine("Offset", 0., motionEstimate[0]);
@@ -181,7 +176,7 @@ void printPeakSampleCSV(
   const int level)
 {
   for (unsigned i = 0; i < peaks.size(); i++)
-    cout << peaks[i].no << ";" << level << endl;
+    cout << peaks[i].time << ";" << level << endl;
   cout << endl;
 }
 

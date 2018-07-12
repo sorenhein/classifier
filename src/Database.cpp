@@ -131,7 +131,7 @@ bool Database::getPerfectPeaks(
   
   for (auto it: trainEntries[trainNo].axles)
   {
-    peak.pos = it / 1000.;
+    peak.pos = it / 1000.; // Convert from mm to m
     peaks.push_back(peak);
   }
 
@@ -211,7 +211,7 @@ void Database::printAxlesCSV(const TrainEntry& t) const
 {
   cout << t.officialName << ";";
   for (auto it: t.axles)
-    cout << it << ";";
+    cout << fixed << setprecision(3) << it << ";";
 
   cout << endl;
 }
