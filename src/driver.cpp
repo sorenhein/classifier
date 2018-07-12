@@ -68,6 +68,15 @@ int main(int argc, char * argv[])
   PolynomialRegression pol;
   const int order = 2;
   // const double offset = 1.;
+  
+  vector<double> motionActual;
+  motionActual.resize(order+1);
+  motionActual[0] = 0.; // Offset in m
+
+  vector<double> motionEstimate;
+  motionEstimate.resize(order+1);
+
+  Stats stats;
 
   for (auto& trainName: db)
   {
@@ -84,10 +93,13 @@ printPeakPosCSV(perfectPositions, 1);
     // for (double speed = 20.; speed <= 50.; speed += 20.)
     for (double speed = 40.; speed <= 50.; speed += 20.)
     {
+      motionActual[1] = speed;
+
       // for (unsigned accel = -0.3f; accel <= 0.35f; accel += 0.1f)
       // for (double accel = -0.3; accel <= 0.35; accel += 0.3)
       for (double accel = 0.3; accel <= 0.35; accel += 0.3)
       {
+        motionActual[2] = accel;
 
         for (unsigned no = 0; no < SIM_NUMBER; no++)
         {
@@ -110,17 +122,34 @@ printPeakSampleCSV(synthP, 2);
           // for (unsigned i = 0; i <= order; i++)
             // cout << "i " << i << ", coeff " << coeffs[i] << endl;
 
+          motionEstimate[0] = coeffs[0];
+          motionEstimate[1] = sampleRate * coeffs[1] / 1000.;
+          motionEstimate[2] = 
+            2. * sampleRate * sampleRate * coeffs[2] / 1000.;
+
           printDataHeader();
-          printDataLine("Offset", 0., coeffs[0]);
-          printDataLine("Speed", speed, 
-            sampleRate * coeffs[1] / 1000.);
-          printDataLine("Accel", accel, 
-            2. * sampleRate * sampleRate * coeffs[2] / 1000.);
-          cout << endl;
+          printDataLine("Offset", 0., motionEstimate[0]);
+          printDataLine("Speed", speed, motionEstimate[1]);
+          printDataLine("Accel", accel, motionEstimate[2]);
+
+          double residuals = 0.;
+          stats.log(trainName, motionActual,
+            trainName, motionEstimate, residuals);
         }
       }
     }
   }
+
+cout << "Done with loop" << endl;
+  stats.printCrossCountCSV("crosscount.csv");
+cout << "Done with 1" << endl;
+  stats.printCrossPercentCSV("crosspercent.csv");
+cout << "Done with 2" << endl;
+
+  stats.printOverviewCSV("overview.csv");
+cout << "Done with 3" << endl;
+  stats.printDetailsCSV("details.csv");
+cout << "Done with 4" << endl;
 
     // classifier.classify(perfectPeaks, db, trainFound2);
     // Stats stats;

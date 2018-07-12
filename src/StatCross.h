@@ -37,7 +37,7 @@ class StatCross
 
     ~StatCross();
 
-    bool log(
+    void log(
       const string& trainActual,
       const string& trainEstimate);
 

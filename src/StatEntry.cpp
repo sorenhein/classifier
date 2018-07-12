@@ -42,6 +42,7 @@ bool StatEntry::log(
 
   entries[ENTRY_RESIDUAL].count++;
   entries[ENTRY_RESIDUAL].sum += residuals;
+  return true;
 }
 
 

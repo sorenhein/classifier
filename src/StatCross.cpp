@@ -47,6 +47,7 @@ unsigned StatCross::nameToNumber(const string& name)
     }
     
     nameMap[name] = numEntries;
+    numberMap[numEntries] = name;
     return numEntries++;
   }
   else
@@ -54,7 +55,7 @@ unsigned StatCross::nameToNumber(const string& name)
 }
 
 
-bool StatCross::log(
+void StatCross::log(
   const string& trainActual,
   const string& trainEstimate)
 {
