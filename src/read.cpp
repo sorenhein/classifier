@@ -2,6 +2,7 @@
 #include <iomanip>
 #include <fstream>
 #include <sstream>
+#include <set>
 
 #pragma warning(push)
 #pragma warning(disable: 4365 4571 4625 4626 4774 5026 5027)
@@ -63,6 +64,8 @@ bool fillInEquation(
 bool fillInDistances(CarEntry& c);
 
 void printDistances(const CarEntry& c);
+
+void makeClusters(TrainEntry& t);
 
 void readCarFile(const string& fname);
 
@@ -706,6 +709,33 @@ void readCarFiles(
 }
 
 
+void makeClusters(TrainEntry& t)
+{
+  const unsigned l = t.axles.size();
+  if (l < 2)
+  {
+    cout << "Too few different lengths\n";
+    return;
+  }
+
+  set<int> diffs;
+  for (unsigned i = 0; i < l-1; i++)
+    diffs.insert(t.axles[i+1] - t.axles[i]);
+
+  const unsigned ld = diffs.size();
+  if (ld < 2)
+  {
+    cout << "Too few clusters\n";
+    return;
+  }
+
+  // Log all the possible cluster sizes from 2 on upwards.
+  t.clusterList.resize(ld-1);
+  for (unsigned i = 2; i <= ld; i++)
+    t.clusterList[i-2].log(t.axles, i);
+}
+
+
 bool makeTrainAxles(
   const Database& db,
   TrainEntry& t)
@@ -925,6 +955,8 @@ void readTrainFile(
 
   if (! makeTrainAxles(db, t))
     cout << "File " + fname + ": Could not make axles" << endl;
+
+  makeClusters(t);
 
   db.logTrain(t);
 }

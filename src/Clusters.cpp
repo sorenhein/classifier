@@ -109,14 +109,20 @@ void Clusters::logVector(
 
 
 void Clusters::log(
-  const vector<PeakPos>& positions,
+  const vector<int>& axles,
   const int numClusters)
 {
-  const unsigned l = positions.size();
+  const unsigned l = axles.size()-1;
+  if (l < 2)
+  {
+    cout << "Vector too short\n";
+    return;
+  }
+
   double * x = (double *) malloc(l * sizeof(double));
 
   for (unsigned i = 0; i < l; i++)
-    x[i] = positions[i].pos;
+    x[i] = (axles[i+1] - axles[i]) / 1000.; // In m
 
   // Specific number of clusters.
   Clusters::logVector(x, l, numClusters);
@@ -125,14 +131,26 @@ void Clusters::log(
 
 void Clusters::log(const vector<PeakTime>& times)
 {
-  const unsigned l = times.size();
+  const unsigned l = times.size()-1;
+  if (l < 2)
+  {
+    cout << "Vector too short\n";
+    return;
+  }
+
   double * x = (double *) malloc(l * sizeof(double));
 
   for (unsigned i = 0; i < l; i++)
-    x[i] = times[i].time;
+    x[i] = times[i+1].time - times[i].time;
 
   // "Best" number of clusters.
   Clusters::logVector(x, l, 0);
+}
+
+
+const unsigned Clusters::size() const
+{
+  return clusters.size();
 }
 
 

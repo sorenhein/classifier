@@ -64,10 +64,12 @@ class Clusters
     ~Clusters();
 
     void log(
-      const vector<PeakPos>& positions,
+      const vector<int>& axles,
       const int numClusters);
 
     void log(const vector<PeakTime>& times);
+
+    const unsigned size() const;
 
     double distance(const Clusters& other) const;
 

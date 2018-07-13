@@ -5,6 +5,7 @@
 #include <list>
 #include <map>
 
+#include "Clusters.h"
 #include "struct.h"
 
 using namespace std;
@@ -62,6 +63,7 @@ struct TrainEntry
   bool symmetryFlag;
   vector<int> carNumbers;
   vector<int> axles; // In mm starting from the first wheel
+  vector<Clusters> clusterList;  // First one is for 2 clusters, etc.
 };
 
 struct DatabaseCar
@@ -112,6 +114,10 @@ class Database
     bool getPerfectPeaks(
       const string& trainName,
       vector<PeakPos>& peaks) const; // In mm
+
+    const Clusters * getClusters(
+      const int trainNo,
+      const unsigned clusterSize) const;
 
     const CarEntry * lookupCar(const int carNo) const;
 

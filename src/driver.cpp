@@ -66,12 +66,19 @@ int main(int argc, char * argv[])
   motionEstimate.resize(order+1);
 
   Stats stats;
+  StatCross statCross;
   Timer timer;
 
   const string trainName = "ICE1_DEU_56_N";
   // for (auto& trainName: db)
   {
     cout << "Train " << trainName << endl;
+    const int trainNo = db.lookupTrainNumber(trainName);
+    if (trainNo == -1)
+    {
+      cout << "Bad train name\n";
+      exit(0);
+    }
 
     vector<PeakPos> perfectPositions;
     if (! db.getPerfectPeaks(trainName, perfectPositions))
@@ -99,8 +106,32 @@ int main(int argc, char * argv[])
             continue;
           }
 
-TrainFound trainFound;
-classifier.classify(synthTimes, db, trainFound);
+          Clusters clusters;
+          clusters.log(synthTimes);
+          const unsigned clusterSize = clusters.size();
+
+          double dist = numeric_limits<double>::max();
+          string bestMatch = "UNKNOWN";
+
+          for (auto& refTrain: db)
+          {
+            const int refTrainNo = db.lookupTrainNumber(refTrain);
+            const Clusters * otherClusters = db.getClusters(refTrainNo,
+              clusterSize);
+
+            double d = clusters.distance(* otherClusters);
+            if (d < dist)
+            {
+              dist = d;
+              bestMatch = refTrain;
+            }
+          }
+
+          statCross.log(trainName, bestMatch);
+
+
+// TrainFound trainFound;
+// classifier.classify(synthTimes, db, trainFound);
 
           const unsigned l = perfectPositions.size();
           vector<double> x(l), y(l), coeffs(l);
@@ -116,7 +147,7 @@ classifier.classify(synthTimes, db, trainFound);
           motionEstimate[0] = coeffs[0];
           motionEstimate[1] = coeffs[1];
           motionEstimate[2] = 2. * coeffs[2];
-          // As ... 0.5 * a * t^2 
+          // As the regression estimates 0.5 * a in the physics formula.
 
           // printCorrelation(motionActual, motionEstimate);
 
@@ -133,6 +164,8 @@ classifier.classify(synthTimes, db, trainFound);
   stats.printCrossPercentCSV(control.crossPercentFile);
   stats.printOverviewCSV(control.overviewFile);
   stats.printDetailsCSV(control.detailFile);
+
+  statCross.printCountCSV("classify.txt");
 
   cout << "Time " << timer.str(2) << endl;
 
