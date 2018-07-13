@@ -1,5 +1,6 @@
 #include <iomanip>
 #include <limits>
+#include <algorithm>
 
 #include "Ckmeans/Ckmeans.1d.dp.h"
 #include "Clusters.h"
@@ -18,7 +19,7 @@ Clusters::~Clusters()
 }
 
 
-void Clusters::logVector(
+double Clusters::logVector(
   const double * x, 
   const unsigned l,
   const unsigned numClusters)
@@ -53,6 +54,14 @@ void Clusters::logVector(
       Kcluster, centers, withinss, size, BIC,
       "BIC", "linear", L2);
     nc = static_cast<unsigned>(Kcluster[l-1]) + 1;
+
+cout << "Cluster data\n";
+for (unsigned i = 0; i < MAX_CLUSTERS; i++)
+{
+  cout << "i " << i << ": " << centers[i] << " " <<
+    withinss[i] << " " << size[i] << " " <<
+    BIC[i] << endl;
+}
   }
   else
   {
@@ -72,10 +81,10 @@ void Clusters::logVector(
   {
     const unsigned c = static_cast<unsigned>(Kcluster[i]);
     clusters[c].count++;
-    clusters[c].upper = static_cast<int>(x[i]);
+    clusters[c].upper = x[i];
 
-    if (clusters[c].lower == 0)
-      clusters[c].lower = static_cast<int>(x[i]);
+    if (clusters[c].lower == 0.)
+      clusters[c].lower = x[i];
 
     lastClusterIndex[c] = i;
 
@@ -84,9 +93,11 @@ void Clusters::logVector(
     sumsq[c] += df*df;
   }
 
+  double residuals = 0.;
   for (unsigned c = 0; c < nc; c++)
   {
     clusters[c].center = centers[c];
+    residuals += withinss[c];
 
     const double n = static_cast<double>(clusters[c].count);
     if (n > 1.f)
@@ -105,6 +116,9 @@ void Clusters::logVector(
     else
       clusters[c].median = (x[imid] + x[imid+1]) / 2.f;
   }
+
+  sort(clusters.begin(), clusters.end());
+  return residuals;
 }
 
 
@@ -119,13 +133,18 @@ void Clusters::log(
     return;
   }
 
-  double * x = (double *) malloc(l * sizeof(double));
-
+  // Too much shuffling around of data, including in Ckmeans itself.
+  vector<double> xtemp(l);
   for (unsigned i = 0; i < l; i++)
-    x[i] = (axles[i+1] - axles[i]) / 1000.; // In m
+    xtemp[i] = (axles[i+1] - axles[i]) / 1000.; // In m
+  sort(xtemp.begin(), xtemp.end());
+
+  double * x = (double *) malloc(l * sizeof(double));
+  for (unsigned i = 0; i < l; i++)
+    x[i] = xtemp[i];
 
   // Specific number of clusters.
-  Clusters::logVector(x, l, numClusters);
+  (void) Clusters::logVector(x, l, numClusters);
 }
 
 
@@ -138,13 +157,34 @@ void Clusters::log(const vector<PeakTime>& times)
     return;
   }
 
-  double * x = (double *) malloc(l * sizeof(double));
-
+  vector<double> xtemp(l);
   for (unsigned i = 0; i < l; i++)
-    x[i] = times[i+1].time - times[i].time;
+    xtemp[i] = times[i+1].time - times[i].time;
+  sort(xtemp.begin(), xtemp.end());
+
+  double * x = (double *) malloc(l * sizeof(double));
+  for (unsigned i = 0; i < l; i++)
+    x[i] = xtemp[i];
 
   // "Best" number of clusters.
-  Clusters::logVector(x, l, 0);
+  // double residuals = Clusters::logVector(x, l, 0);
+
+  double residuals = Clusters::logVector(x, l, 2);
+cout << "Start at 2: " << residuals << endl;
+  for (unsigned i = 3; i < MAX_CLUSTERS; i++)
+  {
+    double newRes = Clusters::logVector(x, l, i);
+cout << "At " << i << ": " << newRes << endl;
+    if (newRes >= residuals / 2.)
+    {
+      // Stop if the error is no longer at least halving.
+    }
+    else
+    {
+      // residuals = Clusters::logVector(x, l, i-1);
+      break;
+    }
+  }
 }
 
 
@@ -213,8 +253,8 @@ double Clusters::warp(
   {
     const double di = ratios[i] * (clusters[0].median + bestd0) - 
       clusters[i].median;
-    newMedians[i].median = clusters[0].median + di;
-    newMedians[i].count = clusters[0].count;
+    newMedians[i].median = clusters[i].median + di;
+    newMedians[i].count = clusters[i].count;
   }
 
   return dist;
@@ -395,7 +435,7 @@ double Clusters::distance(const Clusters& other) const
     return -1.;
   }
 
-  vector<ClusterEntry> newMedians;
+  vector<ClusterEntry> newMedians(nc);
   double dist = Clusters::warp(newMedians, other);
   dist += Clusters::balance(newMedians, other);
 

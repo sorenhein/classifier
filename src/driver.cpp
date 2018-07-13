@@ -83,6 +83,8 @@ int main(int argc, char * argv[])
     vector<PeakPos> perfectPositions;
     if (! db.getPerfectPeaks(trainName, perfectPositions))
       cout << "Bad perfect positions" << endl;
+cout << "Input positions\n";
+printPeakPosCSV(perfectPositions, 1);
 
     for (double speed = control.speedMin; 
         speed <= control.speedMax + 0.1 * control.speedStep; 
@@ -105,6 +107,8 @@ int main(int argc, char * argv[])
           {
             continue;
           }
+cout << "Synth no. " << no << "\n";
+printPeakTimeCSV(synthTimes, no+2);
 
           Clusters clusters;
           clusters.log(synthTimes);
@@ -118,12 +122,19 @@ int main(int argc, char * argv[])
             const int refTrainNo = db.lookupTrainNumber(refTrain);
             const Clusters * otherClusters = db.getClusters(refTrainNo,
               clusterSize);
+            if (otherClusters == nullptr)
+              continue;
 
             double d = clusters.distance(* otherClusters);
             if (d < dist)
             {
               dist = d;
               bestMatch = refTrain;
+cout << "Noisy own cluster\n";
+clusters.print();
+
+cout << "Reference clusters train " << refTrain << ", dist " << dist << "\n";
+(* otherClusters).print();
             }
           }
 
@@ -165,7 +176,7 @@ int main(int argc, char * argv[])
   stats.printOverviewCSV(control.overviewFile);
   stats.printDetailsCSV(control.detailFile);
 
-  statCross.printCountCSV("classify.txt");
+  statCross.printCountCSV("classify.csv");
 
   cout << "Time " << timer.str(2) << endl;
 

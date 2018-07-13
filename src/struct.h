@@ -50,14 +50,14 @@ struct Cluster
   double center;
   double median;
   double sdev;
-  int lower;
-  int upper;
+  double lower;
+  double upper;
   int count;
   int tag;
 
   bool operator < (const Cluster& c2)
   {
-    return (count < c2.count);
+    return (median < c2.median);
   }
 };
 
