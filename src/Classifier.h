@@ -32,26 +32,10 @@ class Classifier
       CLUSTER_UNKNOWN = 3
     };
 
-    struct Cluster
-    {
-      double center;
-      double median;
-      double sdev;
-      int lower;
-      int upper;
-      int count;
-      DiffLabel label;
-
-      bool operator < (const Cluster& c2)
-      {
-        return (count < c2.count);
-      }
-    };
-
     struct Interval
     {
       int clusterNo;
-      DiffLabel label;
+      int tag;
       int carNo; 
       // Real car numbers start from 0.
       // -1: inter-car gap

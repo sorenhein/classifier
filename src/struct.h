@@ -45,4 +45,21 @@ enum FileFormat
   FILE_SIZE = 2
 };
 
+struct Cluster
+{
+  double center;
+  double median;
+  double sdev;
+  int lower;
+  int upper;
+  int count;
+  int tag;
+
+  bool operator < (const Cluster& c2)
+  {
+    return (count < c2.count);
+  }
+};
+
+
 #endif

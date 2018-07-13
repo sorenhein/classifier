@@ -141,9 +141,9 @@ void Classifier::classifyClusters(
     return;
   }
 
-  clusters[0].label = CLUSTER_WHEEL_PAIR; // Small
-  clusters[1].label = CLUSTER_INTER_CAR; // Medium
-  clusters[2].label = CLUSTER_INTRA_CAR; // Large
+  clusters[0].tag = CLUSTER_WHEEL_PAIR; // Small
+  clusters[1].tag = CLUSTER_INTER_CAR; // Medium
+  clusters[2].tag = CLUSTER_INTRA_CAR; // Large
 }
 
 
@@ -175,7 +175,7 @@ void Classifier::labelIntraIntervals(
       if (t >= clusters[c].lower && t <= clusters[c].upper)
       {
         intervals[i].clusterNo = c;
-        intervals[i].label = clusters[c].label;
+        intervals[i].tag = clusters[c].tag;
         found = true;
       }
     }
@@ -335,7 +335,7 @@ void Classifier::printClusters(const vector<Cluster>& clusters) const
     cout << "sdev   " << cluster.sdev << endl;
     cout << "range  " << cluster.lower << " to " << cluster.upper << endl;
     cout << "count  " << cluster.count << endl;
-    cout << "label  " << cluster.label << endl << endl;
+    cout << "tag    " << cluster.tag << endl << endl;
   }
 }
 

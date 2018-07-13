@@ -1,5 +1,6 @@
 SOURCE_FILES    =               \
                 Classifier.cpp  \
+                Clusters.cpp    \
                 Database.cpp    \
                 Disturb.cpp     \
                 Stats.cpp       \
