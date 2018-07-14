@@ -1,34 +1,37 @@
 2018-07-14
 ----------
 
-* Keep all trains (with cluster count) that are close to optimal
-  - Do we get 100% that way?
-
-* Mark up the reference trains as ABACAD... vectors
-
-* Mark up the measured trains likely with the same bins, one hopes
-
-* Distance function: Use sums of squares instead?
-  - Intra clusters
-  - warp
-  - balance
+* Small histogram of #trains in matches vector
+  - Should we go to 4?
+  - Should we improve the distance function in Clusters?
+    - Intra clusters
+    - warp
+    - balance
 
 * Do _N and _R have same clusters?
 
-* Could guess speed from histogram stretch 
 
+* Try to match up each entry in matches with the actual trace.
+  This will give us the best [3] start/end points for each actual
+  trace vs the distance trace.
+  - Up to [2] peaks from actual trace can stick out on either end
+  - Can match up actual start anywhere from start of distance trace
+  - Can match up actual end anywhere from end of distance trace
+  - Once we're moored at either end, do a squared distance of actual
+    to distance trace
+    - Each actual peak is matched to nearest unused distance peak
+    - In the end we look at unmatched peaks on both sides --
+      some penalty for this
+    - Add up square distances
 
+* Probably cut those actual peaks that are very far from distance peaks
 
-* When disturbing, keep a list of the original peak number for later
-  - Also keep track of exact peaks inserted and deleted
+* Correlate the rest on both sides
 
-* How to match a histogram to a train type
-  - Within +/- 20% of number of train peaks
-  - Levenshteyn distance below some limit
-  - For leading candidates, look at morphing the peaks
-
-* Compare best estimate of insertions and deletions with disturbance
-  - Reject if too poor
+* Add up
+  - Residuals
+  - Added, subtracted
+  - Missing, extras
 
 
 Overall algorithm
@@ -51,6 +54,3 @@ Overall algorithm
 
 * Check against laser measurements!
 
-
-Formula for residual error in regression: 
-a^2 (mean(ysq) - mean(y)sq)  + mean(xsq) - mean(x)sq

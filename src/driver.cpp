@@ -69,7 +69,9 @@ int main(int argc, char * argv[])
   StatCross statCross;
   Timer timer;
 
-  // const string trainName = "ICE1_DEU_56_N";
+int countAll = 0;
+int countBad = 0;
+
   for (auto& trainName: db)
   {
     cout << "Train " << trainName << endl;
@@ -111,47 +113,28 @@ int main(int argc, char * argv[])
 // printPeakTimeCSV(synthTimes, no+2);
 
           Clusters clusters;
-          double dist = numeric_limits<double>::max();
-          string bestMatch = "UNKNOWN";
-          for (unsigned numCl = 2; numCl <= 6; numCl++)
-          {
-            const double dIntraCluster = 
-              sqrt(clusters.log(synthTimes, numCl));
-
-            for (auto& refTrain: db)
-            {
-              const int refTrainNo = db.lookupTrainNumber(refTrain);
-              if (! db.TrainsShareCountry(trainNo, refTrainNo))
-                continue;
-
-              const Clusters * otherClusters = db.getClusters(refTrainNo,
-                numCl);
-              if (otherClusters == nullptr)
-                continue;
-
-              const double dInterCluster = clusters.distance(* otherClusters);
-              const double d = dIntraCluster + dInterCluster;
-              if (d < dist)
-              {
-                dist = d;
-                bestMatch = refTrain;
-// cout << "Noisy own cluster\n";
-// clusters.print();
-
-// cout << "numCl " << numCl << ", " << refTrain << ", dist " << dist << "\n";
-// (* otherClusters).print();
-              }
-            }
-          }
+          vector<int> matches;
+          clusters.bestMatches(synthTimes, db, trainNo, 3, matches);
+bool found = false;
+for (unsigned i = 0; ! found && i < matches.size(); i++)
+{
+  if (matches[i] == trainNo)
+    found = true;
+}
+countAll++;
+if (! found)
+  countBad++;
 
 // cout << "Logging " << bestMatch << endl;
-          statCross.log(trainName, bestMatch);
+          // statCross.log(trainName, bestMatch);
+          statCross.log(trainName, db.lookupTrainName(matches[0]));
           continue;
 
 
 // TrainFound trainFound;
 // classifier.classify(synthTimes, db, trainFound);
 
+          /*
           const unsigned l = perfectPositions.size();
           vector<double> x(l), y(l), coeffs(l);
           for (unsigned i = 0; i < l; i++)
@@ -174,10 +157,14 @@ int main(int argc, char * argv[])
           // TODO: Calculate residuals, or find them in code
           stats.log(trainName, motionActual,
             trainName, motionEstimate, residuals);
+          */
         }
       }
     }
   }
+
+cout << "Count " << countAll << endl;
+cout << "Bad   " << countBad << endl;
 
   statCross.printCountCSV("classify.csv");
 

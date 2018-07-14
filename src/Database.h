@@ -61,6 +61,7 @@ struct TrainEntry
   int retirement; // Year
   vector<string> countries;
   bool symmetryFlag;
+  bool reverseFlag;
   vector<int> carNumbers;
   vector<int> axles; // In mm starting from the first wheel
   vector<Clusters> clusterList;  // First one is for 2 clusters, etc.
@@ -127,9 +128,11 @@ class Database
 
     string lookupTrainName(const unsigned trainNo) const;
 
-    bool TrainsShareCountry(
+    bool trainsShareCountry(
       const int trainNo1,
       const int trainNo2) const;
+
+    bool trainIsReversed(const int trainNo) const;
 
     void lookupCar(
       const DatabaseCar& dbCar,

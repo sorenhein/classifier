@@ -4,8 +4,11 @@
 
 #include "Ckmeans/Ckmeans.1d.dp.h"
 #include "Clusters.h"
+#include "Database.h"
 
 #define MAX_CLUSTERS 12
+#define CLUSTER_LO 2
+#define CLUSTER_HI 6
 
 
 Clusters::Clusters()
@@ -54,14 +57,6 @@ double Clusters::logVector(
       Kcluster, centers, withinss, size, BIC,
       "BIC", "linear", L2);
     nc = static_cast<unsigned>(Kcluster[l-1]) + 1;
-
-cout << "Cluster data\n";
-for (unsigned i = 0; i < MAX_CLUSTERS; i++)
-{
-  cout << "i " << i << ": " << centers[i] << " " <<
-    withinss[i] << " " << size[i] << " " <<
-    BIC[i] << endl;
-}
   }
   else
   {
@@ -118,6 +113,14 @@ for (unsigned i = 0; i < MAX_CLUSTERS; i++)
   }
 
   sort(clusters.begin(), clusters.end());
+
+  free(y);
+  free(Kcluster);
+  free(centers);
+  free(withinss);
+  free(size);
+  free(BIC);
+
   return residuals;
 }
 
@@ -144,7 +147,9 @@ double Clusters::log(
     x[i] = xtemp[i];
 
   // Specific number of clusters.
-  return Clusters::logVector(x, l, numClusters);
+  const bool ret = Clusters::logVector(x, l, numClusters);
+  free(x);
+  return ret;
 }
 
 
@@ -173,29 +178,8 @@ double Clusters::log(
     residuals = Clusters::logVector(x, l, 0);
   else
     residuals = Clusters::logVector(x, l, numClusters);
+  free(x);
   return residuals;
-    
-  // "Best" number of clusters.
-  // double residuals = Clusters::logVector(x, l, 0);
-
-  /*
-  double residuals = Clusters::logVector(x, l, 2);
-cout << "Start at 2: " << residuals << endl;
-  for (unsigned i = 3; i < MAX_CLUSTERS; i++)
-  {
-    double newRes = Clusters::logVector(x, l, i);
-cout << "At " << i << ": " << newRes << endl;
-    if (newRes >= residuals / 2.)
-    {
-      // Stop if the error is no longer at least halving.
-    }
-    else
-    {
-      // residuals = Clusters::logVector(x, l, i-1);
-      break;
-    }
-  }
-  */
 }
 
 
@@ -451,6 +435,105 @@ double Clusters::distance(const Clusters& other) const
   dist += Clusters::balance(newMedians, other);
 
   return dist;
+}
+
+
+void Clusters::bestMatches(
+  const vector<PeakTime>& times,
+  Database& db,
+  const int trainNo,
+  const unsigned tops,
+  vector<int>& matches)
+{
+  struct Match
+  {
+    int trainNo;
+    unsigned numClusters;
+    double dist;
+
+    bool operator < (const Match& m2)
+    {
+      return (dist < m2.dist);
+    }
+  };
+
+  vector<double> dist;
+  vector<unsigned> nBest;
+
+  dist.clear();
+  nBest.clear();
+
+  // The loop should maybe be the other way round, but I guess
+  // the clustering is slower than the distance function.
+
+  for (int numCl = CLUSTER_LO; numCl <= CLUSTER_HI; numCl++)
+  {
+    double dIntraCluster = sqrt(Clusters::log(times, numCl));
+
+    for (auto& refTrain: db)
+    {
+      const int refTrainNo = db.lookupTrainNumber(refTrain);
+      if (! db.trainsShareCountry(trainNo, refTrainNo))
+        continue;
+
+      // TODO Is this a good dist algorithm?  Show some cluster plots
+      // of good and bad detections.
+      
+      if (refTrainNo >= static_cast<int>(dist.size()))
+      {
+        dist.resize(refTrainNo + 10);
+        nBest.resize(refTrainNo + 10);
+
+        for (int i = refTrainNo; i < refTrainNo+10; i++)
+        {
+          dist[i] = numeric_limits<double>::max();
+          nBest[i] = 0;
+        }
+      }
+
+      const Clusters * otherClusters = db.getClusters(refTrainNo, numCl);
+      if (otherClusters == nullptr)
+        continue;
+
+      const double dInterCluster = Clusters::distance(* otherClusters);
+      const double d = dIntraCluster + dInterCluster;
+      if (d < dist[refTrainNo])
+      {
+        dist[refTrainNo] = d;
+        nBest[refTrainNo] = numCl;
+      }
+    }
+  }
+
+  vector<Match> matchList;
+  for (unsigned i = 0; i < dist.size(); i++)
+  {
+    if (nBest[i] == 0)
+      continue;
+
+    Match match;
+    match.trainNo = i;
+    match.numClusters = nBest[i];
+    match.dist = dist[i];
+    matchList.push_back(match);
+  }
+
+
+  // Get the top ones, but don't cound the reversed trains separately.
+  sort(matchList.begin(), matchList.end());
+  unsigned num = 0;
+  for (unsigned i = 0; i < matchList.size(); i++)
+  {
+    if (db.trainIsReversed(matchList[i].trainNo))
+      matches.push_back(matchList[i].trainNo);
+    else if (num == tops+1)
+      break;
+    else
+    {
+      matches.push_back(matchList[i].trainNo);
+      num++;
+    }
+  }
 }
 
 

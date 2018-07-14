@@ -84,6 +84,7 @@ void Database::logTrain(const TrainEntry& train)
     trainEntries.push_back(train);
     TrainEntry& t = trainEntries.back();
     t.officialName = officialName + "_N";
+    t.reverseFlag = false;
     offTrainMap[t.officialName] = trainEntries.size()-1;
   }
   else
@@ -92,6 +93,7 @@ void Database::logTrain(const TrainEntry& train)
     trainEntries.push_back(train);
     TrainEntry& t = trainEntries.back();
     t.officialName = officialName + "_N";
+    t.reverseFlag = false;
     offTrainMap[t.officialName] = trainEntries.size()-1;
 
     // Reversed.
@@ -104,6 +106,7 @@ void Database::logTrain(const TrainEntry& train)
       tr.axles[i] = aLast - axles[l-i-1];
 
     tr.officialName = officialName + "_R";
+    tr.reverseFlag = true;
     trainEntries.push_back(tr);
     offTrainMap[tr.officialName] = trainEntries.size()-1;
   }
@@ -190,11 +193,11 @@ string Database::lookupTrainName(const unsigned trainNo) const
   if (trainNo >= trainEntries.size())
     return "Bad index";
   else
-    return trainEntries[trainNo].name;
+    return trainEntries[trainNo].officialName;
 }
 
 
-bool Database::TrainsShareCountry(
+bool Database::trainsShareCountry(
   const int trainNo1,
   const int trainNo2) const
 {
@@ -210,6 +213,12 @@ bool Database::TrainsShareCountry(
     }
   }
   return false;
+}
+
+
+bool Database::trainIsReversed(const int trainNo) const
+{
+  return trainEntries[trainNo].reverseFlag;
 }
 
 

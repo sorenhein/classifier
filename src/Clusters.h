@@ -8,6 +8,8 @@
 
 using namespace std;
 
+class Database;
+
 
 class Clusters
 {
@@ -56,6 +58,10 @@ class Clusters
       vector<ClusterEntry>& newMedians,
       const Clusters& other) const;
 
+    double distance(const Clusters& other) const;
+
+    const unsigned size() const;
+
 
   public:
 
@@ -71,9 +77,12 @@ class Clusters
       const vector<PeakTime>& times,
       const int numClusters = 0);
 
-    const unsigned size() const;
-
-    double distance(const Clusters& other) const;
+    void bestMatches(
+      const vector<PeakTime>& times,
+      Database& db,
+      const int trainNo,
+      const unsigned maxTops,
+      vector<int>& matches);
 
     void print() const;
 };
