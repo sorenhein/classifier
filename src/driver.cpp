@@ -69,8 +69,8 @@ int main(int argc, char * argv[])
   StatCross statCross;
   Timer timer;
 
-  const string trainName = "ICE1_DEU_56_N";
-  // for (auto& trainName: db)
+  // const string trainName = "ICE1_DEU_56_N";
+  for (auto& trainName: db)
   {
     cout << "Train " << trainName << endl;
     const int trainNo = db.lookupTrainNumber(trainName);
@@ -83,8 +83,8 @@ int main(int argc, char * argv[])
     vector<PeakPos> perfectPositions;
     if (! db.getPerfectPeaks(trainName, perfectPositions))
       cout << "Bad perfect positions" << endl;
-cout << "Input positions\n";
-printPeakPosCSV(perfectPositions, 1);
+// cout << "Input positions\n";
+// printPeakPosCSV(perfectPositions, 1);
 
     for (double speed = control.speedMin; 
         speed <= control.speedMax + 0.1 * control.speedStep; 
@@ -107,38 +107,46 @@ printPeakPosCSV(perfectPositions, 1);
           {
             continue;
           }
-cout << "Synth no. " << no << "\n";
-printPeakTimeCSV(synthTimes, no+2);
+// cout << "Synth no. " << no << "\n";
+// printPeakTimeCSV(synthTimes, no+2);
 
           Clusters clusters;
-          clusters.log(synthTimes);
-          const unsigned clusterSize = clusters.size();
-
           double dist = numeric_limits<double>::max();
           string bestMatch = "UNKNOWN";
-
-          for (auto& refTrain: db)
+          for (unsigned numCl = 2; numCl <= 6; numCl++)
           {
-            const int refTrainNo = db.lookupTrainNumber(refTrain);
-            const Clusters * otherClusters = db.getClusters(refTrainNo,
-              clusterSize);
-            if (otherClusters == nullptr)
-              continue;
+            const double dIntraCluster = 
+              sqrt(clusters.log(synthTimes, numCl));
 
-            double d = clusters.distance(* otherClusters);
-            if (d < dist)
+            for (auto& refTrain: db)
             {
-              dist = d;
-              bestMatch = refTrain;
-cout << "Noisy own cluster\n";
-clusters.print();
+              const int refTrainNo = db.lookupTrainNumber(refTrain);
+              if (! db.TrainsShareCountry(trainNo, refTrainNo))
+                continue;
 
-cout << "Reference clusters train " << refTrain << ", dist " << dist << "\n";
-(* otherClusters).print();
+              const Clusters * otherClusters = db.getClusters(refTrainNo,
+                numCl);
+              if (otherClusters == nullptr)
+                continue;
+
+              const double dInterCluster = clusters.distance(* otherClusters);
+              const double d = dIntraCluster + dInterCluster;
+              if (d < dist)
+              {
+                dist = d;
+                bestMatch = refTrain;
+// cout << "Noisy own cluster\n";
+// clusters.print();
+
+// cout << "numCl " << numCl << ", " << refTrain << ", dist " << dist << "\n";
+// (* otherClusters).print();
+              }
             }
           }
 
+// cout << "Logging " << bestMatch << endl;
           statCross.log(trainName, bestMatch);
+          continue;
 
 
 // TrainFound trainFound;
@@ -171,12 +179,13 @@ cout << "Reference clusters train " << refTrain << ", dist " << dist << "\n";
     }
   }
 
+  statCross.printCountCSV("classify.csv");
+
   stats.printCrossCountCSV(control.crossCountFile);
   stats.printCrossPercentCSV(control.crossPercentFile);
   stats.printOverviewCSV(control.overviewFile);
   stats.printDetailsCSV(control.detailFile);
 
-  statCross.printCountCSV("classify.csv");
 
   cout << "Time " << timer.str(2) << endl;
 

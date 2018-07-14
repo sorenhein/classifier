@@ -122,7 +122,7 @@ for (unsigned i = 0; i < MAX_CLUSTERS; i++)
 }
 
 
-void Clusters::log(
+double Clusters::log(
   const vector<int>& axles,
   const int numClusters)
 {
@@ -130,7 +130,7 @@ void Clusters::log(
   if (l < 2)
   {
     cout << "Vector too short\n";
-    return;
+    return 0.;
   }
 
   // Too much shuffling around of data, including in Ckmeans itself.
@@ -144,17 +144,19 @@ void Clusters::log(
     x[i] = xtemp[i];
 
   // Specific number of clusters.
-  (void) Clusters::logVector(x, l, numClusters);
+  return Clusters::logVector(x, l, numClusters);
 }
 
 
-void Clusters::log(const vector<PeakTime>& times)
+double Clusters::log(
+  const vector<PeakTime>& times,
+  const int numClusters)
 {
   const unsigned l = times.size()-1;
   if (l < 2)
   {
     cout << "Vector too short\n";
-    return;
+    return 0.;
   }
 
   vector<double> xtemp(l);
@@ -166,9 +168,17 @@ void Clusters::log(const vector<PeakTime>& times)
   for (unsigned i = 0; i < l; i++)
     x[i] = xtemp[i];
 
+  double residuals;
+  if (numClusters == 0)
+    residuals = Clusters::logVector(x, l, 0);
+  else
+    residuals = Clusters::logVector(x, l, numClusters);
+  return residuals;
+    
   // "Best" number of clusters.
   // double residuals = Clusters::logVector(x, l, 0);
 
+  /*
   double residuals = Clusters::logVector(x, l, 2);
 cout << "Start at 2: " << residuals << endl;
   for (unsigned i = 3; i < MAX_CLUSTERS; i++)
@@ -185,6 +195,7 @@ cout << "At " << i << ": " << newRes << endl;
       break;
     }
   }
+  */
 }
 
 

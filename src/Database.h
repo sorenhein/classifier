@@ -127,6 +127,10 @@ class Database
 
     string lookupTrainName(const unsigned trainNo) const;
 
+    bool TrainsShareCountry(
+      const int trainNo1,
+      const int trainNo2) const;
+
     void lookupCar(
       const DatabaseCar& dbCar,
       const string& country,

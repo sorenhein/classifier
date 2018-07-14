@@ -194,6 +194,25 @@ string Database::lookupTrainName(const unsigned trainNo) const
 }
 
 
+bool Database::TrainsShareCountry(
+  const int trainNo1,
+  const int trainNo2) const
+{
+  const TrainEntry& t1 = trainEntries[trainNo1];
+  const TrainEntry& t2 = trainEntries[trainNo2];
+
+  for (auto& c1: t1.countries)
+  {
+    for (auto& c2: t2.countries)
+    {
+      if (c1 == c2)
+        return true;
+    }
+  }
+  return false;
+}
+
+
 void Database::lookupCar(
   const DatabaseCar& dbCar,
   const string& country,

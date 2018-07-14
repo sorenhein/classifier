@@ -86,15 +86,17 @@ void StatCross::printCountCSV(const string& fname) const
   fout.open(fname);
 
   string s = string(SEPARATOR) + "count";
-  for (unsigned i = 0; i < numEntries; i++)
-    s += SEPARATOR + numberMap[i];
+  for (auto& it: nameMap)
+    s += SEPARATOR + it.first;
   fout << s << endl;
 
-  for (unsigned i = 0; i < numEntries; i++)
+  for (auto& it1: nameMap)
   {
+    const unsigned i = it1.second;
     s = numberMap[i] + SEPARATOR + to_string(countEntries[i]);
-    for (unsigned j = 0; j < numEntries; j++)
+    for (auto& it2: nameMap)
     {
+      const unsigned j = it2.second;
       s += SEPARATOR;
       if (countCross[i][j] > 0)
         s += to_string(countCross[i][j]);
@@ -112,15 +114,19 @@ void StatCross::printPercentCSV(const string& fname) const
   fout.open(fname);
 
   string s = string(SEPARATOR) + "count";
-  for (unsigned i = 0; i < numEntries; i++)
-    s += SEPARATOR + numberMap[i];
+  for (auto& it: nameMap)
+    s += SEPARATOR + it.first;
   fout << s << endl;
 
-  for (unsigned i = 0; i < numEntries; i++)
+  for (auto& it1: nameMap)
   {
+    const unsigned i = it1.second;
     s = numberMap[i] + SEPARATOR + to_string(countEntries[i]);
-    for (unsigned j = 0; j < numEntries; j++)
+    for (auto& it2: nameMap)
+    {
+      const unsigned j = it2.second;
       s += SEPARATOR + StatCross::percent(countEntries[i], countCross[i][j]);
+    }
     fout << s << endl;
   }
 

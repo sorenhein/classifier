@@ -1,19 +1,29 @@
-2018-07-12
+2018-07-14
 ----------
+
+* Keep all trains (with cluster count) that are close to optimal
+  - Do we get 100% that way?
+
+* Mark up the reference trains as ABACAD... vectors
+
+* Mark up the measured trains likely with the same bins, one hopes
+
+* Distance function: Use sums of squares instead?
+  - Intra clusters
+  - warp
+  - balance
+
+* Do _N and _R have same clusters?
+
+* Could guess speed from histogram stretch 
+
+
 
 * When disturbing, keep a list of the original peak number for later
   - Also keep track of exact peaks inserted and deleted
 
-* Look at noiseless and noisy histograms of peaks
-  - Does a given train type have a natural number of bins?
-  - Can we state this in the train file?
-  - Can we generate a string S1-M1-L2-... for this and store in train?
-
 * How to match a histogram to a train type
-  - Only valid countries
   - Within +/- 20% of number of train peaks
-  - Histogram has roughly the right bin counts
-  - Ratios between bin positions is roughly right
   - Levenshteyn distance below some limit
   - For leading candidates, look at morphing the peaks
 

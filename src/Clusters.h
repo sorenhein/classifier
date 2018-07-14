@@ -63,11 +63,13 @@ class Clusters
 
     ~Clusters();
 
-    void log(
+    double log(
       const vector<int>& axles,
       const int numClusters);
 
-    void log(const vector<PeakTime>& times);
+    double log(
+      const vector<PeakTime>& times,
+      const int numClusters = 0);
 
     const unsigned size() const;
 
