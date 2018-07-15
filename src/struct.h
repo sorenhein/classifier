@@ -67,6 +67,8 @@ struct Alignment
   double dist;
   unsigned numAdd;
   unsigned numDelete;
+  int left; // TODO Temp
+  int right; // TODO Temp
   vector<int> actualToRef;
 
   bool operator < (const Alignment& a2)

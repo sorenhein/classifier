@@ -7,6 +7,7 @@
 #include "Classifier.h"
 #include "SynthTrain.h"
 #include "Disturb.h"
+#include "Align.h"
 #include "Timer.h"
 #include "Stats.h"
 #include "print.h"
@@ -39,6 +40,8 @@ int main(int argc, char * argv[])
   classifier.setCountry(control.country);
   classifier.setYear(control.year);
 
+  Align align;
+
   Disturb disturb;
   if (! disturb.readFile(control.disturbFile))
   {
@@ -67,6 +70,7 @@ int main(int argc, char * argv[])
 
   Stats stats;
   StatCross statCross;
+  StatCross statCross2;
   Timer timer;
 
 int countAll = 0;
@@ -128,6 +132,16 @@ if (! found)
 // cout << "Logging " << bestMatch << endl;
           // statCross.log(trainName, bestMatch);
           statCross.log(trainName, db.lookupTrainName(matches[0]));
+
+          vector<Alignment> matchesAlign;
+
+          align.bestMatches(synthTimes, db, 2, matches, 10, matchesAlign);
+// for (unsigned i = 0; i < matchesAlign.size(); i++)
+  // cout << i << " " << matchesAlign[i].dist << endl;
+
+          statCross2.log(trainName, 
+            db.lookupTrainName(matchesAlign[0].trainNo));
+
           continue;
 
 
@@ -167,6 +181,7 @@ cout << "Count " << countAll << endl;
 cout << "Bad   " << countBad << endl;
 
   statCross.printCountCSV("classify.csv");
+  statCross2.printCountCSV("classify2.csv");
 
   stats.printCrossCountCSV(control.crossCountFile);
   stats.printCrossPercentCSV(control.crossPercentFile);

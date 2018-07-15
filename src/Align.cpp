@@ -42,13 +42,13 @@ void Align::scaleToRef(
   }
   else
   {
-    if (-left >= lr)
+    if (left >= lr)
     {
       cout << "Reference trace too short\n";
       return;
     }
 
-    s0 = refPeaks[-left].pos;
+    s0 = refPeaks[left].pos;
     t0 = times[0].time;
   }
 
@@ -65,21 +65,23 @@ void Align::scaleToRef(
   }
   else
   {
-    if (right >= lr)
+    if (-right >= lr)
     {
       cout << "Reference trace too short\n";
       return;
     }
-    s1 = refPeaks[lr-1-right].pos;
+    s1 = refPeaks[lr-1+right].pos;
     t1 = times[lt-1].time;
   }
 
   positions.resize(lt);
   const double factor = (s1 - s0) / (t1 - t0);
+// cout << "left " << left << " right " << right << endl;
+// cout << t0 << " " << t1 << " " << s0 << " " << s1 << endl;
 
   for (int i = 0; i < lt; i++)
   {
-    positions[i].pos = s0 + factor * times[i].time;
+    positions[i].pos = s0 + factor * (times[i].time - t0);
     positions[i].value = 1.;
   }
 }
@@ -95,6 +97,8 @@ void Align::getAlignment(
 
   alignment.numAdd = 0;
   alignment.numDelete = 0;
+  alignment.dist = 0.;
+  alignment.actualToRef.resize(lp);
 
   unsigned lastRef = 0;
   double lastDist = numeric_limits<double>::max();
@@ -119,7 +123,7 @@ void Align::getAlignment(
         distBest = dist;
       }
 
-      if (refPeaks[j].pos < pos)
+      if (refPeaks[j].pos > pos)
         break;
     }
 
@@ -127,7 +131,7 @@ void Align::getAlignment(
     {
       // Go forward.
       alignment.actualToRef[i] = jBest;
-      alignment.dist = distBest;
+      alignment.dist += distBest;
       seen[jBest] = 1;
       lastDist = distBest;
       lastRef = jBest;
@@ -136,7 +140,7 @@ void Align::getAlignment(
     {
       // We're closer than the previous one was.
       alignment.actualToRef[i] = lastRef;
-      alignment.dist = distBack;
+      alignment.dist += distBack;
       lastDist = distBack;
       if (i > 0)
       {
@@ -180,11 +184,13 @@ void Align::bestMatches(
 
     for (int left = -2; left <= static_cast<int>(maxFronts+2); left++)
     {
-      for (int right = -2; right <= 2; right)
+      for (int right = -2; right <= 2; right++)
       {
         Align::scaleToRef(times, refPeaks, left, right, positions);
         Align::getAlignment(refPeaks, positions, a);
 
+a.left = left;
+a.right = right;
         matches.push_back(a);
       }
     }
