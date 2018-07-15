@@ -36,6 +36,7 @@ class Align
     void bestMatches(
       const vector<PeakTime>& times,
       const Database& db,
+      const int trainNo,
       const unsigned maxFronts,
       const vector<int>& matchesHist,
       const unsigned tops,

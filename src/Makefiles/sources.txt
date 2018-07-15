@@ -4,6 +4,7 @@ SOURCE_FILES    =               \
                 Clusters.cpp    \
                 Database.cpp    \
                 Disturb.cpp     \
+                Metrics.cpp     \
                 Stats.cpp       \
                 StatEntry.cpp   \
                 StatCross.cpp   \

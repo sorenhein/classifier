@@ -2,6 +2,7 @@
 #define TRAIN_STRUCT_H
 
 #include <string>
+#include <vector>
 
 using namespace std;
 

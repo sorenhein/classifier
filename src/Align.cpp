@@ -7,6 +7,10 @@
 #include "Align.h"
 #include "Database.h"
 
+#include "Metrics.h"
+
+extern Metrics metrics;
+
 
 Align::Align()
 {
@@ -76,8 +80,6 @@ void Align::scaleToRef(
 
   positions.resize(lt);
   const double factor = (s1 - s0) / (t1 - t0);
-// cout << "left " << left << " right " << right << endl;
-// cout << t0 << " " << t1 << " " << s0 << " " << s1 << endl;
 
   for (int i = 0; i < lt; i++)
   {
@@ -106,17 +108,20 @@ void Align::getAlignment(
   for (unsigned j = 0; j < lr; j++)
     seen[j] = 0;
 
+  double tmp;
   for (unsigned i = 0; i < lp; i++)
   {
     const double pos = positions[i].pos;
-    const double distBack = abs(pos - refPeaks[lastRef].pos);
+    tmp = pos - refPeaks[lastRef].pos;
+    const double distBack = tmp * tmp;
 
     // Look for the best forward match.
     double distBest = numeric_limits<double>::max();
     unsigned jBest = 0;
     for (unsigned j = lastRef+1; j < lr; j++)
     {
-      const double dist = abs(pos - refPeaks[j].pos);
+      tmp = pos - refPeaks[j].pos;
+      const double dist = tmp * tmp;
       if (dist < distBest)
       {
         jBest = j;
@@ -162,12 +167,16 @@ void Align::getAlignment(
     if (! seen[j])
       alignment.numDelete++;
   }
+
+  // Very simple combination -- TODO.
+  alignment.dist += alignment.numAdd + alignment.numDelete;
 }
 
 
 void Align::bestMatches(
   const vector<PeakTime>& times,
   const Database& db,
+  const int trainNo,
   const unsigned maxFronts,
   const vector<int>& matchesHist,
   const unsigned tops,
@@ -188,6 +197,11 @@ void Align::bestMatches(
       {
         Align::scaleToRef(times, refPeaks, left, right, positions);
         Align::getAlignment(refPeaks, positions, a);
+
+        const unsigned numUsed = times.size() - a.numAdd;
+        const bool correctFlag = (trainNo == m && left == 0 && right == 0);
+        a.dist = metrics.distanceAlignment(
+          a.dist, numUsed, a.numAdd, a.numDelete, correctFlag);
 
 a.left = left;
 a.right = right;

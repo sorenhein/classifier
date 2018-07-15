@@ -12,6 +12,10 @@
 #include "Stats.h"
 #include "print.h"
 
+#include "Metrics.h"
+
+Metrics metrics;
+
 #include "regress/PolynomialRegression.h"
 
 using namespace std;
@@ -135,7 +139,8 @@ if (! found)
 
           vector<Alignment> matchesAlign;
 
-          align.bestMatches(synthTimes, db, 2, matches, 10, matchesAlign);
+          align.bestMatches(synthTimes, db, trainNo,
+            2, matches, 10, matchesAlign);
 // for (unsigned i = 0; i < matchesAlign.size(); i++)
   // cout << i << " " << matchesAlign[i].dist << endl;
 
@@ -179,6 +184,8 @@ if (! found)
 
 cout << "Count " << countAll << endl;
 cout << "Bad   " << countBad << endl;
+
+metrics.printCSV("metrics.csv");
 
   statCross.printCountCSV("classify.csv");
   statCross2.printCountCSV("classify2.csv");

@@ -1,6 +1,23 @@
 2018-07-14
 ----------
 
+* Make a Metric class
+  For histogram
+  - sumsquares from histogram are also comparable to this
+  - timedistSq(pos1, pos2, reference) = [(pos2 - pos1)/reference]^2
+    or something like that
+  - penalty for add
+  - penalty for delete
+
+  For align
+  - distanceSq(pos1, pos2) = (pos2 - pos1)^2
+  - penalty for add
+  - penalty for delete (front)
+  - penalty for delete (elsewhere)
+
+* Note combinations of d^2 and penalties for good and bad cases
+  Make scatter diagram with colors
+
 * Small histogram of #trains in matches vector
   - Should we go to 4?
   - Should we improve the distance function in Clusters?
@@ -10,8 +27,6 @@
 
 * Do _N and _R have same clusters?
 
-
-* Currently no distance penalty for numAdd and numDelete in Alignment
 
 * Probably cut those actual peaks that are very far from distance peaks
 
