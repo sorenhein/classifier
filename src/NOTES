@@ -11,18 +11,7 @@
 * Do _N and _R have same clusters?
 
 
-* Try to match up each entry in matches with the actual trace.
-  This will give us the best [3] start/end points for each actual
-  trace vs the distance trace.
-  - Up to [2] peaks from actual trace can stick out on either end
-  - Can match up actual start anywhere from start of distance trace
-  - Can match up actual end anywhere from end of distance trace
-  - Once we're moored at either end, do a squared distance of actual
-    to distance trace
-    - Each actual peak is matched to nearest unused distance peak
-    - In the end we look at unmatched peaks on both sides --
-      some penalty for this
-    - Add up square distances
+* Currently no distance penalty for numAdd and numDelete in Alignment
 
 * Probably cut those actual peaks that are very far from distance peaks
 

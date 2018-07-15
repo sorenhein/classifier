@@ -118,6 +118,14 @@ bool Database::getPerfectPeaks(
   vector<PeakPos>& peaks) const // In m
 {
   const int trainNo = Database::lookupTrainNumber(trainName);
+  return Database::getPerfectPeaks(trainNo, peaks);
+}
+
+
+bool Database::getPerfectPeaks(
+  const int trainNo,
+  vector<PeakPos>& peaks) const // In m
+{
   if (trainNo == -1)
     return false;
 

@@ -116,6 +116,10 @@ class Database
       const string& trainName,
       vector<PeakPos>& peaks) const; // In mm
 
+    bool getPerfectPeaks(
+      const int trainNo,
+      vector<PeakPos>& peaks) const; // In mm
+
     const Clusters * getClusters(
       const int trainNo,
       const unsigned clusterSize) const;

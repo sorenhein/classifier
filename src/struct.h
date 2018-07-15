@@ -61,5 +61,18 @@ struct Cluster
   }
 };
 
+struct Alignment
+{
+  int trainNo;
+  double dist;
+  unsigned numAdd;
+  unsigned numDelete;
+  vector<int> actualToRef;
+
+  bool operator < (const Alignment& a2)
+  {
+    return (dist < a2.dist);
+  }
+};
 
 #endif
