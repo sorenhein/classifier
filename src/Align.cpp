@@ -161,6 +161,30 @@ void Align::getAlignment(
     }
   }
 
+  for (unsigned j = 0; j < lr; j++)
+  {
+    // Try to fix (n, -, -, n+1, n+4) -> (n, n+1, n+2, n+3, n+4).
+    if (seen[j] || j == 0 || alignment.actualToRef[j-1] == -1)
+      continue;
+
+    unsigned k;
+    for (k = j+1; k < lr && ! seen[k]; k++);
+    if (! seen[k])
+      continue;
+
+    if (k == lr-1 || ! seen[k+1])
+      continue;
+
+    if (alignment.actualToRef[k+1] - alignment.actualToRef[j-1] == 
+      static_cast<int>(k+2-j))
+    {
+      for (unsigned l = j; l <= k; l++)
+        alignment.actualToRef[l] = alignment.actualToRef[j-1] + l+1-j;
+      alignment.numDelete -= k-j;
+      alignment.numAdd -= k-j;
+    }
+  }
+
   // Count the unused reference peaks (deletions).
   for (unsigned j = 0; j < lr; j++)
   {

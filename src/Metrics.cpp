@@ -35,6 +35,9 @@ double Metrics::distanceAlignment(
   else
     entriesIncorrect.push_back(entry);
 
+if (entriesIncorrect.size() % 1024 == 0)
+  cout << entriesIncorrect.size() << endl;
+
   return entry.dist1 + entry.dist2;
 }
 

@@ -80,7 +80,8 @@ int main(int argc, char * argv[])
 int countAll = 0;
 int countBad = 0;
 
-  for (auto& trainName: db)
+  // for (auto& trainName: db)
+  string trainName = "ICE1_DEU_56_N";
   {
     cout << "Train " << trainName << endl;
     const int trainNo = db.lookupTrainNumber(trainName);
