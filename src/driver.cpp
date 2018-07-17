@@ -122,12 +122,12 @@ int countBad = 0;
 // printPeakTimeCSV(synthTimes, no+2);
 
           Clusters clusters;
-          vector<int> matches;
+          vector<HistMatch> matches;
           clusters.bestMatches(synthTimes, db, trainNo, 3, matches);
 bool found = false;
 for (unsigned i = 0; ! found && i < matches.size(); i++)
 {
-  if (matches[i] == trainNo)
+  if (matches[i].trainNo == trainNo)
     found = true;
 }
 countAll++;
@@ -136,12 +136,13 @@ if (! found)
 
 // cout << "Logging " << bestMatch << endl;
           // statCross.log(trainName, bestMatch);
-          statCross.log(trainName, db.lookupTrainName(matches[0]));
+          statCross.log(trainName, 
+            db.lookupTrainName(matches[0].trainNo));
 
           vector<Alignment> matchesAlign;
 
           align.bestMatches(synthTimes, db, trainNo,
-            2, matches, 10, matchesAlign);
+            matches, 10, matchesAlign);
 // for (unsigned i = 0; i < matchesAlign.size(); i++)
   // cout << i << " " << matchesAlign[i].dist << endl;
 

@@ -26,6 +26,12 @@ class Align
       const vector<PeakPos>& positions,
       Alignment& alignment) const;
 
+    void NeedlemanWunsch(
+        const vector<PeakPos>& refPeaks,
+        const vector<PeakTime>& times,
+        double scale,
+        Alignment alignment) const;
+
 
   public:
 
@@ -37,8 +43,16 @@ class Align
       const vector<PeakTime>& times,
       const Database& db,
       const int trainNo,
+      const vector<HistMatch>& matchesHist,
+      const unsigned tops,
+      vector<Alignment>& matches) const;
+    
+    void bestMatchesOld(
+      const vector<PeakTime>& times,
+      const Database& db,
+      const int trainNo,
       const unsigned maxFronts,
-      const vector<int>& matchesHist,
+      const vector<HistMatch>& matchesHist,
       const unsigned tops,
       vector<Alignment>& matches) const;
     

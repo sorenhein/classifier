@@ -62,6 +62,18 @@ struct Cluster
   }
 };
 
+struct HistMatch
+{
+  int trainNo;
+  double scale;
+};
+
+struct HistWarp
+{
+  double dist;
+  double scale;
+};
+
 struct Alignment
 {
   int trainNo;

@@ -11,6 +11,12 @@
 
 extern Metrics metrics;
 
+#define UNUSED(x) ((void)(true ? 0 : ((x), void(), 0)))
+
+#define INDEL_PENALTY 10.
+#define EARLY_MISS_PENALTY 3.
+#define MAX_EARLY_MISSES 2
+
 
 Align::Align()
 {
@@ -197,12 +203,152 @@ void Align::getAlignment(
 }
 
 
+void Align::NeedlemanWunsch(
+  const vector<PeakPos>& refPeaks,
+  const vector<PeakTime>& times,
+  double scale,
+  Alignment alignment) const
+{
+  // https://en.wikipedia.org/wiki/Needleman%E2%80%93Wunsch_algorithm
+  // This is an adaptation of the sequence-matching algorithm.
+  // The "letters" are peak positions in meters, so the metric
+  // between letters is the square of the physical distance.
+  // The time sequence is scaled by the factor that is approximated from
+  // the histogram matching.
+  // The first dimension is refPeaks, the second is the synthetic one.
+  // The penalty for an addition (to the synthetic trace) is constant.
+  // The penalty for a deletion (from the synthetic one, i.e. a spare
+  // peak in the reference) is lower for the first couple of deletions,
+  // as the sensor tends to miss more in the beginning.
+  
+  const unsigned lr = refPeaks.size();
+  const unsigned lt = times.size();
+
+  vector<PeakPos> scaledPeaks(lt);
+  for (unsigned j = 0; j < lt; j++)
+    scaledPeaks[j].pos = scale * times[j].time;
+
+  // Set up the matrix.
+  enum Origin
+  {
+    NW_MATCH = 0,
+    NW_DELETE = 1,
+    NW_INSERT = 2
+  };
+
+  struct Mentry
+  {
+    double dist;
+    Origin origin;
+  };
+
+  vector<vector<Mentry>> matrix;
+  matrix.resize(lr+1);
+  for (unsigned i = 0; i < lr+1; i++)
+    matrix[i].resize(lt+1);
+
+  matrix[0][0].dist = 0.;
+  for (unsigned i = 1; i <= MAX_EARLY_MISSES; i++)
+    matrix[0][i].dist = EARLY_MISS_PENALTY;
+  for (unsigned i = MAX_EARLY_MISSES+1; i < lr+1; i++)
+    matrix[0][i].dist = INDEL_PENALTY;
+
+  for (unsigned j = 1; j < lt+1; j++)
+    matrix[j][0].dist = INDEL_PENALTY;
+
+  // Run the dynamic programming.
+  for (unsigned i = 1; i < lr+1; i++)
+  {
+    for (unsigned j = 1; j < lt+1; j++)
+    {
+      const double d = refPeaks[i-1].pos - scaledPeaks[i-1].pos;
+      const double match = matrix[i-1][j-1].dist + d * d;
+      const double del = matrix[i-1][j].dist + INDEL_PENALTY;
+      const double ins = matrix[i][j-1].dist + INDEL_PENALTY;
+
+      if (match <= del)
+      {
+        if (match <= ins)
+          matrix[i][j].origin = NW_MATCH;
+        else
+          matrix[i][j].origin = NW_INSERT;
+      }
+      else if (del <= ins)
+        matrix[i][j].origin = NW_DELETE;
+      else
+        matrix[i][j].origin = NW_INSERT;
+
+      const double m = min(match, del);
+      matrix[i][j].dist = min(ins, m);
+    }
+  }
+
+  // Walk back through the matrix.
+  alignment.dist = matrix[lr][lt].dist;
+  alignment.numAdd = 0; // Spare peaks in scaledPeaks
+  alignment.numDelete = 0; // Unused peaks in refPeaks
+  
+  unsigned i = lr;
+  unsigned j = lt;
+  while (i > 0 || j > 0)
+  {
+    const Origin o = matrix[i][j].origin;
+    if (i > 0 && j > 0 && o == NW_MATCH)
+    {
+      alignment.actualToRef[j-1] = i-1;
+      i--;
+      j--;
+    }
+    else if (i > 0 && o == NW_INSERT)
+    {
+      alignment.actualToRef[j-1] = -1;
+      alignment.numAdd++;
+      j--;
+    }
+    else
+    {
+      alignment.numDelete++;
+      i--;
+    }
+  }
+}
+
+
 void Align::bestMatches(
   const vector<PeakTime>& times,
   const Database& db,
   const int trainNo,
+  const vector<HistMatch>& matchesHist,
+  const unsigned tops,
+  vector<Alignment>& matches) const
+{
+  UNUSED(trainNo); // TODO Log good and bad values, metrics?
+
+  vector<PeakPos> refPeaks; 
+  Alignment a;
+
+  for (auto& mh: matchesHist)
+  {
+    a.trainNo = mh.trainNo;
+    db.getPerfectPeaks(a.trainNo, refPeaks);
+
+    Align::NeedlemanWunsch(refPeaks, times, mh.scale, a);
+    matches.push_back(a);
+  }
+
+  sort(matches.begin(), matches.end());
+
+  if (tops < matches.size())
+    matches.resize(tops);
+}
+
+
+void Align::bestMatchesOld(
+  const vector<PeakTime>& times,
+  const Database& db,
+  const int trainNo,
   const unsigned maxFronts,
-  const vector<int>& matchesHist,
+  const vector<HistMatch>& matchesHist,
   const unsigned tops,
   vector<Alignment>& matches) const
 {
@@ -210,8 +356,9 @@ void Align::bestMatches(
   vector<PeakPos> refPeaks, positions; 
   Alignment a;
 
-  for (auto m: matchesHist)
+  for (auto& mh: matchesHist)
   {
+    int m = mh.trainNo;
     a.trainNo = m;
     db.getPerfectPeaks(m, refPeaks);
 

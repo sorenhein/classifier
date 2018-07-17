@@ -189,9 +189,10 @@ const unsigned Clusters::size() const
 }
 
 
-double Clusters::warp(
+void Clusters::warp(
   vector<ClusterEntry>& newMedians,
-  const Clusters& other) const
+  const Clusters& other,
+  HistWarp& histwarp) const
 {
   /*
      The penalty for moving an N-point bin from median M1 to M2 is 
@@ -252,7 +253,8 @@ double Clusters::warp(
     newMedians[i].count = clusters[i].count;
   }
 
-  return dist;
+  histwarp.scale = newMedians[0].median / other.clusters[0].median;
+  histwarp.dist = dist;
 }
 
 
@@ -402,7 +404,9 @@ double Clusters::balance(
 }
 
 
-double Clusters::distance(const Clusters& other) const
+void Clusters::distance(
+  const Clusters& other,
+  HistWarp& histwarp) const
 {
   /*
      We quantify the changes we have to make to our own histogram to turn 
@@ -415,26 +419,24 @@ double Clusters::distance(const Clusters& other) const
   if (nc != other.clusters.size())
   {
     cout << "Cluster numbers do not match up.\n";
-    return -1.;
+    return;
   }
 
   if (nc < 2)
   {
     cout << "Too few clusters.\n";
-    return -1.;
+    return;
   }
 
   if (other.clusters[0].median <= 0.)
   {
     cout << "Reference cluster is too low.\n";
-    return -1.;
+    return;
   }
 
   vector<ClusterEntry> newMedians(nc);
-  double dist = Clusters::warp(newMedians, other);
-  dist += Clusters::balance(newMedians, other);
-
-  return dist;
+  Clusters::warp(newMedians, other, histwarp);
+  histwarp.dist += Clusters::balance(newMedians, other);
 }
 
 
@@ -443,11 +445,11 @@ void Clusters::bestMatches(
   Database& db,
   const int trainNo,
   const unsigned tops,
-  vector<int>& matches)
+  vector<HistMatch>& matches)
 {
   struct Match
   {
-    int trainNo;
+    HistMatch histmatch;
     unsigned numClusters;
     double dist;
 
@@ -457,11 +459,12 @@ void Clusters::bestMatches(
     }
   };
 
-  vector<double> dist;
+  vector<HistWarp> histwarpList;
   vector<unsigned> nBest;
 
-  dist.clear();
+  histwarpList.clear();
   nBest.clear();
+  HistWarp histwarp;
 
   // The loop should maybe be the other way round, but I guess
   // the clustering is slower than the distance function.
@@ -479,14 +482,14 @@ void Clusters::bestMatches(
       // TODO Is this a good dist algorithm?  Show some cluster plots
       // of good and bad detections.
       
-      if (refTrainNo >= static_cast<int>(dist.size()))
+      if (refTrainNo >= static_cast<int>(histwarpList.size()))
       {
-        dist.resize(refTrainNo + 10);
+        histwarpList.resize(refTrainNo + 10);
         nBest.resize(refTrainNo + 10);
 
         for (int i = refTrainNo; i < refTrainNo+10; i++)
         {
-          dist[i] = numeric_limits<double>::max();
+          histwarpList[i].dist = numeric_limits<double>::max();
           nBest[i] = 0;
         }
       }
@@ -495,26 +498,28 @@ void Clusters::bestMatches(
       if (otherClusters == nullptr)
         continue;
 
-      const double dInterCluster = Clusters::distance(* otherClusters);
+      Clusters::distance(* otherClusters, histwarp);
+      const double dInterCluster =  histwarp.dist;
       const double d = dIntraCluster + dInterCluster;
-      if (d < dist[refTrainNo])
+      if (d < histwarpList[refTrainNo].dist)
       {
-        dist[refTrainNo] = d;
+        histwarpList[refTrainNo] = histwarp;
         nBest[refTrainNo] = numCl;
       }
     }
   }
 
   vector<Match> matchList;
-  for (unsigned i = 0; i < dist.size(); i++)
+  for (unsigned i = 0; i < histwarpList.size(); i++)
   {
     if (nBest[i] == 0)
       continue;
 
     Match match;
-    match.trainNo = i;
+    match.histmatch.trainNo = i;
+    match.histmatch.scale = histwarpList[i].scale;
     match.numClusters = nBest[i];
-    match.dist = dist[i];
+    match.dist = histwarpList[i].dist;
     matchList.push_back(match);
   }
 
@@ -524,13 +529,13 @@ void Clusters::bestMatches(
   unsigned num = 0;
   for (unsigned i = 0; i < matchList.size(); i++)
   {
-    if (db.trainIsReversed(matchList[i].trainNo))
-      matches.push_back(matchList[i].trainNo);
+    if (db.trainIsReversed(matchList[i].histmatch.trainNo))
+      matches.push_back(matchList[i].histmatch);
     else if (num == tops+1)
       break;
     else
     {
-      matches.push_back(matchList[i].trainNo);
+      matches.push_back(matchList[i].histmatch);
       num++;
     }
   }

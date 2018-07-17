@@ -28,9 +28,10 @@ class Clusters
       const unsigned l,
       const unsigned numClusters);
 
-    double warp(
+    void warp(
       vector<ClusterEntry>& newMedians,
-      const Clusters& other) const;
+      const Clusters& other,
+      HistWarp& histwarp) const;
 
     double removeFromBelow(
       vector<ClusterEntry>& newMedians,
@@ -58,7 +59,9 @@ class Clusters
       vector<ClusterEntry>& newMedians,
       const Clusters& other) const;
 
-    double distance(const Clusters& other) const;
+    void distance(
+      const Clusters& other,
+      HistWarp& histwarp) const;
 
     const unsigned size() const;
 
@@ -82,7 +85,7 @@ class Clusters
       Database& db,
       const int trainNo,
       const unsigned maxTops,
-      vector<int>& matches);
+      vector<HistMatch>& matches);
 
     void print() const;
 };

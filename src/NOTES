@@ -1,5 +1,21 @@
-2018-07-14
+2018-07-16
 ----------
+
+* Align matching isn't working so well yet.  Idea:
+  - Match from real train to measurements, closest always
+  - Match from measurements to real train, closest, and if this
+    matches back to oneself, fix it
+  - Look at fixed measurements that are up to, say, 4 apart and
+    that have the right number of intermediates
+  - Match up those intermediates as well
+  - This might leave us with large islands, or with small ones
+    with the "wrong" number of measurements
+  - If we're off by at most 1, find the best one to kill and
+    match up the other ones
+  - Do something about the ends if there's a solid match to the
+    real end (accept the -1's)
+  - What does that leave us with?
+
 
 * Make a Metric class
   For histogram
