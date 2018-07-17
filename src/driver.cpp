@@ -80,8 +80,8 @@ int main(int argc, char * argv[])
 int countAll = 0;
 int countBad = 0;
 
-  // for (auto& trainName: db)
-  string trainName = "ICE1_DEU_56_N";
+  for (auto& trainName: db)
+  // string trainName = "ICE1_DEU_56_N";
   {
     cout << "Train " << trainName << endl;
     const int trainNo = db.lookupTrainNumber(trainName);
@@ -143,11 +143,13 @@ if (! found)
 
           align.bestMatches(synthTimes, db, trainNo,
             matches, 10, matchesAlign);
+ /*
  cout << "Speed " << speed << " accel " << accel << " no " << no << endl;
  for (unsigned i = 0; i < matchesAlign.size(); i++)
    cout << i << " " << matchesAlign[i].dist << " " <<
      matchesAlign[i].trainNo << endl;
 cout << endl;
+*/
 
           statCross2.log(trainName, 
             db.lookupTrainName(matchesAlign[0].trainNo));

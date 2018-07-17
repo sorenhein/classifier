@@ -329,6 +329,49 @@ void Align::NeedlemanWunsch(
 }
 
 
+void Align::scalePeaks(
+  const vector<PeakTime>& times,
+  const double len, // In m
+  vector<PeakPos>& scaledPeaks) const
+{
+  /*
+     len = v0 * t_end + 0.5 * a * t_end^2
+     len/2 = v_0 * t_mid + 0.5 * a * t_mid^2
+
+     len * t_mid = v0 * t_end * tmid + 0.5 * a * t_end^2 * t_mid
+     len * t_end/2 = v0 * t_mid * t_end + 0.5 * a * t_mid^2 * t_end
+
+     len * (t_mid - t_end/2) = 0.5 * a * t_mid * t_end * (t_end - t_mid)
+
+     a = len * (2 * t_mid - t_end) / [t_mid * t_end * (t_end - t_mid)]
+  */
+  const unsigned lt = times.size();
+  scaledPeaks.resize(lt);
+
+  double tEnd = times.back().time;
+  
+  double tMid;
+  if (lt % 2 == 0)
+    tMid = times[lt/2].time;
+  else
+  {
+    const unsigned m = (lt-1) / 2;
+    tMid = 0.5 * (times[m].time + times[m+1].time);
+  }
+
+  const double accel = len * (2.*tMid - tEnd) /
+    (tMid * tEnd * (tEnd - tMid));
+
+  const double speed = (len - 0.5 * accel * tEnd * tEnd) / tEnd;
+
+  for (unsigned j = 0; j < lt; j++)
+  {
+    scaledPeaks[j].pos = speed * times[j].time +
+      0.5 * accel * times[j].time * times[j].time;
+  }
+}
+
+
 void Align::bestMatches(
   const vector<PeakTime>& times,
   const Database& db,
@@ -339,7 +382,7 @@ void Align::bestMatches(
 {
   UNUSED(trainNo); // TODO Log good and bad values, metrics?
 
-  vector<PeakPos> refPeaks; 
+  vector<PeakPos> refPeaks, scaledPeaks;
   Alignment a;
 
   for (auto& mh: matchesHist)
@@ -347,10 +390,8 @@ void Align::bestMatches(
     a.trainNo = mh.trainNo;
     db.getPerfectPeaks(a.trainNo, refPeaks);
 
-    const unsigned lt = times.size();
-    vector<PeakPos> scaledPeaks(lt);
-    for (unsigned j = 0; j < lt; j++)
-      scaledPeaks[j].pos = mh.scale * times[j].time;
+    Align::scalePeaks(times, refPeaks.back().pos - refPeaks.front().pos,
+      scaledPeaks);
 
     Align::NeedlemanWunsch(refPeaks, scaledPeaks, a);
     matches.push_back(a);
