@@ -13,10 +13,6 @@
 #include "Stats.h"
 #include "print.h"
 
-#include "Metrics.h"
-
-Metrics metrics;
-
 using namespace std;
 
 
@@ -143,8 +139,7 @@ if (! found)
 
           vector<Alignment> matchesAlign;
 
-          align.bestMatches(synthTimes, db, trainNo,
-            matches, 10, matchesAlign);
+          align.bestMatches(synthTimes, db, matches, 10, matchesAlign);
  /*
  cout << "Speed " << speed << " accel " << accel << " no " << no << endl;
  for (unsigned i = 0; i < matchesAlign.size(); i++)
@@ -205,8 +200,6 @@ cout << endl;
 
 cout << "Count " << countAll << endl;
 cout << "Bad   " << countBad << endl;
-
-metrics.printCSV("metrics.csv");
 
   statCross.printCountCSV("classify.csv");
   statCross2.printCountCSV("classify2.csv");
