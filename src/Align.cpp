@@ -13,8 +13,8 @@ extern Metrics metrics;
 
 #define UNUSED(x) ((void)(true ? 0 : ((x), void(), 0)))
 
-#define INDEL_PENALTY 10.
-#define EARLY_MISS_PENALTY 3.
+#define INDEL_PENALTY 1000.
+#define EARLY_MISS_PENALTY 300.
 #define MAX_EARLY_MISSES 2
 
 
@@ -205,9 +205,8 @@ void Align::getAlignment(
 
 void Align::NeedlemanWunsch(
   const vector<PeakPos>& refPeaks,
-  const vector<PeakTime>& times,
-  double scale,
-  Alignment alignment) const
+  const vector<PeakPos>& scaledPeaks,
+  Alignment& alignment) const
 {
   // https://en.wikipedia.org/wiki/Needleman%E2%80%93Wunsch_algorithm
   // This is an adaptation of the sequence-matching algorithm.
@@ -222,11 +221,7 @@ void Align::NeedlemanWunsch(
   // as the sensor tends to miss more in the beginning.
   
   const unsigned lr = refPeaks.size();
-  const unsigned lt = times.size();
-
-  vector<PeakPos> scaledPeaks(lt);
-  for (unsigned j = 0; j < lt; j++)
-    scaledPeaks[j].pos = scale * times[j].time;
+  const unsigned lt = scaledPeaks.size();
 
   // Set up the matrix.
   enum Origin
@@ -249,19 +244,29 @@ void Align::NeedlemanWunsch(
 
   matrix[0][0].dist = 0.;
   for (unsigned i = 1; i <= MAX_EARLY_MISSES; i++)
-    matrix[0][i].dist = EARLY_MISS_PENALTY;
+  {
+    matrix[i][0].dist = i * EARLY_MISS_PENALTY;
+    matrix[i][0].origin = NW_DELETE;
+  }
+  const double early = MAX_EARLY_MISSES * EARLY_MISS_PENALTY;
   for (unsigned i = MAX_EARLY_MISSES+1; i < lr+1; i++)
-    matrix[0][i].dist = INDEL_PENALTY;
+  {
+    matrix[i][0].dist = early  + (i - MAX_EARLY_MISSES) * INDEL_PENALTY;
+    matrix[i][0].origin = NW_DELETE;
+  }
 
   for (unsigned j = 1; j < lt+1; j++)
-    matrix[j][0].dist = INDEL_PENALTY;
+  {
+    matrix[0][j].dist = j * INDEL_PENALTY;
+    matrix[0][j].origin = NW_INSERT;
+  }
 
   // Run the dynamic programming.
   for (unsigned i = 1; i < lr+1; i++)
   {
     for (unsigned j = 1; j < lt+1; j++)
     {
-      const double d = refPeaks[i-1].pos - scaledPeaks[i-1].pos;
+      const double d = refPeaks[i-1].pos - scaledPeaks[j-1].pos;
       const double match = matrix[i-1][j-1].dist + d * d;
       const double del = matrix[i-1][j].dist + INDEL_PENALTY;
       const double ins = matrix[i][j-1].dist + INDEL_PENALTY;
@@ -269,17 +274,26 @@ void Align::NeedlemanWunsch(
       if (match <= del)
       {
         if (match <= ins)
+        {
           matrix[i][j].origin = NW_MATCH;
+          matrix[i][j].dist = match;
+        }
         else
+        {
           matrix[i][j].origin = NW_INSERT;
+          matrix[i][j].dist = ins;
+        }
       }
       else if (del <= ins)
+      {
         matrix[i][j].origin = NW_DELETE;
+        matrix[i][j].dist = del;
+      }
       else
+      {
         matrix[i][j].origin = NW_INSERT;
-
-      const double m = min(match, del);
-      matrix[i][j].dist = min(ins, m);
+        matrix[i][j].dist = ins;
+      }
     }
   }
 
@@ -287,6 +301,7 @@ void Align::NeedlemanWunsch(
   alignment.dist = matrix[lr][lt].dist;
   alignment.numAdd = 0; // Spare peaks in scaledPeaks
   alignment.numDelete = 0; // Unused peaks in refPeaks
+  alignment.actualToRef.resize(lt);
   
   unsigned i = lr;
   unsigned j = lt;
@@ -299,7 +314,7 @@ void Align::NeedlemanWunsch(
       i--;
       j--;
     }
-    else if (i > 0 && o == NW_INSERT)
+    else if (j > 0 && o == NW_INSERT)
     {
       alignment.actualToRef[j-1] = -1;
       alignment.numAdd++;
@@ -332,7 +347,12 @@ void Align::bestMatches(
     a.trainNo = mh.trainNo;
     db.getPerfectPeaks(a.trainNo, refPeaks);
 
-    Align::NeedlemanWunsch(refPeaks, times, mh.scale, a);
+    const unsigned lt = times.size();
+    vector<PeakPos> scaledPeaks(lt);
+    for (unsigned j = 0; j < lt; j++)
+      scaledPeaks[j].pos = mh.scale * times[j].time;
+
+    Align::NeedlemanWunsch(refPeaks, scaledPeaks, a);
     matches.push_back(a);
   }
 

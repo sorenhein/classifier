@@ -143,8 +143,11 @@ if (! found)
 
           align.bestMatches(synthTimes, db, trainNo,
             matches, 10, matchesAlign);
-// for (unsigned i = 0; i < matchesAlign.size(); i++)
-  // cout << i << " " << matchesAlign[i].dist << endl;
+ cout << "Speed " << speed << " accel " << accel << " no " << no << endl;
+ for (unsigned i = 0; i < matchesAlign.size(); i++)
+   cout << i << " " << matchesAlign[i].dist << " " <<
+     matchesAlign[i].trainNo << endl;
+cout << endl;
 
           statCross2.log(trainName, 
             db.lookupTrainName(matchesAlign[0].trainNo));

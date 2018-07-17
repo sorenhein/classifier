@@ -253,7 +253,7 @@ void Clusters::warp(
     newMedians[i].count = clusters[i].count;
   }
 
-  histwarp.scale = newMedians[0].median / other.clusters[0].median;
+  histwarp.scale = other.clusters[0].median / newMedians[0].median;
   histwarp.dist = dist;
 }
 
