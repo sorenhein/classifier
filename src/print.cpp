@@ -6,8 +6,6 @@
 
 using namespace std;
 
-#define UNUSED(x) ((void)(true ? 0 : ((x), void(), 0)))
-
 
 void printDataHeader();
 

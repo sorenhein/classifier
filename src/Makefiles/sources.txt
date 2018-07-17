@@ -1,6 +1,5 @@
 SOURCE_FILES    =               \
                 Align.cpp       \
-                Classifier.cpp  \
                 Clusters.cpp    \
                 Database.cpp    \
                 Disturb.cpp     \

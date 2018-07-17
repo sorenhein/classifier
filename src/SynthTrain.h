@@ -1,7 +1,6 @@
 #ifndef TRAIN_SYNTH_H
 #define TRAIN_SYNTH_H
 
-#include "Classifier.h"
 #include "struct.h"
 
 class Disturb;

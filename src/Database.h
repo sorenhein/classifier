@@ -138,18 +138,6 @@ class Database
 
     bool trainIsReversed(const int trainNo) const;
 
-    void lookupCar(
-      const DatabaseCar& dbCar,
-      const string& country,
-      const int year,
-      list<int>& carList) const;
-    
-    int lookupTrain(
-      const vector<list<int>>& carTypes,
-      unsigned& firstCar,
-      unsigned& lastCar,
-      unsigned& carsMissing) const;
-      
 };
 
 #endif

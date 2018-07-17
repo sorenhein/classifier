@@ -66,9 +66,6 @@ void Regress::bestMatch(
     if (lr + ma.numAdd != lt + ma.numDelete)
     {
       cout << "Lengths don't add up\n";
-// cout << "train no " << ma.trainNo << "\n";
-// cout << "lenref " << lr << ", lentime " << lt << endl;
-// cout << "ma.delete " << ma.numDelete << ", ma.add " << ma.numAdd << endl;
       return;
     }
 
@@ -90,10 +87,6 @@ void Regress::bestMatch(
 
     // TODO Must get actual residuals;
     const double residuals = Regress::residuals(x, y, coeffs);
-
-// cout << "train no " << ma.trainNo << "\n";
-// cout << "dyn match: dist " << ma.dist << ", " << ma.distMatch << endl;
-// cout << "residuals " << residuals << endl << endl;
 
     if (ma.dist - ma.distMatch + residuals < bestAlign.dist)
     {

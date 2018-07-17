@@ -413,6 +413,8 @@ void Clusters::distance(
      it into the "other" histogram.  First we warp the medians to have the
      same ratios.  Second we add, subtract or move entries from each bin
      in order to balance the two.
+
+     Not clear that this is a very valid way to combine distances...
   */
   
   const unsigned nc = clusters.size();
@@ -479,9 +481,6 @@ void Clusters::bestMatches(
       if (! db.trainsShareCountry(trainNo, refTrainNo))
         continue;
 
-      // TODO Is this a good dist algorithm?  Show some cluster plots
-      // of good and bad detections.
-      
       if (refTrainNo >= static_cast<int>(histwarpList.size()))
       {
         histwarpList.resize(refTrainNo + 10);

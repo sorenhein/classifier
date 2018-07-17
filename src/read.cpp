@@ -957,14 +957,6 @@ void readTrainFile(
     cout << "File " + fname + ": Could not make axles" << endl;
 
   makeClusters(t);
-/*
-  for (unsigned i = 0; i < t.clusterList.size(); i++)
-  {
-    cout << "Train " << t.officialName << ", i " << i+2 << endl;
-    t.clusterList[i].print();
-    cout << endl;
-  }
-*/
 
   db.logTrain(t);
 }

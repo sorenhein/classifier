@@ -4,7 +4,6 @@
 
 #include "read.h"
 #include "Database.h"
-#include "Classifier.h"
 #include "SynthTrain.h"
 #include "Regress.h"
 #include "Disturb.h"
@@ -35,12 +34,6 @@ int main(int argc, char * argv[])
   readCarFiles(db, control.carDir);
   readTrainFiles(db, control.trainDir);
 
-  Classifier classifier;
-  classifier.setCountry(control.country);
-  classifier.setYear(control.year);
-
-  Align align;
-
   Disturb disturb;
   if (! disturb.readFile(control.disturbFile))
   {
@@ -55,9 +48,10 @@ int main(int argc, char * argv[])
   }
 
   SynthTrain synth;
+  Align align;
+  Regress regress;
 
   vector<PeakTime> synthTimes;
-  Regress regress;
   // PolynomialRegression pol;
   const int order = 2;
   
@@ -132,26 +126,12 @@ countAll++;
 if (! found)
   countBad++;
 
-// cout << "Logging " << bestMatch << endl;
-          // statCross.log(trainName, bestMatch);
           statCross.log(trainName, 
             db.lookupTrainName(matches[0].trainNo));
 
           vector<Alignment> matchesAlign;
 
           align.bestMatches(synthTimes, db, matches, 10, matchesAlign);
- /*
- cout << "Speed " << speed << " accel " << accel << " no " << no << endl;
- for (unsigned i = 0; i < matchesAlign.size(); i++)
-   cout << i << " " << matchesAlign[i].dist << " " <<
-     matchesAlign[i].trainNo << endl;
-cout << endl;
-*/
-
-          // Take anything with a reasonable range of the best few
-          // and regress these rigorously.
-          // As soon as the indel's alone exceed the distance, we
-          // can drop these.  We can use that to prune matchesAlign.
 
           statCross2.log(trainName, 
             db.lookupTrainName(matchesAlign[0].trainNo));
@@ -163,36 +143,10 @@ cout << endl;
           statCross3.log(trainName, 
             db.lookupTrainName(bestAlign.trainNo));
 
-          continue;
-
-
-// TrainFound trainFound;
-// classifier.classify(synthTimes, db, trainFound);
-
-          /*
-          const unsigned l = perfectPositions.size();
-          vector<double> x(l), y(l), coeffs(l);
-          for (unsigned i = 0; i < l; i++)
-          {
-            y[i] = perfectPositions[i].pos;
-            x[i] = synthTimes[i].time;
-          }
-          pol.fitIt(x, y, order, coeffs);
-
-          timer.stop();
-
-          motionEstimate[0] = coeffs[0];
-          motionEstimate[1] = coeffs[1];
-          motionEstimate[2] = 2. * coeffs[2];
-          // As the regression estimates 0.5 * a in the physics formula.
-
-          // printCorrelation(motionActual, motionEstimate);
-
           double residuals = 0.;
           // TODO: Calculate residuals, or find them in code
           stats.log(trainName, motionActual,
             trainName, motionEstimate, residuals);
-          */
         }
       }
     }
@@ -215,5 +169,3 @@ cout << "Bad   " << countBad << endl;
 
 }
 
-
-    // classifier.classify(perfectPeaks, db, trainFound2);

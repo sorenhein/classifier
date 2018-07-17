@@ -64,3 +64,29 @@ clean:
 include $(INCL_DEPENDS)
 
 # DO NOT DELETE
+
+Align.obj: Align.h struct.h Database.h Clusters.h
+Clusters.obj: Ckmeans/Ckmeans.1d.dp.h Ckmeans/within_cluster.h Clusters.h
+Clusters.obj: struct.h Database.h
+Database.obj: Database.h Clusters.h struct.h read.h
+Disturb.obj: Disturb.h read.h struct.h
+Regress.obj: Regress.h struct.h Database.h Clusters.h
+Regress.obj: regress/PolynomialRegression.h
+Stats.obj: Stats.h StatCross.h StatEntry.h
+StatEntry.obj: StatEntry.h
+StatCross.obj: StatCross.h
+SynthTrain.obj: SynthTrain.h struct.h Disturb.h
+Timer.obj: Timer.h
+read.obj: Database.h Clusters.h struct.h read.h
+print.obj: print.h struct.h
+driver.obj: read.h struct.h Database.h Clusters.h SynthTrain.h Regress.h
+driver.obj: Disturb.h Align.h Timer.h Stats.h StatCross.h StatEntry.h print.h
+Ckmeans/Ckmeans.1d.dp.obj: Ckmeans/Ckmeans.1d.dp.h Ckmeans/within_cluster.h
+Ckmeans/dynamic_prog.obj: Ckmeans/Ckmeans.1d.dp.h Ckmeans/within_cluster.h
+Ckmeans/fill_log_linear.obj: Ckmeans/Ckmeans.1d.dp.h Ckmeans/within_cluster.h
+Ckmeans/fill_quadratic.obj: Ckmeans/Ckmeans.1d.dp.h Ckmeans/within_cluster.h
+Ckmeans/fill_SMAWK.obj: Ckmeans/Ckmeans.1d.dp.h Ckmeans/within_cluster.h
+Ckmeans/select_levels.obj: Ckmeans/Ckmeans.1d.dp.h Ckmeans/within_cluster.h
+Ckmeans/weighted_select_levels.obj: Ckmeans/Ckmeans.1d.dp.h
+Ckmeans/weighted_select_levels.obj: Ckmeans/within_cluster.h
+regress/PolynomialRegression.obj: regress/PolynomialRegression.h

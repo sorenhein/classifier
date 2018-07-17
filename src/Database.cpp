@@ -230,33 +230,6 @@ bool Database::trainIsReversed(const int trainNo) const
 }
 
 
-void Database::lookupCar(
-  const DatabaseCar& dbCar,
-  const string& country,
-  const int year,
-  list<int>& carList) const
-{
-  UNUSED(dbCar);
-  UNUSED(country);
-  UNUSED(year);
-  UNUSED(carList);
-}
-
-
-int Database::lookupTrain(
-  const vector<list<int>>& carTypes,
-  unsigned& firstCar,
-  unsigned& lastCar,
-  unsigned& carsMissing) const
-{
-  UNUSED(carTypes);
-  UNUSED(firstCar);
-  UNUSED(lastCar);
-  UNUSED(carsMissing);
-  return 0;
-}
-
-
 void Database::printAxlesCSV(const TrainEntry& t) const
 {
   cout << t.officialName << ";";

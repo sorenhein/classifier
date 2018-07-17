@@ -1,57 +1,20 @@
-2018-07-16
+2018-07-17
 ----------
 
-* Align matching isn't working so well yet.  Idea:
-  - Match from real train to measurements, closest always
-  - Match from measurements to real train, closest, and if this
-    matches back to oneself, fix it
-  - Look at fixed measurements that are up to, say, 4 apart and
-    that have the right number of intermediates
-  - Match up those intermediates as well
-  - This might leave us with large islands, or with small ones
-    with the "wrong" number of measurements
-  - If we're off by at most 1, find the best one to kill and
-    match up the other ones
-  - Do something about the ends if there's a solid match to the
-    real end (accept the -1's)
-  - What does that leave us with?
+* Attempt to allow random deletions and insertions (a few)
 
+* Some _N and _R trains are almost impossible to separate
+  - ICE4_DEU_28 is probably symmetric, in fact?
+  - ICE2_DEU_48 ditto?
+  - ICE1_old_CHE_56 ditto? [delete?]
+  - ICE4_DEU_28 and ICET_DEU_28 have extremely similar ratios
 
-* Make a Metric class
-  For histogram
-  - sumsquares from histogram are also comparable to this
-  - timedistSq(pos1, pos2, reference) = [(pos2 - pos1)/reference]^2
-    or something like that
-  - penalty for add
-  - penalty for delete
+* output/* not working at the moment?
 
-  For align
-  - distanceSq(pos1, pos2) = (pos2 - pos1)^2
-  - penalty for add
-  - penalty for delete (front)
-  - penalty for delete (elsewhere)
-
-* Note combinations of d^2 and penalties for good and bad cases
-  Make scatter diagram with colors
-
-* Small histogram of #trains in matches vector
-  - Should we go to 4?
-  - Should we improve the distance function in Clusters?
-    - Intra clusters
-    - warp
-    - balance
-
-* Do _N and _R have same clusters?
-
-
-* Probably cut those actual peaks that are very far from distance peaks
-
-* Correlate the rest on both sides
-
-* Add up
-  - Residuals
-  - Added, subtracted
-  - Missing, extras
+* Files to finish:
+  SynthTrain cpp and h
+  Clusters: Avoid the malloc, fix the clustering directly
+  driver.cpp
 
 
 Overall algorithm
