@@ -7,6 +7,7 @@ Clusters.obj: struct.h Database.h
 Database.obj: Database.h Clusters.h struct.h read.h
 Disturb.obj: Disturb.h read.h struct.h
 Metrics.obj: Metrics.h struct.h
+Regress.obj: Regress.h struct.h regress/PolynomialRegression.h
 Stats.obj: Stats.h StatCross.h StatEntry.h
 StatEntry.obj: StatEntry.h
 StatCross.obj: StatCross.h
@@ -17,7 +18,7 @@ read.obj: Database.h Clusters.h struct.h read.h
 print.obj: print.h struct.h
 driver.obj: read.h struct.h Database.h Clusters.h Classifier.h SynthTrain.h
 driver.obj: Disturb.h Align.h Timer.h Stats.h StatCross.h StatEntry.h print.h
-driver.obj: Metrics.h regress/PolynomialRegression.h
+driver.obj: Metrics.h
 Ckmeans/Ckmeans.1d.dp.obj: Ckmeans/Ckmeans.1d.dp.h Ckmeans/within_cluster.h
 Ckmeans/dynamic_prog.obj: Ckmeans/Ckmeans.1d.dp.h Ckmeans/within_cluster.h
 Ckmeans/fill_log_linear.obj: Ckmeans/Ckmeans.1d.dp.h Ckmeans/within_cluster.h

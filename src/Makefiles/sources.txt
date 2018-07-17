@@ -5,6 +5,7 @@ SOURCE_FILES    =               \
                 Database.cpp    \
                 Disturb.cpp     \
                 Metrics.cpp     \
+                Regress.cpp     \
                 Stats.cpp       \
                 StatEntry.cpp   \
                 StatCross.cpp   \

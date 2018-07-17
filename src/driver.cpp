@@ -6,6 +6,7 @@
 #include "Database.h"
 #include "Classifier.h"
 #include "SynthTrain.h"
+#include "Regress.h"
 #include "Disturb.h"
 #include "Align.h"
 #include "Timer.h"
@@ -15,8 +16,6 @@
 #include "Metrics.h"
 
 Metrics metrics;
-
-#include "regress/PolynomialRegression.h"
 
 using namespace std;
 
@@ -62,7 +61,8 @@ int main(int argc, char * argv[])
   SynthTrain synth;
 
   vector<PeakTime> synthTimes;
-  PolynomialRegression pol;
+  Regress regress;
+  // PolynomialRegression pol;
   const int order = 2;
   
   vector<double> motionActual;
@@ -75,6 +75,7 @@ int main(int argc, char * argv[])
   Stats stats;
   StatCross statCross;
   StatCross statCross2;
+  StatCross statCross3;
   Timer timer;
 
 int countAll = 0;
@@ -82,6 +83,7 @@ int countBad = 0;
 
   for (auto& trainName: db)
   // string trainName = "ICE1_DEU_56_N";
+  // string trainName = "MERIDIAN_DEU_22_N";
   {
     cout << "Train " << trainName << endl;
     const int trainNo = db.lookupTrainNumber(trainName);
@@ -94,7 +96,7 @@ int countBad = 0;
     vector<PeakPos> perfectPositions;
     if (! db.getPerfectPeaks(trainName, perfectPositions))
       cout << "Bad perfect positions" << endl;
-// cout << "Input positions\n";
+// cout << "Input positions " << trainName << "\n";
 // printPeakPosCSV(perfectPositions, 1);
 
     for (double speed = control.speedMin; 
@@ -151,8 +153,20 @@ if (! found)
 cout << endl;
 */
 
+          // Take anything with a reasonable range of the best few
+          // and regress these rigorously.
+          // As soon as the indel's alone exceed the distance, we
+          // can drop these.  We can use that to prune matchesAlign.
+
           statCross2.log(trainName, 
             db.lookupTrainName(matchesAlign[0].trainNo));
+
+          Alignment bestAlign;
+          regress.bestMatch(synthTimes, db, order,
+            matchesAlign, bestAlign, motionEstimate);
+
+          statCross3.log(trainName, 
+            db.lookupTrainName(bestAlign.trainNo));
 
           continue;
 
@@ -196,6 +210,7 @@ metrics.printCSV("metrics.csv");
 
   statCross.printCountCSV("classify.csv");
   statCross2.printCountCSV("classify2.csv");
+  statCross3.printCountCSV("classify3.csv");
 
   stats.printCrossCountCSV(control.crossCountFile);
   stats.printCrossPercentCSV(control.crossPercentFile);

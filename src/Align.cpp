@@ -299,6 +299,7 @@ void Align::NeedlemanWunsch(
 
   // Walk back through the matrix.
   alignment.dist = matrix[lr][lt].dist;
+  alignment.distMatch = 0.;
   alignment.numAdd = 0; // Spare peaks in scaledPeaks
   alignment.numDelete = 0; // Unused peaks in refPeaks
   alignment.actualToRef.resize(lt);
@@ -311,6 +312,7 @@ void Align::NeedlemanWunsch(
     if (i > 0 && j > 0 && o == NW_MATCH)
     {
       alignment.actualToRef[j-1] = i-1;
+      alignment.distMatch += matrix[i][j].dist - matrix[i-1][j-1].dist;
       i--;
       j--;
     }

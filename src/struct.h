@@ -78,6 +78,7 @@ struct Alignment
 {
   int trainNo;
   double dist;
+  double distMatch;
   unsigned numAdd;
   unsigned numDelete;
   int left; // TODO Temp
