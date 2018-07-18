@@ -54,7 +54,10 @@ void printDataLine(
   if (actual == 0.)
     dev = 0.;
   else
-    dev = 100. * abs((actual - estimate) / actual);
+  {
+    const double f = (actual - estimate) / actual;
+    dev = 100. * (f >= 0. ? f : -f);
+  }
 
   cout << setw(8) << left << text <<
     setw(10) << right << fixed << setprecision(2) << actual <<

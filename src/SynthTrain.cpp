@@ -152,16 +152,16 @@ void SynthTrain::makeRandomInsertions(
   if (hi == 0)
     return;
 
-  const unsigned n = lo + static_cast<unsigned>(rand() % (hi+1-lo));
-
   random_device rd;
   mt19937 var(rd());
   uniform_real_distribution<> dist(0, 1);
 
+  const unsigned n =  static_cast<unsigned>(lo + (hi-lo) * dist(var));
+
   for (unsigned i = 0; i < n; i++)
   {
     const unsigned hit = 
-      static_cast<unsigned>(rand() % (synthPeaks.size()-1));
+      static_cast<unsigned>(synthPeaks.size() * dist(var));
     
     const double tLeft = synthPeaks[hit].time;
     const double vLeft = synthPeaks[hit].value;
@@ -186,12 +186,16 @@ void SynthTrain::makeRandomDeletions(
   if (hi == 0)
     return;
 
-  const unsigned n = static_cast<unsigned>(rand() % (hi+1-lo));
+  random_device rd;
+  mt19937 var(rd());
+  uniform_real_distribution<> dist(0, 1);
+
+  const unsigned n = static_cast<unsigned>((hi-lo) * dist(var));
 
   for (unsigned i = 0; i < n; i++)
   {
-    const unsigned hit = 
-      static_cast<unsigned>(rand() % synthPeaks.size());
+    const auto hit = 
+      static_cast<unsigned>(synthPeaks.size() * dist(var));
     
     synthPeaks.erase(synthPeaks.begin() + hit);
   }
@@ -206,7 +210,11 @@ void SynthTrain::makeRandomFrontDeletions(
   if (hi == 0)
     return;
 
-  const unsigned n = static_cast<unsigned>(rand() % (hi+1-lo));
+  random_device rd;
+  mt19937 var(rd());
+  uniform_real_distribution<> dist(0, 1);
+
+  const unsigned n = static_cast<unsigned>((hi-lo) * dist(var));
   
   if (n == 0)
     return;

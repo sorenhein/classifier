@@ -134,6 +134,8 @@ inline ldouble dissimilarity(
   case L2Y:
     d = ssq(j, i, sum_w, sum_w_sq);
     break;
+  default:
+    break;
   }
   return d;
 }

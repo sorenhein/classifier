@@ -132,7 +132,7 @@ void Align::NeedlemanWunsch(
     const Origin o = matrix[i][j].origin;
     if (i > 0 && j > 0 && o == NW_MATCH)
     {
-      alignment.actualToRef[j-1] = i-1;
+      alignment.actualToRef[j-1] = static_cast<int>(i-1);
       alignment.distMatch += matrix[i][j].dist - matrix[i-1][j-1].dist;
       i--;
       j--;

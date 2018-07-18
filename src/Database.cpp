@@ -118,15 +118,15 @@ bool Database::getPerfectPeaks(
   vector<PeakPos>& peaks) const // In m
 {
   const int trainNo = Database::lookupTrainNumber(trainName);
-  return Database::getPerfectPeaks(trainNo, peaks);
+  return Database::getPerfectPeaks(static_cast<unsigned>(trainNo), peaks);
 }
 
 
 bool Database::getPerfectPeaks(
-  const int trainNo,
+  const unsigned trainNo,
   vector<PeakPos>& peaks) const // In m
 {
-  if (trainNo == -1)
+  if (trainNo >= trainEntries.size())
     return false;
 
   PeakPos peak;
@@ -144,7 +144,7 @@ bool Database::getPerfectPeaks(
 
 
 const Clusters * Database::getClusters(
-  const int trainNo,
+  const unsigned trainNo,
   const unsigned clusterSize) const
 {
   const unsigned tno = static_cast<unsigned>(trainNo);
@@ -172,7 +172,7 @@ const CarEntry * Database::lookupCar(const int carNo) const
     return nullptr;
   }
   else
-    return &carEntries[carNo];
+    return &carEntries[static_cast<unsigned>(carNo)];
 }
 
 
@@ -192,7 +192,7 @@ int Database::lookupTrainNumber(const string& offName) const
   if (it == offTrainMap.end())
     return -1;
   else
-    return it->second;
+    return static_cast<int>(it->second);
 }
 
 
@@ -206,8 +206,8 @@ string Database::lookupTrainName(const unsigned trainNo) const
 
 
 bool Database::trainsShareCountry(
-  const int trainNo1,
-  const int trainNo2) const
+  const unsigned trainNo1,
+  const unsigned trainNo2) const
 {
   const TrainEntry& t1 = trainEntries[trainNo1];
   const TrainEntry& t2 = trainEntries[trainNo2];
@@ -224,7 +224,7 @@ bool Database::trainsShareCountry(
 }
 
 
-bool Database::trainIsReversed(const int trainNo) const
+bool Database::trainIsReversed(const unsigned trainNo) const
 {
   return trainEntries[trainNo].reverseFlag;
 }

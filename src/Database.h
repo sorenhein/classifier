@@ -86,7 +86,7 @@ class Database
 
    list<string> selectedTrains;
 
-   map<string, unsigned> offCarMap;
+   map<string, int> offCarMap;
 
    map<string, unsigned> offTrainMap;
 
@@ -117,11 +117,11 @@ class Database
       vector<PeakPos>& peaks) const; // In mm
 
     bool getPerfectPeaks(
-      const int trainNo,
+      const unsigned trainNo,
       vector<PeakPos>& peaks) const; // In mm
 
     const Clusters * getClusters(
-      const int trainNo,
+      const unsigned trainNo,
       const unsigned clusterSize) const;
 
     const CarEntry * lookupCar(const int carNo) const;
@@ -133,10 +133,10 @@ class Database
     string lookupTrainName(const unsigned trainNo) const;
 
     bool trainsShareCountry(
-      const int trainNo1,
-      const int trainNo2) const;
+      const unsigned trainNo1,
+      const unsigned trainNo2) const;
 
-    bool trainIsReversed(const int trainNo) const;
+    bool trainIsReversed(const unsigned trainNo) const;
 
 };
 

@@ -1,6 +1,7 @@
 #include <iomanip>
 #include <limits>
 #include <algorithm>
+#include <math.h>
 
 #include "Ckmeans/Ckmeans.1d.dp.h"
 #include "Clusters.h"
@@ -9,6 +10,8 @@
 #define MAX_CLUSTERS 12
 #define CLUSTER_LO 2
 #define CLUSTER_HI 6
+
+#define INDEL_FACTOR 5.
 
 
 Clusters::Clusters()
@@ -27,8 +30,8 @@ double Clusters::logVector(
   const unsigned l,
   const unsigned numClusters)
 {
-  double * y = (double *) malloc(l * sizeof(double));
-  int * Kcluster = (int *) malloc(l * sizeof(int));
+  double * y = static_cast<double *>(malloc(l * sizeof(double)));
+  int * Kcluster = static_cast<int *>(malloc(l * sizeof(int)));
 
   for (unsigned i = 0; i < l; i++)
   {
@@ -36,10 +39,10 @@ double Clusters::logVector(
     Kcluster[i] = 1;
   }
 
-  double * centers = (double *) malloc(MAX_CLUSTERS * sizeof(double));
-  double * withinss = (double *) malloc(MAX_CLUSTERS * sizeof(double));
-  double * size = (double *) malloc(MAX_CLUSTERS * sizeof(double));
-  double * BIC = (double *) malloc(MAX_CLUSTERS * sizeof(double));
+  double * centers = static_cast<double *>(malloc(MAX_CLUSTERS * sizeof(double)));
+  double * withinss = static_cast<double *>(malloc(MAX_CLUSTERS * sizeof(double)));
+  double * size = static_cast<double *>(malloc(MAX_CLUSTERS * sizeof(double)));
+  double * BIC = static_cast<double *>(malloc(MAX_CLUSTERS * sizeof(double)));
 
   for (unsigned c = 0; c < MAX_CLUSTERS; c++)
   {
@@ -127,7 +130,7 @@ double Clusters::logVector(
 
 double Clusters::log(
   const vector<int>& axles,
-  const int numClusters)
+  const unsigned numClusters)
 {
   const unsigned l = axles.size()-1;
   if (l < 2)
@@ -142,7 +145,7 @@ double Clusters::log(
     xtemp[i] = (axles[i+1] - axles[i]) / 1000.; // In m
   sort(xtemp.begin(), xtemp.end());
 
-  double * x = (double *) malloc(l * sizeof(double));
+  double * x = static_cast<double *>(malloc(l * sizeof(double)));
   for (unsigned i = 0; i < l; i++)
     x[i] = xtemp[i];
 
@@ -155,7 +158,7 @@ double Clusters::log(
 
 double Clusters::log(
   const vector<PeakTime>& times,
-  const int numClusters)
+  const unsigned numClusters)
 {
   const unsigned l = times.size()-1;
   if (l < 2)
@@ -169,7 +172,7 @@ double Clusters::log(
     xtemp[i] = times[i+1].time - times[i].time;
   sort(xtemp.begin(), xtemp.end());
 
-  double * x = (double *) malloc(l * sizeof(double));
+  double * x = static_cast<double *>(malloc(l * sizeof(double)));
   for (unsigned i = 0; i < l; i++)
     x[i] = xtemp[i];
 
@@ -183,7 +186,7 @@ double Clusters::log(
 }
 
 
-const unsigned Clusters::size() const
+unsigned Clusters::size() const
 {
   return clusters.size();
 }
@@ -400,7 +403,7 @@ double Clusters::balance(
     }
   }
 
-  return dist;
+  return INDEL_FACTOR * dist;
 }
 
 
@@ -445,7 +448,7 @@ void Clusters::distance(
 void Clusters::bestMatches(
   const vector<PeakTime>& times,
   Database& db,
-  const int trainNo,
+  const unsigned trainNo,
   const unsigned tops,
   vector<HistMatch>& matches)
 {
@@ -471,39 +474,41 @@ void Clusters::bestMatches(
   // The loop should maybe be the other way round, but I guess
   // the clustering is slower than the distance function.
 
-  for (int numCl = CLUSTER_LO; numCl <= CLUSTER_HI; numCl++)
+  for (unsigned numCl = CLUSTER_LO; numCl <= CLUSTER_HI; numCl++)
   {
     double dIntraCluster = sqrt(Clusters::log(times, numCl));
 
     for (auto& refTrain: db)
     {
       const int refTrainNo = db.lookupTrainNumber(refTrain);
-      if (! db.trainsShareCountry(trainNo, refTrainNo))
+      const unsigned refTrainNoU = static_cast<unsigned>(refTrainNo);
+
+      if (! db.trainsShareCountry(trainNo, refTrainNoU))
         continue;
 
-      if (refTrainNo >= static_cast<int>(histwarpList.size()))
+      if (refTrainNoU >= histwarpList.size())
       {
-        histwarpList.resize(refTrainNo + 10);
-        nBest.resize(refTrainNo + 10);
+        histwarpList.resize(refTrainNoU + 10);
+        nBest.resize(refTrainNoU + 10);
 
-        for (int i = refTrainNo; i < refTrainNo+10; i++)
+        for (unsigned i = refTrainNoU; i < refTrainNoU+10; i++)
         {
           histwarpList[i].dist = numeric_limits<double>::max();
           nBest[i] = 0;
         }
       }
 
-      const Clusters * otherClusters = db.getClusters(refTrainNo, numCl);
+      const Clusters * otherClusters = db.getClusters(refTrainNoU, numCl);
       if (otherClusters == nullptr)
         continue;
 
       Clusters::distance(* otherClusters, histwarp);
       const double dInterCluster =  histwarp.dist;
       const double d = dIntraCluster + dInterCluster;
-      if (d < histwarpList[refTrainNo].dist)
+      if (d < histwarpList[refTrainNoU].dist)
       {
-        histwarpList[refTrainNo] = histwarp;
-        nBest[refTrainNo] = numCl;
+        histwarpList[refTrainNoU] = histwarp;
+        nBest[refTrainNoU] = numCl;
       }
     }
   }

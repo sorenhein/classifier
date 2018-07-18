@@ -1,6 +1,7 @@
 #include <iomanip>
 #include <fstream>
 #include <sstream>
+#include <math.h>
 
 #include "StatEntry.h"
 
@@ -49,7 +50,7 @@ bool StatEntry::log(
 
 string StatEntry::avg(
   const unsigned index,
-  const unsigned prec) const
+  const int prec) const
 {
   if (entries[index].count == 0)
     return "-";
@@ -63,7 +64,7 @@ string StatEntry::avg(
 
 string StatEntry::sdev(
   const unsigned index,
-  const unsigned prec) const
+  const int prec) const
 {
   if (entries[index].count == 0)
     return "-";

@@ -17,7 +17,7 @@ class Clusters
 
     struct ClusterEntry
     {
-      int count;
+      unsigned count;
       double median;
     };
 
@@ -63,7 +63,7 @@ class Clusters
       const Clusters& other,
       HistWarp& histwarp) const;
 
-    const unsigned size() const;
+    unsigned size() const;
 
 
   public:
@@ -74,16 +74,16 @@ class Clusters
 
     double log(
       const vector<int>& axles,
-      const int numClusters);
+      const unsigned numClusters);
 
     double log(
       const vector<PeakTime>& times,
-      const int numClusters = 0);
+      const unsigned numClusters = 0);
 
     void bestMatches(
       const vector<PeakTime>& times,
       Database& db,
-      const int trainNo,
+      const unsigned trainNo,
       const unsigned maxTops,
       vector<HistMatch>& matches);
 

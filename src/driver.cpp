@@ -15,45 +15,27 @@
 using namespace std;
 
 
+void setup(
+  int argc, 
+  char * argv[],
+  Control& control,
+  Database& db,
+  Disturb& disturb);
+
+
 int main(int argc, char * argv[])
 {
-  if (argc != 2)
-  {
-    cout << "Usage: ./driver control_file\n";
-    exit(0);
-  }
-
   Control control;
-  if (! readControlFile(control, string(argv[1])))
-  {
-    cout << "Bad control file" << string(argv[1]) << endl;
-    exit(0);
-  }
-
   Database db;
-  readCarFiles(db, control.carDir);
-  readTrainFiles(db, control.trainDir);
-
   Disturb disturb;
-  if (! disturb.readFile(control.disturbFile))
-  {
-    cout << "Bad disturbance file" << endl;
-    exit(0);
-  }
-
-  if (! db.select("ALL", 0, 100))
-  {
-    cout << "No trains selected" << endl;
-    exit(0);
-  }
+  setup(argc, argv, control, db, disturb);
 
   SynthTrain synth;
   Align align;
   Regress regress;
 
   vector<PeakTime> synthTimes;
-  // PolynomialRegression pol;
-  const int order = 2;
+  const unsigned order = 2;
   
   vector<double> motionActual;
   motionActual.resize(order+1);
@@ -66,7 +48,7 @@ int main(int argc, char * argv[])
   StatCross statCross;
   StatCross statCross2;
   StatCross statCross3;
-  Timer timer;
+  Timer timer1, timer2, timer3, timer4;
 
 int countAll = 0;
 int countBad = 0;
@@ -76,12 +58,13 @@ int countBad = 0;
   // string trainName = "MERIDIAN_DEU_22_N";
   {
     cout << "Train " << trainName << endl;
-    const int trainNo = db.lookupTrainNumber(trainName);
-    if (trainNo == -1)
+    const int trainNoI = db.lookupTrainNumber(trainName);
+    if (trainNoI == -1)
     {
       cout << "Bad train name\n";
       exit(0);
     }
+    const unsigned trainNo = static_cast<unsigned>(trainNoI);
 
     vector<PeakPos> perfectPositions;
     if (! db.getPerfectPeaks(trainName, perfectPositions))
@@ -103,19 +86,23 @@ int countBad = 0;
 
         for (int no = 0; no < control.simCount; no++)
         {
-          timer.start();
+          timer1.start();
 
           if (! synth.disturb(perfectPositions, disturb, synthTimes, 
             0., speed, accel))
           {
             continue;
           }
+
+          timer1.stop();
 // cout << "Synth no. " << no << "\n";
 // printPeakTimeCSV(synthTimes, no+2);
 
           Clusters clusters;
           vector<HistMatch> matches;
+          timer2.start();
           clusters.bestMatches(synthTimes, db, trainNo, 3, matches);
+          timer2.stop();
 bool found = false;
 for (unsigned i = 0; ! found && i < matches.size(); i++)
 {
@@ -131,14 +118,23 @@ if (! found)
 
           vector<Alignment> matchesAlign;
 
+          timer3.start();
           align.bestMatches(synthTimes, db, matches, 10, matchesAlign);
+          timer3.stop();
+
+          // Take anything with a reasonable range of the best few
+          // and regress these rigorously.
+          // As soon as the indel's alone exceed the distance, we
+          // can drop these.  We can use that to prune matchesAlign.
 
           statCross2.log(trainName, 
             db.lookupTrainName(matchesAlign[0].trainNo));
 
           Alignment bestAlign;
+          timer4.start();
           regress.bestMatch(synthTimes, db, order,
             matchesAlign, bestAlign, motionEstimate);
+          timer4.stop();
 
           statCross3.log(trainName, 
             db.lookupTrainName(bestAlign.trainNo));
@@ -165,7 +161,46 @@ cout << "Bad   " << countBad << endl;
   stats.printDetailsCSV(control.detailFile);
 
 
-  cout << "Time " << timer.str(2) << endl;
+  cout << "Time synth " << timer1.str(2) << endl;
+  cout << "Time cluster " << timer2.str(2) << endl;
+  cout << "Time match " << timer3.str(2) << endl;
+  cout << "Time regress " << timer4.str(2) << endl;
 
+}
+
+
+void setup(
+  int argc, 
+  char * argv[],
+  Control& control,
+  Database& db,
+  Disturb& disturb)
+{
+  if (argc != 2)
+  {
+    cout << "Usage: ./driver control_file\n";
+    exit(0);
+  }
+
+  if (! readControlFile(control, string(argv[1])))
+  {
+    cout << "Bad control file" << string(argv[1]) << endl;
+    exit(0);
+  }
+
+  readCarFiles(db, control.carDir);
+  readTrainFiles(db, control.trainDir);
+
+  if (! disturb.readFile(control.disturbFile))
+  {
+    cout << "Bad disturbance file" << endl;
+    exit(0);
+  }
+
+  if (! db.select("ALL", 0, 100))
+  {
+    cout << "No trains selected" << endl;
+    exit(0);
+  }
 }
 

@@ -23,11 +23,11 @@ class StatEntry
 
     string avg(
       const unsigned index,
-      const unsigned prec = 2) const;
+      const int prec = 2) const;
 
     string sdev(
       const unsigned index,
-      const unsigned prec = 2) const;
+      const int prec = 2) const;
 
 
   public:

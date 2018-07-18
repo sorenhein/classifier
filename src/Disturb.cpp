@@ -51,7 +51,7 @@ bool Disturb::readFile(const string& fname)
 
     const string err = "File " + fname + ": Bad line '" + line + "'";
 
-    unsigned sp = line.find(" ");
+    auto sp = line.find(" ");
     if (sp == string::npos || sp == 0 || sp == line.size()-1)
     {
       cout << err << endl;

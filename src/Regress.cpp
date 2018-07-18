@@ -44,7 +44,7 @@ double Regress::residuals(
 void Regress::bestMatch(
   const vector<PeakTime>& times,
   const Database& db,
-  const int order,
+  const unsigned order,
   vector<Alignment>& matches,
   Alignment& bestAlign,
   vector<double>& motionEstimate) const
@@ -77,7 +77,7 @@ void Regress::bestMatch(
     {
       if (ma.actualToRef[i] >= 0)
       {
-        y[p] = refPeaks[ma.actualToRef[i]].pos;
+        y[p] = refPeaks[static_cast<unsigned>(ma.actualToRef[i])].pos;
         x[p] = times[i].time;
         p++;
       }

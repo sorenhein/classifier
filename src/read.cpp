@@ -3,6 +3,7 @@
 #include <fstream>
 #include <sstream>
 #include <set>
+#include <algorithm>
 
 #pragma warning(push)
 #pragma warning(disable: 4365 4571 4625 4626 4774 5026 5027)
@@ -23,6 +24,10 @@
 
 #define UNUSED(x) ((void)(true ? 0 : ((x), void(), 0)))
 
+
+void getFilenames(
+  const string& dirName,
+  vector<string>& textfiles);
 
 void resetCar(CarEntry& c);
 
@@ -67,9 +72,17 @@ void printDistances(const CarEntry& c);
 
 void makeClusters(TrainEntry& t);
 
-void readCarFile(const string& fname);
+bool makeTrainAxles(
+  const Database& db,
+  TrainEntry& t);
 
-void readTrainFile(const string& fname);
+void readCarFile(
+  Database& db,
+  const string& fname);
+
+void readTrainFile(
+  Database& db,
+  const string& fname);
 
 
 // tokenize splits a string into tokens separated by delimiter.
@@ -133,7 +146,7 @@ void getFilenames(
     {
       // Only files ending on .txt
       const string name = string(ent->d_name);
-      const unsigned p = name.find_last_of('.');
+      const auto p = name.find_last_of('.');
       if (p == string::npos || p == name.size()-1)
         continue;
       const string ext = name.substr(p+1);
@@ -430,7 +443,7 @@ bool fillInEquation(
     if (r >= 0)
       countRHS++;
     else
-      miss = i;
+      miss = static_cast<int>(i);
 
     sum += r;
   }
@@ -448,7 +461,10 @@ bool fillInEquation(
     if (countLHS == 0)
       return false;
     else
-      * rhs[miss] = lhs - (sum - * rhs[miss]);
+    {
+      const unsigned m = static_cast<unsigned>(miss);
+      * rhs[m] = lhs - (sum - * rhs[m]);
+    }
   }
   else
     return false;
@@ -573,7 +589,7 @@ void readCarFile(
     
     const string err = "File " + fname + ": Bad line '" + line + "'";
 
-    unsigned sp = line.find(" ");
+    const auto sp = line.find(" ");
     if (sp == string::npos || sp == 0 || sp == line.size()-1)
     {
       cout << err << endl;
@@ -825,7 +841,7 @@ bool readControlFile(
 
     const string err = "File " + fname + ": Bad line '" + line + "'";
     
-    unsigned sp = line.find(" ");
+    const auto sp = line.find(" ");
     if (sp == string::npos || sp == 0 || sp == line.size()-1)
     {
       cout << err << endl;
@@ -913,7 +929,7 @@ void readTrainFile(
 
     const string err = "File " + fname + ": Bad line '" + line + "'";
     
-    unsigned sp = line.find(" ");
+    const auto sp = line.find(" ");
     if (sp == string::npos || sp == 0 || sp == line.size()-1)
     {
       cout << err << endl;

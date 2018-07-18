@@ -106,6 +106,10 @@
 #include <cassert>
 #include <cstring>
 
+
+bool compi(size_t i, size_t j);
+
+
 template <class ForwardIterator>
 size_t numberOfUnique(ForwardIterator first, ForwardIterator last)
 {

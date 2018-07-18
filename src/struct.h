@@ -53,7 +53,7 @@ struct Cluster
   double sdev;
   double lower;
   double upper;
-  int count;
+  unsigned count;
   int tag;
 
   bool operator < (const Cluster& c2)
@@ -64,7 +64,7 @@ struct Cluster
 
 struct HistMatch
 {
-  int trainNo;
+  unsigned trainNo;
   double scale;
 };
 
@@ -76,7 +76,7 @@ struct HistWarp
 
 struct Alignment
 {
-  int trainNo;
+  unsigned trainNo;
   double dist;
   double distMatch;
   unsigned numAdd;

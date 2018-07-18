@@ -1,92 +1,74 @@
 # --------------------- INFORMATION --------------------------------
 
-# This the Makefile for Windows and the Microsoft Visual C++
+# This the Metapron3 Makefile for Windows and the Cygwin GNU g++
 # compiler.  It assumes a Unix-like setup for some commands.
 
 INCL_SOURCE	= Makefiles/sources.txt
-INCL_DEPENDS	= Makefiles/depends_obj.txt
+INCL_DEPENDS	= Makefiles/depends_o.txt
 
-# If your Microsoft compiler is not called cl, change it here.
-CC		= cl
-LINK		= link
+# If your compiler name is not given here, change it.
+CC		= g++
 
 # We compile with aggressive warnings, but we have to turn off some
-# of them as they appear in Windows libraries in great numbers...
+# of them as they appear in libraries in great numbers...
 
-WARN_FLAGS	=		\
-	/Wall			\
-	/wd4365			\
-	/wd4464			\
-	/wd4514			\
-	/wd4555			\
-	/wd4571			\
-	/wd4623			\
-	/wd4625			\
-	/wd4626			\
-	/wd4668			\
-	/wd4710			\
-	/wd4711			\
-	/wd4774			\
-	/wd4820			\
-	/wd4996			\
-	/wd5026			\
-	/wd5027			\
-	/wd5045			\
-	/WX
+WARN_FLAGS	= 		\
+	-Wshadow 		\
+	-Wsign-conversion 	\
+	-pedantic -Wall -Wextra  \
+	-Wcast-align -Wcast-qual \
+	-Wctor-dtor-privacy 	\
+	-Wdisabled-optimization \
+	-Wformat=2 		\
+	-Winit-self 		\
+	-Wlogical-op 		\
+	-Wmissing-declarations 	\
+	-Wmissing-include-dirs 	\
+	-Wnoexcept 		\
+	-Wold-style-cast 	\
+	-Woverloaded-virtual 	\
+	-Wredundant-decls 	\
+	-Wsign-promo 		\
+	-Wstrict-null-sentinel 	\
+	-Wstrict-overflow=1 	\
+	-Wswitch-default -Wundef \
+	-Werror 		\
+	-Wno-unused 		\
+	-Wno-unknown-pragmas 	\
+	-Wno-long-long
 
-# If you don't have /std:c++17, you won't get THR_STLIMPL.
+COMPILE_FLAGS	= -O3 -flto -fopenmp -mtune=generic -fno-use-linker-plugin \
+		$(WARN_FLAGS) 
 
-COMPILE_FLAGS	= /O2 /Oi /Ot /Oy /Ox /GL /EHs /Zi /std:c++17 $(WARN_FLAGS)
+LINK1_FLAGS	= -shared -fopenmp
 
-LINK_FLAGS1	= /LTCG /DEBUG
-
-TARGET		= driver
+LINK2_FLAGS	= 		\
+	-Wl,--subsystem,windows \
+	-Wl,--output-def,$(DLLBASE).def	\
+	-Wl,--dynamicbase 	\
+	-Wl,--nxcompat 		\
+	-Wl,--no-seh 		\
+	-Wl,--enable-stdcall-fixup 
 
 include $(INCL_SOURCE)
 
-OBJ_FILES 	= $(subst .cpp,.obj,$(SOURCE_FILES))
+O_FILES 	= $(subst .cpp,.o,$(SOURCE_FILES)) $(VFILE).o
 
-vs:	$(OBJ_FILES)
-	$(LINK) $(LINK_FLAGS1) $(OBJ_FILES) /OUT:$(TARGET).exe
+cygwin:	$(O_FILES)
+	$(CC) $(LINK1_FLAGS) $(O_FILES) \
+	$(LINK2_FLAGS) $(EXPORTER) -o $(DLL)
 
-%.obj:	%.cpp
-	$(CC) $(COMPILE_FLAGS) /c $< /Fo$@
+%.o:	%.cpp
+	$(CC) $(COMPILE_FLAGS) -c $<
 
 depend:
-	makedepend -Y -o.obj -- $(SOURCE_FILES)
+	makedepend -Y -- $(SOURCE_FILES)
 
 clean:
-	rm -f $(OBJ_FILES) $(DLL) $(DLLBASE).{lib,exp,def,obj,res}
+	rm -f $(O_FILES) $(DLL) $(DLLBASE).{lib,def,exp,res}
 
-# If you don't have a Linux-like setup, use "del" instead of "rm"
+# If you don't have a Linux-like setup, use "del" instead of "rm
 # and "copy" instead of "cp".
 
 include $(INCL_DEPENDS)
 
-# DO NOT DELETE
-
-Align.obj: Align.h struct.h Database.h Clusters.h
-Clusters.obj: Ckmeans/Ckmeans.1d.dp.h Ckmeans/within_cluster.h Clusters.h
-Clusters.obj: struct.h Database.h
-Database.obj: Database.h Clusters.h struct.h read.h
-Disturb.obj: Disturb.h read.h struct.h
-Regress.obj: Regress.h struct.h Database.h Clusters.h
-Regress.obj: regress/PolynomialRegression.h
-Stats.obj: Stats.h StatCross.h StatEntry.h
-StatEntry.obj: StatEntry.h
-StatCross.obj: StatCross.h
-SynthTrain.obj: SynthTrain.h struct.h Disturb.h
-Timer.obj: Timer.h
-read.obj: Database.h Clusters.h struct.h read.h
-print.obj: print.h struct.h
-driver.obj: read.h struct.h Database.h Clusters.h SynthTrain.h Regress.h
-driver.obj: Disturb.h Align.h Timer.h Stats.h StatCross.h StatEntry.h print.h
-Ckmeans/Ckmeans.1d.dp.obj: Ckmeans/Ckmeans.1d.dp.h Ckmeans/within_cluster.h
-Ckmeans/dynamic_prog.obj: Ckmeans/Ckmeans.1d.dp.h Ckmeans/within_cluster.h
-Ckmeans/fill_log_linear.obj: Ckmeans/Ckmeans.1d.dp.h Ckmeans/within_cluster.h
-Ckmeans/fill_quadratic.obj: Ckmeans/Ckmeans.1d.dp.h Ckmeans/within_cluster.h
-Ckmeans/fill_SMAWK.obj: Ckmeans/Ckmeans.1d.dp.h Ckmeans/within_cluster.h
-Ckmeans/select_levels.obj: Ckmeans/Ckmeans.1d.dp.h Ckmeans/within_cluster.h
-Ckmeans/weighted_select_levels.obj: Ckmeans/Ckmeans.1d.dp.h
-Ckmeans/weighted_select_levels.obj: Ckmeans/within_cluster.h
-regress/PolynomialRegression.obj: regress/PolynomialRegression.h

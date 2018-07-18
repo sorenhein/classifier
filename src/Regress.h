@@ -30,7 +30,7 @@ class Regress
     void bestMatch(
       const vector<PeakTime>& times,
       const Database& db,
-      const int order,
+      const unsigned order,
       vector<Alignment>& matches,
       Alignment& bestAlign,
       vector<double>& motionEstimate) const;
