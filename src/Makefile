@@ -52,14 +52,14 @@ LINK2_FLAGS	= 		\
 
 include $(INCL_SOURCE)
 
-O_FILES 	= $(subst .cpp,.o,$(SOURCE_FILES)) $(VFILE).o
+O_FILES 	= $(subst .cpp,.o,$(SOURCE_FILES))
 
 cygwin:	$(O_FILES)
 	$(CC) $(LINK1_FLAGS) $(O_FILES) \
-	$(LINK2_FLAGS) $(EXPORTER) -o $(DLL)
+	$(LINK2_FLAGS) $(EXPORTER) -o driver
 
 %.o:	%.cpp
-	$(CC) $(COMPILE_FLAGS) -c $<
+	$(CC) $(COMPILE_FLAGS) -c $< -o $@
 
 depend:
 	makedepend -Y -- $(SOURCE_FILES)
@@ -72,3 +72,4 @@ clean:
 
 include $(INCL_DEPENDS)
 
+# DO NOT DELETE

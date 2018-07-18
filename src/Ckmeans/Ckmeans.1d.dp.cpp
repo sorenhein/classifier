@@ -263,7 +263,7 @@ void kmeans_1d_dp(const double *x, const size_t N, const double *y,
     }
 
     if (Kopt < Kmax) { // Reform the dynamic programming matrix S and J
-      J.erase(J.begin() + Kopt, J.end());
+      J.erase(J.begin() + static_cast<unsigned>(Kopt), J.end());
     }
 
     std::vector<int> cluster_sorted(N);

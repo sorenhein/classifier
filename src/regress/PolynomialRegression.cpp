@@ -4,6 +4,7 @@
 #include <vector>
 #include <iostream>
 #include <stdlib.h>
+#include <math.h>
 
 #include "PolynomialRegression.h"
 
@@ -51,7 +52,7 @@ bool PolynomialRegression::fitIt(
   {
     X[i] = 0;
     for (unsigned j = 0; j < N; ++j)
-      X[i] += (double)pow(x[j], i);
+      X[i] += static_cast<double>(pow(x[j], i));
   }
 
   // a = vector to store final coefficients.
@@ -70,7 +71,7 @@ bool PolynomialRegression::fitIt(
   {
     Y[i] = 0.;
     for (unsigned j = 0; j < N; ++j) 
-      Y[i] += (double)pow(x[j], i) * y[j];
+      Y[i] += static_cast<double>(pow(x[j], i) * y[j]);
   }
 
   // Load values of Y as last column of B
@@ -106,13 +107,14 @@ bool PolynomialRegression::fitIt(
   // (1) Set the variable as the rhs of last equation
   // (2) Subtract all lhs values except the target coefficient.
   // (3) Divide rhs by coefficient of variable being calculated.
-  for (int i = nm1; i >= 0; --i) 
+  for (int i = static_cast<int>(nm1); i >= 0; --i) 
   {
-    a[i] = B[i][n];                   // (1)
+    const unsigned iu = static_cast<unsigned>(i);
+    a[iu] = static_cast<double>(B[iu][n]);                   // (1)
     for (unsigned j = 0; j < n; ++j)
       if (static_cast<int>(j) != i)
-        a[i] -= B[i][j] * a[j];       // (2)
-    a[i] /= B[i][i];                  // (3)
+        a[iu] -= static_cast<double>(B[iu][j]) * a[j];       // (2)
+    a[iu] /= static_cast<double>(B[iu][iu]); // (3)
   }
 
   coeffs.resize(a.size());

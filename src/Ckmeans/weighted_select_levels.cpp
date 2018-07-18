@@ -37,6 +37,20 @@
 const double M_PI = 3.14159265359;
 #endif
 
+size_t select_levels_weighted_3_4_13(
+    const std::vector<double> & x, const std::vector<double> & y,
+    const std::vector< std::vector< size_t > > & J,
+    size_t Kmin, size_t Kmax);
+
+void shifted_data_variance_weighted(
+    const std::vector<double> & x,
+    const std::vector<double> & y,
+    const double total_weight,
+    const size_t left,
+    const size_t right,
+    double & mean, double & variance);
+
+
 void shifted_data_variance_weighted(
     const std::vector<double> & x,
     const std::vector<double> & y,
@@ -106,7 +120,7 @@ size_t select_levels_weighted(
     // std::vector< std::vector< size_t > > JK(J.begin(), J.begin()+K);
 
     // Backtrack the matrix to determine boundaries between the bins.
-    backtrack_weighted(x, y, J, counts, weights, (int)K);
+    backtrack_weighted(x, y, J, counts, weights, static_cast<int>(K));
 
       
     // double totalweight = std::accumulate(weights.begin(), weights.begin() + K, 0, std::plus<double>());
@@ -186,7 +200,7 @@ size_t select_levels_weighted(
       }
     }
 
-    BIC[K-Kmin] = (double)bic;
+    BIC[K-Kmin] = static_cast<double>(bic);
   }
   return Kopt;
 }
@@ -218,7 +232,7 @@ size_t select_levels_weighted_3_4_13(
     std::vector<double> weights(K);
 
     // Backtrack the matrix to determine boundaries between the bins.
-    backtrack_weighted(x, y, J, counts, weights, (int)K);
+    backtrack_weighted(x, y, J, counts, weights, static_cast<int>(K));
 
     size_t indexLeft = 0;
     size_t indexRight;
@@ -304,7 +318,7 @@ size_t select_levels_weighted_3_4_12(
     std::vector<double> weights(K+base);
 
     // Backtrack the matrix to determine boundaries between the bins.
-    backtrack_weighted(x, y, J, counts, weights, (int)K); // backtrack_weighted(x, y, JK, counts, weights);
+    backtrack_weighted(x, y, J, counts, weights, static_cast<int>(K)); // backtrack_weighted(x, y, JK, counts, weights);
 
     size_t indexLeft = base;
     size_t indexRight;
@@ -361,7 +375,7 @@ size_t select_levels_weighted_3_4_12(
             / (2.0 * variance);
           }
           loglikelihood += weights[k]
-          * (std::log(weights[k] / (double) totalweight)
+          * (std::log(weights[k] / static_cast<double>(totalweight))
                - 0.5 * std::log ( 2.0 * M_PI * variance));
         } else {
           loglikelihood += weights[k] * std::log(1.0 / binWidth / N);
@@ -379,9 +393,9 @@ size_t select_levels_weighted_3_4_12(
 
     // Compute the Bayesian information criterion
     if (method == "uniform") {
-      BIC = 2 * loglikelihood - (3 * K - 1) * std::log((double)N);  // K-1
+      BIC = 2 * loglikelihood - (3 * K - 1) * std::log(static_cast<double>(N));  // K-1
     } else if(method == "normal") {
-      BIC = 2 * loglikelihood - (3 * K - 1) * std::log((double)N);  //(K*3-1)
+      BIC = 2 * loglikelihood - (3 * K - 1) * std::log(static_cast<double>(N));  //(K*3-1)
     }
 
     // cout << ", Loglh=" << loglikelihood << ", BIC=" << BIC << endl;

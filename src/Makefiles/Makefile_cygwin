@@ -3,17 +3,6 @@
 # This the Metapron3 Makefile for Windows and the Cygwin GNU g++
 # compiler.  It assumes a Unix-like setup for some commands.
 
-# The "windres" and "cvtres" tools are used for putting version
-# information into the DLL in a way that Windows can see.
-# It is not mandatory, and if you don't have those tools,
-# You can remove $(VFILE).obj in the target line below.
-
-# ----------------------- OFTEN OK    ------------------------------
-
-# From here on you you don't have to change anything to CONFIGURE
-# the compilation.  But you may well have to change something to 
-# get it to compile.
-
 INCL_SOURCE	= Makefiles/sources.txt
 INCL_DEPENDS	= Makefiles/depends_o.txt
 
@@ -52,6 +41,7 @@ COMPILE_FLAGS	= -O3 -flto -fopenmp -mtune=generic -fno-use-linker-plugin \
 		$(WARN_FLAGS) 
 
 LINK1_FLAGS	= -shared -fopenmp
+
 LINK2_FLAGS	= 		\
 	-Wl,--subsystem,windows \
 	-Wl,--output-def,$(DLLBASE).def	\
@@ -59,14 +49,6 @@ LINK2_FLAGS	= 		\
 	-Wl,--nxcompat 		\
 	-Wl,--no-seh 		\
 	-Wl,--enable-stdcall-fixup 
-
-DLLBASE		= metapron3
-DLL 		= $(DLLBASE).dll
-DLIB 		= $(DLLBASE).lib
-EXPORTER	= Exports.def
-
-VFILE		= metapron3res
-WINDRES_FLAG	= 
 
 include $(INCL_SOURCE)
 
@@ -79,26 +61,15 @@ cygwin:	$(O_FILES)
 %.o:	%.cpp
 	$(CC) $(COMPILE_FLAGS) -c $<
 
-$(DLLBASE).res:	$(DLLBASE).rc
-	windres $(DLLBASE).rc $(DLLBASE).res
-
-$(VFILE).o:	$(DLLBASE).rc
-	windres $(WINDRES_FLAG) $(DLLBASE).rc $(VFILE).o
-
 depend:
 	makedepend -Y -- $(SOURCE_FILES)
 
 clean:
 	rm -f $(O_FILES) $(DLL) $(DLLBASE).{lib,def,exp,res}
 
-install:
-	test -d ../test || mkdir ../test
-	test -d ../examples || mkdir ../examples
-	cp $(DLL) $(DLLBASE).def ../test
-	cp $(DLL) $(DLLBASE).def ../examples
-
 # If you don't have a Linux-like setup, use "del" instead of "rm
 # and "copy" instead of "cp".
 
 include $(INCL_DEPENDS)
 
+# DO NOT DELETE
