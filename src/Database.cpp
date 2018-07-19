@@ -113,6 +113,12 @@ void Database::logTrain(const TrainEntry& train)
 }
 
 
+unsigned Database::axleCount(const unsigned trainNo) const
+{
+  return trainEntries[trainNo].axles.size();
+}
+
+
 bool Database::getPerfectPeaks(
   const string& trainName,
   vector<PeakPos>& peaks) const // In m

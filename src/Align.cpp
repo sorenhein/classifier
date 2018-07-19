@@ -13,6 +13,8 @@
 #define EARLY_MISS_PENALTY 300.
 #define MAX_EARLY_MISSES 2
 
+#define MAX_AXLE_DIFFERENCE_OK 4
+
 
 Align::Align()
 {
@@ -200,20 +202,44 @@ void Align::scalePeaks(
 }
 
 
+bool Align::countTooDifferent(
+  const vector<PeakTime>& times,
+  const unsigned refCount) const
+{
+  const unsigned lt = times.size();
+  return (refCount > lt + MAX_AXLE_DIFFERENCE_OK || 
+      lt > refCount + MAX_AXLE_DIFFERENCE_OK);
+}
+
+#define UNUSED(x) ((void)(true ? 0 : ((x), void(), 0)))
 void Align::bestMatches(
   const vector<PeakTime>& times,
-  const Database& db,
+  Database& db,
+  const unsigned trainNo,
   const vector<HistMatch>& matchesHist,
   const unsigned tops,
   vector<Alignment>& matches) const
 {
+  UNUSED(matchesHist);
   vector<PeakPos> refPeaks, scaledPeaks;
   Alignment a;
 
-  for (auto& mh: matchesHist)
+  // for (auto& mh: matchesHist)
+  for (auto& refTrain: db)
   {
-    a.trainNo = mh.trainNo;
+    const int refTrainNo = db.lookupTrainNumber(refTrain);
+
+    // if (Align::countTooDifferent(times, db.axleCount(mh.trainNo)))
+    if (Align::countTooDifferent(times, db.axleCount(refTrainNo)))
+      continue;
+
+    if (! db.trainsShareCountry(trainNo, refTrainNo))
+      continue;
+
+    a.trainNo = refTrainNo;
+    // a.trainNo = mh.trainNo;
     db.getPerfectPeaks(a.trainNo, refPeaks);
+
 
     Align::scalePeaks(times, refPeaks.back().pos - refPeaks.front().pos,
       scaledPeaks);

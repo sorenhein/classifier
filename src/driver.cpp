@@ -95,9 +95,11 @@ int countBad = 0;
           }
 
           timer1.stop();
+vector<HistMatch> matches;
 // cout << "Synth no. " << no << "\n";
 // printPeakTimeCSV(synthTimes, no+2);
 
+/*
           Clusters clusters;
           vector<HistMatch> matches;
           timer2.start();
@@ -115,17 +117,37 @@ if (! found)
 
           statCross.log(trainName, 
             db.lookupTrainName(matches[0].trainNo));
+*/
 
           vector<Alignment> matchesAlign;
 
           timer3.start();
-          align.bestMatches(synthTimes, db, matches, 10, matchesAlign);
+          align.bestMatches(synthTimes, db, trainNo, 
+            matches, 10, matchesAlign);
           timer3.stop();
+bool found = false;
+for (unsigned i = 0; ! found && i < matches.size(); i++)
+{
+  if (matches[i].trainNo == trainNo)
+    found = true;
+}
+countAll++;
+if (! found)
+  countBad++;
+
 
           // Take anything with a reasonable range of the best few
           // and regress these rigorously.
           // As soon as the indel's alone exceed the distance, we
           // can drop these.  We can use that to prune matchesAlign.
+
+          if (matchesAlign.size() == 0)
+          {
+            // TODO If we eliminate clusters, then this can't happen
+            // anymore which would be the right thing.  For now.
+            statCross2.log(trainName, "UNKNOWN");
+            continue;
+          }
 
           statCross2.log(trainName, 
             db.lookupTrainName(matchesAlign[0].trainNo));
@@ -154,6 +176,7 @@ cout << "Bad   " << countBad << endl;
   statCross.printCountCSV("classify.csv");
   statCross2.printCountCSV("classify2.csv");
   statCross3.printCountCSV("classify3.csv");
+  statCross3.printQuality();
 
   stats.printCrossCountCSV(control.crossCountFile);
   stats.printCrossPercentCSV(control.crossPercentFile);

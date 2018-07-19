@@ -14,6 +14,10 @@ class Align
 {
   private:
 
+    bool countTooDifferent(
+      const vector<PeakTime>& times,
+      const unsigned refCount) const;
+
     void scalePeaks(
       const vector<PeakTime>& times,
       const double len, // In m
@@ -33,7 +37,8 @@ class Align
 
     void bestMatches(
       const vector<PeakTime>& times,
-      const Database& db,
+      Database& db,
+      const unsigned trainNo,
       const vector<HistMatch>& matchesHist,
       const unsigned tops,
       vector<Alignment>& matches) const;
