@@ -53,6 +53,21 @@ int main(int argc, char * argv[])
 int countAll = 0;
 int countBad = 0;
 
+/*
+vector<PeakPos> tmppos;
+if (! db.getPerfectPeaks("ICE4_DEU_28_N", tmppos))
+  cout << "Bad perfect positions" << endl;
+cout << "Input positions " << "ICE4_DEU_28_N" << "\n";
+printPeakPosCSV(tmppos, 1);
+
+if (! db.getPerfectPeaks("ICET_DEU_28_N", tmppos))
+  cout << "Bad perfect positions" << endl;
+cout << "Input positions " << "ICET_DEU_28_N" << "\n";
+printPeakPosCSV(tmppos, 2);
+
+bool errFlag = false;
+*/
+
   for (auto& trainName: db)
   // string trainName = "ICE1_DEU_56_N";
   // string trainName = "MERIDIAN_DEU_22_N";
@@ -138,6 +153,15 @@ cout << "UNKNOWN\n";
           statCross3.log(trainName, 
             db.lookupTrainName(bestAlign.trainNo));
 
+/*
+if (! errFlag && trainName == "ICE4_DEU_28_N" && bestAlign.trainNo == 14)
+{
+ errFlag = true;
+cout << "speed " << speed << ", accel " << accel << endl;
+cout << "Input positions " << "ICET_DEU_28_N" << "\n";
+printPeakTimeCSV(synthTimes, 3);
+}
+*/
           double residuals = 0.;
           // TODO: Calculate residuals, or find them in code
           stats.log(trainName, motionActual,

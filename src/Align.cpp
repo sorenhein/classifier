@@ -220,7 +220,6 @@ void Align::bestMatches(
   vector<Alignment>& matches) const
 {
   vector<PeakPos> refPeaks, scaledPeaks;
-  Alignment a;
 
   for (auto& refTrain: db)
   {
@@ -232,15 +231,14 @@ void Align::bestMatches(
     if (! db.trainsShareCountry(trainNo, refTrainNo))
       continue;
 
-    a.trainNo = refTrainNo;
-    db.getPerfectPeaks(a.trainNo, refPeaks);
-
+    db.getPerfectPeaks(refTrainNo, refPeaks);
 
     Align::scalePeaks(times, refPeaks.back().pos - refPeaks.front().pos,
       scaledPeaks);
 
-    Align::NeedlemanWunsch(refPeaks, scaledPeaks, a);
-    matches.push_back(a);
+    matches.push_back(Alignment());
+    matches.back().trainNo = refTrainNo;
+    Align::NeedlemanWunsch(refPeaks, scaledPeaks, matches.back());
   }
 
   sort(matches.begin(), matches.end());
