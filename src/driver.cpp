@@ -95,40 +95,16 @@ int countBad = 0;
           }
 
           timer1.stop();
-vector<HistMatch> matches;
-// cout << "Synth no. " << no << "\n";
-// printPeakTimeCSV(synthTimes, no+2);
-
-/*
-          Clusters clusters;
-          vector<HistMatch> matches;
-          timer2.start();
-          clusters.bestMatches(synthTimes, db, trainNo, 3, matches);
-          timer2.stop();
-bool found = false;
-for (unsigned i = 0; ! found && i < matches.size(); i++)
-{
-  if (matches[i].trainNo == trainNo)
-    found = true;
-}
-countAll++;
-if (! found)
-  countBad++;
-
-          statCross.log(trainName, 
-            db.lookupTrainName(matches[0].trainNo));
-*/
 
           vector<Alignment> matchesAlign;
 
-          timer3.start();
-          align.bestMatches(synthTimes, db, trainNo, 
-            matches, 10, matchesAlign);
-          timer3.stop();
+          timer2.start();
+          align.bestMatches(synthTimes, db, trainNo, 10, matchesAlign);
+          timer2.stop();
 bool found = false;
-for (unsigned i = 0; ! found && i < matches.size(); i++)
+for (unsigned i = 0; ! found && i < matchesAlign.size(); i++)
 {
-  if (matches[i].trainNo == trainNo)
+  if (matchesAlign[i].trainNo == trainNo)
     found = true;
 }
 countAll++;
@@ -146,6 +122,7 @@ if (! found)
             // TODO If we eliminate clusters, then this can't happen
             // anymore which would be the right thing.  For now.
             statCross2.log(trainName, "UNKNOWN");
+cout << "UNKNOWN\n";
             continue;
           }
 
@@ -184,9 +161,8 @@ cout << "Bad   " << countBad << endl;
   stats.printDetailsCSV(control.detailFile);
 
 
-  cout << "Time synth " << timer1.str(2) << endl;
-  cout << "Time cluster " << timer2.str(2) << endl;
-  cout << "Time match " << timer3.str(2) << endl;
+  cout << "Time synth   " << timer1.str(2) << endl;
+  cout << "Time match   " << timer2.str(2) << endl;
   cout << "Time regress " << timer4.str(2) << endl;
 
 }

@@ -211,25 +211,21 @@ bool Align::countTooDifferent(
       lt > refCount + MAX_AXLE_DIFFERENCE_OK);
 }
 
-#define UNUSED(x) ((void)(true ? 0 : ((x), void(), 0)))
+
 void Align::bestMatches(
   const vector<PeakTime>& times,
   Database& db,
   const unsigned trainNo,
-  const vector<HistMatch>& matchesHist,
   const unsigned tops,
   vector<Alignment>& matches) const
 {
-  UNUSED(matchesHist);
   vector<PeakPos> refPeaks, scaledPeaks;
   Alignment a;
 
-  // for (auto& mh: matchesHist)
   for (auto& refTrain: db)
   {
     const int refTrainNo = db.lookupTrainNumber(refTrain);
 
-    // if (Align::countTooDifferent(times, db.axleCount(mh.trainNo)))
     if (Align::countTooDifferent(times, db.axleCount(refTrainNo)))
       continue;
 
@@ -237,7 +233,6 @@ void Align::bestMatches(
       continue;
 
     a.trainNo = refTrainNo;
-    // a.trainNo = mh.trainNo;
     db.getPerfectPeaks(a.trainNo, refPeaks);
 
 

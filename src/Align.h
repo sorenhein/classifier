@@ -39,7 +39,6 @@ class Align
       const vector<PeakTime>& times,
       Database& db,
       const unsigned trainNo,
-      const vector<HistMatch>& matchesHist,
       const unsigned tops,
       vector<Alignment>& matches) const;
 };
