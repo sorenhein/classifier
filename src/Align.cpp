@@ -9,8 +9,8 @@
 
 // Can adjust these.
 
-#define INDEL_PENALTY 1000.
-#define EARLY_MISS_PENALTY 300.
+#define INDEL_PENALTY 10000.
+#define EARLY_MISS_PENALTY 3000.
 #define MAX_EARLY_MISSES 2
 
 #define MAX_AXLE_DIFFERENCE_OK 4
@@ -29,6 +29,7 @@ Align::~Align()
 void Align::NeedlemanWunsch(
   const vector<PeakPos>& refPeaks,
   const vector<PeakPos>& scaledPeaks,
+  const double peakScale,
   Alignment& alignment) const
 {
   // https://en.wikipedia.org/wiki/Needleman%E2%80%93Wunsch_algorithm
@@ -90,7 +91,7 @@ void Align::NeedlemanWunsch(
     for (unsigned j = 1; j < lt+1; j++)
     {
       const double d = refPeaks[i-1].pos - scaledPeaks[j-1].pos;
-      const double match = matrix[i-1][j-1].dist + d * d;
+      const double match = matrix[i-1][j-1].dist + peakScale * d * d;
       const double del = matrix[i-1][j].dist + INDEL_PENALTY;
       const double ins = matrix[i][j-1].dist + INDEL_PENALTY;
 
@@ -233,12 +234,16 @@ void Align::bestMatches(
 
     db.getPerfectPeaks(refTrainNo, refPeaks);
 
-    Align::scalePeaks(times, refPeaks.back().pos - refPeaks.front().pos,
-      scaledPeaks);
+    const double trainLength = refPeaks.back().pos - refPeaks.front().pos;
+    Align::scalePeaks(times, trainLength, scaledPeaks);
+
+    // Normalize the distance score to a 200m long train.
+    const double peakScale = 200. * 200. / (trainLength * trainLength);
 
     matches.push_back(Alignment());
     matches.back().trainNo = refTrainNo;
-    Align::NeedlemanWunsch(refPeaks, scaledPeaks, matches.back());
+    Align::NeedlemanWunsch(refPeaks, scaledPeaks, peakScale, 
+      matches.back());
   }
 
   sort(matches.begin(), matches.end());

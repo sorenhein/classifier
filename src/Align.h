@@ -26,6 +26,7 @@ class Align
     void NeedlemanWunsch(
         const vector<PeakPos>& refPeaks,
         const vector<PeakPos>& scaledPeaks,
+        const double peakScale,
         Alignment& alignment) const;
 
 
