@@ -26,7 +26,7 @@ Clusters::~Clusters()
 
 
 double Clusters::logVector(
-  const double * x, 
+  const vector<double>& x, 
   const unsigned l,
   const unsigned numClusters)
 {
@@ -145,13 +145,15 @@ double Clusters::log(
     xtemp[i] = (axles[i+1] - axles[i]) / 1000.; // In m
   sort(xtemp.begin(), xtemp.end());
 
+  /*
   double * x = static_cast<double *>(malloc(l * sizeof(double)));
   for (unsigned i = 0; i < l; i++)
     x[i] = xtemp[i];
+    */
 
   // Specific number of clusters.
-  const bool ret = Clusters::logVector(x, l, numClusters);
-  free(x);
+  const bool ret = Clusters::logVector(xtemp, l, numClusters);
+  // free(x);
   return ret;
 }
 
@@ -172,16 +174,18 @@ double Clusters::log(
     xtemp[i] = times[i+1].time - times[i].time;
   sort(xtemp.begin(), xtemp.end());
 
+  /*
   double * x = static_cast<double *>(malloc(l * sizeof(double)));
   for (unsigned i = 0; i < l; i++)
     x[i] = xtemp[i];
+    */
 
   double residuals;
   if (numClusters == 0)
-    residuals = Clusters::logVector(x, l, 0);
+    residuals = Clusters::logVector(xtemp, l, 0);
   else
-    residuals = Clusters::logVector(x, l, numClusters);
-  free(x);
+    residuals = Clusters::logVector(xtemp, l, numClusters);
+  // free(x);
   return residuals;
 }
 

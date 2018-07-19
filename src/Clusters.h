@@ -24,7 +24,7 @@ class Clusters
     vector<Cluster> clusters;
 
     double logVector(
-      const double * x,
+      const vector<double>& x,
       const unsigned l,
       const unsigned numClusters);
 

@@ -106,6 +106,8 @@
 #include <cassert>
 #include <cstring>
 
+using namespace std;
+
 
 bool compi(size_t i, size_t j);
 
@@ -128,20 +130,27 @@ size_t numberOfUnique(ForwardIterator first, ForwardIterator last)
   return nUnique;
 }
 
-static const double * px;
-bool compi(size_t i, size_t j)
+/*
+bool compi(const vector<double>& x, size_t i, size_t j)
 {
-  return px[i] < px[j];
+  return x[i] < x[j];
 }
+*/
 
-void kmeans_1d_dp(const double *x, const size_t N, const double *y,
-                  size_t Kmin, size_t Kmax,
-                  int* cluster, double* centers,
-                  double* withinss, double *size, // int* size,
-                  double* BIC,
-                  const std::string & estimate_k,
-                  const std::string & method,
-                  const enum DISSIMILARITY criterion)
+void kmeans_1d_dp(
+  const vector<double>& x, 
+  const size_t N, 
+  const double *y,
+  size_t Kmin, 
+  size_t Kmax,
+  int* cluster, 
+  double* centers,
+  double* withinss, 
+  double *size,
+  double* BIC,
+  const std::string & estimate_k,
+  const std::string & method,
+  const enum DISSIMILARITY criterion)
 {
   // Input:
   //  x -- an array of double precision numbers, not necessarily sorted
@@ -167,7 +176,8 @@ void kmeans_1d_dp(const double *x, const size_t N, const double *y,
     }
   }
 
-  std::vector<double> x_sorted(x, x+N);
+  // std::vector<double> x_sorted(x, x+N);
+  vector<double> x_sorted = x;
 
   std::vector<double> y_sorted;
   bool is_equally_weighted = true;
@@ -177,8 +187,8 @@ void kmeans_1d_dp(const double *x, const size_t N, const double *y,
 
     // Option 1.
     // Sorting using lambda function, not supported by all g++ versions:
-    // std::sort(order.begin(), order.end(),
-    //           [&](size_t i1, size_t i2) { return x[i1] < x[i2]; } );
+    sort(order.begin(), order.end(),
+      [&](size_t i1, size_t i2) { return x[i1] < x[i2]; } );
 
     /* Option 2. The following is not supported by C++98:
      struct CompareIndex {
@@ -191,8 +201,8 @@ void kmeans_1d_dp(const double *x, const size_t N, const double *y,
      */
 
     // Option 3:
-    px = x;
-    std::sort(order.begin(), order.end(), compi);
+    // px = x;
+    // std::sort(order.begin(), order.end(), compi);
 
     for(size_t i=0ul; i<order.size(); ++i) {
       x_sorted[i] = x[order[i]];
@@ -223,8 +233,8 @@ void kmeans_1d_dp(const double *x, const size_t N, const double *y,
 
   if(nUnique > 1) { // The case when not all elements are equal.
 
-    std::vector< std::vector< ldouble > > S( Kmax, std::vector<ldouble>(N) );
-    std::vector< std::vector< size_t > > J( Kmax, std::vector<size_t>(N) );
+    vector< vector< ldouble > > S( Kmax, vector<ldouble>(N) );
+    vector< vector< size_t > > J( Kmax, vector<size_t>(N) );
 
     size_t Kopt;
 

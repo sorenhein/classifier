@@ -1,73 +1,64 @@
 # --------------------- INFORMATION --------------------------------
 
-# This the Metapron3 Makefile for Windows and the Cygwin GNU g++
+# This the Makefile for Windows and the Microsoft Visual C++
 # compiler.  It assumes a Unix-like setup for some commands.
 
 INCL_SOURCE	= Makefiles/sources.txt
-INCL_DEPENDS	= Makefiles/depends_o.txt
+INCL_DEPENDS	= Makefiles/depends_obj.txt
 
-# If your compiler name is not given here, change it.
-CC		= g++
+# If your Microsoft compiler is not called cl, change it here.
+CC		= cl
+LINK		= link
 
 # We compile with aggressive warnings, but we have to turn off some
-# of them as they appear in libraries in great numbers...
+# of them as they appear in Windows libraries in great numbers...
 
-WARN_FLAGS	= 		\
-	-Wshadow 		\
-	-Wsign-conversion 	\
-	-pedantic -Wall -Wextra  \
-	-Wcast-align -Wcast-qual \
-	-Wctor-dtor-privacy 	\
-	-Wdisabled-optimization \
-	-Wformat=2 		\
-	-Winit-self 		\
-	-Wlogical-op 		\
-	-Wmissing-declarations 	\
-	-Wmissing-include-dirs 	\
-	-Wnoexcept 		\
-	-Wold-style-cast 	\
-	-Woverloaded-virtual 	\
-	-Wredundant-decls 	\
-	-Wsign-promo 		\
-	-Wstrict-null-sentinel 	\
-	-Wstrict-overflow=1 	\
-	-Wswitch-default -Wundef \
-	-Werror 		\
-	-Wno-unused 		\
-	-Wno-unknown-pragmas 	\
-	-Wno-long-long
+WARN_FLAGS	=		\
+	/Wall			\
+	/wd4365			\
+	/wd4464			\
+	/wd4514			\
+	/wd4555			\
+	/wd4571			\
+	/wd4623			\
+	/wd4625			\
+	/wd4626			\
+	/wd4668			\
+	/wd4710			\
+	/wd4711			\
+	/wd4774			\
+	/wd4820			\
+	/wd4996			\
+	/wd5026			\
+	/wd5027			\
+	/wd5045			\
+	/WX
 
-COMPILE_FLAGS	= -O3 -flto -fopenmp -mtune=generic -fno-use-linker-plugin \
-		$(WARN_FLAGS) 
+# If you don't have /std:c++17, you won't get THR_STLIMPL.
 
-LINK1_FLAGS	= -shared -fopenmp
+COMPILE_FLAGS	= /O2 /Oi /Ot /Oy /Ox /GL /EHs /Zi /std:c++17 $(WARN_FLAGS)
 
-LINK2_FLAGS	= 		\
-	-Wl,--subsystem,windows \
-	-Wl,--output-def,$(DLLBASE).def	\
-	-Wl,--dynamicbase 	\
-	-Wl,--nxcompat 		\
-	-Wl,--no-seh 		\
-	-Wl,--enable-stdcall-fixup 
+LINK_FLAGS1	= /LTCG /DEBUG
+
+TARGET		= driver
 
 include $(INCL_SOURCE)
 
-O_FILES 	= $(subst .cpp,.o,$(SOURCE_FILES))
+OBJ_FILES 	= $(subst .cpp,.obj,$(SOURCE_FILES))
 
-cygwin:	$(O_FILES)
-	$(CC) $(LINK1_FLAGS) $(O_FILES) \
-	$(LINK2_FLAGS) $(EXPORTER) -o driver
+vs:	$(OBJ_FILES)
+	$(LINK) $(LINK_FLAGS1) $(OBJ_FILES) /OUT:$(TARGET).exe
 
-%.o:	%.cpp
-	$(CC) $(COMPILE_FLAGS) -c $< -o $@
+%.obj:	%.cpp
+	$(CC) $(COMPILE_FLAGS) /c $< /Fo$@
 
 depend:
-	makedepend -Y -- $(SOURCE_FILES)
+	makedepend -Y -o.obj -- $(SOURCE_FILES)
 
 clean:
-	rm -f $(O_FILES) $(DLL) $(DLLBASE).{lib,def,exp,res}
+	rm -f $(OBJ_FILES) $(DLL) $(DLLBASE).{lib,exp,def,obj,res}
 
-# If you don't have a Linux-like setup, use "del" instead of "rm
+# If you don't have a Linux-like setup, use "del" instead of "rm"
 # and "copy" instead of "cp".
 
 include $(INCL_DEPENDS)
