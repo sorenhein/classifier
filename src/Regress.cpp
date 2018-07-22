@@ -60,6 +60,12 @@ void Regress::bestMatch(
 
   for (auto& ma: matches)
   {
+    if (ma.dist - ma.distMatch > bestAlign.dist)
+    {
+      // Can never best bestAlign.
+      continue;
+    }
+
     db.getPerfectPeaks(ma.trainNo, refPeaks);
     const unsigned lr = refPeaks.size();
     const double trainLength = refPeaks.back().pos - refPeaks.front().pos;
@@ -88,7 +94,6 @@ void Regress::bestMatch(
 
     // Normalize the distance score to a 200m long train.
     const double peakScale = 200. * 200. / (trainLength * trainLength);
-    // TODO Must get actual residuals;
     const double residuals = peakScale * 
       Regress::residuals(x, y, coeffs);
 

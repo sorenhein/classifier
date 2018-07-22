@@ -181,3 +181,9 @@ void Stats::printDetailsCSV(const string& fname) const
   fout.close();
 }
 
+
+void Stats::printQuality() const
+{
+  statCross.printQuality();
+}
+

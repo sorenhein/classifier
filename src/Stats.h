@@ -50,6 +50,8 @@ class Stats
     void printOverviewCSV(const string& fname) const;
 
     void printDetailsCSV(const string& fname) const;
+
+    void printQuality() const;
 };
 
 #endif

@@ -1,10 +1,5 @@
 2018-07-17
 ----------
-Make dist-related error relative to a 200m train in Align.
-Improve acceleration estimate by correcting for tmid.
-
-Stop regress when it's hopeless to improve.
-
 * Attempt to allow random deletions and insertions (a few)
 
 * Some _N and _R trains are almost impossible to separate
@@ -13,7 +8,7 @@ Stop regress when it's hopeless to improve.
   - ICE1_old_CHE_56 ditto? [delete?]
   - ICE4_DEU_28 and ICET_DEU_28 have extremely similar ratios
 
-* output/* not working at the moment?
+* In doc, make the comments from Train axles.xlsx
 
 * Files to finish:
   SynthTrain cpp and h
@@ -28,8 +23,6 @@ Mac gcc
 Mac clang
 Linux
 
-Fix TODO's.
-
 Overall algorithm
 -----------------
 
@@ -38,6 +31,8 @@ Overall algorithm
   - Maybe force to 0.
   - Find envelope.
   - Detect peak positions.
+
+* Or some kind of zero-crossing detector
 
 * Then run the train matcher.
 

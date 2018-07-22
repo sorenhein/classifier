@@ -34,24 +34,18 @@ int main(int argc, char * argv[])
   Align align;
   Regress regress;
 
+  vector<PeakPos> perfectPositions;
   vector<PeakTime> synthTimes;
-  const unsigned order = 2;
+  vector<Alignment> matchesAlign;
+  Alignment bestAlign;
   
-  vector<double> motionActual;
-  motionActual.resize(order+1);
+  const unsigned order = 2;
+  vector<double> motionActual(order+1);
+  vector<double> motionEstimate(order+1);
   motionActual[0] = 0.; // Offset in m
 
-  vector<double> motionEstimate;
-  motionEstimate.resize(order+1);
-
   Stats stats;
-  StatCross statCross;
-  StatCross statCross2;
-  StatCross statCross3;
-  Timer timer1, timer2, timer3, timer4;
-
-int countAll = 0;
-int countBad = 0;
+  Timer timerSynth, timerAlign, timerRegress;
 
 /*
 vector<PeakPos> tmppos;
@@ -81,7 +75,6 @@ bool errFlag = false;
     }
     const unsigned trainNo = static_cast<unsigned>(trainNoI);
 
-    vector<PeakPos> perfectPositions;
     if (! db.getPerfectPeaks(trainName, perfectPositions))
       cout << "Bad perfect positions" << endl;
 // cout << "Input positions " << trainName << "\n";
@@ -101,57 +94,33 @@ bool errFlag = false;
 
         for (int no = 0; no < control.simCount; no++)
         {
-          timer1.start();
-
+          timerSynth.start();
           if (! synth.disturb(perfectPositions, disturb, synthTimes, 
             0., speed, accel))
           {
             continue;
           }
+          timerSynth.stop();
 
-          timer1.stop();
-
-          vector<Alignment> matchesAlign;
-
-          timer2.start();
+          timerAlign.start();
           align.bestMatches(synthTimes, db, trainNo, 10, matchesAlign);
-          timer2.stop();
-bool found = false;
-for (unsigned i = 0; ! found && i < matchesAlign.size(); i++)
-{
-  if (matchesAlign[i].trainNo == trainNo)
-    found = true;
-}
-countAll++;
-if (! found)
-  countBad++;
-
-
-          // Take anything with a reasonable range of the best few
-          // and regress these rigorously.
-          // As soon as the indel's alone exceed the distance, we
-          // can drop these.  We can use that to prune matchesAlign.
+          timerAlign.stop();
 
           if (matchesAlign.size() == 0)
           {
-            // TODO If we eliminate clusters, then this can't happen
-            // anymore which would be the right thing.  For now.
-            statCross2.log(trainName, "UNKNOWN");
-cout << "UNKNOWN\n";
+            stats.log(trainName, motionActual,
+              "UNKNOWN", motionActual, 0.);
             continue;
           }
 
-          statCross2.log(trainName, 
-            db.lookupTrainName(matchesAlign[0].trainNo));
-
-          Alignment bestAlign;
-          timer4.start();
+          timerRegress.start();
           regress.bestMatch(synthTimes, db, order,
             matchesAlign, bestAlign, motionEstimate);
-          timer4.stop();
+          timerRegress.stop();
 
-          statCross3.log(trainName, 
-            db.lookupTrainName(bestAlign.trainNo));
+          stats.log(trainName, motionActual,
+            db.lookupTrainName(bestAlign.trainNo),
+            motionEstimate, bestAlign.distMatch);
 
 /*
 if (! errFlag && trainName == "ICE4_DEU_28_N" && bestAlign.trainNo == 14)
@@ -162,33 +131,20 @@ cout << "Input positions " << "ICET_DEU_28_N" << "\n";
 printPeakTimeCSV(synthTimes, 3);
 }
 */
-          double residuals = 0.;
-          // TODO: Calculate residuals, or find them in code
-          stats.log(trainName, motionActual,
-            trainName, motionEstimate, residuals);
         }
       }
     }
   }
 
-cout << "Count " << countAll << endl;
-cout << "Bad   " << countBad << endl;
-
-  statCross.printCountCSV("classify.csv");
-  statCross2.printCountCSV("classify2.csv");
-  statCross3.printCountCSV("classify3.csv");
-  statCross3.printQuality();
-
   stats.printCrossCountCSV(control.crossCountFile);
   stats.printCrossPercentCSV(control.crossPercentFile);
   stats.printOverviewCSV(control.overviewFile);
   stats.printDetailsCSV(control.detailFile);
+  stats.printQuality();
 
-
-  cout << "Time synth   " << timer1.str(2) << endl;
-  cout << "Time match   " << timer2.str(2) << endl;
-  cout << "Time regress " << timer4.str(2) << endl;
-
+  cout << "Time synth   " << timerSynth.str(2) << endl;
+  cout << "Time align   " << timerAlign.str(2) << endl;
+  cout << "Time regress " << timerRegress.str(2) << endl;
 }
 
 

@@ -221,6 +221,7 @@ void Align::bestMatches(
   vector<Alignment>& matches) const
 {
   vector<PeakPos> refPeaks, scaledPeaks;
+  matches.clear();
 
   for (auto& refTrain: db)
   {
