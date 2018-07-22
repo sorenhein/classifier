@@ -41,17 +41,20 @@ void fill_row_q_log_linear(int imin, int imax, int q,
     return;
   }
 
-  const int N = (int) S[0].size();
+  const unsigned qu = static_cast<unsigned>(q);
+
+  const int N = static_cast<int>(S[0].size());
 
   int i = (imin + imax) / 2;
+  const unsigned iu = static_cast<unsigned>(i);
 
 #ifdef DEBUG
   // std::cout << "  i=" << i << ": ";
 #endif
 
   // Initialization of S[q][i]:
-  S[q][i] = S[q - 1][i - 1];
-  J[q][i] = i;
+  S[qu][iu] = S[qu - 1][iu - 1];
+  J[qu][iu] = iu;
 
   int jlow=q; // the lower end for j
 
@@ -59,7 +62,8 @@ void fill_row_q_log_linear(int imin, int imax, int q,
     // jlow = std::max(jlow, (int)J[q][imin-1]);
     jlow = std::max(jlow, jmin);
   }
-  jlow = std::max(jlow, (int)J[q-1][i]);
+  jlow = std::max(jlow, static_cast<int>(J[qu-1][iu]));
+  const unsigned jlowu = static_cast<unsigned>(jlow);
 
   int jhigh = i - 1; // the upper end for j
   if(imax < N-1) {
@@ -72,32 +76,33 @@ void fill_row_q_log_linear(int imin, int imax, int q,
 #endif
 
   for(int j=jhigh; j>=jlow; --j) {
+    const unsigned ju = static_cast<unsigned>(j);
 
     // compute s(j,i)
-    ldouble sji = ssq(j, i, sum_x, sum_x_sq, sum_w);
+    ldouble sji = ssq(ju, iu, sum_x, sum_x_sq, sum_w);
 
     // MS May 11, 2016 Added:
-    if(sji + S[q-1][jlow-1] >= S[q][i]) break;
+    if(sji + S[qu-1][jlowu-1] >= S[qu][iu]) break;
 
     // Examine the lower bound of the cluster border
     // compute s(jlow, i)
     ldouble sjlowi =
-      dissimilarity(criterion, jlow, i, sum_x, sum_x_sq, sum_w, sum_w_sq);
+      dissimilarity(criterion, jlowu, iu, sum_x, sum_x_sq, sum_w, sum_w_sq);
       // ssq(jlow, i, sum_x, sum_x_sq, sum_w);
 
-    ldouble SSQ_jlow = sjlowi + S[q-1][jlow-1];
+    ldouble SSQ_jlow = static_cast<ldouble>(sjlowi + S[qu-1][jlowu-1]);
 
-    if(SSQ_jlow < S[q][i]) {
+    if(SSQ_jlow < S[qu][iu]) {
       // shrink the lower bound
-      S[q][i] = SSQ_jlow;
-      J[q][i] = jlow;
+      S[qu][iu] = SSQ_jlow;
+      J[qu][iu] = static_cast<unsigned>(jlow);
     }
     jlow ++;
 
-    ldouble SSQ_j = sji + S[q - 1][j - 1];
-    if(SSQ_j < S[q][i]) {
-      S[q][i] = SSQ_j;
-      J[q][i] = j;
+    ldouble SSQ_j = sji + S[qu - 1][ju - 1];
+    if(SSQ_j < S[qu][iu]) {
+      S[qu][iu] = SSQ_j;
+      J[qu][iu] = ju;
     }
   }
 
@@ -107,15 +112,15 @@ void fill_row_q_log_linear(int imin, int imax, int q,
   //std::cout << std::endl;
 #endif
 
-  jmin = (imin > q) ? (int)J[q][imin-1] : q;
-  jmax = (int)J[q][i];
+  jmin = (imin > q) ? static_cast<int>(J[qu][static_cast<unsigned>(imin-1)]) : q;
+  jmax = static_cast<int>(J[qu][iu]);
 
   fill_row_q_log_linear(imin, i-1, q, jmin, jmax,
                         S, J, sum_x, sum_x_sq, sum_w,
                         sum_w_sq, criterion);
 
-  jmin = (int)J[q][i];
-  jmax = (imax < N-1) ? (int)J[q][imax+1] : imax;
+  jmin = static_cast<int>(J[qu][iu]);
+  jmax = (imax < N-1) ? static_cast<int>(J[qu][static_cast<unsigned>(imax+1)]) : imax;
   fill_row_q_log_linear(i+1, imax, q, jmin, jmax,
                         S, J, sum_x, sum_x_sq, sum_w,
                         sum_w_sq, criterion);

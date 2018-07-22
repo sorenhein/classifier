@@ -1,16 +1,9 @@
 2018-07-17
 ----------
+Make dist-related error relative to a 200m train in Align.
+Improve acceleration estimate by correcting for tmid.
 
-Optimize a bit: The copying around the clusters.
 Stop regress when it's hopeless to improve.
-
-Time synth 4435.66 ms sum, 0.01 ms average
-Time cluster 82618.97 ms sum, 0.13 ms average
-Time match 40798.61 ms sum, 0.06 ms average
-Time regress 41183.27 ms sum, 0.07 ms average
-
-Get the last 300 from the big run (cluster)?
-Increase penalty for indels?
 
 * Attempt to allow random deletions and insertions (a few)
 
@@ -24,10 +17,16 @@ Increase penalty for indels?
 
 * Files to finish:
   SynthTrain cpp and h
-  Clusters: Avoid the malloc, fix the clustering directly
   driver.cpp
 
-Try on Mac, Linux, gcc
+* Delete Clusters (stash it in some other project?)
+
+Visual          OK
+mingw           OK
+gcc
+Mac gcc
+Mac clang
+Linux
 
 Fix TODO's.
 

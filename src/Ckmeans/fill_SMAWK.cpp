@@ -49,9 +49,32 @@ void reduce_in_place(int imin, int imax, int istep, int q,
                      const std::vector<ldouble> & sum_x_sq,
                      const std::vector<ldouble> & sum_w,
                      const std::vector<ldouble> & sum_w_sq,
+                     const enum DISSIMILARITY criterion);
+
+void SMAWK
+  (int imin, int imax, int istep, int q,
+   const std::vector<size_t> & js,
+   std::vector< std::vector<ldouble> > & S,
+   std::vector< std::vector<size_t> > & J,
+   const std::vector<ldouble> & sum_x,
+   const std::vector<ldouble> & sum_x_sq,
+   const std::vector<ldouble> & sum_w,
+   const std::vector<ldouble> & sum_w_sq,
+   const enum DISSIMILARITY criterion);
+
+void reduce_in_place(int imin, int imax, int istep, int q,
+                     const std::vector<size_t> & js,
+                     std::vector<size_t> & js_red,
+                     const std::vector< std::vector<ldouble> > & S,
+                     const std::vector< std::vector<size_t> > & J,
+                     const std::vector<ldouble> & sum_x,
+                     const std::vector<ldouble> & sum_x_sq,
+                     const std::vector<ldouble> & sum_w,
+                     const std::vector<ldouble> & sum_w_sq,
                      const enum DISSIMILARITY criterion)
 {
   UNUSED(J);
+  const unsigned qu = static_cast<unsigned>(q);
 
   int N = (imax - imin) / istep + 1;
   const unsigned Nst = static_cast<unsigned>(N);
@@ -72,28 +95,29 @@ void reduce_in_place(int imin, int imax, int istep, int q,
 
     int p = (left + 1);
 
-    int i = (imin + p * istep);
-    size_t j = (js_red[right]);
-    ldouble Sl = (S[q-1][j-1] +
+    unsigned i = static_cast<unsigned>(imin + p * istep);
+    size_t j = (js_red[static_cast<unsigned>(right)]);
+    ldouble Sl = (S[qu-1][j-1] +
       dissimilarity(criterion, j, i, sum_x, sum_x_sq, sum_w, sum_w_sq));
       // ssq(j, i, sum_x, sum_x_sq, sum_w));
 
-    size_t jplus1 = (js_red[right+1]);
-    ldouble Slplus1 = (S[q-1][jplus1-1] +
+    size_t jplus1 = (js_red[static_cast<unsigned>(right+1)]);
+    ldouble Slplus1 = (S[qu-1][jplus1-1] +
       dissimilarity(criterion, jplus1, i, sum_x, sum_x_sq, sum_w, sum_w_sq));
       // ssq(jplus1, i, sum_x, sum_x_sq, sum_w));
 
     if(Sl < Slplus1 && p < N-1) {
-      js_red[ ++ left ] = j; // i += istep;
+      js_red[static_cast<unsigned>( ++ left) ] = j; // i += istep;
       right ++; // move on to next position / column p+1
     } else if(Sl < Slplus1 && p == N-1) {
-      js_red[ ++ right ] = j; // delete position / column p+1
+      js_red[static_cast<unsigned>( ++ right) ] = j; // delete position / column p+1
       m --;
     } else { // (Sl >= Slplus1)
       if(p > 0) { // i > imin
         // delete position / column p and
         //   move back to previous position / column p-1:
-        js_red[right] = js_red[left --];
+        js_red[static_cast<unsigned>(right)] = 
+          js_red[static_cast<unsigned>(left --)];
         // p --; // i -= istep;
       } else {
         right ++; // delete position / column 0
@@ -102,8 +126,8 @@ void reduce_in_place(int imin, int imax, int istep, int q,
     }
   }
 
-  for(int r=(left+1); r < static_cast<int>(m); ++r) {
-    js_red[r] = js_red[right++];
+  for(unsigned r=static_cast<unsigned>(left+1); r < m; ++r) {
+    js_red[r] = js_red[static_cast<unsigned>(right++)];
   }
 
   js_red.resize(m);
@@ -121,11 +145,12 @@ inline void fill_even_positions
    const std::vector<ldouble> & sum_w_sq,
    const enum DISSIMILARITY criterion)
 {
+  const unsigned qu = static_cast<unsigned>(q);
   // Derive j for even rows (0-based)
   size_t n = (js.size());
-  int istepx2 = (istep << 1);
+  unsigned istepx2 = (static_cast<unsigned>(istep) << 1);
   size_t jl = (js[0]);
-  for(int i=(imin), r(0); i<=imax; i+=istepx2) {
+  for(unsigned i=static_cast<unsigned>(imin), r(0); i<=static_cast<unsigned>(imax); i+=istepx2) {
 
     // auto jmin = (i == imin) ? js[0] : J[q][i - istep];
 
@@ -135,39 +160,39 @@ inline void fill_even_positions
     }
 
     // Initialize S[q][i] and J[q][i]
-    S[q][i] = S[q-1][js[r]-1] +
+    S[qu][i] = S[qu-1][js[r]-1] +
       dissimilarity(criterion, js[r], i, sum_x, sum_x_sq, sum_w, sum_w_sq);
       // ssq(js[r], i, sum_x, sum_x_sq, sum_w);
-    J[q][i] = js[r]; // rmin
+    J[qu][i] = js[r]; // rmin
 
     // Look for minimum S upto jmax within js
-    int jh = (i + istep <= imax)
-      ? J[q][i + istep] : js[n-1];
+    unsigned jh = (static_cast<int>(i) + istep <= imax)
+      ? J[qu][i + static_cast<unsigned>(istep)] : js[n-1];
 
-    int jmax = std::min((int)jh, (int)i);
+    unsigned jmax = std::min(jh, i);
 
     ldouble sjimin(
         dissimilarity(criterion, jmax, i, sum_x, sum_x_sq, sum_w, sum_w_sq)
         // ssq(jmax, i, sum_x, sum_x_sq, sum_w)
       );
 
-    for(++ r; r < static_cast<int>(n) && static_cast<int>(js[r])<=jmax; r++) {
+    for(++ r; r < n && js[r]<=jmax; r++) {
 
       const size_t & jabs = js[r];
 
-      if(static_cast<int>(jabs) > i) break;
+      if(jabs > i) break;
 
-      if(jabs < J[q-1][i]) continue;
+      if(jabs < J[qu-1][i]) continue;
 
       ldouble s =
         dissimilarity(criterion, jabs, i, sum_x, sum_x_sq, sum_w, sum_w_sq);
         // (ssq(jabs, i, sum_x, sum_x_sq, sum_w));
-      ldouble Sj = (S[q-1][jabs-1] + s);
+      ldouble Sj = (S[qu-1][jabs-1] + s);
 
-      if(Sj <= S[q][i]) {
-        S[q][i] = Sj;
-        J[q][i] = js[r];
-      } else if(S[q-1][jabs-1] + sjimin > S[q][i]) {
+      if(Sj <= S[qu][i]) {
+        S[qu][i] = Sj;
+        J[qu][i] = js[r];
+      } else if(S[qu-1][jabs-1] + sjimin > S[qu][i]) {
         break;
       } /*else if(S[q-1][js[rmin]-1] + s > S[q][i]) {
  break;
@@ -190,30 +215,31 @@ inline void find_min_from_candidates
    const enum DISSIMILARITY criterion)
 {
   size_t rmin_prev = (0);
+  const unsigned qu = static_cast<unsigned>(q);
 
-  for(int i=(imin); i<=imax; i+=istep) {
+  for(unsigned i=static_cast<unsigned>(imin); i<=static_cast<unsigned>(imax); i+=static_cast<unsigned>(istep)) {
 
     size_t rmin = (rmin_prev);
 
     // Initialization of S[q][i] and J[q][i]
-    S[q][i] = S[q-1][js[rmin] - 1] +
+    S[qu][i] = S[qu-1][js[rmin] - 1] +
       dissimilarity(criterion, js[rmin], i, sum_x, sum_x_sq, sum_w, sum_w_sq);
       // ssq(js[rmin], i, sum_x, sum_x_sq, sum_w);
-    J[q][i] = js[rmin];
+    J[qu][i] = js[rmin];
 
     for(size_t r = (rmin+1); r<js.size(); ++r) {
 
       const size_t & j_abs = (js[r]);
 
-      if(j_abs < J[q-1][i]) continue;
-      if(static_cast<int>(j_abs) > i) break;
+      if(j_abs < J[qu-1][i]) continue;
+      if(j_abs > i) break;
 
-      ldouble Sj = (S[q-1][j_abs - 1] +
+      ldouble Sj = (S[qu-1][j_abs - 1] +
         dissimilarity(criterion, j_abs, i, sum_x, sum_x_sq, sum_w, sum_w_sq));
         // ssq(j_abs, i, sum_x, sum_x_sq, sum_w));
-      if(Sj <= S[q][i]) {
-        S[q][i] = Sj;
-        J[q][i] = js[r];
+      if(Sj <= S[qu][i]) {
+        S[qu][i] = Sj;
+        J[qu][i] = js[r];
         rmin_prev = r;
       }
     }
@@ -302,8 +328,9 @@ void fill_row_q_SMAWK(int imin, int imax, int q,
                       const enum DISSIMILARITY criterion)
 {
   // Assumption: each cluster must have at least one point.
+  const unsigned qu = static_cast<unsigned>(q);
 
-  std::vector<size_t> js(imax-q+1);
+  std::vector<size_t> js(static_cast<unsigned>(imax)-qu+1);
   int abs = (q);
   std::generate(js.begin(), js.end(), [&] { return abs++; } );
 

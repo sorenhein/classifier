@@ -38,20 +38,23 @@ void fill_row_q(int imin, int imax, int q,
                 const std::vector<ldouble> & sum_w_sq,
                 const enum DISSIMILARITY criterion)
 {
+  const unsigned qu = static_cast<unsigned>(q);
   // Assumption: each cluster must have at least one point.
-  for(int i=imin; i<=imax; ++i) {
-    S[q][i] = S[q-1][i-1];
-    J[q][i] = i;
-    int jmin = std::max(q, (int)J[q-1][i]);
-    for(int j=i-1; j>=jmin; --j) {
-      ldouble Sj(S[q-1][j-1] +
-        dissimilarity(criterion, j, i, sum_x, sum_x_sq, sum_w, sum_w_sq)
+  for(unsigned i=static_cast<unsigned>(imin); 
+      i<=static_cast<unsigned>(imax); ++i) {
+    S[qu][i] = S[qu-1][i-1];
+    J[qu][i] = i;
+    int jmin = std::max(q, static_cast<int>(J[qu-1][i]));
+    for(int j=static_cast<int>(i)-1; j>=jmin; --j) {
+      const unsigned ju = static_cast<unsigned>(j);
+      ldouble Sj(S[qu-1][ju-1] +
+        dissimilarity(criterion, ju, i, sum_x, sum_x_sq, sum_w, sum_w_sq)
                    // ssq(j, i, sum_x, sum_x_sq, sum_w)
       );
 
-      if(Sj < S[q][i]) {
-        S[q][i] = Sj;
-        J[q][i] = j;
+      if(Sj < S[qu][i]) {
+        S[qu][i] = Sj;
+        J[qu][i] = ju;
       }
     }
   }

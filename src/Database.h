@@ -112,6 +112,8 @@ class Database
 
     list<string>::iterator end() {return selectedTrains.end(); }
 
+    unsigned axleCount(const unsigned trainNo) const;
+
     bool getPerfectPeaks(
       const string& trainName,
       vector<PeakPos>& peaks) const; // In mm

@@ -44,6 +44,8 @@ class StatCross
     void printCountCSV(const string& fname) const;
 
     void printPercentCSV(const string& fname) const;
+
+    void printQuality() const;
 };
 
 #endif

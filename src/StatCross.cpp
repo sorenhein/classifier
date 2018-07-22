@@ -133,3 +133,57 @@ void StatCross::printPercentCSV(const string& fname) const
   fout.close();
 }
 
+
+void StatCross::printQuality() const
+{
+  // The second one counts train_N and train_R as the same.
+  unsigned numAll = 0;
+  unsigned numPerfect = 0;
+  unsigned numUndirected = 0;
+
+  for (auto& it: nameMap)
+  {
+    const unsigned i = it.second;
+    numPerfect += countCross[i][i];
+    numUndirected += countCross[i][i];
+
+    for (auto& it2: nameMap)
+    {
+      const unsigned j = it2.second;
+      numAll += countCross[i][j];
+    }
+
+    const string n = it.first;
+    const unsigned l = n.size();
+    if (l <= 2)
+      continue;
+    const string s = n.substr(l-2);
+    string rev = n.substr(0, l-2);
+    if (s == "_N")
+      rev += "_R";
+    else if (s == "_R")
+      rev += "_N";
+    else
+      continue;
+
+    auto itr = nameMap.find(rev);
+    if (itr == nameMap.end())
+      continue;
+
+    const unsigned j = itr->second;
+    numUndirected += countCross[i][j];
+  }
+
+  if (numAll == 0)
+    return;
+
+  cout << setw(20) << left << "Perfect matches" << 
+    setw(8) << numPerfect << 
+    setw(8) << right << fixed << setprecision(2) <<
+    100. * numPerfect / numAll << "%" << endl;
+  cout << setw(20) << left << "Undirected matches" << 
+    setw(8) << numUndirected << 
+    setw(8) << right << fixed << setprecision(2) <<
+    100. * numUndirected / numAll << "%" << endl;
+}
+

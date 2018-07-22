@@ -32,6 +32,9 @@
 
 #include "within_cluster.h"
 
+using namespace std;
+
+
 void fill_dp_matrix(
     const std::vector<double> & x,
     const std::vector<double> & w,
@@ -99,11 +102,15 @@ void fill_row_q_log_linear(
 /* x is input one-dimensional vector and
  Kmin and Kmax stand for the range for the number of clusters*/
 void kmeans_1d_dp(
-    const double *x, const size_t N,
+    const vector<double>& x, 
+    const size_t N,
     const double * y,
-    size_t Kmin, size_t Kmax,
-    int* cluster, double* centers,
-    double* withinss, double * size, // int* size,
+    size_t Kmin, 
+    size_t Kmax,
+    int* cluster, 
+    double* centers,
+    double* withinss, 
+    double * size,
     double* BIC,
     const std::string & estimate_k,
     const std::string & method,

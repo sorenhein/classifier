@@ -48,15 +48,16 @@ void fill_dp_matrix(const std::vector<double> & x, // data
    NOTE: All vector indices in this program start at position 0
    */
 {
-  const int K = (int) S.size();
-  const int N = (int) S[0].size();
+  const int K = static_cast<int>(S.size());
+  const unsigned Nu = S[0].size();
+  const int N = static_cast<int>(Nu);
 
-  std::vector<ldouble> sum_x(N), sum_x_sq(N);
+  std::vector<ldouble> sum_x(Nu), sum_x_sq(Nu);
   std::vector<ldouble> sum_w(w.size()), sum_w_sq(w.size());
 
   std::vector<int> jseq;
 
-  ldouble shift = x[N/2]; // median. used to shift the values of x to
+  ldouble shift = x[Nu/2]; // median. used to shift the values of x to
   //  improve numerical stability
 
   if(w.empty()) { // equally weighted
@@ -72,7 +73,7 @@ void fill_dp_matrix(const std::vector<double> & x, // data
   S[0][0] = 0;
   J[0][0] = 0;
 
-  for(int i = 1; i < N; ++i) {
+  for(unsigned i = 1; i < Nu; ++i) {
 
     if(w.empty()) { // equally weighted
       sum_x[i] = sum_x[i-1] + x[i] - shift;
@@ -166,8 +167,9 @@ void backtrack(const std::vector<double> & x,
   size_t cluster_left;
 
   // Backtrack the clusters from the dynamic programming matrix
-  for(int q = ((int)K)-1; q >= 0; --q) {
-    cluster_left = J[q][cluster_right];
+  for(int q = static_cast<int>(K)-1; q >= 0; --q) {
+    const unsigned qu = static_cast<unsigned>(q);
+    cluster_left = J[qu][cluster_right];
 
     for(size_t i = cluster_left; i <= cluster_right; ++i)
       cluster[i] = q;
@@ -177,12 +179,12 @@ void backtrack(const std::vector<double> & x,
     for(size_t i = cluster_left; i <= cluster_right; ++i)
       sum += x[i];
 
-    centers[q] = sum / (cluster_right-cluster_left+1);
+    centers[qu] = sum / (cluster_right-cluster_left+1);
 
     for(size_t i = cluster_left; i <= cluster_right; ++i)
-      withinss[q] += (x[i] - centers[q]) * (x[i] - centers[q]);
+      withinss[qu] += (x[i] - centers[q]) * (x[i] - centers[q]);
 
-    count[q] = (int) (cluster_right - cluster_left + 1);
+    count[qu] = static_cast<int>(cluster_right - cluster_left + 1);
 
     if(q > 0) {
       cluster_right = cluster_left - 1;
@@ -201,18 +203,19 @@ void backtrack_L1(const std::vector<double> & x,
   size_t cluster_left;
 
   // Backtrack the clusters from the dynamic programming matrix
-  for(int q = ((int)K)-1; q >= 0; --q) {
-    cluster_left = J[q][cluster_right];
+  for(int q = static_cast<int>(K)-1; q >= 0; --q) {
+    const unsigned qu = static_cast<unsigned>(q);
+    cluster_left = J[qu][cluster_right];
 
     for(size_t i = cluster_left; i <= cluster_right; ++i)
       cluster[i] = q;
 
-    centers[q] = x[(cluster_right+cluster_left) >> 1];
+    centers[qu] = x[(cluster_right+cluster_left) >> 1];
 
     for(size_t i = cluster_left; i <= cluster_right; ++i)
-      withinss[q] += std::fabs(x[i] - centers[q]);
+      withinss[qu] += std::fabs(x[i] - centers[q]);
 
-    count[q] = (int) (cluster_right - cluster_left + 1);
+    count[qu] = static_cast<int>(cluster_right - cluster_left + 1);
 
     if(q > 0) {
       cluster_right = cluster_left - 1;
@@ -231,8 +234,9 @@ void backtrack_L2Y(const std::vector<double> & x, const std::vector<double> & y,
   size_t cluster_left;
 
   // Backtrack the clusters from the dynamic programming matrix
-  for(int q = ((int)K)-1; q >= 0; --q) {
-    cluster_left = J[q][cluster_right];
+  for(int q = static_cast<int>(K)-1; q >= 0; --q) {
+    const unsigned qu = static_cast<unsigned>(q);
+    cluster_left = J[qu][cluster_right];
 
     for(size_t i = cluster_left; i <= cluster_right; ++i)
       cluster[i] = q;
@@ -245,14 +249,14 @@ void backtrack_L2Y(const std::vector<double> & x, const std::vector<double> & y,
       sum_y += y[i];
     }
 
-    centers[q] = sum / (cluster_right-cluster_left+1);
+    centers[qu] = sum / (cluster_right-cluster_left+1);
 
     double mean_y = sum_y / (cluster_right-cluster_left+1);
 
     for(size_t i = cluster_left; i <= cluster_right; ++i)
-      withinss[q] += (y[i] - mean_y) * (y[i] - mean_y);
+      withinss[qu] += (y[i] - mean_y) * (y[i] - mean_y);
 
-    count[q] = (int) (cluster_right - cluster_left + 1);
+    count[qu] = static_cast<int>(cluster_right - cluster_left + 1);
 
     if(q > 0) {
       cluster_right = cluster_left - 1;
@@ -275,8 +279,9 @@ void backtrack(const std::vector<double> & x,
 
   // Backtrack the clusters from the dynamic programming matrix
   for(int q = K-1; q >= 0; --q) {
-    cluster_left = J[q][cluster_right];
-    count[q] = cluster_right - cluster_left + 1;
+    const unsigned qu = static_cast<unsigned>(q);
+    cluster_left = J[qu][cluster_right];
+    count[qu] = cluster_right - cluster_left + 1;
     if(q > 0) {
       cluster_right = cluster_left - 1;
     }
@@ -288,14 +293,15 @@ void backtrack_weighted(const std::vector<double> & x, const std::vector<double>
                         int* cluster, double* centers, double* withinss,
                         double * weights /*int* weights*/ )
 {
-  const int K = (int) J.size();
+  const int K = static_cast<int>(J.size());
   const size_t N = J[0].size();
   size_t cluster_right = N-1;
   size_t cluster_left;
 
   // Backtrack the clusters from the dynamic programming matrix
   for(int k = K-1; k >= 0; --k) {
-    cluster_left = J[k][cluster_right];
+    const unsigned ku = static_cast<unsigned>(k);
+    cluster_left = J[ku][cluster_right];
 
     for(size_t i = cluster_left; i <= cluster_right; ++i)
       cluster[i] = k;
@@ -336,12 +342,13 @@ void backtrack_weighted(
 
   // Backtrack the clusters from the dynamic programming matrix
   for(int k = K-1; k >= 0; --k) {
-    cluster_left = J[k][cluster_right];
-    counts[k] = cluster_right - cluster_left + 1;
+    const unsigned ku = static_cast<unsigned>(k);
+    cluster_left = J[ku][cluster_right];
+    counts[ku] = cluster_right - cluster_left + 1;
 
-    weights[k] = 0;
+    weights[ku] = 0;
     for(size_t i = cluster_left; i <= cluster_right; ++i) {
-      weights[k] += y[i];
+      weights[ku] += y[i];
     }
 
     if(k > 0) {

@@ -39,6 +39,15 @@ const double M_PI = 3.14159265359;
 void shifted_data_variance(const std::vector<double> & x,
                            const size_t left,
                            const size_t right,
+                           double & mean, double & variance);
+
+size_t select_levels_3_4_13(const std::vector<double> & x,
+                     const std::vector< std::vector< size_t > > & J,
+                     size_t Kmin, size_t Kmax);
+
+void shifted_data_variance(const std::vector<double> & x,
+                           const size_t left,
+                           const size_t right,
                            double & mean, double & variance)
 {
   double sum = 0.0;
@@ -120,13 +129,13 @@ size_t select_levels(const std::vector<double> & x,
     std::vector<size_t> size(K);
 
     // Backtrack the matrix to determine boundaries between the bins.
-    backtrack(x, J, size, (int)K);
+    backtrack(x, J, size, static_cast<int>(K));
 
     size_t indexLeft = 0;
     size_t indexRight;
 
     for (size_t k = 0; k < K; ++k) { // Estimate GMM parameters first
-      lambda[k] = size[k] / (double) N;
+      lambda[k] = size[k] / static_cast<double>(N);
 
       indexRight = indexLeft + size[k] - 1;
 
@@ -173,7 +182,7 @@ size_t select_levels(const std::vector<double> & x,
     double & bic = BIC[K-Kmin];
 
     // Compute the Bayesian information criterion
-    bic = 2 * loglikelihood - (3 * K - 1) * std::log((double)N);  //(K*3-1)
+    bic = 2 * loglikelihood - (3 * K - 1) * std::log(static_cast<double>(N));  //(K*3-1)
 
     // std::cout << "k=" << K << ": Loglh=" << loglikelihood << ", BIC=" << BIC << std::endl;
 
@@ -216,7 +225,7 @@ size_t select_levels_3_4_13(const std::vector<double> & x,
     std::vector<size_t> size(K);
 
     // Backtrack the matrix to determine boundaries between the bins.
-    backtrack(x, J, size, (int)K);
+    backtrack(x, J, size, static_cast<int>(K));
 
     size_t indexLeft = 0;
     size_t indexRight;
@@ -240,7 +249,7 @@ size_t select_levels_3_4_13(const std::vector<double> & x,
         loglikelihood += - (x[i] - mean) * (x[i] - mean) / (2.0 * variance);
       }
 
-      loglikelihood += numPointsInBin * (std::log(numPointsInBin / (double) N)
+      loglikelihood += numPointsInBin * (std::log(numPointsInBin / static_cast<double>(N))
                                            - 0.5 * std::log ( 2.0 * M_PI * variance));
 
       indexLeft = indexRight + 1;
@@ -249,7 +258,7 @@ size_t select_levels_3_4_13(const std::vector<double> & x,
     long double BIC = 0.0;
 
     // Compute the Bayesian information criterion
-    BIC = 2 * loglikelihood - (3 * K - 1) * std::log((double)N);  //(K*3-1)
+    BIC = 2 * loglikelihood - (3 * K - 1) * std::log(static_cast<double>(N));  //(K*3-1)
 
     // cout << ", Loglh=" << loglikelihood << ", BIC=" << BIC << endl;
 
@@ -293,7 +302,7 @@ size_t select_levels_3_4_12(const std::vector<double> & x,
     std::vector<size_t> size(K+base);
 
     // Backtrack the matrix to determine boundaries between the bins.
-    backtrack(x, J, size, (int)K); // backtrack(x, JK, size);
+    backtrack(x, J, size, static_cast<int>(K)); // backtrack(x, JK, size);
 
     size_t indexLeft = base;
     size_t indexRight;
@@ -347,7 +356,7 @@ size_t select_levels_3_4_12(const std::vector<double> & x,
             / (2.0 * variance);
           }
           loglikelihood += numPointsInBin
-            * (std::log(numPointsInBin / (double) N)
+            * (std::log(numPointsInBin / static_cast<double>(N))
                  - 0.5 * std::log ( 2.0 * M_PI * variance));
         } else {
           loglikelihood += numPointsInBin * std::log(1.0 / binWidth / N);
@@ -367,7 +376,7 @@ size_t select_levels_3_4_12(const std::vector<double> & x,
     if (method == "uniform") {
       BIC = static_cast<double>(2 * loglikelihood - (3 * K - 1) * std::log((N)));  // K-1
     } else if(method == "normal") {
-      BIC = static_cast<double>(2 * loglikelihood - (3 * K - 1) * std::log((double)N));  //(K*3-1)
+      BIC = static_cast<double>(2 * loglikelihood - (3 * K - 1) * std::log(static_cast<double>(N)));  //(K*3-1)
     }
 
     // cout << ", Loglh=" << loglikelihood << ", BIC=" << BIC << endl;

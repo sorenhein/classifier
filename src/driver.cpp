@@ -53,6 +53,21 @@ int main(int argc, char * argv[])
 int countAll = 0;
 int countBad = 0;
 
+/*
+vector<PeakPos> tmppos;
+if (! db.getPerfectPeaks("ICE4_DEU_28_N", tmppos))
+  cout << "Bad perfect positions" << endl;
+cout << "Input positions " << "ICE4_DEU_28_N" << "\n";
+printPeakPosCSV(tmppos, 1);
+
+if (! db.getPerfectPeaks("ICET_DEU_28_N", tmppos))
+  cout << "Bad perfect positions" << endl;
+cout << "Input positions " << "ICET_DEU_28_N" << "\n";
+printPeakPosCSV(tmppos, 2);
+
+bool errFlag = false;
+*/
+
   for (auto& trainName: db)
   // string trainName = "ICE1_DEU_56_N";
   // string trainName = "MERIDIAN_DEU_22_N";
@@ -95,37 +110,36 @@ int countBad = 0;
           }
 
           timer1.stop();
-// cout << "Synth no. " << no << "\n";
-// printPeakTimeCSV(synthTimes, no+2);
 
-          Clusters clusters;
-          vector<HistMatch> matches;
+          vector<Alignment> matchesAlign;
+
           timer2.start();
-          clusters.bestMatches(synthTimes, db, trainNo, 3, matches);
+          align.bestMatches(synthTimes, db, trainNo, 10, matchesAlign);
           timer2.stop();
 bool found = false;
-for (unsigned i = 0; ! found && i < matches.size(); i++)
+for (unsigned i = 0; ! found && i < matchesAlign.size(); i++)
 {
-  if (matches[i].trainNo == trainNo)
+  if (matchesAlign[i].trainNo == trainNo)
     found = true;
 }
 countAll++;
 if (! found)
   countBad++;
 
-          statCross.log(trainName, 
-            db.lookupTrainName(matches[0].trainNo));
-
-          vector<Alignment> matchesAlign;
-
-          timer3.start();
-          align.bestMatches(synthTimes, db, matches, 10, matchesAlign);
-          timer3.stop();
 
           // Take anything with a reasonable range of the best few
           // and regress these rigorously.
           // As soon as the indel's alone exceed the distance, we
           // can drop these.  We can use that to prune matchesAlign.
+
+          if (matchesAlign.size() == 0)
+          {
+            // TODO If we eliminate clusters, then this can't happen
+            // anymore which would be the right thing.  For now.
+            statCross2.log(trainName, "UNKNOWN");
+cout << "UNKNOWN\n";
+            continue;
+          }
 
           statCross2.log(trainName, 
             db.lookupTrainName(matchesAlign[0].trainNo));
@@ -139,6 +153,15 @@ if (! found)
           statCross3.log(trainName, 
             db.lookupTrainName(bestAlign.trainNo));
 
+/*
+if (! errFlag && trainName == "ICE4_DEU_28_N" && bestAlign.trainNo == 14)
+{
+ errFlag = true;
+cout << "speed " << speed << ", accel " << accel << endl;
+cout << "Input positions " << "ICET_DEU_28_N" << "\n";
+printPeakTimeCSV(synthTimes, 3);
+}
+*/
           double residuals = 0.;
           // TODO: Calculate residuals, or find them in code
           stats.log(trainName, motionActual,
@@ -154,6 +177,7 @@ cout << "Bad   " << countBad << endl;
   statCross.printCountCSV("classify.csv");
   statCross2.printCountCSV("classify2.csv");
   statCross3.printCountCSV("classify3.csv");
+  statCross3.printQuality();
 
   stats.printCrossCountCSV(control.crossCountFile);
   stats.printCrossPercentCSV(control.crossPercentFile);
@@ -161,9 +185,8 @@ cout << "Bad   " << countBad << endl;
   stats.printDetailsCSV(control.detailFile);
 
 
-  cout << "Time synth " << timer1.str(2) << endl;
-  cout << "Time cluster " << timer2.str(2) << endl;
-  cout << "Time match " << timer3.str(2) << endl;
+  cout << "Time synth   " << timer1.str(2) << endl;
+  cout << "Time match   " << timer2.str(2) << endl;
   cout << "Time regress " << timer4.str(2) << endl;
 
 }
