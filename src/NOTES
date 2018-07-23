@@ -1,3 +1,27 @@
+2018-08-22
+----------
+
+Acceleration traces:
+
+* Initial part fits an exponential decline reasonably well
+  - Could perhaps even see spike locations during that time
+
+* Detect average level after initial decline, and sdev
+
+* Look for negative peaks of a certain significance
+  - Is a single wheel two negative peaks or one?
+  - My old traveling-wave theory?
+  - Significance can be peak value and/or cumulative value over
+    a short number of samples
+  - Are zero crossings more reliable than peaks?
+
+* Will need sensor calibration curves
+
+* Integration:
+  - We only have the equi-distant samples
+  - Possibly Newton-Cotes of a sensible order
+
+
 2018-07-17
 ----------
 * Attempt to allow random deletions and insertions (a few)
