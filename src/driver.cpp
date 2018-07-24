@@ -3,6 +3,7 @@
 #include <string>
 
 #include "read.h"
+#include "Extract.h"
 #include "Database.h"
 #include "SynthTrain.h"
 #include "Regress.h"
@@ -25,6 +26,10 @@ void setup(
 
 int main(int argc, char * argv[])
 {
+  Extract extract;
+  extract.read("../../../traces/20180215_072943_391734_001_channel1");
+  exit(0);
+
   Control control;
   Database db;
   Disturb disturb;
