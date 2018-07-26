@@ -1,0 +1,10 @@
+CAR_DIRECTORY ../data/cars
+TRAIN_DIRECTORY ../data/trains
+INPUT_FILE ../../../traces/Chris/classifier-test-sensor-events-peaks.csv
+COUNTRY DEU
+YEAR 2018
+DISTURB_FILE ../data/disturbances/case1.txt
+CROSSCOUNT_FILE output/crosscount.csv
+CROSSPERCENT_FILE output/crosspercent.csv
+OVERVIEW_FILE output/overview.txt
+DETAIL_FILE output/details.txt

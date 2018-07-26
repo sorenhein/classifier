@@ -14,6 +14,7 @@ struct Control
   string country; // Country of input traces
   int year; // Year of input traces
   string disturbFile; // File with data for random disturbance
+  string inputFile; // In Chris' chosen format
   int simCount; // Number of simulations for a given train, v and a
   double speedMin; // Lower speed for simulation loop, in m/s
   double speedMax; // Upper speed for simulation loop, in m/s
@@ -60,6 +61,15 @@ struct Cluster
   {
     return (median < c2.median);
   }
+};
+
+struct InputEntry
+{
+  int number;
+  string tag;
+  string date;
+  string time;
+  vector<PeakTime> actual;
 };
 
 struct HistMatch

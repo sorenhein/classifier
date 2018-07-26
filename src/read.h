@@ -41,4 +41,8 @@ void readTrainFiles(
   Database& db,
   const string& dir);
 
+bool readInputFile(
+  const string& fname,
+  vector<InputEntry>& actualList);
+
 #endif

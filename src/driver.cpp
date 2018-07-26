@@ -26,9 +26,10 @@ void setup(
 
 int main(int argc, char * argv[])
 {
-  Extract extract;
+  /*Extract extract;
   extract.read("../../../traces/20180215_072943_391734_001_channel1");
   exit(0);
+  */
 
   Control control;
   Database db;
@@ -67,65 +68,115 @@ printPeakPosCSV(tmppos, 2);
 bool errFlag = false;
 */
 
-  for (auto& trainName: db)
-  // string trainName = "ICE1_DEU_56_N";
-  // string trainName = "MERIDIAN_DEU_22_N";
+  if (control.inputFile != "")
   {
-    cout << "Train " << trainName << endl;
-    const int trainNoI = db.lookupTrainNumber(trainName);
-    if (trainNoI == -1)
+    vector<InputEntry> actualList;
+    if (! readInputFile(control.inputFile, actualList))
     {
-      cout << "Bad train name\n";
+      cout << "Could not read " << control.inputFile << endl;
       exit(0);
     }
-    const unsigned trainNo = static_cast<unsigned>(trainNoI);
 
-    if (! db.getPerfectPeaks(trainName, perfectPositions))
-      cout << "Bad perfect positions" << endl;
+    for (auto& actualEntry: actualList)
+    {
+      timerAlign.start();
+      // Assume Germany.
+      align.bestMatches(actualEntry.actual, db, 0, 10, matchesAlign);
+      timerAlign.stop();
+
+      if (matchesAlign.size() == 0)
+      {
+        cout << "number " << actualEntry.number << 
+          ", date " << actualEntry.date <<
+          ", time " << actualEntry.time << endl;
+        cout << "NO MATCH\n\n";
+        continue;
+      }
+
+      timerRegress.start();
+      regress.bestMatch(actualEntry.actual, db, order,
+        matchesAlign, bestAlign, motionEstimate);
+      timerRegress.stop();
+
+      cout << "number " << actualEntry.number << 
+        ", date " << actualEntry.date <<
+        ", time " << actualEntry.time << 
+        ", axles: " << actualEntry.actual.size() << endl;
+      for (auto& match: matchesAlign)
+      {
+        cout << setw(24) << left << db.lookupTrainName(match.trainNo) << 
+          setw(10) << fixed << setprecision(2) << match.dist <<
+          setw(10) << fixed << setprecision(2) << match.distMatch <<
+          setw(8) << match.numAdd <<
+          setw(8) << match.numDelete << endl;
+      }
+      cout << endl;
+
+      // TODO print result, scores, axle counts, ...
+      // Count axles that stick out, too small or too large?
+    }
+  }
+  else
+  {
+    for (auto& trainName: db)
+    // string trainName = "ICE1_DEU_56_N";
+    // string trainName = "MERIDIAN_DEU_22_N";
+    {
+      cout << "Train " << trainName << endl;
+      const int trainNoI = db.lookupTrainNumber(trainName);
+      if (trainNoI == -1)
+      {
+        cout << "Bad train name\n";
+        exit(0);
+      }
+      const unsigned trainNo = static_cast<unsigned>(trainNoI);
+
+      if (! db.getPerfectPeaks(trainName, perfectPositions))
+        cout << "Bad perfect positions" << endl;
 // cout << "Input positions " << trainName << "\n";
 // printPeakPosCSV(perfectPositions, 1);
 
-    for (double speed = control.speedMin; 
-        speed <= control.speedMax + 0.1 * control.speedStep; 
-        speed += control.speedStep)
-    {
-      motionActual[1] = speed;
-
-      for (double accel = control.accelMin; 
-          accel <= control.accelMax + 0.1 * control.accelStep; 
-          accel += control.accelStep)
+      for (double speed = control.speedMin; 
+          speed <= control.speedMax + 0.1 * control.speedStep; 
+          speed += control.speedStep)
       {
-        motionActual[2] = accel;
+        motionActual[1] = speed;
 
-        for (int no = 0; no < control.simCount; no++)
+        for (double accel = control.accelMin; 
+            accel <= control.accelMax + 0.1 * control.accelStep; 
+            accel += control.accelStep)
         {
-          timerSynth.start();
-          if (! synth.disturb(perfectPositions, disturb, synthTimes, 
-            0., speed, accel))
-          {
-            continue;
-          }
-          timerSynth.stop();
+          motionActual[2] = accel;
 
-          timerAlign.start();
-          align.bestMatches(synthTimes, db, trainNo, 10, matchesAlign);
-          timerAlign.stop();
-
-          if (matchesAlign.size() == 0)
+          for (int no = 0; no < control.simCount; no++)
           {
+            timerSynth.start();
+            if (! synth.disturb(perfectPositions, disturb, synthTimes, 
+              0., speed, accel))
+            {
+              continue;
+            }
+            timerSynth.stop();
+
+            timerAlign.start();
+            align.bestMatches(synthTimes, db, trainNo, 10, matchesAlign);
+            timerAlign.stop();
+
+            if (matchesAlign.size() == 0)
+            {
+              stats.log(trainName, motionActual,
+                "UNKNOWN", motionActual, 0.);
+              continue;
+            }
+
+            timerRegress.start();
+            regress.bestMatch(synthTimes, db, order,
+              matchesAlign, bestAlign, motionEstimate);
+            timerRegress.stop();
+
             stats.log(trainName, motionActual,
-              "UNKNOWN", motionActual, 0.);
-            continue;
-          }
-
-          timerRegress.start();
-          regress.bestMatch(synthTimes, db, order,
-            matchesAlign, bestAlign, motionEstimate);
-          timerRegress.stop();
-
-          stats.log(trainName, motionActual,
-            db.lookupTrainName(bestAlign.trainNo),
-            motionEstimate, bestAlign.distMatch);
+              db.lookupTrainName(bestAlign.trainNo),
+              motionEstimate, bestAlign.distMatch);
 
 /*
 if (! errFlag && trainName == "ICE4_DEU_28_N" && bestAlign.trainNo == 14)
@@ -136,16 +187,17 @@ cout << "Input positions " << "ICET_DEU_28_N" << "\n";
 printPeakTimeCSV(synthTimes, 3);
 }
 */
+          }
         }
       }
     }
-  }
 
-  stats.printCrossCountCSV(control.crossCountFile);
-  stats.printCrossPercentCSV(control.crossPercentFile);
-  stats.printOverviewCSV(control.overviewFile);
-  stats.printDetailsCSV(control.detailFile);
-  stats.printQuality();
+    stats.printCrossCountCSV(control.crossCountFile);
+    stats.printCrossPercentCSV(control.crossPercentFile);
+    stats.printOverviewCSV(control.overviewFile);
+    stats.printDetailsCSV(control.detailFile);
+    stats.printQuality();
+  }
 
   cout << "Time synth   " << timerSynth.str(2) << endl;
   cout << "Time align   " << timerAlign.str(2) << endl;

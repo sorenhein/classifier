@@ -864,6 +864,8 @@ bool readControlFile(
     }
     else if (field == "DISTURB_FILE")
       c.disturbFile = rest;
+    else if (field == "INPUT_FILE")
+      c.inputFile = rest;
     else if (field == "SIM_COUNT")
     {
       if ( ! readInt(rest, c.simCount, err)) break;
@@ -987,5 +989,82 @@ void readTrainFiles(
 
   for (auto &f: textfiles)
     readTrainFile(db, f);
+}
+
+
+#define SAMPLE_RATE 2000.
+
+bool readInputFile(
+  const string& fname,
+  vector<InputEntry>& actualList)
+{
+  ifstream fin;
+  fin.open(fname);
+  string line;
+  InputEntry * entryp = nullptr;
+  vector<string> v;
+  int prevNo = -1;
+  int offset = 0, number, i;
+  PeakTime peak;
+
+  while (getline(fin, line))
+  {
+    if (line == "" || line.front() == '#')
+      continue;
+
+    const string err = "File " + fname + ": Bad line '" + line + "'";
+    const size_t c = countDelimiters(line, ",");
+    if (c != 5)
+    {
+      cout << err << endl;
+      fin.close();
+      return false;;
+    }
+
+    v.clear();
+    tokenize(line, v, ",");
+
+    if (! readInt(v[0], number, err))
+    {
+      fin.close();
+      return false;;
+    }
+
+    if (number != prevNo)
+    {
+      prevNo = number;
+      actualList.push_back(InputEntry());
+      entryp = &actualList.back();
+
+      entryp->number = number;
+      entryp->tag = v[1];
+      entryp->date = v[2];
+      entryp->time = v[3];
+
+      if (! readInt(v[4], offset, err))
+      {
+        fin.close();
+        return false;;
+      }
+    }
+
+    if (! readInt(v[4], i, err))
+    {
+      fin.close();
+      return false;;
+    }
+    peak.time = (i - offset) / SAMPLE_RATE;
+
+    if (! readDouble(v[5], peak.value, err))
+    {
+      fin.close();
+      return false;;
+    }
+
+    entryp->actual.push_back(peak);
+  }
+
+  fin.close();
+  return true;
 }
 
