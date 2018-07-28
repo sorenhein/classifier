@@ -1,4 +1,19 @@
-2018-08-22
+2018-07-28
+----------
+
+1. The given peak positions may be inaccurate (train geometry).
+2. There are way too many peak positions missing.
+3. Could deal specifically with leading 2 (or 6?) peaks missing.
+4. Are the given train types real or Konux estimates?
+
+Wheel detection:
+- Wavelets?
+- Pseudo-morphological: down-up-down-up-down
+- Look at integral over each of 5 periods
+- Go by largest first-down integral?  Largest integral?
+- Somehow pick out the right ones
+
+2018-07-22
 ----------
 
 Acceleration traces:
