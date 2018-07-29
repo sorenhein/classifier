@@ -11,6 +11,14 @@ class Extract
 {
   private:
 
+    struct Run
+    {
+      unsigned first;
+      unsigned len;
+      bool posFlag;
+      double cum;
+    };
+
     vector<double> samples;
 
     string filename;
@@ -19,10 +27,27 @@ class Extract
     double midLevel;
     double timeConstant;
     double sdev;
+    double average;
 
     unsigned findCrossing(const double level) const;
 
     bool processTransient();
+
+    bool skipTransient();
+
+    bool calcAverage();
+
+    void calcRuns(vector<Run>& runs) const;
+
+    bool runsToBumps(
+      const vector<Run>& runs,
+      vector<Run>& bumps) const;
+
+    void tallyBumps(
+      const vector<Run>& bumps,
+      unsigned& longRun,
+      double& tallRun) const;
+
 
   public:
 

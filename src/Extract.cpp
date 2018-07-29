@@ -20,6 +20,10 @@
 // Default for the mid voltage of the measurement.
 
 #define MID_LEVEL 2.50
+#define MID_RANGE 0.10
+#define MID_HYSTERESIS 0.000
+
+#define NUM_RUNS 5
 
 
 Extract::Extract()
@@ -101,10 +105,218 @@ bool Extract::processTransient()
 }
 
 
+bool Extract::skipTransient()
+{
+  for (unsigned i = 0; i < samples.size(); i++)
+  {
+    if (samples[i] > MID_LEVEL)
+    {
+      firstActiveSample = i;
+      return true;
+    }
+  }
+  return false;
+}
+
+
+bool Extract::calcAverage()
+{
+  const unsigned l = samples.size();
+  double sum = 0.;
+  for (unsigned i = firstActiveSample; i < l; i++)
+    sum += samples[i];
+  average = sum / static_cast<double>(l - firstActiveSample);
+  
+  if (average < MID_LEVEL - MID_RANGE || average > MID_LEVEL + MID_RANGE)
+    return false;
+  else
+    return true;
+}
+
+
+void Extract::calcRuns(vector<Run>& runs) const
+{
+  Run run;
+
+  run.first = firstActiveSample;
+  run.len = 1;
+  if (samples[firstActiveSample] >= average)
+  {
+    run.posFlag = true;
+    run.cum = samples[firstActiveSample] - average;
+  }
+  else
+  {
+    run.posFlag = false;
+    run.cum = average - samples[firstActiveSample];
+  }
+
+  const unsigned l = samples.size();
+  for (unsigned i = firstActiveSample; i < l; i++)
+  {
+    if (run.posFlag)
+    {
+      if (samples[i] > average - MID_HYSTERESIS)
+      {
+        run.len++;
+        run.cum += samples[i] - average;
+      }
+      else
+      {
+        runs.push_back(run);
+        run.first = i;
+        run.len = 1;
+        run.posFlag = false;
+        run.cum = average - samples[i];
+      }
+    }
+    else if (samples[i] < average + MID_HYSTERESIS)
+    {
+      run.len++;
+      run.cum += average - samples[i];
+    }
+    else
+    {
+      runs.push_back(run);
+      run.first = i;
+      run.len = 1;
+      run.posFlag = true;
+      run.cum = samples[i] - average;
+    }
+  }
+  runs.push_back(run);
+}
+
+
+bool Extract::runsToBumps(
+  const vector<Run>& runs,
+  vector<Run>& bumps) const
+{
+  const unsigned lr = runs.size();
+  if (lr <= NUM_RUNS)
+    return false;
+
+  vector<double> times;
+  times.resize(samples.size());
+  for (unsigned i = 0; i < firstActiveSample; i++)
+    times[i] = 0.;
+
+  bumps.resize(lr);
+
+  for (unsigned i = 0; i < lr; i++)
+  {
+    const unsigned lower = (i+1 >= NUM_RUNS ? i+1-NUM_RUNS : 0);
+    double value = 0.;
+    for (unsigned j = lower; j <= i; j++)
+      value += runs[j].cum;
+
+    const double factor = (runs[i].posFlag ? 1. : -1.);
+    for (unsigned j = runs[i].first; j < runs[i].first + runs[i].len; j++)
+      times[j] = factor * value;
+
+    bumps[i] = runs[i];
+    bumps[i].cum = factor * value;
+  }
+
+  /*
+  cout << "Times\n";
+  for (unsigned i = 0; i < times.size(); i++)
+    cout << i << ";" << times[i] << endl;
+  cout << "\n";
+  */
+
+  cout << "Bumps\n";
+  for (unsigned i = 0; i < bumps.size(); i++)
+    cout << i << ";" << bumps[i].len << " " << bumps[i].cum << endl;
+  cout << "\n";
+
+  return true;
+}
+
+
+#define HISTO_LONG_MAX 100
+#define HISTO_TALL_MAX 501
+#define HISTO_TALL_WIDTH 0.01
+#define CUTOFF_LONG 0.95
+#define CUTOFF_TALL 0.85
+
+void Extract::tallyBumps(
+  const vector<Run>& bumps, 
+  unsigned& longRun, 
+  double& tallRun) const
+{
+  vector<unsigned> histoLong(HISTO_LONG_MAX);
+  vector<unsigned> histoTall(HISTO_TALL_MAX);
+
+  const unsigned lr = bumps.size();
+  for (unsigned i = 0; i < lr; i++)
+  {
+    if (bumps[i].len >= HISTO_LONG_MAX)
+    {
+      cout << "Memory long exceeded: " << i << endl;
+      continue;
+    }
+
+    const double d = (bumps[i].cum >= 0. ? bumps[i].cum : -bumps[i].cum);
+    const unsigned j = static_cast<unsigned>(d / HISTO_TALL_WIDTH);
+
+    if (j >= HISTO_TALL_MAX)
+    {
+      cout << "Memory tall exceeded: " << j << endl;
+      continue;
+    }
+    
+    histoLong[bumps[i].len]++;
+    histoTall[j]++;
+  }
+
+  unsigned c = 0;
+  for (unsigned i = 0; i < HISTO_LONG_MAX; i++)
+  {
+    c += histoLong[i];
+    if (c >= CUTOFF_LONG * lr)
+    {
+      longRun = i;
+      break;
+    }
+  }
+
+  c = 0;
+  for (unsigned i = 0; i < HISTO_TALL_MAX; i++)
+  {
+    c += histoTall[i];
+    if (c >= CUTOFF_TALL * lr)
+    {
+      tallRun = i * HISTO_TALL_WIDTH;
+      break;
+    }
+  }
+
+
+  cout << "Long\n";
+  for (unsigned i = 0; i < HISTO_LONG_MAX; i++)
+  {
+    if (histoLong[i] > 0)
+      cout << i << " " << histoLong[i] << "\n";
+  }
+  cout << "longRun " << longRun << "\n\n";
+
+  cout << "Tall\n";
+  for (unsigned i = 0; i < HISTO_TALL_MAX; i++)
+  {
+    if (histoTall[i] > 0)
+      cout << (i * HISTO_TALL_WIDTH) << " " << 
+      histoTall[i] << "\n";
+  }
+  cout << "tallRun " << tallRun << "\n\n";
+}
+
+
 bool Extract::read(const string& fname)
 {
   // TODO Make something of the file name
 
+  filename = fname;
   ifstream fin;
   fin.open(fname);
   string line;
@@ -127,7 +339,75 @@ bool Extract::read(const string& fname)
 
   fin.close();
 
-  Extract::processTransient();
+  // Extract::processTransient();
+
+  if (! Extract::skipTransient())
+  {
+    cout << "Couldn't skip transient\n";
+    return false;
+  }
+cout << "firstActiveSample " << firstActiveSample << endl;
+
+  if (! Extract::calcAverage())
+  {
+    cout << "Couldn't find a good average\n";
+    return false;
+  }
+cout << "average " << average << endl;
+
+  vector<Run> runs;
+  Extract::calcRuns(runs);
+
+  vector<Run> bumps;
+  Extract::runsToBumps(runs, bumps);
+
+  unsigned longBump;
+  double tallBump;
+
+  Extract::tallyBumps(bumps, longBump, tallBump);
+
+  cout << "Candidate peaks\n";
+  unsigned num = 0;
+  const unsigned lr = runs.size();
+  for (unsigned i = 1; i < lr; i++)
+  {
+    if (bumps[i].len >= longBump && bumps[i-1].len >= longBump &&
+        bumps[i].cum <= -tallBump && bumps[i-1].cum >= tallBump)
+    {
+      if (i < lr-2 &&
+        bumps[i+2].len >= longBump && bumps[i+1].len >= longBump &&
+        bumps[i+2].cum <= -tallBump && bumps[i+1].cum >= tallBump &&
+        bumps[i+1].cum - bumps[i+2].cum >
+        bumps[i-1].cum - bumps[i].cum)
+      {
+        // Next bump is even bigger.
+        continue;
+      }
+      else if (i >= 2 &&
+        bumps[i-2].len >= longBump && bumps[i-3].len >= longBump &&
+        bumps[i-2].cum <= -tallBump && bumps[i-3].cum >= tallBump &&
+        bumps[i-3].cum - bumps[i-2].cum >
+        bumps[i-1].cum - bumps[i].cum)
+      {
+        // Previous bump was even bigger.
+        continue;
+      }
+
+      cout << bumps[i-1].first << ", " <<
+        bumps[i-1].len << ", " <<
+        bumps[i-1].posFlag << ", " <<
+        bumps[i-1].cum << "\n";
+
+      cout << bumps[i].first << ", " <<
+        bumps[i].len << ", " <<
+        bumps[i].posFlag << ", " <<
+        bumps[i].cum << "\n\n";
+
+      num++;
+    }
+  }
+  cout << "Counted " << num << "\n\n";
+
   return true;
 }
 
