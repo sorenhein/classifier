@@ -23,7 +23,8 @@
 #define MID_RANGE 0.10
 #define MID_HYSTERESIS 0.000
 
-#define NUM_RUNS 5
+#define NUM_RUNS_BACK 1
+#define NUM_RUNS_FRONT 1
 
 
 Extract::Extract()
@@ -193,8 +194,6 @@ bool Extract::runsToBumps(
   vector<Run>& bumps) const
 {
   const unsigned lr = runs.size();
-  if (lr <= NUM_RUNS)
-    return false;
 
   vector<double> times;
   times.resize(samples.size());
@@ -205,9 +204,10 @@ bool Extract::runsToBumps(
 
   for (unsigned i = 0; i < lr; i++)
   {
-    const unsigned lower = (i+1 >= NUM_RUNS ? i+1-NUM_RUNS : 0);
+    const unsigned lower = (i >= NUM_RUNS_BACK ? i-NUM_RUNS_BACK : 0);
+    const unsigned upper = (i+NUM_RUNS_FRONT < lr ? i+NUM_RUNS_BACK : lr-1);
     double value = 0.;
-    for (unsigned j = lower; j <= i; j++)
+    for (unsigned j = lower; j <= upper; j++)
       value += runs[j].cum;
 
     const double factor = (runs[i].posFlag ? 1. : -1.);
@@ -238,7 +238,7 @@ bool Extract::runsToBumps(
 #define HISTO_TALL_MAX 501
 #define HISTO_TALL_WIDTH 0.01
 #define CUTOFF_LONG 0.95
-#define CUTOFF_TALL 0.85
+#define CUTOFF_TALL 0.9
 
 void Extract::tallyBumps(
   const vector<Run>& bumps, 
@@ -369,11 +369,18 @@ cout << "average " << average << endl;
   cout << "Candidate peaks\n";
   unsigned num = 0;
   const unsigned lr = runs.size();
-  for (unsigned i = 1; i < lr; i++)
+  for (unsigned i = 1; i < lr-2; i++)
   {
-    if (bumps[i].len >= longBump && bumps[i-1].len >= longBump &&
-        bumps[i].cum <= -tallBump && bumps[i-1].cum >= tallBump)
+    // The middle of three tall bumps (pos-neg-pos), with lengths
+    // long-long-short (from back to front).
+    if ((bumps[i+2].len < longBump || bumps[i+1].len < longBump) &&
+        bumps[i].len >= longBump && 
+        bumps[i-1].len >= longBump &&
+        bumps[i+1].cum >= tallBump && 
+        bumps[i].cum <= -tallBump && 
+        bumps[i-1].cum >= tallBump)
     {
+      /*
       if (i < lr-2 &&
         bumps[i+2].len >= longBump && bumps[i+1].len >= longBump &&
         bumps[i+2].cum <= -tallBump && bumps[i+1].cum >= tallBump &&
@@ -392,6 +399,7 @@ cout << "average " << average << endl;
         // Previous bump was even bigger.
         continue;
       }
+      */
 
       cout << bumps[i-1].first << ", " <<
         bumps[i-1].len << ", " <<
