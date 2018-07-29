@@ -1,40 +1,60 @@
+2018-07-29
+----------
+
+Trace
+- level (after transient)
+- sensor index (for calibration curve)
+- overall trace
+- overall peaks
+- can cluster?
+  detect the shortest real distance
+- Segments
+
+Can pass in an external reference cluster?
+Can output a "string" relative to the reference cluster?
+Externally match up with Needleman?
+Penalty for any changes.
+
+A peak has an accel size and a space-domain size
+
+Segment types
+- All segments have
+  first
+  last
+  type
+
+- Off
+
+- Transient
+  tau
+  can it have peaks?
+
+- Quiet
+  sdev?
+
+- Burst
+  can detect morphological peaks (1-2-3), too many in fact (lenient)
+  can integrate entire burst to v=a=0 on both ends (double)
+  can detect peaks in space domain
+  can clean up transient peaks (less than critical distance, declining)
+
+  Some semantics to fit to e.g. 4 peaks (depending on matching train),
+  knowing the right histogram (some too-short distances -> delete)
+  
+- Nonsense
+  Means we may have missed a lot of peaks (*)
+
+
+Peak position detection
+
+- Eliminate a few "a" peaks based on too low starting "v", i.e.
+  too low displacement
+
 2018-07-28
 ----------
 
-1. The given peak positions may be inaccurate (train geometry).
-2. There are way too many peak positions missing.
 3. Could deal specifically with leading 2 (or 6?) peaks missing.
 4. Are the given train types real or Konux estimates?
-
-Wheel detection:
-- Wavelets?
-- Pseudo-morphological: down-up-down-up-down
-- Look at integral over each of 5 periods
-- Go by largest first-down integral?  Largest integral?
-- Somehow pick out the right ones
-
-2018-07-22
-----------
-
-Acceleration traces:
-
-* Initial part fits an exponential decline reasonably well
-  - Could perhaps even see spike locations during that time
-
-* Detect average level after initial decline, and sdev
-
-* Look for negative peaks of a certain significance
-  - Is a single wheel two negative peaks or one?
-  - My old traveling-wave theory?
-  - Significance can be peak value and/or cumulative value over
-    a short number of samples
-  - Are zero crossings more reliable than peaks?
-
-* Will need sensor calibration curves
-
-* Integration:
-  - We only have the equi-distant samples
-  - Possibly Newton-Cotes of a sensible order
 
 
 2018-07-17
@@ -52,8 +72,6 @@ Acceleration traces:
 * Files to finish:
   SynthTrain cpp and h
   driver.cpp
-
-* Delete Clusters (stash it in some other project?)
 
 Visual          OK
 mingw           OK

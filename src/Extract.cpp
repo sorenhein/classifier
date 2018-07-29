@@ -339,6 +339,10 @@ bool Extract::read(const string& fname)
 
   fin.close();
 
+for (unsigned i = 0; i < samples.size(); i++)
+  cout << i << " " << samples[i] << "\n";
+cout << "\n";
+
   // Extract::processTransient();
 
   if (! Extract::skipTransient())

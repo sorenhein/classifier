@@ -27,7 +27,8 @@ void setup(
 int main(int argc, char * argv[])
 {
   Extract extract;
-  extract.read("../../../traces/20180215_072943_391734_001_channel1");
+  // extract.read("../../../traces/20180215_072943_391734_001_channel1");
+  extract.read("../../../traces/20171209_075447_391734_001_channel1");
   exit(0);
   
 
