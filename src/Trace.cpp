@@ -5,7 +5,7 @@
 #include <sstream>
 #include <math.h>
 
-#include "Extract.h"
+#include "Trace.h"
 #include "read.h"
 
 // Once the early samples on the wake-up start changing by this
@@ -30,17 +30,17 @@
 #define NUM_RUNS_FRONT 1
 
 
-Extract::Extract()
+Trace::Trace()
 {
 }
 
 
-Extract::~Extract()
+Trace::~Trace()
 {
 }
 
 
-unsigned Extract::findCrossing(const double level) const
+unsigned Trace::findCrossing(const double level) const
 {
   for (unsigned i = firstActiveSample; i < samples.size(); i++)
   {
@@ -51,7 +51,7 @@ unsigned Extract::findCrossing(const double level) const
 }
 
 
-bool Extract::processTransient()
+bool Trace::processTransient()
 {
   // This is mainly to check that there are no peaks in the transient.
 
@@ -109,7 +109,7 @@ bool Extract::processTransient()
 }
 
 
-bool Extract::skipTransient()
+bool Trace::skipTransient()
 {
   for (unsigned i = 0; i < samples.size(); i++)
   {
@@ -125,7 +125,7 @@ bool Extract::skipTransient()
 }
 
 
-bool Extract::calcAverage()
+bool Trace::calcAverage()
 {
   const unsigned l = samples.size();
   double sum = 0.;
@@ -140,7 +140,7 @@ bool Extract::calcAverage()
 }
 
 
-void Extract::calcRuns(vector<Run>& runs) const
+void Trace::calcRuns(vector<Run>& runs) const
 {
   Run run;
 
@@ -194,7 +194,7 @@ void Extract::calcRuns(vector<Run>& runs) const
 }
 
 
-bool Extract::runsToBumps(
+bool Trace::runsToBumps(
   const vector<Run>& runs,
   vector<Run>& bumps) const
 {
@@ -245,7 +245,7 @@ bool Extract::runsToBumps(
 #define CUTOFF_LONG 0.95
 #define CUTOFF_TALL 0.9
 
-void Extract::tallyBumps(
+void Trace::tallyBumps(
   const vector<Run>& bumps, 
   unsigned& longRun, 
   double& tallRun) const
@@ -318,7 +318,7 @@ void Extract::tallyBumps(
 
 
 
-bool Extract::readText()
+bool Trace::readText()
 {
   ifstream fin;
   fin.open(filename);
@@ -348,7 +348,7 @@ bool Extract::readText()
 }
 
 
-bool Extract::readBinary()
+bool Trace::readBinary()
 {
   ifstream fin(filename, std::ios::binary);
   fin.unsetf(std::ios::skipws);
@@ -374,7 +374,7 @@ for (unsigned i = 0; i < filesize/4; i++)
 #define THRESHOLD_CUTOFF 0.25
 #define TOPS_TO_AVERAGE 10
 
-bool Extract::thresholdPeaks()
+bool Trace::thresholdPeaks()
 {
   // Looks for negative (physically, upward) peaks, as these seem to 
   // be cleaner.
@@ -477,7 +477,7 @@ cout << "peaks " << times.size() << "\n";
 }
 
 
-bool Extract::read(const string& fname)
+bool Trace::read(const string& fname)
 {
   // TODO Make something of the file name
 
@@ -485,8 +485,8 @@ bool Extract::read(const string& fname)
   times.clear();
 
   filename = fname;
-  Extract::readBinary();
-  // Extract::readText();
+  Trace::readBinary();
+  // Trace::readText();
 
 /*
 for (unsigned i = 0; i < samples.size(); i++)
@@ -494,16 +494,16 @@ for (unsigned i = 0; i < samples.size(); i++)
 cout << "\n";
 */
 
-  // Extract::processTransient();
+  // Trace::processTransient();
 
-  if (! Extract::skipTransient())
+  if (! Trace::skipTransient())
   {
     cout << "Couldn't skip transient\n";
     return false;
   }
 cout << "firstActiveSample " << firstActiveSample << endl;
 
-  if (! Extract::calcAverage())
+  if (! Trace::calcAverage())
   {
     cout << "Couldn't find a good average\n";
     return false;
@@ -511,7 +511,7 @@ cout << "firstActiveSample " << firstActiveSample << endl;
 cout << "average " << average << endl;
 average = 0.;
 
-  Extract::thresholdPeaks();
+  Trace::thresholdPeaks();
 
   /*
   const unsigned ls = times.size();
@@ -565,15 +565,15 @@ cout << "Short cluster " << shortCluster.count <<
 
   /*
   vector<Run> runs;
-  Extract::calcRuns(runs);
+  Trace::calcRuns(runs);
 
   vector<Run> bumps;
-  Extract::runsToBumps(runs, bumps);
+  Trace::runsToBumps(runs, bumps);
 
   unsigned longBump;
   double tallBump;
 
-  Extract::tallyBumps(bumps, longBump, tallBump);
+  Trace::tallyBumps(bumps, longBump, tallBump);
 
   cout << "Candidate peaks\n";
   unsigned num = 0;
@@ -609,14 +609,14 @@ cout << "Short cluster " << shortCluster.count <<
 }
 
 
-void Extract::getTrace(vector<PeakTime>& timesOut) const
+void Trace::getTrace(vector<PeakTime>& timesOut) const
 {
   // TODO Inefficient
   timesOut = times;
 }
 
 
-void Extract::printStats() const
+void Trace::printStats() const
 {
 }
 

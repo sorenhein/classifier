@@ -3,7 +3,7 @@
 #include <string>
 
 #include "read.h"
-#include "Extract.h"
+#include "Trace.h"
 #include "Database.h"
 #include "SynthTrain.h"
 #include "Regress.h"
@@ -26,12 +26,12 @@ void setup(
 
 int main(int argc, char * argv[])
 {
-  // Extract extract;
-  // extract.read("../../../traces/20180215_072943_391734_001_channel1");
-  // extract.read("../../../traces/20171209_075447_391734_001_channel1");
-  // extract.read("../../../mini_dataset_v012/data/20180717_142901_099743_001_channel1.dat");
+  // Trace trace;
+  // trace.read("../../../traces/20180215_072943_391734_001_channel1");
+  // trace.read("../../../traces/20171209_075447_391734_001_channel1");
+  // trace.read("../../../mini_dataset_v012/data/20180717_142901_099743_001_channel1.dat");
   // vector<PeakTime> times;
-  // extract.getTrace(times);
+  // trace.getTrace(times);
   // exit(0);
 
   Control control;
@@ -124,14 +124,14 @@ bool errFlag = false;
   {
     vector<string> datfiles;
     getFilenames(control.traceDir, datfiles);
-    Extract extract;
+    Trace trace;
     vector<PeakTime> times;
 
     for (auto& fname: datfiles)
     {
       cout << "File " << fname << ":\n";
-      extract.read(fname);
-      extract.getTrace(times);
+      trace.read(fname);
+      trace.getTrace(times);
 
       timerAlign.start();
       align.bestMatches(times, db, 0, 10, matchesAlign);

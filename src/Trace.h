@@ -1,5 +1,5 @@
-#ifndef TRAIN_EXTRACT_H
-#define TRAIN_EXTRACT_H
+#ifndef TRAIN_TRACE_H
+#define TRAIN_TRACE_H
 
 #include <vector>
 #include <string>
@@ -9,7 +9,7 @@
 using namespace std;
 
 
-class Extract
+class Trace
 {
   private:
 
@@ -62,9 +62,9 @@ class Extract
 
   public:
 
-    Extract();
+    Trace();
 
-    ~Extract();
+    ~Trace();
 
     bool read(const string& fname);
 

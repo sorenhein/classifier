@@ -3,7 +3,7 @@ SOURCE_FILES    =               \
                 Clusters.cpp    \
                 Database.cpp    \
                 Disturb.cpp     \
-                Extract.cpp     \
+                Trace.cpp       \
                 Regress.cpp     \
                 Stats.cpp       \
                 StatEntry.cpp   \
