@@ -26,21 +26,18 @@ void setup(
 
 int main(int argc, char * argv[])
 {
-  Extract extract;
+  // Extract extract;
   // extract.read("../../../traces/20180215_072943_391734_001_channel1");
   // extract.read("../../../traces/20171209_075447_391734_001_channel1");
-  extract.read("../../../mini_dataset_v012/data/20180717_142901_099743_001_channel1.dat");
-  vector<PeakTime> times;
-  extract.getTrace(times);
+  // extract.read("../../../mini_dataset_v012/data/20180717_142901_099743_001_channel1.dat");
+  // vector<PeakTime> times;
+  // extract.getTrace(times);
   // exit(0);
-  
 
   Control control;
   Database db;
   Disturb disturb;
   setup(argc, argv, control, db, disturb);
-
-
 
   SynthTrain synth;
   Align align;
@@ -59,28 +56,6 @@ int main(int argc, char * argv[])
   Stats stats;
   Timer timerSynth, timerAlign, timerRegress;
 
-align.bestMatches(times, db, 0, 10, matchesAlign);
-if (matchesAlign.size() == 0)
-{
-  cout << "NO MATCH\n\n";
-  exit(0);
-}
-
-timerRegress.start();
-regress.bestMatch(times, db, order,
-  matchesAlign, bestAlign, motionEstimate);
-timerRegress.stop();
-
-for (auto& match: matchesAlign)
-{
-  cout << setw(24) << left << db.lookupTrainName(match.trainNo) << 
-    setw(10) << fixed << setprecision(2) << match.dist <<
-    setw(10) << fixed << setprecision(2) << match.distMatch <<
-    setw(8) << match.numAdd <<
-    setw(8) << match.numDelete << endl;
-}
-cout << endl;
-  exit(0);
 /*
 vector<PeakPos> tmppos;
 if (! db.getPerfectPeaks("ICE4_DEU_28_N", tmppos))
@@ -143,6 +118,47 @@ bool errFlag = false;
 
       // TODO print result, scores, axle counts, ...
       // Count axles that stick out, too small or too large?
+    }
+  }
+  else if (control.traceDir != "")
+  {
+    vector<string> datfiles;
+    getFilenames(control.traceDir, datfiles);
+    Extract extract;
+    vector<PeakTime> times;
+
+    for (auto& fname: datfiles)
+    {
+      cout << "File " << fname << ":\n";
+      extract.read(fname);
+      extract.getTrace(times);
+
+      timerAlign.start();
+      align.bestMatches(times, db, 0, 10, matchesAlign);
+      timerAlign.stop();
+
+      if (matchesAlign.size() == 0)
+      {
+        cout << "NO MATCH\n\n";
+        continue;
+      }
+
+      timerRegress.start();
+      regress.bestMatch(times, db, order,
+        matchesAlign, bestAlign, motionEstimate);
+      timerRegress.stop();
+
+      for (auto& match: matchesAlign)
+      {
+        cout << setw(24) << left << db.lookupTrainName(match.trainNo) << 
+          setw(10) << fixed << setprecision(2) << match.dist <<
+          setw(10) << fixed << setprecision(2) << match.distMatch <<
+          setw(8) << match.numAdd <<
+          setw(8) << match.numDelete << endl;
+      }
+      cout << endl;
+      
+      // TODO More stats.  Read Chris' "truth" values.
     }
   }
   else

@@ -6,7 +6,6 @@
 #include <math.h>
 
 #include "Extract.h"
-#include "Clusters.h"
 #include "read.h"
 
 // Once the early samples on the wake-up start changing by this
@@ -473,6 +472,7 @@ cout << "threshold " << threshold << endl;
       }
     }
   }
+cout << "peaks " << times.size() << "\n";
   return true;
 }
 
@@ -480,6 +480,9 @@ cout << "threshold " << threshold << endl;
 bool Extract::read(const string& fname)
 {
   // TODO Make something of the file name
+
+  samples.clear();
+  times.clear();
 
   filename = fname;
   Extract::readBinary();
@@ -510,6 +513,7 @@ average = 0.;
 
   Extract::thresholdPeaks();
 
+  /*
   const unsigned ls = times.size();
   if (ls == 0)
   {
@@ -524,6 +528,7 @@ average = 0.;
       static_cast<unsigned>(2000. * times[i].time + 0.5) << " " <<
       times[i].value << "\n";
   }
+  */
 
 /*
   // Eliminate spurious peaks in short intervals.

@@ -1,3 +1,41 @@
+2018-08-02
+----------
+* Read in Chris' .csv
+  date
+  time
+  sensor
+  train (code it to my name, some probably don't exist in my list)
+  reverseFlag
+  axles
+  speed
+  accel
+
+* Have a sensor db file
+  number
+  country
+  leadString (ICE, MER, SBAHN, X)
+  position
+
+* From my classifier
+  train incl reverseFlag
+  speed
+  accel
+
+  From Extract itself:
+  traceLength
+  firstActive
+  average
+  threshold
+  peaks detected
+
+  For the tops (whole vector):
+  add
+  delete
+  dist
+
+* Dump all this in csv
+  up to top 5
+
 2018-07-29
 ----------
 

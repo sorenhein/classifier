@@ -10,6 +10,10 @@ using namespace std;
 class Database;
 
 
+void getFilenames(
+  const string& dirName,
+  vector<string>& textfiles);
+
 void tokenize(
   const string& text,
   vector<string>& tokens,

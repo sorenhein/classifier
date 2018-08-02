@@ -25,10 +25,6 @@
 #define UNUSED(x) ((void)(true ? 0 : ((x), void(), 0)))
 
 
-void getFilenames(
-  const string& dirName,
-  vector<string>& textfiles);
-
 void resetCar(CarEntry& c);
 
 void resetTrain(TrainEntry& t);
@@ -144,14 +140,14 @@ void getFilenames(
   {
     if (ent->d_type == DT_REG)
     {
-      // Only files ending on .txt
+      // Only files ending on .txt or .dat
       const string name = string(ent->d_name);
       const auto p = name.find_last_of('.');
       if (p == string::npos || p == name.size()-1)
         continue;
       const string ext = name.substr(p+1);
       const FileFormat f = ext2format(ext);
-      if (f != FILE_TXT)
+      if (f != FILE_TXT && f != FILE_DAT)
         continue;
 
       textfiles.push_back(dirName + "/" + string(ent->d_name));
@@ -412,6 +408,8 @@ FileFormat ext2format(const string& text)
     return FILE_TXT;
   else if (st == "CSV")
     return FILE_CSV;
+  else if (st == "DAT")
+    return FILE_DAT;
   else
     return FILE_SIZE;
 }
@@ -866,6 +864,8 @@ bool readControlFile(
       c.disturbFile = rest;
     else if (field == "INPUT_FILE")
       c.inputFile = rest;
+    else if (field == "TRACE_DIRECTORY")
+      c.traceDir = rest;
     else if (field == "SIM_COUNT")
     {
       if ( ! readInt(rest, c.simCount, err)) break;

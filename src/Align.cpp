@@ -9,7 +9,8 @@
 
 // Can adjust these.
 
-#define INDEL_PENALTY 10000.
+#define INSERT_PENALTY 5000.
+#define DELETE_PENALTY 10000.
 #define EARLY_MISS_PENALTY 3000.
 #define MAX_EARLY_MISSES 2
 
@@ -75,13 +76,13 @@ void Align::NeedlemanWunsch(
   const double early = MAX_EARLY_MISSES * EARLY_MISS_PENALTY;
   for (unsigned i = MAX_EARLY_MISSES+1; i < lr+1; i++)
   {
-    matrix[i][0].dist = early  + (i - MAX_EARLY_MISSES) * INDEL_PENALTY;
+    matrix[i][0].dist = early  + (i - MAX_EARLY_MISSES) * DELETE_PENALTY;
     matrix[i][0].origin = NW_DELETE;
   }
 
   for (unsigned j = 1; j < lt+1; j++)
   {
-    matrix[0][j].dist = j * INDEL_PENALTY;
+    matrix[0][j].dist = j * INSERT_PENALTY;
     matrix[0][j].origin = NW_INSERT;
   }
 
@@ -92,8 +93,8 @@ void Align::NeedlemanWunsch(
     {
       const double d = refPeaks[i-1].pos - scaledPeaks[j-1].pos;
       const double match = matrix[i-1][j-1].dist + peakScale * d * d;
-      const double del = matrix[i-1][j].dist + INDEL_PENALTY;
-      const double ins = matrix[i][j-1].dist + INDEL_PENALTY;
+      const double del = matrix[i-1][j].dist + DELETE_PENALTY;
+      const double ins = matrix[i][j-1].dist + INSERT_PENALTY;
 
       if (match <= del)
       {
