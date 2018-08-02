@@ -272,6 +272,9 @@ void setup(
   readCarFiles(db, control.carDir);
   readTrainFiles(db, control.trainDir);
 
+  if (control.sensorFile != "")
+    readSensorFile(db, control.sensorFile);
+
   if (! disturb.readFile(control.disturbFile))
   {
     cout << "Bad disturbance file" << endl;

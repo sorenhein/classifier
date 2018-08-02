@@ -3,13 +3,14 @@ SOURCE_FILES    =               \
                 Clusters.cpp    \
                 Database.cpp    \
                 Disturb.cpp     \
-                Trace.cpp       \
                 Regress.cpp     \
                 Stats.cpp       \
                 StatEntry.cpp   \
                 StatCross.cpp   \
                 SynthTrain.cpp  \
                 Timer.cpp       \
+                Trace.cpp       \
+                TraceDB.cpp     \
                 read.cpp        \
                 print.cpp       \
                 driver.cpp      \

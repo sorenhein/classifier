@@ -854,6 +854,8 @@ bool readControlFile(
       c.carDir = rest;
     else if (field == "TRAIN_DIRECTORY")
       c.trainDir = rest;
+    else if (field == "SENSOR_FILE")
+      c.sensorFile = rest;
     else if (field == "COUNTRY")
       c.country = rest;
     else if (field == "YEAR")
@@ -992,6 +994,119 @@ void readTrainFiles(
 }
 
 
+void readSensorFile(
+  Database& db,
+  const string& fname)
+{
+  ifstream fin;
+  fin.open(fname);
+  string line;
+  vector<string> v;
+  SensorData sdata;
+
+  if (! getline(fin, line))
+  {
+    cout << "File " << fname << ": no first line\n";
+    return;
+  }
+
+  while (getline(fin, line))
+  {
+    if (line == "" || line.front() == '#')
+      continue;
+
+    const string err = "File " + fname + ": Bad line '" + line + "'";
+
+    const size_t c = countDelimiters(line, ",");
+    if (c != 2)
+    {
+      cout << err << endl;
+      fin.close();
+      return false;;
+    }
+
+    v.clear();
+    tokenize(line, v, ",");
+
+    sdata.name = v[0];
+    sdata.country = v[1];
+    sdata.type = v[2];
+
+    db.logSensor(sdata);
+  }
+  fin.close();
+}
+
+
+void readTraceTruth(
+  const Database& db,
+  const string& fname,
+  TraceDB& tdb)
+{
+  ifstream fin;
+  fin.open(fname);
+  string line;
+  vector<string> v;
+  TraceTruth truth;
+
+  if (! getline(fin, line))
+  {
+    cout << "File " << fname << ": no first line\n";
+    return;
+  }
+
+  while (getline(fin, line))
+  {
+    if (line == "" || line.front() == '#')
+      continue;
+
+    const string err = "File " + fname + ": Bad line '" + line + "'";
+
+    const size_t c = countDelimiters(line, ",");
+    if (c != 16)
+    {
+      cout << err << endl;
+      fin.close();
+      return false;
+    }
+
+    v.clear();
+    tokenize(line, v, ",");
+
+    truth.filename = v[0];
+    truth.trainName = v[2];
+
+    if (! readInt(v[3], truth.numAxles, err))
+    {
+      fin.close();
+      return false;
+    }
+
+    if (! readDouble(v[4], truth.speed, err))
+    {
+      fin.close();
+      return false;
+    }
+
+    if (! readDouble(v[5], truth.accel, err))
+    {
+      fin.close();
+      return false;
+    }
+
+    if (v[6] == "1")
+      truth.reverseFlag = false;
+    else if (v[6] == "-1")
+      truth.reverseFlag = true;
+    else
+      return false;
+
+    tdb.log(truth);
+  }
+  fin.close();
+}
+
+
 #define SAMPLE_RATE 2000.
 
 bool readInputFile(
@@ -1018,7 +1133,7 @@ bool readInputFile(
     {
       cout << err << endl;
       fin.close();
-      return false;;
+      return false;
     }
 
     v.clear();

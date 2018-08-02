@@ -11,6 +11,7 @@ struct Control
 {
   string carDir; // Directory of car files
   string trainDir; // Directory of train files
+  string sensorFile; // File with sensor data
   string country; // Country of input traces
   int year; // Year of input traces
   string disturbFile; // File with data for random disturbance
@@ -21,12 +22,37 @@ struct Control
   double speedMax; // Upper speed for simulation loop, in m/s
   double speedStep; // Step size, in m/s
   double accelMin; // Lower acceleration for simulation loop, in m/s^2
-  double accelMax; // Upperacceleration for simulation loop, in m/s^2
+  double accelMax; // Upper acceleration for simulation loop, in m/s^2
   double accelStep; // Step size, in m/s^2
   string crossCountFile; // Output file for cross-table of counts
   string crossPercentFile; // Output file for cross-table of percentages
   string overviewFile; // Output file for overview train tables
   string detailFile; // Output file for detailed train tables
+};
+
+struct TraceTruth
+{
+  string filename;
+  string trainName;
+  unsigned numAxles;
+  double speed;
+  double accel;
+  bool reverseFlag;
+};
+
+struct TrainData
+{
+  string trainName;
+  unsigned numAxles;
+  double speed;
+  double accel;
+};
+
+struct SensorData
+{
+  string name;
+  string country;
+  string type;
 };
 
 struct PeakPos

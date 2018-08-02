@@ -8,6 +8,7 @@
 using namespace std;
 
 class Database;
+class TraceDB;
 
 
 void getFilenames(
@@ -44,6 +45,15 @@ void readCarFiles(
 void readTrainFiles(
   Database& db,
   const string& dir);
+
+void readSensorFile(
+  Database& db,
+  const string& fname);
+
+void readTraceTruth(
+  const Database& db,
+  const string& fname,
+  const TraceDB& tdb);
 
 bool readInputFile(
   const string& fname,
