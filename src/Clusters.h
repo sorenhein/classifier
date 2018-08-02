@@ -80,6 +80,8 @@ class Clusters
       const vector<PeakTime>& times,
       const unsigned numClusters = 0);
 
+    void getShorty(Cluster& cluster) const;
+
     void bestMatches(
       const vector<PeakTime>& times,
       Database& db,

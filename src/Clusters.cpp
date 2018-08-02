@@ -145,12 +145,6 @@ double Clusters::log(
     xtemp[i] = (axles[i+1] - axles[i]) / 1000.; // In m
   sort(xtemp.begin(), xtemp.end());
 
-  /*
-  double * x = static_cast<double *>(malloc(l * sizeof(double)));
-  for (unsigned i = 0; i < l; i++)
-    x[i] = xtemp[i];
-    */
-
   // Specific number of clusters.
   const bool ret = Clusters::logVector(xtemp, l, numClusters);
   // free(x);
@@ -193,6 +187,22 @@ double Clusters::log(
 unsigned Clusters::size() const
 {
   return clusters.size();
+}
+
+
+void Clusters::getShorty(Cluster& cluster) const
+{
+  const unsigned lc = clusters.size();
+  for (auto& cl: clusters)
+  {
+    if (cl.count >= lc/4)
+    {
+      cluster = cl;
+      return;
+    }
+  }
+
+  cluster.count = 0;
 }
 
 
@@ -532,7 +542,7 @@ void Clusters::bestMatches(
   }
 
 
-  // Get the top ones, but don't cound the reversed trains separately.
+  // Get the top ones, but don't count the reversed trains separately.
   sort(matchList.begin(), matchList.end());
   unsigned num = 0;
   for (unsigned i = 0; i < matchList.size(); i++)

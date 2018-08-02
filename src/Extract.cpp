@@ -1,10 +1,12 @@
 #include <iostream>
 #include <iomanip>
+#include <iterator>
 #include <fstream>
 #include <sstream>
 #include <math.h>
 
 #include "Extract.h"
+#include "Clusters.h"
 #include "read.h"
 
 // Once the early samples on the wake-up start changing by this
@@ -19,8 +21,10 @@
 
 // Default for the mid voltage of the measurement.
 
-#define MID_LEVEL 2.50
-#define MID_RANGE 0.10
+// #define MID_LEVEL 2.50
+// #define MID_RANGE 0.10
+#define MID_LEVEL 0.00
+#define MID_RANGE 1.00
 #define MID_HYSTERESIS 0.000
 
 #define NUM_RUNS_BACK 1
@@ -110,7 +114,9 @@ bool Extract::skipTransient()
 {
   for (unsigned i = 0; i < samples.size(); i++)
   {
-    if (samples[i] > MID_LEVEL)
+    // if (samples[i] > MID_LEVEL)
+    if (samples[i] < MID_LEVEL + MID_RANGE &&
+        samples[i] > MID_LEVEL - MID_RANGE)
     {
       firstActiveSample = i;
       return true;
@@ -195,10 +201,10 @@ bool Extract::runsToBumps(
 {
   const unsigned lr = runs.size();
 
-  vector<double> times;
-  times.resize(samples.size());
+  vector<double> timelist;
+  timelist.resize(samples.size());
   for (unsigned i = 0; i < firstActiveSample; i++)
-    times[i] = 0.;
+    timelist[i] = 0.;
 
   bumps.resize(lr);
 
@@ -212,31 +218,31 @@ bool Extract::runsToBumps(
 
     const double factor = (runs[i].posFlag ? 1. : -1.);
     for (unsigned j = runs[i].first; j < runs[i].first + runs[i].len; j++)
-      times[j] = factor * value;
+      timelist[j] = factor * value;
 
     bumps[i] = runs[i];
     bumps[i].cum = factor * value;
   }
 
-  /*
+  /* */
   cout << "Times\n";
   for (unsigned i = 0; i < times.size(); i++)
-    cout << i << ";" << times[i] << endl;
+    cout << i << ";" << timelist[i] << endl;
   cout << "\n";
-  */
+  /* */
 
   cout << "Bumps\n";
   for (unsigned i = 0; i < bumps.size(); i++)
-    cout << i << ";" << bumps[i].len << " " << bumps[i].cum << endl;
+    cout << i << ";" << bumps[i].len << ";" << bumps[i].cum << endl;
   cout << "\n";
 
   return true;
 }
 
 
-#define HISTO_LONG_MAX 100
-#define HISTO_TALL_MAX 501
-#define HISTO_TALL_WIDTH 0.01
+#define HISTO_LONG_MAX 250
+#define HISTO_TALL_MAX 1001
+#define HISTO_TALL_WIDTH 2.00
 #define CUTOFF_LONG 0.95
 #define CUTOFF_TALL 0.9
 
@@ -253,7 +259,7 @@ void Extract::tallyBumps(
   {
     if (bumps[i].len >= HISTO_LONG_MAX)
     {
-      cout << "Memory long exceeded: " << i << endl;
+      cout << "Memory long exceeded: " << bumps[i].len << endl;
       continue;
     }
 
@@ -312,13 +318,11 @@ void Extract::tallyBumps(
 }
 
 
-bool Extract::read(const string& fname)
-{
-  // TODO Make something of the file name
 
-  filename = fname;
+bool Extract::readText()
+{
   ifstream fin;
-  fin.open(fname);
+  fin.open(filename);
   string line;
   double v;
   while (getline(fin, line))
@@ -330,18 +334,162 @@ bool Extract::read(const string& fname)
     if (line.back() == ',')
       line.pop_back();
 
-    const string err = "File " + fname + ": Bad line '" + line + "'"; 
+    const string err = "File " + filename + 
+      ": Bad line '" + line + "'"; 
     if (! readDouble(line, v, err))
-      break;
-
+    {
+      fin.close();
+      return false;
+    }
     samples.push_back(v);
   }
 
   fin.close();
+  return true;
+}
 
+
+bool Extract::readBinary()
+{
+  ifstream fin(filename, std::ios::binary);
+  fin.unsetf(std::ios::skipws);
+  fin.seekg(0, std::ios::end);
+  const unsigned filesize = static_cast<unsigned>(fin.tellg());
+  fin.seekg(0, std::ios::beg);
+  samples.resize(filesize/4);
+
+vector<float> ff;
+ff.resize(filesize/4);
+  fin.read(reinterpret_cast<char *>(ff.data()),
+    ff.size() * sizeof(float));
+  fin.close();
+for (unsigned i = 0; i < filesize/4; i++)
+  samples[i] = ff[i];
+  return true;
+}
+
+
+#define HISTO_PEAK_MAX 100.
+#define HISTO_PEAK_BIN 1.
+#define HISTO_PEAK_NUM_BINS 101
+#define THRESHOLD_CUTOFF 0.25
+#define TOPS_TO_AVERAGE 10
+
+bool Extract::thresholdPeaks()
+{
+  // Looks for negative (physically, upward) peaks, as these seem to 
+  // be cleaner.
+  vector<unsigned> histo;
+  histo.resize(HISTO_PEAK_NUM_BINS);
+  for (unsigned i = 0; i < HISTO_PEAK_NUM_BINS; i++)
+    histo[i] = 0;
+
+  const unsigned ls = samples.size();
+  unsigned c = 0;
+  for (unsigned i = 0; i < ls; i++)
+  {
+    if (samples[i] >= average)
+      continue;
+    const unsigned p = static_cast<unsigned>
+    ((average - samples[i]) / HISTO_PEAK_BIN);
+    if (p >= HISTO_PEAK_NUM_BINS)
+    {
+      cout << "Got " << p << "\n";
+    }
+    histo[p]++;
+    c++;
+  }
+
+  if (c < TOPS_TO_AVERAGE)
+  {
+    cout << "No positive acceleration in trace.\n";
+    return false;
+  }
+
+  unsigned sum = 0;
+  unsigned count = 0;
+  for (unsigned i = 0; i < HISTO_PEAK_NUM_BINS; i++)
+  {
+    const unsigned irev = HISTO_PEAK_NUM_BINS - 1 - i;
+    count += histo[irev];
+    sum += histo[irev] * irev;
+    if (count >= TOPS_TO_AVERAGE)
+      break;
+  }
+
+  threshold = (THRESHOLD_CUTOFF * sum) / count;
+
+cout << "Number " << ls << endl;
+cout << "count " << count << " sum " << sum << endl;
+cout << "threshold " << threshold << endl;
+
+  for (unsigned i = 1; i < ls-1; i++)
+  {
+    if (samples[i] < -threshold &&
+        samples[i] < samples[i-1] &&
+        samples[i] < samples[i+1])
+    {
+      PeakTime peak;
+      peak.time = i / 2000.;
+      peak.value = samples[i];
+
+      if (times.size() == 0)
+      {
+        times.push_back(peak);
+        continue;
+      }
+
+      // Ignore close, lower peaks.  10 ms is 1 meter even at 360 km/h.
+      PeakTime& last = times.back();
+      if (peak.time > last.time + 0.03)
+      {
+        // Quite far spaced out.
+        times.push_back(peak);
+      }
+      else if (peak.time > last.time + 0.01)
+      {
+        // Somewhat close in time.
+        if (peak.value < -2. * threshold &&
+            peak.value < 0.75 * last.value)
+        {
+          // Large enough to count.
+          if (last.value >= -2. * threshold &&
+              peak.value < 2. * last.value)
+          {
+            // Previous peak was close and rather weak.
+            last = peak;
+          }
+          else
+          {
+            // Stands on its own.
+            times.push_back(peak);
+          }
+        }
+      }
+      else if (peak.value < last.value)
+      {
+        // So close that we always replace the earlier peak.
+        last = peak;
+      }
+    }
+  }
+  return true;
+}
+
+
+bool Extract::read(const string& fname)
+{
+  // TODO Make something of the file name
+
+  filename = fname;
+  Extract::readBinary();
+  // Extract::readText();
+
+/*
 for (unsigned i = 0; i < samples.size(); i++)
-  cout << i << " " << samples[i] << "\n";
+  cout << i << ";" << samples[i] << "\n";
 cout << "\n";
+*/
 
   // Extract::processTransient();
 
@@ -358,7 +506,59 @@ cout << "firstActiveSample " << firstActiveSample << endl;
     return false;
   }
 cout << "average " << average << endl;
+average = 0.;
 
+  Extract::thresholdPeaks();
+
+  const unsigned ls = times.size();
+  if (ls == 0)
+  {
+    cout << "No peaks\n";
+    return false;
+  }
+
+  cout << "Peaks " << ls << "\n";
+  for (unsigned i = 0; i < ls; i++)
+  {
+    cout << i << " " << 
+      static_cast<unsigned>(2000. * times[i].time + 0.5) << " " <<
+      times[i].value << "\n";
+  }
+
+/*
+  // Eliminate spurious peaks in short intervals.
+  // Half as the upper limit of "closeness".
+  const double halfDist = 2000. * (shortCluster.median / 2.);
+
+cout << "Short cluster " << shortCluster.count <<
+  " " << shortCluster.lower << " " << shortCluster.upper << 
+  " " << shortCluster.median << 
+  " " << halfDist << "\n\n";
+
+
+  for (unsigned i = ls-1; i > 0; i--)
+  {
+    if (times[i].time <= times[i-1].time + halfDist &&
+        times[i].value > times[i-1].value &&
+        times[i].value > -2. * threshold)
+    {
+      // Close to predecessor in time, smaller and relative small.
+      times.erase(times.begin() + i);
+    }
+  }
+
+  cout << "Pruned peaks " << times.size() << "\n";
+  for (unsigned i = 0; i < times.size(); i++)
+  {
+    cout << i << " " << 
+      static_cast<unsigned>(2000. * times[i].time + 0.5) << " " <<
+      times[i].value << "\n";
+  }
+*/
+
+
+
+  /*
   vector<Run> runs;
   Extract::calcRuns(runs);
 
@@ -384,27 +584,6 @@ cout << "average " << average << endl;
         bumps[i].cum <= -tallBump && 
         bumps[i-1].cum >= tallBump)
     {
-      /*
-      if (i < lr-2 &&
-        bumps[i+2].len >= longBump && bumps[i+1].len >= longBump &&
-        bumps[i+2].cum <= -tallBump && bumps[i+1].cum >= tallBump &&
-        bumps[i+1].cum - bumps[i+2].cum >
-        bumps[i-1].cum - bumps[i].cum)
-      {
-        // Next bump is even bigger.
-        continue;
-      }
-      else if (i >= 2 &&
-        bumps[i-2].len >= longBump && bumps[i-3].len >= longBump &&
-        bumps[i-2].cum <= -tallBump && bumps[i-3].cum >= tallBump &&
-        bumps[i-3].cum - bumps[i-2].cum >
-        bumps[i-1].cum - bumps[i].cum)
-      {
-        // Previous bump was even bigger.
-        continue;
-      }
-      */
-
       cout << bumps[i-1].first << ", " <<
         bumps[i-1].len << ", " <<
         bumps[i-1].posFlag << ", " <<
@@ -419,8 +598,16 @@ cout << "average " << average << endl;
     }
   }
   cout << "Counted " << num << "\n\n";
+  */
 
   return true;
+}
+
+
+void Extract::getTrace(vector<PeakTime>& timesOut) const
+{
+  // TODO Inefficient
+  timesOut = times;
 }
 
 

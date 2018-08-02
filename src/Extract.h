@@ -4,6 +4,8 @@
 #include <vector>
 #include <string>
 
+#include "struct.h"
+
 using namespace std;
 
 
@@ -20,6 +22,9 @@ class Extract
     };
 
     vector<double> samples;
+    vector<PeakTime> times;
+
+    double threshold;
 
     string filename;
     unsigned firstActiveSample;
@@ -28,6 +33,10 @@ class Extract
     double timeConstant;
     double sdev;
     double average;
+
+    bool readText();
+
+    bool readBinary();
 
     unsigned findCrossing(const double level) const;
 
@@ -48,6 +57,8 @@ class Extract
       unsigned& longRun,
       double& tallRun) const;
 
+    bool thresholdPeaks();
+
 
   public:
 
@@ -56,6 +67,8 @@ class Extract
     ~Extract();
 
     bool read(const string& fname);
+
+    void getTrace(vector<PeakTime>& timesOut) const;
 
     void printStats() const;
 
