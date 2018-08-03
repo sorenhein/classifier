@@ -9,6 +9,8 @@
 
 using namespace std;
 
+class Database;
+
 
 class TraceDB
 {
@@ -19,6 +21,7 @@ class TraceDB
       string date;
       string time;
       string sensor;
+      string country;
       TrainData trainTruth;
       vector<Alignment> align;
     };
@@ -27,9 +30,14 @@ class TraceDB
 
     bool deriveComponents(
       const string& fname,
+      const Database& db,
       TraceEntry& entry);
 
-    string deriveName(const TraceTruth& truth);
+    string deriveName(
+      const string& country,
+      const TraceTruth& truth);
+    
+    string basename(const string& fname) const;
 
 
   public:
@@ -38,13 +46,19 @@ class TraceDB
 
     ~TraceDB();
 
-    bool log(const TraceTruth& truth);
+    bool log(
+      const TraceTruth& truth,
+      const Database& db);
 
     bool log(
       const string& fname,
       const vector<Alignment>& align);
 
-    void printCSV(const string& fname) const;
+    string lookupSensor(const string& fname) const;
+
+    void printCSV(
+      const string& fname,
+      const Database& db) const;
 };
 
 #endif

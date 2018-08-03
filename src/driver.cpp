@@ -27,13 +27,13 @@ void setup(
 
 int main(int argc, char * argv[])
 {
-  // Trace trace;
+  Trace trace0;
   // trace.read("../../../traces/20180215_072943_391734_001_channel1");
   // trace.read("../../../traces/20171209_075447_391734_001_channel1");
-  // trace.read("../../../mini_dataset_v012/data/20180717_142901_099743_001_channel1.dat");
+  trace0.read("../../../mini_dataset_v012/data/20180717_142901_099743_001_channel1.dat");
   // vector<PeakTime> times;
   // trace.getTrace(times);
-  // exit(0);
+  exit(0);
 
   Control control;
   Database db;
@@ -123,10 +123,8 @@ bool errFlag = false;
   }
   else if (control.traceDir != "")
   {
-    readSensorFile(db, control.sensorFile);
-
     TraceDB traceDB;
-    readTraceTruth(control.truthFile, traceDB);
+    readTraceTruth(control.truthFile, db, traceDB);
 
     vector<string> datfiles;
     getFilenames(control.traceDir, datfiles);
@@ -139,8 +137,21 @@ bool errFlag = false;
       trace.read(fname);
       trace.getTrace(times);
 
+      const string sensor = traceDB.lookupSensor(fname);
+      const string country = db.lookupCountry(sensor);
+      unsigned trainNoExample;
+      if (country == "DEU")
+        trainNoExample = 0;
+      else if (country == "SWE")
+        trainNoExample = 30;
+      else
+      {
+        cout << "Could not recognize country '" << country << "'\n";
+        continue;
+      }
+
       timerAlign.start();
-      align.bestMatches(times, db, 0, 10, matchesAlign);
+      align.bestMatches(times, db, trainNoExample, 10, matchesAlign);
       timerAlign.stop();
 
       if (matchesAlign.size() == 0)
@@ -154,6 +165,8 @@ bool errFlag = false;
         matchesAlign, bestAlign, motionEstimate);
       timerRegress.stop();
 
+      traceDB.log(fname, matchesAlign);
+
       for (auto& match: matchesAlign)
       {
         cout << setw(24) << left << db.lookupTrainName(match.trainNo) << 
@@ -166,6 +179,8 @@ bool errFlag = false;
       
       // TODO More stats.  Read Chris' "truth" values.
     }
+
+    traceDB.printCSV("comp.csv", db);
   }
   else
   {

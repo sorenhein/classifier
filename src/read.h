@@ -52,6 +52,7 @@ void readSensorFile(
 
 bool readTraceTruth(
   const string& fname,
+  const Database& db,
   TraceDB& tdb);
 
 bool readInputFile(

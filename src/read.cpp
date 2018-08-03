@@ -1007,12 +1007,6 @@ void readSensorFile(
   vector<string> v;
   SensorData sdata;
 
-  if (! getline(fin, line))
-  {
-    cout << "File " << fname << ": no first line\n";
-    return;
-  }
-
   while (getline(fin, line))
   {
     if (line == "" || line.front() == '#')
@@ -1048,6 +1042,7 @@ void readSensorFile(
 
 bool readTraceTruth(
   const string& fname,
+  const Database& db,
   TraceDB& tdb)
 {
   ifstream fin;
@@ -1108,7 +1103,7 @@ bool readTraceTruth(
     else
       return false;
 
-    tdb.log(truth);
+    tdb.log(truth, db);
   }
   fin.close();
   return true;

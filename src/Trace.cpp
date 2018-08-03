@@ -488,11 +488,11 @@ bool Trace::read(const string& fname)
   Trace::readBinary();
   // Trace::readText();
 
-/*
+/* */
 for (unsigned i = 0; i < samples.size(); i++)
   cout << i << ";" << samples[i] << "\n";
 cout << "\n";
-*/
+/* */
 
   // Trace::processTransient();
 
@@ -513,7 +513,7 @@ average = 0.;
 
   Trace::thresholdPeaks();
 
-  /*
+  /* */
   const unsigned ls = times.size();
   if (ls == 0)
   {
@@ -528,7 +528,7 @@ average = 0.;
       static_cast<unsigned>(2000. * times[i].time + 0.5) << " " <<
       times[i].value << "\n";
   }
-  */
+  /* */
 
 /*
   // Eliminate spurious peaks in short intervals.

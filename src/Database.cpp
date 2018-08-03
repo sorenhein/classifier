@@ -227,6 +227,16 @@ string Database::lookupTrainName(const unsigned trainNo) const
 }
 
 
+string Database::lookupCountry(const string& sensor) const
+{
+  auto it = sensors.find(sensor);
+  if (it == sensors.end())
+    return "";
+  else
+    return it->second.country;
+}
+
+
 bool Database::trainsShareCountry(
   const unsigned trainNo1,
   const unsigned trainNo2) const
