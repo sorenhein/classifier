@@ -857,6 +857,8 @@ bool readControlFile(
       c.trainDir = rest;
     else if (field == "SENSOR_FILE")
       c.sensorFile = rest;
+    else if (field == "TRUTH_FILE")
+      c.truthFile = rest;
     else if (field == "COUNTRY")
       c.country = rest;
     else if (field == "YEAR")

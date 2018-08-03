@@ -5,6 +5,7 @@
 #include "read.h"
 #include "Trace.h"
 #include "Database.h"
+#include "TraceDB.h"
 #include "SynthTrain.h"
 #include "Regress.h"
 #include "Disturb.h"
@@ -122,6 +123,11 @@ bool errFlag = false;
   }
   else if (control.traceDir != "")
   {
+    readSensorFile(db, control.sensorFile);
+
+    TraceDB traceDB;
+    readTraceTruth(control.truthFile, traceDB);
+
     vector<string> datfiles;
     getFilenames(control.traceDir, datfiles);
     Trace trace;

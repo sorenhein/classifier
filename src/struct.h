@@ -12,6 +12,7 @@ struct Control
   string carDir; // Directory of car files
   string trainDir; // Directory of train files
   string sensorFile; // File with sensor data
+  string truthFile; // File with trace truth data
   string country; // Country of input traces
   int year; // Year of input traces
   string disturbFile; // File with data for random disturbance
