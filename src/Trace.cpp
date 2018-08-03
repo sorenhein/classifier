@@ -424,9 +424,9 @@ cout << "threshold " << threshold << endl;
 
   for (unsigned i = 1; i < ls-1; i++)
   {
-    if (samples[i] < -threshold &&
-        samples[i] < samples[i-1] &&
-        samples[i] < samples[i+1])
+    if (samples[i] > threshold &&
+        samples[i] > samples[i-1] &&
+        samples[i] > samples[i+1])
     {
       PeakTime peak;
       peak.time = i / 2000.;
@@ -448,12 +448,12 @@ cout << "threshold " << threshold << endl;
       else if (peak.time > last.time + 0.01)
       {
         // Somewhat close in time.
-        if (peak.value < -2. * threshold &&
-            peak.value < 0.75 * last.value)
+        if (peak.value > 2. * threshold &&
+            peak.value > 0.75 * last.value)
         {
           // Large enough to count.
-          if (last.value >= -2. * threshold &&
-              peak.value < 2. * last.value)
+          if (last.value <= 2. * threshold &&
+              peak.value > 2. * last.value)
           {
             // Previous peak was close and rather weak.
             last = peak;
@@ -465,7 +465,7 @@ cout << "threshold " << threshold << endl;
           }
         }
       }
-      else if (peak.value < last.value)
+      else if (peak.value > last.value)
       {
         // So close that we always replace the earlier peak.
         last = peak;
@@ -503,17 +503,17 @@ cout << "\n";
   }
 cout << "firstActiveSample " << firstActiveSample << endl;
 
-  if (! Trace::calcAverage())
-  {
-    cout << "Couldn't find a good average\n";
-    return false;
-  }
-cout << "average " << average << endl;
+  // if (! Trace::calcAverage())
+  // {
+    // cout << "Couldn't find a good average, " << average << "\n";
+//  return false;
+  // }
+// cout << "average " << average << endl;
 average = 0.;
 
   Trace::thresholdPeaks();
 
-  /* */
+  /*
   const unsigned ls = times.size();
   if (ls == 0)
   {
@@ -528,7 +528,7 @@ average = 0.;
       static_cast<unsigned>(2000. * times[i].time + 0.5) << " " <<
       times[i].value << "\n";
   }
-  /* */
+  */
 
 /*
   // Eliminate spurious peaks in short intervals.

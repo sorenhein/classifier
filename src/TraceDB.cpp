@@ -55,6 +55,11 @@ string TraceDB::deriveName(
       country + "_" +
       to_string(truth.numAxles) + "_" + 
       (truth.reverseFlag ? "R" : "N");
+  if (truth.trainName == "BOB")
+    return "MERIDIAN_" + 
+      country + "_" +
+      to_string(truth.numAxles) + "_" + 
+      (truth.reverseFlag ? "R" : "N");
   else
     return truth.trainName + "_" + 
       country + "_" +
@@ -94,7 +99,8 @@ bool TraceDB::log(
 
 bool TraceDB::log(
   const string& fname,
-  const vector<Alignment>& align)
+  const vector<Alignment>& align,
+  const unsigned peakCount)
 {
   const string basename = TraceDB::basename(fname);
   auto it = entries.find(basename);
@@ -103,6 +109,8 @@ bool TraceDB::log(
     cout << "File truth for " << basename << " not logged\n";
     return false;
   }
+
+  it->second.numPeaksDetected = peakCount;
 
   const unsigned n = (align.size() > 5 ? 5 : align.size());
   for (unsigned i = 0; i < n; i++)
@@ -151,7 +159,8 @@ void TraceDB::printCSV(
     "Name" + SEPARATOR +
     "Axles" + SEPARATOR +
     "Speed" + SEPARATOR +
-    "Accel";
+    "Accel" + SEPARATOR +
+    "Peaks";
 
   for (unsigned i = 0; i < 5; i++)
     s += string(SEPARATOR) + 
@@ -172,7 +181,8 @@ void TraceDB::printCSV(
       entry.trainTruth.trainName + SEPARATOR + 
       to_string(entry.trainTruth.numAxles) + SEPARATOR + 
       to_string(entry.trainTruth.speed) + SEPARATOR + 
-      to_string(entry.trainTruth.accel);
+      to_string(entry.trainTruth.accel) + SEPARATOR +
+      to_string(entry.numPeaksDetected);
 
     for (unsigned i = 0; i < entry.align.size(); i++)
       s += SEPARATOR + 

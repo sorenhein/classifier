@@ -23,6 +23,7 @@ class TraceDB
       string sensor;
       string country;
       TrainData trainTruth;
+      unsigned numPeaksDetected;
       vector<Alignment> align;
     };
 
@@ -52,7 +53,8 @@ class TraceDB
 
     bool log(
       const string& fname,
-      const vector<Alignment>& align);
+      const vector<Alignment>& align,
+      const unsigned peakCount);
 
     string lookupSensor(const string& fname) const;
 

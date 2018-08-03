@@ -27,13 +27,11 @@ void setup(
 
 int main(int argc, char * argv[])
 {
-  Trace trace0;
-  // trace.read("../../../traces/20180215_072943_391734_001_channel1");
-  // trace.read("../../../traces/20171209_075447_391734_001_channel1");
-  trace0.read("../../../mini_dataset_v012/data/20180717_142901_099743_001_channel1.dat");
+  // Trace trace0;
+  // trace0.read("../../../mini_dataset_v012/data/20180625_092623_062493_001_channel1.dat");
+  // exit(0);
   // vector<PeakTime> times;
   // trace.getTrace(times);
-  exit(0);
 
   Control control;
   Database db;
@@ -157,27 +155,25 @@ bool errFlag = false;
       if (matchesAlign.size() == 0)
       {
         cout << "NO MATCH\n\n";
-        continue;
       }
-
-      timerRegress.start();
-      regress.bestMatch(times, db, order,
-        matchesAlign, bestAlign, motionEstimate);
-      timerRegress.stop();
-
-      traceDB.log(fname, matchesAlign);
-
-      for (auto& match: matchesAlign)
+      else
       {
-        cout << setw(24) << left << db.lookupTrainName(match.trainNo) << 
-          setw(10) << fixed << setprecision(2) << match.dist <<
-          setw(10) << fixed << setprecision(2) << match.distMatch <<
-          setw(8) << match.numAdd <<
-          setw(8) << match.numDelete << endl;
-      }
-      cout << endl;
-      
-      // TODO More stats.  Read Chris' "truth" values.
+        timerRegress.start();
+        regress.bestMatch(times, db, order,
+          matchesAlign, bestAlign, motionEstimate);
+        timerRegress.stop();
+
+        for (auto& match: matchesAlign)
+        {
+          cout << setw(24) << left << db.lookupTrainName(match.trainNo) << 
+            setw(10) << fixed << setprecision(2) << match.dist <<
+            setw(10) << fixed << setprecision(2) << match.distMatch <<
+            setw(8) << match.numAdd <<
+            setw(8) << match.numDelete << endl;
+        }
+        cout << endl;
+      }  
+      traceDB.log(fname, matchesAlign, times.size());
     }
 
     traceDB.printCSV("comp.csv", db);
