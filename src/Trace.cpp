@@ -488,11 +488,11 @@ bool Trace::read(const string& fname)
   Trace::readBinary();
   // Trace::readText();
 
-/* */
+/*
 for (unsigned i = 0; i < samples.size(); i++)
   cout << i << ";" << samples[i] << "\n";
 cout << "\n";
-/* */
+*/
 
   // Trace::processTransient();
 
