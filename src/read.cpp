@@ -20,6 +20,7 @@
 
 
 #include "Database.h"
+#include "TraceDB.h"
 #include "read.h"
 
 #define UNUSED(x) ((void)(true ? 0 : ((x), void(), 0)))
@@ -1022,7 +1023,7 @@ void readSensorFile(
     {
       cout << err << endl;
       fin.close();
-      return false;;
+      return;
     }
 
     v.clear();
@@ -1032,14 +1033,18 @@ void readSensorFile(
     sdata.country = v[1];
     sdata.type = v[2];
 
-    db.logSensor(sdata);
+    if (! db.logSensor(sdata))
+    {
+      cout << err << endl;
+      fin.close();
+      return;
+    }
   }
   fin.close();
 }
 
 
-void readTraceTruth(
-  const Database& db,
+bool readTraceTruth(
   const string& fname,
   TraceDB& tdb)
 {
@@ -1052,7 +1057,7 @@ void readTraceTruth(
   if (! getline(fin, line))
   {
     cout << "File " << fname << ": no first line\n";
-    return;
+    return false;
   }
 
   while (getline(fin, line))
@@ -1104,6 +1109,7 @@ void readTraceTruth(
     tdb.log(truth);
   }
   fin.close();
+  return true;
 }
 
 

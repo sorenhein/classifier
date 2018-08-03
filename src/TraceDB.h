@@ -20,12 +20,14 @@ class TraceDB
       string time;
       string sensor;
       TrainData trainTruth;
-      TrainData trainDetected;
+      vector<Alignment> align;
     };
 
     map<string, TraceEntry> entries;
 
-    bool deriveComponents(const string& fname);
+    bool deriveComponents(
+      const string& fname,
+      TraceEntry& entry);
 
     string deriveName(const TraceTruth& truth);
 
@@ -40,7 +42,7 @@ class TraceDB
 
     bool log(
       const string& fname,
-      const TrainData& detected);
+      const vector<Alignment>& align);
 
     void printCSV(const string& fname) const;
 };

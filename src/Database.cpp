@@ -113,6 +113,22 @@ void Database::logTrain(const TrainEntry& train)
 }
 
 
+bool Database::logSensor(const SensorData& sdata)
+{
+  auto it = sensors.find(sdata.name);
+  if (it != sensors.end())
+  {
+    cout << "Sensor " << sdata.name << " already logged\n";
+    return false;
+  }
+
+  DatabaseSensor& sensor = sensors[sdata.name];
+  sensor.country = sdata.country;
+  sensor.type = sdata.type;
+  return true;
+}
+
+
 unsigned Database::axleCount(const unsigned trainNo) const
 {
   return trainEntries[trainNo].axles.size();

@@ -50,8 +50,7 @@ void readSensorFile(
   Database& db,
   const string& fname);
 
-void readTraceTruth(
-  const Database& db,
+bool readTraceTruth(
   const string& fname,
   const TraceDB& tdb);
 

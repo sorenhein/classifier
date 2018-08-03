@@ -75,6 +75,12 @@ struct DatabaseCar
   int countInternal;
 };
 
+struct DatabaseSensor
+{
+  string country;
+  string type;
+};
+
 
 class Database
 {
@@ -83,6 +89,8 @@ class Database
    vector<CarEntry> carEntries;
    
    vector<TrainEntry> trainEntries;
+
+   map<string, DatabaseSensor> sensors;
 
    list<string> selectedTrains;
 
@@ -102,6 +110,8 @@ class Database
     void logCar(const CarEntry& car);
 
     void logTrain(const TrainEntry& train);
+
+    bool logSensor(const SensorData& sdata);
 
     bool select(
       const string& countries,

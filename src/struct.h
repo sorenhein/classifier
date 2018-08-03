@@ -34,7 +34,7 @@ struct TraceTruth
 {
   string filename;
   string trainName;
-  unsigned numAxles;
+  int numAxles;
   double speed;
   double accel;
   bool reverseFlag;
@@ -43,7 +43,7 @@ struct TraceTruth
 struct TrainData
 {
   string trainName;
-  unsigned numAxles;
+  int numAxles;
   double speed;
   double accel;
 };
