@@ -22,43 +22,51 @@ class Trace
     };
 
     vector<double> samples;
+    vector<Run> runs;
     vector<PeakTime> times;
-
-    double threshold;
 
     string filename;
     unsigned firstActiveSample;
+    unsigned firstActiveRun;
     unsigned lastTransientSample;
-    double midLevel;
-    double timeConstant;
-    double sdev;
-    double average;
+    double timeConstant; // In ms
+    double transientAmpl; // In g
 
     bool readText();
 
     bool readBinary();
 
-    unsigned findCrossing(const double level) const;
-
     bool processTransient();
 
-    bool skipTransient();
+    void calcRuns();
 
-    bool calcAverage();
-
-    void calcRuns(vector<Run>& runs) const;
-
-    bool runsToBumps(
-      const vector<Run>& runs,
-      vector<Run>& bumps) const;
+    bool runsToBumps(vector<Run>& bumps) const;
 
     void tallyBumps(
       const vector<Run>& bumps,
       unsigned& longRun,
       double& tallRun) const;
 
+    void combineRuns(
+      vector<Run>& runvec,
+      const double threshold) const;
+
+    double calcThreshold(
+      const vector<Run>& runvec,
+      const unsigned num) const;
+
     bool thresholdPeaks();
 
+    void printSamples(const string& title) const;
+
+    void printRunsAsVector(
+      const string& title,
+      const vector<Run>& runvec) const;
+
+    void printFirstRuns(
+      const string& title,
+      const vector<Run>& runvec,
+      const unsigned num) const;
 
   public:
 
