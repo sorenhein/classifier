@@ -93,6 +93,12 @@ bool TraceDB::log(
   entry.trainTruth.speed = truth.speed;
   entry.trainTruth.accel = truth.accel;
 
+  if (db.lookupTrainNumber(entry.trainTruth.trainName) == -1)
+  {
+    cout << "Train " << entry.trainTruth.trainName <<
+      " does not exist\n";
+  }
+
   return true;
 }
 

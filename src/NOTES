@@ -1,42 +1,4 @@
-2018-08-02
-----------
-* Read in Chris' .csv
-  date
-  time
-  sensor
-  train (code it to my name, some probably don't exist in my list)
-  reverseFlag
-  axles
-  speed
-  accel
-
-* Have a sensor db file
-  number
-  country
-  leadString (ICE, MER, SBAHN, X)
-  position
-
-* From my classifier
-  train incl reverseFlag
-  speed
-  accel
-
-  From Extract itself:
-  traceLength
-  firstActive
-  average
-  threshold
-  peaks detected
-
-  For the tops (whole vector):
-  add
-  delete
-  dist
-
-* Dump all this in csv
-  up to top 5
-
-2018-07-29
+2018-08-03
 ----------
 
 Trace
@@ -52,8 +14,6 @@ Can pass in an external reference cluster?
 Can output a "string" relative to the reference cluster?
 Externally match up with Needleman?
 Penalty for any changes.
-
-A peak has an accel size and a space-domain size
 
 Segment types
 - All segments have
@@ -88,17 +48,8 @@ Peak position detection
 - Eliminate a few "a" peaks based on too low starting "v", i.e.
   too low displacement
 
-2018-07-28
-----------
-
-3. Could deal specifically with leading 2 (or 6?) peaks missing.
-4. Are the given train types real or Konux estimates?
-
-
 2018-07-17
 ----------
-* Attempt to allow random deletions and insertions (a few)
-
 * Some _N and _R trains are almost impossible to separate
   - ICE4_DEU_28 is probably symmetric, in fact?
   - ICE2_DEU_48 ditto?

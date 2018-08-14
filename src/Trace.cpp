@@ -8,6 +8,24 @@
 #include "Trace.h"
 #include "read.h"
 
+// Once the early samples on the wake-up start changing by this
+// factor, we are on the exponential part of the wake-up.
+
+#define INITIAL_FACTOR 1.20
+
+// Two points at which to fix the transient.
+
+#define FIRST_CROSSING 1.00
+#define SECOND_CROSSING 2.00
+
+// Default for the mid voltage of the measurement.
+
+// #define MID_LEVEL 2.50
+// #define MID_RANGE 0.10
+#define MID_LEVEL 0.00
+#define MID_RANGE 1.00
+#define MID_HYSTERESIS 0.000
+
 #define NUM_RUNS_BACK 1
 #define NUM_RUNS_FRONT 1
 
@@ -22,93 +40,132 @@ Trace::~Trace()
 }
 
 
-#define TRANSIENT_RANGE 5
-#define TRANSIENT_MIN_LENGTH 20
-#define TRANSIENT_MIN_AVG 0.5
-#define SAMPLE_RATE 2000.
+unsigned Trace::findCrossing(const double level) const
+{
+  for (unsigned i = firstActiveSample; i < samples.size(); i++)
+  {
+    if (samples[i] > level)
+      return i;
+  }
+  return 0;
+}
+
 
 bool Trace::processTransient()
 {
-  // Current working definition of a transient:
-  // 1. One of the first 5 runs.
-  // 2. Covers at least 20 samples.
-  // 3. Average at least 0.5g.
+  // This is mainly to check that there are no peaks in the transient.
 
-  if (runs.size() < TRANSIENT_RANGE)
-    return false;
-
+  const unsigned l = samples.size();
   bool found = false;
-  unsigned rno = 0;
-
-  for (unsigned i = 0; i < TRANSIENT_RANGE; i++)
+  for (unsigned i = 1; i < l; i++)
   {
-    if (runs[i].len < TRANSIENT_MIN_LENGTH)
-      continue;
-
-    if (runs[i].cum < TRANSIENT_MIN_AVG * runs[i].len)
-      continue;
-    
-    found = true;
-    rno = i;
-    break;
-  } 
+    if (samples[i] > INITIAL_FACTOR * samples[i-1])
+    {
+      found = true;
+      firstActiveSample = i-1;
+      break;
+    }
+  }
 
   if (! found)
     return false;
 
-  double vcum = 0.;
-  const Run& rref = runs[rno];
-  const unsigned f = rref.first;
-  double cum = rref.cum / SAMPLE_RATE;
+  const unsigned n1 = findCrossing(FIRST_CROSSING);
+  if (n1 == 0)
+    return false;
 
-  for (unsigned i = f; i < f + rref.len; i++)
-    vcum += (i - f) * samples[i];
-  vcum /= (SAMPLE_RATE * SAMPLE_RATE);
+  const unsigned n2 = findCrossing(SECOND_CROSSING);
+  if (n2 == 0)
+    return false;
 
-  if (! rref.posFlag)
-    vcum = -vcum;
+  // Assume the transient is of the form
+  // avg * (1 - exp(-(i-firstActiveSample) / tau)
 
-  timeConstant = 1000. * vcum / cum;
-  transientAmpl = cum * cum / vcum;
+  const double nd1 = static_cast<double>(n1 - firstActiveSample);
+  const double nd2 = static_cast<double>(n2 - firstActiveSample);
 
-  cout << "Interval " << rno << " from " <<
-    rref.first << " to " << rref.first + rref.len << ": " <<
-    cum << " " << vcum << endl;
-  cout << "param;" << fixed << setprecision(2) << 
-    timeConstant << ";" <<
-    transientAmpl << endl;
+  unsigned iter = 0;
+  double err = 1.e6, avg = MID_LEVEL, tau = 0.;
+  while (iter < 10 && err > 1.e-6)
+  {
+    const double tau1 = nd1 / log(avg / (avg - samples[n1]));
+    const double tau2 = nd2 / log(avg / (avg - samples[n2]));
+    tau = 0.5 * (tau1 + tau2);
 
-  firstActiveSample = rref.first + rref.len;
-  firstActiveRun = rno;
+    const double avg1 = samples[n1] / (1. - exp(-nd1 / tau));
+    const double avg2 = samples[n2] / (1. - exp(-nd2 / tau));
+    avg = 0.5 * (avg1 + avg2);
+
+    err = (avg1 > avg2 ? avg1-avg2 : avg2-avg1);
+    iter++;
+  }
+
+  if (err > 1.e-6)
+    return false;
+
+  midLevel = avg;
+  timeConstant = tau;
   return true;
 }
 
 
-void Trace::calcRuns()
+bool Trace::skipTransient()
+{
+  for (unsigned i = 0; i < samples.size(); i++)
+  {
+    // if (samples[i] > MID_LEVEL)
+    if (samples[i] < MID_LEVEL + MID_RANGE &&
+        samples[i] > MID_LEVEL - MID_RANGE)
+    {
+      firstActiveSample = i;
+      return true;
+    }
+  }
+  return false;
+}
+
+
+bool Trace::calcAverage()
+{
+  const unsigned l = samples.size();
+  double sum = 0.;
+  for (unsigned i = firstActiveSample; i < l; i++)
+    sum += samples[i];
+  average = sum / static_cast<double>(l - firstActiveSample);
+  
+  if (average < MID_LEVEL - MID_RANGE || average > MID_LEVEL + MID_RANGE)
+    return false;
+  else
+    return true;
+}
+
+
+void Trace::calcRuns(vector<Run>& runs) const
 {
   Run run;
-  run.first = 0;
+
+  run.first = firstActiveSample;
   run.len = 1;
-  if (samples[0] >= 0.)
+  if (samples[firstActiveSample] >= average)
   {
     run.posFlag = true;
-    run.cum = samples[0];
+    run.cum = samples[firstActiveSample] - average;
   }
   else
   {
     run.posFlag = false;
-    run.cum = -samples[0];
+    run.cum = average - samples[firstActiveSample];
   }
 
   const unsigned l = samples.size();
-  for (unsigned i = 1; i < l; i++)
+  for (unsigned i = firstActiveSample; i < l; i++)
   {
     if (run.posFlag)
     {
-      if (samples[i] >= 0.)
+      if (samples[i] > average - MID_HYSTERESIS)
       {
         run.len++;
-        run.cum += samples[i];
+        run.cum += samples[i] - average;
       }
       else
       {
@@ -116,13 +173,13 @@ void Trace::calcRuns()
         run.first = i;
         run.len = 1;
         run.posFlag = false;
-        run.cum = -samples[i];
+        run.cum = average - samples[i];
       }
     }
-    else if (samples[i] < 0.)
+    else if (samples[i] < average + MID_HYSTERESIS)
     {
       run.len++;
-      run.cum -= samples[i];
+      run.cum += average - samples[i];
     }
     else
     {
@@ -130,56 +187,16 @@ void Trace::calcRuns()
       run.first = i;
       run.len = 1;
       run.posFlag = true;
-      run.cum = samples[i];
+      run.cum = samples[i] - average;
     }
   }
   runs.push_back(run);
 }
 
 
-#define DECLINE_FACTOR 1.0
-
-void Trace::combineRuns(
-  vector<Run>& runvec,
-  const double thr) const
-{
-  vector <Run> tmp;
-  tmp.clear();
-
-  const unsigned l = runvec.size();
-  for (unsigned i = 0; i < l; i++)
-  {
-    if (i+2 >= l)
-    {
-      tmp.push_back(runvec[i]);
-      continue;
-    }
-
-    Run run = runvec[i];
-
-    while (i+2 < l)
-    {
-      if (runvec[i+1].cum < thr &&
-         (runvec[i].cum < thr || runvec[i+2].cum < thr) &&
-          DECLINE_FACTOR * runvec[i].cum > runvec[i+1].cum &&
-          DECLINE_FACTOR * runvec[i+2].cum > runvec[i+1].cum)
-      {
-        // Consider this a spurious bump.
-        run.len += runvec[i+1].len + runvec[i+2].len;
-        run.cum += - runvec[i+1].cum + runvec[i+2].cum;
-        i += 2;
-      }
-      else
-        break;
-    }
-
-    tmp.push_back(run);
-  }
-  runvec = tmp;
-}
-
-
-bool Trace::runsToBumps(vector<Run>& bumps) const
+bool Trace::runsToBumps(
+  const vector<Run>& runs,
+  vector<Run>& bumps) const
 {
   const unsigned lr = runs.size();
 
@@ -359,10 +376,6 @@ for (unsigned i = 0; i < filesize/4; i++)
 
 bool Trace::thresholdPeaks()
 {
-  // Used to be global: Kludge TODO
-  
-  double threshold = 0.;
-
   // Looks for negative (physically, upward) peaks, as these seem to 
   // be cleaner.
   vector<unsigned> histo;
@@ -374,10 +387,10 @@ bool Trace::thresholdPeaks()
   unsigned c = 0;
   for (unsigned i = 0; i < ls; i++)
   {
-    if (samples[i] >= 0.)
+    if (samples[i] >= average)
       continue;
     const unsigned p = static_cast<unsigned>
-    ((- samples[i]) / HISTO_PEAK_BIN);
+    ((average - samples[i]) / HISTO_PEAK_BIN);
     if (p >= HISTO_PEAK_NUM_BINS)
     {
       cout << "Got " << p << "\n";
@@ -464,103 +477,6 @@ cout << "peaks " << times.size() << "\n";
 }
 
 
-void Trace::printSamples(const string& title) const
-{
-  cout << title << "\n";
-  for (unsigned i = 0; i < samples.size(); i++)
-    cout << i << ";" << samples[i] << "\n";
-  cout << "\n";
-}
-
-
-void Trace::printFirstRuns(
-  const string& title,
-  const vector<Run>& runvec,
-  const unsigned num) const
-{
-  cout << title << "\n";
-  for (unsigned i = 0; i < num; i++)
-  {
-    cout << i << " " << setw(6) << left << runvec[i].first << " " <<
-      setw(6) << runvec[i].len << " " <<
-      runvec[i].posFlag << " " <<
-      setw(12) << fixed << setprecision(2) << right <<
-        runvec[i].cum << endl;
-  }
-}
-
-
-void Trace::printRunsAsVector(
-  const string& title,
-  const vector<Run>& runvec) const
-{
-  cout << title << "\n";
-  const unsigned l = runvec.size();
-  for (unsigned i = 0; i < l; i++)
-  {
-    const double v = (runvec[i].posFlag ? runvec[i].cum :
-      -runvec[i].cum);
-    for (unsigned j = runvec[i].first;
-        j < runvec[i].first + runvec[i].len; j++)
-    {
-      cout << j << ";" << v << "\n";
-    }
-  }
-}
-
-
-#define THRESHOLD_WIDTH 0.1
-#define THRESHOLD_SIZE 1001
-
-double Trace::calcThreshold(
-  const vector<Run>& runvec,
-  const unsigned num) const
-{
-  vector<unsigned> histo(THRESHOLD_SIZE);
-
-cout << "Histo start" << endl;
-  const unsigned l = runvec.size();
-  for (unsigned i = 0; i < l; i++)
-  {
-    double r = runvec[i].cum;
-    const double d = (r >= 0. ? r : -r);
-    const unsigned j = static_cast<unsigned>(d / THRESHOLD_WIDTH);
-
-    if (j >= THRESHOLD_SIZE)
-    {
-      cout << "Memory long exceeded: " << j << endl;
-      continue;
-    }
-
-    histo[j]++;
-  }
-
-cout << "\n";
-for (unsigned i = 0; i < THRESHOLD_SIZE; i++)
-{
-  if (histo[i] > 0)
-    cout << i << " " << histo[i] << "\n";
-}
-
-cout << "Histo thr" << endl;
-  unsigned c = 0;
-  for (unsigned i = 0; i < THRESHOLD_SIZE; i++)
-  {
-    const unsigned j = THRESHOLD_SIZE - 1 - i;
-    c += histo[j];
-
-    if (c >= num)
-{
-  cout << "Thr found " << j << endl;
-      return j * THRESHOLD_WIDTH;
-}
-  }
-
-  cout << "No threshold found\n";
-  return 0.;
-}
-
-
 bool Trace::read(const string& fname)
 {
   // TODO Make something of the file name
@@ -572,61 +488,30 @@ bool Trace::read(const string& fname)
   Trace::readBinary();
   // Trace::readText();
 
-  runs.clear();
-  Trace::calcRuns();
+/*
+for (unsigned i = 0; i < samples.size(); i++)
+  cout << i << ";" << samples[i] << "\n";
+cout << "\n";
+*/
 
-  cout << "\n";
-  Trace::printRunsAsVector("Original", runs);
+  // Trace::processTransient();
 
-  const double threshold = Trace::calcThreshold(runs, 200);
-  cout << "Threshold " << threshold << endl;
-
-  unsigned l;
-  unsigned i = 0;
-  do
+  if (! Trace::skipTransient())
   {
-    l = runs.size();
-    Trace::combineRuns(runs, threshold);
-
-    if (l > runs.size())
-    {
-      cout << "\n";
-      Trace::printRunsAsVector("Iter " + to_string(i) + 
-        " " + to_string(runs.size()), runs);
-    }
-    i++;
-    if (i > 10)
-      break;
+    cout << "Couldn't skip transient\n";
+    return false;
   }
-  while (l > runs.size());
-
-  /*
-  cout << "\n";
-  cout << "Combiruns\n";
-  const unsigned l = combinedRuns.size();
-  for (unsigned i = 0; i < l; i++)
-  {
-    if (i < l-1 && combinedRuns[i].posFlag)
-    {
-      cout << combinedRuns[i].len << ";" <<
-        combinedRuns[i+1].len << "\n";
-    }
-  }
-  */
-
-  // cout << "\n";
-  // Trace::printRunsAsVector("CombiRuns", combinedRuns);
-  // cout << "\n";
-
-  // Trace::printSamples("samples");
-
-  // Trace::printFirstRuns("Leadruns", 5);
-
-  Trace::processTransient();
-
 cout << "firstActiveSample " << firstActiveSample << endl;
 
-  // Trace::thresholdPeaks();
+  // if (! Trace::calcAverage())
+  // {
+    // cout << "Couldn't find a good average, " << average << "\n";
+//  return false;
+  // }
+// cout << "average " << average << endl;
+average = 0.;
+
+  Trace::thresholdPeaks();
 
   /*
   const unsigned ls = times.size();
