@@ -28,6 +28,7 @@ class Trace
     string filename;
     unsigned firstActiveSample;
     unsigned firstActiveRun;
+    unsigned firstTransientSample;
     unsigned lastTransientSample;
     double timeConstant; // In ms
     double transientAmpl; // In g
@@ -77,6 +78,8 @@ class Trace
     bool read(const string& fname);
 
     void getTrace(vector<PeakTime>& timesOut) const;
+
+    void writeTransient() const;
 
     void printStats() const;
 

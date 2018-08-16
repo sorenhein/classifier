@@ -78,6 +78,7 @@ bool Trace::processTransient()
     timeConstant << ";" <<
     transientAmpl << endl;
 
+  firstTransientSample = rref.first;
   firstActiveSample = rref.first + rref.len;
   firstActiveRun = rno;
   return true;
@@ -733,5 +734,31 @@ void Trace::getTrace(vector<PeakTime>& timesOut) const
 
 void Trace::printStats() const
 {
+}
+
+
+void Trace::writeTransient() const
+{
+  string tname = filename;
+  auto tp1 = tname.find("/raw/");
+  if (tp1 == string::npos)
+    return;
+
+  auto tp2 = tname.find(".dat");
+  if (tp2 == string::npos)
+    return;
+
+  tname.insert(tp2, "_offset_" + to_string(firstTransientSample));
+  tname.replace(tp1, 5, "/transient/");
+
+vector<float> ff(samples.size());
+for (unsigned i = 0; i < samples.size(); i++)
+  ff[i] = static_cast<float>(samples[i]);
+
+  ofstream fout(tname, std::ios::out | std::ios::binary);
+
+  fout.write(reinterpret_cast<char *>(ff.data()),
+    ff.size() * sizeof(float));
+  fout.close();
 }
 
