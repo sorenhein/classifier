@@ -25,6 +25,7 @@ Trace::~Trace()
 #define TRANSIENT_RANGE 5
 #define TRANSIENT_MIN_LENGTH 20
 #define TRANSIENT_MIN_AVG 0.5
+#define TRANSIENT_RATIO 3.
 #define SAMPLE_RATE 2000.
 
 bool Trace::processTransient()
@@ -33,6 +34,7 @@ bool Trace::processTransient()
   // 1. One of the first 5 runs.
   // 2. Covers at least 20 samples.
   // 3. Average at least 0.5g.
+  // 4. Ratio between beginning and end values is at least 3.
 
   if (runs.size() < TRANSIENT_RANGE)
     return false;
@@ -60,6 +62,21 @@ bool Trace::processTransient()
   const Run& rref = runs[rno];
   const unsigned f = rref.first;
   double cum = rref.cum / SAMPLE_RATE;
+
+  double sumFront = 0., sumBack = 0.;
+  for (unsigned i = f; i < f+3; i++)
+    sumFront += samples[i];
+  for (unsigned i = f + rref.len - 3; i < f + rref.len; i++)
+    sumBack += samples[i];
+
+  if (sumFront < 0.)
+  {
+    sumFront = -sumFront;
+    sumBack = -sumBack;
+  }
+
+  if (sumFront < TRANSIENT_RATIO * sumBack)
+    return false;
 
   for (unsigned i = f; i < f + rref.len; i++)
     vcum += (i - f) * samples[i];
@@ -576,6 +593,12 @@ bool Trace::read(const string& fname)
   runs.clear();
   Trace::calcRuns();
 
+  transientFlag = Trace::processTransient();
+
+cout << "firstActiveSample " << firstActiveSample << endl;
+return true;
+
+
   cout << "\n";
   Trace::printRunsAsVector("Original", runs);
 
@@ -622,10 +645,6 @@ bool Trace::read(const string& fname)
   // Trace::printSamples("samples");
 
   // Trace::printFirstRuns("Leadruns", 5);
-
-  Trace::processTransient();
-
-cout << "firstActiveSample " << firstActiveSample << endl;
 
   // Trace::thresholdPeaks();
 
@@ -739,6 +758,9 @@ void Trace::printStats() const
 
 void Trace::writeTransient() const
 {
+  if (! transientFlag)
+    return;
+
   string tname = filename;
   auto tp1 = tname.find("/raw/");
   if (tp1 == string::npos)
@@ -751,9 +773,13 @@ void Trace::writeTransient() const
   tname.insert(tp2, "_offset_" + to_string(firstTransientSample));
   tname.replace(tp1, 5, "/transient/");
 
-vector<float> ff(samples.size());
-for (unsigned i = 0; i < samples.size(); i++)
-  ff[i] = static_cast<float>(samples[i]);
+  const unsigned l = firstActiveSample - firstTransientSample;
+  vector<float> ff(l);
+  for (unsigned i = 0; i < l; i++)
+    ff[i] = static_cast<float> (transientAmpl * exp(
+      - static_cast<double>(i) / 2000. / (timeConstant / 1000.)));
+
+  // TODO Should set and use times
 
   ofstream fout(tname, std::ios::out | std::ios::binary);
 

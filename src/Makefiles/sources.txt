@@ -4,6 +4,7 @@ SOURCE_FILES    =               \
                 Database.cpp    \
                 Disturb.cpp     \
                 Regress.cpp     \
+                SegTransient.cpp \
                 Stats.cpp       \
                 StatEntry.cpp   \
                 StatCross.cpp   \

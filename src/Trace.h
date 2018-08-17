@@ -4,6 +4,7 @@
 #include <vector>
 #include <string>
 
+#include "SegTransient.h"
 #include "struct.h"
 
 using namespace std;
@@ -13,21 +14,16 @@ class Trace
 {
   private:
 
-    struct Run
-    {
-      unsigned first;
-      unsigned len;
-      bool posFlag;
-      double cum;
-    };
-
     vector<double> samples;
     vector<Run> runs;
     vector<PeakTime> times;
 
+    SegTransient transient;
+
     string filename;
     unsigned firstActiveSample;
     unsigned firstActiveRun;
+    bool transientFlag;
     unsigned firstTransientSample;
     unsigned lastTransientSample;
     double timeConstant; // In ms

@@ -1,19 +1,26 @@
 import glob
 import matplotlib.pyplot as plt
+import numpy as np
 
 def dualpane(sensor, compdir):
   """Show original signal and partial, matched signal."""
-  basedir = "C:\Program Files (x86)\cygwin64\home\s.hein\mini_dataset_v012\data/sensors/"
-  rawdir = basedir + sensor + "/raw"
-  matchdir = basedir + sensor + compdir
+  basedir = R"C:\Program Files (x86)\cygwin64\home\s.hein\mini_dataset_v012\data\sensors" + "\\"
+  rawdir = basedir + sensor + R"\raw"
+  matchdir = basedir + sensor + "\\" + compdir
 
-  rawlist = glob.glob(rawdir + "/*.dat")
-  matchlist = glob.glob(matchdir + "/*.dat")
+  rawlist = glob.glob(rawdir + R"\*.dat")
+  matchlist = glob.glob(matchdir + R"\*.dat")
 
   i = 0
+  rawdict = {}
   for r in rawlist:
-    rawdict[r] = i++
+    rawdict[r] = i
+    i += 1
 
+  print("Have " + str(len(rawlist)) + " raw items, " + str(len(matchlist)) + " matched items")
+
+  matched = [""] * len(rawlist)
+  offsets = [-1] * len(rawlist)
   for mm in matchlist:
     m = mm
     mp = m.find(".dat")
@@ -21,50 +28,71 @@ def dualpane(sensor, compdir):
       print("Odd match name: " + r)
       continue
 
-    m = m(:rp)
-
+    m = m[:mp]
     offset = 0
     mp = m.find("_offset_")
     if mp >= 0:
-      offset = int(m(:mp+8))
-      m = m(:mp)
+      offset = int(m[mp+8:])
+      m = m[:mp]
 
-    m.replace("/" + compdir + "/". "/raw/")
+    was = "\\" + compdir + "\\"
+    becomes = R"\raw" + "\\"
+    m = m.replace(was, becomes)
     m += ".dat"
 
     if m in rawdict:
       matched[rawdict[m]] = mm
-
+      offsets[rawdict[m]] = offset
+    else:
+      print("did not match " + m)
+      
+  plt.ion()
+  plt.show()
+  
   curr = -1
-  l = rawlist.len()
+  l = len(rawlist)
   while True:
-    val = input()
+    val = raw_input("Input: ")
     if val == "q":
       break
     elif val == "n":
-      curr++
+      curr += 1
       if curr >= l:
         curr = l-1
     elif val == "p":
-      curr--
+      curr -= 1
       if curr < 0:
         curr = 0
-    elif val < 0 || val >= l:
-      print("Value " + val + " out of range")
-      continue
-    else
-      curr = int(val)
+    else:
+      try:
+        curr = int(val)
+      except ValueError:
+        print("Value " + val + " not recognized")
+        continue
+        
+      if curr < 0 or curr >= l:
+        print("Value " + str(curr) + " out of range")
 
-    rp = rawlist[curr].find("/raw/");
-    plt.title(rp(rp+5: + "(no. " + curr + ")")
-    rawdata = np.fromfile(rawlist[curr], dtype = float32)
-    if matched[curr] == 0:
-      plt.plot(rawdata(:500))
-      continue
-
-    matchdata = np.fromfile(matched[curr], dtype = float32)
-    ml = matchdata.len()
-    x = np.arange(ml)
-    plt.plot(x, rawdata(:ml), x, ml)
+    rp = rawlist[curr].find("\\raw\\");
+    title = rawlist[curr][(rp+5):] +  " (no. " + str(curr) + ")"
+    
+    rawdata = np.fromfile(rawlist[curr], dtype = np.float32)
+    print("Read " + str(len(rawdata)) + " from " + rawlist[curr])
+    
+    plt.clf()
+    plt.title(title)
+    if matched[curr] == "":
+      plt.plot(rawdata[:100])
+      plt.draw()
+      plt.pause(0.001)
+    else:
+      matchdata = np.fromfile(matched[curr], dtype = np.float32)
+      ml = len(matchdata)
+      x = np.arange(ml)
+      o = offsets[curr]
+      plt.plot(x[o:], rawdata[o:ml], 'b')
+      plt.plot(x[o:], matchdata[o:], 'r')
+      plt.draw()
+      plt.pause(0.001)
 
 

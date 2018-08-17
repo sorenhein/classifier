@@ -128,4 +128,22 @@ struct Alignment
   }
 };
 
+enum TransientType
+{
+  TRANSIENT_NONE = 0,
+  TRANSIENT_SMALL = 1,
+  TRANSIENT_MEDIUM = 2,
+  TRANSIENT_LARGE = 3,
+  TRANSIENT_SIZE = 4
+};
+
+struct Run
+{
+  unsigned first;
+  unsigned len;
+  bool posFlag;
+  double cum;
+};
+
+
 #endif
