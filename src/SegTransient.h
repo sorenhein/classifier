@@ -23,6 +23,9 @@ class SegTransient
     double transientAmpl; // In g
     double timeConstant; // In ms
 
+    vector<float> synth;
+    double fitError;
+
     bool detectPossibleRun(
       const vector<Run>& runs,
       unsigned& rno) const;
@@ -38,6 +41,19 @@ class SegTransient
     void estimateTransientParams(
       const vector<double>& samples,
       const Run& run);
+
+    void synthesize();
+
+    bool largeActualDeviation(
+      const vector<double>& samples,
+      const Run& run,
+      unsigned& devpos) const;
+
+    bool largeSynthDeviation(
+      const vector<double>& samples,
+      unsigned& devpos) const;
+
+    bool errorIsSmall(const vector<double>& samples);
 
   public:
 

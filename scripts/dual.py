@@ -2,6 +2,16 @@ import glob
 import matplotlib.pyplot as plt
 import numpy as np
 
+sensors = [
+  '062493', '063848', '063905', '065330', '066221', 
+  '066254', '066270', '067138', '075149', '078663',
+  '078630', '078655', '078663', '078747', '078754',
+  '078770', '078796', '078804', '078812', '078960',
+  '081857', '082863', '084992', '085320', '085478',
+  '099743', '101630', '101648', '101796', '106346',
+  '391705', '391710', '391711', '391718', '391731']
+
+
 def dualpane(sensor, compdir):
   """Show original signal and partial, matched signal."""
   basedir = R"C:\Program Files (x86)\cygwin64\home\s.hein\mini_dataset_v012\data\sensors" + "\\"

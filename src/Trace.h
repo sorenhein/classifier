@@ -24,16 +24,10 @@ class Trace
     unsigned firstActiveSample;
     unsigned firstActiveRun;
     bool transientFlag;
-    unsigned firstTransientSample;
-    unsigned lastTransientSample;
-    double timeConstant; // In ms
-    double transientAmpl; // In g
 
     bool readText();
 
     bool readBinary();
-
-    bool processTransient();
 
     void calcRuns();
 

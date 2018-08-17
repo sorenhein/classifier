@@ -22,85 +22,6 @@ Trace::~Trace()
 }
 
 
-#define TRANSIENT_RANGE 5
-#define TRANSIENT_MIN_LENGTH 20
-#define TRANSIENT_MIN_AVG 0.5
-#define TRANSIENT_RATIO 3.
-#define SAMPLE_RATE 2000.
-
-bool Trace::processTransient()
-{
-  // Current working definition of a transient:
-  // 1. One of the first 5 runs.
-  // 2. Covers at least 20 samples.
-  // 3. Average at least 0.5g.
-  // 4. Ratio between beginning and end values is at least 3.
-
-  if (runs.size() < TRANSIENT_RANGE)
-    return false;
-
-  bool found = false;
-  unsigned rno = 0;
-
-  for (unsigned i = 0; i < TRANSIENT_RANGE; i++)
-  {
-    if (runs[i].len < TRANSIENT_MIN_LENGTH)
-      continue;
-
-    if (runs[i].cum < TRANSIENT_MIN_AVG * runs[i].len)
-      continue;
-    
-    found = true;
-    rno = i;
-    break;
-  } 
-
-  if (! found)
-    return false;
-
-  double vcum = 0.;
-  const Run& rref = runs[rno];
-  const unsigned f = rref.first;
-  double cum = rref.cum / SAMPLE_RATE;
-
-  double sumFront = 0., sumBack = 0.;
-  for (unsigned i = f; i < f+3; i++)
-    sumFront += samples[i];
-  for (unsigned i = f + rref.len - 3; i < f + rref.len; i++)
-    sumBack += samples[i];
-
-  if (sumFront < 0.)
-  {
-    sumFront = -sumFront;
-    sumBack = -sumBack;
-  }
-
-  if (sumFront < TRANSIENT_RATIO * sumBack)
-    return false;
-
-  for (unsigned i = f; i < f + rref.len; i++)
-    vcum += (i - f) * samples[i];
-  vcum /= (SAMPLE_RATE * SAMPLE_RATE);
-
-  if (! rref.posFlag)
-    vcum = -vcum;
-
-  timeConstant = 1000. * vcum / cum;
-  transientAmpl = cum * cum / vcum;
-
-  cout << "Interval " << rno << " from " <<
-    rref.first << " to " << rref.first + rref.len << ": " <<
-    cum << " " << vcum << endl;
-  cout << "param;" << fixed << setprecision(2) << 
-    timeConstant << ";" <<
-    transientAmpl << endl;
-
-  firstTransientSample = rref.first;
-  firstActiveSample = rref.first + rref.len;
-  firstActiveRun = rno;
-  return true;
-}
-
 
 void Trace::calcRuns()
 {
@@ -593,7 +514,7 @@ bool Trace::read(const string& fname)
   runs.clear();
   Trace::calcRuns();
 
-  transientFlag = Trace::processTransient();
+  transientFlag = transient.detect(samples, runs);
 
 cout << "firstActiveSample " << firstActiveSample << endl;
 return true;
@@ -758,33 +679,6 @@ void Trace::printStats() const
 
 void Trace::writeTransient() const
 {
-  if (! transientFlag)
-    return;
-
-  string tname = filename;
-  auto tp1 = tname.find("/raw/");
-  if (tp1 == string::npos)
-    return;
-
-  auto tp2 = tname.find(".dat");
-  if (tp2 == string::npos)
-    return;
-
-  tname.insert(tp2, "_offset_" + to_string(firstTransientSample));
-  tname.replace(tp1, 5, "/transient/");
-
-  const unsigned l = firstActiveSample - firstTransientSample;
-  vector<float> ff(l);
-  for (unsigned i = 0; i < l; i++)
-    ff[i] = static_cast<float> (transientAmpl * exp(
-      - static_cast<double>(i) / 2000. / (timeConstant / 1000.)));
-
-  // TODO Should set and use times
-
-  ofstream fout(tname, std::ios::out | std::ios::binary);
-
-  fout.write(reinterpret_cast<char *>(ff.data()),
-    ff.size() * sizeof(float));
-  fout.close();
+  transient.writeBinary(filename);
 }
 

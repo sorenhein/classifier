@@ -1,3 +1,11 @@
+2018-08-17
+----------
+Works reasonably well on transients now.
+The +10 humps should only be eliminated in actuals towards the end.
+Maybe also in synth differences.
+Look at all traces one last time.
+
+
 2018-08-03
 ----------
 
@@ -22,10 +30,6 @@ Segment types
   type
 
 - Off
-
-- Transient
-  tau
-  can it have peaks?
 
 - Quiet
   sdev?
