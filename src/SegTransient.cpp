@@ -438,6 +438,12 @@ bool SegTransient::detect(
 }
 
 
+unsigned SegTransient::lastSampleNo() const
+{
+  return firstBuildupSample + buildupLength + transientLength;
+}
+
+
 void SegTransient::writeBinary(const string& origname) const
 {
   if (transientType == TRANSIENT_NONE ||

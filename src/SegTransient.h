@@ -81,6 +81,8 @@ class SegTransient
       const vector<double>& samples, // TODO: Should use times[]
       const vector<Run>& runs);
 
+    unsigned lastSampleNo() const;
+
     void writeBinary(const string& origname) const;
 
     string headerCSV() const;
