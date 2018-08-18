@@ -14,6 +14,7 @@
 // * Average at least 0.3g.
 // * Ratio between beginning and end values is at least 3.
 // * Ratio between beginning and middle values is at least 1.7.
+// * Has a bit of a slope towards zero, at least.
 // * TODO: Should be independent of sample rate.
 
 #define TRANSIENT_RANGE 5
@@ -23,6 +24,7 @@
 #define TRANSIENT_RATIO_MID 1.7
 #define TRANSIENT_SMALL_RUN 3
 #define TRANSIENT_STEP 0.98
+
 #define TRANSIENT_LARGE_DEV 10.
 #define SAMPLE_RATE 2000.
 
@@ -32,6 +34,7 @@
 SegTransient::SegTransient()
 {
   transientType = TRANSIENT_NONE;
+  status = TSTATUS_SIZE;
 }
 
 
@@ -42,10 +45,13 @@ SegTransient::~SegTransient()
 
 bool SegTransient::detectPossibleRun(
   const vector<Run>& runs,
-  unsigned& rno) const
+  unsigned& rno)
 {
   if (runs.size() < TRANSIENT_RANGE)
+  {
+    status = TSTATUS_TOO_FEW_RUNS;
     return false;
+  }
 
   for (unsigned i = 0; i < TRANSIENT_RANGE; i++)
   {
@@ -58,6 +64,8 @@ bool SegTransient::detectPossibleRun(
     rno = i;
     return true;
   } 
+
+  status = TSTATUS_NO_CANDIDATE_RUN;
   return false;
 }
 
@@ -76,6 +84,7 @@ bool SegTransient::findEarlyPeak(
 
   for (unsigned i = run.first + 2; i < run.first + run.len; i++)
   {
+    // TODO Combine this code at the cost of abstraction
     diff = samples[i] - samples[i-1];
     if (posSlopeFlag)
     {
@@ -129,7 +138,7 @@ bool SegTransient::findEarlyPeak(
 
 bool SegTransient::checkDecline(
   const vector<double>& samples,
-  const Run& run) const
+  const Run& run)
 {
   // A good transient moves from large to medium to small
   // over the course of the transient.
@@ -161,22 +170,21 @@ bool SegTransient::checkDecline(
     sumAlmostBack = -sumAlmostBack;
   }
 
-  if (sumFront < TRANSIENT_RATIO_FULL * sumBack)
-{
-cout << "Decline: Failed full\n";
-cout << sumFront << ", " << sumBack << ", " <<
-  first << ", " << last << endl;
-    // In very choppy traces, the last trace can be atypical.
-    if (sumFront < TRANSIENT_RATIO_FULL * sumAlmostBack)
-      return false;
-}
-  if (sumFront < TRANSIENT_RATIO_MID * sumMid)
-{
-cout << "Decline: Failed mid\n";
-cout << sumFront << ", " << sumMid << ", " <<
-  first << ", " << last << endl;
+  if (sumFront < TRANSIENT_RATIO_FULL * sumBack &&
+      sumFront < TRANSIENT_RATIO_FULL * sumAlmostBack)
+  {
+    // In very choppy traces, the last sample can be atypical,
+    // so we also permit skipping this.
+    status = TSTATUS_NO_FULL_DECLINE;
     return false;
-}
+  }
+
+  if (sumFront < TRANSIENT_RATIO_MID * sumMid)
+  {
+    status = TSTATUS_NO_MID_DECLINE;
+    return false;
+  }
+
   return true;
 }
 
@@ -200,13 +208,15 @@ void SegTransient::estimateTransientParams(
   cum /= SAMPLE_RATE;
   vcum /= (SAMPLE_RATE * SAMPLE_RATE);
 
+  // Actually we can also just use the first sample.
+  // Because the math is so pretty, we average the two,
+  // but in truth cand2 is probably better...
+
   const double cand1 = cum * cum / vcum;
   const double cand2 = samples[f];
 
-  // Probably cand2 is actually better in practice.
   transientAmpl = 0.85 * cand2 + 0.15 * cand1;
   timeConstant = 1000. * cum / transientAmpl;
-  // timeConstant = 1000. * vcum / cum;
 
   // This is purely informational, so the values are not
   // so important.  It probably tends to say something about
@@ -248,6 +258,7 @@ bool SegTransient::errorIsSmall(const vector<double>& samples)
     err += diff * diff;
   }
 
+  // Not currently possibly to fail this test.
   fitError = sqrt(err / l);
   return true;
 }
@@ -258,6 +269,10 @@ bool SegTransient::largeActualDeviation(
   const Run& run,
   unsigned& devpos) const
 {
+  // We stop the transient if there's a big bump away from
+  // the middle in the actual trace.  A big bump is two 
+  // consecutive samples or three with enough mass.
+
   for (unsigned i = firstBuildupSample + buildupLength;
     i < run.first + run.len - 3; i++)
   {
@@ -292,7 +307,7 @@ bool SegTransient::largeSynthDeviation(
   const vector<double>& samples,
   unsigned& devpos) const
 {
-  // We consider two consecutive, large deviations from
+  // We also consider two consecutive, large deviations from
   // the synthesized transient to signal the end.
 
   for (unsigned i = 1; i < synth.size()-1; i++)
@@ -342,56 +357,50 @@ bool SegTransient::detect(
     transientLength = run.len;
   }
 
-  // Could be a large signal away from zero towards
-  // the end.
+  // Could be a large signal away from zero towards the end.
   unsigned devpos;
-  Run runtmp = run;
+  Run runcorr = run;
 
   if (SegTransient::largeActualDeviation(samples, run, devpos))
   {
-    cout << "ACTUALDEV " << devpos << "\n";
-    runtmp.len = devpos - run.first;
+    runcorr.len = devpos - run.first;
     transientLength = devpos - run.first - buildupLength;
+    status = TSTATUS_BACK_ACTUAL_CORR;
   }
 
-  if (! SegTransient::checkDecline(samples, runtmp))
+  if (! SegTransient::checkDecline(samples, runcorr))
   {
     // Could be a very choppy trace where it makes sense
     // to start from the beginning.
     buildupLength = 0;
-    if (SegTransient::checkDecline(samples, runtmp))
+    if (SegTransient::checkDecline(samples, runcorr))
     {
-cout << "SALVAGED\n";
-      firstBuildupSample = runtmp.first;
+      firstBuildupSample = runcorr.first;
       buildupStart = 0.;
-      transientLength = runtmp.len;
+      transientLength = runcorr.len;
+      status = TSTATUS_FRONT_ACTUAL_CORR;
     }
     else
     {
       transientType = TRANSIENT_NONE;
       return false;
     }
-
   }
 
-  SegTransient::estimateTransientParams(samples, runtmp);
+  SegTransient::estimateTransientParams(samples, runcorr);
 
   SegTransient::synthesize();
 
   if (SegTransient::largeSynthDeviation(samples, devpos))
   {
-    cout << "LARGE DEVIATION " << devpos << "\n";
-    runtmp.len = devpos;
+    runcorr.len = devpos;
     transientLength = devpos - buildupLength;
+    status = TSTATUS_BACK_SYNTH_CORR;
 
-cout << "HAD ampl " << transientAmpl << ", " <<
-  timeConstant << ", " << synth.size() << "\n";
     // Redo the estimation.
-    SegTransient::estimateTransientParams(samples, runtmp);
+    SegTransient::estimateTransientParams(samples, runcorr);
 
     SegTransient::synthesize();
-cout << "NOW ampl " << transientAmpl << ", " <<
-  timeConstant << ", " << synth.size() << "\n";
   }
 
   if (! SegTransient::errorIsSmall(samples))
@@ -399,10 +408,10 @@ cout << "NOW ampl " << transientAmpl << ", " <<
     // Currently not possible.  fitError is probably an
     // indication of a signal being present during the transient.
     transientType = TRANSIENT_NONE;
+    status = TSTATUS_BAD_FIT;
     return false;
   }
 
-cout << "Returning TRUE, type " << transientType << "\n";
   return true;
 }
 
@@ -413,7 +422,7 @@ void SegTransient::writeBinary(const string& origname) const
       transientType == TRANSIENT_SIZE)
     return;
 
-  // Make the transient file name by
+  // Make the transient file name by:
   // * Replacing /raw/ with /transient/
   // * Adding _offset_N before .dat
 
@@ -437,10 +446,29 @@ void SegTransient::writeBinary(const string& origname) const
 }
 
 
+string SegTransient::headerCSV() const
+{
+  stringstream ss;
+  ss << 
+    "Status" << SEPARATOR <<
+    "Type" << SEPARATOR <<
+    "Pre" << SEPARATOR <<
+    "Len" << SEPARATOR <<
+    "Level" << SEPARATOR <<
+    "Main" << SEPARATOR <<
+    "Ampl" << SEPARATOR <<
+    "Tau";
+
+  return ss.str();
+}
+
+
 string SegTransient::strCSV() const
 {
   stringstream ss;
-  ss << transientType << SEPARATOR <<
+  ss << 
+    status << SEPARATOR <<
+    transientType << SEPARATOR <<
     firstBuildupSample << SEPARATOR <<
     buildupLength << SEPARATOR <<
     fixed << setprecision(2) << buildupStart << SEPARATOR <<

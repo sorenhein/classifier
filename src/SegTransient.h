@@ -8,11 +8,25 @@
 
 using namespace std;
 
+enum TransientStatus
+{
+  TSTATUS_TOO_FEW_RUNS = 0,
+  TSTATUS_NO_CANDIDATE_RUN = 1,
+  TSTATUS_NO_FULL_DECLINE = 2,
+  TSTATUS_NO_MID_DECLINE = 3,
+  TSTATUS_BACK_ACTUAL_CORR = 4,
+  TSTATUS_FRONT_ACTUAL_CORR = 5,
+  TSTATUS_BACK_SYNTH_CORR = 6,
+  TSTATUS_BAD_FIT = 7,
+  TSTATUS_SIZE = 8
+};
+
 
 class SegTransient
 {
   private:
 
+    TransientStatus status;
     TransientType transientType;
 
     unsigned firstBuildupSample;
@@ -28,7 +42,7 @@ class SegTransient
 
     bool detectPossibleRun(
       const vector<Run>& runs,
-      unsigned& rno) const;
+      unsigned& rno);
 
     bool findEarlyPeak(
       const vector<double>& samples,
@@ -36,7 +50,7 @@ class SegTransient
 
     bool checkDecline(
       const vector<double>& samples,
-      const Run& run) const;
+      const Run& run);
 
     void estimateTransientParams(
       const vector<double>& samples,
@@ -67,8 +81,9 @@ class SegTransient
 
     void writeBinary(const string& origname) const;
 
-    string strCSV() const;
+    string headerCSV() const;
 
+    string strCSV() const;
 };
 
 #endif
