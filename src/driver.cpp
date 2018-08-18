@@ -129,6 +129,9 @@ bool errFlag = false;
     Trace trace;
     vector<PeakTime> times;
 
+    ofstream tout("trans.csv", ios_base::app);
+    tout << "Sensor;" << trace.strTransientHeaderCSV() << "\n";
+
     for (auto& fname: datfiles)
     {
       cout << "File " << fname << ":\n";
@@ -136,7 +139,8 @@ bool errFlag = false;
       trace.getTrace(times);
 
       // TEMP
-      trace.writeTransient();
+      tout << fname << ";" << trace.strTransientCSV() << "\n";
+      // trace.writeTransient();
       continue;
 
       const string sensor = traceDB.lookupSensor(fname);
@@ -181,6 +185,7 @@ bool errFlag = false;
     }
 
     traceDB.printCSV("comp.csv", db);
+    tout.close();
   }
   else
   {

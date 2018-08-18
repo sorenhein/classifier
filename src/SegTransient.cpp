@@ -33,13 +33,26 @@
 
 SegTransient::SegTransient()
 {
-  transientType = TRANSIENT_NONE;
-  status = TSTATUS_SIZE;
 }
 
 
 SegTransient::~SegTransient()
 {
+}
+
+
+void SegTransient::reset()
+{
+  transientType = TRANSIENT_NONE;
+  status = TSTATUS_SIZE;
+
+  firstBuildupSample = 0;
+  buildupLength = 0;
+  buildupStart = 0.;
+
+  transientLength = 0;
+  transientAmpl = 0.;
+  timeConstant = 0.;
 }
 
 
@@ -221,12 +234,19 @@ void SegTransient::estimateTransientParams(
   // This is purely informational, so the values are not
   // so important.  It probably tends to say something about
   // the sensor hardware.
-  if (timeConstant >= 40. && run.cum >= 400.)
-    transientType = TRANSIENT_LARGE;
-  else if (timeConstant >= 15. && run.cum >= 150.)
+  if (transientAmpl >= 40. && 
+      timeConstant >= 5. && timeConstant <= 17.)
+    transientType = TRANSIENT_LARGE_POS;
+  else if (transientAmpl <= -40. && 
+      timeConstant >= 5. && timeConstant <= 17.)
+    transientType = TRANSIENT_LARGE_NEG;
+  else if (transientAmpl >= 15. && 
+      timeConstant >= 5. && timeConstant <= 17.)
     transientType = TRANSIENT_MEDIUM;
-  else
+  else if (transientAmpl <= 3. && transientAmpl >= -3.)
     transientType = TRANSIENT_SMALL;
+  else
+    transientType = TRANSIENT_SIZE;
 }
 
 
@@ -339,6 +359,8 @@ bool SegTransient::detect(
   const vector<double>& samples,
   const vector<Run>& runs)
 {
+  SegTransient::reset();
+
   unsigned rno;
   if (! SegTransient::detectPossibleRun(runs, rno))
   {
@@ -452,10 +474,10 @@ string SegTransient::headerCSV() const
   ss << 
     "Status" << SEPARATOR <<
     "Type" << SEPARATOR <<
-    "Pre" << SEPARATOR <<
-    "Len" << SEPARATOR <<
+    "Prepos" << SEPARATOR <<
+    "Prelen" << SEPARATOR <<
     "Level" << SEPARATOR <<
-    "Main" << SEPARATOR <<
+    "Len" << SEPARATOR <<
     "Ampl" << SEPARATOR <<
     "Tau";
 

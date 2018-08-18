@@ -71,6 +71,9 @@ class Trace
 
     void writeTransient() const;
 
+    string strTransientHeaderCSV();
+    string strTransientCSV();
+
     void printStats() const;
 
 };

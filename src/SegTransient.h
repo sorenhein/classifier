@@ -75,6 +75,8 @@ class SegTransient
 
     ~SegTransient();
 
+    void reset();
+
     bool detect(
       const vector<double>& samples, // TODO: Should use times[]
       const vector<Run>& runs);

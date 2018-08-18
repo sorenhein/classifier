@@ -672,6 +672,18 @@ void Trace::getTrace(vector<PeakTime>& timesOut) const
 }
 
 
+string Trace::strTransientHeaderCSV()
+{
+  return transient.headerCSV();
+}
+
+
+string Trace::strTransientCSV()
+{
+  return transient.strCSV();
+}
+
+
 void Trace::printStats() const
 {
 }
