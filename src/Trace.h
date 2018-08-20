@@ -5,6 +5,7 @@
 #include <string>
 
 #include "SegTransient.h"
+#include "SegQuiet.h"
 #include "struct.h"
 
 using namespace std;
@@ -19,11 +20,13 @@ class Trace
     vector<PeakTime> times;
 
     SegTransient transient;
+    SegQuiet quiet;
 
     string filename;
     unsigned firstActiveSample;
     unsigned firstActiveRun;
     bool transientFlag;
+    bool quietFlag;
 
     bool readText();
 
@@ -70,6 +73,7 @@ class Trace
     void getTrace(vector<PeakTime>& timesOut) const;
 
     void writeTransient() const;
+    void writeQuiet() const;
 
     string strTransientHeaderCSV();
     string strTransientCSV();

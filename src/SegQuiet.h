@@ -27,7 +27,9 @@ class SegQuiet
 
     vector<Interval> quiet;
 
-    vector<double> synth;
+    vector<float> synth;
+
+    unsigned offset;
 
     void makeStats(
       const vector<double>& samples,
@@ -48,6 +50,15 @@ class SegQuiet
       vector<Interval>& active,
       const unsigned firstSampleNo,
       const unsigned l) const;
+
+    void printStats(
+      const QuietStats& qstats,
+      const unsigned first) const;
+
+    void printShortStats(
+      const QuietStats& qstats,
+      const unsigned first,
+      const bool flag) const;
 
   public:
 

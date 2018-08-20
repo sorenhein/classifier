@@ -10,11 +10,13 @@
 
 // TODO Move to times, not sample numbers
 #define INT_LENGTH 100
-#define QUIET_OUTPUT 1.
+#define QUIET_OUTPUT 3.
 
 #define SDEV_OUTLIERS 2.
 #define SDEV_SAMPLE_MEAN 3.
-#define SDEV_ABSOLUTE 1. 
+#define SDEV_ABSOLUTE 0.3
+#define MEAN_VERY_QUIET 0.03
+#define SDEV_VERY_QUIET 0.03
 #define OUTLIERS_EXPECTED 5
 #define OUTLIER_TOLERANCE 2.
 #define RUN_RANDOM_DENSITY 0.3
@@ -96,6 +98,7 @@ unsigned SegQuiet::countRuns(
 bool SegQuiet::isQuiet(const QuietStats& qstats) const
 {
   // Current conditions for a quiet interval:
+  // 0. Very low absolute values.
   // 1. The true mean should be roughly within the sample mean
   //    +/- 3 standard deviations of the mean.  The sdev of
   //    the mean is the sample sdev / sqrt(n).
@@ -108,6 +111,10 @@ bool SegQuiet::isQuiet(const QuietStats& qstats) const
   // 4. There's an empirically expected number of runs.
   //    If there are too few, it tends to indicate non-random
   //    temporal correlation.
+
+  if (qstats.mean < MEAN_VERY_QUIET &&
+      qstats.sdev < SDEV_VERY_QUIET)
+    return true;
 
   const double meanSdev = qstats.sdev / sqrt(qstats.len);
   const double absMean = abs(qstats.mean);
@@ -131,15 +138,15 @@ bool SegQuiet::isQuiet(const QuietStats& qstats) const
 
 void SegQuiet::makeSynth(const unsigned l)
 {
-  synth.resize(l);
-  for (unsigned i = 0; i < l; i++)
-    synth[i] = 0.;
+  synth.resize(l - offset);
+  for (unsigned i = offset; i < l; i++)
+    synth[i - offset] = 0.;
 
   for (unsigned i = 0; i < quiet.size(); i++)
   {
     for (unsigned j = quiet[i].first; 
         j < quiet[i].first + quiet[i].len; j++)
-      synth[j] = QUIET_OUTPUT;
+      synth[j - offset] = QUIET_OUTPUT;
   }
 }
 
@@ -151,11 +158,12 @@ void SegQuiet::makeActive(
 {
   active.clear();
   Interval aint;
-  aint.len = 0;
+  aint.first = firstSampleNo;
+  aint.len = offset - firstSampleNo;
 
-  for (unsigned i = firstSampleNo; i < l; i++)
+  for (unsigned i = offset; i < l; i++)
   {
-    if (synth[i] == 0.)
+    if (synth[i - offset] == 0.)
     {
       if (aint.len == 0)
         aint.first = i;
@@ -182,22 +190,29 @@ bool SegQuiet::detect(
 {
   const unsigned l = samples.size();
   const unsigned numInts = (l - firstSampleNo) / INT_LENGTH; 
-  const unsigned first = l - firstSampleNo - numInts * INT_LENGTH;
+  offset = l - numInts * INT_LENGTH;
 
   QuietStats qstats;
   qstats.len = INT_LENGTH;
-  for (unsigned i = first; i < l; i += INT_LENGTH)
+  quiet.clear();
+  for (unsigned i = offset; i < l; i += INT_LENGTH)
   {
     SegQuiet::makeStats(samples, i, INT_LENGTH, qstats);
     qstats.numRuns = SegQuiet::countRuns(runs, i, INT_LENGTH);
 
+bool flag = false;
     if (SegQuiet::isQuiet(qstats))
     {
+flag = true;
       Interval interval;
       interval.first = i;
       interval.len = INT_LENGTH;
       quiet.push_back(interval);
     }
+
+    if (i >= l-1000)
+      // SegQuiet::printStats(qstats, i);
+      SegQuiet::printShortStats(qstats, i, flag);
   }
 
   SegQuiet::makeSynth(l);
@@ -223,7 +238,7 @@ void SegQuiet::writeBinary(const string& origname) const
   if (tp2 == string::npos)
     return;
 
-  tname.insert(tp2, "_offset_0");
+  tname.insert(tp2, "_offset_" + to_string(offset));
   tname.replace(tp1, 5, "/quiet/");
 
   ofstream fout(tname, std::ios::out | std::ios::binary);
@@ -231,6 +246,34 @@ void SegQuiet::writeBinary(const string& origname) const
   fout.write(reinterpret_cast<const char *>(synth.data()),
     synth.size() * sizeof(float));
   fout.close();
+}
+
+
+void SegQuiet::printStats(
+  const QuietStats& qstats,
+  const unsigned first) const
+{
+  cout << 
+    first << SEPARATOR <<
+    qstats.mean << SEPARATOR <<
+    qstats.sdev << SEPARATOR <<
+    qstats.len << SEPARATOR <<
+    qstats.numOutliers << SEPARATOR <<
+    qstats.valOutliers << SEPARATOR <<
+    qstats.numRuns << "\n";
+}
+
+
+void SegQuiet::printShortStats(
+  const QuietStats& qstats,
+  const unsigned first,
+  const bool flag) const
+{
+  cout << 
+    first << SEPARATOR <<
+    qstats.mean << SEPARATOR <<
+    qstats.sdev << SEPARATOR <<
+    flag << "\n";
 }
 
 

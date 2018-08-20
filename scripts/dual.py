@@ -92,16 +92,17 @@ def dualpane(sensor, compdir):
     plt.clf()
     plt.title(title)
     if matched[curr] == "":
-      plt.plot(rawdata[:100])
+      # plt.plot(rawdata[:100])
+      plt.plot(rawdata)
       plt.draw()
       plt.pause(0.001)
     else:
       matchdata = np.fromfile(matched[curr], dtype = np.float32)
       ml = len(matchdata)
-      x = np.arange(ml)
       o = offsets[curr]
-      plt.plot(x[o:], rawdata[o:ml], 'b')
-      plt.plot(x[o:], matchdata[o:], 'r')
+      x = np.arange(o, o+ml)
+      plt.plot(x, rawdata[o:o+ml], 'b')
+      plt.plot(x, matchdata[:ml], 'r')
       plt.draw()
       plt.pause(0.001)
 

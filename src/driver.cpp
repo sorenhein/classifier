@@ -28,7 +28,7 @@ void setup(
 int main(int argc, char * argv[])
 {
   // Trace trace0;
-  // trace0.read("../../../mini_dataset_v012/data/20171012_214645_391705_001_channel1.dat");
+  // trace0.read("../../../mini_dataset_v012/data/sensors/078796/raw/20180506_075949_078796_001_channel1.dat");
   // exit(0);
   // vector<PeakTime> times;
   // trace.getTrace(times);
@@ -129,18 +129,19 @@ bool errFlag = false;
     Trace trace;
     vector<PeakTime> times;
 
-    ofstream tout("trans.csv", ios_base::app);
-    tout << "Sensor;" << trace.strTransientHeaderCSV() << "\n";
+    // ofstream tout("trans.csv", ios_base::app);
+    // tout << "Sensor;" << trace.strTransientHeaderCSV() << "\n";
 
     for (auto& fname: datfiles)
     {
-      cout << "File " << fname << ":\n";
+      cout << "File " << fname << ":" << endl;
       trace.read(fname);
       trace.getTrace(times);
 
       // TEMP
-      tout << fname << ";" << trace.strTransientCSV() << "\n";
+      // tout << fname << ";" << trace.strTransientCSV() << "\n";
       // trace.writeTransient();
+      trace.writeQuiet();
       continue;
 
       const string sensor = traceDB.lookupSensor(fname);
@@ -185,7 +186,7 @@ bool errFlag = false;
     }
 
     traceDB.printCSV("comp.csv", db);
-    tout.close();
+    // tout.close();
   }
   else
   {
