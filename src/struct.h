@@ -146,11 +146,4 @@ struct Run
   double cum;
 };
 
-struct Interval
-{
-  unsigned first;
-  unsigned len;
-};
-
-
 #endif
