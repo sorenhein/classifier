@@ -22,6 +22,9 @@
 #define MEAN_SOMEWHAT_QUIET 0.2
 #define SDEV_SOMEWHAT_QUIET 0.2
 
+#define MEAN_QUIET_LIMIT 0.3
+#define SDEV_QUIET_LIMIT 0.3
+
 #define NUM_NON_QUIET_RUNS 2
 #define NUM_QUIET_FOLLOWERS 4
 
@@ -86,14 +89,20 @@ void SegQuiet::makeStats(
 
 QuietGrade SegQuiet::isQuiet(const QuietStats& qstats) const
 {
-  if (qstats.mean < MEAN_VERY_QUIET &&
+  if (abs(qstats.mean) < MEAN_VERY_QUIET &&
       qstats.sdev < SDEV_VERY_QUIET)
     return GRADE_GREEN;
-  else if (qstats.mean < MEAN_SOMEWHAT_QUIET &&
+  else if (abs(qstats.mean) < MEAN_SOMEWHAT_QUIET &&
       qstats.sdev < SDEV_SOMEWHAT_QUIET)
     return GRADE_AMBER;
-  else
+  else if (abs(qstats.mean) < MEAN_QUIET_LIMIT &&
+      qstats.sdev < SDEV_SOMEWHAT_QUIET)
     return GRADE_RED;
+  else if (abs(qstats.mean) < MEAN_SOMEWHAT_QUIET &&
+      qstats.sdev < SDEV_QUIET_LIMIT)
+    return GRADE_RED;
+  else
+    return GRADE_DEEP_RED;
 }
 
 
@@ -110,19 +119,23 @@ void SegQuiet::addQuiet(
 }
 
 
+#define UNUSED(x) ((void)(true ? 0 : ((x), void(), 0)))
+
 unsigned SegQuiet::curate(
   const unsigned runReds,
   const unsigned totalReds) const
 {
   const unsigned l = quiet.size();
+  UNUSED(runReds);
+  UNUSED(totalReds);
 
   // Not even a few reds in a row?
-  if (runReds < NUM_NON_QUIET_RUNS)
-    return l;
+  // if (runReds < NUM_NON_QUIET_RUNS)
+    // return l;
 
   // No spurious reds on the way?
-  if (totalReds == NUM_NON_QUIET_RUNS)
-    return l - NUM_NON_QUIET_RUNS;
+  // if (totalReds == NUM_NON_QUIET_RUNS)
+    // return l - NUM_NON_QUIET_RUNS;
 
   for (unsigned i = 0; i < l; i++)
   {
@@ -422,6 +435,10 @@ bool SegQuiet::detect(
     {
       SegQuiet::makeStats(samples, start, INT_LENGTH, qstats);
       const QuietGrade grade = SegQuiet::isQuiet(qstats);
+
+      if (grade == GRADE_DEEP_RED)
+        break;
+
       SegQuiet::addQuiet(start, INT_LENGTH, grade);
 
       if (grade == GRADE_RED)
