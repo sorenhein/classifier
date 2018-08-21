@@ -28,7 +28,7 @@ void setup(
 int main(int argc, char * argv[])
 {
   // Trace trace0;
-  // trace0.read("../../../mini_dataset_v012/data/sensors/078754/raw/20180506_070840_078754_001_channel1.dat");
+  // trace0.read("../../../mini_dataset_v012/data/sensors/063905/raw/20180625_064248_063905_001_channel1.dat");
   // exit(0);
   // vector<PeakTime> times;
   // trace.getTrace(times);
@@ -141,8 +141,11 @@ bool errFlag = false;
       // TEMP
       // tout << fname << ";" << trace.strTransientCSV() << "\n";
       // trace.writeTransient();
-      trace.writeQuietBack();
-      trace.writeQuietFront();
+
+      // trace.writeQuietBack();
+      // trace.writeQuietFront();
+
+      trace.writeQuietIntra();
       continue;
 
       const string sensor = traceDB.lookupSensor(fname);

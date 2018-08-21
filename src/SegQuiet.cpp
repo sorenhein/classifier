@@ -60,10 +60,15 @@ void SegQuiet::makeStarts(
     for (unsigned i = 0; i < numInts; i++)
       startList.push_back(interval.len - (i+1) * INT_LENGTH);
   }
-  else
+  else if (direction == QUIET_FRONT)
   {
     for (unsigned i = 0; i < numInts; i++)
       startList.push_back(i * INT_LENGTH);
+  }
+  else if (direction == QUIET_INTRA)
+  {
+    for (unsigned i = 0; i < numInts; i++)
+      startList.push_back(interval.first + i * INT_LENGTH);
   }
 }
 
@@ -126,16 +131,9 @@ unsigned SegQuiet::curate(
   const unsigned totalReds) const
 {
   const unsigned l = quiet.size();
+  // TODO Delete
   UNUSED(runReds);
   UNUSED(totalReds);
-
-  // Not even a few reds in a row?
-  // if (runReds < NUM_NON_QUIET_RUNS)
-    // return l;
-
-  // No spurious reds on the way?
-  // if (totalReds == NUM_NON_QUIET_RUNS)
-    // return l - NUM_NON_QUIET_RUNS;
 
   for (unsigned i = 0; i < l; i++)
   {
