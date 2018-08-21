@@ -20,7 +20,9 @@ class Trace
     vector<PeakTime> times;
 
     SegTransient transient;
-    SegQuiet quiet;
+    SegQuiet quietFront;
+    SegQuiet quietBack;
+    SegQuiet quietIntra;
 
     string filename;
     unsigned firstActiveSample;
@@ -73,7 +75,7 @@ class Trace
     void getTrace(vector<PeakTime>& timesOut) const;
 
     void writeTransient() const;
-    void writeQuiet() const;
+    void writeQuietBack() const;
 
     string strTransientHeaderCSV();
     string strTransientCSV();

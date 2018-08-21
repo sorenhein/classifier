@@ -48,8 +48,8 @@ class SegQuiet
 
     vector<float> synth;
 
-    unsigned offset;
-    unsigned lastSample;
+    Interval writeInterval;
+    Interval activeInterval;
 
     void makeStarts(
       const Interval& interval,
@@ -92,16 +92,14 @@ class SegQuiet
       const vector<double>& samples,
       const QuietPlace direction);
 
-    void adjustOffset(
+    void adjustOutputIntervals(
       const Interval& avail,
       const QuietPlace direction,
       const unsigned numInt);
 
     void makeSynth();
 
-    void makeActive(
-      vector<Interval>& active,
-      const unsigned firstSampleNo) const;
+    void makeActive(vector<Interval>& active) const;
 
     void printStats(
       const QuietStats& qstats,

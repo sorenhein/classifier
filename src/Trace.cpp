@@ -521,8 +521,13 @@ bool Trace::read(const string& fname)
   available[0].len = samples.size() - available[0].first;
 
   vector<Interval> active;
-  quietFlag = quiet.detect(samples, available, QUIET_BACK, active);
+  quietFlag = quietBack.detect(samples, available, 
+    QUIET_BACK, active);
 
+  for (unsigned i = 0; i < active.size(); i++)
+  {
+    cout << i << " " << active[i].first << " " << active[i].len << "\n";
+  }
 cout << "firstActiveSample " << firstActiveSample << endl;
 return true;
 
@@ -702,8 +707,8 @@ void Trace::writeTransient() const
 }
 
 
-void Trace::writeQuiet() const
+void Trace::writeQuietBack() const
 {
-  quiet.writeBinary(filename, "quiet");
+  quietBack.writeBinary(filename, "back");
 }
 

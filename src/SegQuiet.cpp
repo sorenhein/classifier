@@ -177,7 +177,7 @@ void SegQuiet::setFinetuneRange(
       last = first + 2 * INT_LENGTH;
 
     for (unsigned i = first; i < last; i += INT_FINE_LENGTH)
-      fineStarts.push_back(last - (i+1) * INT_FINE_LENGTH);
+      fineStarts.push_back(last - INT_FINE_LENGTH - (i - first));
   }
 }
 
@@ -224,7 +224,7 @@ cout << "ADJUST FRONT from " << qlast->first << " - " <<
     // Shrink or extend the last interval, as the case may be.
     qlast->len = index - qlast->first;
 cout << " to " << qlast->first << " - " <<
-  qlast->first + qlast->len;
+  qlast->first + qlast->len << "\n";
   }
   else if (direction == QUIET_BACK)
   {
@@ -241,7 +241,7 @@ cout << "ADJUST BACK from " << qlast->first << " - " <<
     qlast->len = qlast->first + qlast->len - index;
     qlast->first = index;
 cout << " to " << qlast->first << " - " <<
-  qlast->first + qlast->len;
+  qlast->first + qlast->len << "\n";
   }
 }
 
@@ -279,7 +279,7 @@ void SegQuiet::finetune(
 }
 
 
-void SegQuiet::adjustOffset(
+void SegQuiet::adjustOutputIntervals(
   const Interval& avail,
   const QuietPlace direction,
   const unsigned numInt)
@@ -287,30 +287,39 @@ void SegQuiet::adjustOffset(
   const unsigned l = avail.first + avail.len;
   if (direction == QUIET_FRONT)
   {
-    offset = avail.first;
-    lastSample = offset + numInt * INT_LENGTH;
-    if (lastSample + 1000 < l)
-      lastSample += 1000;
+    writeInterval.first = avail.first;
+    writeInterval.len = numInt * INT_LENGTH;
+
+    activeInterval.first = writeInterval.first + writeInterval.len;
+    activeInterval.len = l - activeInterval.first;
+
+    if (activeInterval.first + 1000 < l)
+      writeInterval.len += 1000;
     else
-      lastSample = l;
+      writeInterval.len = l - writeInterval.first;
+
   }
   else
   {
-    offset = l - numInt * INT_LENGTH;
-    if (offset >= 1000)
-      offset -= 1000;
+    writeInterval.first = l - numInt * INT_LENGTH;
+
+    activeInterval.first = avail.first;
+    activeInterval.len = writeInterval.first - avail.first;
+
+    if (writeInterval.first >= 1000)
+      writeInterval.first -= 1000;
     else
-      offset = 0;
-    lastSample = l;
+      writeInterval.first = 0;
+    writeInterval.len = l - writeInterval.first;
   }
 }
 
 
 void SegQuiet::makeSynth()
 {
-  synth.resize(lastSample - offset);
-  for (unsigned i = offset; i < lastSample; i++)
-    synth[i - offset] = 0.;
+  synth.resize(writeInterval.len);
+  for (unsigned i = 0; i < writeInterval.len; i++)
+    synth[i] = 0.;
 
   for (unsigned i = 0; i < quiet.size(); i++)
   {
@@ -324,23 +333,27 @@ void SegQuiet::makeSynth()
 
     for (unsigned j = quiet[i].first; 
         j < quiet[i].first + quiet[i].len; j++)
-      synth[j - offset] = g;
+      synth[j - writeInterval.first] = g;
   }
 }
 
 
-void SegQuiet::makeActive(
-  vector<Interval>& active,
-  const unsigned firstSampleNo) const
+void SegQuiet::makeActive(vector<Interval>& active) const
 {
   active.clear();
   Interval aint;
-  aint.first = firstSampleNo;
-  aint.len = offset - firstSampleNo;
+  aint.first = activeInterval.first;
+  aint.len = 0;
 
-  for (unsigned i = offset; i < lastSample; i++)
+  for (unsigned i = activeInterval.first;
+      i < activeInterval.first + activeInterval.len; i++)
   {
-    if (synth[i - offset] == 0.)
+    double val = 0.;
+    if (i >= writeInterval.first &&
+        i < writeInterval.first + writeInterval.len)
+      val = synth[i - writeInterval.first];
+
+    if (val == 0.)
     {
       if (aint.len == 0)
         aint.first = i;
@@ -407,7 +420,7 @@ bool SegQuiet::detect(
     SegQuiet::finetune(samples, direction);
 
     // Make output a bit longer in order to better see.
-    SegQuiet::adjustOffset(available[0], direction, n);
+    SegQuiet::adjustOutputIntervals(available[0], direction, n);
   }
   else if (direction == QUIET_INTRA)
   {
@@ -426,15 +439,16 @@ bool SegQuiet::detect(
       }
     }
 
-    offset = available[0].first;
-    lastSample = available.back().first + available.back().len;
+    writeInterval.first = available.front().first;
+    writeInterval.len = available.back().first + 
+      available.back().len - available.front().first;
 
     // TODO curate, finetune
   }
 
   SegQuiet::makeSynth();
 
-  SegQuiet::makeActive(active, available[0].first);
+  SegQuiet::makeActive(active);
 
   return (active.size() > 0);
 }
@@ -457,7 +471,7 @@ void SegQuiet::writeBinary(
   if (tp2 == string::npos)
     return;
 
-  tname.insert(tp2, "_offset_" + to_string(offset));
+  tname.insert(tp2, "_offset_" + to_string(writeInterval.first));
   tname.replace(tp1, 5, "/" + dirname + "/");
 
   ofstream fout(tname, std::ios::out | std::ios::binary);
