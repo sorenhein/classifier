@@ -142,6 +142,7 @@ bool errFlag = false;
       // tout << fname << ";" << trace.strTransientCSV() << "\n";
       // trace.writeTransient();
       trace.writeQuietBack();
+      trace.writeQuietFront();
       continue;
 
       const string sensor = traceDB.lookupSensor(fname);

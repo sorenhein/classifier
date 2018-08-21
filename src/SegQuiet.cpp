@@ -116,7 +116,7 @@ unsigned SegQuiet::curate(
 {
   const unsigned l = quiet.size();
 
-  // Not even three reds in a row?
+  // Not even a few reds in a row?
   if (runReds < NUM_NON_QUIET_RUNS)
     return l;
 
@@ -150,6 +150,9 @@ void SegQuiet::setFinetuneRange(
   vector<unsigned>& fineStarts) const
 {
   const unsigned lq = quiet.size();
+  if (lq == 0)
+    return;
+
   const unsigned ls = samples.size();
   unsigned first, last;
   if (direction == QUIET_FRONT)
@@ -211,37 +214,34 @@ void SegQuiet::adjustIntervals(
 
   if (direction == QUIET_FRONT)
   {
-cout << "ADJUST FRONT from " << qlast->first << " - " <<
-  qlast->first + qlast->len;
-
     if (index <= qlast->first)
     {
       // Cut the last interval, shrink the previous one.
       quiet.pop_back();
+      if (quiet.size() == 0)
+        return;
+
       qlast = &quiet.back();
     }
 
     // Shrink or extend the last interval, as the case may be.
     qlast->len = index - qlast->first;
-cout << " to " << qlast->first << " - " <<
-  qlast->first + qlast->len << "\n";
   }
   else if (direction == QUIET_BACK)
   {
-cout << "ADJUST BACK from " << qlast->first << " - " <<
-  qlast->first + qlast->len;
-    if (index > qlast->first + qlast->len)
+    if (index >= qlast->first + qlast->len)
     {
       // Cut the "last" (temporally first) interval.
       quiet.pop_back();
+      if (quiet.size() == 0)
+        return;
+
       qlast = &quiet.back();
     }
 
     // Shrink or extend the last interval, as the case may be.
     qlast->len = qlast->first + qlast->len - index;
     qlast->first = index;
-cout << " to " << qlast->first << " - " <<
-  qlast->first + qlast->len << "\n";
   }
 }
 
@@ -257,6 +257,8 @@ void SegQuiet::finetune(
   vector<unsigned> fineStarts;
   fineStarts.clear();
   SegQuiet::setFinetuneRange(samples, direction, fineStarts);
+  if (fineStarts.size() == 0)
+    return;
 
   vector<QuietStats> fineList(fineStarts.size());
   double sdevThreshold;
@@ -267,7 +269,8 @@ void SegQuiet::finetune(
   {
     for (unsigned i = 0; i < fineStarts.size(); i++)
     {
-      if (fineList[i].sdev >= sdevThreshold)
+      if (fineList[i].sdev >= sdevThreshold ||
+          abs(fineList[i].mean) >= MEAN_SOMEWHAT_QUIET)
       {
         SegQuiet::adjustIntervals(direction, fineStarts[i]);
         return;
@@ -281,14 +284,23 @@ void SegQuiet::finetune(
 
 void SegQuiet::adjustOutputIntervals(
   const Interval& avail,
-  const QuietPlace direction,
-  const unsigned numInt)
+  const QuietPlace direction)
 {
   const unsigned l = avail.first + avail.len;
+
   if (direction == QUIET_FRONT)
   {
     writeInterval.first = avail.first;
-    writeInterval.len = numInt * INT_LENGTH;
+    if (quiet.size() == 0)
+    {
+      writeInterval.len = 0;
+      activeInterval.first = avail.first;
+      activeInterval.len = avail.len;
+      return;
+    }
+
+    writeInterval.len = quiet.back().first + quiet.back().len -
+      writeInterval.first;
 
     activeInterval.first = writeInterval.first + writeInterval.len;
     activeInterval.len = l - activeInterval.first;
@@ -299,9 +311,18 @@ void SegQuiet::adjustOutputIntervals(
       writeInterval.len = l - writeInterval.first;
 
   }
-  else
+  else if (direction == QUIET_BACK)
   {
-    writeInterval.first = l - numInt * INT_LENGTH;
+    if (quiet.size() == 0)
+    {
+      writeInterval.first = avail.first;
+      writeInterval.len = avail.first;
+      activeInterval.first = avail.first;
+      activeInterval.len = avail.len;
+      return;
+    }
+
+    writeInterval.first = quiet.back().first;
 
     activeInterval.first = avail.first;
     activeInterval.len = writeInterval.first - avail.first;
@@ -420,7 +441,7 @@ bool SegQuiet::detect(
     SegQuiet::finetune(samples, direction);
 
     // Make output a bit longer in order to better see.
-    SegQuiet::adjustOutputIntervals(available[0], direction, n);
+    SegQuiet::adjustOutputIntervals(available[0], direction);
   }
   else if (direction == QUIET_INTRA)
   {
@@ -461,6 +482,9 @@ void SegQuiet::writeBinary(
   // Make the transient file name by:
   // * Replacing /raw/ with /dirname/
   // * Adding _offset_N before .dat
+
+  if (synth.size() == 0)
+    return;
 
   string tname = origname;
   auto tp1 = tname.find("/raw/");

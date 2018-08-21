@@ -94,8 +94,7 @@ class SegQuiet
 
     void adjustOutputIntervals(
       const Interval& avail,
-      const QuietPlace direction,
-      const unsigned numInt);
+      const QuietPlace direction);
 
     void makeSynth();
 

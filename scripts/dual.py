@@ -69,6 +69,12 @@ def dualpane(sensor, compdir):
       curr += 1
       if curr >= l:
         curr = l-1
+    elif val == "N":
+      curr = curr + 1
+      while curr < l and matched[curr] == "":
+        curr = curr + 1
+      if curr >= l:
+        curr = l-1
     elif val == "p":
       curr -= 1
       if curr < 0:
@@ -92,7 +98,8 @@ def dualpane(sensor, compdir):
     plt.clf()
     plt.title(title)
     if matched[curr] == "":
-      # plt.plot(rawdata[:100])
+      # plt.plot(rawdata[:100])q
+      
       plt.plot(rawdata)
       plt.draw()
       plt.pause(0.001)
