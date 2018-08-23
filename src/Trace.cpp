@@ -523,19 +523,27 @@ bool Trace::read(const string& fname)
   vector<Interval> active;
   quietFlag = quietBack.detect(samples, available, 
     QUIET_BACK, active);
+  const double meanBack = quietBack.getMeanBack();
+cout << "Back mean " << meanBack << "\n";
 
   vector<Interval> active2;
   (void) quietFront.detect(samples, active, QUIET_FRONT, active2);
 
-  /*
-  for (unsigned i = 0; i < active2.size(); i++)
-  {
-    cout << i << " " << active2[i].first << " " << active2[i].len << "\n";
-  }
-  */
-
   vector<Interval> active3;
   (void) quietIntra.detect(samples, active2, QUIET_INTRA, active3);
+
+  /*
+  for (unsigned i = 0; i < active3.size(); i++)
+  {
+    cout << i << " " << active3[i].first << " " << active3[i].len << "\n";
+  }
+  */
+  cout << "Active intervals " << active3.size() << "\n";
+
+if (active3.size() > 0)
+  (void) segActive.detect(samples, active3, meanBack);
+else
+  cout << "WTF?\n";
 
 
 cout << "firstActiveSample " << firstActiveSample << endl;
@@ -732,5 +740,11 @@ void Trace::writeQuietFront() const
 void Trace::writeQuietIntra() const
 {
   quietIntra.writeBinary(filename, "intra");
+}
+
+
+void Trace::writeSegActive() const
+{
+  segActive.writeBinary(filename, "speed", "pos");
 }
 

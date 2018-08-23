@@ -17,23 +17,6 @@ enum QuietPlace
   QUIET_SIZE = 3
 };
 
-enum QuietGrade
-{
-  GRADE_GREEN = 0,
-  GRADE_AMBER = 1,
-  GRADE_RED = 2,
-  GRADE_DEEP_RED = 3,
-  GRADE_SIZE = 4
-};
-
-struct Interval
-{
-  unsigned first;
-  unsigned len;
-  QuietGrade grade;
-};
-
-
 class SegQuiet
 {
   private:
@@ -52,6 +35,9 @@ class SegQuiet
     Interval writeInterval;
     Interval activeInterval;
 
+    QuietPlace directionStore;
+    double meanBack;
+
     void makeStarts(
       const Interval& interval,
       const QuietPlace direction,
@@ -68,11 +54,11 @@ class SegQuiet
     void addQuiet(
       const unsigned start,
       const unsigned len,
-      const QuietGrade grade);
+      const QuietGrade grade,
+      const double mean);
 
-    unsigned curate(
-      const unsigned runReds,
-      const unsigned totalReds) const;
+    unsigned curate() const;
+    void curateIntra();
 
     void setFinetuneRange(
       const vector<double>& samples,
@@ -93,9 +79,15 @@ class SegQuiet
       const vector<double>& samples,
       const QuietPlace direction);
 
+    void calcMean(const vector<double>& samples);
+
     void adjustOutputIntervals(
       const Interval& avail,
       const QuietPlace direction);
+
+    void lowpass(
+      const vector<double>& samples,
+      vector<double>& lp) const;
 
     void makeSynth();
 
@@ -123,6 +115,8 @@ class SegQuiet
     void writeBinary(
       const string& origname,
       const string& dirname) const;
+
+    double getMeanBack() const;
 
     string headerCSV() const;
 

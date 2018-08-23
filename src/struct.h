@@ -146,4 +146,24 @@ struct Run
   double cum;
 };
 
+enum QuietGrade
+{
+  GRADE_GREEN = 0,
+  GRADE_AMBER = 1,
+  GRADE_RED = 2,
+  GRADE_DEEP_RED = 3,
+  GRADE_SIZE = 4
+};
+
+// Not every field is used all the time.
+
+struct Interval
+{
+  unsigned first;
+  unsigned len;
+  QuietGrade grade;
+  double mean;
+};
+
+
 #endif

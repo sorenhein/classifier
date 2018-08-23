@@ -6,6 +6,7 @@
 
 #include "SegTransient.h"
 #include "SegQuiet.h"
+#include "SegActive.h"
 #include "struct.h"
 
 using namespace std;
@@ -23,6 +24,7 @@ class Trace
     SegQuiet quietFront;
     SegQuiet quietBack;
     SegQuiet quietIntra;
+    SegActive segActive;
 
     string filename;
     unsigned firstActiveSample;
@@ -78,6 +80,7 @@ class Trace
     void writeQuietBack() const;
     void writeQuietFront() const;
     void writeQuietIntra() const;
+    void writeSegActive() const;
 
     string strTransientHeaderCSV();
     string strTransientCSV();

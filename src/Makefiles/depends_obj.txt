@@ -5,6 +5,7 @@ Database.obj: Database.h Clusters.h struct.h read.h
 Disturb.obj: Disturb.h read.h struct.h
 Regress.obj: Regress.h struct.h Database.h Clusters.h
 Regress.obj: regress/PolynomialRegression.h
+SegActive.obj: SegQuiet.h struct.h
 SegQuiet.obj: SegQuiet.h struct.h
 SegTransient.obj: SegTransient.h struct.h Trace.h SegQuiet.h
 Stats.obj: Stats.h StatCross.h StatEntry.h

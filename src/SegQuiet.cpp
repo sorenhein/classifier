@@ -114,26 +114,21 @@ QuietGrade SegQuiet::isQuiet(const QuietStats& qstats) const
 void SegQuiet::addQuiet(
   const unsigned start, 
   const unsigned len,
-  const QuietGrade grade)
+  const QuietGrade grade,
+  const double mean)
 {
   Interval interval;
   interval.first = start;
   interval.len = len;
   interval.grade = grade;
+  interval.mean = mean;
   quiet.push_back(interval);
 }
 
 
-#define UNUSED(x) ((void)(true ? 0 : ((x), void(), 0)))
-
-unsigned SegQuiet::curate(
-  const unsigned runReds,
-  const unsigned totalReds) const
+unsigned SegQuiet::curate() const
 {
   const unsigned l = quiet.size();
-  // TODO Delete
-  UNUSED(runReds);
-  UNUSED(totalReds);
 
   for (unsigned i = 0; i < l; i++)
   {
@@ -152,6 +147,18 @@ unsigned SegQuiet::curate(
   }
 
   return l;
+}
+
+
+void SegQuiet::curateIntra()
+{
+  // Just eliminate anything that is not green.
+  for (unsigned i = 0; i < quiet.size(); i++)
+  {
+    const unsigned irev = quiet.size() - 1 - i;
+    if (quiet[irev].grade != GRADE_GREEN)
+      quiet.erase(quiet.begin() + irev);
+  }
 }
 
 
@@ -293,6 +300,27 @@ void SegQuiet::finetune(
 }
 
 
+void SegQuiet::calcMean(const vector<double>& samples)
+{
+  meanBack = 0.;
+  if (quiet.size() == 0)
+  {
+    // Take the whole trace as a (poor) proxy.
+    QuietStats qstats;
+    SegQuiet::makeStats(samples, 0, samples.size(), qstats);
+    meanBack = qstats.mean;
+  }
+
+  unsigned count = 0;
+  for (auto& q: quiet)
+  {
+    meanBack += q.mean;
+    count++;
+  }
+  meanBack /= count;
+}
+
+
 void SegQuiet::adjustOutputIntervals(
   const Interval& avail,
   const QuietPlace direction)
@@ -343,6 +371,44 @@ void SegQuiet::adjustOutputIntervals(
     else
       writeInterval.first = 0;
     writeInterval.len = l - writeInterval.first;
+  }
+}
+
+
+void SegQuiet::lowpass(
+  const vector<double>& samples,
+  vector<double>& lp) const
+{
+  const unsigned filterLen = 11;
+
+  const unsigned mid = (filterLen-1) >> 1;
+
+  vector<double> filter(filterLen);
+  filter[mid] = 1.;
+  for (unsigned i = 0; i < mid; i++)
+  {
+    filter[i] = (i+1) / static_cast<double>(mid+1);
+    filter[filterLen-i-1] = filter[i];
+  }
+
+  double sum = 0.;
+  for (unsigned i = 0; i < filter.size(); i++)
+    sum += filter[i];
+
+  for (unsigned i = 0; i < filter.size(); i++)
+    filter[i] /= sum;
+  
+  for (unsigned i = 0; i < mid; i++)
+    lp[i] = samples[i];
+
+  for (unsigned i = samples.size() - mid; i < samples.size(); i++)
+    lp[i] = samples[i];
+
+  for (unsigned i = mid; i < samples.size() - mid; i++)
+  {
+    lp[i] = 0.;
+    for (unsigned f = 0; f < filter.size(); f++)
+      lp[i] += filter[f] * samples[i - mid + f];
   }
 }
 
@@ -410,6 +476,7 @@ bool SegQuiet::detect(
   const QuietPlace direction,
   vector<Interval>& active)
 {
+  directionStore = direction;
   const unsigned la = available.size();
   QuietStats qstats;
   qstats.len = INT_LENGTH;
@@ -437,7 +504,7 @@ bool SegQuiet::detect(
       if (grade == GRADE_DEEP_RED)
         break;
 
-      SegQuiet::addQuiet(start, INT_LENGTH, grade);
+      SegQuiet::addQuiet(start, INT_LENGTH, grade, qstats.mean);
 
       if (grade == GRADE_RED)
       {
@@ -451,9 +518,12 @@ bool SegQuiet::detect(
         break;
     }
 
-    const unsigned n = SegQuiet::curate(runReds, totalReds);
+    const unsigned n = SegQuiet::curate();
     quiet.resize(n);
     SegQuiet::finetune(samples, direction);
+
+    if (direction == QUIET_BACK)
+      SegQuiet::calcMean(samples);
 
     // Make output a bit longer in order to better see.
     SegQuiet::adjustOutputIntervals(available[0], direction);
@@ -467,11 +537,15 @@ bool SegQuiet::detect(
       vector<unsigned> startList;
       SegQuiet::makeStarts(available[availNo], direction, startList);
 
+      vector<double> lp(samples.size());
+      SegQuiet::lowpass(samples, lp);
+
       for (unsigned start: startList)
       {
-        SegQuiet::makeStats(samples, start, INT_LENGTH, qstats);
+        // SegQuiet::makeStats(samples, start, INT_LENGTH, qstats);
+        SegQuiet::makeStats(lp, start, INT_LENGTH, qstats);
         const QuietGrade grade = SegQuiet::isQuiet(qstats);
-        SegQuiet::addQuiet(start, INT_LENGTH, grade);
+        SegQuiet::addQuiet(start, INT_LENGTH, grade, qstats.mean);
       }
     }
 
@@ -479,7 +553,9 @@ bool SegQuiet::detect(
     writeInterval.len = available.back().first + 
       available.back().len - available.front().first;
 
-    // TODO curate, finetune
+    activeInterval = writeInterval;
+
+    SegQuiet::curateIntra();
   }
 
   SegQuiet::makeSynth();
@@ -518,6 +594,12 @@ void SegQuiet::writeBinary(
   fout.write(reinterpret_cast<const char *>(synth.data()),
     synth.size() * sizeof(float));
   fout.close();
+}
+
+
+double SegQuiet::getMeanBack() const
+{
+  return meanBack;
 }
 
 
