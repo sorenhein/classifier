@@ -541,7 +541,14 @@ cout << "Back mean " << meanBack << "\n";
   cout << "Active intervals " << active3.size() << "\n";
 
 if (active3.size() > 0)
-  (void) segActive.detect(samples, active3, meanBack);
+{
+vector<Interval> active4(1);
+active4[0].first = active3[0].first;
+active4[0].len = samples.size() - active4[0].first;
+
+  (void) segActive.detect(samples, active4, meanBack);
+  // (void) segActive.detect(samples, active3, meanBack);
+}
 else
   cout << "WTF?\n";
 

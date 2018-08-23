@@ -35,10 +35,13 @@ void SegActive::integrate(
   const double mean)
 {
   UNUSED(mean);
+  /*
   double sum = 0.;
   for (unsigned i = aint.first; i < aint.first + aint.len; i++)
     sum += samples[i];
   double avg = sum / aint.len;
+  */
+  double avg = 0.;
 
   // synthSpeed is then in 0.01 m/s.
   synthSpeed[aint.first - writeInterval.first] = 100.f * G_FORCE * 
@@ -48,6 +51,52 @@ void SegActive::integrate(
     synthSpeed[i - writeInterval.first] = 
       synthSpeed[i - writeInterval.first - 1] + 
       100.f * G_FORCE * static_cast<float>((samples[i] - avg) / SAMPLE_RATE);
+}
+
+
+void SegActive::compensateSpeed()
+{
+  // The acceleration noise generates a random walk in the speed.
+  // We attempt to correct for this with a rough lowpass filter.
+
+  const unsigned filterWidth = 1001;
+  const unsigned filterMid = (filterWidth-1) >> 1;
+
+  const unsigned ls = synthSpeed.size();
+  if (ls <= filterWidth)
+  {
+    cout << "CAN'T COMPENSATE\n";
+    return;
+  }
+
+  vector<float> newSpeed(ls);
+
+  float runningSum = 0.f;
+  for (unsigned i = 0; i < filterWidth; i++)
+    runningSum += synthSpeed[i];
+
+  for (unsigned i = filterMid; i < ls - filterMid; i++)
+  {
+    newSpeed[i] = runningSum / filterWidth;
+    if (i+1 < ls - filterMid)
+      runningSum += synthSpeed[i + filterMid + 1] -
+        synthSpeed[i - filterMid];
+  }
+
+  const float step0 = (newSpeed[filterMid] - synthSpeed[0]) /
+    filterMid;
+
+  for (unsigned i = 0; i < filterMid; i++)
+    newSpeed[i] = synthSpeed[0] + step0 * i;
+
+  const float step1 = 
+    (synthSpeed[ls-1] - newSpeed[ls-filterMid-1]) / filterMid;
+
+  for (unsigned i = ls - filterMid; i < ls; i++)
+    newSpeed[i] = synthSpeed[ls-1] - step1 * (ls-1-i);
+  
+  for (unsigned i = 0; i < ls; i++)
+    synthSpeed[i] -= newSpeed[i];
 }
 
 
@@ -78,9 +127,11 @@ bool SegActive::detect(
   const vector<Interval>& active,
   const double mean)
 {
+/*
 for (unsigned i = 0; i < samples.size(); i++)
   cout << i << ";" << samples[i] << "\n";
 cout << "\n";
+*/
 
   writeInterval.first = active.front().first;
   writeInterval.len = active.back().first + active.back().len - 
@@ -97,6 +148,9 @@ cout << "\n";
   for (const Interval& aint: active)
   {
     SegActive::integrate(samples, aint, mean);
+
+    SegActive::compensateSpeed();
+
     SegActive::integrateFloat(aint);
   }
 

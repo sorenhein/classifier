@@ -63,6 +63,7 @@ class SegQuiet
     void setFinetuneRange(
       const vector<double>& samples,
       const QuietPlace direction,
+      const Interval& quietInt,
       vector<unsigned>& fineStarts) const;
 
     void getFinetuneStatistics(
@@ -73,11 +74,15 @@ class SegQuiet
 
     void adjustIntervals(
       const QuietPlace direction,
+      Interval& quietInt,
       const unsigned index);
 
     void finetune(
       const vector<double>& samples,
-      const QuietPlace direction);
+      const QuietPlace direction,
+      Interval& quietInt);
+
+    void finetuneIntra(const vector<double>& samples);
 
     void calcMean(const vector<double>& samples);
 

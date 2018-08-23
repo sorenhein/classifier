@@ -153,9 +153,10 @@ unsigned SegQuiet::curate() const
 void SegQuiet::curateIntra()
 {
   // Just eliminate anything that is not green.
-  for (unsigned i = 0; i < quiet.size(); i++)
+  const unsigned lq = quiet.size();
+  for (unsigned i = 0; i < lq; i++)
   {
-    const unsigned irev = quiet.size() - 1 - i;
+    const unsigned irev = lq - 1 - i;
     if (quiet[irev].grade != GRADE_GREEN)
       quiet.erase(quiet.begin() + irev);
   }
@@ -165,17 +166,14 @@ void SegQuiet::curateIntra()
 void SegQuiet::setFinetuneRange(
   const vector<double>& samples,
   const QuietPlace direction,
+  const Interval& quietInt,
   vector<unsigned>& fineStarts) const
 {
-  const unsigned lq = quiet.size();
-  if (lq == 0)
-    return;
-
   const unsigned ls = samples.size();
   unsigned first, last;
   if (direction == QUIET_FRONT)
   {
-    first = quiet[lq-1].first;
+    first = quietInt.first;
 
     if (first + 2 * INT_LENGTH >= ls)
       last = ls;
@@ -187,10 +185,10 @@ void SegQuiet::setFinetuneRange(
   }
   else if (direction == QUIET_BACK)
   {
-    if (quiet[lq-1].first < INT_LENGTH)
+    if (quietInt.first < INT_LENGTH)
       first = 0;
     else
-      first = quiet[lq-1].first - INT_LENGTH;
+      first = quietInt.first - INT_LENGTH;
 
     if (first + 2 * INT_LENGTH >= ls)
       last = ls;
@@ -220,46 +218,27 @@ void SegQuiet::getFinetuneStatistics(
       sdevMin = fineList[i].sdev;
   }
   sdevThreshold = (sdevMin + sdevMax) / 2.;
+cout << "sdev min " << sdevMin << ", max " <<
+  sdevMax << ", avg " << sdevThreshold << "\n";
 }
 
 
 void SegQuiet::adjustIntervals(
   const QuietPlace direction,
+  Interval& quietInt,
   const unsigned index)
 {
-  const unsigned lq = quiet.size();
-  Interval * qlast  = &quiet.back();
-
   if (direction == QUIET_FRONT)
   {
-    if (index <= qlast->first)
-    {
-      // Cut the last interval, shrink the previous one.
-      quiet.pop_back();
-      if (quiet.size() == 0)
-        return;
-
-      qlast = &quiet.back();
-    }
-
     // Shrink or extend the last interval, as the case may be.
-    qlast->len = index - qlast->first;
+    // Could shrink to zero!
+    quietInt.len = index - quietInt.first;
   }
   else if (direction == QUIET_BACK)
   {
-    if (index >= qlast->first + qlast->len)
-    {
-      // Cut the "last" (temporally first) interval.
-      quiet.pop_back();
-      if (quiet.size() == 0)
-        return;
-
-      qlast = &quiet.back();
-    }
-
     // Shrink or extend the last interval, as the case may be.
-    qlast->len = qlast->first + qlast->len - index;
-    qlast->first = index;
+    quietInt.len = quietInt.first + quietInt.len - index;
+    quietInt.first = index;
   }
 }
 
@@ -267,35 +246,59 @@ void SegQuiet::adjustIntervals(
 
 void SegQuiet::finetune(
   const vector<double>& samples,
-  const QuietPlace direction)
+  const QuietPlace direction,
+  Interval& quietInt)
 {
   // Attempt to find the point of departure from general noise
   // more accurately.
 
   vector<unsigned> fineStarts;
   fineStarts.clear();
-  SegQuiet::setFinetuneRange(samples, direction, fineStarts);
-  if (fineStarts.size() == 0)
-    return;
+  SegQuiet::setFinetuneRange(samples, direction, 
+    quietInt, fineStarts);
 
   vector<QuietStats> fineList(fineStarts.size());
   double sdevThreshold;
   SegQuiet::getFinetuneStatistics(samples, fineStarts, 
     fineList, sdevThreshold);
 
-  if (direction == QUIET_FRONT || direction == QUIET_BACK)
+  for (unsigned i = 0; i < fineStarts.size(); i++)
   {
-    for (unsigned i = 0; i < fineStarts.size(); i++)
+    if (fineList[i].sdev >= sdevThreshold ||
+        abs(fineList[i].mean) >= MEAN_SOMEWHAT_QUIET)
     {
-      if (fineList[i].sdev >= sdevThreshold ||
-          abs(fineList[i].mean) >= MEAN_SOMEWHAT_QUIET)
-      {
-        SegQuiet::adjustIntervals(direction, fineStarts[i]);
-        return;
-      }
+      SegQuiet::adjustIntervals(direction, quietInt, fineStarts[i]);
+      return;
     }
-    cout << "Odd error\n";
-    return;
+  }
+  cout << "Odd error\n";
+  return;
+}
+
+
+void SegQuiet::finetuneIntra(const vector<double>& samples)
+{
+  for (unsigned i = 0; i < quiet.size(); i++)
+  {
+    if (i == 0 ||
+        quiet[i].first > quiet[i-1].first + quiet[i-1].len)
+    {
+      SegQuiet::finetune(samples, QUIET_BACK, quiet[i]);
+    }
+
+    if (i+1 == quiet.size() ||
+        quiet[i].first + quiet[i].len < quiet[i+1].first)
+    {
+      SegQuiet::finetune(samples, QUIET_FRONT, quiet[i]);
+    }
+  }
+
+  const unsigned lq = quiet.size();
+  for (unsigned i = 0; i < lq; i++)
+  {
+    const unsigned irev = lq - 1 - i;
+    if (quiet[irev].len == 0)
+      quiet.erase(quiet.begin() + irev);
   }
 }
 
@@ -520,7 +523,8 @@ bool SegQuiet::detect(
 
     const unsigned n = SegQuiet::curate();
     quiet.resize(n);
-    SegQuiet::finetune(samples, direction);
+    if (n > 0)
+      SegQuiet::finetune(samples, direction, quiet.back());
 
     if (direction == QUIET_BACK)
       SegQuiet::calcMean(samples);
@@ -556,6 +560,7 @@ bool SegQuiet::detect(
     activeInterval = writeInterval;
 
     SegQuiet::curateIntra();
+    SegQuiet::finetuneIntra(samples);
   }
 
   SegQuiet::makeSynth();

@@ -23,6 +23,8 @@ class SegActive
       const Interval& aint,
       const double mean);
 
+    void compensateSpeed();
+
     void integrateFloat(const Interval& aint);
 
 
