@@ -519,15 +519,21 @@ bool Trace::read(const string& fname)
   vector<Interval> available(1);
   available[0].first = transient.lastSampleNo();
   available[0].len = samples.size() - available[0].first;
+cout << "After transient: " << available[0].first << ", " <<
+  available[0].first + available[0].len << "\n";
 
   vector<Interval> active;
   quietFlag = quietBack.detect(samples, available, 
     QUIET_BACK, active);
   const double meanBack = quietBack.getMeanBack();
 cout << "Back mean " << meanBack << "\n";
+cout << "After back: " << active[0].first << ", " <<
+  active[0].first + active[0].len << "\n";
 
   vector<Interval> active2;
   (void) quietFront.detect(samples, active, QUIET_FRONT, active2);
+cout << "After front: " << active2[0].first << ", " <<
+  active2[0].first + active2[0].len << "\n";
 
   vector<Interval> active3;
   (void) quietIntra.detect(samples, active2, QUIET_INTRA, active3);
@@ -545,6 +551,8 @@ if (active3.size() > 0)
 vector<Interval> active4(1);
 active4[0].first = active3[0].first;
 active4[0].len = samples.size() - active4[0].first;
+cout << "After intra+: " << active4[0].first << ", " <<
+  active4[0].first + active4[0].len << "\n";
 
   (void) segActive.detect(samples, active4, meanBack);
   // (void) segActive.detect(samples, active3, meanBack);

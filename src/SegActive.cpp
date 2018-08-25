@@ -4,6 +4,8 @@
 #include <sstream>
 #include <math.h>
 
+#include "Median/median.h"
+
 #include "SegActive.h"
 
 #define G_FORCE 9.8f
@@ -54,6 +56,52 @@ void SegActive::integrate(
 }
 
 
+void SegActive::compensateMedian()
+{
+  // The acceleration noise generates a random walk in the speed.
+  // We attempt to correct for this with a rough median filter.
+
+  const unsigned filterWidth = 1001;
+  const unsigned filterMid = (filterWidth-1) >> 1;
+
+  const unsigned ls = synthSpeed.size();
+  if (ls <= filterWidth)
+  {
+    cout << "CAN'T COMPENSATE\n";
+    return;
+  }
+
+  vector<float> newSpeed(ls);
+
+  Mediator * mediator = MediatorNew(filterWidth);
+
+  for (unsigned i = 0; i < filterWidth; i++)
+    MediatorInsert(mediator, synthSpeed[i]);
+
+  MediatorStats ms;
+  for (unsigned i = filterMid; i < ls - filterMid; i++)
+  {
+    GetMediatorStats(mediator, &ms);
+    newSpeed[i] = ms.median;
+    if (i+1 < ls - filterMid)
+      MediatorInsert(mediator, synthSpeed[i+filterMid+1]);
+  }
+
+  // Compensate down to zero.
+  for (unsigned i = 0; i < filterMid; i++)
+    newSpeed[i] = newSpeed[filterMid];
+
+  const float step1 = 
+    (synthSpeed[ls-1] - newSpeed[ls-filterMid-1]) / filterMid;
+
+  for (unsigned i = ls - filterMid; i < ls; i++)
+    newSpeed[i] = synthSpeed[ls-1] - step1 * (ls-1-i);
+  
+  for (unsigned i = 0; i < ls; i++)
+    synthSpeed[i] -= newSpeed[i];
+}
+
+
 void SegActive::compensateSpeed()
 {
   // The acceleration noise generates a random walk in the speed.
@@ -86,8 +134,11 @@ void SegActive::compensateSpeed()
   const float step0 = (newSpeed[filterMid] - synthSpeed[0]) /
     filterMid;
 
+  // Compensate down to zero.
+  // for (unsigned i = 0; i < filterMid; i++)
+    // newSpeed[i] = synthSpeed[0] + step0 * i;
   for (unsigned i = 0; i < filterMid; i++)
-    newSpeed[i] = synthSpeed[0] + step0 * i;
+    newSpeed[i] = newSpeed[filterMid];
 
   const float step1 = 
     (synthSpeed[ls-1] - newSpeed[ls-filterMid-1]) / filterMid;
@@ -149,6 +200,7 @@ cout << "\n";
   {
     SegActive::integrate(samples, aint, mean);
 
+    // SegActive::compensateMedian();
     SegActive::compensateSpeed();
 
     SegActive::integrateFloat(aint);

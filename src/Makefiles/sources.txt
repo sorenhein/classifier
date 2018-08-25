@@ -24,4 +24,5 @@ SOURCE_FILES    =               \
                 Ckmeans/fill_SMAWK.cpp          \
                 Ckmeans/select_levels.cpp       \
                 Ckmeans/weighted_select_levels.cpp \
+                Median/median.cpp \
                 regress/PolynomialRegression.cpp

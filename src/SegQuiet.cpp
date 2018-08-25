@@ -218,8 +218,6 @@ void SegQuiet::getFinetuneStatistics(
       sdevMin = fineList[i].sdev;
   }
   sdevThreshold = (sdevMin + sdevMax) / 2.;
-cout << "sdev min " << sdevMin << ", max " <<
-  sdevMax << ", avg " << sdevThreshold << "\n";
 }
 
 
