@@ -760,6 +760,6 @@ void Trace::writeQuietIntra() const
 
 void Trace::writeSegActive() const
 {
-  segActive.writeBinary(filename, "speed", "pos");
+  segActive.writeBinary(filename, "speed", "pos", "peak");
 }
 

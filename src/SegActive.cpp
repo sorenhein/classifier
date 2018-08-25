@@ -4,8 +4,6 @@
 #include <sstream>
 #include <math.h>
 
-#include "Median/median.h"
-
 #include "SegActive.h"
 
 #define G_FORCE 9.8f
@@ -86,6 +84,8 @@ void SegActive::compensateMedian()
     if (i+1 < ls - filterMid)
       MediatorInsert(mediator, synthSpeed[i+filterMid+1]);
   }
+
+  free(mediator);
 
   // Compensate down to zero.
   for (unsigned i = 0; i < filterMid; i++)
@@ -173,6 +173,179 @@ void SegActive::integrateFloat(const Interval& aint)
 }
 
 
+void SegActive::getPosStats()
+{
+  const unsigned filterWidth = 1001;
+  const unsigned filterMid = (filterWidth-1) >> 1;
+
+  const unsigned ls = synthSpeed.size();
+  if (ls <= filterWidth)
+  {
+    cout << "CAN'T COMPENSATE\n";
+    return;
+  }
+
+  Mediator * mediator = MediatorNew(filterWidth);
+
+  // Fill up the part that doesn't directly create values.
+  for (unsigned i = 0; i < filterMid; i++)
+    MediatorInsert(mediator, synthSpeed[i]);
+
+  // Fill up the large middle part with (mostly) full data.
+  for (unsigned i = filterMid; i < ls-filterMid; i++)
+  {
+    MediatorInsert(mediator, synthSpeed[i]);
+    GetMediatorStats(mediator, &posStats[i-filterMid]);
+  }
+
+  free(mediator);
+
+  // Special case for the tail.  (Median really should have a
+  // way to push out old elements without pushing in new ones.)
+
+  mediator = MediatorNew(filterWidth);
+
+  for (unsigned i  = 0; i < filterMid; i++)
+    MediatorInsert(mediator, synthSpeed[ls-1-i]);
+
+  for (unsigned i = 0; i < filterMid; i++)
+  {
+    MediatorInsert(mediator, synthSpeed[ls-1-filterMid-i]);
+    GetMediatorStats(mediator, &posStats[ls-1-i]);
+  }
+
+  free(mediator);
+}
+
+
+void SegActive::getPeaks(vector<SignedPeak>& peaks) const
+{
+  const unsigned ls = synthPos.size();
+  SignedPeak p;
+
+  for (unsigned i = 1; i < ls-1; i++)
+  {
+    if (synthPos[i] > synthPos[i-1] && synthPos[i] > synthPos[i+1])
+      p.maxFlag = true;
+    else if (synthPos[i] < synthPos[i-1] && synthPos[i] < synthPos[i+1])
+      p.maxFlag = false;
+    else
+      continue;
+
+    p.index = i;
+    p.value = synthPos[i];
+    if (peaks.size() == 0)
+    {
+      p.leftFlank = i;
+      p.leftRange = synthPos[i] - synthPos[0];
+    }
+    else
+    {
+      SignedPeak& prevPeak = peaks.back();
+      p.leftFlank = i - prevPeak.index;
+      p.leftRange = abs(synthPos[i] - synthPos[prevPeak.index]);
+      prevPeak.rightFlank = p.leftFlank;
+      prevPeak.rightRange = p.leftRange;
+    }
+    peaks.push_back(p);
+  }
+
+  if (peaks.size() > 0)
+  {
+    SignedPeak& lastPeak = peaks.back();
+    lastPeak.rightFlank = ls - 1 - lastPeak.index;
+    lastPeak.rightRange = 
+      abs(synthPos[lastPeak.index] - synthPos.back());
+  }
+}
+
+
+void SegActive::getLargePeaks(vector<SignedPeak>& peaks) const
+{
+  bool changeFlag;
+  do
+  {
+    changeFlag = false;
+    const unsigned lp = peaks.size();
+    for (unsigned i = 0; i < lp; i++)
+    {
+      const unsigned irev = lp-1-i;
+      const SignedPeak& peak = peaks[irev];
+      const unsigned index = peak.index;
+      const float range = posStats[index].max - posStats[index].min;
+
+      if (0)
+      {
+        peaks.erase(peaks.begin() + irev);
+      }
+    }
+  }
+  while (changeFlag);
+}
+
+
+void SegActive::levelizePos(const vector<SignedPeak>& peaks)
+{
+  const unsigned lp = peaks.size();
+  if (lp == 0)
+    return;
+
+  SignedPeak const * prevPeak = nullptr;
+  for (const SignedPeak& peak: peaks)
+  {
+    // We levelize such that the maxima are are zero, and
+    // the minima are negative.
+    if (! peak.maxFlag)
+      continue;
+    
+    unsigned prevIndex;
+    float prevValue;
+    if (prevPeak == nullptr)
+    {
+      prevIndex = 0;
+      prevValue = peak.value;
+    }
+    else
+    {
+      prevIndex = prevPeak->index;
+      prevValue = prevPeak->value;
+    }
+
+    const float step = 
+      (peak.value - prevValue) / (peak.index - prevIndex);
+
+
+    for (unsigned i = prevIndex; i < peak.index; i++)
+      synthPos[i] -= prevValue + step * (i - prevIndex);
+
+    prevPeak = &peak;
+  }
+
+  // Do the last bit.
+  const SignedPeak& lastPeak = peaks.back();
+  for (unsigned i = lastPeak.index; i < synthPos.size(); i++)
+    synthPos[i] -= lastPeak.value;
+}
+
+
+void SegActive::makeSynthPeaks(const vector<SignedPeak>& peaks)
+{
+  for (unsigned i = 0; i < synthPeaks.size(); i++)
+    synthPeaks[i] = 0;
+  
+  unsigned count = 0;
+  for (auto& peak: peaks)
+  {
+    if (! peak.maxFlag)
+    {
+      synthPeaks[peak.index] = peak.value;
+count++;
+    }
+  }
+  cout << "COUNT " << count << endl;
+}
+
+
 bool SegActive::detect(
   const vector<double>& samples,
   const vector<Interval>& active,
@@ -206,27 +379,24 @@ cout << "\n";
     SegActive::integrateFloat(aint);
   }
 
-  float speedMin = 999.f;
-  float speedMax = 0.f;
-  for (unsigned i = 0; i < writeInterval.len; i++)
-  {
-    if (abs(synthSpeed[i]) > speedMax)
-      speedMax = abs(synthSpeed[i]);
-    if (abs(synthSpeed[i]) < speedMin)
-      speedMin = abs(synthSpeed[i]);
-  }
-  cout << "Min " << speedMin << ", max " << speedMax << endl;
+  posStats.resize(writeInterval.len);
+  SegActive::getPosStats();
 
-  float posMin = 999.f;
-  float posMax = 0.f;
-  for (unsigned i = 0; i < writeInterval.len; i++)
-  {
-    if (abs(synthPos[i]) > posMax)
-      posMax = abs(synthPos[i]);
-    if (abs(synthPos[i]) < posMin)
-      posMin = abs(synthPos[i]);
-  }
-  cout << "Pos Min " << posMin << ", max " << posMax << endl;
+  // Get a reasonable guess at the peaks.
+  vector<SignedPeak> posPeaks;
+  posPeaks.clear();
+  SegActive::getPeaks(posPeaks);
+  SegActive::getLargePeaks(posPeaks);
+
+  // Straighten out the position trace, then try again.
+  SegActive::levelizePos(posPeaks);
+  vector<SignedPeak> posLevelPeaks;
+  posLevelPeaks.clear();
+  SegActive::getPeaks(posLevelPeaks);
+  SegActive::getLargePeaks(posLevelPeaks);
+
+  synthPeaks.resize(writeInterval.len);
+  SegActive::makeSynthPeaks(posLevelPeaks);
 
   return true;
 }
@@ -235,7 +405,8 @@ cout << "\n";
 void SegActive::writeBinary(
   const string& origname,
   const string& speeddirname,
-  const string& posdirname) const
+  const string& posdirname,
+  const string& peakdirname) const
 {
   // Make the transient file name by:
   // * Replacing /raw/ with /dirname/
@@ -249,6 +420,7 @@ void SegActive::writeBinary(
 
   string sname = origname;
   string pname = origname;
+  string kname = origname;
   auto tp1 = sname.find("/raw/");
   if (tp1 == string::npos)
     return;
@@ -263,17 +435,23 @@ void SegActive::writeBinary(
   pname.insert(tp2, "_offset_" + to_string(writeInterval.first));
   pname.replace(tp1, 5, "/" + posdirname + "/");
 
-  ofstream sout(sname, std::ios::out | std::ios::binary);
+  kname.insert(tp2, "_offset_" + to_string(writeInterval.first));
+  kname.replace(tp1, 5, "/" + peakdirname + "/");
 
+  ofstream sout(sname, std::ios::out | std::ios::binary);
   sout.write(reinterpret_cast<const char *>(synthSpeed.data()),
     synthSpeed.size() * sizeof(float));
   sout.close();
 
   ofstream pout(pname, std::ios::out | std::ios::binary);
-
   pout.write(reinterpret_cast<const char *>(synthPos.data()),
     synthPos.size() * sizeof(float));
   pout.close();
+
+  ofstream kout(kname, std::ios::out | std::ios::binary);
+  kout.write(reinterpret_cast<const char *>(synthPeaks.data()),
+    synthPeaks.size() * sizeof(float));
+  kout.close();
 }
 
 

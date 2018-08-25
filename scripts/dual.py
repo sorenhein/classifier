@@ -11,48 +11,89 @@ sensors = [
   '099743', '101630', '101648', '101796', '106346',
   '391705', '391710', '391711', '391718', '391731']
 
+basedir = R"C:\Program Files (x86)\cygwin64\home\s.hein\mini_dataset_v012\data\sensors" + "\\"
 
-def dualpane(sensor, compdir):
+extension = ".dat"
+
+
+def remove_offset(text):
+  """Remove any offset from name."""
+  newtext = text
+  mp = newtext.find(extension)
+  if mp == -1:
+    print("Odd name: " + text)
+    return 0, 0
+
+  newtext = newtext[:mp]
+  newoffset = 0
+  mp = newtext.find("_offset_")
+  if mp >= 0:
+    newoffset = int(newtext[mp+8:])
+    newtext = newtext[:mp]
+  newtext = newtext + extension
+  return newtext, newoffset
+
+
+def get_user_input(curr, limit, matched):
+  """Gets user input for display: n, p, N, or number."""
+  val = raw_input("Input: ")
+  c = curr
+  if val == "q":
+    return 0, 1
+  elif val == "n":
+    c += 1
+  elif val == "N":
+    c += 1
+    while c < limit and matched[c] == "":
+      c = c + 1
+  elif val == "p":
+    c -= 1
+  else:
+    try:
+      c = int(val)
+    except ValueError:
+      print("Value " + val + " not recognized")
+      return 0, -1
+      
+  if c < 0:
+    c = 0
+  elif c >= limit:
+    c = limit-1
+  return c, 0 
+       
+
+def dualpane(sensor, rawdir, compdir):
   """Show original signal and partial, matched signal."""
-  basedir = R"C:\Program Files (x86)\cygwin64\home\s.hein\mini_dataset_v012\data\sensors" + "\\"
-  rawdir = basedir + sensor + R"\raw"
-  matchdir = basedir + sensor + "\\" + compdir
+  rawdirslash = "\\" + rawdir + "\\"
+  compdirslash = "\\" + compdir + "\\"
+  
+  rawdir = basedir + sensor + rawdirslash
+  matchdir = basedir + sensor + compdirslash
 
-  rawlist = glob.glob(rawdir + R"\*.dat")
-  matchlist = glob.glob(matchdir + R"\*.dat")
+  rawlist = glob.glob(rawdir + "*.dat")
+  matchlist = glob.glob(matchdir + "*.dat")
 
   i = 0
   rawdict = {}
+  rawoffsets = [-1] * len(rawlist)
+
   for r in rawlist:
-    rawdict[r] = i
+    newraw, newoff = remove_offset(r)
+    rawdict[newraw] = i
+    rawoffsets[i] = newoff
     i += 1
 
   print("Have " + str(len(rawlist)) + " raw items, " + str(len(matchlist)) + " matched items")
 
   matched = [""] * len(rawlist)
-  offsets = [-1] * len(rawlist)
+  compoffsets = [-1] * len(rawlist)
   for mm in matchlist:
-    m = mm
-    mp = m.find(".dat")
-    if mp == -1:
-      print("Odd match name: " + r)
-      continue
-
-    m = m[:mp]
-    offset = 0
-    mp = m.find("_offset_")
-    if mp >= 0:
-      offset = int(m[mp+8:])
-      m = m[:mp]
-
-    was = "\\" + compdir + "\\"
-    becomes = R"\raw" + "\\"
-    m = m.replace(was, becomes)
-    m += ".dat"
+    m, offset = remove_offset(mm)
+    m = m.replace(compdirslash, rawdirslash)
 
     if m in rawdict:
       matched[rawdict[m]] = mm
-      offsets[rawdict[m]] = offset
+      compoffsets[rawdict[m]] = offset
     else:
       print("did not match " + m)
       
@@ -62,55 +103,32 @@ def dualpane(sensor, compdir):
   curr = -1
   l = len(rawlist)
   while True:
-    val = raw_input("Input: ")
-    if val == "q":
+    curr, done = get_user_input(curr, l, matched)
+    if done == 1:
       break
-    elif val == "n":
-      curr += 1
-      if curr >= l:
-        curr = l-1
-    elif val == "N":
-      curr = curr + 1
-      while curr < l and matched[curr] == "":
-        curr = curr + 1
-      if curr >= l:
-        curr = l-1
-    elif val == "p":
-      curr -= 1
-      if curr < 0:
-        curr = 0
-    else:
-      try:
-        curr = int(val)
-      except ValueError:
-        print("Value " + val + " not recognized")
-        continue
-        
-      if curr < 0 or curr >= l:
-        print("Value " + str(curr) + " out of range")
+    if done == -1:
+      continue
 
-    rp = rawlist[curr].find("\\raw\\");
-    title = rawlist[curr][(rp+5):] +  " (no. " + str(curr) + ")"
+    rp = rawlist[curr].find(rawdirslash);
+    title = rawlist[curr][(rp+len(rawdirslash)):] +  " (no. " + str(curr) + ")"
     
     rawdata = np.fromfile(rawlist[curr], dtype = np.float32)
     print("Read " + str(len(rawdata)) + " from " + rawlist[curr])
     
     plt.clf()
     plt.title(title)
-    if matched[curr] == "":
-      # plt.plot(rawdata[:100])q
-      
-      plt.plot(rawdata)
-      plt.draw()
-      plt.pause(0.001)
-    else:
+    
+    o = rawoffsets[curr]
+    x = np.arange(o, o+len(rawdata))
+    plt.plot(x, rawdata, 'b')
+
+    if matched[curr] != "":
       matchdata = np.fromfile(matched[curr], dtype = np.float32)
-      ml = len(matchdata)
-      o = offsets[curr]
-      x = np.arange(o, o+ml)
-      plt.plot(x, rawdata[o:o+ml], 'b')
-      plt.plot(x, matchdata[:ml], 'r')
-      plt.draw()
-      plt.pause(0.001)
+      o = compoffsets[curr]
+      x = np.arange(o, o+len(matchdata))
+      plt.plot(x, matchdata, 'r')
+    
+    plt.draw()
+    plt.pause(0.001)
 
 

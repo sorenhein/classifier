@@ -4,6 +4,7 @@
 #include <vector>
 #include <string>
 
+#include "Median/median.h"
 #include "struct.h"
 
 using namespace std;
@@ -13,8 +14,21 @@ class SegActive
 {
   private:
 
+    struct SignedPeak
+    {
+      unsigned index;
+      float value;
+      bool maxFlag;
+      unsigned leftFlank;
+      unsigned rightFlank;
+      float leftRange;
+      float rightRange;
+    };
+
     vector<float> synthSpeed;
     vector<float> synthPos;
+    vector<float> synthPeaks;
+    vector<MediatorStats> posStats;
 
     Interval writeInterval;
 
@@ -28,6 +42,15 @@ class SegActive
 
     void integrateFloat(const Interval& aint);
 
+    void getPosStats();
+
+    void getPeaks(vector<SignedPeak>& posPeaks) const;
+
+    void getLargePeaks(vector<SignedPeak>& posPeaks) const;
+
+    void levelizePos(const vector<SignedPeak>& posPeaks);
+
+    void makeSynthPeaks(const vector<SignedPeak>& posPeaks);
 
   public:
 
@@ -45,7 +68,8 @@ class SegActive
     void writeBinary(
       const string& origname,
       const string& speeddirname,
-      const string& posdirname) const;
+      const string& posdirname,
+      const string& peakdirname) const;
 
     string headerCSV() const;
 
