@@ -28,7 +28,7 @@ void setup(
 int main(int argc, char * argv[])
 {
   // Trace trace0;
-  // trace0.read("../../../mini_dataset_v012/data/sensors//066221/raw/20180629_085223_066221_001_channel1.dat");
+  // trace0.read("../../../mini_dataset_v012/data/sensors/062493/raw/20180626_083847_062493_001_channel1.dat");
   // exit(0);
   // vector<PeakTime> times;
   // trace.getTrace(times);

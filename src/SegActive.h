@@ -43,8 +43,11 @@ class SegActive
     void integrateFloat(const Interval& aint);
 
     void getPosStats();
+    void getPosStatsNew(const bool maxFlag);
 
     void getPeaks(vector<SignedPeak>& posPeaks) const;
+
+    bool checkPeaks(const vector<SignedPeak>& posPeaks) const;
 
     void getLargePeaks(vector<SignedPeak>& posPeaks) const;
 

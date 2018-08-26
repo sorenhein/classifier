@@ -172,6 +172,50 @@ void SegActive::integrateFloat(const Interval& aint)
       100.f * (synthSpeed[i] - avg) / static_cast<float>(SAMPLE_RATE);
 }
 
+#include <deque>
+
+void SegActive::getPosStatsNew(const bool maxFlag)
+{
+  // https://www.nayuki.io/res/
+  // sliding-window-minimum-maximum-algorithm/SlidingWindowMinMax.hpp
+
+  const unsigned filterWidth = 1001;
+  const unsigned filterMid = (filterWidth-1) >> 1;
+
+  const unsigned ls = synthSpeed.size();
+  if (ls <= filterWidth)
+  {
+    cout << "CAN'T COMPENSATE\n";
+    return;
+  }
+
+  deque<float> deque;
+  unsigned i = 0;
+  auto tail = synthPos.cbegin();
+  for (const float& val: synthPos)
+  {
+    while (! deque.empty() && 
+      ((maxFlag && val > deque.back()) || 
+      (! maxFlag && val < deque.back())))
+      deque.pop_back();
+
+    deque.push_back(val);
+
+    if (maxFlag)
+      posStats[i].max = deque.front();
+    else
+      posStats[i].min = deque.front();
+    i++;
+    
+    if (i >= filterWidth)
+    {
+      if (* tail == deque.front())
+        deque.pop_front();
+      tail++;
+    }
+  }
+}
+
 
 void SegActive::getPosStats()
 {
@@ -189,13 +233,21 @@ void SegActive::getPosStats()
 
   // Fill up the part that doesn't directly create values.
   for (unsigned i = 0; i < filterMid; i++)
-    MediatorInsert(mediator, synthSpeed[i]);
+  {
+cout << "Entered " << synthPos[i] << endl;
+    MediatorInsert(mediator, synthPos[i]);
+  }
 
   // Fill up the large middle part with (mostly) full data.
   for (unsigned i = filterMid; i < ls-filterMid; i++)
   {
-    MediatorInsert(mediator, synthSpeed[i]);
+    MediatorInsert(mediator, synthPos[i]);
     GetMediatorStats(mediator, &posStats[i-filterMid]);
+cout << "Entered " << synthPos[i] << ", got " <<
+  posStats[i-filterMid].min << ", " <<
+  posStats[i-filterMid].max << ", " <<
+  posStats[i-filterMid].median << endl;
+
   }
 
   free(mediator);
@@ -206,11 +258,11 @@ void SegActive::getPosStats()
   mediator = MediatorNew(filterWidth);
 
   for (unsigned i  = 0; i < filterMid; i++)
-    MediatorInsert(mediator, synthSpeed[ls-1-i]);
+    MediatorInsert(mediator, synthPos[ls-1-i]);
 
   for (unsigned i = 0; i < filterMid; i++)
   {
-    MediatorInsert(mediator, synthSpeed[ls-1-filterMid-i]);
+    MediatorInsert(mediator, synthPos[ls-1-filterMid-i]);
     GetMediatorStats(mediator, &posStats[ls-1-i]);
   }
 
@@ -225,19 +277,34 @@ void SegActive::getPeaks(vector<SignedPeak>& peaks) const
 
   for (unsigned i = 1; i < ls-1; i++)
   {
-    if (synthPos[i] > synthPos[i-1] && synthPos[i] > synthPos[i+1])
-      p.maxFlag = true;
-    else if (synthPos[i] < synthPos[i-1] && synthPos[i] < synthPos[i+1])
-      p.maxFlag = false;
-    else
-      continue;
+    if (synthPos[i] > synthPos[i-1])
+    {
+      // Use the last of equals as the starting point.
+      while (i < ls-1 && synthPos[i] == synthPos[i+1])
+        i++;
+
+      if (i < ls-1 && synthPos[i] > synthPos[i+1])
+        p.maxFlag = true;
+      else
+        continue;
+    }
+    else if (synthPos[i] < synthPos[i-1])
+    {
+      while (i < ls-1 && synthPos[i] == synthPos[i+1])
+        i++;
+
+      if (i < ls-1 && synthPos[i] < synthPos[i+1])
+        p.maxFlag = false;
+      else
+        continue;
+    }
 
     p.index = i;
     p.value = synthPos[i];
     if (peaks.size() == 0)
     {
       p.leftFlank = i;
-      p.leftRange = synthPos[i] - synthPos[0];
+      p.leftRange = abs(synthPos[i] - synthPos[0]);
     }
     else
     {
@@ -260,8 +327,131 @@ void SegActive::getPeaks(vector<SignedPeak>& peaks) const
 }
 
 
+bool SegActive::checkPeaks(const vector<SignedPeak>& peaks) const
+{
+  bool flag = true;
+  const unsigned lp = peaks.size();
+  if (lp == 0)
+    return true;
+  
+  unsigned sumLeft = 0, sumRight = 0;
+  for (unsigned i = 0; i < lp; i++)
+  {
+    const SignedPeak& peak = peaks[i];
+    if (synthPos[peak.index] != peak.value)
+    {
+      cout << "i " << i << ": value " << synthPos[peak.index] <<
+        " vs. " << peak.value << endl;
+      flag = false;
+    }
+
+    if (i == 0)
+    {
+      if (peak.leftFlank != peak.index)
+      {
+        cout << "i " << i << ": leftFlank " << peak.leftFlank <<
+          " vs. " << peak.index << endl;
+        flag = false;
+      }
+      
+      if (abs(peak.leftRange - abs(peak.value - synthPos[0])) > 1.e-4)
+      {
+        cout << "i " << i << ": leftRange " << peak.leftRange <<
+          " vs. value " << peak.value << ", sp[0] " << synthPos[0] << endl;
+        flag = false;
+      }
+
+    }
+    else if (i == lp-1)
+    {
+      if (peak.rightFlank + peak.index + 1 != synthPos.size())
+      {
+        cout << "i " << i << ": rightFlank " << peak.rightFlank <<
+          " vs. " << peak.index << endl;
+        flag = false;
+      }
+      
+      if (abs(peak.rightRange - abs(peak.value - synthPos.back())) > 1.e-4)
+      {
+        cout << "i " << i << ": rightRange " << peak.rightRange <<
+          " vs. value " << peak.value << ", sp[last] " << 
+          synthPos.back() << endl;
+        flag = false;
+      }
+    }
+    else
+    {
+      if (peak.leftFlank != peaks[i-1].rightFlank)
+      {
+        cout << "i " << i << ": leftFlank LR " << peak.leftFlank <<
+          " vs. " << peaks[i-1].rightFlank << endl;
+        flag = false;
+      }
+      
+      if (peak.leftRange != peaks[i-1].rightRange)
+      {
+        cout << "i " << i << ": leftRange LR " << peak.leftRange <<
+          " vs. " << peaks[i-1].rightRange << endl;
+        flag = false;
+      }
+      
+      if (abs(peak.leftRange - abs(peak.value - peaks[i-1].value)) > 1.e-4)
+      {
+        cout << "i " << i << ": leftRange LV " << peak.leftRange <<
+          " vs. value " << peak.value << ", " << peaks[i-1].value <<
+          ", diff " << 
+          abs(peak.leftRange - abs(peak.value - peaks[i-1].value)) << endl;
+        flag = false;
+      }
+    }
+
+    if (i > 0)
+    {
+      if (peak.maxFlag == peaks[i-1].maxFlag)
+      {
+        cout << "i " << i << " maxFlag " << peak.maxFlag << 
+          " is same as predecessor" << endl;
+        flag = false;
+      }
+    }
+
+    sumLeft += peak.leftFlank;
+    sumRight += peak.rightFlank;
+  }
+
+  if (sumLeft + peaks.back().rightFlank + 1 != synthPos.size())
+  {
+    cout << "sum left " << sumLeft + peaks.back().rightFlank <<
+      " vs. " << synthPos.size() << endl;
+    flag = false;
+  }
+
+  if (sumRight + peaks.front().leftFlank + 1 != synthPos.size())
+  {
+    cout << "sum right " << sumRight + peaks.front().leftFlank << 
+      " vs. " << synthPos.size() << endl;
+    flag = false;
+  }
+  return flag;
+}
+
+
 void SegActive::getLargePeaks(vector<SignedPeak>& peaks) const
 {
+  if (peaks.size() == 0)
+    return;
+
+  if (! SegActive::checkPeaks(peaks))
+  {
+    cout << "Peak fail" << endl;
+  }
+
+  // To have something especially for the tail.
+  // TODO: Should be a better measure of the "average" range.
+  const unsigned posMid = peaks[peaks.size() / 2].index;
+  const float midRange = 
+    posStats[posMid].max - posStats[posMid].min;
+
   bool changeFlag;
   do
   {
@@ -274,9 +464,176 @@ void SegActive::getLargePeaks(vector<SignedPeak>& peaks) const
       const unsigned index = peak.index;
       const float range = posStats[index].max - posStats[index].min;
 
-      if (0)
+// if (index > 1200 && index < 2000)
+  // cout << "HERE" << endl;
+      const float rangeSum = peak.leftRange + peak.rightRange;
+      if (rangeSum < 0.3 * range || rangeSum < 0.3 * midRange)
       {
-        peaks.erase(peaks.begin() + irev);
+        // TODO Do we ever need a second pass?
+        changeFlag = true;
+
+        if (irev == 0)
+        {
+          unsigned survivor;
+          if ((peak.maxFlag && synthPos.front() >= peaks[irev+1].value) ||
+              (! peak.maxFlag && synthPos.front() <= peaks[irev+1].value))
+          {
+            // We'll change the first real peak (a minimum if maxFlag,
+            // a maximum otherwise).
+            survivor = irev + 1;
+          }
+          else
+          {
+            // We have to remove the next peak as well (a minimum if
+            // maxFlag, a maximum otherwise).
+            survivor = irev + 2;
+          }
+
+          peaks[survivor].leftFlank = peaks[survivor].index;
+          peaks[survivor].leftRange = 
+            abs(peaks[survivor].value - synthPos.front());
+
+          peaks.erase(peaks.begin() + irev, peaks.begin() + survivor);
+if (! SegActive::checkPeaks(peaks))
+{
+  cout << "Peak fail irev = 0" << endl << endl;
+}
+          continue;
+        }
+        else if (irev == peaks.size()-1)
+        {
+          unsigned survivor;
+          if ((peak.maxFlag && synthPos.back() >= peaks[irev-1].value) ||
+              (! peak.maxFlag && synthPos.back() <= peaks[irev-1].value))
+          {
+            // We'll change the last real peak (a minimum if maxFlag,
+            // a maximum otherwise).
+            survivor = irev - 1;
+          }
+          else
+          {
+            // We have to remove the last peak as well (a minimum if
+            // maxFlag, a maximum otherwise).
+            survivor = irev - 2;
+            i++;
+          }
+
+          peaks[survivor].rightFlank = 
+            synthPos.size() - 1 - peaks[survivor].index;
+          peaks[survivor].rightRange = 
+            abs(peaks[survivor].value - synthPos.back());
+
+          peaks.erase(peaks.begin() + survivor + 1, peaks.end());
+if (! SegActive::checkPeaks(peaks))
+{
+  cout << "Peak fail irev = last" << endl << endl;
+}
+          continue;
+        }
+
+
+        if (peak.maxFlag)
+        {
+unsigned path = 0;
+          // We care about this as it will generally cause its two
+          // neighbors to combine into one.
+          // Keep the deeper of the neighboring minima.
+          if (peaks[irev-1].value > peaks[irev+1].value)
+          {
+path = 1;
+            // We really should keep irev+1, but it's more
+            // convenient to keep irev-1.
+            peaks[irev-1].index = peaks[irev+1].index;
+            peaks[irev-1].value = peaks[irev+1].value;
+            peaks[irev-1].leftFlank += 
+              peaks[irev].leftFlank + peaks[irev].rightFlank;
+            peaks[irev-1].rightFlank = peaks[irev+1].rightFlank;
+            peaks[irev-1].leftRange += 
+              peaks[irev].rightRange - peaks[irev].leftRange;
+            peaks[irev-1].rightRange = peaks[irev+1].rightRange;
+
+            if (irev >= 2)
+            {
+              peaks[irev-2].rightFlank = peaks[irev-1].leftFlank;
+              peaks[irev-2].rightRange = peaks[irev-1].leftRange;
+            }
+          }
+          else
+          {
+path = 2;
+            // We're keeping irev-1.
+            peaks[irev-1].rightFlank += 
+              peaks[irev+1].leftFlank + peaks[irev+1].rightFlank;
+            peaks[irev-1].rightRange += 
+              peaks[irev+1].rightRange - peaks[irev+1].leftRange;
+            
+            if (irev <= lp-3)
+            {
+              peaks[irev+2].leftFlank = peaks[irev-1].rightFlank;
+              peaks[irev+2].leftRange = peaks[irev-1].rightRange;
+            }
+          }
+
+
+          peaks.erase(peaks.begin()+irev, peaks.begin()+irev+2);
+if (! SegActive::checkPeaks(peaks))
+{
+  cout << "Peak fail max, irev " << irev << " path " << path << endl << endl;
+}
+        }
+        else
+        {
+unsigned path = 0;
+          // TODO Combine with above
+          //
+          // We're mostly looking for minima, but we still have to
+          // keep the maxima organized, as otherwise the deletion of
+          // two peaks at a time gets confused.
+          // Keep the higher of the neighboring maxima.
+          if (peaks[irev-1].value < peaks[irev+1].value)
+          {
+path = 1;
+            // We really should keep irev+1, but it's more
+            // convenient to keep irev-1.
+            peaks[irev-1].index = peaks[irev+1].index;
+            peaks[irev-1].value = peaks[irev+1].value;
+            peaks[irev-1].leftFlank += 
+              peaks[irev].leftFlank + peaks[irev].rightFlank;
+            peaks[irev-1].rightFlank = peaks[irev+1].rightFlank;
+
+            peaks[irev-1].leftRange += 
+              peaks[irev].rightRange - peaks[irev].leftRange;
+            peaks[irev-1].rightRange = peaks[irev+1].rightRange;
+
+            if (irev >= 2)
+            {
+              peaks[irev-2].rightFlank = peaks[irev-1].leftFlank;
+              peaks[irev-2].rightRange = peaks[irev-1].leftRange;
+            }
+          }
+          else
+          {
+path = 2;
+            // We're keeping irev-1.
+            peaks[irev-1].rightFlank += 
+              peaks[irev+1].leftFlank + peaks[irev+1].rightFlank;
+
+            peaks[irev-1].rightRange += 
+              peaks[irev+1].rightRange - peaks[irev+1].leftRange;
+
+            if (irev <= lp-3)
+            {
+              peaks[irev+2].leftFlank = peaks[irev-1].rightFlank;
+              peaks[irev+2].leftRange = peaks[irev-1].rightRange;
+            }
+          }
+
+          peaks.erase(peaks.begin()+irev, peaks.begin()+irev+2);
+if (! SegActive::checkPeaks(peaks))
+{
+  cout << "Peak fail min, irev " << irev << " path " << path << endl << endl;
+}
+        }
       }
     }
   }
@@ -380,13 +737,16 @@ cout << "\n";
   }
 
   posStats.resize(writeInterval.len);
-  SegActive::getPosStats();
+  // SegActive::getPosStats();
+  SegActive::getPosStatsNew(true);
+  SegActive::getPosStatsNew(false);
 
   // Get a reasonable guess at the peaks.
   vector<SignedPeak> posPeaks;
   posPeaks.clear();
   SegActive::getPeaks(posPeaks);
   SegActive::getLargePeaks(posPeaks);
+/*
 
   // Straighten out the position trace, then try again.
   SegActive::levelizePos(posPeaks);
@@ -395,8 +755,10 @@ cout << "\n";
   SegActive::getPeaks(posLevelPeaks);
   SegActive::getLargePeaks(posLevelPeaks);
 
+*/
   synthPeaks.resize(writeInterval.len);
-  SegActive::makeSynthPeaks(posLevelPeaks);
+  SegActive::makeSynthPeaks(posPeaks);
+  // SegActive::makeSynthPeaks(posLevelPeaks);
 
   return true;
 }
@@ -421,6 +783,7 @@ void SegActive::writeBinary(
   string sname = origname;
   string pname = origname;
   string kname = origname;
+  string mname = origname;
   auto tp1 = sname.find("/raw/");
   if (tp1 == string::npos)
     return;
@@ -438,6 +801,9 @@ void SegActive::writeBinary(
   kname.insert(tp2, "_offset_" + to_string(writeInterval.first));
   kname.replace(tp1, 5, "/" + peakdirname + "/");
 
+  mname.insert(tp2, "_offset_" + to_string(writeInterval.first));
+  mname.replace(tp1, 5, "/max/");
+
   ofstream sout(sname, std::ios::out | std::ios::binary);
   sout.write(reinterpret_cast<const char *>(synthSpeed.data()),
     synthSpeed.size() * sizeof(float));
@@ -452,6 +818,15 @@ void SegActive::writeBinary(
   kout.write(reinterpret_cast<const char *>(synthPeaks.data()),
     synthPeaks.size() * sizeof(float));
   kout.close();
+
+vector<float> mmax(posStats.size());
+for (unsigned i = 0; i < posStats.size(); i++)
+  mmax[i] = posStats[i].max;
+
+  ofstream mout(mname, std::ios::out | std::ios::binary);
+  mout.write(reinterpret_cast<const char *>(mmax.data()),
+    mmax.size() * sizeof(float));
+  mout.close();
 }
 
 

@@ -79,6 +79,7 @@ def dualpane(sensor, rawdir, compdir):
 
   for r in rawlist:
     newraw, newoff = remove_offset(r)
+    print "Entered", newraw, newoff
     rawdict[newraw] = i
     rawoffsets[i] = newoff
     i += 1
