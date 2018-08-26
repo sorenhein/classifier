@@ -55,6 +55,8 @@ class SegActive
 
     void makeSynthPeaks(const vector<SignedPeak>& posPeaks);
 
+    void printPeaks(const vector<SignedPeak>& posPeaks) const;
+
   public:
 
     SegActive();

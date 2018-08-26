@@ -448,9 +448,22 @@ void SegActive::getLargePeaks(vector<SignedPeak>& peaks) const
 
   // To have something especially for the tail.
   // TODO: Should be a better measure of the "average" range.
-  const unsigned posMid = peaks[peaks.size() / 2].index;
+  // const unsigned posMid = peaks[peaks.size() / 2].index;
+  const unsigned posMid = posStats.size() / 2;
   const float midRange = 
     posStats[posMid].max - posStats[posMid].min;
+
+  /*
+  cout << "Making midRange:\n";
+  for (unsigned i = posMid - 5; i < posMid + 5; i++)
+  {
+    cout << "i " << i << ": " << posStats[posMid].min << ", " <<
+      posStats[posMid].max << "\n";
+  }
+  */
+
+  cout << "Start\n";
+  SegActive::printPeaks(peaks);
 
   bool changeFlag;
   do
@@ -464,11 +477,15 @@ void SegActive::getLargePeaks(vector<SignedPeak>& peaks) const
       const unsigned index = peak.index;
       const float range = posStats[index].max - posStats[index].min;
 
-// if (index > 1200 && index < 2000)
+// if (index > 8300 && index < 9300)
   // cout << "HERE" << endl;
       const float rangeSum = peak.leftRange + peak.rightRange;
-      if (rangeSum < 0.3 * range || rangeSum < 0.3 * midRange)
+      if (rangeSum < 0.5 * range || rangeSum < 0.5 * midRange)
       {
+cout << "irev " << irev << " index " << peak.index << "\n";
+      cout << "rangeSum " << rangeSum << " range " << range <<
+        " midRange " << midRange << endl;
+
         // TODO Do we ever need a second pass?
         changeFlag = true;
 
@@ -629,12 +646,14 @@ path = 2;
           }
 
           peaks.erase(peaks.begin()+irev, peaks.begin()+irev+2);
+        }
 if (! SegActive::checkPeaks(peaks))
 {
-  cout << "Peak fail min, irev " << irev << " path " << path << endl << endl;
+  cout << "Peak fail min, irev " << irev << endl << endl;
 }
-        }
+        continue;
       }
+      SegActive::printPeaks(peaks);
     }
   }
   while (changeFlag);
@@ -761,6 +780,30 @@ cout << "\n";
   // SegActive::makeSynthPeaks(posLevelPeaks);
 
   return true;
+}
+
+
+void SegActive::printPeaks(const vector<SignedPeak>& peaks) const
+{
+  cout << setw(5) << "Index" << 
+    setw(9) << "Value" << 
+    setw(5) << "Type" << 
+    setw(5) << "Llen" << 
+    setw(5) << "Rlen" << 
+    setw(7) << "Lrange" <<
+    setw(7) << "Rrange" << "\n";
+
+  for (const auto& peak: peaks)
+  {
+  cout << setw(5) << right << peak.index <<
+    setw(9) << fixed << setprecision(2) << peak.value <<
+    setw(5) << (peak.maxFlag ? "max" : "min") <<
+    setw(5) << peak.leftFlank <<
+    setw(5) << peak.rightFlank <<
+    setw(7) << fixed << setprecision(2) << peak.leftRange <<
+    setw(7) << fixed << setprecision(2) << peak.rightRange << "\n";
+  }
+  cout << "\n";
 }
 
 
