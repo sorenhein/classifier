@@ -5,6 +5,7 @@
 #include <string>
 
 #include "Median/median.h"
+#include "PeakDetect.h"
 #include "struct.h"
 
 using namespace std;
@@ -32,15 +33,18 @@ class SegActive
 
     Interval writeInterval;
 
+    PeakDetect peakDetect;
+
     void integrate(
       const vector<double>& samples,
       const Interval& aint,
       const double mean);
 
     void compensateSpeed();
+
     void compensateMedian();
 
-    void integrateFloat(const Interval& aint);
+    void integrateFloat();
 
     void getPosStats();
     void getPosStatsNew(const bool maxFlag);

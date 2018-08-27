@@ -550,7 +550,9 @@ if (active3.size() > 0)
 {
 vector<Interval> active4(1);
 active4[0].first = active3[0].first;
-active4[0].len = samples.size() - active4[0].first;
+active4[0].len = active3.back().first + 
+  active3.back().len - active4[0].first;
+// active4[0].len = samples.size() - active4[0].first;
 cout << "After intra+: " << active4[0].first << ", " <<
   active4[0].first + active4[0].len << "\n";
 

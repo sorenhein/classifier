@@ -367,6 +367,12 @@ void SegQuiet::adjustOutputIntervals(
     activeInterval.first = avail.first;
     activeInterval.len = writeInterval.first - avail.first;
 
+    // TODO 500 is enough here.  Should depend on filter.
+    if (activeInterval.first + activeInterval.len + 1000 < l)
+      activeInterval.len += 1000;
+    else
+      activeInterval.len = avail.len;
+
     if (writeInterval.first >= 1000)
       writeInterval.first -= 1000;
     else
@@ -529,6 +535,11 @@ bool SegQuiet::detect(
 
     // Make output a bit longer in order to better see.
     SegQuiet::adjustOutputIntervals(available[0], direction);
+
+    SegQuiet::makeSynth();
+
+    active.push_back(activeInterval);
+    return true;
   }
   else if (direction == QUIET_INTRA)
   {
@@ -559,13 +570,15 @@ bool SegQuiet::detect(
 
     SegQuiet::curateIntra();
     SegQuiet::finetuneIntra(samples);
+
+    SegQuiet::makeSynth();
+
+    SegQuiet::makeActive(active);
+
+    return (active.size() > 0);
   }
-
-  SegQuiet::makeSynth();
-
-  SegQuiet::makeActive(active);
-
-  return (active.size() > 0);
+  else
+    return (active.size() > 0);
 }
 
 

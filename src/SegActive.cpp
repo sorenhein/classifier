@@ -151,7 +151,7 @@ void SegActive::compensateSpeed()
 }
 
 
-void SegActive::integrateFloat(const Interval& aint)
+void SegActive::integrateFloat()
 {
   /*
   float sum = 0.;
@@ -162,12 +162,14 @@ void SegActive::integrateFloat(const Interval& aint)
   float avg = 0.f;
 
   // synthPos is then in tenth of a mm.
-  synthPos[aint.first - writeInterval.first] = 
-    100.f * (synthSpeed[aint.first - writeInterval.first] - avg) / 
+  // synthPos[aint.first - writeInterval.first] = 
+  synthPos[0] = 
+    100.f * (synthSpeed[0] - avg) / 
     static_cast<float>(SAMPLE_RATE);
 
-  for (unsigned i = aint.first + 1 - writeInterval.first; 
-    i < aint.first + aint.len - writeInterval.first; i++)
+  // for (unsigned i = aint.first + 1 - writeInterval.first; 
+    // i < aint.first + aint.len - writeInterval.first; i++)
+  for (unsigned i = 1; i < synthPos.size(); i++)
     synthPos[i] = synthPos[i-1] + 
       100.f * (synthSpeed[i] - avg) / static_cast<float>(SAMPLE_RATE);
 }
@@ -462,8 +464,8 @@ void SegActive::getLargePeaks(vector<SignedPeak>& peaks) const
   }
   */
 
-  cout << "Start\n";
-  SegActive::printPeaks(peaks);
+  // cout << "Start\n";
+  // SegActive::printPeaks(peaks);
 
   bool changeFlag;
   do
@@ -480,11 +482,12 @@ void SegActive::getLargePeaks(vector<SignedPeak>& peaks) const
 // if (index > 8300 && index < 9300)
   // cout << "HERE" << endl;
       const float rangeSum = peak.leftRange + peak.rightRange;
-      if (rangeSum < 0.5 * range || rangeSum < 0.5 * midRange)
+      // if (rangeSum < 0.5 * range || rangeSum < 0.5 * midRange)
+      if (rangeSum < 0.3 * midRange)
       {
-cout << "irev " << irev << " index " << peak.index << "\n";
-      cout << "rangeSum " << rangeSum << " range " << range <<
-        " midRange " << midRange << endl;
+// cout << "irev " << irev << " index " << peak.index << "\n";
+      // cout << "rangeSum " << rangeSum << " range " << range <<
+        // " midRange " << midRange << endl;
 
         // TODO Do we ever need a second pass?
         changeFlag = true;
@@ -653,7 +656,7 @@ if (! SegActive::checkPeaks(peaks))
 }
         continue;
       }
-      SegActive::printPeaks(peaks);
+      // SegActive::printPeaks(peaks);
     }
   }
   while (changeFlag);
@@ -752,7 +755,7 @@ cout << "\n";
     // SegActive::compensateMedian();
     SegActive::compensateSpeed();
 
-    SegActive::integrateFloat(aint);
+    SegActive::integrateFloat();
   }
 
   posStats.resize(writeInterval.len);
