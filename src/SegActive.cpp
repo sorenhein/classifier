@@ -758,6 +758,13 @@ cout << "\n";
     SegActive::integrateFloat();
   }
 
+  peakDetect.log(synthPos, writeInterval.first);
+  peakDetect.reduceUnleveled();
+
+  synthPeaks.resize(writeInterval.len);
+  peakDetect.makeSynthPeaks(synthPeaks);
+
+/*
   posStats.resize(writeInterval.len);
   // SegActive::getPosStats();
   SegActive::getPosStatsNew(true);
@@ -768,7 +775,6 @@ cout << "\n";
   posPeaks.clear();
   SegActive::getPeaks(posPeaks);
   SegActive::getLargePeaks(posPeaks);
-/*
 
   // Straighten out the position trace, then try again.
   SegActive::levelizePos(posPeaks);
@@ -777,9 +783,9 @@ cout << "\n";
   SegActive::getPeaks(posLevelPeaks);
   SegActive::getLargePeaks(posLevelPeaks);
 
-*/
   synthPeaks.resize(writeInterval.len);
   SegActive::makeSynthPeaks(posPeaks);
+*/
   // SegActive::makeSynthPeaks(posLevelPeaks);
 
   return true;

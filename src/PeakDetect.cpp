@@ -240,9 +240,16 @@ void PeakDetect::makeSorted()
 }
 
 
-void PeakDetect::log(const vector<float>& samples)
+void PeakDetect::log(
+  const vector<float>& samples,
+  const unsigned offsetSamples)
 {
   len = samples.size();
+  offset = offsetSamples;
+  sampleFirst = samples[0];
+  sampleLast = samples.back();
+
+  peaks.clear();
   PeakData p;
 
   for (unsigned i = 1; i < len-1; i++)
@@ -297,7 +304,77 @@ void PeakDetect::log(const vector<float>& samples)
       PeakDetect::integral(samples, pi, len, samples[pi]);
   }
 
-  PeakDetect::makeSorted();
+  // PeakDetect::makeSorted();
+  PeakDetect::check(samples);
+  PeakDetect::print(false);
+}
+
+
+void PeakDetect::reduceData(const vector<unsigned>& survivors)
+{
+  unsigned sno = survivors.size();
+  FlankData left, right;
+  left.reset();
+  right.reset();
+  unsigned np = 0;
+
+  for (unsigned pno = peaks.size(); pno > 0; pno--)
+  {
+    PeakData& peak = peaks[pno-1];
+    const bool maxFlag = peaks[survivors[sno-1]].maxFlag;
+
+    if (pno-1 > survivors[sno-1])
+    {
+      if (peak.maxFlag == maxFlag)
+      {
+        left += peak.left;
+        right += peak.right;
+      }
+      else
+      {
+        left -= peak.left;
+        right -= peak.right;
+      }
+      np++;
+      continue;
+    }
+
+
+    if (np > 0)
+    {
+      peak.right += right;
+
+      if (pno+np < peaks.size())
+      {
+        peaks[pno+np].left -= left;
+        peaks.erase(peaks.begin() + pno, 
+          peaks.begin() + pno + np);
+      }
+      else
+        peaks.erase(peaks.begin() + pno, peaks.end());
+
+      left.reset();
+      right.reset();
+      np = 0;
+    }
+
+    sno--;
+    if (sno == 0)
+    {
+      for (unsigned i = 0; i < pno-1; i++)
+      {
+        if (peaks[i].maxFlag == maxFlag)
+          left += peaks[i].left;
+        else
+          left -= peaks[i].left;
+      }
+      peaks[pno-1].left += left;
+
+      if (pno > 1)
+        peaks.erase(peaks.begin(), peaks.begin() + pno - 1);
+      break;
+    }
+  }
 }
 
 
@@ -330,6 +407,9 @@ void PeakDetect::reduceUnleveled()
 
     bool maxFlag = peaks[i].maxFlag;
     float level = peaks[i].value;
+    float watermark = (maxFlag ? 
+      numeric_limits<float>::max() :
+      numeric_limits<float>::lowest());
 
     // Generate a list of forward candidates.
     list<unsigned> candidates;
@@ -340,14 +420,18 @@ void PeakDetect::reduceUnleveled()
 
       if ((maxFlag && d >= 0) || (! maxFlag && d <= 0))
         break;
-      
+
       if (abs(d) < runningRange / 2.f)
         break;
       else if (peaks[j].maxFlag == maxFlag)
           continue;
+      else if ((maxFlag && peaks[j].value >= watermark) ||
+          (! maxFlag && peaks[j].value <= watermark))
+        break;
       else
       {
-        runningRange = abs(d) /  2.f;
+        runningRange = abs(d);
+        watermark = peaks[j].value;
         candidates.push_back(j);
       }
     }
@@ -378,7 +462,7 @@ void PeakDetect::reduceUnleveled()
         else if (peaks[j].maxFlag != maxFlag)
           continue;
         else
-          runningRange = abs(d) / 2.f;
+          runningRange = abs(d);
       }
       
       if (found)
@@ -389,16 +473,11 @@ void PeakDetect::reduceUnleveled()
     }
   }
 
-  unsigned sno = survivors.size();
-  for (unsigned pno = peaks.size(); pno > 0; pno--)
-  {
-    if (sno == 0)
-      peaks.erase(peaks.begin() + pno - 1);
-    else if (pno-1 > survivors[sno-1])
-      peaks.erase(peaks.begin() + pno - 1);
-    else
-      sno--;
-  }
+cout << "Have " << peaks.size() << " peaks, " <<
+  survivors.size() << " survivors\n";
+  PeakDetect::reduceData(survivors);
+
+  PeakDetect::print(false);
 }
 
 
@@ -446,13 +525,32 @@ void PeakDetect::getLevel(vector<float>& level) const
 }
 
 
+void PeakDetect::makeSynthPeaks(vector<float>& synthPeaks) const
+{
+  for (unsigned i = 0; i < synthPeaks.size(); i++)
+    synthPeaks[i] = 0;
+
+  unsigned count = 0;
+  for (auto& peak: peaks)
+  {
+    if (! peak.maxFlag)
+    {
+      synthPeaks[peak.index] = peak.value;
+count++;
+    }
+  }
+  cout << "COUNT " << count << endl;
+}
+
+
 void PeakDetect::printHeader() const
 {
   cout << 
     setw(5) << "No." <<
-    setw(5) << "Index" <<
+    setw(6) << "Index" <<
     setw(9) << "Value" <<
     setw(5) << "Type" <<
+    setw(5) << "Act" <<
     setw(5) << "Llen" <<
     setw(5) << "Rlen" <<
     setw(7) << "Lrange" <<
@@ -469,9 +567,10 @@ void PeakDetect::printPeak(
 {
   cout << 
     setw(5) << right << index <<
-    setw(5) << right << peak.index <<
+    setw(6) << right << peak.index + offset <<
     setw(9) << fixed << setprecision(2) << peak.value <<
     setw(5) << (peak.maxFlag ? "max" : "min") <<
+    setw(5) << (peak.activeFlag ? "yes" : "-") <<
     setw(5) << peak.left.len <<
     setw(5) << peak.right.len <<
     setw(7) << fixed << setprecision(2) << peak.left.range <<

@@ -14,12 +14,27 @@ class PeakDetect
   private:
 
     unsigned len;
+    unsigned offset;
+    float sampleFirst;
+    float sampleLast;
 
     struct FlankData
     {
       unsigned len;
       float range;
       float area;
+
+      void reset() {len = 0; range = 0.f; area = 0.f;}
+
+      void operator += (const FlankData fd2)
+      {
+        len += fd2.len; range += fd2.range; area += fd2.area;
+      }
+
+      void operator -= (const FlankData fd2)
+      {
+        len += fd2.len; range -= fd2.range; area -= fd2.area;
+      }
     };
 
     struct PeakData
@@ -58,6 +73,8 @@ class PeakDetect
 
     bool check(const vector<float>& samples) const;
 
+    void reduceData(const vector<unsigned>& survivors);
+
     void makeSorted();
 
     void printHeader() const;
@@ -74,11 +91,15 @@ class PeakDetect
 
     void reset();
 
-    void log(const vector<float>& samples);
+    void log(
+      const vector<float>& samples,
+      const unsigned offsetSamples);
 
     void reduceUnleveled();
 
     void getLevel(vector<float>& level) const;
+
+    void makeSynthPeaks(vector<float>& synthPeaks) const;
 
     void print(const bool activeFlag = true) const;
 
