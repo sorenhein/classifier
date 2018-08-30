@@ -59,4 +59,12 @@ bool readInputFile(
   const string& fname,
   vector<InputEntry>& actualList);
 
+bool readTextTrace(
+  const string& filename,
+  vector<double>& samples);
+
+bool readBinaryTrace(
+  const string& filename,
+  vector<float>& samples);
+
 #endif

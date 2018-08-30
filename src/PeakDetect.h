@@ -64,6 +64,8 @@ class PeakDetect
 
     void makeSynthPeaks(vector<float>& synthPeaks) const;
 
+    void getPeakTimes(vector<PeakTime>& times) const;
+
     void print(const bool activeFlag = true) const;
 
     void printList(

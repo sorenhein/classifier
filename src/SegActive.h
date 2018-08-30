@@ -45,6 +45,8 @@ class SegActive
       const vector<double>& samples, // TODO: Should use times[]
       const Interval& active);
 
+    void getPeakTimes(vector<PeakTime>& times) const; 
+
     void writeFiles(
       const string& origname,
       const string& speeddirname,

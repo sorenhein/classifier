@@ -15,6 +15,8 @@
 #define ABS_RANGE_LIMIT 1.e-4
 #define ABS_AREA_LIMIT 1.e-4
 
+#define SAMPLE_RATE 2000.
+
 
 PeakDetect::PeakDetect()
 {
@@ -674,6 +676,23 @@ void PeakDetect::makeSynthPeaks(vector<float>& synthPeaks) const
       synthPeaks[peak.index] = peak.value;
       count++;
     }
+  }
+}
+
+
+void PeakDetect::getPeakTimes(vector<PeakTime>& times) const
+{
+  times.clear();
+  for (unsigned i = 0; i < peaks.size(); i++)
+  {
+    const PeakData& peak = peaks[i];
+    if (peak.maxFlag)
+      continue;
+
+    PeakTime p;
+    p.time = peaks[i].index / SAMPLE_RATE;
+    p.value = peaks[i].value;
+    times.push_back(p);
   }
 }
 

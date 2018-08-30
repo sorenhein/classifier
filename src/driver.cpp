@@ -135,7 +135,7 @@ bool errFlag = false;
     for (auto& fname: datfiles)
     {
       cout << "File " << fname << ":" << endl;
-      trace.read(fname);
+      trace.read(fname, true);
       trace.getTrace(times);
 
       // TEMP

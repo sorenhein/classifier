@@ -199,9 +199,13 @@ bool SegActive::detect(
   synthPeaks.resize(writeInterval.len);
   peakDetect.makeSynthPeaks(synthPeaks);
 
-cout << "Got " << synthPeaks.size() << " peaks" << endl;
-
   return true;
+}
+
+
+void SegActive::getPeakTimes(vector<PeakTime>& times) const
+{
+  peakDetect.getPeakTimes(times);
 }
 
 

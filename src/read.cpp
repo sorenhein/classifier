@@ -1186,3 +1186,54 @@ bool readInputFile(
   return true;
 }
 
+
+bool readTextTrace(
+  const string& filename,
+  vector<double>& samples)
+{
+  ifstream fin;
+  fin.open(filename);
+  string line;
+  double v;
+  while (getline(fin, line))
+  {
+    if (line == "" || line.front() == '#')
+      continue;
+
+    // The format seems to have a trailing comma.
+    if (line.back() == ',')
+      line.pop_back();
+
+    const string err = "File " + filename +
+      ": Bad line '" + line + "'";
+    if (! readDouble(line, v, err))
+    {
+      fin.close();
+      return false;
+    }
+    samples.push_back(v);
+  }
+
+  fin.close();
+  return true;
+}
+
+
+bool readBinaryTrace(
+  const string& filename,
+  vector<float>& samples)
+{
+  ifstream fin(filename, std::ios::binary);
+  fin.unsetf(std::ios::skipws);
+  fin.seekg(0, std::ios::end);
+  const unsigned filesize = static_cast<unsigned>(fin.tellg());
+  fin.seekg(0, std::ios::beg);
+  samples.resize(filesize/4);
+
+  fin.read(reinterpret_cast<char *>(samples.data()),
+    samples.size() * sizeof(float));
+  fin.close();
+  return true;
+
+}
+

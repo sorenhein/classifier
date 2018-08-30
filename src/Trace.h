@@ -18,7 +18,6 @@ class Trace
 
     vector<double> samples;
     vector<Run> runs;
-    vector<PeakTime> times;
 
     SegTransient transient;
     SegQuiet quietFront;
@@ -26,44 +25,15 @@ class Trace
     SegActive segActive;
 
     string filename;
-    unsigned firstActiveSample;
-    unsigned firstActiveRun;
     bool transientFlag;
     bool quietFlag;
 
-    bool readText();
-
-    bool readBinary();
-
     void calcRuns();
 
-    bool runsToBumps(vector<Run>& bumps) const;
-
-    void tallyBumps(
-      const vector<Run>& bumps,
-      unsigned& longRun,
-      double& tallRun) const;
-
-    void combineRuns(
-      vector<Run>& runvec,
-      const double threshold) const;
-
-    double calcThreshold(
-      const vector<Run>& runvec,
-      const unsigned num) const;
-
-    bool thresholdPeaks();
+    bool readText();
+    bool readBinary();
 
     void printSamples(const string& title) const;
-
-    void printRunsAsVector(
-      const string& title,
-      const vector<Run>& runvec) const;
-
-    void printFirstRuns(
-      const string& title,
-      const vector<Run>& runvec,
-      const unsigned num) const;
 
   public:
 
@@ -71,19 +41,19 @@ class Trace
 
     ~Trace();
 
-    bool read(const string& fname);
+    bool read(
+      const string& fname,
+      const bool binaryFlag);
 
-    void getTrace(vector<PeakTime>& timesOut) const;
+    void getTrace(vector<PeakTime>& times) const;
+
+    string strTransientHeaderCSV();
+    string strTransientCSV();
 
     void writeTransient() const;
     void writeQuietBack() const;
     void writeQuietFront() const;
     void writeSegActive() const;
-
-    string strTransientHeaderCSV();
-    string strTransientCSV();
-
-    void printStats() const;
 
 };
 
