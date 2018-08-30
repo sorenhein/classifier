@@ -516,27 +516,26 @@ bool Trace::read(const string& fname)
 
   transientFlag = transient.detect(samples, runs);
 
-  vector<Interval> available(1);
-  available[0].first = transient.lastSampleNo();
-  available[0].len = samples.size() - available[0].first;
-cout << "After transient: " << available[0].first << ", " <<
-  available[0].first + available[0].len << "\n";
+  Interval available;
+  available.first = transient.lastSampleNo();
+  available.len = samples.size() - available.first;
+cout << "After transient: " << available.first << ", " <<
+  available.first + available.len << "\n";
 
-  vector<Interval> active;
+  Interval active;
   quietFlag = quietBack.detect(samples, available, 
     QUIET_BACK, active);
-cout << "After back: " << active[0].first << ", " <<
-  active[0].first + active[0].len << "\n";
+cout << "After back: " << active.first << ", " <<
+  active.first + active.len << "\n";
 
-  vector<Interval> active2;
+  Interval active2;
   (void) quietFront.detect(samples, active, QUIET_FRONT, active2);
-cout << "After front: " << active2[0].first << ", " <<
-  active2[0].first + active2[0].len << "\n";
+cout << "After front: " << active2.first << ", " <<
+  active2.first + active2.len << "\n";
 
 Interval active4;
-active4.first = active2[0].first;
-active4.len = active2.back().first + 
-  active2.back().len - active4.first;
+active4.first = active2.first;
+active4.len = active2.first + active2.len - active4.first;
 cout << "After intra+: " << active4.first << ", " <<
   active4.first + active4.len << "\n";
 

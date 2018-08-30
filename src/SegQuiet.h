@@ -12,9 +12,8 @@ using namespace std;
 enum QuietPlace
 {
   QUIET_FRONT = 0,
-  QUIET_INTRA = 1,
-  QUIET_BACK = 2,
-  QUIET_SIZE = 3
+  QUIET_BACK = 1,
+  QUIET_SIZE = 2
 };
 
 class SegQuiet
@@ -34,9 +33,6 @@ class SegQuiet
 
     Interval writeInterval;
     Interval activeInterval;
-
-    QuietPlace directionStore;
-    double meanBack;
 
     void makeStarts(
       const Interval& interval,
@@ -58,7 +54,6 @@ class SegQuiet
       const double mean);
 
     unsigned curate() const;
-    void curateIntra();
 
     void setFinetuneRange(
       const vector<double>& samples,
@@ -82,19 +77,11 @@ class SegQuiet
       const QuietPlace direction,
       Interval& quietInt);
 
-    void finetuneIntra(const vector<double>& samples);
-
     void adjustOutputIntervals(
       const Interval& avail,
       const QuietPlace direction);
 
-    void lowpass(
-      const vector<double>& samples,
-      vector<double>& lp) const;
-
     void makeSynth();
-
-    void makeActive(vector<Interval>& active) const;
 
     void printStats(
       const QuietStats& qstats,
@@ -111,9 +98,9 @@ class SegQuiet
 
     bool detect(
       const vector<double>& samples, // TODO: Should use times[]
-      const vector<Interval>& available,
+      const Interval& available,
       const QuietPlace direction,
-      vector<Interval>& active);
+      Interval& active);
 
     void writeFile(
       const string& origname,
