@@ -3,7 +3,8 @@ Clusters.obj: Ckmeans/Ckmeans.1d.dp.h Ckmeans/within_cluster.h Clusters.h
 Clusters.obj: struct.h Database.h
 Database.obj: Database.h Clusters.h struct.h read.h
 Disturb.obj: Disturb.h read.h struct.h
-PeakDetect.obj: PeakDetect.h struct.h
+PeakDetect.obj: PeakDetect.h struct.h PeakCluster.h
+PeakCluster.obj: PeakCluster.h struct.h
 Regress.obj: Regress.h struct.h Database.h Clusters.h
 Regress.obj: regress/PolynomialRegression.h
 SegActive.obj: SegActive.h Median/median.h PeakDetect.h struct.h

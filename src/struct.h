@@ -165,5 +165,35 @@ struct Interval
   double mean;
 };
 
+struct FlankData
+{
+  unsigned len;
+  float range;
+  float area;
+
+  void reset() {len = 0; range = 0.f; area = 0.f;}
+
+  void operator += (const FlankData fd2)
+  {
+    len += fd2.len; range += fd2.range; area += fd2.area;
+  }
+
+  void operator -= (const FlankData fd2)
+  {
+    len += fd2.len; range -= fd2.range; area -= fd2.area;
+  }
+};
+
+struct PeakData
+{
+  unsigned index;
+  float value;
+  bool maxFlag;
+  FlankData left;
+  FlankData right;
+  bool activeFlag;
+};
+
+
 
 #endif

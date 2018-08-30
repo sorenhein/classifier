@@ -7,6 +7,7 @@
 #include <sstream>
 
 #include "PeakDetect.h"
+#include "PeakCluster.h"
 
 #define KEEP_AREA_RATIO_LOWER 2.0f
 #define KEEP_AREA_RATIO_UPPER 20.0f
@@ -524,7 +525,9 @@ void PeakDetect::estimatePeakSize(float& negativePeakSize) const
   // beginning of a trace and it's a residual of the transient.
 
   unsigned first = 0;
-  while (first < lp && ampl[first] > 2. * ampl[first+1])
+  while (first < lp && 
+      (ampl[first] > 2. * ampl[first+1] ||
+       ampl[first] > 2. * ampl[first+2]))
     first++;
 
   if (first > 2)
@@ -604,6 +607,63 @@ cout << "Have " << peaks.size() << " peaks, " <<
 }
 
 
+void PeakDetect::reduceTransientLeftovers()
+{
+  // Look for the first zero-crossing (upwards) following
+  // the first peak.
+
+  const unsigned lp = peaks.size();
+  unsigned i = 0;
+  while (i < lp && (peaks[i].maxFlag || peaks[i].value > 0.f))
+    i++;
+  while (i < lp && peaks[i].value < 0.f)
+      i++;
+  const unsigned firstCrossed = i;
+
+  // Need enough of the other peaks for a histogram.
+
+  if (lp-firstCrossed < 10)
+    return;
+
+  // Gather statistics on minimum peaks.
+
+  PeakCluster peakCluster;
+  for (i = firstCrossed; i < lp; i++)
+  {
+    if (! peaks[i].maxFlag)
+      peakCluster += peaks[i];
+  }
+
+  // Check the early peaks against these templates.
+
+  bool outlierFlag = false;
+  unsigned lastOutlier = 0;
+
+  for (i = 0; i < firstCrossed; i++)
+  {
+    if (! peaks[i].maxFlag && peakCluster.isOutlier(peaks[i]))
+    {
+      outlierFlag = true;
+      lastOutlier = i;
+    }
+  }
+
+  if (! outlierFlag)
+    return;
+
+cout << "Deleting large peaks before " << lastOutlier << "\n";
+
+  vector<unsigned> survivors;
+  for (i = lastOutlier+1; i < lp; i++)
+    survivors.push_back(i);
+
+cout << "Have " << peaks.size() << " peaks, " <<
+  survivors.size() << " non-transient survivors\n";
+
+  PeakDetect::remakeFlanks(survivors);
+}
+
+
 void PeakDetect::reduce()
 {
   PeakDetect::reduceToRuns();
@@ -622,6 +682,8 @@ cout << "Large area " << veryLargeArea <<
 cout << "Negative peak size " << negativePeakSize << "\n";
   
   PeakDetect::reduceNegativeDips(0.5f * negativePeakSize);
+
+  PeakDetect::reduceTransientLeftovers();
 }
 
 
