@@ -31,6 +31,8 @@ class SegActive
     vector<float> synthPeaks;
     vector<MediatorStats> posStats;
 
+    vector<float> filtered;
+
     Interval writeInterval;
 
     PeakDetect peakDetect;
@@ -45,6 +47,8 @@ class SegActive
     void compensateMedian();
 
     void integrateFloat();
+
+    void highpass();
 
     void getPosStats();
     void getPosStatsNew(const bool maxFlag);

@@ -725,6 +725,80 @@ count++;
 }
 
 
+void SegActive::highpass()
+{
+  // Fifth-order high-pass Butterworth filter with low cut-off.
+  // No padding or clever stuff like in Python filtfilt.
+
+  const unsigned order = 5;
+
+  const vector<double> num
+  {
+    0.9749039346036602,
+    -4.8745196730183009,
+    9.7490393460366018,
+    -9.7490393460366018,
+    4.8745196730183009,
+    -0.9749039346036602
+  };
+
+
+
+  const vector<double> denom
+  {
+    1.,
+    -4.9491681155566063,
+    9.7979620071891631,
+    -9.698857155930046,
+    4.8005009469355944,
+    -0.9504376817056966
+  };
+
+
+  const unsigned ls = synthPos.size();
+  vector<double> forward(ls);
+
+  vector<double> state(order+1);
+  for (unsigned i = 0; i < order+1; i++)
+    state[i] = 0.;
+
+  for (unsigned i = 0; i < ls; i++)
+  {
+    forward[i] = num[0] * static_cast<double>(synthPos[i]) + state[0];
+
+    for (unsigned j = 0; j < order; j++)
+    {
+      state[j] = num[j+1] * static_cast<double>(synthPos[i]) - 
+        denom[j+1] * forward[i] + state[j+1];
+    }
+  }
+
+  vector<double> backward(ls);
+  for (unsigned i = 0; i < order+1; i++)
+    state[i] = 0.;
+
+  for (unsigned i = 0; i < ls; i++)
+  {
+    const unsigned irev = ls-1-i;
+
+    backward[irev] = num[0] * forward[irev] + state[0];
+
+    for (unsigned j = 0; j < order; j++)
+    {
+      state[j] = num[j+1] * forward[irev] - 
+        denom[j+1] * backward[irev] + state[j+1];
+    }
+  }
+
+  filtered.resize(ls);
+  for (unsigned i = 0; i < ls; i++)
+  {
+    filtered[i] = static_cast<float>(backward[i]);
+    synthPos[i] = static_cast<float>(backward[i]);
+  }
+}
+
+
 bool SegActive::detect(
   const vector<double>& samples,
   const vector<Interval>& active,
@@ -756,10 +830,13 @@ cout << "\n";
     SegActive::compensateSpeed();
 
     SegActive::integrateFloat();
+
+    SegActive::highpass();
   }
 
+  // peakDetect.log(synthPos, writeInterval.first);
   peakDetect.log(synthPos, writeInterval.first);
-  peakDetect.reduceUnleveled();
+  peakDetect.reduce();
 
   synthPeaks.resize(writeInterval.len);
   peakDetect.makeSynthPeaks(synthPeaks);
@@ -836,6 +913,7 @@ void SegActive::writeBinary(
   string pname = origname;
   string kname = origname;
   string mname = origname;
+  string fname = origname;
   auto tp1 = sname.find("/raw/");
   if (tp1 == string::npos)
     return;
@@ -856,6 +934,9 @@ void SegActive::writeBinary(
   mname.insert(tp2, "_offset_" + to_string(writeInterval.first));
   mname.replace(tp1, 5, "/max/");
 
+  fname.insert(tp2, "_offset_" + to_string(writeInterval.first));
+  fname.replace(tp1, 5, "/filter/");
+
   ofstream sout(sname, std::ios::out | std::ios::binary);
   sout.write(reinterpret_cast<const char *>(synthSpeed.data()),
     synthSpeed.size() * sizeof(float));
@@ -870,6 +951,11 @@ void SegActive::writeBinary(
   kout.write(reinterpret_cast<const char *>(synthPeaks.data()),
     synthPeaks.size() * sizeof(float));
   kout.close();
+
+  ofstream fout(fname, std::ios::out | std::ios::binary);
+  fout.write(reinterpret_cast<const char *>(filtered.data()),
+    filtered.size() * sizeof(float));
+  fout.close();
 
 vector<float> mmax(posStats.size());
 for (unsigned i = 0; i < posStats.size(); i++)

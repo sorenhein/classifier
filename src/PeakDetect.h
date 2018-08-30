@@ -13,11 +13,6 @@ class PeakDetect
 {
   private:
 
-    unsigned len;
-    unsigned offset;
-    float sampleFirst;
-    float sampleLast;
-
     struct FlankData
     {
       unsigned len;
@@ -47,23 +42,10 @@ class PeakDetect
       bool activeFlag;
     };
 
+    unsigned len;
+    unsigned offset;
     vector<PeakData> peaks;
 
-    struct SortData
-    {
-      unsigned pindex;
-      float valLeft;
-      float valRight;
-
-      bool operator < (const SortData& sd2) const 
-      {
-        return (valLeft + valRight < sd2.valLeft + sd2.valRight);
-      }
-    };
-
-    vector<SortData> sortedPeaks;
-
-    vector<unsigned> toSorted;
 
     float integral(
       const vector<float>& samples,
@@ -73,9 +55,19 @@ class PeakDetect
 
     bool check(const vector<float>& samples) const;
 
-    void reduceData(const vector<unsigned>& survivors);
+    void reduceToRuns();
 
-    void makeSorted();
+    void remakeFlanks(const vector<unsigned>& survivors);
+
+    void estimateAreaRanges(
+      float& veryLargeArea,
+      float& normalLargeArea) const;
+
+    void estimatePeakSize(float& negativePeakSize) const;
+
+    void reduceSmallRuns(const float areaLimit);
+
+    void reduceNegativeDips(const float peakLimit);
 
     void printHeader() const;
 
@@ -95,7 +87,7 @@ class PeakDetect
       const vector<float>& samples,
       const unsigned offsetSamples);
 
-    void reduceUnleveled();
+    void reduce();
 
     void getLevel(vector<float>& level) const;
 

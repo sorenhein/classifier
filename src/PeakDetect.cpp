@@ -1,6 +1,7 @@
 #include <list>
 #include <iostream>
 #include <iomanip>
+#include <functional>
 #include <algorithm>
 #include <fstream>
 #include <sstream>
@@ -9,6 +10,8 @@
 
 #define KEEP_AREA_RATIO_LOWER 2.0f
 #define KEEP_AREA_RATIO_UPPER 20.0f
+
+#define SMALL_AREA_FACTOR 100.f
 
 #define ABS_RANGE_LIMIT 1.e-4
 #define ABS_AREA_LIMIT 1.e-4
@@ -222,32 +225,12 @@ bool PeakDetect::check(const vector<float>& samples) const
 }
 
 
-void PeakDetect::makeSorted()
-{
-  SortData sd;
-  for (unsigned i = 0; i < peaks.size(); i++)
-  {
-    sd.pindex = i;
-    sd.valLeft = peaks[i].left.area;
-    sd.valRight = peaks[i].right.area;
-    sortedPeaks.push_back(sd);
-  }
-
-  sort(sortedPeaks.begin(), sortedPeaks.end());
-
-  for (unsigned i = 0; i < sortedPeaks.size(); i++)
-    toSorted[sortedPeaks[i].pindex] = i;
-}
-
-
 void PeakDetect::log(
   const vector<float>& samples,
   const unsigned offsetSamples)
 {
   len = samples.size();
   offset = offsetSamples;
-  sampleFirst = samples[0];
-  sampleLast = samples.back();
 
   peaks.clear();
   PeakData p;
@@ -306,12 +289,15 @@ void PeakDetect::log(
 
   // PeakDetect::makeSorted();
   PeakDetect::check(samples);
-  PeakDetect::print(false);
+  // PeakDetect::print(false);
 }
 
 
-void PeakDetect::reduceData(const vector<unsigned>& survivors)
+void PeakDetect::remakeFlanks(const vector<unsigned>& survivors)
 {
+  // Once some peaks have been eliminated, the left and right
+  // flanks have to be recalculated.
+
   unsigned sno = survivors.size();
   FlankData left, right;
   left.reset();
@@ -378,25 +364,18 @@ void PeakDetect::reduceData(const vector<unsigned>& survivors)
 }
 
 
-void PeakDetect::reduceUnleveled()
+void PeakDetect::reduceToRuns()
 {
-  // TODO
-  // Go from the beginning in sortedPeaks
-  // Want a left ratio and a right ratio in bounds
-  // Poke out this element
-  // - Mark as inactive in peaks
-  // - Maybe mark a neighbor in peaks as well
-  // - Remove these 1-2 from sortedPeaks
-  // - The toSorted numbers shift (down)
-  // - 1-2 peaks are modified in peaks
-  // - These also come out of sortedPeaks
-  // - This too changes toSorted
-  // - They go back in at new places
-  // - This too changes toSorted
-  // Validate that all three vectors are still consistent.
-  // FlankData should also have a ratio
-
-  // OR: Effectively look for long runs
+  // A run is a sequence of peaks (from min to max or the
+  // other way round).  The running range is on such a
+  // sequence is the difference between the starting peak
+  // and the peak we have gotten to.  In a run, the trace
+  // only crosses the mid-point between the starting point
+  // and the running range once (so there are multiple
+  // checks per run).  Also, this property applies both to 
+  // the run itself forwards and to the "backward" run.
+  // Finally, a run does not contain two maxima (or minima)
+  // that shorten the run range.
 
   vector<unsigned> survivors;
   survivors.push_back(0);
@@ -475,9 +454,174 @@ void PeakDetect::reduceUnleveled()
 
 cout << "Have " << peaks.size() << " peaks, " <<
   survivors.size() << " survivors\n";
-  PeakDetect::reduceData(survivors);
+  PeakDetect::remakeFlanks(survivors);
 
-  PeakDetect::print(false);
+  // PeakDetect::print(false);
+}
+
+
+void PeakDetect::estimateAreaRanges(
+  float& veryLargeArea,
+  float& normalLargeArea) const
+{
+  // The algorithm is not particularly sensitive to the 
+  // parameters here.  It's just to get an idea of scale.
+
+  const unsigned lp = peaks.size();
+  vector<float> areas(lp+1);
+  for (unsigned i = 0; i < lp; i++)
+    areas[i] = peaks[i].left.area;
+  areas[lp] = peaks.back().right.area;
+  sort(areas.begin(), areas.end(), greater<float>());
+
+  // If there is a very large area, it's probably at the
+  // beginning of a trace and it's a residual of the transient.
+
+  unsigned first = 0;
+  while (first < lp && areas[first] > 2. * areas[first+1])
+    first++;
+
+  if (first > 0)
+    veryLargeArea = (areas[first] + areas[first+1]) / 2.f;
+  else
+    veryLargeArea = 0.f;
+
+  if (first > 2)
+  {
+    cout << "WARNING estimateRange: More than two large areas\n";
+    for (unsigned i = 0; i < first; i++)
+      cout << "i " << i << ": " << areas[i] << endl;
+    cout << endl;
+    return;
+  }
+  
+  // Next come the large, but fairly normal areas.
+
+  const float firstVal = areas[first];
+  unsigned last = first;
+  while (last < lp && areas[last] > 0.5 * areas[first])
+    last++;
+
+  normalLargeArea = areas[(first + last) / 2];
+}
+
+
+void PeakDetect::estimatePeakSize(float& negativePeakSize) const
+{
+  // The algorithm is not particularly sensitive to the 
+  // parameters here.  It's just to get an idea of scale.
+
+  const unsigned lp = peaks.size();
+  vector<float> ampl(lp+1);
+  for (unsigned i = 0; i < lp; i++)
+  {
+    if (! peaks[i].maxFlag && peaks[i].value < 0.f)
+      ampl[i] = -peaks[i].value;
+  }
+  sort(ampl.begin(), ampl.end(), greater<float>());
+
+  // If there is a very large peak, it's probably at the
+  // beginning of a trace and it's a residual of the transient.
+
+  unsigned first = 0;
+  while (first < lp && ampl[first] > 2. * ampl[first+1])
+    first++;
+
+  if (first > 2)
+  {
+    cout << "WARNING estimatePeak: More than two large peaks\n";
+    for (unsigned i = 0; i < first; i++)
+      cout << "i " << i << ": " << ampl[i] << endl;
+    cout << endl;
+    return;
+  }
+  
+  // Next come the large, but fairly normal areas.
+
+  const float firstVal = ampl[first];
+  unsigned last = first;
+  while (last < lp && ampl[last] > 0.5 * ampl[first])
+    last++;
+
+  negativePeakSize = ampl[(first + last) / 2];
+}
+
+
+void PeakDetect::reduceSmallRuns(const float areaLimit)
+{
+  vector<unsigned> survivors;
+
+  unsigned start = 0;
+  const unsigned lp = peaks.size();
+  while (start < lp && peaks[start].left.area <= areaLimit)
+    start++;
+
+  for (unsigned i = start; i < lp; i++)
+  {
+    if (peaks[i].right.area > areaLimit)
+      survivors.push_back(i);
+    else
+    {
+      // Collapse the peaks in pairs.
+      i++;
+    }
+  }
+
+cout << "Have " << peaks.size() << " peaks, " <<
+  survivors.size() << " survivors\n";
+
+  PeakDetect::remakeFlanks(survivors);
+
+// PeakDetect::print(false);
+}
+
+
+void PeakDetect::reduceNegativeDips(const float peakLimit)
+{
+  vector<unsigned> survivors;
+
+  const unsigned lp = peaks.size();
+
+  for (unsigned i = 0; i < lp; i++)
+  {
+    const PeakData& peak = peaks[i];
+   
+    if (peak.maxFlag || peak.value < -peakLimit)
+      survivors.push_back(i);
+    else
+    {
+      // Collapse the peaks in pairs.
+      i++;
+    }
+  }
+
+cout << "Have " << peaks.size() << " peaks, " <<
+  survivors.size() << " deep survivors\n";
+
+  PeakDetect::remakeFlanks(survivors);
+
+// PeakDetect::print(false);
+}
+
+
+void PeakDetect::reduce()
+{
+  PeakDetect::reduceToRuns();
+
+  float veryLargeArea, normalLargeArea;
+  PeakDetect::estimateAreaRanges(veryLargeArea, normalLargeArea);
+cout << "Large area " << veryLargeArea <<
+  ", normal large area " << normalLargeArea << "\n";
+
+  PeakDetect::reduceSmallRuns(normalLargeArea / SMALL_AREA_FACTOR);
+
+  // Currently not doing anything about very large runs.
+
+  float negativePeakSize;
+  PeakDetect::estimatePeakSize(negativePeakSize);
+cout << "Negative peak size " << negativePeakSize << "\n";
+  
+  PeakDetect::reduceNegativeDips(0.5f * negativePeakSize);
 }
 
 
