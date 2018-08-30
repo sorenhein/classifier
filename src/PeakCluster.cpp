@@ -103,37 +103,23 @@ bool PeakCluster::isOutlier(const PeakData& peak)
   else
     pstat = &similar;
 
-cout << "Testing, ratio " << ratio << endl;
-PeakCluster::print(leftHeavy, "leftHeavy");
-PeakCluster::print(rightHeavy, "rightHeavy");
-PeakCluster::print(similar, "similar");
-
   // Statistically unlikely (2 standard deviations, 95%).
   if (ratio > pstat->ratio.mean + 2.f * pstat->ratio.sdev ||
       ratio < pstat->ratio.mean - 2.f * pstat->ratio.sdev)
-{
-cout << "ratio " << ratio << " out of bounds" << endl;
     return true;
-}
 
   // Statistically almost impossible.
   if (peak.left.area > 
       pstat->left.mean + 5.f * pstat->left.sdev ||
       peak.left.area < 
       pstat->left.mean - 5.f * pstat->left.sdev)
-{
-cout << "left area " << peak.left.area << " out of bounds" << endl;
     return true;
-}
       
   if (peak.right.area > 
       pstat->right.mean + 5.f * pstat->right.sdev ||
       peak.right.area < 
       pstat->right.mean - 5.f * pstat->right.sdev)
-{
-cout << "right area " << peak.right.area << " out of bounds" << endl;
     return true;
-}
 
   return false;
 }

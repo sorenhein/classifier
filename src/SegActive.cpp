@@ -840,6 +840,7 @@ cout << "\n";
 
   synthPeaks.resize(writeInterval.len);
   peakDetect.makeSynthPeaks(synthPeaks);
+cout << "Got " << synthPeaks.size() << " peaks" << endl;
 
 /*
   posStats.resize(writeInterval.len);

@@ -9,11 +9,9 @@
 #include "PeakDetect.h"
 #include "PeakCluster.h"
 
-#define KEEP_AREA_RATIO_LOWER 2.0f
-#define KEEP_AREA_RATIO_UPPER 20.0f
-
 #define SMALL_AREA_FACTOR 100.f
 
+// Only a check limit, not algorithmic parameters.
 #define ABS_RANGE_LIMIT 1.e-4
 #define ABS_AREA_LIMIT 1.e-4
 
@@ -288,9 +286,7 @@ void PeakDetect::log(
       PeakDetect::integral(samples, pi, len, samples[pi]);
   }
 
-  // PeakDetect::makeSorted();
   PeakDetect::check(samples);
-  // PeakDetect::print(false);
 }
 
 
@@ -453,11 +449,7 @@ void PeakDetect::reduceToRuns()
     }
   }
 
-cout << "Have " << peaks.size() << " peaks, " <<
-  survivors.size() << " survivors\n";
   PeakDetect::remakeFlanks(survivors);
-
-  // PeakDetect::print(false);
 }
 
 
@@ -570,12 +562,7 @@ void PeakDetect::reduceSmallRuns(const float areaLimit)
     }
   }
 
-cout << "Have " << peaks.size() << " peaks, " <<
-  survivors.size() << " survivors\n";
-
   PeakDetect::remakeFlanks(survivors);
-
-// PeakDetect::print(false);
 }
 
 
@@ -598,12 +585,7 @@ void PeakDetect::reduceNegativeDips(const float peakLimit)
     }
   }
 
-cout << "Have " << peaks.size() << " peaks, " <<
-  survivors.size() << " deep survivors\n";
-
   PeakDetect::remakeFlanks(survivors);
-
-// PeakDetect::print(false);
 }
 
 
@@ -651,14 +633,9 @@ void PeakDetect::reduceTransientLeftovers()
   if (! outlierFlag)
     return;
 
-cout << "Deleting large peaks before " << lastOutlier << "\n";
-
   vector<unsigned> survivors;
   for (i = lastOutlier+1; i < lp; i++)
     survivors.push_back(i);
-
-cout << "Have " << peaks.size() << " peaks, " <<
-  survivors.size() << " non-transient survivors\n";
 
   PeakDetect::remakeFlanks(survivors);
 }
@@ -670,8 +647,6 @@ void PeakDetect::reduce()
 
   float veryLargeArea, normalLargeArea;
   PeakDetect::estimateAreaRanges(veryLargeArea, normalLargeArea);
-cout << "Large area " << veryLargeArea <<
-  ", normal large area " << normalLargeArea << "\n";
 
   PeakDetect::reduceSmallRuns(normalLargeArea / SMALL_AREA_FACTOR);
 
@@ -679,55 +654,10 @@ cout << "Large area " << veryLargeArea <<
 
   float negativePeakSize;
   PeakDetect::estimatePeakSize(negativePeakSize);
-cout << "Negative peak size " << negativePeakSize << "\n";
   
   PeakDetect::reduceNegativeDips(0.5f * negativePeakSize);
 
   PeakDetect::reduceTransientLeftovers();
-}
-
-
-void PeakDetect::getLevel(vector<float>& level) const
-{
-  const unsigned lp = peaks.size();
-  if (lp == 0)
-    return;
-
-  PeakData const * prevPeak = nullptr;
-  for (const PeakData& peak: peaks)
-  {
-    // We levelize such that the minima are all zero.
-    // This requires good minima ahead of time.
-    if (peak.maxFlag)
-      continue;
-
-    unsigned prevIndex;
-    float prevValue;
-    if (prevPeak == nullptr)
-    {
-      prevIndex = 0;
-      prevValue = peak.value;
-    }
-    else
-    {
-      prevIndex = prevPeak->index;
-      prevValue = prevPeak->value;
-    }
-
-    const float step =
-      (peak.value - prevValue) / (peak.index - prevIndex);
-
-
-    for (unsigned i = prevIndex; i < peak.index; i++)
-      level[i] = prevValue + step * (i - prevIndex);
-
-    prevPeak = &peak;
-  }
-
-  // Do the last bit.  Just repeat the last value.
-  const PeakData& lastPeak = peaks.back();
-  for (unsigned i = lastPeak.index; i < len; i++)
-    level[i] = lastPeak.value;
 }
 
 
@@ -742,10 +672,9 @@ void PeakDetect::makeSynthPeaks(vector<float>& synthPeaks) const
     if (! peak.maxFlag)
     {
       synthPeaks[peak.index] = peak.value;
-count++;
+      count++;
     }
   }
-  cout << "COUNT " << count << endl;
 }
 
 

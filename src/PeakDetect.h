@@ -62,8 +62,6 @@ class PeakDetect
 
     void reduce();
 
-    void getLevel(vector<float>& level) const;
-
     void makeSynthPeaks(vector<float>& synthPeaks) const;
 
     void print(const bool activeFlag = true) const;
