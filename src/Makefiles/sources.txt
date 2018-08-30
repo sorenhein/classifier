@@ -18,6 +18,7 @@ SOURCE_FILES    =               \
                 TraceDB.cpp     \
                 read.cpp        \
                 print.cpp       \
+                write.cpp       \
                 driver.cpp      \
                 Ckmeans/Ckmeans.1d.dp.cpp       \
                 Ckmeans/dynamic_prog.cpp        \

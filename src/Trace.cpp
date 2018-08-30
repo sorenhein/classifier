@@ -548,16 +548,14 @@ cout << "After front: " << active2[0].first << ", " <<
 
 if (active3.size() > 0)
 {
-vector<Interval> active4(1);
-active4[0].first = active3[0].first;
-active4[0].len = active3.back().first + 
-  active3.back().len - active4[0].first;
-// active4[0].len = samples.size() - active4[0].first;
-cout << "After intra+: " << active4[0].first << ", " <<
-  active4[0].first + active4[0].len << "\n";
+Interval active4;
+active4.first = active3[0].first;
+active4.len = active3.back().first + 
+  active3.back().len - active4.first;
+cout << "After intra+: " << active4.first << ", " <<
+  active4.first + active4.len << "\n";
 
-  (void) segActive.detect(samples, active4, meanBack);
-  // (void) segActive.detect(samples, active3, meanBack);
+  (void) segActive.detect(samples, active4);
 }
 else
   cout << "WTF?\n";
@@ -762,6 +760,6 @@ void Trace::writeQuietIntra() const
 
 void Trace::writeSegActive() const
 {
-  segActive.writeBinary(filename, "speed", "pos", "peak");
+  segActive.writeFiles(filename, "speed", "pos", "peak");
 }
 

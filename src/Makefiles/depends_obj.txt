@@ -7,7 +7,7 @@ PeakDetect.obj: PeakDetect.h struct.h PeakCluster.h
 PeakCluster.obj: PeakCluster.h struct.h
 Regress.obj: Regress.h struct.h Database.h Clusters.h
 Regress.obj: regress/PolynomialRegression.h
-SegActive.obj: SegActive.h Median/median.h PeakDetect.h struct.h
+SegActive.obj: SegActive.h Median/median.h PeakDetect.h struct.h write.h
 SegQuiet.obj: SegQuiet.h struct.h
 SegTransient.obj: SegTransient.h struct.h Trace.h SegQuiet.h SegActive.h
 SegTransient.obj: Median/median.h PeakDetect.h
@@ -21,6 +21,7 @@ Trace.obj: Median/median.h PeakDetect.h read.h
 TraceDB.obj: TraceDB.h struct.h Database.h Clusters.h Align.h read.h
 read.obj: Database.h Clusters.h struct.h TraceDB.h read.h
 print.obj: print.h struct.h
+write.obj: write.h struct.h
 driver.obj: read.h struct.h Trace.h SegTransient.h SegQuiet.h SegActive.h
 driver.obj: Median/median.h PeakDetect.h Database.h Clusters.h TraceDB.h
 driver.obj: SynthTrain.h Regress.h Disturb.h Align.h Timer.h Stats.h
