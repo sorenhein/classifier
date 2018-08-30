@@ -83,7 +83,9 @@ class SegTransient
 
     unsigned lastSampleNo() const;
 
-    void writeBinary(const string& origname) const;
+    void writeFile(
+      const string& origname,
+      const string& transdir) const;
 
     string headerCSV() const;
 

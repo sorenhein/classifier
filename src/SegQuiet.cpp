@@ -5,6 +5,7 @@
 #include <math.h>
 
 #include "SegQuiet.h"
+#include "write.h"
 
 #define SAMPLE_RATE 2000.
 
@@ -301,27 +302,6 @@ void SegQuiet::finetuneIntra(const vector<double>& samples)
 }
 
 
-void SegQuiet::calcMean(const vector<double>& samples)
-{
-  meanBack = 0.;
-  if (quiet.size() == 0)
-  {
-    // Take the whole trace as a (poor) proxy.
-    QuietStats qstats;
-    SegQuiet::makeStats(samples, 0, samples.size(), qstats);
-    meanBack = qstats.mean;
-  }
-
-  unsigned count = 0;
-  for (auto& q: quiet)
-  {
-    meanBack += q.mean;
-    count++;
-  }
-  meanBack /= count;
-}
-
-
 void SegQuiet::adjustOutputIntervals(
   const Interval& avail,
   const QuietPlace direction)
@@ -530,9 +510,6 @@ bool SegQuiet::detect(
     if (n > 0)
       SegQuiet::finetune(samples, direction, quiet.back());
 
-    if (direction == QUIET_BACK)
-      SegQuiet::calcMean(samples);
-
     // Make output a bit longer in order to better see.
     SegQuiet::adjustOutputIntervals(available[0], direction);
 
@@ -582,43 +559,6 @@ bool SegQuiet::detect(
 }
 
 
-void SegQuiet::writeBinary(
-  const string& origname,
-  const string& dirname) const
-{
-  // Make the transient file name by:
-  // * Replacing /raw/ with /dirname/
-  // * Adding _offset_N before .dat
-
-  if (synth.size() == 0)
-    return;
-
-  string tname = origname;
-  auto tp1 = tname.find("/raw/");
-  if (tp1 == string::npos)
-    return;
-
-  auto tp2 = tname.find(".dat");
-  if (tp2 == string::npos)
-    return;
-
-  tname.insert(tp2, "_offset_" + to_string(writeInterval.first));
-  tname.replace(tp1, 5, "/" + dirname + "/");
-
-  ofstream fout(tname, std::ios::out | std::ios::binary);
-
-  fout.write(reinterpret_cast<const char *>(synth.data()),
-    synth.size() * sizeof(float));
-  fout.close();
-}
-
-
-double SegQuiet::getMeanBack() const
-{
-  return meanBack;
-}
-
-
 void SegQuiet::printStats(
   const QuietStats& qstats,
   const unsigned first,
@@ -632,18 +572,10 @@ void SegQuiet::printStats(
 }
 
 
-string SegQuiet::headerCSV() const
+void SegQuiet::writeFile(
+  const string& origname,
+  const string& dirname) const
 {
-  stringstream ss;
-
-  return ss.str();
-}
-
-
-string SegQuiet::strCSV() const
-{
-  stringstream ss;
-  
-  return ss.str();
+  writeBinary(origname, dirname, writeInterval.first, synth);
 }
 

@@ -525,8 +525,6 @@ cout << "After transient: " << available[0].first << ", " <<
   vector<Interval> active;
   quietFlag = quietBack.detect(samples, available, 
     QUIET_BACK, active);
-  const double meanBack = quietBack.getMeanBack();
-cout << "Back mean " << meanBack << "\n";
 cout << "After back: " << active[0].first << ", " <<
   active[0].first + active[0].len << "\n";
 
@@ -535,30 +533,14 @@ cout << "After back: " << active[0].first << ", " <<
 cout << "After front: " << active2[0].first << ", " <<
   active2[0].first + active2[0].len << "\n";
 
-  vector<Interval> active3;
-  (void) quietIntra.detect(samples, active2, QUIET_INTRA, active3);
-
-  /*
-  for (unsigned i = 0; i < active3.size(); i++)
-  {
-    cout << i << " " << active3[i].first << " " << active3[i].len << "\n";
-  }
-  */
-  cout << "Active intervals " << active3.size() << "\n";
-
-if (active3.size() > 0)
-{
 Interval active4;
-active4.first = active3[0].first;
-active4.len = active3.back().first + 
-  active3.back().len - active4.first;
+active4.first = active2[0].first;
+active4.len = active2.back().first + 
+  active2.back().len - active4.first;
 cout << "After intra+: " << active4.first << ", " <<
   active4.first + active4.len << "\n";
 
   (void) segActive.detect(samples, active4);
-}
-else
-  cout << "WTF?\n";
 
 
 cout << "firstActiveSample " << firstActiveSample << endl;
@@ -736,25 +718,19 @@ void Trace::printStats() const
 
 void Trace::writeTransient() const
 {
-  transient.writeBinary(filename);
+  transient.writeFile(filename, "transient");
 }
 
 
 void Trace::writeQuietBack() const
 {
-  quietBack.writeBinary(filename, "back");
+  quietBack.writeFile(filename, "back");
 }
 
 
 void Trace::writeQuietFront() const
 {
-  quietFront.writeBinary(filename, "front");
-}
-
-
-void Trace::writeQuietIntra() const
-{
-  quietIntra.writeBinary(filename, "intra");
+  quietFront.writeFile(filename, "front");
 }
 
 

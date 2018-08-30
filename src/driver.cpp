@@ -145,7 +145,6 @@ bool errFlag = false;
       // trace.writeQuietBack();
       // trace.writeQuietFront();
 
-      trace.writeQuietIntra();
       trace.writeSegActive();
       continue;
 

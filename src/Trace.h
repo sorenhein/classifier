@@ -23,7 +23,6 @@ class Trace
     SegTransient transient;
     SegQuiet quietFront;
     SegQuiet quietBack;
-    SegQuiet quietIntra;
     SegActive segActive;
 
     string filename;
@@ -79,7 +78,6 @@ class Trace
     void writeTransient() const;
     void writeQuietBack() const;
     void writeQuietFront() const;
-    void writeQuietIntra() const;
     void writeSegActive() const;
 
     string strTransientHeaderCSV();

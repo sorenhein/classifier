@@ -6,6 +6,7 @@
 
 #include "SegTransient.h"
 #include "Trace.h"
+#include "write.h"
 
 
 // Current working definition of a transient:
@@ -444,33 +445,15 @@ unsigned SegTransient::lastSampleNo() const
 }
 
 
-void SegTransient::writeBinary(const string& origname) const
+void SegTransient::writeFile(
+  const string& origname,
+  const string& transdir) const
 {
   if (transientType == TRANSIENT_NONE ||
       transientType == TRANSIENT_SIZE)
     return;
 
-  // Make the transient file name by:
-  // * Replacing /raw/ with /transient/
-  // * Adding _offset_N before .dat
-
-  string tname = origname;
-  auto tp1 = tname.find("/raw/");
-  if (tp1 == string::npos)
-    return;
-
-  auto tp2 = tname.find(".dat");
-  if (tp2 == string::npos)
-    return;
-
-  tname.insert(tp2, "_offset_" + to_string(firstBuildupSample));
-  tname.replace(tp1, 5, "/transient/");
-
-  ofstream fout(tname, std::ios::out | std::ios::binary);
-
-  fout.write(reinterpret_cast<const char *>(synth.data()),
-    synth.size() * sizeof(float));
-  fout.close();
+  writeBinary(origname, transdir, firstBuildupSample, synth);
 }
 
 

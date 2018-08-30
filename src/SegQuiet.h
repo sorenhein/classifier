@@ -84,8 +84,6 @@ class SegQuiet
 
     void finetuneIntra(const vector<double>& samples);
 
-    void calcMean(const vector<double>& samples);
-
     void adjustOutputIntervals(
       const Interval& avail,
       const QuietPlace direction);
@@ -117,15 +115,9 @@ class SegQuiet
       const QuietPlace direction,
       vector<Interval>& active);
 
-    void writeBinary(
+    void writeFile(
       const string& origname,
       const string& dirname) const;
-
-    double getMeanBack() const;
-
-    string headerCSV() const;
-
-    string strCSV() const;
 };
 
 #endif
