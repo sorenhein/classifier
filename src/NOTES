@@ -1,62 +1,27 @@
-2018-08-17
+2018-08-31
 ----------
-Works reasonably well on transients now.  Issues:
+Priorities:
 
-*  0: 2, 31, 38, 45
-*  2: 26
-*  5: 0, 4, 6, 9, 12, 16, 18, 19, 24, 31, 33, 39, 40, 43, 44, 45
-* 11: 2, 6, 20, 39
-* 17: 11
-* 24: 0, 5, 6
-* 25: 2
-* 30: 13, 43, 44? 59? 65? 68? 69?  Already shortened, it seems
+* Sensor 31 segfaults
 
+* driver.cpp to have clean modes controlled by args.cpp
 
-2018-08-03
-----------
+* Add timers for peak detection
 
-Trace
-- level (after transient)
-- sensor index (for calibration curve)
-- overall trace
-- overall peaks
-- can cluster?
-  detect the shortest real distance
-- Segments
+* Output should be a single comp.txt for all sensors together
 
-Can pass in an external reference cluster?
-Can output a "string" relative to the reference cluster?
-Externally match up with Needleman?
-Penalty for any changes.
+* In Align, also look for shifts like this: 062493
+        ref   our
+  #68   2     1   We have one spurious peak, but we missed 2
+  #66   2     1
+  #48   1     1
+  #31   2     1
 
-Segment types
-- All segments have
-  first
-  last
-  type
+* Statistics by sensor
+* Statistics by true train type
 
-- Off
-
-- Quiet
-  sdev?
-
-- Burst
-  can detect morphological peaks (1-2-3), too many in fact (lenient)
-  can integrate entire burst to v=a=0 on both ends (double)
-  can detect peaks in space domain
-  can clean up transient peaks (less than critical distance, declining)
-
-  Some semantics to fit to e.g. 4 peaks (depending on matching train),
-  knowing the right histogram (some too-short distances -> delete)
-  
-- Nonsense
-  Means we may have missed a lot of peaks (*)
-
-
-Peak position detection
-
-- Eliminate a few "a" peaks based on too low starting "v", i.e.
-  too low displacement
+* Maybe also detect single insertions/deletions in first and 
+  second half of times?  Or detect morphologically in peaks?
 
 2018-07-17
 ----------
@@ -82,22 +47,13 @@ Linux
 Overall algorithm
 -----------------
 
-* Peak _positions_: 
-  - Just do double integral.
-  - Maybe force to 0.
-  - Find envelope.
-  - Detect peak positions.
-
-* Or some kind of zero-crossing detector
-
-* Then run the train matcher.
-
-* Then look for peaks in the right places
-  - Scale by v and a and shift by d
-  - Know where there are quiet intervals as well
-  - Integrate up and down
-  - Find envelope
-  - Detect peak values
-
 * Check against laser measurements!
-
+* Output a diagram with the wagons suggested
+* throw/catch with error codes (like Build)
+* Make independent of sample rate (other than Butterworth?)
+* Use Butterworth instead of 1001-tap lowpass filter?
+  - Move to less padding in SegQuiet back
+* Implement displacement algorithms
+  - Our integration
+  - Some kind of scalar product
+  - Estimate parameters of the flanks?  What kind of function?
