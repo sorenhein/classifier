@@ -29,8 +29,9 @@ int main(int argc, char * argv[])
 {
   /*
   Trace trace0;
-  const string fn = "../../../mini_dataset_v012/data/sensors/062493/raw/20180625_114917_062493_001_channel1.dat";
+  const string fn = "../../../mini_dataset_v012/data/sensors/062493/raw/20180701_153957_062493_001_channel1.dat";
   trace0.read(fn, true);
+      cout << "File " << fn << ":" << endl;
 
       vector<PeakTime> times0;
       trace0.getTrace(times0);
@@ -59,6 +60,22 @@ int main(int argc, char * argv[])
       Align align0;
       vector<Alignment> matchesAlign0;
       align0.bestMatches(times0, db0, trainNoExample0, 10, matchesAlign0);
+
+  Alignment bestAlign0;
+      Regress regress0;
+  vector<double> motionEstimate0(3);
+        regress0.bestMatch(times0, db0, 2,
+          matchesAlign0, bestAlign0, motionEstimate0);
+
+        for (auto& match: matchesAlign0)
+        {
+          cout << setw(24) << left << db0.lookupTrainName(match.trainNo) << 
+            setw(10) << fixed << setprecision(2) << match.dist <<
+            setw(10) << fixed << setprecision(2) << match.distMatch <<
+            setw(8) << match.numAdd <<
+            setw(8) << match.numDelete << endl;
+        }
+        cout << endl;
 
   exit(0);
   */

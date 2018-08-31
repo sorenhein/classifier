@@ -12,7 +12,7 @@
 
 #define INSERT_PENALTY 5000.
 #define DELETE_PENALTY 10000.
-#define EARLY_MISS_PENALTY 3000.
+#define EARLY_MISS_PENALTY 10.
 #define MAX_EARLY_MISSES 2
 
 #define MAX_AXLE_DIFFERENCE_OK 4
@@ -188,6 +188,7 @@ void Align::estimateMotion(
   const vector<PeakPos>& refPeaks,
   const vector<PeakTime>& times,
   const unsigned firstRefNo,
+  const unsigned firstTimeNo,
   double& speed,
   double& accel) const
 {
@@ -213,8 +214,6 @@ void Align::estimateMotion(
   const double len = refPeaks[lp-1].pos - refPeaks[firstRefNo].pos;
   const double posMid = refPeaks[firstRefNo].pos + len / 2.;
 
-  double tEnd = times.back().time;
-
   // Look for posMid in refPeaks.
   unsigned posLeft = 0;
   while (posLeft+1 < lp && refPeaks[posLeft+1].pos <= posMid)
@@ -232,14 +231,17 @@ void Align::estimateMotion(
   // In general we interpolate, which does not deal so well with
   // spurious peaks.
 
-  const double tMid0 = Align::interpolateTime(times, 
-    static_cast<double>(posLeft - firstRefNo) * 
-      (lt - 1.) / (lp - firstRefNo - 1.));
-  const double tMid1 = Align::interpolateTime(times, 
-    static_cast<double>(posLeft + 1 - firstRefNo) * 
-      (lt - 1.) / (lp - firstRefNo - 1.));
+  const double tOffset = times[firstTimeNo].time;
 
-  const double tMid = (1.-propRight) * tMid0 + propRight * tMid1;
+  const double tMid0 = Align::interpolateTime(times, 
+    firstTimeNo + static_cast<double>(posLeft - firstRefNo) * 
+      (lt - firstTimeNo - 1.) / (lp - firstRefNo - 1.));
+  const double tMid1 = Align::interpolateTime(times, 
+    firstTimeNo + static_cast<double>(posLeft + 1 - firstRefNo) * 
+      (lt - firstTimeNo - 1.) / (lp - firstRefNo - 1.));
+
+  const double tMid = (1.-propRight) * tMid0 + propRight * tMid1 -
+    tOffset;
   
   /*
   double tMid;
@@ -251,6 +253,8 @@ void Align::estimateMotion(
     tMid = 0.5 * (times[m].time + times[m+1].time);
   }
   */
+
+  double tEnd = times.back().time - tOffset;
 
   accel = len * (2.*tMid - tEnd) /
     (tMid * tEnd * (tEnd - tMid));
@@ -284,7 +288,7 @@ double Align::simpleScore(
 
   for (unsigned is = 0; is < ls; is++)
   {
-    const double dleft = shiftedPeaks[is].pos - refPeaks[ir].pos;
+    double dleft = shiftedPeaks[is].pos - refPeaks[ir].pos;
 
     if (dleft < 0.)
     {
@@ -304,6 +308,7 @@ double Align::simpleScore(
         ir++;
       }
 
+      dleft = shiftedPeaks[is].pos - refPeaks[ir].pos;
       d = min(dleft, dright);
     }
     
@@ -324,7 +329,7 @@ void Align::scalePeaksNew(
   const double len, // In m
   vector<PeakPos>& scaledPeaks) const
 {
-  // The shift is "subtracted" from scaledPeaks, so the shift is
+  // The shift is "subtracted" from scaledPeaks, so if the shift is
   // positive, we align the n'th scaled peak with the 0'th
   // reference peak.  Actually we keep the last peaks aligned,
   // so the shift melts away over the shifted peaks.
@@ -338,6 +343,7 @@ UNUSED(len);
   {
     unsigned no;
     unsigned firstRefNo;
+    unsigned firstTimeNo;
     double shift; 
     double score;
     // Sorry...
@@ -350,12 +356,18 @@ UNUSED(len);
     candidates[i+3].no = i;
     if (i >= 0)
     {
+      // Align the i'th scaled peak with the 0'th reference peak.
+      // We assume i spurious detected peaks.
       candidates[i+3].firstRefNo = 0;
+      candidates[i+3].firstTimeNo = i;
     }
     else
     {
+      // Align the 0'th scaled peak with the i'th reference peak.
+      // We assume that we've missed i reference samples waking up.
       candidates[i+3].shift = -refPeaks[-i].pos;
       candidates[i+3].firstRefNo = static_cast<unsigned>(-i);
+      candidates[i+3].firstTimeNo = 0;
     }
   }
 
@@ -378,7 +390,8 @@ unsigned ii = 2;
   for (auto& cand: candidates)
   {
     double speed, accel;
-    Align::estimateMotion(refPeaks, times, cand.firstRefNo, speed, accel);
+    Align::estimateMotion(refPeaks, times, cand.firstRefNo, 
+      cand.firstTimeNo, speed, accel);
     // cout << "estimated speed " << speed << ", accel " << accel << endl;
 
     scaledPeaks.resize(lt);
@@ -414,14 +427,17 @@ ii++;
 
   // Redo for the winner (remember the results...)
     double speed, accel;
-    Align::estimateMotion(refPeaks, times, candidates[0].firstRefNo, speed, accel);
-    // cout << "final estimated speed " << speed << ", accel " << accel << endl;
+    Align::estimateMotion(refPeaks, times, candidates[0].firstRefNo, 
+      candidates[0].firstTimeNo, speed, accel);
+// cout << "Best candidate " << candidates[0].firstRefNo << ", " <<
+  // candidates[0].score << endl;
+// cout << "final estimated speed " << speed << ", accel " << accel << endl;
 
     scaledPeaks.resize(lt);
     for (unsigned j = 0; j < lt; j++)
     {
       scaledPeaks[j].pos = speed * times[j].time +
-        0.5 * accel * times[j].time * times[j].time;
+        0.5 * accel * times[j].time * times[j].time - candidates[0].shift;
     }
 }
 
@@ -435,7 +451,7 @@ void Align::scalePeaks(
   // Align::estimateMotion(refPeaks, times, len, speed, accel);
   UNUSED(len);
   vector<PeakPos> refPeaks;
-  Align::estimateMotion(refPeaks, times, 0, speed, accel);
+  Align::estimateMotion(refPeaks, times, 0, 0, speed, accel);
 
   const unsigned lt = times.size();
   scaledPeaks.resize(lt);

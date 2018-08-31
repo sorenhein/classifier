@@ -21,7 +21,8 @@ void printPeakPosCSV(
   const int level)
 {
   for (unsigned i = 0; i < peaks.size(); i++)
-    cout << peaks[i].pos << ";" << level << endl;
+    cout << fixed << setprecision(4) << 
+      peaks[i].pos << ";" << level << endl;
   cout << endl;
 }
 
@@ -31,7 +32,8 @@ void printPeakTimeCSV(
   const int level)
 {
   for (unsigned i = 0; i < peaks.size(); i++)
-    cout << peaks[i].time << ";" << level << endl;
+    cout << fixed << setprecision(4) <<
+      peaks[i].time << ";" << level << endl;
   cout << endl;
 }
 

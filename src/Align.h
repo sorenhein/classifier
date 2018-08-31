@@ -26,6 +26,7 @@ class Align
       const vector<PeakPos>& refPeaks,
       const vector<PeakTime>& times,
       const unsigned firstRefNo,
+      const unsigned firstTimeNo,
       double& speed,
       double& accel) const;
       

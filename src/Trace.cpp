@@ -112,6 +112,7 @@ bool Trace::read(
   else
      Trace::readText();
 
+  runs.clear();
   Trace::calcRuns();
 
   transientFlag = transient.detect(samples, runs);
