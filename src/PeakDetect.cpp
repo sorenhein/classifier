@@ -683,6 +683,10 @@ void PeakDetect::makeSynthPeaks(vector<float>& synthPeaks) const
 void PeakDetect::getPeakTimes(vector<PeakTime>& times) const
 {
   times.clear();
+  const unsigned firstMin = (peaks[0].maxFlag ? 1 : 0);
+  const float t0 = peaks[firstMin].index / 
+    static_cast<float>(SAMPLE_RATE);
+
   for (unsigned i = 0; i < peaks.size(); i++)
   {
     const PeakData& peak = peaks[i];
@@ -690,7 +694,7 @@ void PeakDetect::getPeakTimes(vector<PeakTime>& times) const
       continue;
 
     PeakTime p;
-    p.time = peaks[i].index / SAMPLE_RATE;
+    p.time = peaks[i].index / SAMPLE_RATE - t0;
     p.value = peaks[i].value;
     times.push_back(p);
   }

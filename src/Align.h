@@ -18,16 +18,37 @@ class Align
       const vector<PeakTime>& times,
       const unsigned refCount) const;
 
+    double interpolateTime(
+      const vector<PeakTime>& times,
+      const double index) const;
+
+    void estimateMotion(
+      const vector<PeakPos>& refPeaks,
+      const vector<PeakTime>& times,
+      const unsigned firstRefNo,
+      double& speed,
+      double& accel) const;
+      
+    double simpleScore(
+      const vector<PeakPos>& refPeaks,
+      const vector<PeakPos>& shiftedPeaks) const;
+      
     void scalePeaks(
       const vector<PeakTime>& times,
       const double len, // In m
       vector<PeakPos>& scaledPeaks) const;
 
+    void scalePeaksNew(
+      const vector<PeakPos>& refPeaks,
+      const vector<PeakTime>& times,
+      const double len, // In m
+      vector<PeakPos>& scaledPeaks) const;
+
     void NeedlemanWunsch(
-        const vector<PeakPos>& refPeaks,
-        const vector<PeakPos>& scaledPeaks,
-        const double peakScale,
-        Alignment& alignment) const;
+      const vector<PeakPos>& refPeaks,
+      const vector<PeakPos>& scaledPeaks,
+      const double peakScale,
+      Alignment& alignment) const;
 
 
   public:

@@ -27,9 +27,41 @@ void setup(
 
 int main(int argc, char * argv[])
 {
-  // Trace trace0;
-  // trace0.read("../../../mini_dataset_v012/data/sensors/062493/raw/20180626_061918_062493_001_channel1.dat");
-  // exit(0);
+  /*
+  Trace trace0;
+  const string fn = "../../../mini_dataset_v012/data/sensors/062493/raw/20180625_114917_062493_001_channel1.dat";
+  trace0.read(fn, true);
+
+      vector<PeakTime> times0;
+      trace0.getTrace(times0);
+
+      Control control0;
+      Database db0;
+      Disturb disturb0;
+      setup(argc, argv, control0, db0, disturb0);
+
+      TraceDB traceDB0;
+      readTraceTruth(control0.truthFile, db0, traceDB0);
+
+      const string sensor0 = traceDB0.lookupSensor(fn);
+      const string country0 = db0.lookupCountry(sensor0);
+      unsigned trainNoExample0;
+      if (country0 == "DEU")
+        trainNoExample0 = 0;
+      else if (country0 == "SWE")
+        trainNoExample0 = 30;
+      else
+      {
+        cout << "Could not recognize country '" << country0 << "'\n";
+        exit(0);
+      }
+
+      Align align0;
+      vector<Alignment> matchesAlign0;
+      align0.bestMatches(times0, db0, trainNoExample0, 10, matchesAlign0);
+
+  exit(0);
+  */
   // vector<PeakTime> times;
   // trace.getTrace(times);
 
@@ -146,7 +178,7 @@ bool errFlag = false;
       // trace.writeQuietFront();
 
       trace.writeSegActive();
-      continue;
+      // continue;
 
       const string sensor = traceDB.lookupSensor(fname);
       const string country = db.lookupCountry(sensor);
