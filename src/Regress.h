@@ -32,6 +32,7 @@ class Regress
       const Database& db,
       const unsigned order,
       const vector<Alignment>& matches,
+      const Control& control,
       Alignment& bestAlign,
       vector<double>& motionEstimate) const;
 

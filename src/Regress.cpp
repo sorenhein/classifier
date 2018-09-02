@@ -8,6 +8,7 @@
 #include "Database.h"
 #include "Timers.h"
 #include "Except.h"
+#include "print.h"
 #include "regress/PolynomialRegression.h"
 
 extern Timers timers;
@@ -50,6 +51,7 @@ void Regress::bestMatch(
   const Database& db,
   const unsigned order,
   const vector<Alignment>& matches,
+  const Control& control,
   Alignment& bestAlign,
   vector<double>& motionEstimate) const
 {
@@ -104,6 +106,7 @@ void Regress::bestMatch(
     {
       bestAlign = ma;
       bestAlign.dist = ma.dist - ma.distMatch + residuals;
+      bestAlign.distMatch = residuals;
 
       motionEstimate[0] = coeffs[0];
       motionEstimate[1] = coeffs[1];
@@ -113,5 +116,18 @@ void Regress::bestMatch(
   }
 
   timers.stop(TIMER_REGRESS);
+
+  if (control.verboseRegressMatch)
+  {
+    cout << "Regression alignment\n";
+    printAlignment(bestAlign, db.lookupTrainName(bestAlign.trainNo));
+    cout << "\n";
+  }
+
+  if (control.verboseRegressMotion)
+  {
+    cout << "Regression motion\n";
+    printMotion(motionEstimate);
+  }
 }
 

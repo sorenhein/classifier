@@ -8,7 +8,6 @@
 #include "Timers.h"
 #include "write.h"
 
-#define G_FORCE 9.8f
 #define SAMPLE_RATE 2000.
 
 extern Timers timers;
@@ -35,8 +34,8 @@ void SegActive::integrate(
 {
   // Integrate acceleration into speed.
   // synthSpeed is then in 0.01 m/s.
-  const float factor = 100.f * G_FORCE / 
-    static_cast<float>(SAMPLE_RATE);
+  const float factor = 100.f *
+    static_cast<float>(G_FORCE / SAMPLE_RATE);
 
   synthSpeed[aint.first - writeInterval.first] = 
     factor * static_cast<float>(samples[aint.first]);

@@ -9,6 +9,9 @@
 using namespace std;
 
 
+#define G_FORCE 9.8
+
+
 struct Control
 {
   string carDir; // Directory of car files

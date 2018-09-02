@@ -550,14 +550,9 @@ void Align::writeMatches(
   const Database& db,
   const vector<Alignment>& matches) const
 {
+  cout << "Matching alignment\n";
   for (auto& match: matches)
-  {
-    cout << setw(24) << left << db.lookupTrainName(match.trainNo) <<
-      setw(10) << fixed << setprecision(2) << match.dist <<
-      setw(10) << fixed << setprecision(2) << match.distMatch <<
-      setw(8) << match.numAdd <<
-      setw(8) << match.numDelete << endl;
-  }
-  cout << endl;
+    printAlignment(match, db.lookupTrainName(match.trainNo));
+  cout << "\n";
 }
 

@@ -80,7 +80,7 @@ int main(int argc, char * argv[])
       }
 
       regress.bestMatch(actualEntry.actual, db, order,
-        matchesAlign, bestAlign, motionEstimate);
+        matchesAlign, control, bestAlign, motionEstimate);
 
       cout << "number " << actualEntry.number << 
         ", date " << actualEntry.date <<
@@ -115,29 +115,25 @@ int main(int argc, char * argv[])
 
     for (auto& fname: datfiles)
     {
-      cout << "File " << fname << ":" << endl;
+      cout << "File " << fname << ":\n\n";
+      const string sensor = traceDB.lookupSensor(fname);
+      const string country = db.lookupSensorCountry(sensor);
 
       trace.read(fname, true);
       trace.detect(control);
       trace.write(control);
 
       trace.getTrace(times);
-
-      const string sensor = traceDB.lookupSensor(fname);
-      const string country = db.lookupSensorCountry(sensor);
-
-      align.bestMatches(times, db, country, 10, control.
-        verboseAlignMatches, matchesAlign);
+      align.bestMatches(times, db, country, 10, 
+        control.verboseAlignMatches, matchesAlign);
 
       traceDB.log(fname, matchesAlign, times.size());
 
       if (matchesAlign.size() == 0)
         continue;
 
-      regress.bestMatch(times, db, order, matchesAlign, 
+      regress.bestMatch(times, db, order, matchesAlign, control,
         bestAlign, motionEstimate);
-
-        // TODO Write bestAlign?
     }
 
     traceDB.printCSV(control.summaryFile, control.summaryAppendFlag, db);
@@ -198,21 +194,11 @@ int main(int argc, char * argv[])
             }
 
             regress.bestMatch(synthTimes, db, order,
-              matchesAlign, bestAlign, motionEstimate);
+              matchesAlign, control, bestAlign, motionEstimate);
 
             stats.log(trainName, motionActual,
               db.lookupTrainName(bestAlign.trainNo),
               motionEstimate, bestAlign.distMatch);
-
-/*
-if (! errFlag && trainName == "ICE4_DEU_28_N" && bestAlign.trainNo == 14)
-{
- errFlag = true;
-cout << "speed " << speed << ", accel " << accel << endl;
-cout << "Input positions " << "ICET_DEU_28_N" << "\n";
-printPeakTimeCSV(synthTimes, 3);
-}
-*/
           }
         }
       }

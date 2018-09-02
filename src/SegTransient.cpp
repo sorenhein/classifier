@@ -474,6 +474,9 @@ string SegTransient::strHeader() const
 
 string SegTransient::str() const
 {
+  stringstream ss;
+  ss << "Transient\n";
+
   if (transientType == TRANSIENT_NONE)
   {
     string s = "No transient found: ";
@@ -487,12 +490,11 @@ string SegTransient::str() const
       s += "Didn't decline enough in the middle\n";
     else
       s += "Reason not known (ERROR)\n";
-    return s;
+    return ss.str() + s;
   }
   else if (transientType == TRANSIENT_SIZE)
-    return "Search for transient not run\n";
+    return ss.str() + "Search for transient not run\n";
 
-  stringstream ss;
   ss << SegTransient::strHeader();
   ss << 
     setw(8) << firstBuildupSample <<

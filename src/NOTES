@@ -2,11 +2,9 @@
 ----------
 Priorities:
 
-* driver.cpp to have clean modes controlled by args.cpp
+* Clean up driver.cpp
 
 * Add timers for peak detection
-
-* Output should be a single comp.txt for all sensors together
 
 * In Align, also look for shifts like this: 062493
         ref   our

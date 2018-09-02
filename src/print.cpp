@@ -79,3 +79,33 @@ void printCorrelation(
   cout << "\n";
 }
 
+
+void printAlignment(
+  const Alignment& match,
+  const string& trainName)
+{
+  cout << setw(24) << left << trainName <<
+    setw(10) << right << fixed << setprecision(2) << match.dist <<
+    setw(10) << right << fixed << setprecision(2) << match.distMatch <<
+    setw(8) << match.numAdd <<
+    setw(8) << match.numDelete << endl;
+}
+
+
+void printMotion(const vector<double>& motionEstimate)
+{
+  cout << 
+    setw(16) << left << "Speed" <<
+    setw(8) << right << fixed << setprecision(2) << 
+      motionEstimate[1] << " m/s   = " <<
+    setw(8) << 3.6 * motionEstimate[1] << " km/h\n";
+
+  cout << 
+    setw(16) << left << "Acceleration" <<
+    setw(8) << right << fixed << setprecision(2) << 
+      motionEstimate[2] << " m/s^2 = " <<
+    setw(8) << motionEstimate[2] / G_FORCE << " g\n";
+  
+  cout << "\n";
+}
+
