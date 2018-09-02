@@ -47,16 +47,22 @@ void Timer::operator += (const Timer& timer2)
 }
 
 
+bool Timer::isUsed() const
+{
+  return no > 0;
+}
+
+
 string Timer::str(const int prec) const 
 {
   if (no == 0)
     return "";
 
   stringstream ss;
-  ss << fixed << setprecision(prec) << 
+  ss << setw(7) << fixed << setprecision(prec) << 
     sum / 1000. << " ms";
   if (no > 1)
-    ss << " sum, " << sum / (1000. * no) << " ms average";
-  return ss.str();
+    ss << setw(7) << sum / (1000. * no) << " ms";
+  return ss.str() + "\n";
 }
 

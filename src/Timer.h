@@ -32,6 +32,8 @@ class Timer
 
     void operator += (const Timer& timer2);
 
+    bool isUsed() const;
+
     string str(const int prec = 1) const;
 };
 

@@ -66,9 +66,7 @@ int main(int argc, char * argv[])
 
     for (auto& actualEntry: actualList)
     {
-      timers.start(TIMER_ALIGN);
       align.bestMatches(actualEntry.actual, db, "DEU", 10, matchesAlign);
-      timers.stop(TIMER_ALIGN);
 
       if (matchesAlign.size() == 0)
       {
@@ -80,10 +78,8 @@ int main(int argc, char * argv[])
         continue;
       }
 
-      timers.start(TIMER_REGRESS);
       regress.bestMatch(actualEntry.actual, db, order,
         matchesAlign, bestAlign, motionEstimate);
-      timers.stop(TIMER_REGRESS);
 
       cout << "number " << actualEntry.number << 
         ", date " << actualEntry.date <<
@@ -142,9 +138,7 @@ int main(int argc, char * argv[])
       const string sensor = traceDB.lookupSensor(fname);
       const string country = db.lookupSensorCountry(sensor);
 
-      timers.start(TIMER_ALIGN);
       align.bestMatches(times, db, country, 10, matchesAlign);
-      timers.stop(TIMER_ALIGN);
 
       if (matchesAlign.size() == 0)
       {
@@ -152,10 +146,8 @@ int main(int argc, char * argv[])
       }
       else
       {
-        timers.start(TIMER_REGRESS);
         regress.bestMatch(times, db, order,
           matchesAlign, bestAlign, motionEstimate);
-        timers.stop(TIMER_REGRESS);
 
         for (auto& match: matchesAlign)
         {
@@ -221,9 +213,7 @@ int main(int argc, char * argv[])
               continue;
             }
 
-            timers.start(TIMER_ALIGN);
             align.bestMatches(synthTimes, db, country, 10, matchesAlign);
-            timers.stop(TIMER_ALIGN);
 
             if (matchesAlign.size() == 0)
             {
@@ -232,10 +222,8 @@ int main(int argc, char * argv[])
               continue;
             }
 
-            timers.start(TIMER_REGRESS);
             regress.bestMatch(synthTimes, db, order,
               matchesAlign, bestAlign, motionEstimate);
-            timers.stop(TIMER_REGRESS);
 
             stats.log(trainName, motionActual,
               db.lookupTrainName(bestAlign.trainNo),

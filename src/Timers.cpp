@@ -51,9 +51,14 @@ void Timers::stop(const TimerName tname)
 string Timers::str(const int prec) const 
 {
   stringstream ss;
-  ss << setw(24) << left << "Name" << "Time" << "\n";
-  for (auto& t: timers)
-    ss << t.str(prec) << endl;;
+  ss << setw(24) << left << "Name" << 
+    setw(10) << right << "Sum" << 
+    setw(10) << right << "Average" << "\n";
+  for (unsigned i = 0; i < timers.size(); i++)
+  {
+    if (timers[i].isUsed())
+      ss << setw(24) << left << names[i] << timers[i].str(prec);
+  }
   return ss.str();
 }
 

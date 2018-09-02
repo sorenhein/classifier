@@ -7,6 +7,7 @@
 
 #include "Align.h"
 #include "Database.h"
+#include "Timers.h"
 
 // Can adjust these.
 
@@ -20,6 +21,8 @@
 // In meters, see below.
 
 #define PROXIMITY_PARAMETER 1.5
+
+extern Timers timers;
 
 
 Align::Align()
@@ -499,6 +502,8 @@ void Align::bestMatches(
   const unsigned tops,
   vector<Alignment>& matches) const
 {
+  timers.start(TIMER_ALIGN);
+
   vector<PeakPos> refPeaks, scaledPeaks;
   matches.clear();
 
@@ -532,5 +537,7 @@ cout << "refTrain " << refTrain << endl;
 
   if (tops < matches.size())
     matches.resize(tops);
+
+  timers.stop(TIMER_ALIGN);
 }
 

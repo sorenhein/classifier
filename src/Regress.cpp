@@ -6,7 +6,11 @@
 
 #include "Regress.h"
 #include "Database.h"
+#include "Timers.h"
+#include "Except.h"
 #include "regress/PolynomialRegression.h"
+
+extern Timers timers;
 
 
 Regress::Regress()
@@ -49,6 +53,8 @@ void Regress::bestMatch(
   Alignment& bestAlign,
   vector<double>& motionEstimate) const
 {
+  timers.start(TIMER_REGRESS);
+
   PolynomialRegression pol;
 
   vector<PeakPos> refPeaks;
@@ -71,10 +77,7 @@ void Regress::bestMatch(
     const double trainLength = refPeaks.back().pos - refPeaks.front().pos;
 
     if (lr + ma.numAdd != lt + ma.numDelete)
-    {
-      cout << "Lengths don't add up\n";
-      return;
-    }
+      THROW(ERR_REGRESS, "Number of regression elements don't add up");
 
     const unsigned lcommon = lt - ma.numAdd;
     x.resize(lcommon);
@@ -97,7 +100,6 @@ void Regress::bestMatch(
     const double residuals = peakScale * 
       Regress::residuals(x, y, coeffs);
 
-
     if (ma.dist - ma.distMatch + residuals < bestAlign.dist)
     {
       bestAlign = ma;
@@ -109,5 +111,7 @@ void Regress::bestMatch(
       // As the regression estimates 0.5 * a in the physics formula.
     }
   }
+
+  timers.stop(TIMER_REGRESS);
 }
 

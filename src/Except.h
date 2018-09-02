@@ -7,7 +7,7 @@
 using namespace std;
 
 
-#define THROW(msg) throw Except(__FILE__, __LINE__, __FUNCTION__, code, msg)
+#define THROW(code, msg) throw Except(__FILE__, __LINE__, __FUNCTION__, code, msg)
 
 
 class Except: public exception
