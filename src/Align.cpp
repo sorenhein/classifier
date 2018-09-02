@@ -317,6 +317,7 @@ double Align::simpleScore(
 void Align::scalePeaks(
   const vector<PeakPos>& refPeaks,
   const vector<PeakTime>& times,
+  Shift& shift,
   vector<PeakPos>& scaledPeaks) const
 {
   // The shift is "subtracted" from scaledPeaks, so if the shift is
@@ -369,19 +370,19 @@ unsigned ii = 2;
       cand.firstTimeNo, speed, accel);
     // cout << "estimated speed " << speed << ", accel " << accel << endl;
 
-    double shift;
+    double offset;
     cand.scaledPeaks.resize(lt);
     if (cand.firstRefNo == 0)
-      shift = speed * times[cand.firstTimeNo].time +
+      offset = speed * times[cand.firstTimeNo].time +
         0.5 * accel * times[cand.firstTimeNo].time * 
           times[cand.firstTimeNo].time;
     else
-      shift = -refPeaks[cand.firstRefNo].pos;
+      offset = -refPeaks[cand.firstRefNo].pos;
 
     for (unsigned j = 0; j < lt; j++)
     {
       cand.scaledPeaks[j].pos = speed * times[j].time +
-        0.5 * accel * times[j].time * times[j].time - shift;
+        0.5 * accel * times[j].time * times[j].time - offset;
     }
 
 // cout << "shiftedPeaks " << cand.shift << "\n";
@@ -402,6 +403,7 @@ ii++;
 
   scaledPeaks.resize(lt);
   scaledPeaks = candidates[0].scaledPeaks;
+  shift = candidates[0];
 }
 
 
@@ -442,7 +444,11 @@ void Align::bestMatches(
 
 cout << "refTrain " << refTrain << endl;
     const double trainLength = refPeaks.back().pos - refPeaks.front().pos;
-    Align::scalePeaks(refPeaks, times, scaledPeaks);
+    Shift shift;
+    Align::scalePeaks(refPeaks, times, shift, scaledPeaks);
+
+    // TODO Print shift.  Print refPeaks, times, scaledPeaks
+    // depending on control.
 
     // Normalize the distance score to a 200m long train.
     const double peakScale = 200. * 200. / (trainLength * trainLength);

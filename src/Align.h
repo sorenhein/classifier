@@ -51,6 +51,7 @@ class Align
     void scalePeaks(
       const vector<PeakPos>& refPeaks,
       const vector<PeakTime>& times,
+      Shift& shift,
       vector<PeakPos>& scaledPeaks) const;
 
     void NeedlemanWunsch(
