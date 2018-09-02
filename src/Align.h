@@ -35,14 +35,8 @@ class Align
       const vector<PeakPos>& shiftedPeaks) const;
       
     void scalePeaks(
-      const vector<PeakTime>& times,
-      const double len, // In m
-      vector<PeakPos>& scaledPeaks) const;
-
-    void scalePeaksNew(
       const vector<PeakPos>& refPeaks,
       const vector<PeakTime>& times,
-      const double len, // In m
       vector<PeakPos>& scaledPeaks) const;
 
     void NeedlemanWunsch(

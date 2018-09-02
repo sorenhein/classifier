@@ -247,17 +247,6 @@ void Align::estimateMotion(
   const double tMid = (1.-propRight) * tMid0 + propRight * tMid1 -
     tOffset;
   
-  /*
-  double tMid;
-  if (lt % 2 == 0)
-    tMid = times[lt/2].time;
-  else
-  {
-    const unsigned m = (lt-1) / 2;
-    tMid = 0.5 * (times[m].time + times[m+1].time);
-  }
-  */
-
   double tEnd = times.back().time - tOffset;
 
   accel = len * (2.*tMid - tEnd) /
@@ -276,10 +265,10 @@ double Align::simpleScore(
   const unsigned lr = refPeaks.size();
   const unsigned ls = shiftedPeaks.size();
 
-  // If peaks match extremely well, we may get a distance of ~ 5 [m^2]
-  // for ~ 50 peaks.  That's 0.1 [m^2] on average, or about 0.3 m of
-  // deviation.  If the train goes, say, 50 m/s, that takes 0.006 s.
-  // At 2000 samples per second it is 12 samples.
+  // If peaks match extremely well, we may get a distance of ~ 1 [m^2]
+  // for ~ 50 peaks.  That's 0.02 [m^2] on average, or about 0.15 m of
+  // deviation.  If the train goes, say, 50 m/s, that takes 0.003 s.
+  // At 2000 samples per second it is 6 samples.
   // We count the distance between each shifted peak and its closest
   // reference peak.  We do not take into account that the same reference
   // peak may match more than one shifted peak (Needleman-Wunsch does
@@ -324,13 +313,9 @@ double Align::simpleScore(
 }
 
 
-#include "print.h"
-#define UNUSED(x) ((void)(true ? 0 : ((x), void(), 0)))
-
-void Align::scalePeaksNew(
+void Align::scalePeaks(
   const vector<PeakPos>& refPeaks,
   const vector<PeakTime>& times,
-  const double len, // In m
   vector<PeakPos>& scaledPeaks) const
 {
   // The shift is "subtracted" from scaledPeaks, so if the shift is
@@ -342,10 +327,8 @@ void Align::scalePeaksNew(
   // In either case we assume that we're matching the last peaks,
   // whether or not the peak numbers make sense.
 
-UNUSED(len);
   struct Shift
   {
-    unsigned no;
     unsigned firstRefNo;
     unsigned firstTimeNo;
     double shift; 
@@ -357,7 +340,7 @@ UNUSED(len);
   vector<Shift> candidates(7);
   for (int i = -3; i <= 3; i++)
   {
-    candidates[i+3].no = i;
+    // candidates[i+3].no = i;
     if (i >= 0)
     {
       // Align the i'th scaled peak with the 0'th reference peak.
@@ -407,13 +390,10 @@ unsigned ii = 2;
 
     // Couldn't set this sooner.
     if (cand.firstRefNo == 0)
-      cand.shift = scaledPeaks[cand.no].pos;
+      cand.shift = scaledPeaks[cand.firstTimeNo].pos;
 
     for (unsigned j = 0; j < lt; j++)
       shiftedPeaks[j].pos = scaledPeaks[j].pos - cand.shift;
-      // shiftedPeaks[j].pos = scaledPeaks[j].pos - 
-        // cand.shift * (scaledPeaks.back().pos - scaledPeaks[j].pos) /
-        // (scaledPeaks.back().pos - scaledPeaks[0].pos);
 
 // cout << "shiftedPeaks " << cand.shift << "\n";
 // printPeakPosCSV(shiftedPeaks, ii);
@@ -445,46 +425,6 @@ ii++;
       scaledPeaks[j].pos = speed * times[j].time +
         0.5 * accel * times[j].time * times[j].time - candidates[0].shift;
     }
-}
-
-
-void Align::scalePeaks(
-  const vector<PeakTime>& times,
-  const double len, // In m
-  vector<PeakPos>& scaledPeaks) const
-{
-  double speed, accel;
-  // Align::estimateMotion(refPeaks, times, len, speed, accel);
-  UNUSED(len);
-  vector<PeakPos> refPeaks;
-  Align::estimateMotion(refPeaks, times, 0, 0, speed, accel);
-
-  const unsigned lt = times.size();
-  scaledPeaks.resize(lt);
-  /*
-
-  double tEnd = times.back().time;
-  
-  double tMid;
-  if (lt % 2 == 0)
-    tMid = times[lt/2].time;
-  else
-  {
-    const unsigned m = (lt-1) / 2;
-    tMid = 0.5 * (times[m].time + times[m+1].time);
-  }
-
-  const double accel = len * (2.*tMid - tEnd) /
-    (tMid * tEnd * (tEnd - tMid));
-
-  const double speed = (len - 0.5 * accel * tEnd * tEnd) / tEnd;
-  */
-
-  for (unsigned j = 0; j < lt; j++)
-  {
-    scaledPeaks[j].pos = speed * times[j].time +
-      0.5 * accel * times[j].time * times[j].time;
-  }
 }
 
 
@@ -525,8 +465,7 @@ void Align::bestMatches(
 
 cout << "refTrain " << refTrain << endl;
     const double trainLength = refPeaks.back().pos - refPeaks.front().pos;
-    Align::scalePeaksNew(refPeaks, times, trainLength, scaledPeaks);
-    // Align::scalePeaks(times, trainLength, scaledPeaks);
+    Align::scalePeaks(refPeaks, times, scaledPeaks);
 
     // Normalize the distance score to a 200m long train.
     const double peakScale = 200. * 200. / (trainLength * trainLength);
