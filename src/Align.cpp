@@ -2,6 +2,7 @@
 #include <iomanip>
 #include <fstream>
 #include <sstream>
+#include <functional>
 #include <algorithm>
 #include <limits>
 
@@ -327,19 +328,6 @@ void Align::scalePeaks(
   // In either case we assume that we're matching the last peaks,
   // whether or not the peak numbers make sense.
 
-  struct Shift
-  {
-    unsigned firstRefNo;
-    unsigned firstTimeNo;
-    int firstHalfNetInsert;
-    int secondHalfNetInsert;
-    vector<PeakPos> scaledPeaks;
-
-    double score;
-    // Sorry...
-    bool operator <(const Shift& s2) {return score > s2.score; }
-  };
-
   vector<Shift> candidates(7);
   for (int i = -3; i <= 3; i++)
   {
@@ -373,7 +361,6 @@ void Align::scalePeaks(
 unsigned ii = 2;
 
   const unsigned lt = times.size();
-  // vector<PeakPos> shiftedPeaks(lt);
 
   for (auto& cand: candidates)
   {
@@ -404,7 +391,7 @@ ii++;
     cand.score = Align::simpleScore(refPeaks, cand.scaledPeaks);
   }
 
-  sort(candidates.begin(), candidates.end());
+  sort(candidates.begin(), candidates.end(), greater<Shift>());
 
 /*
   cout << "Shift scores\n";
