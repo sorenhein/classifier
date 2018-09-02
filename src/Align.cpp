@@ -331,7 +331,10 @@ void Align::scalePeaks(
   {
     unsigned firstRefNo;
     unsigned firstTimeNo;
-    double shift; 
+    int firstHalfNetInsert;
+    int secondHalfNetInsert;
+    vector<PeakPos> scaledPeaks;
+
     double score;
     // Sorry...
     bool operator <(const Shift& s2) {return score > s2.score; }
@@ -340,7 +343,6 @@ void Align::scalePeaks(
   vector<Shift> candidates(7);
   for (int i = -3; i <= 3; i++)
   {
-    // candidates[i+3].no = i;
     if (i >= 0)
     {
       // Align the i'th scaled peak with the 0'th reference peak.
@@ -352,7 +354,7 @@ void Align::scalePeaks(
     {
       // Align the 0'th scaled peak with the i'th reference peak.
       // We assume that we've missed i reference samples waking up.
-      candidates[i+3].shift = -refPeaks[-i].pos;
+      // candidates[i+3].shift = -refPeaks[-i].pos;
       candidates[i+3].firstRefNo = static_cast<unsigned>(-i);
       candidates[i+3].firstTimeNo = 0;
     }
@@ -371,8 +373,7 @@ void Align::scalePeaks(
 unsigned ii = 2;
 
   const unsigned lt = times.size();
-  vector<PeakPos> shiftedPeaks(lt);
-  scaledPeaks.resize(lt);
+  // vector<PeakPos> shiftedPeaks(lt);
 
   for (auto& cand: candidates)
   {
@@ -381,25 +382,26 @@ unsigned ii = 2;
       cand.firstTimeNo, speed, accel);
     // cout << "estimated speed " << speed << ", accel " << accel << endl;
 
-    scaledPeaks.resize(lt);
+    double shift;
+    cand.scaledPeaks.resize(lt);
+    if (cand.firstRefNo == 0)
+      shift = speed * times[cand.firstTimeNo].time +
+        0.5 * accel * times[cand.firstTimeNo].time * 
+          times[cand.firstTimeNo].time;
+    else
+      shift = -refPeaks[cand.firstRefNo].pos;
+
     for (unsigned j = 0; j < lt; j++)
     {
-      scaledPeaks[j].pos = speed * times[j].time +
-        0.5 * accel * times[j].time * times[j].time;
+      cand.scaledPeaks[j].pos = speed * times[j].time +
+        0.5 * accel * times[j].time * times[j].time - shift;
     }
-
-    // Couldn't set this sooner.
-    if (cand.firstRefNo == 0)
-      cand.shift = scaledPeaks[cand.firstTimeNo].pos;
-
-    for (unsigned j = 0; j < lt; j++)
-      shiftedPeaks[j].pos = scaledPeaks[j].pos - cand.shift;
 
 // cout << "shiftedPeaks " << cand.shift << "\n";
 // printPeakPosCSV(shiftedPeaks, ii);
 ii++;
 
-    cand.score = Align::simpleScore(refPeaks, shiftedPeaks);
+    cand.score = Align::simpleScore(refPeaks, cand.scaledPeaks);
   }
 
   sort(candidates.begin(), candidates.end());
@@ -411,20 +413,8 @@ ii++;
   cout << "\n";
 */
 
-  // Redo for the winner (remember the results...)
-    double speed, accel;
-    Align::estimateMotion(refPeaks, times, candidates[0].firstRefNo, 
-      candidates[0].firstTimeNo, speed, accel);
-// cout << "Best candidate " << candidates[0].firstRefNo << ", " <<
-  // candidates[0].score << endl;
-// cout << "final estimated speed " << speed << ", accel " << accel << endl;
-
-    scaledPeaks.resize(lt);
-    for (unsigned j = 0; j < lt; j++)
-    {
-      scaledPeaks[j].pos = speed * times[j].time +
-        0.5 * accel * times[j].time * times[j].time - candidates[0].shift;
-    }
+  scaledPeaks.resize(lt);
+  scaledPeaks = candidates[0].scaledPeaks;
 }
 
 
