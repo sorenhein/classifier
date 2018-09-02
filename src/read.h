@@ -13,7 +13,8 @@ class TraceDB;
 
 void getFilenames(
   const string& dirName,
-  vector<string>& textfiles);
+  vector<string>& textfiles,
+  const string& terminateMatch = "");
 
 void tokenize(
   const string& text,

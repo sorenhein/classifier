@@ -50,10 +50,7 @@ class Trace
     string strTransientHeaderCSV();
     string strTransientCSV();
 
-    void writeTransient() const;
-    void writeQuietBack() const;
-    void writeQuietFront() const;
-    void writeSegActive() const;
+    void write(const Control& control) const;
 
 };
 

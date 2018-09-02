@@ -37,6 +37,14 @@ struct Control
   string summaryFile;
   bool summaryAppendFlag;
   bool verboseABC = false;
+
+  bool writingTransient;
+  bool writingBack;
+  bool writingFront;
+  bool writingSpeed;
+  bool writingPos;
+  bool writingPeak;
+  bool writingOutline;
 };
 
 struct Log

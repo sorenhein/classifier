@@ -14,7 +14,7 @@ struct OptEntry
   unsigned numArgs;
 };
 
-#define TRAIN_NUM_OPTIONS 5
+#define TRAIN_NUM_OPTIONS 6
 
 static const OptEntry OPT_LIST[TRAIN_NUM_OPTIONS] =
 {
@@ -22,6 +22,7 @@ static const OptEntry OPT_LIST[TRAIN_NUM_OPTIONS] =
   {"p", "pick", 1},
   {"s", "stats", 1},
   {"a", "append", 0},
+  {"w", "writing", 1},
   {"v", "verbose", 1}
 };
 
@@ -54,6 +55,15 @@ void usage(
     "-s, --stats s      Stats output file.\n" <<
     "\n" <<
     "-a, --append       If present, stats file is not rewritten.\n" <<
+    "\n" <<
+    "-w, -writing n     Binary output files (default: 0x30).  Bits:\n" <<
+    "                   0x01: transient\n" <<
+    "                   0x02: back\n" <<
+    "                   0x04: front\n" <<
+    "                   0x08: speed\n" <<
+    "                   0x10: pos\n" <<
+    "                   0x20: peak\n" <<
+    "                   0x40: outline\n" <<
     "\n" <<
     "-v, -verbose n     Verbosity (default: 0x0).  Bits:\n" <<
     "                   0x01: (tbd)\n" <<
@@ -119,6 +129,15 @@ static void setDefaults(Control& options)
   options.pickFileString = "";
   options.summaryFile = "comp.csv";
   options.summaryAppendFlag = false;
+
+  options.writingTransient = false;
+  options.writingBack = false;
+  options.writingFront = false;
+  options.writingSpeed = false;
+  options.writingPos = true;
+  options.writingPeak = true;
+  options.writingOutline = false;
+
   options.verboseABC = false;
 }
 
@@ -181,6 +200,25 @@ void readArgs(
 
       case 'a':
         options.summaryAppendFlag = true;
+        break;
+
+      case 'w':
+        m = static_cast<int>(strtol(optarg, &temp, 0));
+        if (temp == optarg || temp == '\0' ||
+            ((m == LONG_MIN || m == LONG_MAX) && errno == ERANGE))
+        {
+          cout << "Could not parse writing\n";
+          nextToken -= 2;
+          errFlag = true;
+        }
+        
+        options.writingTransient = ((m & 0x01) != 0);
+        options.writingBack = ((m & 0x02) != 0);
+        options.writingFront = ((m & 0x04) != 0);
+        options.writingSpeed = ((m & 0x08) != 0);
+        options.writingPos = ((m & 0x10) != 0);
+        options.writingPeak = ((m & 0x20) != 0);
+        options.writingOutline = ((m & 0x40) != 0);
         break;
 
       case 'v':

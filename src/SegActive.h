@@ -47,11 +47,17 @@ class SegActive
 
     void getPeakTimes(vector<PeakTime>& times) const; 
 
-    void writeFiles(
+    void writeSpeed(
       const string& origname,
-      const string& speeddirname,
-      const string& posdirname,
-      const string& peakdirname) const;
+      const string& dirname) const;
+
+    void writePos(
+      const string& origname,
+      const string& dirname) const;
+
+    void writePeak(
+      const string& origname,
+      const string& dirname) const;
 };
 
 #endif

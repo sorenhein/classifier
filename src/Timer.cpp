@@ -61,7 +61,7 @@ string Timer::str(const int prec) const
   stringstream ss;
   ss << setw(7) << fixed << setprecision(prec) << 
     sum / 1000. << " ms";
-  if (no > 1)
+  if (no > 0)
     ss << setw(7) << sum / (1000. * no) << " ms";
   return ss.str() + "\n";
 }

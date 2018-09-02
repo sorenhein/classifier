@@ -126,7 +126,8 @@ unsigned countDelimiters(
 
 void getFilenames(
   const string& dirName,
-  vector<string>& textfiles)
+  vector<string>& textfiles,
+  const string& terminateMatch)
 {
   DIR *dir;
   dirent *ent;
@@ -151,7 +152,13 @@ void getFilenames(
       if (f != FILE_TXT && f != FILE_DAT)
         continue;
 
-      textfiles.push_back(dirName + "/" + string(ent->d_name));
+      if (terminateMatch == "")
+        textfiles.push_back(dirName + "/" + string(ent->d_name));
+      else if (name.find(terminateMatch) != string::npos)
+      {
+        textfiles.push_back(dirName + "/" + string(ent->d_name));
+        break;
+      }
     }
   }
 

@@ -209,22 +209,26 @@ void SegActive::getPeakTimes(vector<PeakTime>& times) const
 }
 
 
-void SegActive::writeFiles(
+void SegActive::writeSpeed(
   const string& origname,
-  const string& speeddirname,
-  const string& posdirname,
-  const string& peakdirname) const
+  const string& dirname) const
 {
-  // The output file name and location are created from
-  // the parameters.
+  writeBinary(origname, dirname, writeInterval.first, synthSpeed);
+}
 
-  writeBinary(origname, speeddirname, writeInterval.first,
-    synthSpeed);
 
-  writeBinary(origname, posdirname, writeInterval.first,
-    synthPos);
+void SegActive::writePos(
+  const string& origname,
+  const string& dirname) const
+{
+  writeBinary(origname, dirname, writeInterval.first, synthPos);
+}
 
-  writeBinary(origname, peakdirname, writeInterval.first,
-    synthPeaks);
+
+void SegActive::writePeak(
+  const string& origname,
+  const string& dirname) const
+{
+  writeBinary(origname, dirname, writeInterval.first, synthPeaks);
 }
 

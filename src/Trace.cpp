@@ -155,26 +155,25 @@ string Trace::strTransientCSV()
 }
 
 
-void Trace::writeTransient() const
+void Trace::write(const Control& control) const
 {
-  transient.writeFile(filename, "transient");
+  if (control.writingTransient)
+    transient.writeFile(filename, "transient");
+  if (control.writingBack)
+    quietBack.writeFile(filename, "back");
+  if (control.writingFront)
+    quietFront.writeFile(filename, "front");
+  if (control.writingSpeed)
+    segActive.writeSpeed(filename, "speed");
+  if (control.writingPos)
+    segActive.writePos(filename, "pos");
+  if (control.writingPeak)
+    segActive.writePeak(filename, "peak");
+  if (control.writingOutline)
+  {
+    cout << "Not yet implemented\n";
+    // TODO
+  }
 }
 
-
-void Trace::writeQuietBack() const
-{
-  quietBack.writeFile(filename, "back");
-}
-
-
-void Trace::writeQuietFront() const
-{
-  quietFront.writeFile(filename, "front");
-}
-
-
-void Trace::writeSegActive() const
-{
-  segActive.writeFiles(filename, "speed", "pos", "peak");
-}
 

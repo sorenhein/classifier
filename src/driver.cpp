@@ -107,7 +107,8 @@ int main(int argc, char * argv[])
     readTraceTruth(control.truthFile, db, traceDB);
 
     vector<string> datfiles;
-    getFilenames(control.traceDir, datfiles);
+    getFilenames(control.traceDir, datfiles, control.pickFileString);
+
     Trace trace;
     vector<PeakTime> times;
 
@@ -116,24 +117,14 @@ int main(int argc, char * argv[])
 
     for (auto& fname: datfiles)
     {
-      // Mainly for debugging, we may pick the first matching file.
-      if (control.pickFileString != "" &&
-          fname.find(control.pickFileString) == string::npos)
-        continue;
-
       cout << "File " << fname << ":" << endl;
       trace.read(fname, true);
       trace.getTrace(times);
 
+      trace.write(control);
+
       // TEMP
       // tout << fname << ";" << trace.strTransientCSV() << "\n";
-      // trace.writeTransient();
-
-      // trace.writeQuietBack();
-      // trace.writeQuietFront();
-
-      trace.writeSegActive();
-      // continue;
 
       const string sensor = traceDB.lookupSensor(fname);
       const string country = db.lookupSensorCountry(sensor);
@@ -160,9 +151,6 @@ int main(int argc, char * argv[])
         cout << endl;
       }  
       traceDB.log(fname, matchesAlign, times.size());
-
-      if (control.pickFileString != "")
-        break;
     }
 
     traceDB.printCSV("comp.csv", db);
