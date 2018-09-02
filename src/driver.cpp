@@ -122,15 +122,15 @@ int main(int argc, char * argv[])
 
     CompStats sensorStats, trainStats;
 
-    try
+    for (auto& fname: datfiles)
     {
-      for (auto& fname: datfiles)
+      cout << "File " << fname << ":\n\n";
+      const string sensor = traceDB.lookupSensor(fname);
+      const string country = db.lookupSensorCountry(sensor);
+      const string trainTrue = traceDB.lookupTrueTrain(fname);
+      
+      try
       {
-        cout << "File " << fname << ":\n\n";
-        const string sensor = traceDB.lookupSensor(fname);
-        const string country = db.lookupSensorCountry(sensor);
-        const string trainTrue = traceDB.lookupTrueTrain(fname);
-
         trace.read(fname, true);
         trace.detect(control);
         trace.write(control);
@@ -159,10 +159,12 @@ int main(int argc, char * argv[])
         sensorStats.log(sensor, rank, bestAlign.distMatch);
         trainStats.log(trainTrue, rank, bestAlign.distMatch);
       }
-    }
-    catch (Except& ex)
-    {
-      ex.print(cout);
+      catch (Except& ex)
+      {
+        ex.print(cout);
+        sensorStats.log(sensor, 10, 1000.);
+        trainStats.log(trainTrue, 10, 1000.);
+      }
     }
 
     traceDB.printCSV(control.summaryFile, control.summaryAppendFlag, db);

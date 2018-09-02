@@ -492,6 +492,7 @@ void PeakDetect::estimateAreaRanges(
     for (unsigned i = 0; i < first; i++)
       cout << "i " << i << ": " << areas[i] << endl;
     cout << endl;
+    normalLargeArea = 0.;
     return;
   }
   

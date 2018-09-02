@@ -20,11 +20,6 @@ class Align
       unsigned firstTimeNo;
       int firstHalfNetInsert;
       int secondHalfNetInsert;
-      vector<PeakPos> scaledPeaks;
-
-      double score;
-
-      bool operator > (const Shift& s2) const { return score > s2.score; }
     };
 
 
