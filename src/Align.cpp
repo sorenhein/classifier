@@ -194,8 +194,7 @@ void Align::estimateMotion(
   const vector<PeakTime>& times,
   const unsigned firstRefNo,
   const unsigned firstTimeNo,
-  double& speed,
-  double& accel) const
+  vector<double>& motion) const
 {
   /*
      This is quite approximate, especially in that t_mid is not
@@ -250,12 +249,22 @@ void Align::estimateMotion(
   
   double tEnd = times.back().time - tOffset;
 
-  accel = len * (2.*tMid - tEnd) /
+  // Acceleration.
+  motion[2] = len * (2.*tMid - tEnd) /
     (tMid * tEnd * (tEnd - tMid));
 // cout << "len " << len << " tMid " << tMid << " tEnd " << tEnd <<
   // " accel " << accel << endl;
 
-  speed = (len - 0.5 * accel * tEnd * tEnd) / tEnd;
+  // Speed.
+  motion[1] = (len - 0.5 * motion[2] * tEnd * tEnd) / tEnd;
+
+  // Offset.
+  if (firstRefNo == 0)
+    motion[0] = - motion[1] * times[firstTimeNo].time -
+      0.5 * motion[2] * times[firstTimeNo].time * 
+        times[firstTimeNo].time;
+  else
+    motion[0] = refPeaks[firstRefNo].pos;
 }
 
 
@@ -369,27 +378,18 @@ unsigned ii = 2;
   scaledPeaks.resize(lt);
 
   for (unsigned i = 0; i < candidates.size(); i++)
-  // for (auto& cand: candidates)
   {
-    const Shift& cand = candidates[i];
+    Shift& cand = candidates[i];
+    cand.motion.resize(3);
 
-    double speed, accel;
     Align::estimateMotion(refPeaks, times, cand.firstRefNo, 
-      cand.firstTimeNo, speed, accel);
-    // cout << "estimated speed " << speed << ", accel " << accel << endl;
-
-    double offset;
-    if (cand.firstRefNo == 0)
-      offset = speed * times[cand.firstTimeNo].time +
-        0.5 * accel * times[cand.firstTimeNo].time * 
-          times[cand.firstTimeNo].time;
-    else
-      offset = -refPeaks[cand.firstRefNo].pos;
+      cand.firstTimeNo, cand.motion);
 
     for (unsigned j = 0; j < lt; j++)
     {
-      candPeaks[j].pos = speed * times[j].time +
-        0.5 * accel * times[j].time * times[j].time - offset;
+      candPeaks[j].pos = cand.motion[0] +
+        cand.motion[1] * times[j].time +
+        0.5 * cand.motion[2] * times[j].time * times[j].time;
     }
 
 // cout << "shiftedPeaks " << cand.shift << "\n";

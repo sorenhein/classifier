@@ -20,6 +20,8 @@ class Align
       unsigned firstTimeNo;
       int firstHalfNetInsert;
       int secondHalfNetInsert;
+
+      vector<double> motion;
     };
 
 
@@ -36,8 +38,7 @@ class Align
       const vector<PeakTime>& times,
       const unsigned firstRefNo,
       const unsigned firstTimeNo,
-      double& speed,
-      double& accel) const;
+      vector<double>& motion) const;
       
     double simpleScore(
       const vector<PeakPos>& refPeaks,
