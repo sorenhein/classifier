@@ -41,7 +41,7 @@ bool TraceDB::deriveComponents(
   entry.date = v[0]; 
   entry.time = v[1]; 
   entry.sensor = v[2]; 
-  entry.country = db.lookupCountry(v[2]);
+  entry.country = db.lookupSensorCountry(v[2]);
   return true;
 }
 

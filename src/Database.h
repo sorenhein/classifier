@@ -144,7 +144,13 @@ class Database
 
     string lookupTrainName(const unsigned trainNo) const;
 
-    string lookupCountry(const string& sensor) const;
+    string lookupSensorCountry(const string& sensor) const;
+
+    string lookupTrainCountry(const unsigned trainNo) const;
+
+    bool trainIsInCountry(
+      const unsigned trainNo,
+      const string& country) const;
 
     bool trainsShareCountry(
       const unsigned trainNo1,

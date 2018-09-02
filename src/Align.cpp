@@ -495,7 +495,7 @@ bool Align::countTooDifferent(
 void Align::bestMatches(
   const vector<PeakTime>& times,
   Database& db,
-  const unsigned trainNo,
+  const string& country,
   const unsigned tops,
   vector<Alignment>& matches) const
 {
@@ -509,7 +509,7 @@ void Align::bestMatches(
     if (Align::countTooDifferent(times, db.axleCount(refTrainNo)))
       continue;
 
-    if (! db.trainsShareCountry(trainNo, refTrainNo))
+    if (! db.trainIsInCountry(refTrainNo, country))
       continue;
 
     db.getPerfectPeaks(refTrainNo, refPeaks);

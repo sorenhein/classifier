@@ -61,7 +61,7 @@ class Align
     void bestMatches(
       const vector<PeakTime>& times,
       Database& db,
-      const unsigned trainNo,
+      const string& country,
       const unsigned tops,
       vector<Alignment>& matches) const;
 };

@@ -11,13 +11,14 @@
 #include "Regress.h"
 #include "Disturb.h"
 #include "Align.h"
-#include "Timer.h"
+#include "Timers.h"
 #include "Stats.h"
 #include "print.h"
 
 using namespace std;
 
 Log logger;
+Timers timers;
 
 
 void setup(
@@ -30,61 +31,6 @@ void setup(
 
 int main(int argc, char * argv[])
 {
-  /*
-  Trace trace0;
-  const string fn = "../../../mini_dataset_v012/data/sensors/062493/raw/20180701_153957_062493_001_channel1.dat";
-  trace0.read(fn, true);
-      cout << "File " << fn << ":" << endl;
-
-      vector<PeakTime> times0;
-      trace0.getTrace(times0);
-
-      Control control0;
-      Database db0;
-      Disturb disturb0;
-      setup(argc, argv, control0, db0, disturb0);
-
-      TraceDB traceDB0;
-      readTraceTruth(control0.truthFile, db0, traceDB0);
-
-      const string sensor0 = traceDB0.lookupSensor(fn);
-      const string country0 = db0.lookupCountry(sensor0);
-      unsigned trainNoExample0;
-      if (country0 == "DEU")
-        trainNoExample0 = 0;
-      else if (country0 == "SWE")
-        trainNoExample0 = 30;
-      else
-      {
-        cout << "Could not recognize country '" << country0 << "'\n";
-        exit(0);
-      }
-
-      Align align0;
-      vector<Alignment> matchesAlign0;
-      align0.bestMatches(times0, db0, trainNoExample0, 10, matchesAlign0);
-
-  Alignment bestAlign0;
-      Regress regress0;
-  vector<double> motionEstimate0(3);
-        regress0.bestMatch(times0, db0, 2,
-          matchesAlign0, bestAlign0, motionEstimate0);
-
-        for (auto& match: matchesAlign0)
-        {
-          cout << setw(24) << left << db0.lookupTrainName(match.trainNo) << 
-            setw(10) << fixed << setprecision(2) << match.dist <<
-            setw(10) << fixed << setprecision(2) << match.distMatch <<
-            setw(8) << match.numAdd <<
-            setw(8) << match.numDelete << endl;
-        }
-        cout << endl;
-
-  exit(0);
-  */
-  // vector<PeakTime> times;
-  // trace.getTrace(times);
-
   Control control;
   Database db;
   Disturb disturb;
@@ -105,25 +51,12 @@ int main(int argc, char * argv[])
   motionActual[0] = 0.; // Offset in m
 
   Stats stats;
-  Timer timerSynth, timerAlign, timerRegress;
-
-/*
-vector<PeakPos> tmppos;
-if (! db.getPerfectPeaks("ICE4_DEU_28_N", tmppos))
-  cout << "Bad perfect positions" << endl;
-cout << "Input positions " << "ICE4_DEU_28_N" << "\n";
-printPeakPosCSV(tmppos, 1);
-
-if (! db.getPerfectPeaks("ICET_DEU_28_N", tmppos))
-  cout << "Bad perfect positions" << endl;
-cout << "Input positions " << "ICET_DEU_28_N" << "\n";
-printPeakPosCSV(tmppos, 2);
-
-bool errFlag = false;
-*/
 
   if (control.inputFile != "")
   {
+    // This was an early attempt to read in peaks from the current
+    // system.  I moved to generate my own peaks.
+
     vector<InputEntry> actualList;
     if (! readInputFile(control.inputFile, actualList))
     {
@@ -133,10 +66,9 @@ bool errFlag = false;
 
     for (auto& actualEntry: actualList)
     {
-      timerAlign.start();
-      // Assume Germany.
-      align.bestMatches(actualEntry.actual, db, 0, 10, matchesAlign);
-      timerAlign.stop();
+      timers.start(TIMER_ALIGN);
+      align.bestMatches(actualEntry.actual, db, "DEU", 10, matchesAlign);
+      timers.stop(TIMER_ALIGN);
 
       if (matchesAlign.size() == 0)
       {
@@ -148,10 +80,10 @@ bool errFlag = false;
         continue;
       }
 
-      timerRegress.start();
+      timers.start(TIMER_REGRESS);
       regress.bestMatch(actualEntry.actual, db, order,
         matchesAlign, bestAlign, motionEstimate);
-      timerRegress.stop();
+      timers.stop(TIMER_REGRESS);
 
       cout << "number " << actualEntry.number << 
         ", date " << actualEntry.date <<
@@ -173,6 +105,8 @@ bool errFlag = false;
   }
   else if (control.traceDir != "")
   {
+    // This generates peaks and extracts train types from peaks.
+
     TraceDB traceDB;
     readTraceTruth(control.truthFile, db, traceDB);
 
@@ -186,6 +120,11 @@ bool errFlag = false;
 
     for (auto& fname: datfiles)
     {
+      // Mainly for debugging, we may pick the first matching file.
+      if (control.pickFileString != "" &&
+          fname.find(control.pickFileString) == string::npos)
+        continue;
+
       cout << "File " << fname << ":" << endl;
       trace.read(fname, true);
       trace.getTrace(times);
@@ -201,21 +140,11 @@ bool errFlag = false;
       // continue;
 
       const string sensor = traceDB.lookupSensor(fname);
-      const string country = db.lookupCountry(sensor);
-      unsigned trainNoExample;
-      if (country == "DEU")
-        trainNoExample = 0;
-      else if (country == "SWE")
-        trainNoExample = 30;
-      else
-      {
-        cout << "Could not recognize country '" << country << "'\n";
-        continue;
-      }
+      const string country = db.lookupSensorCountry(sensor);
 
-      timerAlign.start();
-      align.bestMatches(times, db, trainNoExample, 10, matchesAlign);
-      timerAlign.stop();
+      timers.start(TIMER_ALIGN);
+      align.bestMatches(times, db, country, 10, matchesAlign);
+      timers.stop(TIMER_ALIGN);
 
       if (matchesAlign.size() == 0)
       {
@@ -223,10 +152,10 @@ bool errFlag = false;
       }
       else
       {
-        timerRegress.start();
+        timers.start(TIMER_REGRESS);
         regress.bestMatch(times, db, order,
           matchesAlign, bestAlign, motionEstimate);
-        timerRegress.stop();
+        timers.stop(TIMER_REGRESS);
 
         for (auto& match: matchesAlign)
         {
@@ -239,6 +168,9 @@ bool errFlag = false;
         cout << endl;
       }  
       traceDB.log(fname, matchesAlign, times.size());
+
+      if (control.pickFileString != "")
+        break;
     }
 
     traceDB.printCSV("comp.csv", db);
@@ -246,6 +178,8 @@ bool errFlag = false;
   }
   else
   {
+    // This generates synthetic, noisy peaks and classifies them.
+
     for (auto& trainName: db)
     // string trainName = "ICE1_DEU_56_N";
     // string trainName = "MERIDIAN_DEU_22_N";
@@ -258,6 +192,9 @@ bool errFlag = false;
         exit(0);
       }
       const unsigned trainNo = static_cast<unsigned>(trainNoI);
+
+      // Actually a train might run in more than one country.
+      const string country = db.lookupTrainCountry(trainNo);
 
       if (! db.getPerfectPeaks(trainName, perfectPositions))
         cout << "Bad perfect positions" << endl;
@@ -278,17 +215,15 @@ bool errFlag = false;
 
           for (int no = 0; no < control.simCount; no++)
           {
-            timerSynth.start();
             if (! synth.disturb(perfectPositions, disturb, synthTimes, 
               0., speed, accel))
             {
               continue;
             }
-            timerSynth.stop();
 
-            timerAlign.start();
-            align.bestMatches(synthTimes, db, trainNo, 10, matchesAlign);
-            timerAlign.stop();
+            timers.start(TIMER_ALIGN);
+            align.bestMatches(synthTimes, db, country, 10, matchesAlign);
+            timers.stop(TIMER_ALIGN);
 
             if (matchesAlign.size() == 0)
             {
@@ -297,10 +232,10 @@ bool errFlag = false;
               continue;
             }
 
-            timerRegress.start();
+            timers.start(TIMER_REGRESS);
             regress.bestMatch(synthTimes, db, order,
               matchesAlign, bestAlign, motionEstimate);
-            timerRegress.stop();
+            timers.stop(TIMER_REGRESS);
 
             stats.log(trainName, motionActual,
               db.lookupTrainName(bestAlign.trainNo),
@@ -327,9 +262,7 @@ printPeakTimeCSV(synthTimes, 3);
     stats.printQuality();
   }
 
-  cout << "Time synth   " << timerSynth.str(2) << endl;
-  cout << "Time align   " << timerAlign.str(2) << endl;
-  cout << "Time regress " << timerRegress.str(2) << endl;
+  cout << timers.str(2) << endl;
 }
 
 

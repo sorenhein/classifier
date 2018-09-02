@@ -17,6 +17,7 @@ StatEntry.obj: StatEntry.h
 StatCross.obj: StatCross.h
 SynthTrain.obj: SynthTrain.h struct.h Disturb.h
 Timer.obj: Timer.h
+Timers.obj: Timers.h Timer.h
 Trace.obj: Trace.h SegTransient.h struct.h SegQuiet.h SegActive.h
 Trace.obj: Median/median.h PeakDetect.h read.h
 TraceDB.obj: TraceDB.h struct.h Database.h Clusters.h Align.h read.h
@@ -26,8 +27,8 @@ print.obj: print.h struct.h
 write.obj: write.h struct.h
 driver.obj: args.h struct.h read.h Trace.h SegTransient.h SegQuiet.h
 driver.obj: SegActive.h Median/median.h PeakDetect.h Database.h Clusters.h
-driver.obj: TraceDB.h SynthTrain.h Regress.h Disturb.h Align.h Timer.h
-driver.obj: Stats.h StatCross.h StatEntry.h print.h
+driver.obj: TraceDB.h SynthTrain.h Regress.h Disturb.h Align.h Timers.h
+driver.obj: Timer.h Stats.h StatCross.h StatEntry.h print.h
 Ckmeans/Ckmeans.1d.dp.obj: Ckmeans/Ckmeans.1d.dp.h Ckmeans/within_cluster.h
 Ckmeans/dynamic_prog.obj: Ckmeans/Ckmeans.1d.dp.h Ckmeans/within_cluster.h
 Ckmeans/fill_log_linear.obj: Ckmeans/Ckmeans.1d.dp.h Ckmeans/within_cluster.h

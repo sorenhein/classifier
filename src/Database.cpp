@@ -227,13 +227,40 @@ string Database::lookupTrainName(const unsigned trainNo) const
 }
 
 
-string Database::lookupCountry(const string& sensor) const
+string Database::lookupSensorCountry(const string& sensor) const
 {
   auto it = sensors.find(sensor);
   if (it == sensors.end())
     return "";
   else
     return it->second.country;
+}
+
+
+string Database::lookupTrainCountry(const unsigned trainNo) const
+{
+  // TODO: Just pick the first one for now.  The simulation loop
+  // should probably consider all trains in all countries.
+  if (trainNo >= trainEntries.size())
+    return "Bad index";
+  else
+    return trainEntries[trainNo].countries[0];
+}
+
+
+bool Database::trainIsInCountry(
+  const unsigned trainNo,
+  const string& country) const
+{
+  if (trainNo >= trainEntries.size())
+    return false;
+
+  for (auto& c: trainEntries[trainNo].countries)
+  {
+    if (country == c)
+      return true;
+  }
+  return false;
 }
 
 
