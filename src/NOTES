@@ -2,8 +2,6 @@
 ----------
 Priorities:
 
-* Sensor 31 segfaults
-
 * driver.cpp to have clean modes controlled by args.cpp
 
 * Add timers for peak detection
@@ -57,3 +55,5 @@ Overall algorithm
   - Our integration
   - Some kind of scalar product
   - Estimate parameters of the flanks?  What kind of function?
+* Float (Accel) to double everywhere
+* Simpson integration?

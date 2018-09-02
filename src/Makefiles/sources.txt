@@ -3,6 +3,7 @@ SOURCE_FILES    =               \
                 Clusters.cpp    \
                 Database.cpp    \
                 Disturb.cpp     \
+                Except.cpp      \
                 PeakDetect.cpp  \
                 PeakCluster.cpp \
                 Regress.cpp     \
@@ -16,6 +17,7 @@ SOURCE_FILES    =               \
                 Timer.cpp       \
                 Trace.cpp       \
                 TraceDB.cpp     \
+                args.cpp        \
                 read.cpp        \
                 print.cpp       \
                 write.cpp       \

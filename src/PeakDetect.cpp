@@ -298,6 +298,11 @@ void PeakDetect::remakeFlanks(const vector<unsigned>& survivors)
   // flanks have to be recalculated.
 
   unsigned sno = survivors.size();
+  if (sno == 0)
+  {
+    cout << "ERROR sno == 0\n";
+  }
+
   FlankData left, right;
   left.reset();
   right.reset();

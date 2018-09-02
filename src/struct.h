@@ -3,6 +3,8 @@
 
 #include <string>
 #include <vector>
+#include <iostream>
+#include <fstream>
 
 using namespace std;
 
@@ -29,6 +31,18 @@ struct Control
   string crossPercentFile; // Output file for cross-table of percentages
   string overviewFile; // Output file for overview train tables
   string detailFile; // Output file for detailed train tables
+
+  string controlFile;
+  string pickFileString;
+  string summaryFile;
+  bool summaryAppendFlag;
+  bool verboseABC = false;
+};
+
+struct Log
+{
+  bool flag;
+  ofstream flog;
 };
 
 struct TraceTruth

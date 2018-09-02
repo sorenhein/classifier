@@ -2,6 +2,7 @@
 #include <iomanip>
 #include <string>
 
+#include "args.h"
 #include "read.h"
 #include "Trace.h"
 #include "Database.h"
@@ -15,6 +16,8 @@
 #include "print.h"
 
 using namespace std;
+
+Log logger;
 
 
 void setup(
@@ -337,15 +340,14 @@ void setup(
   Database& db,
   Disturb& disturb)
 {
-  if (argc != 2)
-  {
-    cout << "Usage: ./driver control_file\n";
-    exit(0);
-  }
+  if (argc == 2)
+    control.controlFile = string(argv[1]);
+  else
+    readArgs(argc, argv, control);
 
-  if (! readControlFile(control, string(argv[1])))
+  if (! readControlFile(control, control.controlFile))
   {
-    cout << "Bad control file" << string(argv[1]) << endl;
+    cout << "Bad control file" << control.controlFile << endl;
     exit(0);
   }
 

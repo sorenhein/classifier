@@ -1,16 +1,17 @@
-Align.obj: Align.h struct.h Database.h Clusters.h
+Align.obj: Align.h struct.h Database.h Clusters.h print.h
 Clusters.obj: Ckmeans/Ckmeans.1d.dp.h Ckmeans/within_cluster.h Clusters.h
 Clusters.obj: struct.h Database.h
 Database.obj: Database.h Clusters.h struct.h read.h
 Disturb.obj: Disturb.h read.h struct.h
+Except.obj: Except.h errors.h
 PeakDetect.obj: PeakDetect.h struct.h PeakCluster.h
 PeakCluster.obj: PeakCluster.h struct.h
 Regress.obj: Regress.h struct.h Database.h Clusters.h
 Regress.obj: regress/PolynomialRegression.h
 SegActive.obj: SegActive.h Median/median.h PeakDetect.h struct.h write.h
-SegQuiet.obj: SegQuiet.h struct.h
+SegQuiet.obj: SegQuiet.h struct.h write.h
 SegTransient.obj: SegTransient.h struct.h Trace.h SegQuiet.h SegActive.h
-SegTransient.obj: Median/median.h PeakDetect.h
+SegTransient.obj: Median/median.h PeakDetect.h write.h
 Stats.obj: Stats.h StatCross.h StatEntry.h
 StatEntry.obj: StatEntry.h
 StatCross.obj: StatCross.h
@@ -19,13 +20,14 @@ Timer.obj: Timer.h
 Trace.obj: Trace.h SegTransient.h struct.h SegQuiet.h SegActive.h
 Trace.obj: Median/median.h PeakDetect.h read.h
 TraceDB.obj: TraceDB.h struct.h Database.h Clusters.h Align.h read.h
+args.obj: args.h struct.h
 read.obj: Database.h Clusters.h struct.h TraceDB.h read.h
 print.obj: print.h struct.h
 write.obj: write.h struct.h
-driver.obj: read.h struct.h Trace.h SegTransient.h SegQuiet.h SegActive.h
-driver.obj: Median/median.h PeakDetect.h Database.h Clusters.h TraceDB.h
-driver.obj: SynthTrain.h Regress.h Disturb.h Align.h Timer.h Stats.h
-driver.obj: StatCross.h StatEntry.h print.h
+driver.obj: args.h struct.h read.h Trace.h SegTransient.h SegQuiet.h
+driver.obj: SegActive.h Median/median.h PeakDetect.h Database.h Clusters.h
+driver.obj: TraceDB.h SynthTrain.h Regress.h Disturb.h Align.h Timer.h
+driver.obj: Stats.h StatCross.h StatEntry.h print.h
 Ckmeans/Ckmeans.1d.dp.obj: Ckmeans/Ckmeans.1d.dp.h Ckmeans/within_cluster.h
 Ckmeans/dynamic_prog.obj: Ckmeans/Ckmeans.1d.dp.h Ckmeans/within_cluster.h
 Ckmeans/fill_log_linear.obj: Ckmeans/Ckmeans.1d.dp.h Ckmeans/within_cluster.h
