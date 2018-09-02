@@ -56,6 +56,13 @@ class Align
       const double peakScale,
       Alignment& alignment) const;
 
+    void printAlignPeaks(
+      const string& refTrain,
+      const vector<PeakTime>& times,
+      const vector<PeakPos>& refPeaks,
+      const vector<PeakPos>& scaledPeaks) const;
+
+
   public:
 
     Align();
@@ -67,7 +74,7 @@ class Align
       const Database& db,
       const string& country,
       const unsigned tops,
-      const bool writeFlag,
+      const Control& control,
       vector<Alignment>& matches) const;
 };
 

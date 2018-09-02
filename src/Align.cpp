@@ -338,6 +338,9 @@ void Align::scalePeaks(
   // In either case we assume that we're matching the last peaks,
   // whether or not the peak numbers make sense.
 
+  // TODO Make this more general:  Also net adds in 1st/2nd halves.
+  // Impacts estimateMotion
+
   vector<Shift> candidates(7);
   for (int i = -3; i <= 3; i++)
   {
@@ -358,30 +361,24 @@ void Align::scalePeaks(
     }
   }
 
-  // We calculate a very simple score for this shift.  In fact
+  // We calculate a simple score for this shift.  In fact
   // we could also run Needleman-Wunsch, so this is a bit of an
   // optimization.
 
-// cout << "times\n";
-// printPeakTimeCSV(times, 0);
-
-// cout << "refPeaks\n";
-// printPeakPosCSV(refPeaks, 1);
-
-unsigned ii = 2;
-
   const unsigned lt = times.size();
+  vector<PeakPos> candPeaks(lt);
+
   unsigned bestIndex = 0;
   double bestScore = 0.;
 
-  vector<PeakPos> candPeaks(lt);
-  scaledPeaks.resize(lt);
+  // scaledPeaks.resize(lt);
 
   for (unsigned i = 0; i < candidates.size(); i++)
   {
     Shift& cand = candidates[i];
     cand.motion.resize(3);
 
+    // TODO Pass in all of cand
     Align::estimateMotion(refPeaks, times, cand.firstRefNo, 
       cand.firstTimeNo, cand.motion);
 
@@ -391,10 +388,6 @@ unsigned ii = 2;
         cand.motion[1] * times[j].time +
         0.5 * cand.motion[2] * times[j].time * times[j].time;
     }
-
-// cout << "shiftedPeaks " << cand.shift << "\n";
-// printPeakPosCSV(shiftedPeaks, ii);
-ii++;
 
     double score = Align::simpleScore(refPeaks, candPeaks);
     if (score > bestScore)
@@ -424,7 +417,7 @@ void Align::bestMatches(
   const Database& db,
   const string& country,
   const unsigned tops,
-  const bool writeFlag,
+  const Control& control,
   vector<Alignment>& matches) const
 {
   timers.start(TIMER_ALIGN);
@@ -444,13 +437,16 @@ void Align::bestMatches(
 
     db.getPerfectPeaks(refTrainNo, refPeaks);
 
-cout << "refTrain " << refTrain << endl;
     const double trainLength = refPeaks.back().pos - refPeaks.front().pos;
     Shift shift;
     Align::scalePeaks(refPeaks, times, shift, scaledPeaks);
 
-    // TODO Print shift.  Print refPeaks, times, scaledPeaks
-    // depending on control.
+
+    if (control.verboseAlignPeaks)
+    {
+      Align::printAlignPeaks(refTrain, times, refPeaks, scaledPeaks);
+      // TODO Print shift.  
+    }
 
     // Normalize the distance score to a 200m long train.
     const double peakScale = 200. * 200. / (trainLength * trainLength);
@@ -468,7 +464,26 @@ cout << "refTrain " << refTrain << endl;
 
   timers.stop(TIMER_ALIGN);
 
-  if (writeFlag)
+  if (control.verboseAlignMatches)
     printMatches(db, matches);
+}
+
+
+void Align::printAlignPeaks(
+  const string& refTrain,
+  const vector<PeakTime>& times,
+  const vector<PeakPos>& refPeaks,
+  const vector<PeakPos>& scaledPeaks) const
+{
+  cout << "refTrain " << refTrain << "\n\n";
+
+  cout << "times\n";
+  printPeakTimeCSV(times, 0);
+
+  cout << "refPeaks\n";
+  printPeakPosCSV(refPeaks, 1);
+
+  cout << "scaledPeaks " << "\n";
+  printPeakPosCSV(scaledPeaks, 2);
 }
 

@@ -140,6 +140,7 @@ static void setDefaults(Control& options)
 
   options.verboseTransientMatch = true;
   options.verboseAlignMatches = true;
+  options.verboseAlignPeaks = false;
   options.verboseRegressMatch = true;
   options.verboseRegressMotion = true;
 }
@@ -236,8 +237,9 @@ void readArgs(
         
         options.verboseTransientMatch = ((m & 0x01) != 0);
         options.verboseAlignMatches = ((m & 0x02) != 0);
-        options.verboseRegressMatch = ((m & 0x04) != 0);
-        options.verboseRegressMotion = ((m & 0x08) != 0);
+        options.verboseAlignPeaks = ((m & 0x04) != 0);
+        options.verboseRegressMatch = ((m & 0x08) != 0);
+        options.verboseRegressMotion = ((m & 0x10) != 0);
         break;
 
       default:

@@ -154,7 +154,7 @@ void Trace::getTrace(vector<PeakTime>& times) const
 {
   segActive.getPeakTimes(times);
 
-cout << "Got " << times.size() << " peaks" << endl;
+cout << "Got " << times.size() << " peaks\n\n";
 }
 
 

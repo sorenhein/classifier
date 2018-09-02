@@ -40,10 +40,11 @@ struct Control
   string summaryFile;
   bool summaryAppendFlag;
 
-  bool verboseTransientMatch = true;
-  bool verboseAlignMatches = true;
-  bool verboseRegressMatch = true;
-  bool verboseRegressMotion = true;
+  bool verboseTransientMatch;
+  bool verboseAlignMatches;
+  bool verboseAlignPeaks;
+  bool verboseRegressMatch;
+  bool verboseRegressMotion;
 
   bool writingTransient;
   bool writingBack;

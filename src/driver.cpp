@@ -74,7 +74,7 @@ int main(int argc, char * argv[])
     for (auto& actualEntry: actualList)
     {
       align.bestMatches(actualEntry.actual, db, "DEU", 10, 
-        control.verboseAlignMatches, matchesAlign);
+        control, matchesAlign);
 
       if (matchesAlign.size() == 0)
       {
@@ -136,8 +136,7 @@ int main(int argc, char * argv[])
         trace.write(control);
 
         trace.getTrace(times);
-        align.bestMatches(times, db, country, 10, 
-          control.verboseAlignMatches, matchesAlign);
+        align.bestMatches(times, db, country, 10, control, matchesAlign);
 
 
         if (matchesAlign.size() == 0)
@@ -218,7 +217,7 @@ int main(int argc, char * argv[])
             }
 
             align.bestMatches(synthTimes, db, country, 10, 
-              control.verboseAlignMatches, matchesAlign);
+              control, matchesAlign);
 
             if (matchesAlign.size() == 0)
             {
