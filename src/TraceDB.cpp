@@ -156,6 +156,20 @@ string TraceDB::lookupSensor(const string& fname) const
 }
 
 
+string TraceDB::lookupTrueTrain(const string& fname) const
+{
+  const string basename = TraceDB::basename(fname);
+  auto it = entries.find(basename);
+  if (it == entries.end())
+  {
+    cout << "File truth for " << basename << " not logged\n";
+    return false;
+  }
+
+  return it->second.trainTruth.trainName;
+}
+
+
 void TraceDB::printCSVHeader(ofstream& fout) const
 {
   string s = "Date" + string(SEPARATOR) +
@@ -220,7 +234,6 @@ void TraceDB::printCSV(
 
     fout << s << "\n";
   }
-  fout << "\n";
   fout.close();
 }
 

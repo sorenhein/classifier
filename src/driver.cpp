@@ -1,6 +1,7 @@
 #include <iostream>
 #include <iomanip>
 #include <string>
+#include <limits>
 
 #include "args.h"
 #include "read.h"
@@ -13,6 +14,8 @@
 #include "Align.h"
 #include "Timers.h"
 #include "Stats.h"
+#include "CompStats.h"
+#include "Except.h"
 #include "print.h"
 
 using namespace std;
@@ -28,6 +31,10 @@ void setup(
   Database& db,
   Disturb& disturb);
 
+unsigned lookupMatchRank(
+  const Database& db,
+  const vector<Alignment>& matches,
+  const string& tag);
 
 int main(int argc, char * argv[])
 {
@@ -80,7 +87,7 @@ int main(int argc, char * argv[])
       }
 
       regress.bestMatch(actualEntry.actual, db, order,
-        matchesAlign, control, bestAlign, motionEstimate);
+        control, matchesAlign, bestAlign, motionEstimate);
 
       cout << "number " << actualEntry.number << 
         ", date " << actualEntry.date <<
@@ -113,30 +120,55 @@ int main(int argc, char * argv[])
     Trace trace;
     vector<PeakTime> times;
 
-    for (auto& fname: datfiles)
+    CompStats sensorStats, trainStats;
+
+    try
     {
-      cout << "File " << fname << ":\n\n";
-      const string sensor = traceDB.lookupSensor(fname);
-      const string country = db.lookupSensorCountry(sensor);
+      for (auto& fname: datfiles)
+      {
+        cout << "File " << fname << ":\n\n";
+        const string sensor = traceDB.lookupSensor(fname);
+        const string country = db.lookupSensorCountry(sensor);
+        const string trainTrue = traceDB.lookupTrueTrain(fname);
 
-      trace.read(fname, true);
-      trace.detect(control);
-      trace.write(control);
+        trace.read(fname, true);
+        trace.detect(control);
+        trace.write(control);
 
-      trace.getTrace(times);
-      align.bestMatches(times, db, country, 10, 
-        control.verboseAlignMatches, matchesAlign);
+        trace.getTrace(times);
+        align.bestMatches(times, db, country, 10, 
+          control.verboseAlignMatches, matchesAlign);
 
-      traceDB.log(fname, matchesAlign, times.size());
 
-      if (matchesAlign.size() == 0)
-        continue;
+        if (matchesAlign.size() == 0)
+        {
+          traceDB.log(fname, matchesAlign, times.size());
+          sensorStats.log(sensor, 10, 1000.);
+          trainStats.log(trainTrue, 10, 1000.);
+          continue;
+        }
 
-      regress.bestMatch(times, db, order, matchesAlign, control,
-        bestAlign, motionEstimate);
+        regress.bestMatch(times, db, order, control, matchesAlign,
+          bestAlign, motionEstimate);
+
+        traceDB.log(fname, matchesAlign, times.size());
+
+        const string trainDetected = db.lookupTrainName(bestAlign.trainNo);
+        const unsigned rank = lookupMatchRank(db, matchesAlign, trainTrue);
+
+        sensorStats.log(sensor, rank, bestAlign.distMatch);
+        trainStats.log(trainTrue, rank, bestAlign.distMatch);
+      }
+    }
+    catch (Except& ex)
+    {
+      ex.print(cout);
     }
 
     traceDB.printCSV(control.summaryFile, control.summaryAppendFlag, db);
+
+    sensorStats.print("sensorstats.txt", "Sensor");
+    trainStats.print("trainstats.txt", "Train");
   }
   else
   {
@@ -194,7 +226,7 @@ int main(int argc, char * argv[])
             }
 
             regress.bestMatch(synthTimes, db, order,
-              matchesAlign, control, bestAlign, motionEstimate);
+              control, matchesAlign, bestAlign, motionEstimate);
 
             stats.log(trainName, motionActual,
               db.lookupTrainName(bestAlign.trainNo),
@@ -250,5 +282,20 @@ void setup(
     cout << "No trains selected" << endl;
     exit(0);
   }
+}
+
+
+unsigned lookupMatchRank(
+  const Database& db,
+  const vector<Alignment>& matches,
+  const string& tag)
+{
+  const unsigned tno = db.lookupTrainNumber(tag);
+  for (unsigned i = 0; i < matches.size(); i++)
+  {
+    if (matches[i].trainNo == tno)
+      return i;
+  }
+  return numeric_limits<unsigned>::max();
 }
 

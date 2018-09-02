@@ -8,6 +8,7 @@
 
 #include "PeakDetect.h"
 #include "PeakCluster.h"
+#include "Except.h"
 
 #define SMALL_AREA_FACTOR 100.f
 
@@ -298,10 +299,6 @@ void PeakDetect::remakeFlanks(const vector<unsigned>& survivors)
   // flanks have to be recalculated.
 
   unsigned sno = survivors.size();
-  if (sno == 0)
-  {
-    cout << "ERROR sno == 0\n";
-  }
 
   FlankData left, right;
   left.reset();
@@ -310,6 +307,9 @@ void PeakDetect::remakeFlanks(const vector<unsigned>& survivors)
 
   for (unsigned pno = peaks.size(); pno > 0; pno--)
   {
+if (sno == 0)
+  THROW(ERR_SURVIVORS, "survivor number is zero");
+
     PeakData& peak = peaks[pno-1];
     const bool maxFlag = peaks[survivors[sno-1]].maxFlag;
 

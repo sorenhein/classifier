@@ -51,10 +51,6 @@ class Align
       const double peakScale,
       Alignment& alignment) const;
 
-    void writeMatches(
-      const Database& db,
-      const vector<Alignment>& matches) const;
-
   public:
 
     Align();

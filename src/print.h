@@ -3,6 +3,7 @@
 
 #include <vector>
 
+#include "Database.h"
 #include "struct.h"
 
 using namespace std;
@@ -26,5 +27,9 @@ void printAlignment(
 
 void printMotion(
   const vector<double>& motionEstimate);
+
+void printMatches(
+  const Database& db,
+  const vector<Alignment>& matches);
 
 #endif

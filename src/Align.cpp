@@ -8,6 +8,7 @@
 #include "Align.h"
 #include "Database.h"
 #include "Timers.h"
+#include "print.h"
 
 // Can adjust these.
 
@@ -423,10 +424,12 @@ ii++;
 
   sort(candidates.begin(), candidates.end());
 
+/*
   cout << "Shift scores\n";
   for (auto& cand: candidates)
     cout << cand.shift << ": " << cand.score << "\n";
   cout << "\n";
+*/
 
   // Redo for the winner (remember the results...)
     double speed, accel;
@@ -542,17 +545,6 @@ cout << "refTrain " << refTrain << endl;
   timers.stop(TIMER_ALIGN);
 
   if (writeFlag)
-    Align::writeMatches(db, matches);
-}
-
-
-void Align::writeMatches(
-  const Database& db,
-  const vector<Alignment>& matches) const
-{
-  cout << "Matching alignment\n";
-  for (auto& match: matches)
-    printAlignment(match, db.lookupTrainName(match.trainNo));
-  cout << "\n";
+    printMatches(db, matches);
 }
 

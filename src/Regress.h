@@ -31,8 +31,8 @@ class Regress
       const vector<PeakTime>& times,
       const Database& db,
       const unsigned order,
-      const vector<Alignment>& matches,
       const Control& control,
+      vector<Alignment>& matches,
       Alignment& bestAlign,
       vector<double>& motionEstimate) const;
 

@@ -7,7 +7,8 @@ using namespace std;
 
 enum Code
 {
-  ERR_REGRESS = 0
+  ERR_REGRESS = 0,
+  ERR_SURVIVORS = 1
 };
 
 

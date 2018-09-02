@@ -1,23 +1,22 @@
-2018-08-31
+2018-09-02
 ----------
-Priorities:
+* Improve the recognition (currently 1072 / 1778 = 60.3%)
 
-* Clean up driver.cpp
-
-* Add timers for peak detection
-
-* In Align, also look for shifts like this: 062493
+* Align
+  - Split into pre-align and align
+  - Also look for shifts like this: 062493
         ref   our
   #68   2     1   We have one spurious peak, but we missed 2
   #66   2     1
   #48   1     1
   #31   2     1
 
-* Statistics by sensor
-* Statistics by true train type
-
 * Maybe also detect single insertions/deletions in first and 
   second half of times?  Or detect morphologically in peaks?
+
+* Add separate timers for pre-align and align
+
+* Clean up driver.cpp
 
 2018-07-17
 ----------
@@ -53,5 +52,6 @@ Overall algorithm
   - Our integration
   - Some kind of scalar product
   - Estimate parameters of the flanks?  What kind of function?
+  - Also add timers
 * Float (Accel) to double everywhere
 * Simpson integration?

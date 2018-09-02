@@ -1,6 +1,7 @@
 SOURCE_FILES    =               \
                 Align.cpp       \
                 Clusters.cpp    \
+                CompStats.cpp   \
                 Database.cpp    \
                 Disturb.cpp     \
                 Except.cpp      \

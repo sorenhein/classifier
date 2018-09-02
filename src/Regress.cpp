@@ -2,6 +2,7 @@
 #include <iomanip>
 #include <fstream>
 #include <sstream>
+#include <algorithm>
 #include <limits>
 
 #include "Regress.h"
@@ -50,8 +51,8 @@ void Regress::bestMatch(
   const vector<PeakTime>& times,
   const Database& db,
   const unsigned order,
-  const vector<Alignment>& matches,
   const Control& control,
+  vector<Alignment>& matches,
   Alignment& bestAlign,
   vector<double>& motionEstimate) const
 {
@@ -108,14 +109,26 @@ void Regress::bestMatch(
       bestAlign.dist = ma.dist - ma.distMatch + residuals;
       bestAlign.distMatch = residuals;
 
+      // TODO bestAlign should be a ref/pointer, not duplicated.
+      ma = bestAlign;
+
       motionEstimate[0] = coeffs[0];
       motionEstimate[1] = coeffs[1];
       motionEstimate[2] = 2. * coeffs[2];
       // As the regression estimates 0.5 * a in the physics formula.
     }
+    else
+    {
+      // TODO This is not necessary if we just want the winner
+      ma.dist += residuals - ma.distMatch;
+      ma.distMatch = residuals;
+    }
   }
 
   timers.stop(TIMER_REGRESS);
+
+  sort(matches.begin(), matches.end());
+printMatches(db, matches);
 
   if (control.verboseRegressMatch)
   {
