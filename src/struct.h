@@ -36,7 +36,11 @@ struct Control
   string pickFileString;
   string summaryFile;
   bool summaryAppendFlag;
-  bool verboseABC = false;
+
+  bool verboseTransientMatch = true;
+  bool verboseAlignMatches = true;
+  bool verboseRegressMatch = true;
+  bool verboseRegressMotion = true;
 
   bool writingTransient;
   bool writingBack;

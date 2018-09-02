@@ -497,9 +497,10 @@ bool Align::countTooDifferent(
 
 void Align::bestMatches(
   const vector<PeakTime>& times,
-  Database& db,
+  const Database& db,
   const string& country,
   const unsigned tops,
+  const bool writeFlag,
   vector<Alignment>& matches) const
 {
   timers.start(TIMER_ALIGN);
@@ -539,5 +540,24 @@ cout << "refTrain " << refTrain << endl;
     matches.resize(tops);
 
   timers.stop(TIMER_ALIGN);
+
+  if (writeFlag)
+    Align::writeMatches(db, matches);
+}
+
+
+void Align::writeMatches(
+  const Database& db,
+  const vector<Alignment>& matches) const
+{
+  for (auto& match: matches)
+  {
+    cout << setw(24) << left << db.lookupTrainName(match.trainNo) <<
+      setw(10) << fixed << setprecision(2) << match.dist <<
+      setw(10) << fixed << setprecision(2) << match.distMatch <<
+      setw(8) << match.numAdd <<
+      setw(8) << match.numDelete << endl;
+  }
+  cout << endl;
 }
 

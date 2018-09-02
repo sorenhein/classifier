@@ -5,7 +5,10 @@
 #include <sstream>
 
 #include "Trace.h"
+#include "Timers.h"
 #include "read.h"
+
+extern Timers timers;
 
 
 Trace::Trace()
@@ -100,10 +103,12 @@ void Trace::printSamples(const string& title) const
 }
 
 
-bool Trace::read(
+void Trace::read(
   const string& fname,
   const bool binaryFlag)
 {
+  timers.start(TIMER_READ);
+
   filename = fname;
 
   samples.clear();
@@ -112,11 +117,19 @@ bool Trace::read(
   else
      Trace::readText();
 
+  timers.stop(TIMER_READ);
+}
+
+
+void Trace::detect(const Control& control)
+{
+  timers.start(TIMER_TRANSIENT);
   runs.clear();
   Trace::calcRuns();
-
   transientFlag = transient.detect(samples, runs);
+  timers.stop(TIMER_TRANSIENT);
 
+  timers.start(TIMER_ENDS);
   Interval intAfterTransient;
   intAfterTransient.first = transient.lastSampleNo();
   intAfterTransient.len = samples.size() - intAfterTransient.first;
@@ -128,10 +141,12 @@ bool Trace::read(
   Interval intAfterFront;
   (void) quietFront.detect(samples, intAfterBack, 
     QUIET_FRONT, intAfterFront);
+  timers.stop(TIMER_ENDS);
+
+  if (control.verboseTransientMatch)
+    cout << transient.str() << "\n";
 
   (void) segActive.detect(samples, intAfterFront);
-
-  return true;
 }
 
 
@@ -157,6 +172,8 @@ string Trace::strTransientCSV()
 
 void Trace::write(const Control& control) const
 {
+  timers.start(TIMER_WRITE);
+
   if (control.writingTransient)
     transient.writeFile(filename, "transient");
   if (control.writingBack)
@@ -174,6 +191,8 @@ void Trace::write(const Control& control) const
     cout << "Not yet implemented\n";
     // TODO
   }
+
+  timers.stop(TIMER_WRITE);
 }
 
 

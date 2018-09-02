@@ -457,6 +457,55 @@ void SegTransient::writeFile(
 }
 
 
+string SegTransient::strHeader() const
+{
+  stringstream ss;
+  ss << 
+    setw(8) << "Prepos" <<
+    setw(8) << "Prelen" <<
+    setw(10) << "Pre-ampl" <<
+    setw(6) << "Len" <<
+    setw(10) << "Ampl (g)" <<
+    setw(10) << "Tau (ms)" << "\n";
+
+  return ss.str();
+}
+
+
+string SegTransient::str() const
+{
+  if (transientType == TRANSIENT_NONE)
+  {
+    string s = "No transient found: ";
+    if (status == TSTATUS_TOO_FEW_RUNS)
+      s += "Too few runs found\n";
+    else if (status == TSTATUS_NO_CANDIDATE_RUN)
+      s += "No candidate run found\n";
+    else if (status == TSTATUS_NO_FULL_DECLINE)
+      s += "Didn't decline enough over full run\n";
+    else if (status == TSTATUS_NO_MID_DECLINE)
+      s += "Didn't decline enough in the middle\n";
+    else
+      s += "Reason not known (ERROR)\n";
+    return s;
+  }
+  else if (transientType == TRANSIENT_SIZE)
+    return "Search for transient not run\n";
+
+  stringstream ss;
+  ss << SegTransient::strHeader();
+  ss << 
+    setw(8) << firstBuildupSample <<
+    setw(8) << buildupLength <<
+    setw(10) << fixed << setprecision(2) << buildupStart <<
+    setw(6) << transientLength <<
+    setw(10) << fixed << setprecision(2) << transientAmpl <<
+    setw(10) << fixed << setprecision(2) << timeConstant << "\n";
+
+  return ss.str();
+}
+
+
 string SegTransient::headerCSV() const
 {
   stringstream ss;

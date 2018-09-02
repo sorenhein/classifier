@@ -5,10 +5,13 @@
 #include <math.h>
 
 #include "SegActive.h"
+#include "Timers.h"
 #include "write.h"
 
 #define G_FORCE 9.8f
 #define SAMPLE_RATE 2000.
+
+extern Timers timers;
 
 
 SegActive::SegActive()
@@ -180,6 +183,8 @@ bool SegActive::detect(
   const vector<double>& samples,
   const Interval& active)
 {
+  timers.start(TIMER_CONDITION);
+
   writeInterval.first = active.first;
   writeInterval.len = active.first + active.len - 
     writeInterval.first;
@@ -193,8 +198,12 @@ bool SegActive::detect(
   SegActive::integrateFloat();
   SegActive::highpass();
 
+  timers.stop(TIMER_CONDITION);
+
+  timers.start(TIMER_DETECT_PEAKS);
   peakDetect.log(synthPos, writeInterval.first);
   peakDetect.reduce();
+  timers.stop(TIMER_DETECT_PEAKS);
 
   synthPeaks.resize(writeInterval.len);
   peakDetect.makeSynthPeaks(synthPeaks);

@@ -138,7 +138,10 @@ static void setDefaults(Control& options)
   options.writingPeak = true;
   options.writingOutline = false;
 
-  options.verboseABC = false;
+  options.verboseTransientMatch = true;
+  options.verboseAlignMatches = true;
+  options.verboseRegressMatch = true;
+  options.verboseRegressMotion = true;
 }
 
 
@@ -231,8 +234,10 @@ void readArgs(
           errFlag = true;
         }
         
-        options.verboseABC = ((m & 0x01) != 0);
-        // options.verboseDEF = ((m & 0x02) != 0);
+        options.verboseTransientMatch = ((m & 0x01) != 0);
+        options.verboseAlignMatches = ((m & 0x02) != 0);
+        options.verboseRegressMatch = ((m & 0x04) != 0);
+        options.verboseRegressMotion = ((m & 0x08) != 0);
         break;
 
       default:

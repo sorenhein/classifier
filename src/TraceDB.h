@@ -23,6 +23,7 @@ class TraceDB
       string sensor;
       string country;
       TrainData trainTruth;
+      bool hasData;
       unsigned numPeaksDetected;
       vector<Alignment> align;
     };
@@ -38,6 +39,8 @@ class TraceDB
       const string& country,
       const TraceTruth& truth);
     
+    void printCSVHeader(ofstream& fout) const;
+
     string basename(const string& fname) const;
 
 
@@ -60,6 +63,7 @@ class TraceDB
 
     void printCSV(
       const string& fname,
+      const bool appendFlag,
       const Database& db) const;
 };
 

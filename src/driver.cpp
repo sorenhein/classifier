@@ -66,7 +66,8 @@ int main(int argc, char * argv[])
 
     for (auto& actualEntry: actualList)
     {
-      align.bestMatches(actualEntry.actual, db, "DEU", 10, matchesAlign);
+      align.bestMatches(actualEntry.actual, db, "DEU", 10, 
+        control.verboseAlignMatches, matchesAlign);
 
       if (matchesAlign.size() == 0)
       {
@@ -101,7 +102,7 @@ int main(int argc, char * argv[])
   }
   else if (control.traceDir != "")
   {
-    // This generates peaks and extracts train types from peaks.
+    // This extracts peaks and then extracts train types from peaks.
 
     TraceDB traceDB;
     readTraceTruth(control.truthFile, db, traceDB);
@@ -112,49 +113,34 @@ int main(int argc, char * argv[])
     Trace trace;
     vector<PeakTime> times;
 
-    // ofstream tout("trans.csv", ios_base::app);
-    // tout << "Sensor;" << trace.strTransientHeaderCSV() << "\n";
-
     for (auto& fname: datfiles)
     {
       cout << "File " << fname << ":" << endl;
-      trace.read(fname, true);
-      trace.getTrace(times);
 
+      trace.read(fname, true);
+      trace.detect(control);
       trace.write(control);
 
-      // TEMP
-      // tout << fname << ";" << trace.strTransientCSV() << "\n";
+      trace.getTrace(times);
 
       const string sensor = traceDB.lookupSensor(fname);
       const string country = db.lookupSensorCountry(sensor);
 
-      align.bestMatches(times, db, country, 10, matchesAlign);
+      align.bestMatches(times, db, country, 10, control.
+        verboseAlignMatches, matchesAlign);
+
+      traceDB.log(fname, matchesAlign, times.size());
 
       if (matchesAlign.size() == 0)
-      {
-        cout << "NO MATCH\n\n";
-      }
-      else
-      {
-        regress.bestMatch(times, db, order,
-          matchesAlign, bestAlign, motionEstimate);
+        continue;
 
-        for (auto& match: matchesAlign)
-        {
-          cout << setw(24) << left << db.lookupTrainName(match.trainNo) << 
-            setw(10) << fixed << setprecision(2) << match.dist <<
-            setw(10) << fixed << setprecision(2) << match.distMatch <<
-            setw(8) << match.numAdd <<
-            setw(8) << match.numDelete << endl;
-        }
-        cout << endl;
-      }  
-      traceDB.log(fname, matchesAlign, times.size());
+      regress.bestMatch(times, db, order, matchesAlign, 
+        bestAlign, motionEstimate);
+
+        // TODO Write bestAlign?
     }
 
-    traceDB.printCSV("comp.csv", db);
-    // tout.close();
+    traceDB.printCSV(control.summaryFile, control.summaryAppendFlag, db);
   }
   else
   {
@@ -201,7 +187,8 @@ int main(int argc, char * argv[])
               continue;
             }
 
-            align.bestMatches(synthTimes, db, country, 10, matchesAlign);
+            align.bestMatches(synthTimes, db, country, 10, 
+              control.verboseAlignMatches, matchesAlign);
 
             if (matchesAlign.size() == 0)
             {

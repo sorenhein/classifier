@@ -99,6 +99,8 @@ bool TraceDB::log(
       " does not exist\n";
   }
 
+  entry.hasData = false;
+
   return true;
 }
 
@@ -116,6 +118,7 @@ bool TraceDB::log(
     return false;
   }
 
+  it->second.hasData = true;
   it->second.numPeaksDetected = peakCount;
 
   const unsigned n = (align.size() > 5 ? 5 : align.size());
@@ -145,6 +148,7 @@ string TraceDB::lookupSensor(const string& fname) const
   if (it == entries.end())
   {
     cout << "Sensor for " << basename << " not logged\n";
+    // TODO Returns bool?? Should throw
     return false;
   }
 
@@ -152,13 +156,8 @@ string TraceDB::lookupSensor(const string& fname) const
 }
 
 
-void TraceDB::printCSV(
-  const string& fname,
-  const Database& db) const
+void TraceDB::printCSVHeader(ofstream& fout) const
 {
-  ofstream fout;
-  fout.open(fname);
-
   string s = "Date" + string(SEPARATOR) +
     "Time" + SEPARATOR +
     "Sensor" + SEPARATOR +
@@ -176,12 +175,34 @@ void TraceDB::printCSV(
       "Del";
 
   fout << s << "\n";
+}
+
+
+void TraceDB::printCSV(
+  const string& fname,
+  const bool appendFlag,
+  const Database& db) const
+{
+  ifstream fin(fname.c_str());
+  const bool exists = fin.good();
+  fin.close();
+
+  ofstream fout;
+  if (appendFlag && exists)
+    fout.open(fname, std::ios_base::app);
+  else
+  {
+    TraceDB::printCSVHeader(fout);
+    fout.open(fname);
+  }
 
   for (auto& it: entries)
   {
     const TraceEntry& entry = it.second;
+    if (! entry.hasData)
+      continue;
 
-    s = entry.date + SEPARATOR +
+    string s = entry.date + SEPARATOR +
       entry.time + SEPARATOR + 
       entry.sensor + SEPARATOR + 
       entry.trainTruth.trainName + SEPARATOR + 

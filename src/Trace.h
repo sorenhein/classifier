@@ -34,6 +34,8 @@ class Trace
     bool readBinary();
 
     void printSamples(const string& title) const;
+    string strTransientHeaderCSV();
+    string strTransientCSV();
 
   public:
 
@@ -41,14 +43,13 @@ class Trace
 
     ~Trace();
 
-    bool read(
+    void read(
       const string& fname,
       const bool binaryFlag);
 
-    void getTrace(vector<PeakTime>& times) const;
+    void detect(const Control& control);
 
-    string strTransientHeaderCSV();
-    string strTransientCSV();
+    void getTrace(vector<PeakTime>& times) const;
 
     void write(const Control& control) const;
 

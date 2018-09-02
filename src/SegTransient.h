@@ -69,6 +69,8 @@ class SegTransient
 
     bool errorIsSmall(const vector<double>& samples);
 
+    string strHeader() const;
+
   public:
 
     SegTransient();
@@ -86,6 +88,8 @@ class SegTransient
     void writeFile(
       const string& origname,
       const string& transdir) const;
+
+    string str() const;
 
     string headerCSV() const;
 

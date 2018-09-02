@@ -51,6 +51,9 @@ class Align
       const double peakScale,
       Alignment& alignment) const;
 
+    void writeMatches(
+      const Database& db,
+      const vector<Alignment>& matches) const;
 
   public:
 
@@ -60,9 +63,10 @@ class Align
 
     void bestMatches(
       const vector<PeakTime>& times,
-      Database& db,
+      const Database& db,
       const string& country,
       const unsigned tops,
+      const bool writeFlag,
       vector<Alignment>& matches) const;
 };
 
