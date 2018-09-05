@@ -42,7 +42,10 @@ class Align
       const vector<PeakPos>& refPeaks,
       const vector<PeakPos>& shiftedPeaks) const;
       
-    void makeShiftCandidates(vector<Shift>& candidates) const;
+    void makeShiftCandidates(
+      vector<Shift>& candidates,
+      const unsigned lt,
+      const unsigned lp) const;
 
     bool betterSimpleScore(
       const double score,

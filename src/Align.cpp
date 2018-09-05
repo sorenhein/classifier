@@ -13,8 +13,8 @@
 
 // Can adjust these.
 
-#define INSERT_PENALTY 5000.
-#define DELETE_PENALTY 10000.
+#define INSERT_PENALTY 1000.
+#define DELETE_PENALTY 1000.
 #define EARLY_MISS_PENALTY 10.
 #define MAX_EARLY_MISSES 3
 
@@ -25,6 +25,27 @@
 #define PROXIMITY_PARAMETER 1.5
 
 extern Timers timers;
+
+
+struct OverallShift
+{
+  unsigned firstRefNo;
+  unsigned firstTimeNo;
+};
+
+const vector<OverallShift> overallShifts =
+{
+  {0, 0},
+  {0, 1},
+  {1, 0},
+  {0, 2},
+  {2, 0},
+  {0, 3},
+  {3, 0},
+
+  {2, 1},
+  {3, 1},
+};
 
 
 Align::Align()
@@ -388,18 +409,34 @@ void Align::estimateMotion(
   // Assuming the peaks line up from firstRefNo and firstTimeNo onwards, 
   // it's an interpolation.  But there could also be insertions and 
   // deletions either in the first or second half of the times list.
+  //
+  // If there is 1 extra time peak in the first half of times,
+  // then we should pretend that lt is 1 lower when we calculate
+  // the interpolation fraction in tpos0 and tpos1 (the times 
+  // corresponding to posLeft and posLeft+1), and then add 1.
+  //
+  // If the extra time peak is in the second half, we still pretend
+  // that lt is 1 lower, but we don't add 1.
 
   const unsigned lt = times.size();
   const double tOffset = times[shift.firstTimeNo].time;
   double tEnd = times.back().time - tOffset;
 
-  const double tpos0 = shift.firstTimeNo + 
-    static_cast<double>(posLeft - shift.firstRefNo) * 
-      (lt - shift.firstTimeNo - 1.) / (lp - shift.firstRefNo - 1.);
+  const double lpeff = lp - shift.firstRefNo;
+  const double lteff = lt - shift.firstTimeNo -
+    shift.firstHalfNetInsert - shift.secondHalfNetInsert;
 
-  const double tpos1 = shift.firstTimeNo + 
+  const double tpos0 = 
+    shift.firstTimeNo + 
+    shift.firstHalfNetInsert +
+    static_cast<double>(posLeft - shift.firstRefNo) * 
+      (lteff - 1.) / (lpeff - 1.);
+
+  const double tpos1 = 
+    shift.firstTimeNo + 
+    shift.firstHalfNetInsert +
     static_cast<double>(posLeft + 1 - shift.firstRefNo) * 
-      (lt - shift.firstTimeNo - 1.) / (lp - shift.firstRefNo - 1.);
+      (lteff - 1.) / (lpeff - 1.);
 
   const double tMid0 = Align::interpolateTime(times, tpos0);
   const double tMid1 = Align::interpolateTime(times, tpos1);
@@ -480,36 +517,69 @@ double Align::simpleScore(
 }
 
 
-void Align::makeShiftCandidates(vector<Shift>& candidates) const
+void Align::makeShiftCandidates(
+  vector<Shift>& candidates,
+  const unsigned lt,
+  const unsigned lp) const
 {
-  candidates.resize(9);
+  candidates.clear();
 
-  candidates[0].firstRefNo = 3;
-  candidates[0].firstTimeNo = 0;
+  for (auto& o: overallShifts)
+  {
 
-  candidates[1].firstRefNo = 2;
-  candidates[1].firstTimeNo = 0;
+    // Let's say firstRefNo = 2, firstTimeNo = 1, lp = 56, lt = 54.
+    // So we'll be aligning 54 ref peaks with 53 times.  That means
+    // we missed one of the time peaks (or maybe we missed 2 and added
+    // one spurious peak, but we won't look too hard for that).
+    // We could have missed it either in the first half or in the 
+    // second half of the times list.
+    
+    const unsigned effRef = lp - o.firstRefNo;
+    const unsigned effTimes = lt - o.firstTimeNo;
 
-  candidates[2].firstRefNo = 1;
-  candidates[2].firstTimeNo = 0;
+    if (effRef == effTimes + 1)
+    {
+      candidates.push_back(Shift());
+      Shift& shift1 = candidates.back();
+      shift1.firstRefNo = o.firstRefNo;
+      shift1.firstTimeNo = o.firstTimeNo;
+      shift1.firstHalfNetInsert = 1;
+      shift1.secondHalfNetInsert = 0;
 
-  candidates[3].firstRefNo = 0;
-  candidates[3].firstTimeNo = 0;
+      candidates.push_back(Shift());
+      Shift& shift2 = candidates.back();
+      shift2.firstRefNo = o.firstRefNo;
+      shift2.firstTimeNo = o.firstTimeNo;
+      shift2.firstHalfNetInsert = 0;
+      shift2.secondHalfNetInsert = 1;
+    }
+    else if (effRef + 1 == effTimes)
+    {
+      candidates.push_back(Shift());
+      Shift& shift1 = candidates.back();
+      shift1.firstRefNo = o.firstRefNo;
+      shift1.firstTimeNo = o.firstTimeNo;
+      shift1.firstHalfNetInsert = -1;
+      shift1.secondHalfNetInsert = 0;
 
-  candidates[4].firstRefNo = 0;
-  candidates[4].firstTimeNo = 1;
-
-  candidates[5].firstRefNo = 0;
-  candidates[5].firstTimeNo = 2;
-
-  candidates[6].firstRefNo = 0;
-  candidates[6].firstTimeNo = 3;
-
-  candidates[7].firstRefNo = 2;
-  candidates[7].firstTimeNo = 1;
-
-  candidates[8].firstRefNo = 3;
-  candidates[8].firstTimeNo = 1;
+      candidates.push_back(Shift());
+      Shift& shift2 = candidates.back();
+      shift2.firstRefNo = o.firstRefNo;
+      shift2.firstTimeNo = o.firstTimeNo;
+      shift2.firstHalfNetInsert = 0;
+      shift2.secondHalfNetInsert = -1;
+    }
+    else
+    {
+      // This will only work out well if effRef == effTimes.
+      candidates.push_back(Shift());
+      Shift& shift = candidates.back();
+      shift.firstRefNo = o.firstRefNo;
+      shift.firstTimeNo = o.firstTimeNo;
+      shift.firstHalfNetInsert = 0;
+      shift.secondHalfNetInsert = 0;
+    }
+  }
 }
 
 
@@ -594,14 +664,16 @@ void Align::scalePeaks(
   // TODO Make this more general:  Also net adds in 1st/2nd halves.
   // Impacts estimateMotion
 
+  const unsigned lt = times.size();
+  const unsigned lp = refPeaks.size();
+
   vector<Shift> candidates;
-  Align::makeShiftCandidates(candidates);
+  Align::makeShiftCandidates(candidates, lt, lp);
 
   // We calculate a simple score for this shift.  In fact
   // we could also run Needleman-Wunsch, so this is a bit of an
   // optimization.
 
-  const unsigned lt = times.size();
   vector<PeakPos> candPeaks(lt);
 
   unsigned bestIndex = 0;
