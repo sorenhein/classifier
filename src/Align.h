@@ -36,9 +36,7 @@ class Align
     void estimateMotion(
       const vector<PeakPos>& refPeaks,
       const vector<PeakTime>& times,
-      const unsigned firstRefNo,
-      const unsigned firstTimeNo,
-      vector<double>& motion) const;
+      Shift& shift) const;
       
     double simpleScore(
       const vector<PeakPos>& refPeaks,

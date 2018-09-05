@@ -343,14 +343,11 @@ double Align::interpolateTime(
 void Align::estimateMotion(
   const vector<PeakPos>& refPeaks,
   const vector<PeakTime>& times,
-  const unsigned firstRefNo,
-  const unsigned firstTimeNo,
-  vector<double>& motion) const
+  Shift& shift) const
 {
   /*
-     This is quite approximate, especially in that t_mid is not
-     determined very well.  But it seems to be good enough to unwarp
-     most of the acceleration.
+     The basic idea is to estimate speed and acceleration.  This has
+     become somewhat more elaborate as it gained in importance.
 
      len = v0 * t_end + 0.5 * a * t_end^2
      len/2 = v_0 * t_mid + 0.5 * a * t_mid^2
@@ -364,19 +361,14 @@ void Align::estimateMotion(
   */
 
   const unsigned lp = refPeaks.size();
-  const unsigned lt = times.size();
 
-  const double len = refPeaks[lp-1].pos - refPeaks[firstRefNo].pos;
-  const double posMid = refPeaks[firstRefNo].pos + len / 2.;
+  const double len = refPeaks[lp-1].pos - refPeaks[shift.firstRefNo].pos;
+  const double posMid = refPeaks[shift.firstRefNo].pos + len / 2.;
 
   // Look for posMid in refPeaks.
   unsigned posLeft = 0;
   while (posLeft+1 < lp && refPeaks[posLeft+1].pos <= posMid)
     posLeft++;
-
-// bool flag = false;
-// if (firstRefNo == 3 &&firstTimeNo == 1)
-  // flag = true;
 
 // if (flag)
 // cout << "posLeft " << posLeft << endl;
@@ -388,48 +380,48 @@ void Align::estimateMotion(
 // if (flag)
 // cout << "posMid " << posMid << " propRight " << propRight << endl;
 
-  // Look for the posLeft and posLeft+1 values in times.
-  // If we have the same number of peaks on both sides, this is not hard.
-  // In general we interpolate, which does not deal so well with
-  // spurious peaks.
+  // Down to here nothing depends on the vagaries of measured times.
+  // The tricky part is to find tMid, the time at which the actual
+  // train reaches posMid.  This happens at posLeft plus a fraction
+  // (propRight) of the rightmost part of the next refPeaks interval.
+  // 
+  // Assuming the peaks line up from firstRefNo and firstTimeNo onwards, 
+  // it's an interpolation.  But there could also be insertions and 
+  // deletions either in the first or second half of the times list.
 
-  const double tOffset = times[firstTimeNo].time;
+  const unsigned lt = times.size();
+  const double tOffset = times[shift.firstTimeNo].time;
+  double tEnd = times.back().time - tOffset;
 
-  const double tMid0 = Align::interpolateTime(times, 
-    firstTimeNo + static_cast<double>(posLeft - firstRefNo) * 
-      (lt - firstTimeNo - 1.) / (lp - firstRefNo - 1.));
-  const double tMid1 = Align::interpolateTime(times, 
-    firstTimeNo + static_cast<double>(posLeft + 1 - firstRefNo) * 
-      (lt - firstTimeNo - 1.) / (lp - firstRefNo - 1.));
+  const double tpos0 = shift.firstTimeNo + 
+    static_cast<double>(posLeft - shift.firstRefNo) * 
+      (lt - shift.firstTimeNo - 1.) / (lp - shift.firstRefNo - 1.);
+
+  const double tpos1 = shift.firstTimeNo + 
+    static_cast<double>(posLeft + 1 - shift.firstRefNo) * 
+      (lt - shift.firstTimeNo - 1.) / (lp - shift.firstRefNo - 1.);
+
+  const double tMid0 = Align::interpolateTime(times, tpos0);
+  const double tMid1 = Align::interpolateTime(times, tpos1);
 
   const double tMid = (1.-propRight) * tMid0 + propRight * tMid1 -
     tOffset;
   
-  double tEnd = times.back().time - tOffset;
+  // From here on it is just the calculation of accelation (2),
+  // speed (1) and offset (0).
 
-  // Acceleration.
-  motion[2] = len * (2.*tMid - tEnd) /
+  shift.motion[2] = len * (2.*tMid - tEnd) /
     (tMid * tEnd * (tEnd - tMid));
 
-  // Speed.
-  motion[1] = (len - 0.5 * motion[2] * tEnd * tEnd) / tEnd;
+  shift.motion[1] = (len - 0.5 * shift.motion[2] * tEnd * tEnd) / tEnd;
 // if (flag)
 // cout << "len " << len << " tMid " << tMid << " tEnd " << tEnd <<
   // " accel " << motion[2] << " speed " << motion[1] << endl;
 
-  // Offset.
-  /*
-  if (firstRefNo == 0)
-    motion[0] = - motion[1] * times[firstTimeNo].time -
-      0.5 * motion[2] * times[firstTimeNo].time * 
-        times[firstTimeNo].time;
-  else
-    motion[0] = refPeaks[firstRefNo].pos;
-  */
-  motion[0] = refPeaks[firstRefNo].pos -
-    (motion[1] * times[firstTimeNo].time +
-      0.5 * motion[2] * times[firstTimeNo].time * 
-        times[firstTimeNo].time);
+  shift.motion[0] = refPeaks[shift.firstRefNo].pos -
+    (shift.motion[1] * times[shift.firstTimeNo].time +
+      0.5 * shift.motion[2] * times[shift.firstTimeNo].time * 
+        times[shift.firstTimeNo].time);
 }
 
 
@@ -622,9 +614,7 @@ void Align::scalePeaks(
     Shift& cand = candidates[i];
     cand.motion.resize(3);
 
-    // TODO Pass in all of cand
-    Align::estimateMotion(refPeaks, times, cand.firstRefNo, 
-      cand.firstTimeNo, cand.motion);
+    Align::estimateMotion(refPeaks, times, cand);
 
     for (unsigned j = 0; j < lt; j++)
     {
