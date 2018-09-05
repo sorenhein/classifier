@@ -44,6 +44,16 @@ class Align
       const vector<PeakPos>& refPeaks,
       const vector<PeakPos>& shiftedPeaks) const;
       
+    void makeShiftCandidates(vector<Shift>& candidates) const;
+
+    bool betterSimpleScore(
+      const double score,
+      const unsigned index,
+      const double bestScore,
+      const unsigned bestIndex,
+      const vector<Shift>& candidates,
+      const unsigned lt) const;
+
     void scalePeaks(
       const vector<PeakPos>& refPeaks,
       const vector<PeakTime>& times,
@@ -54,6 +64,13 @@ class Align
       const vector<PeakPos>& refPeaks,
       const vector<PeakPos>& scaledPeaks,
       const double peakScale,
+      Alignment& alignment) const;
+
+    void NeedlemanWunschNew(
+      const vector<PeakPos>& refPeaks,
+      const vector<PeakPos>& scaledPeaks,
+      const double peakScale,
+      const Shift& shift,
       Alignment& alignment) const;
 
     void printAlignPeaks(

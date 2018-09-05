@@ -1,3 +1,32 @@
+2018-09-03
+----------
+Now the basic idea of dropping a number of early refs and/or actuals
+seems to work.  But if we're dropping 3 refs and 1 actual, and if
+actual=0 should really "match" to ref=1, then instead we match to
+ref=2 because it's cheaper to drop the two leading refs and to take 
+the distance hit.
+We need to make the ref penalty be 10 for all i <= 3 (or 2?).
+Even so, we get a false option to match actual=0 to anything.  If
+it's cheaper than drop+add, it will be detected as such.
+If we say we drop it, shouldn't we also drop it from scaledPeaks and
+force the 10-point penalty?  In other words, Needleman-Wunsch
+shouldn't even see it?
+Comparing 2 refs and 0 actuals, this would only have a 20-point hit
+and not a 40-point one.  So it could afford some distance hit on
+ref=2 vs actual=0.  Therefore it could "falsely" prefer to drop
+2 refs and 0 actuals.
+However, this would not make it out of pre-alignment as 3/1 has such 
+a good match score.
+To summarize, I think we take a fixed hit out of the pre-alignment,
+and N-W only sees the two vectors from these starting points.
+
+Or actually:  If we know we'll drop the first 3 refs and 1 actual,
+the corresponding penalty is 0.  If we know that we'll drop 1
+in the first half of actual (after the initial one), then we'll keep
+track of how many we've dropped in that interval already when
+backtracking, and the first one is free.  So a more complicated
+objective function but with the full vectors.
+
 2018-09-02
 ----------
 * Improve the recognition (currently 1072 / 1778 = 60.3%)
