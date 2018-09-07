@@ -109,7 +109,7 @@ void SegActive::integrateFloat()
 }
 
 
-void SegActive::highpass()
+void SegActive::highpass(vector<float>& integrand)
 {
   // Fifth-order high-pass Butterworth filter with low cut-off.
   // The filter is run forwards and backwards in order to
@@ -138,7 +138,7 @@ void SegActive::highpass()
     -0.9504376817056966
   };
 
-  const unsigned ls = synthPos.size();
+  const unsigned ls = integrand.size();
   vector<double> forward(ls);
 
   vector<double> state(order+1);
@@ -147,11 +147,11 @@ void SegActive::highpass()
 
   for (unsigned i = 0; i < ls; i++)
   {
-    forward[i] = num[0] * static_cast<double>(synthPos[i]) + state[0];
+    forward[i] = num[0] * static_cast<double>(integrand[i]) + state[0];
 
     for (unsigned j = 0; j < order; j++)
     {
-      state[j] = num[j+1] * static_cast<double>(synthPos[i]) - 
+      state[j] = num[j+1] * static_cast<double>(integrand[i]) - 
         denom[j+1] * forward[i] + state[j+1];
     }
   }
@@ -174,7 +174,7 @@ void SegActive::highpass()
   }
 
   for (unsigned i = 0; i < ls; i++)
-    synthPos[i] = static_cast<float>(backward[i]);
+    integrand[i] = static_cast<float>(backward[i]);
 }
 
 
@@ -192,16 +192,18 @@ bool SegActive::detect(
   synthPos.resize(writeInterval.len);
 
   SegActive::integrate(samples, active);
-  SegActive::compensateSpeed();
+  SegActive::highpass(synthSpeed);
+  // SegActive::compensateSpeed();
 
   SegActive::integrateFloat();
-  SegActive::highpass();
+  SegActive::highpass(synthPos);
 
   timers.stop(TIMER_CONDITION);
 
   timers.start(TIMER_DETECT_PEAKS);
   peakDetect.log(synthPos, writeInterval.first);
-  peakDetect.reduce();
+  // peakDetect.reduce();
+  peakDetect.reduceNew();
   timers.stop(TIMER_DETECT_PEAKS);
 
   synthPeaks.resize(writeInterval.len);

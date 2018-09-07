@@ -31,7 +31,7 @@ class SegActive
 
     void integrateFloat();
 
-    void highpass();
+    void highpass(vector<float>& integrand);
 
   public:
 

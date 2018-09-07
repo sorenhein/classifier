@@ -42,6 +42,10 @@ class PeakDetect
 
     void reduceTransientLeftovers();
 
+    void eliminateTinyAreas();
+
+    void eliminateKinks();
+
     void printHeader() const;
 
     void printPeak(
@@ -61,6 +65,7 @@ class PeakDetect
       const unsigned offsetSamples);
 
     void reduce();
+    void reduceNew();
 
     void makeSynthPeaks(vector<float>& synthPeaks) const;
 

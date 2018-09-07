@@ -305,12 +305,20 @@ void PeakDetect::remakeFlanks(const vector<unsigned>& survivors)
   right.reset();
   unsigned np = 0;
 
+bool flag = false;
   for (unsigned pno = peaks.size(); pno > 0; pno--)
   {
 if (sno == 0)
   THROW(ERR_SURVIVORS, "survivor number is zero");
 
     PeakData& peak = peaks[pno-1];
+if (peak.index == 9623)
+  flag = true;
+
+if (flag)
+  cout << "\nNext survivor: " << survivors[sno-1] << 
+    ", " << peaks[survivors[sno-1]].index << "\n";
+
     const bool maxFlag = peaks[survivors[sno-1]].maxFlag;
 
     if (pno-1 > survivors[sno-1])
@@ -319,11 +327,34 @@ if (sno == 0)
       {
         left += peak.left;
         right += peak.right;
+
+if (flag)
+{
+  cout << "Incrementing left by " << peak.left.range << 
+    ", " << peak.left.area << "\n";
+  cout << "Incrementing right by " << peak.right.range << 
+    ", " << peak.right.area << "\n";
+  cout << "Left now " << left.range <<
+    ", " << left.area << "\n";
+  cout << "Right now " << right.range <<
+    ", " << right.area << "\n";
+}
       }
       else
       {
         left -= peak.left;
         right -= peak.right;
+if (flag)
+{
+  cout << "Decrementing left by " << peak.left.range << 
+    ", " << peak.left.area << "\n";
+  cout << "Decrementing right by " << peak.right.range << 
+    ", " << peak.right.area << "\n";
+  cout << "Left now " << left.range <<
+    ", " << left.area << "\n";
+  cout << "Right now " << right.range <<
+    ", " << right.area << "\n";
+}
       }
       np++;
       continue;
@@ -332,6 +363,10 @@ if (sno == 0)
 
     if (np > 0)
     {
+if (flag)
+{
+  cout << "pno now " << pno << "\n";
+}
       peak.right += right;
 
       if (pno+np < peaks.size())
@@ -407,7 +442,7 @@ void PeakDetect::reduceToRuns()
       if (abs(d) < runningRange / 2.f)
         break;
       else if (peaks[j].maxFlag == maxFlag)
-          continue;
+        continue;
       else if ((maxFlag && peaks[j].value >= watermark) ||
           (! maxFlag && peaks[j].value <= watermark))
         break;
@@ -554,10 +589,20 @@ void PeakDetect::reduceSmallRuns(const float areaLimit)
 {
   vector<unsigned> survivors;
 
+
   unsigned start = 0;
   const unsigned lp = peaks.size();
   while (start < lp && peaks[start].left.area <= areaLimit)
     start++;
+
+unsigned count = 0;
+for (unsigned i = 0; i < lp; i++)
+{
+  if ((peaks[i].left.area >= 0.1 || peaks[i].right.area >= 0.1) &&
+      peaks[i].value < 0. && ! peaks[i].maxFlag)
+    count++;
+}
+cout << "Non-trivial negative minima: " << count << " out of " << lp << "\n\n";
 
   for (unsigned i = start; i < lp; i++)
   {
@@ -652,11 +697,16 @@ void PeakDetect::reduceTransientLeftovers()
 void PeakDetect::reduce()
 {
   PeakDetect::reduceToRuns();
+// cout << "runs\n";
+// PeakDetect::print();
 
   float veryLargeArea, normalLargeArea;
   PeakDetect::estimateAreaRanges(veryLargeArea, normalLargeArea);
 
   PeakDetect::reduceSmallRuns(normalLargeArea / SMALL_AREA_FACTOR);
+// cout << "no small runs, " << normalLargeArea << ", " << 
+  // normalLargeArea / SMALL_AREA_FACTOR << "\n";
+// PeakDetect::print();
 
   // Currently not doing anything about very large runs.
 
@@ -664,8 +714,94 @@ void PeakDetect::reduce()
   PeakDetect::estimatePeakSize(negativePeakSize);
   
   PeakDetect::reduceNegativeDips(0.5f * negativePeakSize);
+// cout << "no dips, " << negativePeakSize << "\n";
+// PeakDetect::print();
 
   PeakDetect::reduceTransientLeftovers();
+// cout << "no transient\n";
+// PeakDetect::print();
+}
+
+
+void PeakDetect::eliminateTinyAreas()
+{
+  vector<unsigned> survivors;
+
+  const unsigned lp = peaks.size();
+  for (unsigned i = 0; i+1 < lp; i++)
+  {
+    // 0 .. lp
+    // Start always from a tiny peak
+    // Flag if can be subsumed by predecessor (may not exist)
+    // Flag if successor (ditto)
+    // If both exist:
+    //   Aren't we always the (local) extremum?
+
+    if (peaks[i].left.area <= 0.1 && 
+        peaks[i].right.area <= 0.1 &&
+        peaks[i+1].left.range <= peaks[i+1].right.range)
+    {
+      // This peak is tiny and can be subsumed by next one.
+      //
+      i++;
+    }
+    else if ( peaks[i].left.range >= peaks[i].right.range &&
+        peaks[i+1].left.area <= 0.1 && 
+        peaks[i+1].right.area <= 0.1)
+    {
+      // The next peak is tiny and can be subsumed by this one.
+      i++;
+    }
+    else
+      survivors.push_back(i);
+  }
+
+  PeakDetect::remakeFlanks(survivors);
+}
+
+
+void PeakDetect::eliminateKinks()
+{
+  vector<unsigned> survivors;
+
+  const unsigned lp = peaks.size();
+  for (unsigned i = 0; i+1 < lp; i++)
+  {
+    const double l2r = peaks[i].left.area / peaks[i].right.area;
+    const double nextl2r = peaks[i+1].left.area / peaks[i+1].right.area;
+
+    if (l2r >= 100. && nextl2r <= 1.)
+    {
+      // Strike self and next peak.
+      i++;
+    }
+    else if (nextl2r >= 0.01 && l2r >= 1.)
+    {
+      // Strike self and next peak.
+      i++;
+    }
+    else
+      survivors.push_back(i);
+  }
+
+  PeakDetect::remakeFlanks(survivors);
+}
+
+
+void PeakDetect::reduceNew()
+{
+cout << "Raw peaks: " << peaks.size() << "\n";
+PeakDetect::print();
+
+  PeakDetect::eliminateTinyAreas();
+
+cout << "Non-tiny peaks: " << peaks.size() << "\n";
+PeakDetect::print();
+
+  // PeakDetect::eliminateKinks();
+
+cout << "Non-kinky peaks: " << peaks.size() << "\n";
+PeakDetect::print();
 }
 
 

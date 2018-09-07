@@ -1,47 +1,58 @@
-2018-09-03
+2018-09-05
 ----------
-Now the basic idea of dropping a number of early refs and/or actuals
-seems to work.  But if we're dropping 3 refs and 1 actual, and if
-actual=0 should really "match" to ref=1, then instead we match to
-ref=2 because it's cheaper to drop the two leading refs and to take 
-the distance hit.
-We need to make the ref penalty be 10 for all i <= 3 (or 2?).
-Even so, we get a false option to match actual=0 to anything.  If
-it's cheaper than drop+add, it will be detected as such.
-If we say we drop it, shouldn't we also drop it from scaledPeaks and
-force the 10-point penalty?  In other words, Needleman-Wunsch
-shouldn't even see it?
-Comparing 2 refs and 0 actuals, this would only have a 20-point hit
-and not a 40-point one.  So it could afford some distance hit on
-ref=2 vs actual=0.  Therefore it could "falsely" prefer to drop
-2 refs and 0 actuals.
-However, this would not make it out of pre-alignment as 3/1 has such 
-a good match score.
-To summarize, I think we take a fixed hit out of the pre-alignment,
-and N-W only sees the two vectors from these starting points.
+We're getting negative areas again.
 
-Or actually:  If we know we'll drop the first 3 refs and 1 actual,
-the corresponding penalty is 0.  If we know that we'll drop 1
-in the first half of actual (after the initial one), then we'll keep
-track of how many we've dropped in that interval already when
-backtracking, and the first one is free.  So a more complicated
-objective function but with the full vectors.
+eliminateTiny does not make alternating min/max anymore
+
+
+PeakDetect attempts to get the peaks almost exactly right, based on
+somewhat semantic rules.  It either fails or behaves marginally w.r.t.
+
+- Broad, symmetric minima in quiet periods, somewhat negative
+- Extra, somewhat shallow but real minima during a two-wheel interval
+
+Possible improvement:
+
+- No runs as such
+
+- Eliminate only very small-area peaks and only where both the left
+  and right sides are small.
+  - Say, all areas < (0.10, 0.10)
+
+- Eliminate some obvious small kinks where L/R ratio > 100 (or higher?)
+  on one side and maybe > 10 on the other
+
+- Then cluster minima below the zero line, expecting
+  - (Potentially) the broad, symmetric minima, not so deep
+  - The actual left and right wheels (or single wheels if appropriate)
+  - Some shallower but real minima that are resonances from wheels
+
+The goal of PeakDetect has been to get the peaks almost exactly right,
+i.e. all the right ones and no "spurious" ones.  This even includes
+broad minima during somewhat quiet periods.  It seems that some traces
+have three (noticeable) minima during ranges where there are only two
+wheels.  We can try to define rules to avoid or reduce these, but it
+seems difficult to make clean cuts.
+
+Another approach is not to be too brutal about cutting peaks.  This
+means we'll get the broad, quiet dips, and also the extra minima.
+We won't miss quite so many peaks, except in the beginning, but we'll 
+have a lot that do not directly coincide in time with wheel positions.
+
+
+1. Some kind of semantic view of the peaks, similar to the human eye.
+   - Only below the "zero" line?  Assumes good nulling.
+   - Recognize the broad minima separately?
+   - Cluster on combination of level and left-right areas?
+
+2. Pass them all to a NW-like algorithm.  
+
+
+
 
 2018-09-02
 ----------
 * Improve the recognition (currently 1072 / 1778 = 60.3%)
-
-* Align
-  - Split into pre-align and align
-  - Also look for shifts like this: 062493
-        ref   our
-  #68   2     1   We have one spurious peak, but we missed 2
-  #66   2     1
-  #48   1     1
-  #31   2     1
-
-* Maybe also detect single insertions/deletions in first and 
-  second half of times?  Or detect morphologically in peaks?
 
 * Add separate timers for pre-align and align
 
@@ -74,9 +85,9 @@ Overall algorithm
 * Check against laser measurements!
 * Output a diagram with the wagons suggested
 * throw/catch with error codes (like Build)
+* filtfilt padding, how?
 * Make independent of sample rate (other than Butterworth?)
-* Use Butterworth instead of 1001-tap lowpass filter?
-  - Move to less padding in SegQuiet back
+* Move to less padding in SegQuiet back
 * Implement displacement algorithms
   - Our integration
   - Some kind of scalar product
