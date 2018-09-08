@@ -46,6 +46,8 @@ class PeakDetect
 
     void eliminateKinks();
 
+    void eliminatePositiveMinima();
+
     void printHeader() const;
 
     void printPeak(

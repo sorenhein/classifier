@@ -589,20 +589,11 @@ void PeakDetect::reduceSmallRuns(const float areaLimit)
 {
   vector<unsigned> survivors;
 
-
+  // Skip small starting peaks.
   unsigned start = 0;
   const unsigned lp = peaks.size();
   while (start < lp && peaks[start].left.area <= areaLimit)
     start++;
-
-unsigned count = 0;
-for (unsigned i = 0; i < lp; i++)
-{
-  if ((peaks[i].left.area >= 0.1 || peaks[i].right.area >= 0.1) &&
-      peaks[i].value < 0. && ! peaks[i].maxFlag)
-    count++;
-}
-cout << "Non-trivial negative minima: " << count << " out of " << lp << "\n\n";
 
   for (unsigned i = start; i < lp; i++)
   {
@@ -610,8 +601,31 @@ cout << "Non-trivial negative minima: " << count << " out of " << lp << "\n\n";
       survivors.push_back(i);
     else
     {
-      // Collapse the peaks in pairs.
-      i++;
+      const bool maxFlag = peaks[i].maxFlag;
+      unsigned iextr = i;
+      float vextr = peaks[iextr].value;
+
+      while (i < lp && peaks[i].right.area <= areaLimit)
+      {
+        if (peaks[i].maxFlag == maxFlag &&
+           ((maxFlag && peaks[i].value > vextr) ||
+            (! maxFlag && peaks[i].value < vextr)))
+        {
+          iextr = i;
+          vextr = peaks[i].value;
+        }
+        i++;
+      }
+
+      if (i+1 < lp &&
+          peaks[i].maxFlag != maxFlag &&
+          ((maxFlag && peaks[i+1].value > vextr) ||
+          (! maxFlag && peaks[i+1].value < vextr)))
+      {
+        // Let nature take its course.
+      }
+      else
+        survivors.push_back(iextr);
     }
   }
 
@@ -775,7 +789,7 @@ void PeakDetect::eliminateKinks()
       // Strike self and next peak.
       i++;
     }
-    else if (nextl2r >= 0.01 && l2r >= 1.)
+    else if (nextl2r <= 0.01 && l2r >= 1.)
     {
       // Strike self and next peak.
       i++;
@@ -788,20 +802,71 @@ void PeakDetect::eliminateKinks()
 }
 
 
+void PeakDetect::eliminatePositiveMinima()
+{
+  vector<unsigned> survivors;
+
+  const unsigned lp = peaks.size();
+
+  // Strike a starting positive minimum.
+  unsigned start = 0;
+  if (peaks[start].value >= 0. && ! peaks[start].maxFlag)
+    start++;
+
+  for (unsigned i = start; i < lp-1; i++)
+  {
+    if (peaks[i+1].value < 0. || peaks[i+1].maxFlag)
+    {
+      // The next peak is not a positive mininum.
+      survivors.push_back(i);
+    }
+    else
+    {
+      unsigned imax = i;
+      float vmax = peaks[imax].value;
+
+      while (i+2 < lp && peaks[i+1].value >= 0.)
+      {
+        if (vmax < peaks[i+2].value)
+        {
+          imax = i;
+          vmax = peaks[i+2].value;
+        }
+        i += 2;
+      }
+
+      // Keep the largest maximum.
+      survivors.push_back(imax);
+    }
+  }
+
+  PeakDetect::remakeFlanks(survivors);
+}
+
+
 void PeakDetect::reduceNew()
 {
 cout << "Raw peaks: " << peaks.size() << "\n";
 PeakDetect::print();
 
-  PeakDetect::eliminateTinyAreas();
+  // PeakDetect::eliminateTinyAreas();
+  // TODO Maybe also something derived from the signal.
+  // Call it SmallPeaks, not SmallRuns
+  // TODO Doubly linked list for peak structure.
+  PeakDetect::reduceSmallRuns(0.1f);
 
 cout << "Non-tiny peaks: " << peaks.size() << "\n";
 PeakDetect::print();
 
-  // PeakDetect::eliminateKinks();
+  PeakDetect::eliminateKinks();
 
 cout << "Non-kinky peaks: " << peaks.size() << "\n";
 PeakDetect::print();
+
+  PeakDetect::eliminatePositiveMinima();
+cout << "Negative peaks: " << peaks.size() << "\n";
+PeakDetect::print();
+
 }
 
 
