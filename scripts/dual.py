@@ -1,6 +1,8 @@
 import glob
 import matplotlib.pyplot as plt
 import numpy as np
+import platform
+from six.moves import input
 
 sensors = [
   '062493', '063848', '063905', '065330', '066221', 
@@ -11,7 +13,10 @@ sensors = [
   '099743', '101630', '101648', '101796', '106346',
   '391705', '391710', '391711', '391718', '391731']
 
-basedir = R"C:\Program Files (x86)\cygwin64\home\s.hein\mini_dataset_v012\data\sensors" + "\\"
+if platform.node() == 'CAD04':
+  basedir = R"D:\cygwin64\home\heins\mini_dataset_v012\data\sensors" + "\\"
+else:
+  basedir = R"C:\Program Files (x86)\cygwin64\home\s.hein\mini_dataset_v012\data\sensors" + "\\"
 
 extension = ".dat"
 
@@ -36,7 +41,7 @@ def remove_offset(text):
 
 def get_user_input(curr, limit, matched):
   """Gets user input for display: n, p, N, or number."""
-  val = raw_input("Input: ")
+  val = input("Input: ")
   c = curr
   if val == "q":
     return 0, 1
