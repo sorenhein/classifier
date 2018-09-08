@@ -197,20 +197,27 @@ struct Interval
 
 struct FlankData
 {
-  unsigned len;
+  float len;
   float range;
   float area;
 
   void reset() {len = 0; range = 0.f; area = 0.f;}
 
-  void operator += (const FlankData fd2)
+  void operator += (const FlankData& fd2)
   {
     len += fd2.len; range += fd2.range; area += fd2.area;
   }
 
-  void operator -= (const FlankData fd2)
+  void operator -= (const FlankData& fd2)
   {
     len += fd2.len; range -= fd2.range; area -= fd2.area;
+  }
+
+  void operator /= (const unsigned no)
+  {
+    len /= no;
+    range /= no;
+    area /= no;
   }
 };
 
@@ -222,6 +229,20 @@ struct PeakData
   FlankData left;
   FlankData right;
   bool activeFlag;
+
+  void operator += (const PeakData& pd2)
+  {
+    value += pd2.value;
+    left += pd2.left;
+    right += pd2.right;
+  }
+
+  void operator /= (const unsigned no)
+  {
+    value /= no;
+    left /= no;
+    right /= no;
+  }
 };
 
 

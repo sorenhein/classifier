@@ -13,9 +13,17 @@ class PeakDetect
 {
   private:
 
+    struct Koptions
+    {
+      unsigned numClusters;
+      unsigned numIterations;
+      float convCriterion;
+    };
+
     unsigned len;
     unsigned offset;
     vector<PeakData> peaks;
+    PeakData scales;
 
 
     float integral(
@@ -35,6 +43,23 @@ class PeakDetect
       float& normalLargeArea) const;
 
     void estimatePeakSize(float& negativePeakSize) const;
+
+    float estimateScale(vector<float>& data) const;
+
+    void estimateScales();
+
+    void normalizePeaks(vector<PeakData>& normalPeaks);
+
+    float metric(
+      const PeakData& np1,
+      const PeakData& np2) const;
+
+    void runKmeansOnce(
+      const Koptions& koptions,
+      const vector<PeakData>& normalPeaks,
+      vector<PeakData>& clusters,
+      vector<unsigned>& assigns,
+      float& distance) const;
 
     void reduceSmallRuns(const float areaLimit);
 
