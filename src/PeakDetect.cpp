@@ -52,6 +52,47 @@ float PeakDetect::integral(
 }
 
 
+bool PeakDetect::checkList(const vector<float>& samples) const
+{
+  if (samples.size() == 0)
+    THROW(ERR_SHORT_ACCEL_TRACE, "Accel trace length: " + to_string(len));
+
+  bool flag = true;
+  for (auto it = peakList.begin(); it != peakList.end(); it++)
+  {
+    const unsigned index = it->getIndex();
+    const float value = it->getValue();
+
+    unsigned indexPrev;
+    float valuePrev;
+
+    if (it == peakList.begin())
+    {
+      indexPrev = 0;
+      valuePrev = samples[0];
+    }
+    else
+    {
+      const auto itPrev = prev(it);
+      indexPrev = itPrev->getIndex();
+      valuePrev = itPrev->getValue();
+    }
+
+    Peak peakSynth;
+    peakSynth.log(index, 
+      value,
+      (value > valuePrev),
+      static_cast<float>(index - indexPrev),
+      abs(value - valuePrev),
+      PeakDetect::integral(samples, indexPrev, index, value));
+    
+    if (! it->check(peakSynth, offset))
+      flag = false;
+  }
+  return false;
+}
+
+
 bool PeakDetect::check(const vector<float>& samples) const
 {
   bool flag = true;
@@ -227,6 +268,77 @@ bool PeakDetect::check(const vector<float>& samples) const
   }
 
   return flag;
+}
+
+
+void PeakDetect::logList(
+  const vector<float>& samples,
+  const unsigned offsetSamples)
+{
+  len = samples.size();
+  if (len < 2)
+    THROW(ERR_SHORT_ACCEL_TRACE, "Accel trace length: " + to_string(len));
+
+  offset = offsetSamples;
+  peakList.clear();
+  bool maxFlag;
+
+  for (unsigned i = 1; i < len-1; i++)
+  {
+    while (i < len-1 && samples[i] == samples[i-1])
+      i++;
+
+    if (i == len-1)
+      break;
+
+    if (samples[i] > samples[i-1])
+    {
+      // Use the last of equals as the starting point.
+      while (i < len-1 && samples[i] == samples[i+1])
+        i++;
+
+      if (i < len-1 && samples[i] > samples[i+1])
+        maxFlag = true;
+      else
+        continue;
+    }
+    else
+    {
+      while (i < len-1 && samples[i] == samples[i+1])
+        i++;
+
+      if (i < len-1 && samples[i] < samples[i+1])
+        maxFlag = false;
+      else
+        continue;
+    }
+
+    const unsigned iPrev = 
+      (peakList.empty() ? 0 : peakList.back().getIndex());
+
+    // The peak contains data for the interval preceding it.
+    peakList.emplace_back(Peak());
+    peakList.back().log(i, 
+      samples[i], 
+      maxFlag,
+      static_cast<float>(i - iPrev),
+      abs(samples[i] - samples[iPrev]),
+      PeakDetect::integral(samples, iPrev, i, samples[i]));
+  }
+
+  const unsigned iPrev = 
+    (peakList.empty() ? 0 : peakList.back().getIndex());
+
+  // We put an artificial peak at the end.
+  peakList.emplace_back(Peak());
+  peakList.back().log(len-1, 
+    samples[len-1], 
+    (samples[len-1] > samples[iPrev]),
+    static_cast<float>(len - 1 - iPrev),
+    abs(samples[len-1] - samples[iPrev]),
+    PeakDetect::integral(samples, iPrev, len-1, samples[len-1]));
+
+  PeakDetect::checkList(samples);
 }
 
 

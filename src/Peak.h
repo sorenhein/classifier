@@ -15,12 +15,14 @@ class Peak
     float value;
     bool maxFlag;
 
-    // The flank goes to the right of the peak.
-    // There is a dummy peak at index 0.
+    // The flank goes to the left of the peak.
+    // There is a dummy peak at the end.
 
     float len;
     float range;
     float area;
+
+    unsigned clusterNo;
 
   public:
 
@@ -38,7 +40,15 @@ class Peak
       const float rangeIn,
       const float areaIn);
 
-    bool check(const Peak& p2) const;
+    void logCluster(const unsigned cno);
+
+    unsigned getIndex() const;
+
+    float getValue() const;
+
+    bool check(
+      const Peak& p2,
+      const unsigned offset) const;
 
     void operator += (const Peak& p2);
 
@@ -46,9 +56,7 @@ class Peak
 
     string strHeader() const;
 
-    string str(
-      const unsigned no = 0,
-      const unsigned offset = 0) const;
+    string str(const unsigned offset = 0) const;
 };
 
 #endif

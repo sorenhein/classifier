@@ -2,8 +2,10 @@
 #define TRAIN_PEAKDETECT_H
 
 #include <vector>
+#include <list>
 #include <string>
 
+#include "Peak.h"
 #include "struct.h"
 
 using namespace std;
@@ -25,6 +27,8 @@ class PeakDetect
     vector<PeakData> peaks;
     PeakData scales;
 
+    list<Peak> peakList;
+
 
     float integral(
       const vector<float>& samples,
@@ -33,6 +37,8 @@ class PeakDetect
       const float refval) const;
 
     bool check(const vector<float>& samples) const;
+
+    bool checkList(const vector<float>& samples) const;
 
     void reduceToRuns();
 
@@ -88,6 +94,10 @@ class PeakDetect
     void reset();
 
     void log(
+      const vector<float>& samples,
+      const unsigned offsetSamples);
+
+    void logList(
       const vector<float>& samples,
       const unsigned offsetSamples);
 

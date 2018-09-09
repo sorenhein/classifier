@@ -27,6 +27,7 @@ void Peak::reset()
   len = 0.f;
   range = 0.f;
   area = 0.f;
+  clusterNo = 0;
 }
 
 
@@ -46,8 +47,27 @@ void Peak::log(
   area = areaIn;
 }
 
+void Peak::logCluster(const unsigned cno)
+{
+  clusterNo = cno;
+}
 
-bool Peak::check(const Peak& p2) const
+
+unsigned Peak::getIndex() const
+{
+  return index;
+}
+
+
+float Peak::getValue() const
+{
+  return value;
+}
+
+
+bool Peak::check(
+  const Peak& p2,
+  const unsigned offset) const
 {
   bool flag = true;
   vector<bool> issues(6, false);
@@ -91,7 +111,7 @@ bool Peak::check(const Peak& p2) const
   if (! flag)
   {
     cout << Peak::strHeader();
-    cout << Peak::str();
+    cout << Peak::str(offset);
     cout << p2.str();
 
     cout <<
@@ -134,32 +154,30 @@ string Peak::strHeader() const
   stringstream ss;
   
   ss <<
-    setw(5) << "No." <<
     setw(6) << "Index" <<
-    setw(9) << "Value" <<
     setw(5) << "Type" <<
-    setw(6) << "Len" <<
+    setw(9) << "Value" <<
+    setw(7) << "Len" <<
     setw(7) << "Range" <<
     setw(8) << "Area" <<
+    setw(8) << "Cluster" <<
     "\n";
   return ss.str();
 }
 
 
-string Peak::str(
-  const unsigned no,
-  const unsigned offset) const
+string Peak::str(const unsigned offset) const
 {
   stringstream ss;
 
   ss <<
-    setw(5) << right << no <<
     setw(6) << right << index + offset <<
-    setw(9) << fixed << setprecision(2) << value <<
     setw(5) << (maxFlag ? "max" : "min") <<
+    setw(9) << fixed << setprecision(2) << value <<
     setw(7) << fixed << setprecision(2) << len <<
     setw(7) << fixed << setprecision(2) << range <<
-    setw(7) << fixed << setprecision(2) << area <<
+    setw(8) << fixed << setprecision(2) << area <<
+    setw(8) << right << clusterNo << 
     "\n";
   return ss.str();
 }
