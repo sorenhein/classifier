@@ -588,7 +588,7 @@ void PeakDetect::estimatePeakSize(float& negativePeakSize) const
 }
 
 
-void PeakDetect::reduceSmallRuns(const float areaLimit)
+void PeakDetect::reduceSmallAreas(const float areaLimit)
 {
   vector<unsigned> survivors;
 
@@ -597,6 +597,11 @@ void PeakDetect::reduceSmallRuns(const float areaLimit)
   const unsigned lp = peaks.size();
   while (start < lp && peaks[start].left.area <= areaLimit)
     start++;
+
+  // TODO This isn't perfect and may let some peaks through that turn
+  // out to be small later on.  Probably the solution is only to
+  // end on a maxFlag of the same orientation, i.e. making the while
+  // loop step two at a time.  And keep track of runningArea.
 
   for (unsigned i = start; i < lp; i++)
   {
@@ -610,12 +615,14 @@ void PeakDetect::reduceSmallRuns(const float areaLimit)
 
       while (i < lp && peaks[i].right.area <= areaLimit)
       {
-        if (peaks[i].maxFlag == maxFlag &&
-           ((maxFlag && peaks[i].value > vextr) ||
-            (! maxFlag && peaks[i].value < vextr)))
+        if (peaks[i].maxFlag == maxFlag)
         {
-          iextr = i;
-          vextr = peaks[i].value;
+          if ((maxFlag && peaks[i].value > vextr) ||
+              (! maxFlag && peaks[i].value < vextr))
+          {
+            iextr = i;
+            vextr = peaks[i].value;
+          }
         }
         i++;
       }
@@ -628,7 +635,12 @@ void PeakDetect::reduceSmallRuns(const float areaLimit)
         // Let nature take its course.
       }
       else
+      {
         survivors.push_back(iextr);
+
+        if (i < lp && peaks[i].maxFlag != maxFlag)
+          survivors.push_back(i);
+      }
     }
   }
 
@@ -720,7 +732,7 @@ void PeakDetect::reduce()
   float veryLargeArea, normalLargeArea;
   PeakDetect::estimateAreaRanges(veryLargeArea, normalLargeArea);
 
-  PeakDetect::reduceSmallRuns(normalLargeArea / SMALL_AREA_FACTOR);
+  PeakDetect::reduceSmallAreas(normalLargeArea / SMALL_AREA_FACTOR);
 // cout << "no small runs, " << normalLargeArea << ", " << 
   // normalLargeArea / SMALL_AREA_FACTOR << "\n";
 // PeakDetect::print();
@@ -740,7 +752,7 @@ void PeakDetect::reduce()
 }
 
 
-void PeakDetect::eliminateTinyAreas()
+void PeakDetect::eliminateSmallAreas()
 {
   vector<unsigned> survivors;
 
@@ -787,12 +799,14 @@ void PeakDetect::eliminateKinks()
     const double l2r = peaks[i].left.area / peaks[i].right.area;
     const double nextl2r = peaks[i+1].left.area / peaks[i+1].right.area;
 
-    if (l2r >= 100. && nextl2r <= 1.)
+    if ((l2r >= 100. && nextl2r <= 1.) ||
+        (l2r >= 10. && nextl2r <= 0.1))
     {
       // Strike self and next peak.
       i++;
     }
-    else if (nextl2r <= 0.01 && l2r >= 1.)
+    else if ((nextl2r <= 0.01 && l2r >= 1.) ||
+        (nextl2r <= 0.1 && l2r >= 10.))
     {
       // Strike self and next peak.
       i++;
@@ -822,6 +836,9 @@ void PeakDetect::eliminatePositiveMinima()
     {
       // The next peak is not a positive mininum.
       survivors.push_back(i);
+
+      if (i+1 == lp-1)
+        survivors.push_back(i+1);
     }
     else
     {
@@ -885,22 +902,26 @@ float PeakDetect::estimateScale(vector<float>& data) const
 
 void PeakDetect::estimateScales()
 {
-  const unsigned lp = peaks.size();
-  vector<float> valueV(lp), 
-    leftlenV(lp), leftrangeV(lp), leftareaV(lp),
-    rightlenV(lp), rightrangeV(lp), rightareaV(lp);
+  vector<float> valueV,
+    leftlenV, leftrangeV, leftareaV,
+    rightlenV, rightrangeV, rightareaV;
 
-  for (unsigned i = 0; i < peaks.size(); i++)
+  for (const auto& peak: peaks)
   {
-    const auto& peak = peaks[i];
-    valueV[i] = peak.value;
-    leftlenV[i] = peak.left.len;
-    leftrangeV[i] = peak.left.range;
-    leftareaV[i] = peak.left.area;
-    rightlenV[i] = peak.right.len;
-    rightrangeV[i] = peak.right.range;
-    rightareaV[i] = peak.right.area;
+    if (peak.maxFlag)
+      continue;
+
+    valueV.push_back(abs(peak.value));
+    leftlenV.push_back(peak.left.len);
+    leftrangeV.push_back(peak.left.range);
+    leftareaV.push_back(peak.left.area);
+    rightlenV.push_back(peak.right.len);
+    rightrangeV.push_back(peak.right.range);
+    rightareaV.push_back(peak.right.area);
   }
+
+  scales.index = 0;
+  scales.maxFlag = false;
 
   scales.value = PeakDetect::estimateScale(valueV);
   scales.left.len = PeakDetect::estimateScale(leftlenV);
@@ -914,14 +935,16 @@ void PeakDetect::estimateScales()
 
 void PeakDetect::normalizePeaks(vector<PeakData>& normalPeaks)
 {
-  const unsigned lp = peaks.size();
-  normalPeaks.resize(lp);
+  normalPeaks.clear();
 
-  for (unsigned i = 0; i < lp; i++)
+  for (const auto& peak: peaks)
   {
-    const auto& peak = peaks[i];
-    auto& npeak = normalPeaks[i];
+    if (peak.maxFlag)
+      continue;
 
+    PeakData npeak;
+    npeak.index = peak.index;
+    npeak.maxFlag = peak.maxFlag;
     npeak.value = peak.value / scales.value;
     npeak.left.len = peak.left.len / scales.left.len;
     npeak.left.range = peak.left.range / scales.left.range;
@@ -929,6 +952,7 @@ void PeakDetect::normalizePeaks(vector<PeakData>& normalPeaks)
     npeak.right.len = peak.right.len / scales.right.len;
     npeak.right.range = peak.right.range / scales.right.range;
     npeak.right.area = peak.right.area / scales.right.area;
+    normalPeaks.push_back(npeak);
   }
 }
 
@@ -940,10 +964,10 @@ float PeakDetect::metric(
   const PeakData& np2) const
 {
   return SQUARE(np1.value - np2.value) +
-    SQUARE(np1.left.len - np2.left.len) +
+    4.f * SQUARE(np1.left.len - np2.left.len) +
     SQUARE(np1.left.range - np2.left.range) +
     SQUARE(np1.left.area - np2.left.area) +
-    SQUARE(np1.right.len - np2.right.len) +
+    4.f * SQUARE(np1.right.len - np2.right.len) +
     SQUARE(np1.right.range - np2.right.range) +
     SQUARE(np1.right.area - np2.right.area);
 }
@@ -956,24 +980,34 @@ void PeakDetect::runKmeansOnce(
   vector<unsigned>& assigns,
   float& distance) const
 {
-  const unsigned lp = peaks.size();
+  const unsigned lp = normalPeaks.size();
 
   static random_device seed;
   static mt19937 rng(seed());
   uniform_int_distribution<unsigned> indices(0, lp-1);
 
   // Pick random centroids from the data points.
-  vector<PeakData> means(koptions.numClusters);
-  for (auto& cluster: means)
+  clusters.resize(koptions.numClusters);
+  for (auto& cluster: clusters)
     cluster = normalPeaks[indices(rng)];
+
+  cout << "Normalpeaks" << endl;
+  for (unsigned i = 0; i < normalPeaks.size(); i++)
+    PeakDetect::printPeak(normalPeaks[i], i);
+  cout << endl;
+  
+  cout << "Means" << endl;
+  for (unsigned i = 0; i < clusters.size(); i++)
+    PeakDetect::printPeak(clusters[i], i);
+  cout << endl;
   
   clusters.resize(koptions.numClusters);
-  assigns.resize(koptions.numClusters);
+  assigns.resize(lp);
   distance = numeric_limits<float>::max();
 
   for (unsigned iter = 0; iter < koptions.numIterations; iter++)
   {
-    vector<PeakData> meansNew(koptions.numClusters);
+    vector<PeakData> clustersNew(koptions.numClusters);
     vector<unsigned> counts(koptions.numClusters, 0);
     float distGlobal = 0.f;
 
@@ -983,7 +1017,7 @@ void PeakDetect::runKmeansOnce(
       unsigned bestCluster = 0;
       for (unsigned cno = 0; cno < koptions.numClusters; cno++)
       {
-        const float dist = PeakDetect::metric(normalPeaks[pno], means[cno]);
+        const float dist = PeakDetect::metric(normalPeaks[pno], clusters[cno]);
         if (dist < distBest)
         {
           distBest = dist;
@@ -992,48 +1026,48 @@ void PeakDetect::runKmeansOnce(
       }
 
       assigns[pno] = bestCluster;
-      meansNew[bestCluster] += normalPeaks[pno];
+      clustersNew[bestCluster] += normalPeaks[pno];
       counts[bestCluster]++;
       distGlobal += distBest;
     }
 
     for (unsigned cno = 0; cno < koptions.numClusters; cno++)
     {
-      means[cno] = meansNew[cno];
-      means[cno] /= counts[cno];
+      clusters[cno] = clustersNew[cno];
+      clusters[cno] /= counts[cno];
     }
 
-    if (distGlobal < distance)
+    if (distGlobal / distance >= koptions.convCriterion)
     {
-      if (distGlobal / distance >= koptions.convCriterion)
-      {
-        cout << "Finishing after " << iter << " iterations\n";
-        break;
-      }
-      distance = distGlobal;
+      cout << "Finishing after " << iter << " iterations" << endl;
+      break;
     }
+    else if (distGlobal <= distance)
+      distance = distGlobal;
+
+    cout << "Iteration " << iter << ": dist " << distGlobal << 
+      ", distGlobal " << distGlobal << endl;
   }
 }
 
 
 void PeakDetect::reduceNew()
 {
-cout << "Raw peaks: " << peaks.size() << "\n";
-PeakDetect::print();
+// cout << "Raw peaks: " << peaks.size() << "\n";
+// PeakDetect::print();
 
   // PeakDetect::eliminateTinyAreas();
   // TODO Maybe also something derived from the signal.
-  // Call it SmallPeaks, not SmallRuns
   // TODO Doubly linked list for peak structure.
-  PeakDetect::reduceSmallRuns(0.1f);
+  PeakDetect::reduceSmallAreas(0.1f);
 
-cout << "Non-tiny peaks: " << peaks.size() << "\n";
-PeakDetect::print();
+// cout << "Non-tiny peaks: " << peaks.size() << "\n";
+// PeakDetect::print();
 
   PeakDetect::eliminateKinks();
 
-cout << "Non-kinky peaks: " << peaks.size() << "\n";
-PeakDetect::print();
+// cout << "Non-kinky peaks: " << peaks.size() << "\n";
+// PeakDetect::print();
 
   PeakDetect::eliminatePositiveMinima();
 cout << "Negative peaks: " << peaks.size() << "\n";
@@ -1042,7 +1076,109 @@ PeakDetect::print();
   PeakDetect::estimateScales();
 cout << "Scale\n";
 PeakDetect::printPeak(scales, 0);
+cout << endl;
 
+  const float scaledCutoff = 
+    0.05f * ((scales.left.area + scales.right.area) / 2.f);
+
+cout << "Area cutoff " << scaledCutoff << endl;
+
+  /* */
+  PeakDetect::reduceSmallAreas(scaledCutoff);
+cout << "Reasonable peaks: " << peaks.size() << "\n";
+PeakDetect::print();
+/* */
+
+  /* */
+  vector<PeakData> normalPeaks;
+  PeakDetect::normalizePeaks(normalPeaks);
+
+  Koptions koptions;
+  koptions.numClusters = 8;
+  koptions.numIterations = 20;
+  koptions.convCriterion = 0.999f;
+
+  vector<PeakData> clusters;
+  vector<unsigned> assigns;
+  float distance;
+
+  PeakDetect::runKmeansOnce(koptions, normalPeaks, clusters, assigns,
+    distance);
+
+  cout << "clusters" << endl;
+  PeakDetect::printHeader();
+  for (unsigned i = 0; i < clusters.size(); i++)
+    PeakDetect::printPeak(clusters[i], i);
+  cout << endl;
+  /* */
+
+  for (unsigned i = 0; i < koptions.numClusters; i++)
+  {
+    cout << i << ":";
+    for (unsigned pno = 0; pno < normalPeaks.size(); pno++)
+    {
+      if (assigns[pno] == i)
+        cout << " " << pno;
+    }
+    cout << "\n";
+  }
+  cout << "\n";
+
+  cout << "Cluster scores (small means skip)\n";
+  vector<bool> skips(koptions.numClusters);
+  for (unsigned cno = 0; cno < koptions.numClusters; cno++)
+  {
+    const auto& c = clusters[cno];
+
+    // Is small when the cluster is tiny.
+    float tinyScore = abs(c.value) + 
+      c.left.range + c.right.range +
+      c.left.area + c.right.area;
+
+    // Is (relatively) lower when the cluster looks like a dip.
+    float gradientScore = (c.left.range + c.right.range) /
+      (c.left.len + c.right.len);
+
+    cout << "i " << cno << ": " <<
+      fixed << setprecision(2) << tinyScore << 
+      ", " << gradientScore << endl;
+
+    if (tinyScore < 1.5f || gradientScore < 0.6f)
+      skips[cno] = true;
+    else
+      skips[cno] = false;
+  }
+
+  vector<PeakData> newPeaks;
+  unsigned runningPeakNo = 0;
+  for (unsigned i = 0; i < assigns.size(); i++)
+  {
+    if (skips[assigns[i]])
+      continue;
+
+    const unsigned index = normalPeaks[i].index;
+    while (runningPeakNo < peaks.size() &&
+        peaks[runningPeakNo].index < index)
+      runningPeakNo++;
+
+    if (runningPeakNo == peaks.size())
+    {
+      cout << "ERROR1" << endl;
+      exit(0);
+    }
+
+    if (peaks[runningPeakNo].index != index)
+    {
+      cout << "ERROR2" << endl;
+      exit(0);
+    }
+
+    newPeaks.push_back(peaks[runningPeakNo]);
+  }
+
+peaks = newPeaks;
+cout << "Final peaks: " << peaks.size() << "\n";
+PeakDetect::print();
 }
 
 
@@ -1092,8 +1228,8 @@ void PeakDetect::printHeader() const
     setw(9) << "Value" <<
     setw(5) << "Type" <<
     setw(5) << "Act" <<
-    setw(5) << "Llen" <<
-    setw(5) << "Rlen" <<
+    setw(6) << "Llen" <<
+    setw(6) << "Rlen" <<
     setw(7) << "Lrange" <<
     setw(7) << "Rrange" << 
     setw(8) << "Larea" <<
@@ -1112,8 +1248,8 @@ void PeakDetect::printPeak(
     setw(9) << fixed << setprecision(2) << peak.value <<
     setw(5) << (peak.maxFlag ? "max" : "min") <<
     setw(5) << (peak.activeFlag ? "yes" : "-") <<
-    setw(5) << peak.left.len <<
-    setw(5) << peak.right.len <<
+    setw(6) << fixed << setprecision(1) << peak.left.len <<
+    setw(6) << fixed << setprecision(1) << peak.right.len <<
     setw(7) << fixed << setprecision(2) << peak.left.range <<
     setw(7) << fixed << setprecision(2) << peak.right.range << 
     setw(8) << fixed << setprecision(2) << peak.left.area <<

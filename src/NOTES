@@ -1,53 +1,30 @@
-2018-09-05
+2018-09-09
 ----------
-We're getting negative areas again.
+Probably fine:
+* reduceSmallAreas(0.1f)
+* eliminateKinks
 
-eliminateTiny does not make alternating min/max anymore
+Aim to have the "local" minima and also maxima in the end.
+So don't eliminate positive minima as such.
 
+Could streamline streaks of positive maxima with positive minima
+in between: Just the ends and one minimum in between.
+(We need good gradients.)
 
-PeakDetect attempts to get the peaks almost exactly right, based on
-somewhat semantic rules.  It either fails or behaves marginally w.r.t.
+Estimate the area scale at this point, though of course only for
+negative minima.
 
-- Broad, symmetric minima in quiet periods, somewhat negative
-- Extra, somewhat shallow but real minima during a two-wheel interval
+Eliminate small areas, but not all at once.  Start close to the previous
+scale of 0.1f and gradually move up to 0.05 * scale or whatever.
 
-Possible improvement:
+Then cluster on
+- level
+- gradients
+- lengths or areas (but only one of them)
 
-- No runs as such
-
-- Eliminate only very small-area peaks and only where both the left
-  and right sides are small.
-  - Say, all areas < (0.10, 0.10)
-
-- Eliminate some obvious small kinks where L/R ratio > 100 (or higher?)
-  on one side and maybe > 10 on the other
-
-- Then cluster minima below the zero line, expecting
-  - (Potentially) the broad, symmetric minima, not so deep
-  - The actual left and right wheels (or single wheels if appropriate)
-  - Some shallower but real minima that are resonances from wheels
-
-The goal of PeakDetect has been to get the peaks almost exactly right,
-i.e. all the right ones and no "spurious" ones.  This even includes
-broad minima during somewhat quiet periods.  It seems that some traces
-have three (noticeable) minima during ranges where there are only two
-wheels.  We can try to define rules to avoid or reduce these, but it
-seems difficult to make clean cuts.
-
-Another approach is not to be too brutal about cutting peaks.  This
-means we'll get the broad, quiet dips, and also the extra minima.
-We won't miss quite so many peaks, except in the beginning, but we'll 
-have a lot that do not directly coincide in time with wheel positions.
-
-
-1. Some kind of semantic view of the peaks, similar to the human eye.
-   - Only below the "zero" line?  Assumes good nulling.
-   - Recognize the broad minima separately?
-   - Cluster on combination of level and left-right areas?
-
-2. Pass them all to a NW-like algorithm.  
-
-
+Filter clusters on
+- Tiny
+- Low gradients
 
 
 2018-09-02

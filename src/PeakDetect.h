@@ -61,13 +61,13 @@ class PeakDetect
       vector<unsigned>& assigns,
       float& distance) const;
 
-    void reduceSmallRuns(const float areaLimit);
+    void reduceSmallAreas(const float areaLimit);
 
     void reduceNegativeDips(const float peakLimit);
 
     void reduceTransientLeftovers();
 
-    void eliminateTinyAreas();
+    void eliminateSmallAreas();
 
     void eliminateKinks();
 

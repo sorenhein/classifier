@@ -239,9 +239,12 @@ struct PeakData
 
   void operator /= (const unsigned no)
   {
-    value /= no;
-    left /= no;
-    right /= no;
+    if (no > 0)
+    {
+      value /= no;
+      left /= no;
+      right /= no;
+    }
   }
 };
 
