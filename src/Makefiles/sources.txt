@@ -5,6 +5,7 @@ SOURCE_FILES    =               \
                 Database.cpp    \
                 Disturb.cpp     \
                 Except.cpp      \
+                Peak.cpp        \
                 PeakDetect.cpp  \
                 PeakCluster.cpp \
                 Regress.cpp     \

@@ -5,7 +5,8 @@ CompStats.obj: CompStats.h
 Database.obj: Database.h Clusters.h struct.h read.h
 Disturb.obj: Disturb.h read.h struct.h
 Except.obj: Except.h errors.h
-PeakDetect.obj: PeakDetect.h struct.h PeakCluster.h
+Peak.obj: Peak.h
+PeakDetect.obj: PeakDetect.h struct.h PeakCluster.h Except.h errors.h
 PeakCluster.obj: PeakCluster.h struct.h
 Regress.obj: Regress.h struct.h Database.h Clusters.h Timers.h Timer.h
 Regress.obj: Except.h errors.h print.h regress/PolynomialRegression.h
@@ -30,7 +31,8 @@ write.obj: write.h struct.h
 driver.obj: args.h struct.h read.h Trace.h SegTransient.h SegQuiet.h
 driver.obj: SegActive.h Median/median.h PeakDetect.h Database.h Clusters.h
 driver.obj: TraceDB.h SynthTrain.h Regress.h Disturb.h Align.h Timers.h
-driver.obj: Timer.h Stats.h StatCross.h StatEntry.h CompStats.h print.h
+driver.obj: Timer.h Stats.h StatCross.h StatEntry.h CompStats.h Except.h
+driver.obj: errors.h print.h
 Ckmeans/Ckmeans.1d.dp.obj: Ckmeans/Ckmeans.1d.dp.h Ckmeans/within_cluster.h
 Ckmeans/dynamic_prog.obj: Ckmeans/Ckmeans.1d.dp.h Ckmeans/within_cluster.h
 Ckmeans/fill_log_linear.obj: Ckmeans/Ckmeans.1d.dp.h Ckmeans/within_cluster.h
