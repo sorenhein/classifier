@@ -346,6 +346,8 @@ void PeakDetect::log(
   const vector<float>& samples,
   const unsigned offsetSamples)
 {
+  PeakDetect::logList(samples, offsetSamples);
+
   len = samples.size();
   offset = offsetSamples;
 
@@ -1165,8 +1167,11 @@ void PeakDetect::runKmeansOnce(
 
 void PeakDetect::reduceNew()
 {
-// cout << "Raw peaks: " << peaks.size() << "\n";
-// PeakDetect::print();
+cout << "Raw peaks: " << peaks.size() << "\n";
+PeakDetect::print();
+
+cout << "List peaks: " << peakList.size() << "\n";
+PeakDetect::printList();
 
   // PeakDetect::eliminateTinyAreas();
   // TODO Maybe also something derived from the signal.
@@ -1335,37 +1340,32 @@ void PeakDetect::getPeakTimes(vector<PeakTime>& times) const
 void PeakDetect::printHeader() const
 {
   cout << 
-    setw(5) << "No." <<
     setw(6) << "Index" <<
-    setw(9) << "Value" <<
     setw(5) << "Type" <<
-    setw(5) << "Act" <<
-    setw(6) << "Llen" <<
-    setw(6) << "Rlen" <<
-    setw(7) << "Lrange" <<
-    setw(7) << "Rrange" << 
-    setw(8) << "Larea" <<
-    setw(8) << "Rarea" << 
+    setw(9) << "Value" <<
+    setw(7) << "Len" <<
+    setw(7) << "Range" << 
+    setw(8) << "Area" <<
+    setw(8) << "Cluster" <<
     "\n";
 }
 
+
+#define UNUSED(x) ((void)(true ? 0 : ((x), void(), 0)))
 
 void PeakDetect::printPeak(
   const PeakData& peak,
   const unsigned index) const
 {
+  UNUSED(index);
   cout << 
-    setw(5) << right << index <<
     setw(6) << right << peak.index + offset <<
-    setw(9) << fixed << setprecision(2) << peak.value <<
     setw(5) << (peak.maxFlag ? "max" : "min") <<
-    setw(5) << (peak.activeFlag ? "yes" : "-") <<
-    setw(6) << fixed << setprecision(1) << peak.left.len <<
-    setw(6) << fixed << setprecision(1) << peak.right.len <<
+    setw(9) << fixed << setprecision(2) << peak.value <<
+    setw(7) << fixed << setprecision(2) << peak.left.len <<
     setw(7) << fixed << setprecision(2) << peak.left.range <<
-    setw(7) << fixed << setprecision(2) << peak.right.range << 
     setw(8) << fixed << setprecision(2) << peak.left.area <<
-    setw(8) << fixed << setprecision(2) << peak.right.area << 
+    setw(8) << right << "0" <<
     "\n";
 }
 
@@ -1382,6 +1382,16 @@ void PeakDetect::print(const bool activeFlag) const
 
     i++;
   }
+  cout << "\n";
+}
+
+
+void PeakDetect::printList() const
+{
+  cout << peakList.front().strHeader();
+
+  for (const auto& peak: peakList)
+    cout << peak.str(offset);
   cout << "\n";
 }
 

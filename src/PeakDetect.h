@@ -110,6 +110,8 @@ class PeakDetect
 
     void print(const bool activeFlag = true) const;
 
+    void printList() const;
+
     void printList(
       const vector<unsigned>& indices,
       const bool activeFlag = true) const;
