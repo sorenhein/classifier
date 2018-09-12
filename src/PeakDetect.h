@@ -67,7 +67,12 @@ class PeakDetect
       vector<unsigned>& assigns,
       float& distance) const;
 
+    void collapsePeaks(
+      list<Peak>::iterator peak1,
+      list<Peak>::iterator peak2) const;
+
     void reduceSmallAreas(const float areaLimit);
+    void reduceSmallAreasList(const float areaLimit);
 
     void reduceNegativeDips(const float peakLimit);
 

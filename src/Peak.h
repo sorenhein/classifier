@@ -43,8 +43,9 @@ class Peak
     void logCluster(const unsigned cno);
 
     unsigned getIndex() const;
-
+    bool getMaxFlag() const;
     float getValue() const;
+    float getArea() const;
 
     bool check(
       const Peak& p2,

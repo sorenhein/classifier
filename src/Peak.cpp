@@ -59,9 +59,21 @@ unsigned Peak::getIndex() const
 }
 
 
+bool Peak::getMaxFlag() const
+{
+  return maxFlag;
+}
+
+
 float Peak::getValue() const
 {
   return value;
+}
+
+
+float Peak::getArea() const
+{
+  return area;
 }
 
 

@@ -19,6 +19,7 @@
 
 #define SAMPLE_RATE 2000.
 
+#define UNUSED(x) ((void)(true ? 0 : ((x), void(), 0)))
 
 PeakDetect::PeakDetect()
 {
@@ -702,6 +703,89 @@ void PeakDetect::estimatePeakSize(float& negativePeakSize) const
 }
 
 
+void PeakDetect::collapsePeaks(
+  list<Peak>::iterator peak1,
+  list<Peak>::iterator peak2) const
+{
+  UNUSED(peak1);
+  UNUSED(peak2);
+  // TODO peak1 does not survive, peak2 does.
+  // Do not have to be of the same polarity.
+}
+
+
+void PeakDetect::reduceSmallAreasList(const float areaLimit)
+{
+  if (peakList.empty())
+    return;
+
+  const auto peakLast = prev(peakList.end());
+  auto peak = peakList.begin();
+
+  while (peak != peakList.end())
+  {
+    const float area = peak->getArea();
+    if (area >= areaLimit)
+    {
+      peak++;
+      continue;
+    }
+
+    auto peakCurrent = peak, peakMax = peak;
+    const bool maxFlag = peak->getMaxFlag();
+    float sumArea = 0.f; 
+    float valueMax = numeric_limits<float>::lowest();
+
+    do
+    {
+      sumArea = peak->getArea() - sumArea;
+      const float value = peak->getValue();
+      if (! maxFlag && value > valueMax)
+      {
+        valueMax = value;
+        peakMax = peak;
+      }
+      else if (maxFlag && -value > valueMax)
+      {
+        valueMax = -value;
+        peakMax = peak;
+      }
+
+      if (peak == peakLast)
+        break;
+      else
+        peak++;
+    }
+    while (abs(sumArea) < areaLimit);
+
+    if (abs(sumArea) < areaLimit)
+    {
+      // It's the last set of peaks.  We could keep the largest peak
+      // of the same polarity as peakCurrent (instead of peakCurrent).
+      // It's a bit random whether or not this would be a "real" peak,
+      // and we also don't keep track of this above.  So we we just stop.
+      if (peakCurrent != peakLast)
+        peakList.erase(++peakCurrent, peakList.end());
+      break;
+    }
+    else if (peak->getMaxFlag() == maxFlag)
+    {
+      // Keep the start, the most extreme peak of opposite polarity,
+      // and the end.
+      PeakDetect::collapsePeaks(peakCurrent, peakMax);
+      PeakDetect::collapsePeaks(++peakMax, peak);
+      peak++;
+    }
+    else
+    {
+      // Keep from peakCurrent to peakMax which is also peak.
+      PeakDetect::collapsePeaks(peakCurrent, peakMax);
+      peak++;
+    }
+  }
+}
+
+
 void PeakDetect::reduceSmallAreas(const float areaLimit)
 {
   vector<unsigned> survivors;
@@ -1351,7 +1435,6 @@ void PeakDetect::printHeader() const
 }
 
 
-#define UNUSED(x) ((void)(true ? 0 : ((x), void(), 0)))
 
 void PeakDetect::printPeak(
   const PeakData& peak,
