@@ -39,6 +39,8 @@ class Peak
 
     void reset();
 
+    void logSentinel(const float valueIn);
+
     void log(
       const unsigned indexIn,
       const float valueIn,

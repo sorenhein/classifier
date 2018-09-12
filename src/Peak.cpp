@@ -32,6 +32,12 @@ void Peak::reset()
 }
 
 
+void Peak::logSentinel(const float valueIn)
+{
+  value = valueIn;
+}
+
+
 void Peak::log(
   const unsigned indexIn,
   const float valueIn,
@@ -46,8 +52,9 @@ void Peak::log(
   index = indexIn;
   value = valueIn;
   maxFlag = (value > peakPrev.value);
+  len = static_cast<float>(index - peakPrev.index);
+  range = abs(value - peakPrev.value);
   areaCum = peakPrev.areaCum + areaFullIn;
-  Peak::update(peakPrev);
 }
 
 
@@ -59,8 +66,14 @@ void Peak::logCluster(const unsigned cno)
 
 void Peak::update(const Peak& peakPrev)
 {
-  len = static_cast<float>(index - peakPrev.index);
-  range = abs(value - peakPrev.value);
+// cout << "update:\n";
+// cout << "index " << index << ", " << peakPrev.index << "\n";
+// cout << "prevLen " << peakPrev.len << "\n";
+// cout << "value " << value << ", " << peakPrev.value << ", range " <<
+  // peakPrev.range << "\n\n";
+
+  len = static_cast<float>(index - peakPrev.index + peakPrev.len);
+  range = abs(value - peakPrev.value)+ peakPrev.range;
 }
 
 
@@ -95,7 +108,7 @@ bool Peak::check(
   const unsigned offset) const
 {
   bool flag = true;
-  vector<bool> issues(6, false);
+  vector<bool> issues(7, false);
 
   if (index != p2.index)
   {
@@ -127,25 +140,32 @@ bool Peak::check(
     flag = false;
   }
 
-  if (abs(areaCum - p2.areaCum) > RELATIVE_LIMIT * areaCum)
+  if (abs(areaCum - p2.areaCum) > RELATIVE_LIMIT * abs(areaCum))
   {
     issues[5] = true;
     flag = false;
   }
 
+  if (clusterNo != p2.clusterNo)
+  {
+    issues[7] = true;
+    flag = false;
+  }
+
+
   if (! flag)
   {
     cout << Peak::strHeader();
     cout << Peak::str(offset);
-    cout << p2.str();
+    cout << p2.str(offset);
 
     cout <<
-      setw(5) << right << "" <<
       setw(6) << (issues[0] ? "*" : "") <<
-      setw(9) << (issues[1] ? "*" : "") <<
-      setw(5) << (issues[2] ? "*" : "") <<
-      setw(6) << (issues[3] ? "*" : "") <<
+      setw(5) << (issues[1] ? "*" : "") <<
+      setw(9) << (issues[2] ? "*" : "") <<
+      setw(7) << (issues[3] ? "*" : "") <<
       setw(7) << (issues[4] ? "*" : "") <<
+      setw(8) << (issues[5] ? "*" : "") <<
       setw(8) << (issues[5] ? "*" : "") <<
     "\n\n";
   }

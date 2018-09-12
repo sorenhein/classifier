@@ -286,6 +286,7 @@ void PeakDetect::logList(
 
   // We put a sentinel peak at the beginning.
   peakList.emplace_back(Peak());
+  peakList.back().logSentinel(samples[0]);
 
   for (unsigned i = 1; i < len-1; i++)
   {
@@ -698,12 +699,14 @@ void PeakDetect::collapsePeaks(
   list<Peak>::iterator peak2)
 {
   // Analogous to list.erase(), peak1 does not survive, while peak2 does.
-  if (peak1->getMaxFlag() != peak2->getMaxFlag())
-    cout << "ERROR C1" << endl;
-
-  // Need same polarity.
   if (peak1 == peak2)
     return;
+
+  // Need same polarity.
+  if (peak1->getMaxFlag() != peak2->getMaxFlag())
+  {
+    cout << "ERROR C1" << endl;
+  }
 
   peak2->update(* peak1);
 
@@ -723,6 +726,10 @@ void PeakDetect::reduceSmallAreasList(const float areaLimit)
   {
     auto peakPrev = prev(peak);
     const float area = peak->getArea(* peakPrev);
+if (peak->getIndex() + offset == 1102)
+{
+  cout << "HERE" << endl;
+}
     if (area >= areaLimit)
     {
       peak++;
@@ -731,12 +738,16 @@ void PeakDetect::reduceSmallAreasList(const float areaLimit)
 
     auto peakCurrent = peak, peakMax = peak;
     const bool maxFlag = peak->getMaxFlag();
-    float sumArea = 0.f; 
+    float sumArea, lastArea;
     float valueMax = numeric_limits<float>::lowest();
 
     do
     {
-      sumArea = peak->getArea(* peakPrev);
+      peakPrev = peak;
+      peak++;
+
+      sumArea = peak->getArea(* peakCurrent);
+      lastArea = peak->getArea(* peakPrev);
       const float value = peak->getValue();
       if (! maxFlag && value > valueMax)
       {
@@ -748,18 +759,11 @@ void PeakDetect::reduceSmallAreasList(const float areaLimit)
         valueMax = -value;
         peakMax = peak;
       }
-
-      if (peak == peakLast)
-        break;
-      else
-      {
-        peakPrev = peak;
-        peak++;
-      }
     }
-    while (abs(sumArea) < areaLimit);
+    while ((abs(sumArea) < areaLimit || abs(lastArea) < areaLimit) && 
+        peak != peakLast);
 
-    if (abs(sumArea) < areaLimit)
+    if (abs(sumArea) < areaLimit || abs(lastArea) < areaLimit)
     {
       // It's the last set of peaks.  We could keep the largest peak
       // of the same polarity as peakCurrent (instead of peakCurrent).
@@ -771,25 +775,53 @@ void PeakDetect::reduceSmallAreasList(const float areaLimit)
     }
     else if (peak->getMaxFlag() != maxFlag)
     {
+/*
 if (peakMax != peak)
+{
   cout << "ERROR2" << endl;
-      // Keep from peakCurrent to peakMax which is also peak.
-      PeakDetect::collapsePeaks(peakCurrent, peakMax);
+  cout << "peakCurrent " << peakCurrent->getIndex() + offset << "\n";
+  cout << "peakMax " << peakMax->getIndex()  + offset<< "\n";
+  cout << "peak " << peak->getIndex()  + offset<< "\n\n";
+}
+*/
+      // Keep from peakCurrent to peak which is also often peakMax.
+/*
+cout << "Entering1 " << peakMax->getIndex()  + offset << ", curr " <<
+  peakCurrent->getIndex() + offset << endl;
+*/
+      PeakDetect::collapsePeaks(--peakCurrent, peak);
+/*
+cout << "sumArea " << sumArea << "\n";
+cout << "Entered1 " << peakMax->getIndex()  + offset<< endl;
+cout << "Peak new\n";
+cout << peak->str(* prev(peak), offset);
+cout << "Prevpeak new\n";
+cout << prev(peak)->str(* prev(prev(peak)), offset);
+cout << "\n";
+*/
       peak++;
-    }
-    else if (peakCurrent == peakList.begin())
-    {
-      // It's the beginning of the list.  We could keep the largest peak
-      // of the opposite polarity to peakCurrent.  For the same reason as
-      // above, we just go with the first "real" peak.
-      PeakDetect::collapsePeaks(peakCurrent, peak);
     }
     else
     {
       // Keep the start, the most extreme peak of opposite polarity,
       // and the end.
-      PeakDetect::collapsePeaks(peakCurrent, peakMax);
+/*
+cout << "Entering2 " << peak->getIndex() + offset << ", curr " <<
+  peakCurrent->getIndex() + offset << ", max " <<
+  peakMax->getIndex() + offset << endl;
+*/
+      PeakDetect::collapsePeaks(--peakCurrent, peakMax);
       PeakDetect::collapsePeaks(++peakMax, peak);
+/*
+cout << "sumArea " << sumArea << "\n";
+cout << "Entered2 " << peak->getIndex()  + offset<< endl;
+
+cout << "Peak new\n";
+cout << peak->str(* prev(peak), offset);
+cout << "Prevpeak new\n";
+cout << prev(peak)->str(* prev(prev(peak)), offset);
+cout << "\n";
+*/
       peak++;
     }
   }
@@ -1272,8 +1304,12 @@ PeakDetect::printList();
   // TODO Doubly linked list for peak structure.
   PeakDetect::reduceSmallAreas(0.1f);
 
-// cout << "Non-tiny peaks: " << peaks.size() << "\n";
-// PeakDetect::print();
+cout << "Non-tiny peaks: " << peaks.size() << "\n";
+PeakDetect::print();
+
+  PeakDetect::reduceSmallAreasList(0.1f);
+cout << "Non-tiny list peaks: " << peakList.size() << "\n";
+PeakDetect::printList();
 
   PeakDetect::eliminateKinks();
 
@@ -1483,8 +1519,8 @@ void PeakDetect::printList() const
 {
   cout << peakList.front().strHeader();
 
-  for (const auto& peak: peakList)
-    cout << peak.str(offset);
+  for (auto peak = next(peakList.begin()); peak != peakList.end(); peak++)
+    cout << peak->str(* prev(peak), offset);
   cout << "\n";
 }
 
