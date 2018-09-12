@@ -7,7 +7,8 @@ enum Code
 {
   ERR_REGRESS = 0,
   ERR_SURVIVORS = 1,
-  ERR_SHORT_ACCEL_TRACE = 2
+  ERR_SHORT_ACCEL_TRACE = 2,
+  ERR_NO_PEAKS = 3
 };
 
 

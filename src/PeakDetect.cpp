@@ -53,40 +53,41 @@ float PeakDetect::integral(
 }
 
 
+float PeakDetect::integralList(
+  const vector<float>& samples,
+  const unsigned i0,
+  const unsigned i1) const
+{
+  float sum = 0.f;
+  for (unsigned i = i0; i < i1; i++)
+    sum += samples[i];
+
+  return sum;
+}
+
+
 bool PeakDetect::checkList(const vector<float>& samples) const
 {
   if (samples.size() == 0)
     THROW(ERR_SHORT_ACCEL_TRACE, "Accel trace length: " + to_string(len));
 
+  if (peakList.size() < 2)
+    THROW(ERR_NO_PEAKS, "Too few peaks: " + to_string(peakList.size()));
+
   bool flag = true;
-  for (auto it = peakList.begin(); it != peakList.end(); it++)
+  for (auto it = next(peakList.begin()); it != peakList.end(); it++)
   {
     const unsigned index = it->getIndex();
     const float value = it->getValue();
 
-    unsigned indexPrev;
-    float valuePrev;
-
-    if (it == peakList.begin())
-    {
-      indexPrev = 0;
-      valuePrev = samples[0];
-    }
-    else
-    {
-      const auto itPrev = prev(it);
-      indexPrev = itPrev->getIndex();
-      valuePrev = itPrev->getValue();
-    }
+    const auto itPrev = prev(it);
+    const unsigned indexPrev = itPrev->getIndex();
+    const float valuePrev = itPrev->getValue();
 
     Peak peakSynth;
-    peakSynth.log(index, 
-      value,
-      (value > valuePrev),
-      static_cast<float>(index - indexPrev),
-      abs(value - valuePrev),
-      PeakDetect::integral(samples, indexPrev, index, value));
-    
+    peakSynth.log(index, value,
+      PeakDetect::integralList(samples, indexPrev, index), * itPrev);
+
     if (! it->check(peakSynth, offset))
       flag = false;
   }
@@ -282,7 +283,9 @@ void PeakDetect::logList(
 
   offset = offsetSamples;
   peakList.clear();
-  bool maxFlag;
+
+  // We put a sentinel peak at the beginning.
+  peakList.emplace_back(Peak());
 
   for (unsigned i = 1; i < len-1; i++)
   {
@@ -298,9 +301,7 @@ void PeakDetect::logList(
       while (i < len-1 && samples[i] == samples[i+1])
         i++;
 
-      if (i < len-1 && samples[i] > samples[i+1])
-        maxFlag = true;
-      else
+      if (i == len-1 || samples[i] <= samples[i+1])
         continue;
     }
     else
@@ -308,36 +309,25 @@ void PeakDetect::logList(
       while (i < len-1 && samples[i] == samples[i+1])
         i++;
 
-      if (i < len-1 && samples[i] < samples[i+1])
-        maxFlag = false;
-      else
+      if (i == len-1 || samples[i] >= samples[i+1])
         continue;
     }
 
-    const unsigned iPrev = 
-      (peakList.empty() ? 0 : peakList.back().getIndex());
+    const auto& peakPrev = peakList.back();
+    const float areaFull = PeakDetect::integralList(samples, peakPrev.getIndex(), i);
 
     // The peak contains data for the interval preceding it.
     peakList.emplace_back(Peak());
-    peakList.back().log(i, 
-      samples[i], 
-      maxFlag,
-      static_cast<float>(i - iPrev),
-      abs(samples[i] - samples[iPrev]),
-      PeakDetect::integral(samples, iPrev, i, samples[i]));
+    peakList.back().log(i, samples[i], areaFull, peakPrev);
   }
 
-  const unsigned iPrev = 
-    (peakList.empty() ? 0 : peakList.back().getIndex());
+  // We put another peak at the end.
+  const auto& peakPrev = peakList.back();
+  const float areaFull = 
+    PeakDetect::integralList(samples, peakPrev.getIndex(), len-1);
 
-  // We put an artificial peak at the end.
   peakList.emplace_back(Peak());
-  peakList.back().log(len-1, 
-    samples[len-1], 
-    (samples[len-1] > samples[iPrev]),
-    static_cast<float>(len - 1 - iPrev),
-    abs(samples[len-1] - samples[iPrev]),
-    PeakDetect::integral(samples, iPrev, len-1, samples[len-1]));
+  peakList.back().log(len-1, samples[len-1], areaFull, peakPrev);
 
   PeakDetect::checkList(samples);
 }
@@ -705,26 +695,34 @@ void PeakDetect::estimatePeakSize(float& negativePeakSize) const
 
 void PeakDetect::collapsePeaks(
   list<Peak>::iterator peak1,
-  list<Peak>::iterator peak2) const
+  list<Peak>::iterator peak2)
 {
-  UNUSED(peak1);
-  UNUSED(peak2);
-  // TODO peak1 does not survive, peak2 does.
-  // Do not have to be of the same polarity.
+  // Analogous to list.erase(), peak1 does not survive, while peak2 does.
+  if (peak1->getMaxFlag() != peak2->getMaxFlag())
+    cout << "ERROR C1" << endl;
+
+  // Need same polarity.
+  if (peak1 == peak2)
+    return;
+
+  peak2->update(* peak1);
+
+  peakList.erase(peak1, peak2);
 }
 
 
 void PeakDetect::reduceSmallAreasList(const float areaLimit)
 {
   if (peakList.empty())
-    return;
+    THROW(ERR_NO_PEAKS, "Peak list is empty");
 
   const auto peakLast = prev(peakList.end());
-  auto peak = peakList.begin();
+  auto peak = next(peakList.begin());
 
   while (peak != peakList.end())
   {
-    const float area = peak->getArea();
+    auto peakPrev = prev(peak);
+    const float area = peak->getArea(* peakPrev);
     if (area >= areaLimit)
     {
       peak++;
@@ -738,7 +736,7 @@ void PeakDetect::reduceSmallAreasList(const float areaLimit)
 
     do
     {
-      sumArea = peak->getArea() - sumArea;
+      sumArea = peak->getArea(* peakPrev);
       const float value = peak->getValue();
       if (! maxFlag && value > valueMax)
       {
@@ -754,7 +752,10 @@ void PeakDetect::reduceSmallAreasList(const float areaLimit)
       if (peak == peakLast)
         break;
       else
+      {
+        peakPrev = peak;
         peak++;
+      }
     }
     while (abs(sumArea) < areaLimit);
 
@@ -768,18 +769,27 @@ void PeakDetect::reduceSmallAreasList(const float areaLimit)
         peakList.erase(++peakCurrent, peakList.end());
       break;
     }
-    else if (peak->getMaxFlag() == maxFlag)
+    else if (peak->getMaxFlag() != maxFlag)
+    {
+if (peakMax != peak)
+  cout << "ERROR2" << endl;
+      // Keep from peakCurrent to peakMax which is also peak.
+      PeakDetect::collapsePeaks(peakCurrent, peakMax);
+      peak++;
+    }
+    else if (peakCurrent == peakList.begin())
+    {
+      // It's the beginning of the list.  We could keep the largest peak
+      // of the opposite polarity to peakCurrent.  For the same reason as
+      // above, we just go with the first "real" peak.
+      PeakDetect::collapsePeaks(peakCurrent, peak);
+    }
+    else
     {
       // Keep the start, the most extreme peak of opposite polarity,
       // and the end.
       PeakDetect::collapsePeaks(peakCurrent, peakMax);
       PeakDetect::collapsePeaks(++peakMax, peak);
-      peak++;
-    }
-    else
-    {
-      // Keep from peakCurrent to peakMax which is also peak.
-      PeakDetect::collapsePeaks(peakCurrent, peakMax);
       peak++;
     }
   }

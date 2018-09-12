@@ -16,13 +16,20 @@ class Peak
     bool maxFlag;
 
     // The flank goes to the left of the peak.
-    // There is a dummy peak at the end.
+    // There are dummy peaks on each end.
+    // The following quantities are measured relative to the
+    // previous peak and are always non-negative.
 
-    float len;
+    float len; 
     float range;
-    float area;
+
+    float areaCum; // From beginning of trace, may be negative
 
     unsigned clusterNo;
+
+    string str(
+      const float areaOut,
+      const unsigned offset = 0) const;
 
   public:
 
@@ -35,17 +42,17 @@ class Peak
     void log(
       const unsigned indexIn,
       const float valueIn,
-      const bool maxFlagIn,
-      const float lenIn,
-      const float rangeIn,
-      const float areaIn);
+      const float areaFullIn,
+      const Peak& peakPrev);
 
     void logCluster(const unsigned cno);
+
+    void update(const Peak& peakPrev);
 
     unsigned getIndex() const;
     bool getMaxFlag() const;
     float getValue() const;
-    float getArea() const;
+    float getArea(const Peak& peakPrev) const;
 
     bool check(
       const Peak& p2,
@@ -58,6 +65,10 @@ class Peak
     string strHeader() const;
 
     string str(const unsigned offset = 0) const;
+
+    string str(
+      const Peak& peakPrev,
+      const unsigned offset = 0) const;
 };
 
 #endif

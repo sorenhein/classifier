@@ -2,6 +2,7 @@
 #include <iomanip>
 #include <fstream>
 #include <sstream>
+#include <algorithm>
 
 #include "Peak.h"
 
@@ -23,10 +24,10 @@ void Peak::reset()
 {
   index = 0;
   value = 0.f;
-  maxFlag = true;
+  maxFlag = false;
   len = 0.f;
   range = 0.f;
-  area = 0.f;
+  areaCum = 0.f;
   clusterNo = 0;
 }
 
@@ -34,22 +35,32 @@ void Peak::reset()
 void Peak::log(
   const unsigned indexIn,
   const float valueIn,
-  const bool maxFlagIn,
-  const float lenIn,
-  const float rangeIn,
-  const float areaIn)
+  const float areaFullIn,
+  const Peak& peakPrev)
 {
+  // The "full" area is the (signed) integral relative to samples[0]
+  // in the current interval.  This is also the change in areaCum.
+  // The stored area is the (absolute) integral relative to the 
+  // lower of the starting and ending point.
+
   index = indexIn;
   value = valueIn;
-  maxFlag = maxFlagIn;
-  len = lenIn;
-  range = rangeIn;
-  area = areaIn;
+  maxFlag = (value > peakPrev.value);
+  areaCum = peakPrev.areaCum + areaFullIn;
+  Peak::update(peakPrev);
 }
+
 
 void Peak::logCluster(const unsigned cno)
 {
   clusterNo = cno;
+}
+
+
+void Peak::update(const Peak& peakPrev)
+{
+  len = static_cast<float>(index - peakPrev.index);
+  range = abs(value - peakPrev.value);
 }
 
 
@@ -71,9 +82,11 @@ float Peak::getValue() const
 }
 
 
-float Peak::getArea() const
+float Peak::getArea(const Peak& peakPrev) const
 {
-  return area;
+  // Assumes p2 has a lower index.
+  return abs(areaCum - peakPrev.areaCum - 
+    (index - peakPrev.index) * min(value, peakPrev.value));
 }
 
 
@@ -114,7 +127,7 @@ bool Peak::check(
     flag = false;
   }
 
-  if (abs(area - p2.area) > RELATIVE_LIMIT * area)
+  if (abs(areaCum - p2.areaCum) > RELATIVE_LIMIT * areaCum)
   {
     issues[5] = true;
     flag = false;
@@ -146,7 +159,7 @@ void Peak::operator += (const Peak& p2)
   value += p2.value;
   len += p2.len;
   range += p2.range;
-  area += p2.area;
+  areaCum += p2.areaCum;
 }
 
 
@@ -157,7 +170,7 @@ void Peak::operator /= (const unsigned no)
     value /= no;
     len /= no;
     range /= no;
-    area /= no;
+    areaCum /= no;
   }
 }
 
@@ -178,7 +191,9 @@ string Peak::strHeader() const
 }
 
 
-string Peak::str(const unsigned offset) const
+string Peak::str(
+  const float areaOut,
+  const unsigned offset) const
 {
   stringstream ss;
 
@@ -188,9 +203,27 @@ string Peak::str(const unsigned offset) const
     setw(9) << fixed << setprecision(2) << value <<
     setw(7) << fixed << setprecision(2) << len <<
     setw(7) << fixed << setprecision(2) << range <<
-    setw(8) << fixed << setprecision(2) << area <<
+    setw(8) << fixed << setprecision(2) << areaOut <<
     setw(8) << right << clusterNo << 
     "\n";
   return ss.str();
+}
+
+
+
+string Peak::str(
+  const Peak& peakPrev,
+  const unsigned offset) const
+{
+  // Prints the "delta" in area.
+  return Peak::str(Peak::getArea(peakPrev), offset);
+}
+
+
+
+string Peak::str(const unsigned offset) const
+{
+  // Prints the absolute, running area.
+  return Peak::str(areaCum, offset);
 }
 

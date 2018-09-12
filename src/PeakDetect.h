@@ -36,6 +36,11 @@ class PeakDetect
       const unsigned i1,
       const float refval) const;
 
+    float integralList(
+      const vector<float>& samples,
+      const unsigned i0,
+      const unsigned i1) const;
+
     bool check(const vector<float>& samples) const;
 
     bool checkList(const vector<float>& samples) const;
@@ -69,7 +74,7 @@ class PeakDetect
 
     void collapsePeaks(
       list<Peak>::iterator peak1,
-      list<Peak>::iterator peak2) const;
+      list<Peak>::iterator peak2);
 
     void reduceSmallAreas(const float areaLimit);
     void reduceSmallAreasList(const float areaLimit);
