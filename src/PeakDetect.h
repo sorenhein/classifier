@@ -86,6 +86,7 @@ class PeakDetect
     void eliminateSmallAreas();
 
     void eliminateKinks();
+    void eliminateKinksList();
 
     void eliminatePositiveMinima();
 

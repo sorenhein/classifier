@@ -1029,6 +1029,33 @@ void PeakDetect::eliminateSmallAreas()
 }
 
 
+void PeakDetect::eliminateKinksList()
+{
+  if (peakList.empty())
+    THROW(ERR_NO_PEAKS, "Peak list is empty");
+
+  for (auto peak = next(peakList.begin(), 2); 
+      peak != prev(peakList.end()); peak++)
+  {
+    const auto peakPrev = prev(peak);
+    const auto peakPrevPrev = prev(peakPrev);
+    const auto peakNext = next(peak);
+
+    const float ratioPrev = 
+      peakPrev->getArea(* peakPrevPrev) / peak->getArea(* peakPrev);
+    const float ratioNext = 
+      peakNext->getArea(* peak) / peak->getArea(* peakPrev);
+
+    if (ratioPrev > 1.f && 
+        ratioNext > 1.f &&
+        ratioPrev * ratioNext > 100.f)
+    {
+      PeakDetect::collapsePeaks(peakPrev, peakNext);
+    }
+  }
+}
+
+
 void PeakDetect::eliminateKinks()
 {
   vector<unsigned> survivors;
@@ -1312,9 +1339,13 @@ cout << "Non-tiny list peaks: " << peakList.size() << "\n";
 PeakDetect::printList();
 
   PeakDetect::eliminateKinks();
+  PeakDetect::eliminateKinksList();
 
-// cout << "Non-kinky peaks: " << peaks.size() << "\n";
-// PeakDetect::print();
+cout << "Non-kinky peaks: " << peaks.size() << "\n";
+PeakDetect::print();
+
+cout << "Non-kinky list peaks: " << peakList.size() << "\n";
+PeakDetect::printList();
 
   PeakDetect::eliminatePositiveMinima();
 cout << "Negative peaks: " << peaks.size() << "\n";
