@@ -1,15 +1,25 @@
 2018-09-13
 ----------
+In Peak, maybe
+- primary quantities: index, value, maxFlag, areaCum
+- annotations requiring one or more neighbors: len (left/right),
+  range, area, gradient, fill.  One-sided: Symmetry factor
+- distance function(scale)
+  level norm.
+  len left norm.
+  range left norm. [enters into gradient, maybe len is enough]
+  area left / (0.5 * len * range) abs. as fill factor
+  gradient range left / len left, probably norm.
+  symmetry, maybe area/area
+
+  
 We often get the 2nd of maxima above the line.  sensor34, 180956, #2.
 
 Maybe transients can be reduced with filter padding as in filtfilt.
 
 Do we need to reduce positive minima?  Negative maxima?
 
-Cluster on?
-- len, normalized
-- range, normalized
-- area / (0.5 * len * range) as fill factor (gradient)
+Eliminate clusters based on unusual single-parameter values?
 
 
 2018-09-02

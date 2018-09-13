@@ -42,6 +42,8 @@ class PeakDetect
       const unsigned i0,
       const unsigned i1) const;
 
+    void annotateList();
+
     bool check(const vector<float>& samples) const;
 
     bool checkList(const vector<float>& samples) const;
@@ -73,6 +75,11 @@ class PeakDetect
       vector<PeakData>& clusters,
       vector<unsigned>& assigns,
       float& distance) const;
+
+    void runKmeansOnceList(
+      const Koptions& koptions,
+      vector<Peak>& clusters,
+      float& distance);
 
     void collapsePeaks(
       list<Peak>::iterator peak1,

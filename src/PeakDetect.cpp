@@ -66,6 +66,24 @@ float PeakDetect::integralList(
 }
 
 
+void PeakDetect::annotateList()
+{
+  if (peakList.size() < 2)
+    THROW(ERR_NO_PEAKS, "Too few peaks: " + to_string(peakList.size()));
+
+  const auto peakFirst = peakList.begin();
+  const auto peakLast = prev(peakList.end());
+
+  for (auto it = peakFirst; it != peakList.end(); it++)
+  {
+    const Peak * peakPrev = (it == peakFirst ? nullptr : &*prev(it));
+    const Peak * peakNext = (it == peakLast ? nullptr : &*next(it));
+
+    it->annotate(peakPrev, peakNext);
+  }
+}
+
+
 bool PeakDetect::checkList(const vector<float>& samples) const
 {
   if (samples.size() == 0)
@@ -78,15 +96,15 @@ bool PeakDetect::checkList(const vector<float>& samples) const
   for (auto it = next(peakList.begin()); it != peakList.end(); it++)
   {
     const unsigned index = it->getIndex();
-    const float value = it->getValue();
-
     const auto itPrev = prev(it);
-    const unsigned indexPrev = itPrev->getIndex();
-    const float valuePrev = itPrev->getValue();
 
     Peak peakSynth;
-    peakSynth.log(index, value,
-      PeakDetect::integralList(samples, indexPrev, index), * itPrev);
+    peakSynth.log(
+      index, 
+      it->getValue(),
+      itPrev->getAreaCum() + 
+        PeakDetect::integralList(samples, itPrev->getIndex(), index), 
+      itPrev->getMaxFlag());
 
     if (! it->check(peakSynth, offset))
       flag = false;
@@ -287,6 +305,7 @@ void PeakDetect::logList(
   // We put a sentinel peak at the beginning.
   peakList.emplace_back(Peak());
   peakList.back().logSentinel(samples[0]);
+  bool maxFlag = false;
 
   for (unsigned i = 1; i < len-1; i++)
   {
@@ -304,6 +323,8 @@ void PeakDetect::logList(
 
       if (i == len-1 || samples[i] <= samples[i+1])
         continue;
+      else
+        maxFlag = true;
     }
     else
     {
@@ -312,23 +333,34 @@ void PeakDetect::logList(
 
       if (i == len-1 || samples[i] >= samples[i+1])
         continue;
+      else
+        maxFlag = false;
     }
 
     const auto& peakPrev = peakList.back();
-    const float areaFull = PeakDetect::integralList(samples, peakPrev.getIndex(), i);
+    const float areaFull = PeakDetect::integralList(samples, 
+      peakPrev.getIndex(), i);
+    const float areaCumPrev = peakPrev.getAreaCum();
 
     // The peak contains data for the interval preceding it.
     peakList.emplace_back(Peak());
-    peakList.back().log(i, samples[i], areaFull, peakPrev);
+    peakList.back().log(i, samples[i], areaCumPrev + areaFull, maxFlag);
   }
 
   // We put another peak at the end.
   const auto& peakPrev = peakList.back();
   const float areaFull = 
     PeakDetect::integralList(samples, peakPrev.getIndex(), len-1);
+  const float areaCumPrev = peakPrev.getAreaCum();
 
   peakList.emplace_back(Peak());
-  peakList.back().log(len-1, samples[len-1], areaFull, peakPrev);
+  peakList.back().log(
+    len-1, 
+    samples[len-1], 
+    areaCumPrev + areaFull, 
+    ! peakPrev.getMaxFlag());
+
+  PeakDetect::annotateList();
 
   PeakDetect::checkList(samples);
 }
@@ -708,7 +740,9 @@ void PeakDetect::collapsePeaks(
     cout << "ERROR C1" << endl;
   }
 
-  peak2->update(* peak1);
+  Peak * peak0 = (peak1 == peakList.begin() ? nullptr : &*prev(peak1));
+  Peak * peakN = (next(peak2) == peakList.end() ? nullptr : &*next(peak2));
+  peak2->update(&*peak1, peak0, peakN);
 
   peakList.erase(peak1, peak2);
 }
@@ -725,11 +759,7 @@ void PeakDetect::reduceSmallAreasList(const float areaLimit)
   while (peak != peakList.end())
   {
     auto peakPrev = prev(peak);
-    const float area = peak->getArea(* peakPrev);
-if (peak->getIndex() + offset == 1102)
-{
-  cout << "HERE" << endl;
-}
+    const float area = peak->getArea();
     if (area >= areaLimit)
     {
       peak++;
@@ -747,7 +777,7 @@ if (peak->getIndex() + offset == 1102)
       peak++;
 
       sumArea = peak->getArea(* peakCurrent);
-      lastArea = peak->getArea(* peakPrev);
+      lastArea = peak->getArea();
       const float value = peak->getValue();
       if (! maxFlag && value > valueMax)
       {
@@ -775,53 +805,16 @@ if (peak->getIndex() + offset == 1102)
     }
     else if (peak->getMaxFlag() != maxFlag)
     {
-/*
-if (peakMax != peak)
-{
-  cout << "ERROR2" << endl;
-  cout << "peakCurrent " << peakCurrent->getIndex() + offset << "\n";
-  cout << "peakMax " << peakMax->getIndex()  + offset<< "\n";
-  cout << "peak " << peak->getIndex()  + offset<< "\n\n";
-}
-*/
       // Keep from peakCurrent to peak which is also often peakMax.
-/*
-cout << "Entering1 " << peakMax->getIndex()  + offset << ", curr " <<
-  peakCurrent->getIndex() + offset << endl;
-*/
       PeakDetect::collapsePeaks(--peakCurrent, peak);
-/*
-cout << "sumArea " << sumArea << "\n";
-cout << "Entered1 " << peakMax->getIndex()  + offset<< endl;
-cout << "Peak new\n";
-cout << peak->str(* prev(peak), offset);
-cout << "Prevpeak new\n";
-cout << prev(peak)->str(* prev(prev(peak)), offset);
-cout << "\n";
-*/
       peak++;
     }
     else
     {
       // Keep the start, the most extreme peak of opposite polarity,
       // and the end.
-/*
-cout << "Entering2 " << peak->getIndex() + offset << ", curr " <<
-  peakCurrent->getIndex() + offset << ", max " <<
-  peakMax->getIndex() + offset << endl;
-*/
       PeakDetect::collapsePeaks(--peakCurrent, peakMax);
       PeakDetect::collapsePeaks(++peakMax, peak);
-/*
-cout << "sumArea " << sumArea << "\n";
-cout << "Entered2 " << peak->getIndex()  + offset<< endl;
-
-cout << "Peak new\n";
-cout << peak->str(* prev(peak), offset);
-cout << "Prevpeak new\n";
-cout << prev(peak)->str(* prev(prev(peak)), offset);
-cout << "\n";
-*/
       peak++;
     }
   }
@@ -1219,7 +1212,7 @@ void PeakDetect::estimateScalesList()
     static_cast<unsigned>(PeakDetect::estimateScale(lenV)),
     PeakDetect::estimateScale(valueV),
     PeakDetect::estimateScale(areaV),
-    peakSentinel);
+    false);
 }
 
 
@@ -1341,6 +1334,70 @@ void PeakDetect::runKmeansOnce(
 }
 
 
+void PeakDetect::runKmeansOnceList(
+  const Koptions& koptions,
+  vector<Peak>& clusters,
+  float& distance)
+{
+  static random_device seed;
+  static mt19937 rng(seed());
+  uniform_int_distribution<unsigned> indices(0, peakList.size()-1);
+
+  // Pick random centroids from the data points.
+  clusters.resize(koptions.numClusters);
+  const auto peakFirst = peakList.begin();
+  for (auto& cluster: clusters)
+    cluster = * next(peakFirst, indices(rng));
+
+  clusters.resize(koptions.numClusters);
+  distance = numeric_limits<float>::max();
+
+  for (unsigned iter = 0; iter < koptions.numIterations; iter++)
+  {
+    vector<Peak> clustersNew(koptions.numClusters);
+    vector<unsigned> counts(koptions.numClusters, 0);
+    float distGlobal = 0.f;
+
+    for (auto& peak: peakList)
+    {
+      float distBest = numeric_limits<float>::max();
+      unsigned bestCluster = 0;
+      for (unsigned cno = 0; cno < koptions.numClusters; cno++)
+      {
+        const float dist = peak.distance(clusters[cno], scalesList);
+        if (dist < distBest)
+        {
+          distBest = dist;
+          bestCluster = cno;
+        }
+      }
+
+      peak.logCluster(bestCluster);
+      clustersNew[bestCluster] += peak;
+      counts[bestCluster]++;
+      distGlobal += distBest;
+    }
+
+    for (unsigned cno = 0; cno < koptions.numClusters; cno++)
+    {
+      clusters[cno] = clustersNew[cno];
+      clusters[cno] /= counts[cno];
+    }
+
+    if (distGlobal / distance >= koptions.convCriterion)
+    {
+      cout << "Finishing after " << iter << " iterations" << endl;
+      break;
+    }
+    else if (distGlobal <= distance)
+      distance = distGlobal;
+
+    cout << "Iteration " << iter << ": dist " << distGlobal << 
+      ", distGlobal " << distGlobal << endl;
+  }
+}
+
+
 void PeakDetect::reduceNew()
 {
 // cout << "Raw peaks: " << peaks.size() << "\n";
@@ -1394,7 +1451,7 @@ cout << "Area cutoff " << scaledCutoff << endl;
 // PeakDetect::print();
 /* */
 
-  const float scaledCutoffList = 0.05f * scalesList.getArea();
+  const float scaledCutoffList = 0.05f * scalesList.getAreaCum();
 cout << "Area list cutoff " << scaledCutoff << endl;
 
   PeakDetect::reduceSmallAreasList(scaledCutoffList);
@@ -1454,12 +1511,17 @@ cout << "Area list cutoff " << scaledCutoff << endl;
 
     cout << "i " << cno << ": " <<
       fixed << setprecision(2) << tinyScore << 
-      ", " << gradientScore << endl;
+      ", " << gradientScore;
 
     if (tinyScore < 1.5f || gradientScore < 0.6f)
+    {
       skips[cno] = true;
+      cout << " SKIP";
+    }
     else
       skips[cno] = false;
+
+    cout << endl;
   }
 
   vector<PeakData> newPeaks;
@@ -1584,6 +1646,8 @@ void PeakDetect::printHeader() const
     setw(7) << "Len" <<
     setw(7) << "Range" << 
     setw(8) << "Area" <<
+    setw(8) << "Grad" <<
+    setw(8) << "Fill" <<
     setw(8) << "Cluster" <<
     "\n";
 }
@@ -1602,6 +1666,11 @@ void PeakDetect::printPeak(
     setw(7) << fixed << setprecision(2) << peak.left.len <<
     setw(7) << fixed << setprecision(2) << peak.left.range <<
     setw(8) << fixed << setprecision(2) << peak.left.area <<
+    setw(8) << fixed << setprecision(2) << 
+      (peak.left.len == 0.f ? 0.f : peak.left.range / peak.left.len) <<
+    setw(8) << fixed << setprecision(2) << 
+      (peak.left.len == 0.f ? 0.f :
+      peak.left.area / (0.5 * peak.left.len * peak.left.range)) <<
     setw(8) << right << "0" <<
     "\n";
 }
@@ -1628,7 +1697,7 @@ void PeakDetect::printList() const
   cout << peakList.front().strHeader();
 
   for (auto peak = next(peakList.begin()); peak != peakList.end(); peak++)
-    cout << peak->str(* prev(peak), offset);
+    cout << peak->str(offset);
   cout << "\n";
 }
 

@@ -11,25 +11,45 @@ class Peak
 {
   private:
 
+    // We mainly quantify the left flank of the peaks.
+    // There are dummy peaks on each end of the peak list.
+
+    // Absolute quantities associated with the peak.
     unsigned index;
-    float value;
     bool maxFlag;
+    float value; // Signed
+    float areaCum; // Integral from beginning of trace, signed
 
-    // The flank goes to the left of the peak.
-    // There are dummy peaks on each end.
-    // The following quantities are measured relative to the
-    // previous peak and are always non-negative.
+    // The following quantities are measured relative to other
+    // peaks and are always non-negative.
 
-    float len; 
-    float range;
-
-    float areaCum; // From beginning of trace, may be negative
+    float len; // To the left, in samples
+    float range; // To the left (always positive)
+    float area; // To the left, from the lowest of the peaks (positive)
+    float gradient; // range/len
+    float fill; // area / (0.5 * range * len)
+    float symmetry; // area relative to the area to the *right*
 
     unsigned clusterNo;
 
-    string str(
-      const float areaOut,
-      const unsigned offset) const;
+
+    void deviation(
+      const unsigned v1,
+      const unsigned v2,
+      unsigned& issue,
+      bool& flag) const;
+
+    void deviation(
+      const bool v1,
+      const bool v2,
+      unsigned& issue,
+      bool& flag) const;
+
+    void deviation(
+      const float v1,
+      const float v2,
+      unsigned& issue,
+      bool& flag) const;
 
   public:
 
@@ -44,20 +64,32 @@ class Peak
     void log(
       const unsigned indexIn,
       const float valueIn,
-      const float areaFullIn,
-      const Peak& peakPrev);
+      const float areaCumIn,
+      const bool maxFlagIn);
 
     void logCluster(const unsigned cno);
 
-    void update(const Peak& peakPrev);
+    void update(
+      Peak * peakPrev,
+      const Peak * peakFirst,
+      const Peak * peakNext);
+
+    void annotate(
+      const Peak * peakPrev,
+      const Peak * peakNext);
+
+    float distance(
+      const Peak& p2,
+      const Peak& scale) const;
 
     unsigned getIndex() const;
     bool getMaxFlag() const;
     float getValue() const;
+    float getAreaCum() const;
     float getLength() const;
     float getRange() const;
     float getArea() const;
-    float getArea(const Peak& peakPrev) const;
+    float getArea(const Peak& p2) const;
 
     bool check(
       const Peak& p2,
@@ -70,10 +102,6 @@ class Peak
     string strHeader() const;
 
     string str(const unsigned offset = 0) const;
-
-    string str(
-      const Peak& peakPrev,
-      const unsigned offset = 0) const;
 };
 
 #endif
