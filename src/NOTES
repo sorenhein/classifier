@@ -1,30 +1,15 @@
-2018-09-09
+2018-09-13
 ----------
-Probably fine:
-* reduceSmallAreas(0.1f)
-* eliminateKinks
+We often get the 2nd of maxima above the line.  sensor34, 180956, #2.
 
-Aim to have the "local" minima and also maxima in the end.
-So don't eliminate positive minima as such.
+Maybe transients can be reduced with filter padding as in filtfilt.
 
-Could streamline streaks of positive maxima with positive minima
-in between: Just the ends and one minimum in between.
-(We need good gradients.)
+Do we need to reduce positive minima?  Negative maxima?
 
-Estimate the area scale at this point, though of course only for
-negative minima.
-
-Eliminate small areas, but not all at once.  Start close to the previous
-scale of 0.1f and gradually move up to 0.05 * scale or whatever.
-
-Then cluster on
-- level
-- gradients
-- lengths or areas (but only one of them)
-
-Filter clusters on
-- Tiny
-- Low gradients
+Cluster on?
+- len, normalized
+- range, normalized
+- area / (0.5 * len * range) as fill factor (gradient)
 
 
 2018-09-02

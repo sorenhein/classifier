@@ -207,7 +207,8 @@ bool SegActive::detect(
   timers.stop(TIMER_DETECT_PEAKS);
 
   synthPeaks.resize(writeInterval.len);
-  peakDetect.makeSynthPeaks(synthPeaks);
+  // peakDetect.makeSynthPeaks(synthPeaks);
+  peakDetect.makeSynthPeaksList(synthPeaks);
 
   return true;
 }

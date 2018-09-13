@@ -26,6 +26,7 @@ class PeakDetect
     unsigned offset;
     vector<PeakData> peaks;
     PeakData scales;
+    Peak scalesList;
 
     list<Peak> peakList;
 
@@ -58,6 +59,7 @@ class PeakDetect
     float estimateScale(vector<float>& data) const;
 
     void estimateScales();
+    void estimateScalesList();
 
     void normalizePeaks(vector<PeakData>& normalPeaks);
 
@@ -116,8 +118,10 @@ class PeakDetect
     void reduceNew();
 
     void makeSynthPeaks(vector<float>& synthPeaks) const;
+    void makeSynthPeaksList(vector<float>& synthPeaks) const;
 
     void getPeakTimes(vector<PeakTime>& times) const;
+    void getPeakTimesList(vector<PeakTime>& times) const;
 
     void print(const bool activeFlag = true) const;
 

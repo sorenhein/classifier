@@ -29,7 +29,7 @@ class Peak
 
     string str(
       const float areaOut,
-      const unsigned offset = 0) const;
+      const unsigned offset) const;
 
   public:
 
@@ -54,6 +54,9 @@ class Peak
     unsigned getIndex() const;
     bool getMaxFlag() const;
     float getValue() const;
+    float getLength() const;
+    float getRange() const;
+    float getArea() const;
     float getArea(const Peak& peakPrev) const;
 
     bool check(

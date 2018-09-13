@@ -95,11 +95,29 @@ float Peak::getValue() const
 }
 
 
+float Peak::getLength() const
+{
+  return len;
+}
+
+
+float Peak::getRange() const
+{
+  return range;
+}
+
+
 float Peak::getArea(const Peak& peakPrev) const
 {
   // Assumes p2 has a lower index.
   return abs(areaCum - peakPrev.areaCum - 
     (index - peakPrev.index) * min(value, peakPrev.value));
+}
+
+
+float Peak::getArea() const
+{
+  return areaCum;
 }
 
 

@@ -1200,6 +1200,29 @@ void PeakDetect::estimateScales()
 }
 
 
+void PeakDetect::estimateScalesList()
+{
+  vector<float> valueV, lenV, rangeV, areaV;
+
+  const Peak peakSentinel;
+
+  for (auto peak = next(peakList.begin());
+      peak != peakList.end(); peak++)
+  {
+    valueV.push_back(abs(peak->getValue()));
+    lenV.push_back(peak->getLength());
+    rangeV.push_back(peak->getRange());
+    areaV.push_back(peak->getArea(* prev(peak)));
+  }
+
+  scalesList.log(
+    static_cast<unsigned>(PeakDetect::estimateScale(lenV)),
+    PeakDetect::estimateScale(valueV),
+    PeakDetect::estimateScale(areaV),
+    peakSentinel);
+}
+
+
 void PeakDetect::normalizePeaks(vector<PeakData>& normalPeaks)
 {
   normalPeaks.clear();
@@ -1320,41 +1343,45 @@ void PeakDetect::runKmeansOnce(
 
 void PeakDetect::reduceNew()
 {
-cout << "Raw peaks: " << peaks.size() << "\n";
-PeakDetect::print();
+// cout << "Raw peaks: " << peaks.size() << "\n";
+// PeakDetect::print();
 
-cout << "List peaks: " << peakList.size() << "\n";
-PeakDetect::printList();
+// cout << "List peaks: " << peakList.size() << "\n";
+// PeakDetect::printList();
 
   // PeakDetect::eliminateTinyAreas();
   // TODO Maybe also something derived from the signal.
   // TODO Doubly linked list for peak structure.
   PeakDetect::reduceSmallAreas(0.1f);
 
-cout << "Non-tiny peaks: " << peaks.size() << "\n";
-PeakDetect::print();
+// cout << "Non-tiny peaks: " << peaks.size() << "\n";
+// PeakDetect::print();
 
   PeakDetect::reduceSmallAreasList(0.1f);
-cout << "Non-tiny list peaks: " << peakList.size() << "\n";
-PeakDetect::printList();
+// cout << "Non-tiny list peaks: " << peakList.size() << "\n";
+// PeakDetect::printList();
 
   PeakDetect::eliminateKinks();
   PeakDetect::eliminateKinksList();
 
-cout << "Non-kinky peaks: " << peaks.size() << "\n";
-PeakDetect::print();
+// cout << "Non-kinky peaks: " << peaks.size() << "\n";
+// PeakDetect::print();
 
-cout << "Non-kinky list peaks: " << peakList.size() << "\n";
-PeakDetect::printList();
+// cout << "Non-kinky list peaks: " << peakList.size() << "\n";
+// PeakDetect::printList();
 
   PeakDetect::eliminatePositiveMinima();
-cout << "Negative peaks: " << peaks.size() << "\n";
-PeakDetect::print();
+// cout << "Negative peaks: " << peaks.size() << "\n";
+// PeakDetect::print();
 
   PeakDetect::estimateScales();
 cout << "Scale\n";
 PeakDetect::printPeak(scales, 0);
 cout << endl;
+
+  PeakDetect::estimateScalesList();
+cout << "Scale list\n";
+cout << scalesList.str(0) << "\n";
 
   const float scaledCutoff = 
     0.05f * ((scales.left.area + scales.right.area) / 2.f);
@@ -1363,9 +1390,17 @@ cout << "Area cutoff " << scaledCutoff << endl;
 
   /* */
   PeakDetect::reduceSmallAreas(scaledCutoff);
-cout << "Reasonable peaks: " << peaks.size() << "\n";
-PeakDetect::print();
+// cout << "Reasonable peaks: " << peaks.size() << "\n";
+// PeakDetect::print();
 /* */
+
+  const float scaledCutoffList = 0.05f * scalesList.getArea();
+cout << "Area list cutoff " << scaledCutoff << endl;
+
+  PeakDetect::reduceSmallAreasList(scaledCutoffList);
+// cout << "Reasonable list peaks: " << peakList.size() << "\n";
+// PeakDetect::printList();
+
 
   /* */
   vector<PeakData> normalPeaks;
@@ -1455,8 +1490,8 @@ PeakDetect::print();
   }
 
 peaks = newPeaks;
-cout << "Final peaks: " << peaks.size() << "\n";
-PeakDetect::print();
+// cout << "Final peaks: " << peaks.size() << "\n";
+// PeakDetect::print();
 }
 
 
@@ -1473,6 +1508,23 @@ void PeakDetect::makeSynthPeaks(vector<float>& synthPeaks) const
       synthPeaks[peak.index] = peak.value;
       count++;
     }
+  }
+}
+
+
+void PeakDetect::makeSynthPeaksList(vector<float>& synthPeaks) const
+{
+  for (unsigned i = 0; i < synthPeaks.size(); i++)
+    synthPeaks[i] = 0;
+
+  // unsigned count = 0;
+  for (auto& peak: peakList)
+  {
+    // if (! peak.maxFlag)
+    // {
+      synthPeaks[peak.getIndex()] = peak.getValue();
+      // count++;
+    // }
   }
 }
 
@@ -1494,6 +1546,31 @@ void PeakDetect::getPeakTimes(vector<PeakTime>& times) const
     p.time = peaks[i].index / SAMPLE_RATE - t0;
     p.value = peaks[i].value;
     times.push_back(p);
+  }
+}
+
+
+void PeakDetect::getPeakTimesList(vector<PeakTime>& times) const
+{
+  times.clear();
+  const auto pfirst = peakList.begin();
+  unsigned findex;
+  if (pfirst->getMaxFlag())
+    findex = pfirst->getIndex();
+  else
+    findex = next(pfirst)->getIndex();
+
+  const float t0 = findex / static_cast<float>(SAMPLE_RATE);
+
+  for (const auto& peak: peakList)
+  {
+    if (peak.getMaxFlag())
+      continue;
+
+    times.emplace_back(PeakTime());
+    PeakTime& p = times.back();
+    p.time = peak.getIndex() / SAMPLE_RATE - t0;
+    p.value = peak.getValue();
   }
 }
 
