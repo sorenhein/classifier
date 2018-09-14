@@ -750,7 +750,8 @@ void PeakDetect::collapsePeaks(
     cout << "ERROR C1" << endl;
   }
 
-  Peak * peak0 = (peak1 == peakList.begin() ? nullptr : &*prev(peak1));
+  Peak * peak0 = 
+    (peak1 == peakList.begin() ? &*peak1 : &*prev(peak1));
   Peak * peakN = (next(peak2) == peakList.end() ? nullptr : &*next(peak2));
 /*
 cout << "peak2 before collapse\n";
@@ -762,7 +763,7 @@ cout << peak0->str(offset);
 cout << "peakN before collapse\n";
 cout << peakN->str(offset);
 */
-  peak2->update(&*peak1, peak0, peakN);
+  peak2->update(peak0, peakN);
 /*
 cout << "peak2 after collapse\n";
 cout << peak2->str(offset) << "\n";
@@ -1432,8 +1433,8 @@ void PeakDetect::reduceNew()
 // cout << "Raw peaks: " << peaks.size() << "\n";
 // PeakDetect::print();
 
-// cout << "List peaks: " << peakList.size() << "\n";
-// PeakDetect::printList();
+cout << "List peaks: " << peakList.size() << "\n";
+PeakDetect::printList();
 
   // PeakDetect::eliminateTinyAreas();
   // TODO Maybe also something derived from the signal.

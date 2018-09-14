@@ -75,7 +75,6 @@ void Peak::logCluster(const unsigned cno)
 
 void Peak::update(
   Peak * peakPrev,
-  const Peak * peakFirst,
   const Peak * peakNext)
 {
   // This is used before we delete all peaks from peakFirst (included)
@@ -83,24 +82,26 @@ void Peak::update(
   // peakPrev is the predecessor of peakFirst if this exists.
   // peakNext is the successor of the present peak if this exists.
 
-  if (peakFirst == nullptr)
-    THROW(ERR_NO_PEAKS, "No peak");
+  if (peakPrev == nullptr)
+    THROW(ERR_NO_PEAKS, "No previous peak");
 
-  const Peak * peakRef = (peakFirst == nullptr ? peakPrev : peakFirst);
-
-  len = static_cast<float>(index - peakRef->index);
-  range = abs(value - peakRef->value);
-  area = abs(areaCum - peakRef->areaCum - 
-    (index - peakRef->index) * min(value, peakRef->value));
+  len = static_cast<float>(index - peakPrev->index);
+  range = abs(value - peakPrev->value);
+  area = abs(areaCum - peakPrev->areaCum - 
+    (index - peakPrev->index) * min(value, peakPrev->value));
 
   gradient = range / len;
   fill = area / (0.5f * range * len);
 
   if (peakNext != nullptr)
-    symmetry = area / peakNext->area;
+  {
+    // Next area will not in general be set!
+    const float areaNext = abs(peakNext->areaCum - areaCum - 
+      (peakNext->index - index) * min(peakNext->value, value));
+    symmetry = area / areaNext;
+  }
 
-  if (peakPrev != nullptr)
-    peakPrev->symmetry = peakPrev->area / area;
+  peakPrev->symmetry = peakPrev->area / area;
 }
 
 

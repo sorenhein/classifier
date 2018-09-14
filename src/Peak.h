@@ -71,7 +71,6 @@ class Peak
 
     void update(
       Peak * peakPrev,
-      const Peak * peakFirst,
       const Peak * peakNext);
 
     void annotate(
