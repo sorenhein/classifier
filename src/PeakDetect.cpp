@@ -746,9 +746,7 @@ void PeakDetect::collapsePeaks(
 
   // Need same polarity.
   if (peak1->getMaxFlag() != peak2->getMaxFlag())
-  {
-    cout << "ERROR C1" << endl;
-  }
+    THROW(ERR_PEAK_COLLAPSE, "Collapsing peaks with different polarity");
 
   Peak * peak0 = 
     (peak1 == peakList.begin() ? &*peak1 : &*prev(peak1));
@@ -783,7 +781,6 @@ void PeakDetect::reduceSmallAreasList(const float areaLimit)
 
   while (peak != peakList.end())
   {
-    auto peakPrev = prev(peak);
     const float area = peak->getArea();
     if (area >= areaLimit)
     {
@@ -793,18 +790,19 @@ void PeakDetect::reduceSmallAreasList(const float areaLimit)
 
     auto peakCurrent = peak, peakMax = peak;
     const bool maxFlag = peak->getMaxFlag();
-    float sumArea, lastArea;
+    float sumArea = 0.f, lastArea = 0.f;
     float valueMax = numeric_limits<float>::lowest();
 
     do
     {
-      peakPrev = peak;
       peak++;
+      if (peak == peakList.end())
+        break;
 
       sumArea = peak->getArea(* peakCurrent);
       lastArea = peak->getArea();
-// cout << "index " << peak->getIndex() << ": " << sumArea <<
-  // ", " << lastArea << endl;
+ // cout << "index " << peak->getIndex() + offset << ": " << sumArea <<
+   // ", " << lastArea << endl;
       const float value = peak->getValue();
       if (! maxFlag && value > valueMax)
       {
@@ -817,18 +815,18 @@ void PeakDetect::reduceSmallAreasList(const float areaLimit)
         peakMax = peak;
       }
     }
-    while ((abs(sumArea) < areaLimit || abs(lastArea) < areaLimit) && 
-        peak != peakLast);
+    while (abs(sumArea) < areaLimit || abs(lastArea) < areaLimit);
 // cout << "broke out: " << sumArea << ", " << lastArea << endl;
 
     if (abs(sumArea) < areaLimit || abs(lastArea) < areaLimit)
     {
+// cout << "Reached the end\n";
       // It's the last set of peaks.  We could keep the largest peak
       // of the same polarity as peakCurrent (instead of peakCurrent).
       // It's a bit random whether or not this would be a "real" peak,
       // and we also don't keep track of this above.  So we we just stop.
-      if (peakCurrent != peakLast)
-        peakList.erase(++peakCurrent, peakList.end());
+      if (peakCurrent != peakList.end())
+        peakList.erase(peakCurrent, peakList.end());
       break;
     }
     else if (peak->getMaxFlag() != maxFlag)
@@ -1450,8 +1448,8 @@ void PeakDetect::reduceNew()
 
   PeakDetect::eliminateKinksList();
 
-// cout << "Non-kinky list peaks: " << peakList.size() << "\n";
-// PeakDetect::printList();
+cout << "Non-kinky list peaks: " << peakList.size() << "\n";
+PeakDetect::printList();
 
   PeakDetect::estimateScalesList();
 
@@ -1464,7 +1462,7 @@ cout << "Area list cutoff " << scaledCutoffList << endl;
 
   PeakDetect::reduceSmallAreasList(scaledCutoffList);
 
-cout << "Reasonable list peaks: " << peakList.size() << "\n";
+cout << "Reasonable list peaks: " << peakList.size() <<  endl;
 PeakDetect::printList();
 cout << endl;
 
@@ -1495,6 +1493,14 @@ cout << endl;
   }
   cout << endl;
 
+  cout << "distance from scale list:\n";
+  for (unsigned i = 0; i < koptions.numClusters; i++)
+  {
+    cout << i << ": " << clusters[i].distance(scalesList, scalesList) <<
+      "\n";
+  }
+  cout << endl;
+
   for (auto peak = next(peakList.begin());
       peak != peakList.end(); peak++)
   {
@@ -1503,6 +1509,7 @@ cout << endl;
       peak->getSymmetry() >= 0.3f &&
       peak->getSymmetry() <= 2.f)
     {
+cout << "selected " << peak->getIndex() << endl;
       peak->select();
     }
   }
@@ -1531,15 +1538,10 @@ void PeakDetect::makeSynthPeaksList(vector<float>& synthPeaks) const
   for (unsigned i = 0; i < synthPeaks.size(); i++)
     synthPeaks[i] = 0;
 
-  // unsigned count = 0;
   for (auto& peak: peakList)
   {
-    // if (! peak.maxFlag)
-    // {
     if (peak.isSelected())
       synthPeaks[peak.getIndex()] = peak.getValue();
-      // count++;
-    // }
   }
 }
 
@@ -1595,29 +1597,6 @@ void PeakDetect::getPeakTimesList(vector<PeakTime>& times) const
       p.value = peak.getValue();
     }
   }
-
-
-  /*
-  const auto pfirst = peakList.begin();
-  unsigned findex;
-  if (pfirst->getMaxFlag())
-    findex = pfirst->getIndex();
-  else
-    findex = next(pfirst)->getIndex();
-
-  const float t0 = findex / static_cast<float>(SAMPLE_RATE);
-
-  for (const auto& peak: peakList)
-  {
-    if (peak.getMaxFlag())
-      continue;
-
-    times.emplace_back(PeakTime());
-    PeakTime& p = times.back();
-    p.time = peak.getIndex() / SAMPLE_RATE - t0;
-    p.value = peak.getValue();
-  }
-  */
 }
 
 

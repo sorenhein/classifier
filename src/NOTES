@@ -1,17 +1,12 @@
-2018-09-13
+2018-09-14
 ----------
-In Peak, maybe
-- primary quantities: index, value, maxFlag, areaCum
-- annotations requiring one or more neighbors: len (left/right),
-  range, area, gradient, fill.  One-sided: Symmetry factor
-- distance function(scale)
-  level norm.
-  len left norm.
-  range left norm. [enters into gradient, maybe len is enough]
-  area left / (0.5 * len * range) abs. as fill factor
-  gradient range left / len left, probably norm.
-  symmetry, maybe area/area
+The peak clusters are actually quite selective.
+The question is how to recognize the real clusters?
 
+- Fill is pretty irrelevant
+- Scaled area < 0.20 is suspect?
+- Few peaks in cluster is suspect, < 0.20 of highest count?
+- Relative gradient < 0.50 is suspect?
   
 We often get the 2nd of maxima above the line.  sensor34, 180956, #2.
 
