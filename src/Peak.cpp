@@ -86,7 +86,7 @@ void Peak::update(
   if (peakFirst == nullptr)
     THROW(ERR_NO_PEAKS, "No peak");
 
-  const Peak * peakRef = (peakPrev == nullptr ? peakFirst : peakPrev);
+  const Peak * peakRef = (peakFirst == nullptr ? peakPrev : peakFirst);
 
   len = static_cast<float>(index - peakRef->index);
   range = abs(value - peakRef->value);
@@ -130,7 +130,12 @@ void Peak::annotate(
   if (peakNext == nullptr)
     symmetry = 1.f;
   else
-    symmetry = area / peakNext->area;
+  {
+    // Next area will not in general be set!
+    const float areaNext = abs(peakNext->areaCum - areaCum - 
+      (peakNext->index - index) * min(peakNext->value, value));
+    symmetry = area / areaNext;
+  }
 }
 
 

@@ -92,24 +92,34 @@ bool PeakDetect::checkList(const vector<float>& samples) const
   if (peakList.size() < 2)
     THROW(ERR_NO_PEAKS, "Too few peaks: " + to_string(peakList.size()));
 
+  const auto peakFirst = peakList.begin();
+  const auto peakLast = prev(peakList.end());
   bool flag = true;
-  for (auto it = next(peakList.begin()); it != peakList.end(); it++)
-  {
-    const unsigned index = it->getIndex();
-    const auto itPrev = prev(it);
 
+  for (auto it = peakFirst; it != peakList.end(); it++)
+  {
     Peak peakSynth;
-    peakSynth.log(
-      index, 
-      it->getValue(),
-      itPrev->getAreaCum() + 
-        PeakDetect::integralList(samples, itPrev->getIndex(), index), 
-      itPrev->getMaxFlag());
+    Peak const * peakPrev = nullptr, * peakNext = nullptr;
+    float areaFull = 0.f;
+    const unsigned index = it->getIndex();
+
+    if (it != peakFirst)
+    {
+      peakPrev = &*prev(it);
+      areaFull = peakPrev->getAreaCum() + 
+        PeakDetect::integralList(samples, peakPrev->getIndex(), index);
+    }
+
+    if (it != peakLast)
+      peakNext = &*next(it);
+
+    peakSynth.log(index, it->getValue(), areaFull, it->getMaxFlag());
+    peakSynth.annotate(peakPrev, peakNext);
 
     if (! it->check(peakSynth, offset))
       flag = false;
   }
-  return false;
+  return flag;
 }
 
 
@@ -742,7 +752,21 @@ void PeakDetect::collapsePeaks(
 
   Peak * peak0 = (peak1 == peakList.begin() ? nullptr : &*prev(peak1));
   Peak * peakN = (next(peak2) == peakList.end() ? nullptr : &*next(peak2));
+/*
+cout << "peak2 before collapse\n";
+cout << peak2->str(offset);
+cout << "peak1 before collapse\n";
+cout << peak1->str(offset);
+cout << "peak0 before collapse\n";
+cout << peak0->str(offset);
+cout << "peakN before collapse\n";
+cout << peakN->str(offset);
+*/
   peak2->update(&*peak1, peak0, peakN);
+/*
+cout << "peak2 after collapse\n";
+cout << peak2->str(offset) << "\n";
+*/
 
   peakList.erase(peak1, peak2);
 }
@@ -778,6 +802,8 @@ void PeakDetect::reduceSmallAreasList(const float areaLimit)
 
       sumArea = peak->getArea(* peakCurrent);
       lastArea = peak->getArea();
+// cout << "index " << peak->getIndex() << ": " << sumArea <<
+  // ", " << lastArea << endl;
       const float value = peak->getValue();
       if (! maxFlag && value > valueMax)
       {
@@ -792,6 +818,7 @@ void PeakDetect::reduceSmallAreasList(const float areaLimit)
     }
     while ((abs(sumArea) < areaLimit || abs(lastArea) < areaLimit) && 
         peak != peakLast);
+// cout << "broke out: " << sumArea << ", " << lastArea << endl;
 
     if (abs(sumArea) < areaLimit || abs(lastArea) < areaLimit)
     {
@@ -805,12 +832,14 @@ void PeakDetect::reduceSmallAreasList(const float areaLimit)
     }
     else if (peak->getMaxFlag() != maxFlag)
     {
+// cout << "Different polarity\n";
       // Keep from peakCurrent to peak which is also often peakMax.
       PeakDetect::collapsePeaks(--peakCurrent, peak);
       peak++;
     }
     else
     {
+// cout << "Same polarity\n";
       // Keep the start, the most extreme peak of opposite polarity,
       // and the end.
       PeakDetect::collapsePeaks(--peakCurrent, peakMax);
@@ -1415,8 +1444,8 @@ void PeakDetect::reduceNew()
 // PeakDetect::print();
 
   PeakDetect::reduceSmallAreasList(0.1f);
-// cout << "Non-tiny list peaks: " << peakList.size() << "\n";
-// PeakDetect::printList();
+cout << "Non-tiny list peaks: " << peakList.size() << "\n";
+PeakDetect::printList();
 
   PeakDetect::eliminateKinks();
   PeakDetect::eliminateKinksList();
