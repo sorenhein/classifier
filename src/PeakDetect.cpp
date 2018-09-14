@@ -1225,24 +1225,21 @@ void PeakDetect::estimateScales()
 
 void PeakDetect::estimateScalesList()
 {
-  vector<float> valueV, lenV, rangeV, areaV;
-
-  const Peak peakSentinel;
-
-  for (auto peak = next(peakList.begin());
-      peak != peakList.end(); peak++)
+  scalesList.reset();
+  unsigned no = 0;
+  for (auto peak = next(peakList.begin()); peak != peakList.end(); peak++)
   {
-    valueV.push_back(abs(peak->getValue()));
-    lenV.push_back(peak->getLength());
-    rangeV.push_back(peak->getRange());
-    areaV.push_back(peak->getArea(* prev(peak)));
+    if (! peak->getMaxFlag() && peak->getValue() < 0.f)
+    {
+      scalesList += * peak;
+      no++;
+    }
   }
 
-  scalesList.log(
-    static_cast<unsigned>(PeakDetect::estimateScale(lenV)),
-    PeakDetect::estimateScale(valueV),
-    PeakDetect::estimateScale(areaV),
-    false);
+  if (no == 0)
+    THROW(ERR_NO_PEAKS, "No negative minima");
+
+  scalesList /= no;
 }
 
 
@@ -1433,8 +1430,8 @@ void PeakDetect::reduceNew()
 // cout << "Raw peaks: " << peaks.size() << "\n";
 // PeakDetect::print();
 
-cout << "List peaks: " << peakList.size() << "\n";
-PeakDetect::printList();
+// cout << "List peaks: " << peakList.size() << "\n";
+// PeakDetect::printList();
 
   // PeakDetect::eliminateTinyAreas();
   // TODO Maybe also something derived from the signal.
@@ -1454,8 +1451,8 @@ PeakDetect::printList();
 // cout << "Non-kinky peaks: " << peaks.size() << "\n";
 // PeakDetect::print();
 
-// cout << "Non-kinky list peaks: " << peakList.size() << "\n";
-// PeakDetect::printList();
+cout << "Non-kinky list peaks: " << peakList.size() << "\n";
+PeakDetect::printList();
 
   PeakDetect::eliminatePositiveMinima();
 // cout << "Negative peaks: " << peaks.size() << "\n";
@@ -1481,12 +1478,12 @@ cout << "Area cutoff " << scaledCutoff << endl;
 // PeakDetect::print();
 /* */
 
-  const float scaledCutoffList = 0.05f * scalesList.getAreaCum();
-cout << "Area list cutoff " << scaledCutoff << endl;
+  const float scaledCutoffList = 0.05f * scalesList.getArea();
+cout << "Area list cutoff " << scaledCutoffList << endl;
 
   PeakDetect::reduceSmallAreasList(scaledCutoffList);
-// cout << "Reasonable list peaks: " << peakList.size() << "\n";
-// PeakDetect::printList();
+cout << "Reasonable list peaks: " << peakList.size() << "\n";
+PeakDetect::printList();
 
 
   /* */

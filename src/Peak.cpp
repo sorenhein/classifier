@@ -148,10 +148,10 @@ float Peak::distance(
   // Many possibilities here: len, range etc.
   // Normalized or not, and if so, by what.
 
-  const float vdiff = abs(value - p2.value) / scale.value;
-  const float vfill = abs(fill - p2.fill);
-  const float vgrad = abs(gradient - p2.gradient) / scale.gradient;
-  const float vsymm = area / p2.area;
+  const float vdiff = (value - p2.value) / scale.value;
+  const float vfill = fill - p2.fill;
+  const float vgrad = (gradient - p2.gradient) / scale.gradient;
+  const float vsymm = symmetry - p2.symmetry;
 
   return vdiff * vdiff + vfill * vfill + vgrad * vgrad + vsymm * vsymm;
 }
