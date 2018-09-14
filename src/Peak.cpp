@@ -39,7 +39,8 @@ void Peak::reset()
   fill = 0.f;
   symmetry = 0.f;
 
-  clusterNo = 0;
+  clusterNo = numeric_limits<unsigned>::max();
+  selectFlag = false;
 }
 
 
@@ -149,8 +150,8 @@ float Peak::distance(
   // Normalized or not, and if so, by what.
 
   const float vdiff = (value - p2.value) / scale.value;
-  const float vfill = fill - p2.fill;
   const float vgrad = (gradient - p2.gradient) / scale.gradient;
+  const float vfill = fill - p2.fill;
   const float vsymm = symmetry - p2.symmetry;
 
   return vdiff * vdiff + vfill * vfill + vgrad * vgrad + vsymm * vsymm;
@@ -207,6 +208,50 @@ float Peak::getArea(const Peak& p2) const
   // the immediate predecessor (but a predecessor).
   return abs(areaCum - p2.areaCum -
     (index - p2.index) * min(value, p2.value));
+}
+
+
+float Peak::getSymmetry() const
+{
+  return symmetry;
+}
+
+
+unsigned Peak::getCluster() const
+{
+  return clusterNo;
+}
+
+
+bool Peak::isCluster(const unsigned cno) const
+{
+  return (cno == clusterNo);
+}
+
+
+bool Peak::isCandidate() const
+{
+  return (! maxFlag && value < 0.f);
+}
+
+
+float Peak::measure(const Peak& scale) const
+{
+  return abs(value / scale.value) +
+    abs(range / scale.range) +
+    abs(area / scale.area);
+}
+
+
+void Peak::select()
+{
+  selectFlag = true;
+}
+
+
+bool Peak::isSelected() const
+{
+  return selectFlag;
 }
 
 
@@ -354,10 +399,11 @@ string Peak::str(const unsigned offset) const
     setw(7) << fixed << setprecision(2) << len <<
     setw(7) << fixed << setprecision(2) << range <<
     setw(8) << fixed << setprecision(2) << area <<
-    setw(8) << fixed << setprecision(2) << gradient <<
+    setw(8) << fixed << setprecision(2) << 100.f * gradient <<
     setw(8) << fixed << setprecision(2) << fill <<
     setw(8) << fixed << setprecision(2) << symmetry <<
-    setw(6) << right << clusterNo <<
+    setw(6) << right << (clusterNo == numeric_limits<unsigned>::max() ? 
+      "-" : to_string(clusterNo)) <<
     "\n";
   return ss.str();
 }

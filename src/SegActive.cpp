@@ -207,8 +207,8 @@ bool SegActive::detect(
   timers.stop(TIMER_DETECT_PEAKS);
 
   synthPeaks.resize(writeInterval.len);
-  peakDetect.makeSynthPeaks(synthPeaks);
-  // peakDetect.makeSynthPeaksList(synthPeaks);
+  // peakDetect.makeSynthPeaks(synthPeaks);
+  peakDetect.makeSynthPeaksList(synthPeaks);
 
   return true;
 }
@@ -216,7 +216,8 @@ bool SegActive::detect(
 
 void SegActive::getPeakTimes(vector<PeakTime>& times) const
 {
-  peakDetect.getPeakTimes(times);
+  // peakDetect.getPeakTimes(times);
+  peakDetect.getPeakTimesList(times);
 }
 
 

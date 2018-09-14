@@ -31,6 +31,7 @@ class Peak
     float symmetry; // area relative to the area to the *right*
 
     unsigned clusterNo;
+    bool selectFlag;
 
 
     void deviation(
@@ -89,6 +90,17 @@ class Peak
     float getRange() const;
     float getArea() const;
     float getArea(const Peak& p2) const;
+    float getSymmetry() const;
+    unsigned getCluster() const;
+
+    bool isCluster(const unsigned cno) const;
+
+    bool isCandidate() const;
+
+    float measure(const Peak& scale) const;
+
+    void select();
+    bool isSelected() const;
 
     bool check(
       const Peak& p2,

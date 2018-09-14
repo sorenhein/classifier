@@ -1373,10 +1373,22 @@ void PeakDetect::runKmeansOnceList(
   // Pick random centroids from the data points.
   clusters.resize(koptions.numClusters);
   const auto peakFirst = peakList.begin();
-  for (auto& cluster: clusters)
-    cluster = * next(peakFirst, indices(rng));
 
-  clusters.resize(koptions.numClusters);
+  unsigned c = 0;
+  for (auto peak = next(peakList.begin()); peak != peakList.end(); peak++)
+  {
+    if (peak->isCandidate())
+    {
+      clusters[c] = * peak;
+      c++;
+      if (c == koptions.numClusters)
+        break;
+    }
+  }
+
+  // for (auto& cluster: clusters)
+    // cluster = * next(peakFirst, indices(rng));
+
   distance = numeric_limits<float>::max();
 
   for (unsigned iter = 0; iter < koptions.numIterations; iter++)
@@ -1385,13 +1397,17 @@ void PeakDetect::runKmeansOnceList(
     vector<unsigned> counts(koptions.numClusters, 0);
     float distGlobal = 0.f;
 
-    for (auto& peak: peakList)
+    for (auto peak = next(peakList.begin());
+        peak != peakList.end(); peak++)
     {
+      if (! peak->isCandidate())
+        continue;
+
       float distBest = numeric_limits<float>::max();
       unsigned bestCluster = 0;
       for (unsigned cno = 0; cno < koptions.numClusters; cno++)
       {
-        const float dist = peak.distance(clusters[cno], scalesList);
+        const float dist = peak->distance(clusters[cno], scalesList);
         if (dist < distBest)
         {
           distBest = dist;
@@ -1399,8 +1415,8 @@ void PeakDetect::runKmeansOnceList(
         }
       }
 
-      peak.logCluster(bestCluster);
-      clustersNew[bestCluster] += peak;
+      peak->logCluster(bestCluster);
+      clustersNew[bestCluster] += * peak;
       counts[bestCluster]++;
       distGlobal += distBest;
     }
@@ -1414,6 +1430,7 @@ void PeakDetect::runKmeansOnceList(
     if (distGlobal / distance >= koptions.convCriterion)
     {
       cout << "Finishing after " << iter << " iterations" << endl;
+      cout << "Distance was " << distance << ", is " << distGlobal << endl;
       break;
     }
     else if (distGlobal <= distance)
@@ -1427,160 +1444,68 @@ void PeakDetect::runKmeansOnceList(
 
 void PeakDetect::reduceNew()
 {
-// cout << "Raw peaks: " << peaks.size() << "\n";
-// PeakDetect::print();
-
-// cout << "List peaks: " << peakList.size() << "\n";
+  PeakDetect::reduceSmallAreasList(0.1f);
+// cout << "Non-tiny list peaks: " << peakList.size() << "\n";
 // PeakDetect::printList();
 
-  // PeakDetect::eliminateTinyAreas();
-  // TODO Maybe also something derived from the signal.
-  // TODO Doubly linked list for peak structure.
-  PeakDetect::reduceSmallAreas(0.1f);
-
-// cout << "Non-tiny peaks: " << peaks.size() << "\n";
-// PeakDetect::print();
-
-  PeakDetect::reduceSmallAreasList(0.1f);
-cout << "Non-tiny list peaks: " << peakList.size() << "\n";
-PeakDetect::printList();
-
-  PeakDetect::eliminateKinks();
   PeakDetect::eliminateKinksList();
 
-// cout << "Non-kinky peaks: " << peaks.size() << "\n";
-// PeakDetect::print();
-
-cout << "Non-kinky list peaks: " << peakList.size() << "\n";
-PeakDetect::printList();
-
-  PeakDetect::eliminatePositiveMinima();
-// cout << "Negative peaks: " << peaks.size() << "\n";
-// PeakDetect::print();
-
-  PeakDetect::estimateScales();
-cout << "Scale\n";
-PeakDetect::printPeak(scales, 0);
-cout << endl;
+// cout << "Non-kinky list peaks: " << peakList.size() << "\n";
+// PeakDetect::printList();
 
   PeakDetect::estimateScalesList();
+
 cout << "Scale list\n";
 cout << scalesList.str(0) << "\n";
 
-  const float scaledCutoff = 
-    0.05f * ((scales.left.area + scales.right.area) / 2.f);
-
-cout << "Area cutoff " << scaledCutoff << endl;
-
-  /* */
-  PeakDetect::reduceSmallAreas(scaledCutoff);
-// cout << "Reasonable peaks: " << peaks.size() << "\n";
-// PeakDetect::print();
-/* */
-
   const float scaledCutoffList = 0.05f * scalesList.getArea();
+
 cout << "Area list cutoff " << scaledCutoffList << endl;
 
   PeakDetect::reduceSmallAreasList(scaledCutoffList);
+
 cout << "Reasonable list peaks: " << peakList.size() << "\n";
 PeakDetect::printList();
-
-
-  /* */
-  vector<PeakData> normalPeaks;
-  PeakDetect::normalizePeaks(normalPeaks);
+cout << endl;
 
   Koptions koptions;
   koptions.numClusters = 8;
   koptions.numIterations = 20;
   koptions.convCriterion = 0.999f;
 
-  vector<PeakData> clusters;
-  vector<unsigned> assigns;
+  vector<Peak> clusters;
   float distance;
-
-  PeakDetect::runKmeansOnce(koptions, normalPeaks, clusters, assigns,
-    distance);
+  PeakDetect::runKmeansOnceList(koptions, clusters, distance);
 
   cout << "clusters" << endl;
-  PeakDetect::printHeader();
-  for (unsigned i = 0; i < clusters.size(); i++)
-    PeakDetect::printPeak(clusters[i], i);
+  cout << clusters.front().strHeader();
+  for (auto& c: clusters)
+    cout << c.str(offset);
   cout << endl;
-  /* */
 
   for (unsigned i = 0; i < koptions.numClusters; i++)
   {
     cout << i << ":";
-    for (unsigned pno = 0; pno < normalPeaks.size(); pno++)
+    for (auto& peak: peakList)
     {
-      if (assigns[pno] == i)
-        cout << " " << pno;
+      if (peak.isCluster(i))
+        cout << " " << peak.getIndex() + offset;
     }
     cout << "\n";
   }
-  cout << "\n";
+  cout << endl;
 
-  cout << "Cluster scores (small means skip)\n";
-  vector<bool> skips(koptions.numClusters);
-  for (unsigned cno = 0; cno < koptions.numClusters; cno++)
+  for (auto peak = next(peakList.begin());
+      peak != peakList.end(); peak++)
   {
-    const auto& c = clusters[cno];
-
-    // Is small when the cluster is tiny.
-    float tinyScore = abs(c.value) + 
-      c.left.range + c.right.range +
-      c.left.area + c.right.area;
-
-    // Is (relatively) lower when the cluster looks like a dip.
-    float gradientScore = (c.left.range + c.right.range) /
-      (c.left.len + c.right.len);
-
-    cout << "i " << cno << ": " <<
-      fixed << setprecision(2) << tinyScore << 
-      ", " << gradientScore;
-
-    if (tinyScore < 1.5f || gradientScore < 0.6f)
+    if (peak->isCandidate() && 
+      peak->measure(scalesList) >= 3.f &&
+      peak->getSymmetry() >= 0.3f &&
+      peak->getSymmetry() <= 2.f)
     {
-      skips[cno] = true;
-      cout << " SKIP";
+      peak->select();
     }
-    else
-      skips[cno] = false;
-
-    cout << endl;
   }
-
-  vector<PeakData> newPeaks;
-  unsigned runningPeakNo = 0;
-  for (unsigned i = 0; i < assigns.size(); i++)
-  {
-    if (skips[assigns[i]])
-      continue;
-
-    const unsigned index = normalPeaks[i].index;
-    while (runningPeakNo < peaks.size() &&
-        peaks[runningPeakNo].index < index)
-      runningPeakNo++;
-
-    if (runningPeakNo == peaks.size())
-    {
-      cout << "ERROR1" << endl;
-      exit(0);
-    }
-
-    if (peaks[runningPeakNo].index != index)
-    {
-      cout << "ERROR2" << endl;
-      exit(0);
-    }
-
-    newPeaks.push_back(peaks[runningPeakNo]);
-  }
-
-peaks = newPeaks;
-// cout << "Final peaks: " << peaks.size() << "\n";
-// PeakDetect::print();
 }
 
 
@@ -1611,6 +1536,7 @@ void PeakDetect::makeSynthPeaksList(vector<float>& synthPeaks) const
   {
     // if (! peak.maxFlag)
     // {
+    if (peak.isSelected())
       synthPeaks[peak.getIndex()] = peak.getValue();
       // count++;
     // }
@@ -1642,6 +1568,36 @@ void PeakDetect::getPeakTimes(vector<PeakTime>& times) const
 void PeakDetect::getPeakTimesList(vector<PeakTime>& times) const
 {
   times.clear();
+
+  unsigned findex = 0;
+  bool flag = false;
+  for (auto& peak: peakList)
+  {
+    if (peak.isSelected())
+    {
+      findex = peak.getIndex();
+      flag = true;
+      break;
+    }
+  }
+
+  if (! flag)
+    THROW(ERR_NO_PEAKS, "No output peaks");
+
+  const float t0 = findex / static_cast<float>(SAMPLE_RATE);
+  for (auto& peak: peakList)
+  {
+    if (peak.isSelected())
+    {
+      times.emplace_back(PeakTime());
+      PeakTime& p = times.back();
+      p.time = peak.getIndex() / SAMPLE_RATE - t0;
+      p.value = peak.getValue();
+    }
+  }
+
+
+  /*
   const auto pfirst = peakList.begin();
   unsigned findex;
   if (pfirst->getMaxFlag())
@@ -1661,6 +1617,7 @@ void PeakDetect::getPeakTimesList(vector<PeakTime>& times) const
     p.time = peak.getIndex() / SAMPLE_RATE - t0;
     p.value = peak.getValue();
   }
+  */
 }
 
 
