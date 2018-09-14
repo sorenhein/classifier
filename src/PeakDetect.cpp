@@ -455,8 +455,8 @@ void PeakDetect::reduce()
 
   PeakDetect::eliminateKinks();
 
-cout << "Non-kinky list peaks: " << peakList.size() << "\n";
-PeakDetect::print();
+// cout << "Non-kinky list peaks: " << peakList.size() << "\n";
+// PeakDetect::print();
 
   PeakDetect::estimateScales();
 
@@ -469,9 +469,9 @@ cout << "Area list cutoff " << scaledCutoffList << endl;
 
   PeakDetect::reduceSmallAreas(scaledCutoffList);
 
-cout << "Reasonable list peaks: " << peakList.size() <<  endl;
-PeakDetect::print();
-cout << endl;
+// cout << "Reasonable list peaks: " << peakList.size() <<  endl;
+// PeakDetect::print();
+// cout << endl;
 
   Koptions koptions;
   koptions.numClusters = 8;
@@ -500,6 +500,7 @@ cout << endl;
   }
   cout << endl;
 
+  /*
   cout << "distance from scale list:\n";
   for (unsigned i = 0; i < koptions.numClusters; i++)
   {
@@ -507,6 +508,7 @@ cout << endl;
       "\n";
   }
   cout << endl;
+  */
 
   for (auto peak = next(peakList.begin());
       peak != peakList.end(); peak++)
@@ -516,7 +518,6 @@ cout << endl;
       peak->getSymmetry() >= 0.3f &&
       peak->getSymmetry() <= 2.f)
     {
-cout << "selected " << peak->getIndex() << endl;
       peak->select();
     }
   }
