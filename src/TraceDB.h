@@ -62,6 +62,7 @@ class TraceDB
     string lookupSensor(const string& fname) const;
 
     string lookupTrueTrain(const string& fname) const;
+    double lookupTrueSpeed(const string& fname) const;
 
     void printCSV(
       const string& fname,

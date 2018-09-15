@@ -180,7 +180,9 @@ void SegActive::highpass(vector<float>& integrand)
 
 bool SegActive::detect(
   const vector<double>& samples,
-  const Interval& active)
+  const Interval& active,
+  const vector<PeakPos>& posTrue,
+  const double speedTrue)
 {
   timers.start(TIMER_CONDITION);
 
@@ -193,7 +195,6 @@ bool SegActive::detect(
 
   SegActive::integrate(samples, active);
   SegActive::highpass(synthSpeed);
-  // SegActive::compensateSpeed();
 
   SegActive::integrateFloat();
   SegActive::highpass(synthPos);
@@ -202,7 +203,7 @@ bool SegActive::detect(
 
   timers.start(TIMER_DETECT_PEAKS);
   peakDetect.log(synthPos, writeInterval.first);
-  peakDetect.reduce();
+  peakDetect.reduce(posTrue, speedTrue);
   timers.stop(TIMER_DETECT_PEAKS);
 
   synthPeaks.resize(writeInterval.len);

@@ -56,6 +56,17 @@ class PeakDetect
 
     void eliminateKinks();
 
+    void pos2time(
+      const vector<PeakPos>& posTrue,
+      const double speed,
+      vector<PeakTime>& timesTrue) const;
+
+    double simpleScore(
+      const vector<PeakTime>& timesTrue,
+      const double offsetScore);
+
+    bool findMatch(const vector<PeakTime>& timesTrue);
+
   public:
 
     PeakDetect();
@@ -68,7 +79,9 @@ class PeakDetect
       const vector<float>& samples,
       const unsigned offsetSamples);
 
-    void reduce();
+    void reduce(
+      const vector<PeakPos>& posTrue,
+      const double speedTrue);
 
     void makeSynthPeaks(vector<float>& synthPeaks) const;
 

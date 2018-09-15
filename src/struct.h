@@ -248,6 +248,18 @@ struct PeakData
   }
 };
 
+enum PeakType
+{
+  PEAK_TENTATIVE = 0,
+  PEAK_POSSIBLE = 1,
+  PEAK_CONCEIVABLE = 2,
+  PEAK_REJECTED = 3,
+  PEAK_TRANSIENT = 4,
+  PEAK_TOO_EARLY = 5,
+  PEAK_TOO_LATE = 6,
+  PEAK_MISSING = 7,
+  PEAK_TYPE_SIZE = 8
+};
 
 
 #endif

@@ -41,6 +41,8 @@ void Peak::reset()
 
   clusterNo = numeric_limits<unsigned>::max();
   selectFlag = false;
+  match = -1;
+  ptype = PEAK_TYPE_SIZE;
 }
 
 
@@ -71,6 +73,18 @@ void Peak::log(
 void Peak::logCluster(const unsigned cno)
 {
   clusterNo = cno;
+}
+
+
+void Peak::logMatch(const int matchIn)
+{
+  match = matchIn;
+}
+
+
+void Peak::logType(const PeakType ptypeIn)
+{
+  ptype = ptypeIn;
 }
 
 
@@ -150,11 +164,11 @@ float Peak::distance(
   // Normalized or not, and if so, by what.
 
   const float vdiff = (value - p2.value) / scale.value;
+  const float vlen = (len - p2.len) / scale.len;
   const float vgrad = (gradient - p2.gradient) / scale.gradient;
-  const float vfill = fill - p2.fill;
   const float vsymm = symmetry - p2.symmetry;
 
-  return vdiff * vdiff + vfill * vfill + vgrad * vgrad + vsymm * vsymm;
+  return vdiff * vdiff + vlen * vlen + vgrad * vgrad + vsymm * vsymm;
 }
 
 
@@ -223,6 +237,18 @@ unsigned Peak::getCluster() const
 }
 
 
+int Peak::getMatch() const
+{
+  return match;
+}
+
+
+PeakType Peak::getType() const
+{
+  return ptype;
+}
+
+
 bool Peak::isCluster(const unsigned cno) const
 {
   return (cno == clusterNo);
@@ -235,11 +261,31 @@ bool Peak::isCandidate() const
 }
 
 
+float Peak::penalty(const float val) const
+{
+  const float a = abs(val);
+  const float v = (a < 1.f ? 1.f / a : a);
+  if (v <= 2.f)
+    return 0.f;
+  else
+    return (v - 2.f) * (v - 2.f);
+}
+
+
 float Peak::measure(const Peak& scale) const
 {
+  return Peak::penalty(value / scale.value) +
+    Peak::penalty(len / scale.len) +
+    Peak::penalty(range / scale.range) +
+    Peak::penalty(area / scale.area) +
+    Peak::penalty(gradient / scale.gradient);
+    // Peak::penalty(symmetry / scale.symmetry);
+
+  /*
   return abs(value / scale.value) +
     abs(range / scale.range) +
     abs(area / scale.area);
+  */
 }
 
 

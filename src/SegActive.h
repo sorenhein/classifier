@@ -43,7 +43,9 @@ class SegActive
 
     bool detect(
       const vector<double>& samples, // TODO: Should use times[]
-      const Interval& active);
+      const Interval& active,
+      const vector<PeakPos>& posTrue,
+      const double speedTrue);
 
     void getPeakTimes(vector<PeakTime>& times) const; 
 

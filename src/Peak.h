@@ -4,6 +4,8 @@
 #include <vector>
 #include <string>
 
+#include "struct.h"
+
 using namespace std;
 
 
@@ -32,6 +34,8 @@ class Peak
 
     unsigned clusterNo;
     bool selectFlag;
+    int match; // Number of matched peak in real list (or -1)
+    PeakType ptype;
 
 
     void deviation(
@@ -52,6 +56,8 @@ class Peak
       unsigned& issue,
       bool& flag) const;
 
+    float penalty(const float val) const;
+
   public:
 
     Peak();
@@ -69,6 +75,8 @@ class Peak
       const bool maxFlagIn);
 
     void logCluster(const unsigned cno);
+    void logType(PeakType ptypeIn);
+    void logMatch(const int m);
 
     void update(
       Peak * peakPrev,
@@ -92,6 +100,8 @@ class Peak
     float getArea(const Peak& p2) const;
     float getSymmetry() const;
     unsigned getCluster() const;
+    int getMatch() const;
+    PeakType getType() const;
 
     bool isCluster(const unsigned cno) const;
 

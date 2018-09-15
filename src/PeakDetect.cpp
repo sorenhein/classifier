@@ -8,8 +8,11 @@
 #include <random>
 
 #include "PeakDetect.h"
-#include "PeakCluster.h"
+#include "PeakStats.h"
 #include "Except.h"
+
+extern PeakStats peakStats;
+
 
 #define SMALL_AREA_FACTOR 100.f
 
@@ -18,6 +21,8 @@
 #define ABS_AREA_LIMIT 1.e-4
 
 #define SAMPLE_RATE 2000.
+
+#define TIME_PROXIMITY 0.01 // s
 
 #define UNUSED(x) ((void)(true ? 0 : ((x), void(), 0)))
 
@@ -447,8 +452,132 @@ void PeakDetect::runKmeansOnce(
 }
 
 
-void PeakDetect::reduce()
+void PeakDetect::pos2time(
+  const vector<PeakPos>& posTrue, 
+  const double speed,
+  vector<PeakTime>& timesTrue) const
 {
+  for (unsigned i = 0; i < posTrue.size(); i++)
+  {
+    timesTrue[i].time = posTrue[i].pos / speed;
+    timesTrue[i].value = posTrue[i].value;
+  }
+}
+
+
+double PeakDetect::simpleScore(
+  const vector<PeakTime>& timesTrue,
+  const double offsetScore)
+{
+  // This is the same algorithm as in Align::simpleScore.
+  
+  const unsigned lt = timesTrue.size();
+  const unsigned lp = peakList.size();
+
+  unsigned it = 0;
+  double score = 0.;
+  double d = TIME_PROXIMITY;
+
+  for (auto peak: peakList)
+  {
+    const double peakTime = (peak.getIndex() / SAMPLE_RATE - offsetScore);
+
+    double dleft = peakTime - timesTrue[it].time;
+
+    if (dleft < 0.)
+    {
+      if (it == 0)
+        d = -dleft;
+      else
+        cout << "Should not happen (PeakDetect)" << endl;
+    }
+    else
+    {
+      double dright = numeric_limits<double>::max();
+      while (it+1 < lt)
+      {
+        dright = timesTrue[it+1].time - peakTime;
+        if (dright >= 0.)
+          break;
+        it++;
+      }
+
+      dleft = peakTime - timesTrue[it].time;
+      if (dleft <= dright)
+      {
+        d = dleft;
+        peak.logMatch(it);
+      }
+      else
+      {
+        d = dright;
+        peak.logMatch(it+1);
+      }
+    }
+
+    if (d <= TIME_PROXIMITY)
+      score += (TIME_PROXIMITY - d) / TIME_PROXIMITY;
+  }
+
+  return score;
+}
+
+
+bool PeakDetect::findMatch(const vector<PeakTime>& timesTrue)
+{
+  const unsigned lp = peakList.size();
+  const unsigned lt = timesTrue.size();
+
+  const unsigned maxShift = 3;
+  if (lp <= maxShift || lt <= maxShift)
+    THROW(ERR_NO_PEAKS, "Not enough peaks");
+
+  // Offsets are subtracted from the seen peaks (peakList).
+  // TODO Put time as a field of Peak?
+  vector<double> offsetList(2*maxShift + 1);
+  list<Peak>::const_iterator peak = peakList.end();
+  for (unsigned i = 0; i <= maxShift; i++)
+  {
+    peak = prev(peak);
+    offsetList[i] = timesTrue[lt-1].time - peak->getIndex() / SAMPLE_RATE;
+  }
+
+  const double lastTime = peakList.back().getIndex() / SAMPLE_RATE;
+  for (unsigned i = 1; i < maxShift; i++)
+    offsetList[maxShift+i] = timesTrue[lt-1-i].time - lastTime;
+
+  double score = numeric_limits<double>::max();
+  unsigned ino = 0;
+  for (unsigned i = 0; i < offsetList.size(); i++)
+  {
+    double scoreNew = 
+      PeakDetect::simpleScore(timesTrue, offsetList[i]);
+    if (scoreNew < score)
+    {
+      score = scoreNew;
+      ino = i;
+    }
+  }
+
+  // This extra run could be eliminated at the cost of some copying
+  // and intermetidate storage.
+  score = PeakDetect::simpleScore(timesTrue, offsetList[ino]);
+
+  // TODO
+  if (score < 0.75 * lp)
+    return false;
+  else
+    return true;
+}
+  
+
+void PeakDetect::reduce(
+  const vector<PeakPos>& posTrue,
+  const double speedTrue)
+{
+  UNUSED(posTrue);
+  UNUSED(speedTrue);
+
   PeakDetect::reduceSmallAreas(0.1f);
 // cout << "Non-tiny list peaks: " << peakList.size() << "\n";
 // PeakDetect::print();
@@ -510,17 +639,92 @@ cout << "Area list cutoff " << scaledCutoffList << endl;
   cout << endl;
   */
 
+  /*
+  cout << peakList.front().strHeader();
+  for (auto peak = next(peakList.begin()); peak != peakList.end(); peak++)
+  {
+    if (peak->isCandidate())
+      cout << peak->str(offset);
+  }
+  cout << "\n";
+  */
+
+  vector<string> ctext(koptions.numClusters);
+  vector<unsigned> ccount(koptions.numClusters);
+
   for (auto peak = next(peakList.begin());
       peak != peakList.end(); peak++)
   {
-    if (peak->isCandidate() && 
-      peak->measure(scalesList) >= 3.f &&
-      peak->getSymmetry() >= 0.3f &&
-      peak->getSymmetry() <= 2.f)
+
+    if (peak->isCandidate())
     {
-      peak->select();
+stringstream ss;
+ss << setw(6) << right << peak->getIndex() + offset <<
+  setw(8) << fixed << setprecision(2) << peak->measure(scalesList);
+      if (peak->measure(scalesList) <= 1.f)
+      {
+ss << " +";
+        peak->select();
+
+        // TODO Better types.
+        peak->logType(PEAK_TENTATIVE);
+      }
+ss << endl;
+ctext[peak->getCluster()] += ss.str();
+ccount[peak->getCluster()]++;
     }
   }
+
+  for (unsigned i = 0; i < koptions.numClusters; i++)
+  {
+    cout << "Cluster " << i << ": " << ccount[i] << "\n" << 
+      ctext[i] << endl;
+  }
+
+
+  // Scale true positions to true times.
+  vector<PeakTime> timesTrue;
+  timesTrue.resize(posTrue.size());
+  PeakDetect::pos2time(posTrue, speedTrue, timesTrue);
+
+  // Find a good line-up.
+  if (! PeakDetect::findMatch(timesTrue))
+  {
+    cout << "No good match to real peaks.\n";
+    return;
+  }
+
+  // Make statistics.
+  unsigned pno = 0;
+  vector<bool> seenTrue(posTrue.size(), false);
+  for (auto peak = next(peakList.begin());
+      peak != peakList.end(); peak++, pno++)
+  {
+    if (peak->isCandidate())
+    {
+      const int m = peak->getMatch();
+      peakStats.log(m, pno, peak->getType());
+      if (m != -1)
+        seenTrue[m] = true;
+    }
+  }
+
+  for (unsigned m = 0; m < posTrue.size(); m++)
+  {
+    if (! seenTrue[m])
+    {
+      PeakType type;
+      if (m <= 2)
+        type = PEAK_TOO_EARLY;
+      else if (m+2 >= posTrue.size())
+        type = PEAK_TOO_LATE;
+      else
+        type = PEAK_MISSING;
+
+      peakStats.log(m, -1, type);
+    }
+  }
+
 }
 
 

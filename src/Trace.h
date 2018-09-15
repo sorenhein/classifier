@@ -47,7 +47,10 @@ class Trace
       const string& fname,
       const bool binaryFlag);
 
-    void detect(const Control& control);
+    void detect(
+      const Control& control,
+      const vector<PeakPos>& posTrue,
+      const double speedTrue);
 
     void getTrace(vector<PeakTime>& times) const;
 

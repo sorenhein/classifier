@@ -15,6 +15,7 @@
 #include "Timers.h"
 #include "Stats.h"
 #include "CompStats.h"
+#include "PeakStats.h"
 #include "Except.h"
 #include "print.h"
 
@@ -22,6 +23,7 @@ using namespace std;
 
 Log logger;
 Timers timers;
+PeakStats peakStats;
 
 
 void setup(
@@ -128,11 +130,17 @@ int main(int argc, char * argv[])
       const string sensor = traceDB.lookupSensor(fname);
       const string country = db.lookupSensorCountry(sensor);
       const string trainTrue = traceDB.lookupTrueTrain(fname);
+
+      // This is only used for diagnostics in trace.
+      const double speedTrue = traceDB.lookupTrueSpeed(fname);
+      const int trainNoTrue = db.lookupTrainNumber(trainTrue);
+      vector<PeakPos> posTrue;
+      db.getPerfectPeaks(trainNoTrue, posTrue);
       
       try
       {
         trace.read(fname, true);
-        trace.detect(control);
+        trace.detect(control, posTrue, speedTrue);
         trace.write(control);
 
         trace.getTrace(times);
@@ -170,6 +178,8 @@ int main(int argc, char * argv[])
 
     sensorStats.print("sensorstats.txt", "Sensor");
     trainStats.print("trainstats.txt", "Train");
+    peakStats.print("peakstats.txt");
+    peakStats.print("peakdetails.txt");
   }
   else
   {

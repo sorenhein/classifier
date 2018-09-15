@@ -1,13 +1,47 @@
+Find the bug that causes throws.
+
+2018-09-15
+----------
+Possible flow:
+
+- tentatively accepted (small and together)
+- interesting (small but alone)
+- in limbo (medium)
+- tentatively rejected (large)
+- early (any size)
+
+- Run K means as is, maybe with more dispersed starting points
+- Accepted clusters
+  - At least 3 entries that also have measure +
+  - At least 80% have measure +
+  - Put the + as tentatively accepted
+  - Put those with measure > 4 as tentatively rejected
+  - Put the others as in limbo
+- Rejected clusters
+  - At least 3 entries > 4
+  - At least 80% have such measure
+  - Put these as tentatively rejected
+  - Put those 1 < measure < 4 as in limbo
+  - Put those < 1 as interesting
+- All peaks in first 400 samples (0.2 s) go in a special list
+
+
+Starting with the interesting ones
+
+- Extract some key periodicity parameters
+  - Cluster neighbors (same parameters as single peaks, but two
+    together now in the distance measure), hoping to find a strong
+    signal for the bogeys.  Might be two clusters or even more.
+    - tentatively accepted bogeys
+  - For the tentative singles, look for neighbor peaks together with 
+    which they would fit a bogey cluster?
+    - Look everywhere except in rejected.  Early only if it makes
+      quantitative sense (how?)
+  - Drop remaining singles except at the beginning and end
+  
+
 2018-09-14
 ----------
-The peak clusters are actually quite selective.
-The question is how to recognize the real clusters?
-
-- Fill is pretty irrelevant
-- Scaled area < 0.20 is suspect?
-- Few peaks in cluster is suspect, < 0.20 of highest count?
-- Relative gradient < 0.50 is suspect?
-  
 We often get the 2nd of maxima above the line.  sensor34, 180956, #2.
 
 Maybe transients can be reduced with filter padding as in filtfilt.
