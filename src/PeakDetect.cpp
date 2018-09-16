@@ -478,12 +478,16 @@ double PeakDetect::simpleScore(
   double score = 0.;
   double d = TIME_PROXIMITY;
 
-  for (auto peak: peakList)
+  // TODO Loop should probably be over true, not seen times.
+
+  for (auto& peak: peakList)
   {
-    const double peakTime = (peak.getIndex() / SAMPLE_RATE - offsetScore);
+    if (! peak.isSelected())
+      continue;
+
+    const double peakTime = peak.getTime() - offsetScore;
 
     double dleft = peakTime - timesTrue[it].time;
-
     if (dleft < 0.)
     {
       if (it == 0)
@@ -528,32 +532,48 @@ bool PeakDetect::findMatch(const vector<PeakTime>& timesTrue)
   const unsigned lp = peakList.size();
   const unsigned lt = timesTrue.size();
 
-  const unsigned maxShift = 3;
-  if (lp <= maxShift || lt <= maxShift)
+  // Way too many, but we have late transients at the moment.
+  const unsigned maxShiftSeen = 5;
+  const unsigned maxShiftTrue = 3;
+  if (lp <= maxShiftSeen || lt <= maxShiftTrue)
     THROW(ERR_NO_PEAKS, "Not enough peaks");
 
   // Offsets are subtracted from the seen peaks (peakList).
   // TODO Put time as a field of Peak?
-  vector<double> offsetList(2*maxShift + 1);
+  vector<double> offsetList(maxShiftSeen + maxShiftTrue + 1);
   list<Peak>::const_iterator peak = peakList.end();
-  for (unsigned i = 0; i <= maxShift; i++)
+  for (unsigned i = 0; i <= maxShiftSeen; i++)
   {
-    peak = prev(peak);
-    offsetList[i] = timesTrue[lt-1].time - peak->getIndex() / SAMPLE_RATE;
+    do
+    {
+      peak = prev(peak);
+    }
+    while (! peak->isSelected());
+
+    offsetList[i] = timesTrue[lt-1].time - peak->getTime();
   }
 
-  const double lastTime = peakList.back().getIndex() / SAMPLE_RATE;
-  for (unsigned i = 1; i < maxShift; i++)
-    offsetList[maxShift+i] = timesTrue[lt-1-i].time - lastTime;
+  peak = peakList.end();
+  do
+  {
+    peak = prev(peak);
+  }
+  while (! peak->isSelected());
+  const double lastTime = peak->getTime();
 
-  double score = numeric_limits<double>::max();
+  for (unsigned i = 1; i <= maxShiftTrue; i++)
+    offsetList[maxShiftSeen+i] = timesTrue[lt-1-i].time - lastTime;
+
+  double score = 0.;
   unsigned ino = 0;
   for (unsigned i = 0; i < offsetList.size(); i++)
   {
     double scoreNew = 
       PeakDetect::simpleScore(timesTrue, offsetList[i]);
-    if (scoreNew < score)
+cout << "i " << i << ": " << scoreNew << endl;
+    if (scoreNew > score)
     {
+cout << "*\n";
       score = scoreNew;
       ino = i;
     }
@@ -564,7 +584,7 @@ bool PeakDetect::findMatch(const vector<PeakTime>& timesTrue)
   score = PeakDetect::simpleScore(timesTrue, offsetList[ino]);
 
   // TODO
-  if (score < 0.75 * lp)
+  if (score < 0.75 * lt)
     return false;
   else
     return true;
@@ -696,7 +716,8 @@ ccount[peak->getCluster()]++;
 
   // Make statistics.
   unsigned pno = 0;
-  vector<bool> seenTrue(posTrue.size(), false);
+unsigned seen = 0;
+  vector<unsigned> seenTrue(posTrue.size(), 0);
   for (auto peak = next(peakList.begin());
       peak != peakList.end(); peak++, pno++)
   {
@@ -705,14 +726,21 @@ ccount[peak->getCluster()]++;
       const int m = peak->getMatch();
       peakStats.log(m, pno, peak->getType());
       if (m != -1)
-        seenTrue[m] = true;
+      {
+if (seenTrue[m])
+  cout << "Already saw true peak " << m << endl;
+        seenTrue[m]++;
+seen++;
+      }
     }
   }
+cout << "Saw " << seen << " of the true peaks\n";
 
   for (unsigned m = 0; m < posTrue.size(); m++)
   {
     if (! seenTrue[m])
     {
+cout << "Missed true peak " << m << endl;
       PeakType type;
       if (m <= 2)
         type = PEAK_TOO_EARLY;

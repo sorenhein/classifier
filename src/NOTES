@@ -1,5 +1,15 @@
 Find the bug that causes throws.
 
+PeakStats: Not global, but passed in.
+log the category (train or sensor).
+Output csv.
+
+Log measure in peak as part of annotate.
+
+Give out the whole PeakList, don't copy into PeakTime?
+Store tme in PeakList as well.
+Call peakList peaks.
+
 2018-09-15
 ----------
 Possible flow:

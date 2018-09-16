@@ -90,7 +90,7 @@ bool TraceDB::log(
   entry.trainTruth.trainName = 
     TraceDB::deriveName(entry.country, truth);
   entry.trainTruth.numAxles = truth.numAxles;
-  entry.trainTruth.speed = truth.speed;
+  entry.trainTruth.speed = truth.speed / 3.6; // In m/s
   entry.trainTruth.accel = truth.accel;
 
   if (db.lookupTrainNumber(entry.trainTruth.trainName) == -1)

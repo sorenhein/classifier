@@ -18,6 +18,7 @@ class Peak
 
     // Absolute quantities associated with the peak.
     unsigned index;
+    double time;
     bool maxFlag;
     float value; // Signed
     float areaCum; // Integral from beginning of trace, signed
@@ -91,6 +92,7 @@ class Peak
       const Peak& scale) const;
 
     unsigned getIndex() const;
+    double getTime() const;
     bool getMaxFlag() const;
     float getValue() const;
     float getAreaCum() const;

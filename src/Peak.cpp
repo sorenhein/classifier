@@ -10,6 +10,7 @@
 // Used for comparing values when checking identity.
 
 #define RELATIVE_LIMIT 1.e-4
+#define SAMPLE_RATE 2000.
 
 
 Peak::Peak()
@@ -27,6 +28,7 @@ void Peak::reset()
 {
   // Absolute quantities
   index = 0;
+  time = 0.;
   value = 0.f;
   areaCum = 0.f;
   maxFlag = false;
@@ -64,6 +66,7 @@ void Peak::log(
   // lower of the starting and ending point.
 
   index = indexIn;
+  time = index / SAMPLE_RATE;
   value = valueIn;
   areaCum = areaCumIn;
   maxFlag = maxFlagIn;
@@ -175,6 +178,12 @@ float Peak::distance(
 unsigned Peak::getIndex() const
 {
   return index;
+}
+
+
+double Peak::getTime() const
+{
+  return time;
 }
 
 
