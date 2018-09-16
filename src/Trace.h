@@ -11,6 +11,8 @@
 
 using namespace std;
 
+class PeakStats;
+
 
 class Trace
 {
@@ -47,11 +49,13 @@ class Trace
       const string& fname,
       const bool binaryFlag);
 
-    void detect(
-      const Control& control,
+    void detect(const Control& control);
+
+    void logPeakStats(
       const vector<PeakPos>& posTrue,
       const string& trainTrue,
-      const double speedTrue);
+      const double speedTrue,
+      PeakStats& peakStats);
 
     void getTrace(vector<PeakTime>& times) const;
 

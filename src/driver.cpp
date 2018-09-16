@@ -23,7 +23,6 @@ using namespace std;
 
 Log logger;
 Timers timers;
-PeakStats peakStats;
 
 
 void setup(
@@ -123,6 +122,7 @@ int main(int argc, char * argv[])
     vector<PeakTime> times;
 
     CompStats sensorStats, trainStats;
+    PeakStats peakStats;
 
     for (auto& fname: datfiles)
     {
@@ -140,7 +140,8 @@ int main(int argc, char * argv[])
       try
       {
         trace.read(fname, true);
-        trace.detect(control, posTrue, trainTrue, speedTrue);
+        trace.detect(control);
+        trace.logPeakStats(posTrue, trainTrue, speedTrue, peakStats);
         trace.write(control);
 
         trace.getTrace(times);

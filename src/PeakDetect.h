@@ -10,6 +10,8 @@
 
 using namespace std;
 
+class PeakStats;
+
 
 class PeakDetect
 {
@@ -30,7 +32,7 @@ class PeakDetect
 
 
 
-    float integral(
+    float integrate(
       const vector<float>& samples,
       const unsigned i0,
       const unsigned i1) const;
@@ -39,22 +41,29 @@ class PeakDetect
 
     bool check(const vector<float>& samples) const;
 
+    void logFirst(const vector<float>& samples);
+    void logLast(const vector<float>& samples);
+
+    void collapsePeaks(
+      const list<Peak>::iterator peak1,
+      const list<Peak>::iterator peak2);
+
+    void reduceSmallAreas(const float areaLimit);
+
+    void eliminateKinks();
+
     float estimateScale(vector<float>& data) const;
 
     void estimateScales();
+
+    void pickStartingClusters(
+      vector<Peak>& clusters,
+      const unsigned n) const;
 
     void runKmeansOnce(
       const Koptions& koptions,
       vector<Peak>& clusters,
       float& distance);
-
-    void collapsePeaks(
-      list<Peak>::iterator peak1,
-      list<Peak>::iterator peak2);
-
-    void reduceSmallAreas(const float areaLimit);
-
-    void eliminateKinks();
 
     void pos2time(
       const vector<PeakPos>& posTrue,
@@ -69,13 +78,17 @@ class PeakDetect
       const bool logFlag,
       double& shift);
 
-    PeakType findCandidate(
-      const double time,
-      const double shift) const;
+    void setOffsets(
+      const vector<PeakTime>& timesTrue,
+      vector<double>& offsetList) const;
 
     bool findMatch(
       const vector<PeakTime>& timesTrue,
       double& shift);
+
+    PeakType findCandidate(
+      const double time,
+      const double shift) const;
 
   public:
 
@@ -89,10 +102,13 @@ class PeakDetect
       const vector<float>& samples,
       const unsigned offsetSamples);
 
-    void reduce(
+    void reduce();
+
+    void logPeakStats(
       const vector<PeakPos>& posTrue,
       const string& trainTrue,
-      const double speedTrue);
+      const double speedTrue,
+      PeakStats& peakStats);
 
     void makeSynthPeaks(vector<float>& synthPeaks) const;
 

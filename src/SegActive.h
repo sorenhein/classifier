@@ -10,6 +10,8 @@
 
 using namespace std;
 
+class PeakStats;
+
 
 class SegActive
 {
@@ -43,10 +45,13 @@ class SegActive
 
     bool detect(
       const vector<double>& samples, // TODO: Should use times[]
-      const Interval& active,
+      const Interval& active);
+
+    void logPeakStats(
       const vector<PeakPos>& posTrue,
       const string& trainTrue,
-      const double speedTrue);
+      const double speedTrue,
+      PeakStats& peakStats);
 
     void getPeakTimes(vector<PeakTime>& times) const; 
 
