@@ -182,6 +182,7 @@ bool SegActive::detect(
   const vector<double>& samples,
   const Interval& active,
   const vector<PeakPos>& posTrue,
+  const string& trainTrue,
   const double speedTrue)
 {
   timers.start(TIMER_CONDITION);
@@ -203,7 +204,7 @@ bool SegActive::detect(
 
   timers.start(TIMER_DETECT_PEAKS);
   peakDetect.log(synthPos, writeInterval.first);
-  peakDetect.reduce(posTrue, speedTrue);
+  peakDetect.reduce(posTrue, trainTrue, speedTrue);
   timers.stop(TIMER_DETECT_PEAKS);
 
   synthPeaks.resize(writeInterval.len);

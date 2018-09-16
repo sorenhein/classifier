@@ -140,7 +140,7 @@ int main(int argc, char * argv[])
       try
       {
         trace.read(fname, true);
-        trace.detect(control, posTrue, speedTrue);
+        trace.detect(control, posTrue, trainTrue, speedTrue);
         trace.write(control);
 
         trace.getTrace(times);

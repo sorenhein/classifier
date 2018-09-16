@@ -50,6 +50,7 @@ class Trace
     void detect(
       const Control& control,
       const vector<PeakPos>& posTrue,
+      const string& trainTrue,
       const double speedTrue);
 
     void getTrace(vector<PeakTime>& times) const;

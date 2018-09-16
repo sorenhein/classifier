@@ -66,9 +66,16 @@ class PeakDetect
     double simpleScore(
       const vector<PeakTime>& timesTrue,
       const double offsetScore,
-      const bool logFlag);
+      const bool logFlag,
+      double& shift);
 
-    bool findMatch(const vector<PeakTime>& timesTrue);
+    PeakType findCandidate(
+      const double time,
+      const double shift) const;
+
+    bool findMatch(
+      const vector<PeakTime>& timesTrue,
+      double& shift);
 
   public:
 
@@ -84,6 +91,7 @@ class PeakDetect
 
     void reduce(
       const vector<PeakPos>& posTrue,
+      const string& trainTrue,
       const double speedTrue);
 
     void makeSynthPeaks(vector<float>& synthPeaks) const;

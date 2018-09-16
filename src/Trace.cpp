@@ -124,6 +124,7 @@ void Trace::read(
 void Trace::detect(
   const Control& control,
   const vector<PeakPos>& posTrue,
+  const string& trainTrue,
   const double speedTrue)
 {
   timers.start(TIMER_TRANSIENT);
@@ -149,7 +150,8 @@ void Trace::detect(
   if (control.verboseTransientMatch)
     cout << transient.str() << "\n";
 
-  (void) segActive.detect(samples, intAfterFront, posTrue, speedTrue);
+  (void) segActive.detect(samples, intAfterFront, posTrue, 
+    trainTrue, speedTrue);
 }
 
 

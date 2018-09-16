@@ -45,6 +45,7 @@ class SegActive
       const vector<double>& samples, // TODO: Should use times[]
       const Interval& active,
       const vector<PeakPos>& posTrue,
+      const string& trainTrue,
       const double speedTrue);
 
     void getPeakTimes(vector<PeakTime>& times) const; 

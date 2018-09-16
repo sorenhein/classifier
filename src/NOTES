@@ -1,39 +1,18 @@
-Find the bug that causes throws.
-
-PeakStats: Not global, but passed in.
-log the category (train or sensor).
-Output csv.
-
-Log measure in peak as part of annotate.
-
-Give out the whole PeakList, don't copy into PeakTime?
-Store tme in PeakList as well.
-Call peakList peaks.
-
 2018-09-15
 ----------
 Possible flow:
-
-- tentatively accepted (small and together)
-- interesting (small but alone)
-- in limbo (medium)
-- tentatively rejected (large)
-- early (any size)
 
 - Run K means as is, maybe with more dispersed starting points
 - Accepted clusters
   - At least 3 entries that also have measure +
   - At least 80% have measure +
-  - Put the + as tentatively accepted
-  - Put those with measure > 4 as tentatively rejected
-  - Put the others as in limbo
-- Rejected clusters
-  - At least 3 entries > 4
-  - At least 80% have such measure
-  - Put these as tentatively rejected
-  - Put those 1 < measure < 4 as in limbo
-  - Put those < 1 as interesting
-- All peaks in first 400 samples (0.2 s) go in a special list
+    - +   -> tentative
+    - 1-2 -> interesting
+    - 2-6 -> conceivable
+    - > 6 -> rejected
+- All other peaks
+  Similar, but no tentative ones (all low ones -> interesting)
+- All peaks in first 400 samples (0.2 s) go are transient
 
 
 Starting with the interesting ones
@@ -49,6 +28,19 @@ Starting with the interesting ones
       quantitative sense (how?)
   - Drop remaining singles except at the beginning and end
   
+
+
+PeakStats: Not global, but passed in.
+log the category (train or sensor).
+Output csv.
+
+Log measure in peak as part of annotate.
+
+Give out the whole PeakList, don't copy into PeakTime?
+Store time in PeakList as well.
+Call peakList peaks.
+
+
 
 2018-09-14
 ----------

@@ -48,9 +48,12 @@ void Peak::reset()
 }
 
 
-void Peak::logSentinel(const float valueIn)
+void Peak::logSentinel(
+  const float valueIn,
+  const bool maxFlagIn)
 {
   value = valueIn;
+  maxFlag = maxFlagIn;
 }
 
 

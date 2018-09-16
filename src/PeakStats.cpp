@@ -68,16 +68,18 @@ void PeakStats::log(
     matchedSeen.resize(countSeen);
   }
 
-  statsSeen[type].no++;
-  statsTrue[type]++;
+  if (matchNoSeen >= 0)
+    statsSeen[type].no++;
+
 
   if (matchNoTrue >= 0)
   {
+    statsTrue[type]++;
     matchedTrue[matchNoTrue].no++;
-    statsSeen[type].count++;
 
     if (matchNoSeen >= 0)
     {
+      statsSeen[type].count++;
       matchedTrue[matchNoTrue].count++;
 
       matchedSeen[matchNoSeen].no++;
