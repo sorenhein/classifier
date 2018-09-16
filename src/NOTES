@@ -1,3 +1,29 @@
+PeakStats
+
+Output of seen peaks
+
+Type            Total   Match #, %      Reverse #, %    Unmatched #, %
+tentative
+...
+trans-early
+NOT too-early
+
+Output of true peaks
+
+Type            #, %
+tentative
+also too-early
+
+
+Output of each of front, back, mid (make a 1-length vector)
+
+Index           Looks as first table above
+0
+1
+2
+3
+
+
 2018-09-15
 ----------
 Possible flow:

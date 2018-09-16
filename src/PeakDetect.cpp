@@ -658,7 +658,7 @@ PeakType PeakDetect::findCandidate(
   const double shift) const
 {
   double dist = numeric_limits<double>::max();
-  PeakType type = PEAK_TYPE_SIZE;
+  PeakType type = PEAK_TRUE_MISSING;
 
   for (auto& peak: peakList)
   {
@@ -851,13 +851,16 @@ void PeakDetect::logPeakStats(
   const double speedTrue,
   PeakStats& peakStats)
 {
+  const unsigned lt = posTrue.size();
+
   // Scale true positions to true times.
   vector<PeakTime> timesTrue;
-  timesTrue.resize(posTrue.size());
+  timesTrue.resize(lt);
   PeakDetect::pos2time(posTrue, speedTrue, timesTrue);
 
+/*
 cout << "true\n";
-for (unsigned i = 0; i < timesTrue.size(); i++)
+for (unsigned i = 0; i < lt; i++)
   cout << i << ";" << fixed << setprecision(6) << timesTrue[i].time << "\n";cout << "\nseen\n";
 unsigned pp = 0;
 for (auto peak = peakList.begin(); peak != peakList.end(); peak++)
@@ -869,6 +872,7 @@ for (auto peak = peakList.begin(); peak != peakList.end(); peak++)
   }
 }
 cout << "\n";
+*/
 
   // Find a good line-up.
   double shift = 0.;
@@ -880,26 +884,23 @@ cout << "\nTrue train " << trainTrue << " at " <<
     return;
   }
 
-// TODO
-// Need three PeakStats log functions:
-// 1. Starting from a seen peak, we have a matching true peak.
-// 2. Or no matching true peak.
-// 3. Starting from an unmatched true peak, we can recover a 
-//    seen peak anyway.
-// 4. Not even that: Put it as too early, too late or missing.
-
   // Make statistics.
-  unsigned pno = 0;
 unsigned seen = 0;
   vector<unsigned> seenTrue(posTrue.size(), 0);
-  for (auto peak = peakList.begin();
-      peak != peakList.end(); peak++, pno++)
+  for (auto peak = peakList.begin(); peak != peakList.end(); peak++)
   {
     if (peak->isCandidate())
     {
       const int m = peak->getMatch();
-      peakStats.log(m, pno, peak->getType());
-      pno++;
+      if (m >= 0)
+      {
+        peakStats.logSeenMatch(static_cast<unsigned>(m), lt,
+          peak->getType());
+      }
+      else
+      {
+        peakStats.logSeenMiss(peak->getType());
+      }
 
       if (m != -1)
       {
@@ -928,23 +929,14 @@ cout << seen << " of the observed peaks are close to true ones (" << posTrue.siz
     {
       cout << "Odd: Tentative matched again\n";
     }
-    else if (ctype == PEAK_TYPE_SIZE)
-    {
-      if (m <= 2)
-        ctype = PEAK_TOO_EARLY;
-      else if (m+3 >= posTrue.size())
-        ctype = PEAK_TOO_LATE;
-      else
-      {
-cout << "MISS PEAK " << m << endl;
-        ctype = PEAK_MISSING;
-      }
-    }
 
     // -1 is right for a missing peak.
     // The peak numbers for seen peaks are not meaningful,
     // should be changed.
-    peakStats.log(m, (ctype == PEAK_MISSING ? -1 : 0), ctype);
+    if (ctype == PEAK_TRUE_MISSING)
+      peakStats.logTrueReverseMiss(m, lt);
+    else
+      peakStats.logTrueReverseMatch(m, lt, ctype);
   }
 
 }

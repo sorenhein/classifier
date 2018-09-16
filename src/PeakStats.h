@@ -16,26 +16,25 @@ class PeakStats
 
     struct Entry
     {
-      unsigned no;
-      unsigned count;
+      unsigned good;
+      unsigned reverse;
+      unsigned len;
     };
 
-    // Number of true (resp. seen) peaks of a given number (0, 1, 2, ...)
-    // that have matched among the seen peaks (resp. true peaks).
-    vector<Entry> matchedTrue;
-    vector<Entry> matchedSeen;
-
-    unsigned countTrue;
-    unsigned countSeen;
+    // Number of true peaks of a given number that have matches among 
+    // the seen peaks.  There is a vector for the first N and the 
+    // last N, and an entry for all others together.
+    vector<Entry> matchedTrueFront;
+    vector<Entry> matchedTrueMiddle;
+    vector<Entry> matchedTrueBack;
 
     // Number of peaks of each type that are true.
     vector<Entry> statsSeen;
 
     // Number of true peaks of each type.
-    vector<unsigned> statsTrue;
+    vector<Entry> statsTrue;
 
     vector<string> typeNames;
-
 
     string percent(
       const unsigned num,
@@ -56,10 +55,21 @@ class PeakStats
 
     void reset();
 
-    void log(
-      const int matchNoTrue,
-      const int matchNoSeen,
+    void logSeenMatch(
+      const unsigned matchNoTrue,
+      const unsigned lenTrue,
       const PeakType type);
+
+    void logSeenMiss(const PeakType type);
+
+    void logTrueReverseMatch(
+      const unsigned matchNoTrue,
+      const unsigned lenTrue,
+      const PeakType type);
+
+    void logTrueReverseMiss(
+      const unsigned matchNoTrue,
+      const unsigned lenTrue);
 
     void print(const string& fname) const;
 
