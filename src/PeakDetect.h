@@ -61,9 +61,12 @@ class PeakDetect
       const double speed,
       vector<PeakTime>& timesTrue) const;
 
+    bool advance(list<Peak>::iterator& peak) const;
+
     double simpleScore(
       const vector<PeakTime>& timesTrue,
-      const double offsetScore);
+      const double offsetScore,
+      const bool logFlag);
 
     bool findMatch(const vector<PeakTime>& timesTrue);
 

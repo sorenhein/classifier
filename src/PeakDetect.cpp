@@ -22,7 +22,7 @@ extern PeakStats peakStats;
 
 #define SAMPLE_RATE 2000.
 
-#define TIME_PROXIMITY 0.01 // s
+#define TIME_PROXIMITY 0.03 // s
 
 #define UNUSED(x) ((void)(true ? 0 : ((x), void(), 0)))
 
@@ -465,62 +465,103 @@ void PeakDetect::pos2time(
 }
 
 
+bool PeakDetect::advance(list<Peak>::iterator& peak) const
+{
+  while (peak != peakList.end() && ! peak->isSelected())
+    peak++;
+  return (peak != peakList.end());
+}
+
+
 double PeakDetect::simpleScore(
   const vector<PeakTime>& timesTrue,
-  const double offsetScore)
+  const double offsetScore,
+  const bool logFlag)
 {
-  // This is the same algorithm as in Align::simpleScore.
+  // This is similar to Align::simpleScore.
   
-  const unsigned lt = timesTrue.size();
-  const unsigned lp = peakList.size();
-
-  unsigned it = 0;
-  double score = 0.;
-  double d = TIME_PROXIMITY;
-
-  // TODO Loop should probably be over true, not seen times.
-
-  for (auto& peak: peakList)
+/*
+cout << "offsetScore " << offsetScore << endl << endl;
+cout << "true\n";
+for (unsigned tno = 0; tno < timesTrue.size(); tno++)
+{
+  cout << tno << ";" << fixed << setprecision(4) << timesTrue[tno].time << "\n";
+}
+cout << "\nseen\n";
+unsigned pp = 0;
+for (auto& peak: peakList)
+{
+  if (peak.isSelected())
   {
-    if (! peak.isSelected())
-      continue;
+    cout << pp << "," << fixed << setprecision(4) << peak.getTime() << "\n";
 
-    const double peakTime = peak.getTime() - offsetScore;
+  pp++;
+  }
+}
+*/
 
-    double dleft = peakTime - timesTrue[it].time;
-    if (dleft < 0.)
-    {
-      if (it == 0)
-        d = -dleft;
-      else
-        cout << "Should not happen (PeakDetect)" << endl;
-    }
+  list<Peak>::iterator peak = peakList.begin();
+  if (! PeakDetect::advance(peak))
+    THROW(ERR_NO_PEAKS, "No peaks present or selected");
+  const auto peakFirst = peak;
+
+  list<Peak>::iterator peakBest, peakPrev;
+
+  double score = 0.;
+  for (unsigned tno = 0; tno < timesTrue.size(); tno++)
+  {
+    double d = TIME_PROXIMITY;
+    const double timeTrue = timesTrue[tno].time;
+    double timeSeen = peak->getTime() - offsetScore;
+
+    d = timeSeen - timeTrue;
+    if (d >= 0.)
+      peakBest = peak;
     else
     {
+      double dleft = numeric_limits<double>::max();
       double dright = numeric_limits<double>::max();
-      while (it+1 < lt)
+      while (PeakDetect::advance(peak))
       {
-        dright = timesTrue[it+1].time - peakTime;
+        timeSeen = peak->getTime() - offsetScore;
+        dright = timeSeen - timeTrue;
         if (dright >= 0.)
           break;
-        it++;
+        else
+        {
+          peakPrev = peak;
+          peak++;
+        }
       }
 
-      dleft = peakTime - timesTrue[it].time;
-      if (dleft <= dright)
+      if (dright < 0.)
       {
-        d = dleft;
-        peak.logMatch(it);
+        // We reached the end.
+        d = -dright;
+        peakBest = peakPrev;
       }
-      else
+      else 
       {
-        d = dright;
-        peak.logMatch(it+1);
+        dleft = timeTrue - (peakPrev->getTime() - offsetScore);
+        if (dleft <= dright)
+        {
+          d = dleft;
+          peakBest = peakPrev;
+        }
+        else
+        {
+          d = dright;
+          peakBest = peak;
+        }
       }
     }
 
     if (d <= TIME_PROXIMITY)
+    {
       score += (TIME_PROXIMITY - d) / TIME_PROXIMITY;
+      if (logFlag)
+        peakBest->logMatch(tno);
+    }
   }
 
   return score;
@@ -550,7 +591,7 @@ bool PeakDetect::findMatch(const vector<PeakTime>& timesTrue)
     }
     while (! peak->isSelected());
 
-    offsetList[i] = timesTrue[lt-1].time - peak->getTime();
+    offsetList[i] = peak->getTime() - timesTrue[lt-1].time;
   }
 
   peak = peakList.end();
@@ -569,7 +610,7 @@ bool PeakDetect::findMatch(const vector<PeakTime>& timesTrue)
   for (unsigned i = 0; i < offsetList.size(); i++)
   {
     double scoreNew = 
-      PeakDetect::simpleScore(timesTrue, offsetList[i]);
+      PeakDetect::simpleScore(timesTrue, offsetList[i], false);
 cout << "i " << i << ": " << scoreNew << endl;
     if (scoreNew > score)
     {
@@ -581,7 +622,7 @@ cout << "*\n";
 
   // This extra run could be eliminated at the cost of some copying
   // and intermetidate storage.
-  score = PeakDetect::simpleScore(timesTrue, offsetList[ino]);
+  score = PeakDetect::simpleScore(timesTrue, offsetList[ino], true);
 
   // TODO
   if (score < 0.75 * lt)
@@ -725,6 +766,8 @@ unsigned seen = 0;
     {
       const int m = peak->getMatch();
       peakStats.log(m, pno, peak->getType());
+      pno++;
+
       if (m != -1)
       {
 if (seenTrue[m])
@@ -740,7 +783,6 @@ cout << "Saw " << seen << " of the true peaks\n";
   {
     if (! seenTrue[m])
     {
-cout << "Missed true peak " << m << endl;
       PeakType type;
       if (m <= 2)
         type = PEAK_TOO_EARLY;

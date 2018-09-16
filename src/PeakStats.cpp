@@ -97,7 +97,7 @@ string PeakStats::percent(
 {
   stringstream ss;
 
-  if (denom == 0)
+  if (denom == 0 || num == 0)
     ss << "-";
   else
     ss << fixed << setprecision(2) << 
@@ -156,7 +156,7 @@ void PeakStats::print(const string& fname) const
   fout.open(fname);
 
   PeakStats::printDetailTable(fout, 
-    "Number of peaks of a type that are true", false, statsSeen);
+    "Number of peaks that are true", false, statsSeen);
 
   fout << "Number of true peaks of different types\n";
 
@@ -188,10 +188,10 @@ void PeakStats::printDetail(const string& fname) const
   fout.open(fname);
 
   PeakStats::printDetailTable(fout, 
-    "Number of peaks that are true", true, matchedTrue);
+    "True peaks that are matched to seen peaks", true, matchedTrue);
 
   PeakStats::printDetailTable(fout, 
-    "Number of true peaks", true, matchedSeen);
+    "Candidate peaks that are matched to true peaks", true, matchedSeen);
 
   fout.close();
 }
