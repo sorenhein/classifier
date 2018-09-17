@@ -120,13 +120,20 @@ void PeakStats::logTrueReverseMiss(
   const unsigned lenTrue)
 {
   if (matchNoTrue < END_COUNT)
+  {
     matchedTrueFront[matchNoTrue].len++;
+    statsTrue[PEAK_TRUE_TOO_EARLY].len++;
+  }
   else if (matchNoTrue >= lenTrue-1-END_COUNT)
+  {
     matchedTrueBack[lenTrue-1-matchNoTrue].len++;
+    statsTrue[PEAK_TRUE_TOO_LATE].len++;
+  }
   else
+  {
     matchedTrueMiddle[0].len++;
-
-  statsTrue[PEAK_TRUE_MISSING].len++;
+    statsTrue[PEAK_TRUE_MISSING].len++;
+  }
 }
 
 

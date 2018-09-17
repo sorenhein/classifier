@@ -17,6 +17,7 @@
 
 #define TIME_PROXIMITY 0.03 // s
 
+#define AREA_CUTOFF 0.05f
 #define SCORE_CUTOFF 0.75
 
 #define UNUSED(x) ((void)(true ? 0 : ((x), void(), 0)))
@@ -683,31 +684,42 @@ PeakType PeakDetect::findCandidate(
 
 void PeakDetect::reduce()
 {
-  PeakDetect::reduceSmallAreas(0.1f);
+  const bool debug = true;
+  const bool debugDetails = false;
 
-// cout << "Non-tiny list peaks: " << peakList.size() << "\n";
-// PeakDetect::print();
+  PeakDetect::reduceSmallAreas(0.1f);
+  if (debugDetails)
+  {
+    cout << "Non-tiny list peaks: " << peakList.size() << "\n";
+    PeakDetect::print();
+   }
 
   PeakDetect::eliminateKinks();
-
-// cout << "Non-kinky list peaks: " << peakList.size() << "\n";
-// PeakDetect::print();
+  if (debugDetails)
+  {
+    cout << "Non-kinky list peaks: " << peakList.size() << "\n";
+    PeakDetect::print();
+  }
 
   PeakDetect::estimateScales();
+  if (debug)
+  {
+    cout << "Scale list\n";
+    cout << scalesList.str(0) << "\n";
+  }
 
-// cout << "Scale list\n";
-// cout << scalesList.str(0) << "\n";
-
-  const float scaledCutoffList = 0.05f * scalesList.getArea();
-
-cout << "Area list cutoff " << scaledCutoffList << endl;
+  const float scaledCutoffList = AREA_CUTOFF * scalesList.getArea();
+  if (debug)
+    cout << "Area list cutoff " << scaledCutoffList << endl;
 
   PeakDetect::reduceSmallAreas(scaledCutoffList);
+  if (debug)
+  {
+    cout << "Reasonable list peaks: " << peakList.size() <<  endl;
+    PeakDetect::print();
+    cout << endl;
+  }
 
-// cout << "Reasonable list peaks: " << peakList.size() <<  endl;
-//
-// PeakDetect::print();
-// cout << endl;
 
   Koptions koptions;
   koptions.numClusters = 8;
@@ -735,26 +747,6 @@ cout << "Area list cutoff " << scaledCutoffList << endl;
     cout << "\n";
   }
   cout << endl;
-
-  /*
-  cout << "distance from scale list:\n";
-  for (unsigned i = 0; i < koptions.numClusters; i++)
-  {
-    cout << i << ": " << clusters[i].distance(scalesList, scalesList) <<
-      "\n";
-  }
-  cout << endl;
-  */
-
-  /*
-  cout << peakList.front().strHeader();
-  for (auto peak = next(peakList.begin()); peak != peakList.end(); peak++)
-  {
-    if (peak->isCandidate())
-      cout << peak->str(offset);
-  }
-  cout << "\n";
-  */
 
 vector<string> ctext(koptions.numClusters);
 vector<unsigned> ccount(koptions.numClusters);
@@ -806,6 +798,8 @@ cout << "cgood[" << i << "] = " << cgood[i] << endl;
     const float m = peak->measure(scalesList);
     nraw++;
 
+    // TODO Other than tentative, should go by END_COUNT as in
+    // PeakStats.
     PeakType ptype;
     if (cgood[c])
     {
@@ -851,6 +845,9 @@ void PeakDetect::logPeakStats(
   const double speedTrue,
   PeakStats& peakStats)
 {
+  const bool debug = true;
+  const bool debugDetails = false;
+
   const unsigned lt = posTrue.size();
 
   // Scale true positions to true times.
@@ -858,64 +855,52 @@ void PeakDetect::logPeakStats(
   timesTrue.resize(lt);
   PeakDetect::pos2time(posTrue, speedTrue, timesTrue);
 
-/*
-cout << "true\n";
-for (unsigned i = 0; i < lt; i++)
-  cout << i << ";" << fixed << setprecision(6) << timesTrue[i].time << "\n";cout << "\nseen\n";
-unsigned pp = 0;
-for (auto peak = peakList.begin(); peak != peakList.end(); peak++)
-{
-  if (peak->isCandidate() && peak->getType() == PEAK_TENTATIVE)
-  {
-    cout << pp << ";" << fixed << setprecision(6) << peak->getTime() << endl;
-    pp++;
-  }
-}
-cout << "\n";
-*/
+  if (debugDetails)
+    PeakDetect::printPeaks(timesTrue);
 
   // Find a good line-up.
   double shift = 0.;
   if (! PeakDetect::findMatch(timesTrue, shift))
   {
-    cout << "No good match to real " << posTrue.size() << " peaks.\n";
-cout << "\nTrue train " << trainTrue << " at " << 
-  fixed << setprecision(2) << speedTrue << " m/s" << endl << endl;
+    if (debug)
+    {
+      cout << "No good match to real " << posTrue.size() << " peaks.\n";
+      cout << "\nTrue train " << trainTrue << " at " << 
+        fixed << setprecision(2) << speedTrue << " m/s" << endl << endl;
+    }
     return;
   }
 
   // Make statistics.
-unsigned seen = 0;
   vector<unsigned> seenTrue(posTrue.size(), 0);
+  unsigned seen = 0;
   for (auto peak = peakList.begin(); peak != peakList.end(); peak++)
   {
     if (peak->isCandidate())
     {
       const int m = peak->getMatch();
+      const PeakType pt = peak->getType();
       if (m >= 0)
       {
-        peakStats.logSeenMatch(static_cast<unsigned>(m), lt,
-          peak->getType());
+        peakStats.logSeenMatch(static_cast<unsigned>(m), lt, pt);
+        if (seenTrue[m] && debug)
+          cout << "Already saw true peak " << m << endl;
+        seenTrue[m]++;
+        seen++;
       }
       else
-      {
-        peakStats.logSeenMiss(peak->getType());
-      }
-
-      if (m != -1)
-      {
-if (seenTrue[m])
-  cout << "Already saw true peak " << m << endl;
-        seenTrue[m]++;
-seen++;
-      }
+        peakStats.logSeenMiss(pt);
     }
   }
 
-cout << "True train " << trainTrue << " at " << 
-  fixed << setprecision(2) << speedTrue << " m/s\n\n";
+  if (debug)
+  {
+    cout << "True train " << trainTrue << " at " << 
+      fixed << setprecision(2) << speedTrue << " m/s\n\n";
 
-cout << seen << " of the observed peaks are close to true ones (" << posTrue.size() << " true peaks)" << endl;
+    cout << seen << " of the observed peaks are close to true ones (" << 
+      posTrue.size() << " true peaks)" << endl;
+  }
 
   for (unsigned m = 0; m < posTrue.size(); m++)
   {
@@ -927,18 +912,16 @@ cout << seen << " of the observed peaks are close to true ones (" << posTrue.siz
     PeakType ctype = PeakDetect::findCandidate(timesTrue[m].time, shift);
     if (ctype == PEAK_TENTATIVE)
     {
+      // TODO Should either not happen, or be thrown.
       cout << "Odd: Tentative matched again\n";
     }
 
-    // -1 is right for a missing peak.
-    // The peak numbers for seen peaks are not meaningful,
-    // should be changed.
+    // The missed ones are detected as early/late/missing.
     if (ctype == PEAK_TRUE_MISSING)
       peakStats.logTrueReverseMiss(m, lt);
     else
       peakStats.logTrueReverseMatch(m, lt, ctype);
   }
-
 }
 
 
@@ -994,6 +977,28 @@ void PeakDetect::print() const
 
   for (auto peak = next(peakList.begin()); peak != peakList.end(); peak++)
     cout << peak->str(offset);
+  cout << "\n";
+}
+
+
+void PeakDetect::printPeaks(const vector<PeakTime>& timesTrue) const
+{
+  cout << "true\n";
+  for (unsigned i = 0; i < timesTrue.size(); i++)
+    cout << i << ";" << 
+      fixed << setprecision(6) << timesTrue[i].time << "\n";
+
+  cout << "\nseen\n";
+  unsigned pp = 0;
+  for (auto peak = peakList.begin(); peak != peakList.end(); peak++)
+  {
+    if (peak->isCandidate() && peak->getType() == PEAK_TENTATIVE)
+    {
+      cout << pp << ";" << 
+        fixed << setprecision(6) << peak->getTime() << endl;
+      pp++;
+    }
+  }
   cout << "\n";
 }
 

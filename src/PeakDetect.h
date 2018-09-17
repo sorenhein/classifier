@@ -90,6 +90,8 @@ class PeakDetect
       const double time,
       const double shift) const;
 
+    void printPeaks(const vector<PeakTime>& timesTrue) const;
+
   public:
 
     PeakDetect();

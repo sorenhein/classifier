@@ -1,28 +1,7 @@
-PeakStats
+Set transient-early and late on seen peaks.  Could go by whether or not
+we've seen a tentative.
 
-Output of seen peaks
-
-Type            Total   Match #, %      Reverse #, %    Unmatched #, %
-tentative
-...
-trans-early
-NOT too-early
-
-Output of true peaks
-
-Type            #, %
-tentative
-also too-early
-
-
-Output of each of front, back, mid (make a 1-length vector)
-
-Index           Looks as first table above
-0
-1
-2
-3
-
+Find exception cause
 
 2018-09-15
 ----------
@@ -55,17 +34,13 @@ Starting with the interesting ones
   - Drop remaining singles except at the beginning and end
   
 
-
-PeakStats: Not global, but passed in.
+PeakStats: 
 log the category (train or sensor).
 Output csv.
-
-Log measure in peak as part of annotate.
 
 Give out the whole PeakList, don't copy into PeakTime?
 Store time in PeakList as well.
 Call peakList peaks.
-
 
 
 2018-09-14
