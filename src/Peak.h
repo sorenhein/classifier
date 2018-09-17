@@ -33,6 +33,9 @@ class Peak
     float fill; // area / (0.5 * range * len)
     float symmetry; // area relative to the area to the *right*
 
+    float measureVal;
+    bool measureFlag;
+
     unsigned clusterNo;
     bool selectFlag;
     int match; // Number of matched peak in real list (or -1)
@@ -111,7 +114,8 @@ class Peak
 
     bool isCandidate() const;
 
-    float measure(const Peak& scale) const;
+    float measure(const Peak& scale);
+    float measure() const;
 
     void select();
     bool isSelected() const;

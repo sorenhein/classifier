@@ -17,6 +17,14 @@ class PeakDetect
 {
   private:
 
+    struct PeakCluster
+    {
+      Peak centroid;
+      unsigned len;
+      unsigned numConvincing;
+      bool good;
+    };
+
     unsigned len;
     unsigned offset;
     list<Peak> peakList;
@@ -49,10 +57,10 @@ class PeakDetect
     void estimateScales();
 
     void pickStartingClusters(
-      vector<Peak>& clusters,
+      vector<PeakCluster>& clusters,
       const unsigned n) const;
 
-    void runKmeansOnce(vector<Peak>& clusters);
+    void runKmeansOnce(vector<PeakCluster>& clusters);
 
     void pos2time(
       const vector<PeakPos>& posTrue,
@@ -81,12 +89,16 @@ class PeakDetect
 
     PeakType classifyPeak(
       const Peak& peak,
-      const vector<bool>& cgood) const;
+      const vector<PeakCluster>& clusters) const;
+
+    void countClusters(vector<PeakCluster>& clusters);
+
+    void getConvincingClusters(vector<PeakCluster>& clusters);
 
     void printPeaks(const vector<PeakTime>& timesTrue) const;
 
     void printClusters(
-      const vector<Peak>& clusters,
+      const vector<PeakCluster>& clusters,
       const bool debugDetails) const;
 
   public:

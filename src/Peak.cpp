@@ -284,20 +284,23 @@ float Peak::penalty(const float val) const
 }
 
 
-float Peak::measure(const Peak& scale) const
+float Peak::measure(const Peak& scale)
 {
-  return Peak::penalty(value / scale.value) +
+  measureFlag = true;
+  measureVal = Peak::penalty(value / scale.value) +
     Peak::penalty(len / scale.len) +
     Peak::penalty(range / scale.range) +
     Peak::penalty(area / scale.area) +
     Peak::penalty(gradient / scale.gradient);
-    // Peak::penalty(symmetry / scale.symmetry);
+  return measureVal;
+}
 
-  /*
-  return abs(value / scale.value) +
-    abs(range / scale.range) +
-    abs(area / scale.area);
-  */
+
+float Peak::measure() const
+{
+  if (! measureFlag)
+    THROW(ERR_ALGO_MEASURE, "Measure not set");
+  return measureVal;
 }
 
 

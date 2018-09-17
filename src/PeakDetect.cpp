@@ -393,7 +393,7 @@ void PeakDetect::estimateScales()
 
 
 void PeakDetect::pickStartingClusters(
-  vector<Peak>& clusters,
+  vector<PeakCluster>& clusters,
   const unsigned n) const
 {
   clusters.resize(n);
@@ -405,7 +405,7 @@ void PeakDetect::pickStartingClusters(
   {
     if (peak->isCandidate())
     {
-      clusters[c] = * peak;
+      clusters[c].centroid = * peak;
       c++;
       if (c == n)
         break;
@@ -414,7 +414,7 @@ void PeakDetect::pickStartingClusters(
 }
 
 
-void PeakDetect::runKmeansOnce(vector<Peak>& clusters)
+void PeakDetect::runKmeansOnce(vector<PeakCluster>& clusters)
 {
   // Pick centroids from the data points.
   PeakDetect::pickStartingClusters(clusters, KMEANS_CLUSTERS);
@@ -423,7 +423,7 @@ void PeakDetect::runKmeansOnce(vector<Peak>& clusters)
 
   for (unsigned iter = 0; iter < KMEANS_ITERATIONS; iter++)
   {
-    vector<Peak> clustersNew(clusters.size());
+    vector<PeakCluster> clustersNew(clusters.size());
     vector<unsigned> counts(clusters.size(), 0);
     float distGlobal = 0.f;
 
@@ -436,7 +436,8 @@ void PeakDetect::runKmeansOnce(vector<Peak>& clusters)
       unsigned bestCluster = 0;
       for (unsigned cno = 0; cno < clusters.size(); cno++)
       {
-        const float dist = peak->distance(clusters[cno], scalesList);
+        const float dist = 
+          peak->distance(clusters[cno].centroid, scalesList);
         if (dist < distBest)
         {
           distBest = dist;
@@ -445,15 +446,15 @@ void PeakDetect::runKmeansOnce(vector<Peak>& clusters)
       }
 
       peak->logCluster(bestCluster);
-      clustersNew[bestCluster] += * peak;
+      clustersNew[bestCluster].centroid += * peak;
       counts[bestCluster]++;
       distGlobal += distBest;
     }
 
     for (unsigned cno = 0; cno < clusters.size(); cno++)
     {
-      clusters[cno] = clustersNew[cno];
-      clusters[cno] /= counts[cno];
+      clusters[cno].centroid = clustersNew[cno].centroid;
+      clusters[cno].centroid /= counts[cno];
     }
 
     if (distGlobal / distance >= KMEANS_CONVERGENCE)
@@ -687,14 +688,14 @@ PeakType PeakDetect::findCandidate(
 
 PeakType PeakDetect::classifyPeak(
   const Peak& peak,
-  const vector<bool>& cgood) const
+  const vector<PeakCluster>& clusters) const
 {
   const unsigned c = peak.getCluster();
-  const float m = peak.measure(scalesList);
+  const float m = peak.measure();
 
   // TODO Other than tentative, should go by END_COUNT as in
   // PeakStats.
-  if (cgood[c])
+  if (clusters[c].good)
   {
     if (m <= MEASURE_CUTOFF)
     {
@@ -715,6 +716,36 @@ PeakType PeakDetect::classifyPeak(
       return PEAK_CONCEIVABLE;
     else
       return PEAK_REJECTED;
+  }
+}
+
+
+void PeakDetect::countClusters(vector<PeakCluster>& clusters)
+{
+  for (auto& peak: peakList)
+  {
+    if (! peak.isCandidate())
+      continue;
+    
+    const unsigned c = peak.getCluster();
+    const float m = peak.measure(scalesList);
+    clusters[c].len++;
+    if (m <= MEASURE_CUTOFF)
+      clusters[c].numConvincing++;
+  }
+}
+
+
+void PeakDetect::getConvincingClusters(vector<PeakCluster>& clusters)
+{
+  for (unsigned i = 0; i < clusters.size(); i++)
+  {
+    // TODO Algorithmic define's.
+    if (clusters[i].len >= 3 && 
+        clusters[i].numConvincing >= 0.8 * clusters[i].len)
+      clusters[i].good = true;
+    else
+      clusters[i].good = false;
   }
 }
 
@@ -757,39 +788,13 @@ void PeakDetect::reduce()
     cout << endl;
   }
 
-
-  vector<Peak> clusters;
+  vector<PeakCluster> clusters;
   PeakDetect::runKmeansOnce(clusters);
+  PeakDetect::countClusters(clusters);
+  PeakDetect::getConvincingClusters(clusters);
 
   if (debug)
     PeakDetect::printClusters(clusters, debugDetails);
-
-  // A "good" cluster has at least 3 entries with a low measure,
-  // and at least 80% such entries.
-  vector<unsigned> ccount(clusters.size());
-  vector<unsigned> cplus(clusters.size());
-  vector<bool> cgood(clusters.size());
-
-  for (auto& peak: peakList)
-  {
-    if (! peak.isCandidate())
-      continue;
-    
-    const unsigned c = peak.getCluster();
-    const float m = peak.measure(scalesList);
-    ccount[c]++;
-    if (m <= MEASURE_CUTOFF)
-      cplus[c]++;
-  }
-
-  for (unsigned i = 0; i < clusters.size(); i++)
-  {
-    if (ccount[i] >= 3 && cplus[i] >= 0.8 * ccount[i])
-      cgood[i] = true;
-    else
-      cgood[i] = false;
-cout << "cgood[" << i << "] = " << cgood[i] << endl;
-  }
 
   unsigned nraw = 0;
   for (auto& peak: peakList)
@@ -799,7 +804,7 @@ cout << "cgood[" << i << "] = " << cgood[i] << endl;
 
     nraw++;
 
-    PeakType ptype = PeakDetect::classifyPeak(peak, cgood);
+    PeakType ptype = PeakDetect::classifyPeak(peak, clusters);
 
     if (ptype == PEAK_TENTATIVE)
       peak.select();
@@ -847,12 +852,12 @@ void PeakDetect::logPeakStats(
   // Make statistics.
   vector<unsigned> seenTrue(posTrue.size(), 0);
   unsigned seen = 0;
-  for (auto peak = peakList.begin(); peak != peakList.end(); peak++)
+  for (auto& peak: peakList)
   {
-    if (peak->isCandidate())
+    if (peak.isCandidate())
     {
-      const int m = peak->getMatch();
-      const PeakType pt = peak->getType();
+      const int m = peak.getMatch();
+      const PeakType pt = peak.getType();
       if (m >= 0)
       {
         peakStats.logSeenMatch(static_cast<unsigned>(m), lt, pt);
@@ -977,14 +982,14 @@ void PeakDetect::printPeaks(const vector<PeakTime>& timesTrue) const
 
 
 void PeakDetect::printClusters(
-  const vector<Peak>& clusters,
+  const vector<PeakCluster>& clusters,
   const bool debugDetails) const
 {
   // The actual cluster content.
   cout << "clusters" << endl;
-  cout << clusters.front().strHeader();
+  cout << clusters.front().centroid.strHeader();
   for (auto& c: clusters)
-    cout << c.str(offset);
+    cout << c.centroid.str(offset);
   cout << endl;
 
   // The peak indices in each cluster.
@@ -1011,7 +1016,7 @@ void PeakDetect::printClusters(
       if (! peak.isCandidate())
         continue;
     
-      double m = peak.measure(scalesList);
+      double m = peak.measure();
 
       stringstream ss;
       ss << setw(6) << right << peak.getIndex() + offset <<
@@ -1027,8 +1032,10 @@ void PeakDetect::printClusters(
 
     for (unsigned i = 0; i < clusters.size(); i++)
     {
-      cout << "Cluster " << i << ": " << ccount[i] << "\n" << 
-        ctext[i] << endl;
+      cout << "Cluster " << i << ": " << ccount[i];
+      if (clusters[i].good)
+        cout << " (good)";
+      cout << "\n" << ctext[i] << endl;
     }
   }
 }
