@@ -1,26 +1,12 @@
-Set transient-early and late on seen peaks.  Could go by whether or not
-we've seen a tentative.
+2018-09-17
+----------
+Set transient-early and late on seen peaks (first 0.2 s).  
+Could go by whether or not we've seen a tentative.
 
 Find exception cause
 
-2018-09-15
-----------
-Possible flow:
+Move first/mid/last out of PeakStats and into PeakDetect
 
-- Run K means as is, maybe with more dispersed starting points
-- Accepted clusters
-  - At least 3 entries that also have measure +
-  - At least 80% have measure +
-    - +   -> tentative
-    - 1-2 -> interesting
-    - 2-6 -> conceivable
-    - > 6 -> rejected
-- All other peaks
-  Similar, but no tentative ones (all low ones -> interesting)
-- All peaks in first 400 samples (0.2 s) go are transient
-
-
-Starting with the interesting ones
 
 - Extract some key periodicity parameters
   - Cluster neighbors (same parameters as single peaks, but two
@@ -39,8 +25,6 @@ log the category (train or sensor).
 Output csv.
 
 Give out the whole PeakList, don't copy into PeakTime?
-Store time in PeakList as well.
-Call peakList peaks.
 
 
 2018-09-14
@@ -59,6 +43,7 @@ Eliminate clusters based on unusual single-parameter values?
 * Improve the recognition (currently 1072 / 1778 = 60.3%)
 
 * Add separate timers for pre-align and align
+* And for peak extraction
 
 * Clean up driver.cpp
 

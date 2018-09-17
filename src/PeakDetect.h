@@ -27,7 +27,7 @@ class PeakDetect
 
     unsigned len;
     unsigned offset;
-    list<Peak> peakList;
+    list<Peak> peaks;
     PeakData scales;
     Peak scalesList;
 

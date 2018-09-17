@@ -42,7 +42,7 @@ PeakDetect::~PeakDetect()
 void PeakDetect::reset()
 {
   len = 0;
-  peakList.clear();
+  peaks.clear();
 }
 
 
@@ -61,13 +61,13 @@ float PeakDetect::integrate(
 
 void PeakDetect::annotate()
 {
-  if (peakList.size() < 2)
-    THROW(ERR_NO_PEAKS, "Too few peaks: " + to_string(peakList.size()));
+  if (peaks.size() < 2)
+    THROW(ERR_NO_PEAKS, "Too few peaks: " + to_string(peaks.size()));
 
-  const auto peakFirst = peakList.begin();
-  const auto peakLast = prev(peakList.end());
+  const auto peakFirst = peaks.begin();
+  const auto peakLast = prev(peaks.end());
 
-  for (auto it = peakFirst; it != peakList.end(); it++)
+  for (auto it = peakFirst; it != peaks.end(); it++)
   {
     const Peak * peakPrev = (it == peakFirst ? nullptr : &*prev(it));
     const Peak * peakNext = (it == peakLast ? nullptr : &*next(it));
@@ -82,14 +82,14 @@ bool PeakDetect::check(const vector<float>& samples) const
   if (samples.size() == 0)
     THROW(ERR_SHORT_ACCEL_TRACE, "Accel trace length: " + to_string(len));
 
-  if (peakList.size() < 2)
-    THROW(ERR_NO_PEAKS, "Too few peaks: " + to_string(peakList.size()));
+  if (peaks.size() < 2)
+    THROW(ERR_NO_PEAKS, "Too few peaks: " + to_string(peaks.size()));
 
-  const auto peakFirst = peakList.begin();
-  const auto peakLast = prev(peakList.end());
+  const auto peakFirst = peaks.begin();
+  const auto peakLast = prev(peaks.end());
   bool flag = true;
 
-  for (auto it = peakFirst; it != peakList.end(); it++)
+  for (auto it = peakFirst; it != peaks.end(); it++)
   {
     Peak peakSynth;
     Peak const * peakPrev = nullptr, * peakNext = nullptr;
@@ -118,7 +118,7 @@ bool PeakDetect::check(const vector<float>& samples) const
 
 void PeakDetect::logFirst(const vector<float>& samples)
 {
-  peakList.emplace_back(Peak());
+  peaks.emplace_back(Peak());
 
   // Find the initial peak polarity.
   bool maxFlag = false;
@@ -135,19 +135,19 @@ void PeakDetect::logFirst(const vector<float>& samples)
       break;
     }
   }
-  peakList.back().logSentinel(samples[0], maxFlag);
+  peaks.back().logSentinel(samples[0], maxFlag);
 }
 
 
 void PeakDetect::logLast(const vector<float>& samples)
 {
-  const auto& peakPrev = peakList.back();
+  const auto& peakPrev = peaks.back();
   const float areaFull = 
     PeakDetect::integrate(samples, peakPrev.getIndex(), len-1);
   const float areaCumPrev = peakPrev.getAreaCum();
 
-  peakList.emplace_back(Peak());
-  peakList.back().log(
+  peaks.emplace_back(Peak());
+  peaks.back().log(
     samples.size()-1, 
     samples[samples.size()-1], 
     areaCumPrev + areaFull, 
@@ -164,7 +164,7 @@ void PeakDetect::log(
     THROW(ERR_SHORT_ACCEL_TRACE, "Accel trace length: " + to_string(len));
 
   offset = offsetSamples;
-  peakList.clear();
+  peaks.clear();
 
   // The first peak is a dummy extremum at the first sample.
   PeakDetect::logFirst(samples);
@@ -200,14 +200,14 @@ void PeakDetect::log(
         maxFlag = false;
     }
 
-    const auto& peakPrev = peakList.back();
+    const auto& peakPrev = peaks.back();
     const float areaFull = PeakDetect::integrate(samples, 
       peakPrev.getIndex(), i);
     const float areaCumPrev = peakPrev.getAreaCum();
 
     // The peak contains data for the interval preceding it.
-    peakList.emplace_back(Peak());
-    peakList.back().log(i, samples[i], areaCumPrev + areaFull, maxFlag);
+    peaks.emplace_back(Peak());
+    peaks.back().log(i, samples[i], areaCumPrev + areaFull, maxFlag);
   }
 
   // The last peak is a dummy extremum at the last sample.
@@ -232,25 +232,25 @@ void PeakDetect::collapsePeaks(
     THROW(ERR_ALGO_PEAK_COLLAPSE, "Peaks with different polarity");
 
   Peak * peak0 = 
-    (peak1 == peakList.begin() ? &*peak1 : &*prev(peak1));
+    (peak1 == peaks.begin() ? &*peak1 : &*prev(peak1));
   Peak * peakN = 
-    (next(peak2) == peakList.end() ? nullptr : &*next(peak2));
+    (next(peak2) == peaks.end() ? nullptr : &*next(peak2));
 
   peak2->update(peak0, peakN);
 
-  peakList.erase(peak1, peak2);
+  peaks.erase(peak1, peak2);
 }
 
 
 void PeakDetect::reduceSmallAreas(const float areaLimit)
 {
-  if (peakList.empty())
+  if (peaks.empty())
     THROW(ERR_NO_PEAKS, "Peak list is empty");
 
-  const auto peakLast = prev(peakList.end());
-  auto peak = next(peakList.begin());
+  const auto peakLast = prev(peaks.end());
+  auto peak = next(peaks.begin());
 
-  while (peak != peakList.end())
+  while (peak != peaks.end())
   {
     const float area = peak->getArea();
     if (area >= areaLimit)
@@ -267,7 +267,7 @@ void PeakDetect::reduceSmallAreas(const float areaLimit)
     do
     {
       peak++;
-      if (peak == peakList.end())
+      if (peak == peaks.end())
         break;
 
       sumArea = peak->getArea(* peakCurrent);
@@ -292,8 +292,8 @@ void PeakDetect::reduceSmallAreas(const float areaLimit)
       // of the same polarity as peakCurrent (instead of peakCurrent).
       // It's a bit random whether or not this would be a "real" peak,
       // and we also don't keep track of this above.  So we just stop.
-      if (peakCurrent != peakList.end())
-        peakList.erase(peakCurrent, peakList.end());
+      if (peakCurrent != peaks.end())
+        peaks.erase(peakCurrent, peaks.end());
       break;
     }
     else if (peak->getMaxFlag() != maxFlag)
@@ -316,11 +316,11 @@ void PeakDetect::reduceSmallAreas(const float areaLimit)
 
 void PeakDetect::eliminateKinks()
 {
-  if (peakList.empty())
+  if (peaks.empty())
     THROW(ERR_NO_PEAKS, "Peak list is empty");
 
-  for (auto peak = next(peakList.begin(), 2); 
-      peak != prev(peakList.end()); peak++)
+  for (auto peak = next(peaks.begin(), 2); 
+      peak != prev(peaks.end()); peak++)
   {
     const auto peakPrev = prev(peak);
     const auto peakPrevPrev = prev(peakPrev);
@@ -376,7 +376,7 @@ void PeakDetect::estimateScales()
 {
   scalesList.reset();
   unsigned no = 0;
-  for (auto peak = next(peakList.begin()); peak != peakList.end(); peak++)
+  for (auto peak = next(peaks.begin()); peak != peaks.end(); peak++)
   {
     if (! peak->getMaxFlag() && peak->getValue() < 0.f)
     {
@@ -401,11 +401,11 @@ void PeakDetect::pickStartingClusters(
   // TODO Pick these more intelligently.
 
   unsigned c = 0;
-  for (auto peak = peakList.begin(); peak != peakList.end(); peak++)
+  for (auto& peak: peaks)
   {
-    if (peak->isCandidate())
+    if (peak.isCandidate())
     {
-      clusters[c].centroid = * peak;
+      clusters[c].centroid = peak;
       c++;
       if (c == n)
         break;
@@ -427,9 +427,9 @@ void PeakDetect::runKmeansOnce(vector<PeakCluster>& clusters)
     vector<unsigned> counts(clusters.size(), 0);
     float distGlobal = 0.f;
 
-    for (auto peak = peakList.begin(); peak != peakList.end(); peak++)
+    for (auto& peak: peaks)
     {
-      if (! peak->isCandidate())
+      if (! peak.isCandidate())
         continue;
 
       float distBest = numeric_limits<float>::max();
@@ -437,7 +437,7 @@ void PeakDetect::runKmeansOnce(vector<PeakCluster>& clusters)
       for (unsigned cno = 0; cno < clusters.size(); cno++)
       {
         const float dist = 
-          peak->distance(clusters[cno].centroid, scalesList);
+          peak.distance(clusters[cno].centroid, scalesList);
         if (dist < distBest)
         {
           distBest = dist;
@@ -445,8 +445,8 @@ void PeakDetect::runKmeansOnce(vector<PeakCluster>& clusters)
         }
       }
 
-      peak->logCluster(bestCluster);
-      clustersNew[bestCluster].centroid += * peak;
+      peak.logCluster(bestCluster);
+      clustersNew[bestCluster].centroid += peak;
       counts[bestCluster]++;
       distGlobal += distBest;
     }
@@ -487,9 +487,9 @@ void PeakDetect::pos2time(
 
 bool PeakDetect::advance(list<Peak>::iterator& peak) const
 {
-  while (peak != peakList.end() && ! peak->isSelected())
+  while (peak != peaks.end() && ! peak->isSelected())
     peak++;
-  return (peak != peakList.end());
+  return (peak != peaks.end());
 }
 
 
@@ -501,7 +501,7 @@ double PeakDetect::simpleScore(
 {
   // This is similar to Align::simpleScore.
   
-  list<Peak>::iterator peak = peakList.begin();
+  list<Peak>::iterator peak = peaks.begin();
   if (! PeakDetect::advance(peak))
     THROW(ERR_NO_PEAKS, "No peaks present or selected");
 
@@ -585,7 +585,7 @@ void PeakDetect::setOffsets(
   const vector<PeakTime>& timesTrue,
   vector<double>& offsetList) const
 {
-  const unsigned lp = peakList.size();
+  const unsigned lp = peaks.size();
   const unsigned lt = timesTrue.size();
 
   // Probably too many.
@@ -596,8 +596,8 @@ void PeakDetect::setOffsets(
 
   offsetList.resize(maxShiftSeen + maxShiftTrue + 1);
 
-  // Offsets are subtracted from the seen peaks (peakList).
-  list<Peak>::const_iterator peak = peakList.end();
+  // Offsets are subtracted from the seen peaks.
+  list<Peak>::const_iterator peak = peaks.end();
   for (unsigned i = 0; i <= maxShiftSeen; i++)
   {
     do
@@ -609,7 +609,7 @@ void PeakDetect::setOffsets(
     offsetList[i] = peak->getTime() - timesTrue[lt-1].time;
   }
 
-  peak = peakList.end();
+  peak = peaks.end();
   do
   {
     peak = prev(peak);
@@ -665,7 +665,7 @@ PeakType PeakDetect::findCandidate(
   double dist = numeric_limits<double>::max();
   PeakType type = PEAK_TRUE_MISSING;
 
-  for (auto& peak: peakList)
+  for (auto& peak: peaks)
   {
     if (! peak.isCandidate() || peak.isSelected())
       continue;
@@ -722,7 +722,7 @@ PeakType PeakDetect::classifyPeak(
 
 void PeakDetect::countClusters(vector<PeakCluster>& clusters)
 {
-  for (auto& peak: peakList)
+  for (auto& peak: peaks)
   {
     if (! peak.isCandidate())
       continue;
@@ -758,14 +758,14 @@ void PeakDetect::reduce()
   PeakDetect::reduceSmallAreas(0.1f);
   if (debugDetails)
   {
-    cout << "Non-tiny list peaks: " << peakList.size() << "\n";
+    cout << "Non-tiny list peaks: " << peaks.size() << "\n";
     PeakDetect::print();
    }
 
   PeakDetect::eliminateKinks();
   if (debugDetails)
   {
-    cout << "Non-kinky list peaks: " << peakList.size() << "\n";
+    cout << "Non-kinky list peaks: " << peaks.size() << "\n";
     PeakDetect::print();
   }
 
@@ -783,7 +783,7 @@ void PeakDetect::reduce()
   PeakDetect::reduceSmallAreas(scaledCutoffList);
   if (debug)
   {
-    cout << "Reasonable list peaks: " << peakList.size() <<  endl;
+    cout << "Reasonable list peaks: " << peaks.size() <<  endl;
     PeakDetect::print();
     cout << endl;
   }
@@ -797,7 +797,7 @@ void PeakDetect::reduce()
     PeakDetect::printClusters(clusters, debugDetails);
 
   unsigned nraw = 0;
-  for (auto& peak: peakList)
+  for (auto& peak: peaks)
   {
     if (! peak.isCandidate())
       continue;
@@ -852,7 +852,7 @@ void PeakDetect::logPeakStats(
   // Make statistics.
   vector<unsigned> seenTrue(posTrue.size(), 0);
   unsigned seen = 0;
-  for (auto& peak: peakList)
+  for (auto& peak: peaks)
   {
     if (peak.isCandidate())
     {
@@ -885,7 +885,7 @@ void PeakDetect::logPeakStats(
     if (seenTrue[m])
       continue;
 
-    // Look for posTrue[m].time vs (peakList time - shift),
+    // Look for posTrue[m].time vs (peaks time - shift),
     // must be within TIME_PROXIMITY.
     PeakType ctype = PeakDetect::findCandidate(timesTrue[m].time, shift);
     if (ctype == PEAK_TENTATIVE)
@@ -908,7 +908,7 @@ void PeakDetect::makeSynthPeaks(vector<float>& synthPeaks) const
   for (unsigned i = 0; i < synthPeaks.size(); i++)
     synthPeaks[i] = 0;
 
-  for (auto& peak: peakList)
+  for (auto& peak: peaks)
   {
     if (peak.isSelected())
       synthPeaks[peak.getIndex()] = peak.getValue();
@@ -918,7 +918,7 @@ void PeakDetect::makeSynthPeaks(vector<float>& synthPeaks) const
 
 float PeakDetect::getFirstPeakTime() const
 {
-  for (auto& peak: peakList)
+  for (auto& peak: peaks)
   {
     if (peak.isSelected())
       return peak.getIndex() / static_cast<float>(SAMPLE_RATE);
@@ -933,7 +933,7 @@ void PeakDetect::getPeakTimes(vector<PeakTime>& times) const
   times.clear();
   const float t0 = PeakDetect::getFirstPeakTime();
 
-  for (auto& peak: peakList)
+  for (auto& peak: peaks)
   {
     if (peak.isSelected())
     {
@@ -948,9 +948,9 @@ void PeakDetect::getPeakTimes(vector<PeakTime>& times) const
 
 void PeakDetect::print() const
 {
-  cout << peakList.front().strHeader();
+  cout << peaks.front().strHeader();
 
-  for (auto& peak: peakList)
+  for (auto& peak: peaks)
     cout << peak.str(offset);
   cout << "\n";
 }
@@ -965,7 +965,7 @@ void PeakDetect::printPeaks(const vector<PeakTime>& timesTrue) const
 
   cout << "\nseen\n";
   unsigned pp = 0;
-  for (auto& peak: peakList)
+  for (auto& peak: peaks)
   {
     if (peak.isCandidate() && peak.getType() == PEAK_TENTATIVE)
     {
@@ -985,7 +985,7 @@ void PeakDetect::printClustersDetail(
   vector<string> ctext(clusters.size());
   vector<unsigned> ccount(clusters.size());
 
-  for (auto& peak: peakList)
+  for (auto& peak: peaks)
   {
     if (! peak.isCandidate())
       continue;
@@ -1029,7 +1029,7 @@ void PeakDetect::printClusters(
   for (unsigned i = 0; i < clusters.size(); i++)
   {
     cout << i << ":";
-    for (auto& peak: peakList)
+    for (auto& peak: peaks)
     {
       if (peak.isCluster(i))
         cout << " " << peak.getIndex() + offset;
