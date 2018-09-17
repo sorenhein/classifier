@@ -17,19 +17,11 @@ class PeakDetect
 {
   private:
 
-    struct Koptions
-    {
-      unsigned numClusters;
-      unsigned numIterations;
-      float convCriterion;
-    };
-
     unsigned len;
     unsigned offset;
     list<Peak> peakList;
     PeakData scales;
     Peak scalesList;
-
 
 
     float integrate(
@@ -60,10 +52,7 @@ class PeakDetect
       vector<Peak>& clusters,
       const unsigned n) const;
 
-    void runKmeansOnce(
-      const Koptions& koptions,
-      vector<Peak>& clusters,
-      float& distance);
+    void runKmeansOnce(vector<Peak>& clusters);
 
     void pos2time(
       const vector<PeakPos>& posTrue,
@@ -90,7 +79,15 @@ class PeakDetect
       const double time,
       const double shift) const;
 
+    PeakType classifyPeak(
+      const Peak& peak,
+      const vector<bool>& cgood) const;
+
     void printPeaks(const vector<PeakTime>& timesTrue) const;
+
+    void printClusters(
+      const vector<Peak>& clusters,
+      const bool debugDetails) const;
 
   public:
 
