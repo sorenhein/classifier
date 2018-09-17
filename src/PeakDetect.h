@@ -95,7 +95,12 @@ class PeakDetect
 
     void getConvincingClusters(vector<PeakCluster>& clusters);
 
+    float getFirstPeakTime() const;
+
     void printPeaks(const vector<PeakTime>& timesTrue) const;
+
+    void printClustersDetail(
+      const vector<PeakCluster>& clusters) const;
 
     void printClusters(
       const vector<PeakCluster>& clusters,

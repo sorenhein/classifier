@@ -11,9 +11,9 @@
 #include "Except.h"
 
 
-#define KINK_RATIO 100.f
-
 #define SAMPLE_RATE 2000.
+
+#define KINK_RATIO 100.f
 
 #define TIME_PROXIMITY 0.03 // s
 
@@ -916,26 +916,23 @@ void PeakDetect::makeSynthPeaks(vector<float>& synthPeaks) const
 }
 
 
-void PeakDetect::getPeakTimes(vector<PeakTime>& times) const
+float PeakDetect::getFirstPeakTime() const
 {
-  times.clear();
-
-  unsigned findex = 0;
-  bool flag = false;
   for (auto& peak: peakList)
   {
     if (peak.isSelected())
-    {
-      findex = peak.getIndex();
-      flag = true;
-      break;
-    }
+      return peak.getIndex() / static_cast<float>(SAMPLE_RATE);
   }
 
-  if (! flag)
-    THROW(ERR_NO_PEAKS, "No output peaks");
+  THROW(ERR_NO_PEAKS, "No output peaks");
+}
 
-  const float t0 = findex / static_cast<float>(SAMPLE_RATE);
+
+void PeakDetect::getPeakTimes(vector<PeakTime>& times) const
+{
+  times.clear();
+  const float t0 = PeakDetect::getFirstPeakTime();
+
   for (auto& peak: peakList)
   {
     if (peak.isSelected())
@@ -953,8 +950,8 @@ void PeakDetect::print() const
 {
   cout << peakList.front().strHeader();
 
-  for (auto peak = next(peakList.begin()); peak != peakList.end(); peak++)
-    cout << peak->str(offset);
+  for (auto& peak: peakList)
+    cout << peak.str(offset);
   cout << "\n";
 }
 
@@ -968,16 +965,52 @@ void PeakDetect::printPeaks(const vector<PeakTime>& timesTrue) const
 
   cout << "\nseen\n";
   unsigned pp = 0;
-  for (auto peak = peakList.begin(); peak != peakList.end(); peak++)
+  for (auto& peak: peakList)
   {
-    if (peak->isCandidate() && peak->getType() == PEAK_TENTATIVE)
+    if (peak.isCandidate() && peak.getType() == PEAK_TENTATIVE)
     {
       cout << pp << ";" << 
-        fixed << setprecision(6) << peak->getTime() << endl;
+        fixed << setprecision(6) << peak.getTime() << endl;
       pp++;
     }
   }
   cout << "\n";
+}
+
+
+void PeakDetect::printClustersDetail(
+  const vector<PeakCluster>& clusters) const
+{
+  // Graded content of each cluster.
+  vector<string> ctext(clusters.size());
+  vector<unsigned> ccount(clusters.size());
+
+  for (auto& peak: peakList)
+  {
+    if (! peak.isCandidate())
+      continue;
+    
+    double m = peak.measure();
+
+    stringstream ss;
+    ss << setw(6) << right << peak.getIndex() + offset <<
+      setw(8) << fixed << setprecision(2) << m;
+    if (m <= MEASURE_CUTOFF)
+      ss << " +";
+    ss << endl;
+
+    const unsigned c = peak.getCluster();
+    ccount[c]++;
+    ctext[c] += ss.str();
+  }
+
+  for (unsigned i = 0; i < clusters.size(); i++)
+  {
+    cout << "Cluster " << i << ": " << ccount[i];
+    if (clusters[i].good)
+      cout << " (good)";
+    cout << "\n" << ctext[i] << endl;
+  }
 }
 
 
@@ -1006,37 +1039,6 @@ void PeakDetect::printClusters(
   cout << endl;
 
   if (debugDetails)
-  {
-    // Graded content of each cluster.
-    vector<string> ctext(clusters.size());
-    vector<unsigned> ccount(clusters.size());
-
-    for (auto& peak: peakList)
-    {
-      if (! peak.isCandidate())
-        continue;
-    
-      double m = peak.measure();
-
-      stringstream ss;
-      ss << setw(6) << right << peak.getIndex() + offset <<
-        setw(8) << fixed << setprecision(2) << m;
-      if (m <= MEASURE_CUTOFF)
-        ss << " +";
-      ss << endl;
-
-      const unsigned c = peak.getCluster();
-      ccount[c]++;
-      ctext[c] += ss.str();
-    }
-
-    for (unsigned i = 0; i < clusters.size(); i++)
-    {
-      cout << "Cluster " << i << ": " << ccount[i];
-      if (clusters[i].good)
-        cout << " (good)";
-      cout << "\n" << ctext[i] << endl;
-    }
-  }
+    PeakDetect::printClustersDetail(clusters);
 }
 
