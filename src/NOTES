@@ -1,12 +1,6 @@
 2018-09-17
 ----------
-Set transient-early and late on seen peaks (first 0.2 s).  
-Could go by whether or not we've seen a tentative.
-
 Find exception cause
-
-Move first/mid/last out of PeakStats and into PeakDetect
-
 
 - Extract some key periodicity parameters
   - Cluster neighbors (same parameters as single peaks, but two

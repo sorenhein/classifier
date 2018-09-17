@@ -698,9 +698,7 @@ PeakType PeakDetect::classifyPeak(
   if (clusters[c].good)
   {
     if (m <= MEASURE_CUTOFF)
-    {
       return PEAK_TENTATIVE;
-    }
     else if (m <= 2.f)
       return PEAK_POSSIBLE;
     else if (m <= 6.f)
@@ -797,6 +795,10 @@ void PeakDetect::reduce()
     PeakDetect::printClusters(clusters, debugDetails);
 
   unsigned nraw = 0;
+  bool firstSeen = false;
+  unsigned firstTentativeIndex = peaks.front().getIndex();
+  unsigned lastTentativeIndex = peaks.back().getIndex();
+
   for (auto& peak: peaks)
   {
     if (! peak.isCandidate())
@@ -807,9 +809,30 @@ void PeakDetect::reduce()
     PeakType ptype = PeakDetect::classifyPeak(peak, clusters);
 
     if (ptype == PEAK_TENTATIVE)
+    {
       peak.select();
+      if (! firstSeen)
+      {
+        firstTentativeIndex = peak.getIndex();
+        firstSeen = true;
+      }
+      lastTentativeIndex = peak.getIndex();
+    }
 
     peak.logType(ptype);
+  }
+
+  // Fix the early and late peaks to different types.
+  for (auto& peak: peaks)
+  {
+    if (! peak.isCandidate() || 
+        peak.getType() == PEAK_TENTATIVE)
+      continue;
+
+    if (peak.getIndex() < firstTentativeIndex)
+      peak.logType(PEAK_TRANS_FRONT);
+    else if (peak.getIndex() > lastTentativeIndex)
+      peak.logType(PEAK_TRANS_BACK);
   }
 
 cout << nraw << " candidate peaks\n";
