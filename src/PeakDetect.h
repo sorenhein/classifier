@@ -93,7 +93,7 @@ class PeakDetect
 
     void countClusters(vector<PeakCluster>& clusters);
 
-    void getConvincingClusters(vector<PeakCluster>& clusters);
+    unsigned getConvincingClusters(vector<PeakCluster>& clusters);
 
     float getFirstPeakTime() const;
 

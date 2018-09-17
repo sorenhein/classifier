@@ -27,10 +27,6 @@ We often get the 2nd of maxima above the line.  sensor34, 180956, #2.
 
 Maybe transients can be reduced with filter padding as in filtfilt.
 
-Do we need to reduce positive minima?  Negative maxima?
-
-Eliminate clusters based on unusual single-parameter values?
-
 
 2018-09-02
 ----------

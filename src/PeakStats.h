@@ -19,6 +19,18 @@ class PeakStats
       unsigned good;
       unsigned reverse;
       unsigned len;
+
+      Entry()
+      {
+        good = 0; reverse = 0; len = 0;
+      };
+
+      void operator +=(const Entry& e2)
+      {
+        good += e2.good;
+        reverse += e2.reverse;
+        len += e2.len;
+      };
     };
 
     // Number of true peaks of a given number that have matches among 
@@ -39,6 +51,11 @@ class PeakStats
     string percent(
       const unsigned num,
       const unsigned denom) const;
+
+    string strDetailLine(
+      const string& name,
+      const unsigned width,
+      const Entry& matched) const;
 
     void printDetailTable(
       ofstream& fout,

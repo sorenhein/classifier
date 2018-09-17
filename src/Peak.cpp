@@ -146,8 +146,11 @@ void Peak::annotate(
       (index - peakPrev->index) * min(value, peakPrev->value));
   }
 
-  gradient = range / len;
-  fill = area / (0.5f * range * len);
+  if (len > 0)
+  {
+    gradient = range / len;
+    fill = area / (0.5f * range * len);
+  }
 
   if (peakNext == nullptr)
     symmetry = 1.f;
@@ -287,6 +290,12 @@ float Peak::penalty(const float val) const
 float Peak::measure(const Peak& scale)
 {
   measureFlag = true;
+  if (len == 0)
+  {
+    measureVal = 999.99f;
+    return measureVal;
+  }
+
   measureVal = Peak::penalty(value / scale.value) +
     Peak::penalty(len / scale.len) +
     Peak::penalty(range / scale.range) +

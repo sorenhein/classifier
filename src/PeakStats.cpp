@@ -153,6 +153,32 @@ string PeakStats::percent(
 }
 
 
+string PeakStats::strDetailLine(
+  const string& name,
+  const unsigned width,
+  const Entry& entry) const
+{
+  stringstream ss;
+
+  if (entry.len == 0)
+    return "";
+
+  const unsigned d = entry.len - entry.good - entry.reverse;
+
+  ss << 
+    setw(width) << left << name <<
+    setw(8) << right << entry.len <<
+    setw(8) << right << entry.good <<
+    setw(8) << right << PeakStats::percent(entry.good, entry.len) << 
+    setw(8) << right << entry.reverse <<
+    setw(8) << right << PeakStats::percent(entry.reverse, entry.len) << 
+    setw(8) << right << d <<
+    setw(8) << right << PeakStats::percent(d, entry.len) << endl;
+  
+  return ss.str();
+}
+
+
 void PeakStats::printDetailTable(
   ofstream& fout,
   const string& title,
@@ -181,27 +207,18 @@ void PeakStats::printDetailTable(
     setw(16) << right << "Reverse" <<
     setw(16) << right << "Unmatched" << endl;
 
+  Entry sum;
+
   for (unsigned i = 0; i < matched.size(); i++)
   {
-    if (matched[i].len == 0)
-      continue;
-
-    const unsigned d = 
-      matched[i].len - matched[i].good - matched[i].reverse;
-
-    fout << 
-      setw(w) << left << (indexFlag ? to_string(i) : typeNames[i]) <<
-      setw(8) << right << matched[i].len <<
-      setw(8) << right << matched[i].good <<
-      setw(8) << right << 
-        PeakStats::percent(matched[i].good, matched[i].len) << 
-      setw(8) << right << matched[i].reverse <<
-      setw(8) << right << 
-        PeakStats::percent(matched[i].reverse, matched[i].len) << 
-      setw(8) << right << d <<
-      setw(8) << right << PeakStats::percent(d, matched[i].len) << endl;
+    fout << PeakStats::strDetailLine(
+      (indexFlag ? to_string(i) : typeNames[i]), w, matched[i]);
+    
+    sum += matched[i];
   }
-  fout << endl;
+
+  fout << string(w+56, '-') << endl;
+  fout << PeakStats::strDetailLine("Sum", w, sum) << endl;
 }
 
 

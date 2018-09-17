@@ -211,7 +211,7 @@ void PeakDetect::log(
   }
 
   // The last peak is a dummy extremum at the last sample.
-  PeakDetect::logFirst(samples);
+  PeakDetect::logLast(samples);
 
   PeakDetect::annotate();
 
@@ -306,6 +306,15 @@ void PeakDetect::reduceSmallAreas(const float areaLimit)
     {
       // Keep the start, the most extreme peak of opposite polarity,
       // and the end.
+/*
+cout << "peakCurrent " << peakCurrent->getIndex() + offset << endl;
+cout << "peakMax " << peakMax->getIndex() + offset << endl;
+cout << "peak " << peak->getIndex() + offset << endl;
+cout << peakCurrent->str(offset);
+cout << peakMax->str(offset);
+cout << peak->str(offset);
+*/
+
       PeakDetect::collapsePeaks(--peakCurrent, peakMax);
       PeakDetect::collapsePeaks(++peakMax, peak);
       peak++;
@@ -604,7 +613,7 @@ void PeakDetect::setOffsets(
     {
       peak = prev(peak);
     }
-    while (! peak->isSelected());
+    while (peak != peaks.begin() && ! peak->isSelected());
 
     offsetList[i] = peak->getTime() - timesTrue[lt-1].time;
   }
@@ -614,7 +623,7 @@ void PeakDetect::setOffsets(
   {
     peak = prev(peak);
   }
-  while (! peak->isSelected());
+  while (peak != peaks.begin() && ! peak->isSelected());
   const double lastTime = peak->getTime();
 
   for (unsigned i = 1; i <= maxShiftTrue; i++)
@@ -693,8 +702,6 @@ PeakType PeakDetect::classifyPeak(
   const unsigned c = peak.getCluster();
   const float m = peak.measure();
 
-  // TODO Other than tentative, should go by END_COUNT as in
-  // PeakStats.
   if (clusters[c].good)
   {
     if (m <= MEASURE_CUTOFF)
@@ -734,17 +741,22 @@ void PeakDetect::countClusters(vector<PeakCluster>& clusters)
 }
 
 
-void PeakDetect::getConvincingClusters(vector<PeakCluster>& clusters)
+unsigned PeakDetect::getConvincingClusters(vector<PeakCluster>& clusters)
 {
+  unsigned num = 0;
   for (unsigned i = 0; i < clusters.size(); i++)
   {
     // TODO Algorithmic define's.
     if (clusters[i].len >= 3 && 
         clusters[i].numConvincing >= 0.8 * clusters[i].len)
+    {
       clusters[i].good = true;
+      num++;
+    }
     else
       clusters[i].good = false;
   }
+  return num;
 }
 
 
@@ -753,12 +765,18 @@ void PeakDetect::reduce()
   const bool debug = true;
   const bool debugDetails = false;
 
+  if (debugDetails)
+  {
+    cout << "Original peaks: " << peaks.size() << "\n";
+    PeakDetect::print();
+  }
+
   PeakDetect::reduceSmallAreas(0.1f);
   if (debugDetails)
   {
     cout << "Non-tiny list peaks: " << peaks.size() << "\n";
     PeakDetect::print();
-   }
+  }
 
   PeakDetect::eliminateKinks();
   if (debugDetails)
@@ -771,7 +789,7 @@ void PeakDetect::reduce()
   if (debug)
   {
     cout << "Scale list\n";
-    cout << scalesList.str(0) << "\n";
+    cout << scalesList.str(0) << endl;
   }
 
   const float scaledCutoffList = AREA_CUTOFF * scalesList.getArea();
@@ -779,7 +797,7 @@ void PeakDetect::reduce()
     cout << "Area list cutoff " << scaledCutoffList << endl;
 
   PeakDetect::reduceSmallAreas(scaledCutoffList);
-  if (debug)
+  if (debugDetails)
   {
     cout << "Reasonable list peaks: " << peaks.size() <<  endl;
     PeakDetect::print();
@@ -789,12 +807,18 @@ void PeakDetect::reduce()
   vector<PeakCluster> clusters;
   PeakDetect::runKmeansOnce(clusters);
   PeakDetect::countClusters(clusters);
-  PeakDetect::getConvincingClusters(clusters);
+
+  if (! PeakDetect::getConvincingClusters(clusters))
+  {
+    cout << "No convincing clusters found\n";
+    return;
+  }
 
   if (debug)
     PeakDetect::printClusters(clusters, debugDetails);
 
   unsigned nraw = 0;
+  unsigned ntentative = 0;
   bool firstSeen = false;
   unsigned firstTentativeIndex = peaks.front().getIndex();
   unsigned lastTentativeIndex = peaks.back().getIndex();
@@ -810,6 +834,7 @@ void PeakDetect::reduce()
 
     if (ptype == PEAK_TENTATIVE)
     {
+      ntentative++;
       peak.select();
       if (! firstSeen)
       {
@@ -835,7 +860,9 @@ void PeakDetect::reduce()
       peak.logType(PEAK_TRANS_BACK);
   }
 
-cout << nraw << " candidate peaks\n";
+cout << nraw << " candidate peaks" << endl;
+if (ntentative == 0)
+  THROW(ERR_NO_PEAKS, "No tentative peaks");
 
 }
 
