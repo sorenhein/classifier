@@ -1,5 +1,17 @@
 2018-09-17
 ----------
+It is not flexible enough to grade by proximity to the scales.
+Consider zero crossings to get the two large relaxation peaks,
+with some stuff in between.  As with peaks:
+
+- 
+
+Some sensors are well suited to detecting clean minima.
+Other have chattering minima, but reasonably good maxima.
+Or actually zero crossings.
+
+Let's finish on the current trace type first.
+
 Find exception cause
 
 - Extract some key periodicity parameters

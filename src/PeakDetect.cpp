@@ -661,9 +661,17 @@ cout << "*\n";
   double tmp;
   shift += offsetList[ino];
   score = PeakDetect::simpleScore(timesTrue, shift, true, tmp);
-cout << "Final score " << score << endl << endl;
+cout << "Final score " << score << " vs. " <<
+  timesTrue.size() << " real and " << 
+  numTentatives << " tentatively detected peaks" << endl << endl;
 
-  return (score >= SCORE_CUTOFF * timesTrue.size());
+  if (score >= SCORE_CUTOFF * timesTrue.size())
+    return true;
+  else if (numTentatives >= 0.5 * timesTrue.size() &&
+      score >= SCORE_CUTOFF * numTentatives)
+    return true;
+  else
+    return false;
 }
   
 
@@ -763,7 +771,7 @@ unsigned PeakDetect::getConvincingClusters(vector<PeakCluster>& clusters)
 void PeakDetect::reduce()
 {
   const bool debug = true;
-  const bool debugDetails = false;
+  const bool debugDetails = true;
 
   if (debugDetails)
   {
@@ -810,6 +818,7 @@ void PeakDetect::reduce()
 
   if (! PeakDetect::getConvincingClusters(clusters))
   {
+    PeakDetect::printClusters(clusters, debugDetails);
     cout << "No convincing clusters found\n";
     return;
   }
@@ -817,24 +826,24 @@ void PeakDetect::reduce()
   if (debug)
     PeakDetect::printClusters(clusters, debugDetails);
 
-  unsigned nraw = 0;
-  unsigned ntentative = 0;
   bool firstSeen = false;
   unsigned firstTentativeIndex = peaks.front().getIndex();
   unsigned lastTentativeIndex = peaks.back().getIndex();
+  numCandidates = 0;
+  numTentatives = 0;
 
   for (auto& peak: peaks)
   {
     if (! peak.isCandidate())
       continue;
 
-    nraw++;
+    numCandidates++;
 
     PeakType ptype = PeakDetect::classifyPeak(peak, clusters);
 
     if (ptype == PEAK_TENTATIVE)
     {
-      ntentative++;
+      numTentatives++;
       peak.select();
       if (! firstSeen)
       {
@@ -860,9 +869,9 @@ void PeakDetect::reduce()
       peak.logType(PEAK_TRANS_BACK);
   }
 
-cout << nraw << " candidate peaks" << endl;
-if (ntentative == 0)
-  THROW(ERR_NO_PEAKS, "No tentative peaks");
+  cout << numCandidates << " candidate peaks" << endl;
+  if (numTentatives == 0)
+    THROW(ERR_NO_PEAKS, "No tentative peaks");
 
 }
 

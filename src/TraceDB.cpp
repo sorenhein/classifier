@@ -6,6 +6,7 @@
 #include "TraceDB.h"
 #include "Database.h"
 #include "Align.h"
+#include "Except.h"
 #include "read.h"
 #include "struct.h"
 
@@ -145,12 +146,10 @@ string TraceDB::lookupSensor(const string& fname) const
 {
   const string basename = TraceDB::basename(fname);
   auto it = entries.find(basename);
+
   if (it == entries.end())
-  {
-    cout << "Sensor for " << basename << " not logged\n";
-    // TODO Returns bool?? Should throw
-    return false;
-  }
+    THROW(ERR_SENSOR_NOT_LOGGED, 
+      "Sensor for " + basename + " not logged");
 
   return it->second.sensor;
 }

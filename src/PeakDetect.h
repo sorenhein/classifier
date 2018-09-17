@@ -31,6 +31,9 @@ class PeakDetect
     PeakData scales;
     Peak scalesList;
 
+    unsigned numCandidates;
+    unsigned numTentatives;
+
 
     float integrate(
       const vector<float>& samples,
