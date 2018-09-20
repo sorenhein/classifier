@@ -105,6 +105,7 @@ class Peak
     float getRange() const;
     float getArea() const;
     float getArea(const Peak& p2) const;
+    float getGradient() const;
     float getSymmetry() const;
     unsigned getCluster() const;
     int getMatch() const;

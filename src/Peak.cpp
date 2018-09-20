@@ -211,6 +211,12 @@ float Peak::getAreaCum() const
 }
 
 
+float Peak::getGradient() const
+{
+  return gradient;
+}
+
+
 float Peak::getLength() const
 {
   return len;

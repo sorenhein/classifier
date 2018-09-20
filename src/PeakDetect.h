@@ -31,6 +31,8 @@ class PeakDetect
     PeakData scales;
     Peak scalesList;
 
+    list<Peak> peaksNew;
+
     unsigned numCandidates;
     unsigned numTentatives;
 
@@ -51,6 +53,10 @@ class PeakDetect
       const list<Peak>::iterator peak1,
       const list<Peak>::iterator peak2);
 
+    void collapsePeaksNew(
+      const list<Peak>::iterator peak1,
+      const list<Peak>::iterator peak2);
+
     void reduceSmallAreas(const float areaLimit);
 
     void eliminateKinks();
@@ -58,6 +64,12 @@ class PeakDetect
     float estimateScale(vector<float>& data) const;
 
     void estimateScales();
+
+    void eliminatePositiveMinima();
+
+    void reducePositiveMaxima();
+
+    void countPositiveRuns() const;
 
     void pickStartingClusters(
       vector<PeakCluster>& clusters,
@@ -122,6 +134,8 @@ class PeakDetect
       const unsigned offsetSamples);
 
     void reduce();
+
+    void reduceNew();
 
     void logPeakStats(
       const vector<PeakPos>& posTrue,

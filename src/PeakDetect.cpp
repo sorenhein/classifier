@@ -242,6 +242,25 @@ void PeakDetect::collapsePeaks(
 }
 
 
+void PeakDetect::collapsePeaksNew(
+  const list<Peak>::iterator peak1,
+  const list<Peak>::iterator peak2)
+{
+  // Analogous to list.erase(), peak1 does not survive, while peak2 does.
+  if (peak1 == peak2)
+    return;
+
+  Peak * peak0 = 
+    (peak1 == peaksNew.begin() ? &*peak1 : &*prev(peak1));
+  Peak * peakN = 
+    (next(peak2) == peaksNew.end() ? nullptr : &*next(peak2));
+
+  peak2->update(peak0, peakN);
+
+  peaksNew.erase(peak1, peak2);
+}
+
+
 void PeakDetect::reduceSmallAreas(const float areaLimit)
 {
   if (peaks.empty())
@@ -768,10 +787,95 @@ unsigned PeakDetect::getConvincingClusters(vector<PeakCluster>& clusters)
 }
 
 
+void PeakDetect::eliminatePositiveMinima()
+{
+  for (auto peak = peaksNew.begin(); peak != peaksNew.end(); peak++)
+  {
+    if (peak->getValue() >= 0. && peak->getMaxFlag() == false)
+      PeakDetect::collapsePeaksNew(peak, next(peak));
+  }
+}
+
+
+void PeakDetect::reducePositiveMaxima()
+{
+  for (auto peak = peaksNew.begin(); peak != peaksNew.end(); peak++)
+  {
+    const float vmid = peak->getValue();
+    if (vmid < 0. || peak->getMaxFlag() == false)
+      continue;
+
+    if (peak == peaksNew.begin())
+      continue;
+    const auto peakPrev = prev(peak);
+    const float v0 = peakPrev->getValue();
+    if (v0 < 0. || peakPrev->getMaxFlag() == false)
+      continue;
+
+    const auto peakNext = next(peak);
+    if (peakNext == peaksNew.end())
+      continue;
+    const float v1 = peakNext->getValue();
+    if (v1 < 0. || peakNext->getMaxFlag() == false)
+      continue;
+
+    if (vmid > v0 && vmid > v1)
+      continue;
+    else if (vmid < v0 && vmid < v1)
+      continue;
+
+    // So now we have three consecutive positive maxima.
+    // If they are reasonably aligned, cut out the middle one.
+
+    const float grad1 = peak->getGradient();
+    const float grad2 = peakNext->getGradient();
+    const float ratio = grad2 / grad1;
+
+    if (ratio >= 0.5f && ratio <= 2.0f)
+      PeakDetect::collapsePeaksNew(peak, peakNext);
+  }
+}
+
+
+void PeakDetect::countPositiveRuns() const
+{
+  unsigned run = 0;
+  for (auto peak = peaksNew.begin(); peak != peaksNew.end(); peak++)
+  {
+    const float vmid = peak->getValue();
+    if (vmid < 0. || peak->getMaxFlag() == false)
+    {
+      if (run >= 3)
+        cout << "RUN ended " << peak->getIndex() + offset <<
+          ", run " << run << endl;
+      run = 0;
+      continue;
+    }
+
+    run++;
+  }
+
+  if (run >= 3)
+    cout << "RUN last " << run << endl;
+}
+
+
+void PeakDetect::reduceNew()
+{
+  peaksNew = peaks;
+
+  PeakDetect::eliminatePositiveMinima();
+
+  PeakDetect::reducePositiveMaxima();
+
+  PeakDetect::countPositiveRuns();
+}
+
+
 void PeakDetect::reduce()
 {
   const bool debug = true;
-  const bool debugDetails = true;
+  const bool debugDetails = false;
 
   if (debugDetails)
   {
@@ -785,6 +889,8 @@ void PeakDetect::reduce()
     cout << "Non-tiny list peaks: " << peaks.size() << "\n";
     PeakDetect::print();
   }
+
+reduceNew();
 
   PeakDetect::eliminateKinks();
   if (debugDetails)
@@ -967,11 +1073,41 @@ void PeakDetect::makeSynthPeaks(vector<float>& synthPeaks) const
   for (unsigned i = 0; i < synthPeaks.size(); i++)
     synthPeaks[i] = 0;
 
+  // Put zeroes at peaks.  Interpolate linearly when at least 
+  // one of the peaks is positive (and hence a maximum).
+
+  for (auto peak = peaksNew.begin(); peak != peaksNew.end(); peak++)
+  {
+    const auto peakNext = next(peak);
+    if (peakNext == peaksNew.end())
+     break;
+
+    const float value1 = peak->getValue();
+    const float value2 = peakNext->getValue();
+    if (value1 < 0.f && value2 < 0.f)
+      continue;
+
+    unsigned index1 = peak->getIndex();
+    unsigned index2 = peakNext->getIndex();
+    const float grad = (value2 - value1) / (index2 - index1);
+
+    // Only put zeroes at positive maxima.
+    unsigned i1 = (peak->getValue() >= 0.f ? index1+1 : index1);
+    if (peakNext->getValue() >= 0.f)
+      index2--;
+
+    for (unsigned i = i1; i <= index2; i++)
+      synthPeaks[i] = value1 + grad * (i-index1);
+  }
+
+  // This is the usual way, temporarily replaced.
+  /*
   for (auto& peak: peaks)
   {
     if (peak.isSelected())
       synthPeaks[peak.getIndex()] = peak.getValue();
   }
+  */
 }
 
 
