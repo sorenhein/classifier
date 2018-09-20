@@ -809,16 +809,16 @@ void PeakDetect::reducePositiveMaxima()
       continue;
     const auto peakPrev = prev(peak);
     const float v0 = peakPrev->getValue();
-    if (v0 < 0. || peakPrev->getMaxFlag() == false)
-      continue;
 
     const auto peakNext = next(peak);
     if (peakNext == peaksNew.end())
       continue;
     const float v1 = peakNext->getValue();
-    if (v1 < 0. || peakNext->getMaxFlag() == false)
-      continue;
 
+    // Want the middle one and at least one other to be positive.
+    // Want the the three to be monotonic.
+    if (v0 < 0. && v1 < 0.)
+      continue;
     if (vmid > v0 && vmid > v1)
       continue;
     else if (vmid < v0 && vmid < v1)
@@ -868,7 +868,7 @@ void PeakDetect::reduceNew()
 
   PeakDetect::reducePositiveMaxima();
 
-  PeakDetect::countPositiveRuns();
+  // PeakDetect::countPositiveRuns();
 }
 
 

@@ -69,6 +69,8 @@ class PeakDetect
 
     void reducePositiveMaxima();
 
+    void reducePositiveFlats();
+
     void countPositiveRuns() const;
 
     void pickStartingClusters(

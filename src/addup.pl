@@ -16,9 +16,11 @@ while (my $line = <$fh>)
   chomp $line;
   $line =~ s///g;
 
-  $line =~ /Active intervals (.*)$/;
-  my $count = $1;
-  $sum += $count;
+  if ($line =~ /, run (.*)$/)
+  {
+    my $count = $1;
+    $sum += $count;
+  }
 }
 
 print "Sum $sum\n";
