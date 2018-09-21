@@ -45,6 +45,12 @@ void Peak::reset()
   selectFlag = false;
   match = -1;
   ptype = PEAK_TYPE_SIZE;
+
+  indexZC = 0;
+  valueZC = 0.f;
+
+  quietBegin = false;
+  quietEnd = false;
 }
 
 
@@ -91,6 +97,27 @@ void Peak::logMatch(const int matchIn)
 void Peak::logType(const PeakType ptypeIn)
 {
   ptype = ptypeIn;
+}
+
+
+void Peak::logZeroCrossing(
+  const unsigned indexIn,
+  const float valueIn)
+{
+  indexZC = indexIn;
+  valueZC = valueIn;
+}
+
+
+void Peak::logQuietBegin()
+{
+  quietBegin = true;
+}
+
+
+void Peak::logQuietEnd()
+{
+  quietEnd = true;
 }
 
 
@@ -267,6 +294,30 @@ int Peak::getMatch() const
 PeakType Peak::getType() const
 {
   return ptype;
+}
+
+
+float Peak::getValueZC() const
+{
+  return valueZC;
+}
+
+
+unsigned Peak::getIndexNextZC() const
+{
+  return indexZC;
+}
+
+
+bool Peak::getQuietBegin() const
+{
+  return quietBegin;
+}
+
+
+bool Peak::getQuietEnd() const
+{
+  return quietEnd;
 }
 
 

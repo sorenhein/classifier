@@ -24,6 +24,8 @@
 #define KMEANS_ITERATIONS 20
 #define KMEANS_CONVERGENCE 0.999f
 
+#define QUIET_FACTOR 0.67f
+
 #define MEASURE_CUTOFF 1.0f
 
 #define UNUSED(x) ((void)(true ? 0 : ((x), void(), 0)))
@@ -837,6 +839,96 @@ void PeakDetect::reducePositiveMaxima()
 }
 
 
+void PeakDetect::markZeroCrossings()
+{
+  unsigned nextZCindex = numeric_limits<unsigned>::max();
+  float currentZCmax = 0.;
+  float prevZCmax = 0.;
+  for (auto peak = peaksNew.rbegin(); peak != peaksNew.rend(); peak++)
+  {
+    const float v = peak->getValue();
+    if (abs(v) > currentZCmax)
+      currentZCmax = abs(v);
+
+    // So this is earlier in time.
+    auto peakNext = next(peak);
+    if (peakNext == peaksNew.rend())
+      continue;
+    const float vnext = peakNext->getValue();
+    if ((v >= 0.f && vnext < 0.f) || (v < 0.f && vnext >= 0.f))
+    {
+      if (nextZCindex != numeric_limits<unsigned>::max())
+        peak->logZeroCrossing(nextZCindex, prevZCmax);
+      nextZCindex = peak->getIndex();
+      prevZCmax = currentZCmax;
+      currentZCmax = abs(vnext);
+    }
+  }
+}
+
+
+list<Peak>::iterator PeakDetect::advanceZC(
+  const list<Peak>::iterator peak,
+  const unsigned indexNext) const
+{
+  list<Peak>::iterator peakNext = peak;
+  while (peakNext != peaksNew.end() && peakNext->getIndex() != indexNext)
+    peakNext++;
+  return peakNext;
+}
+
+
+void PeakDetect::markQuiet()
+{
+  list<Peak>::iterator peak;
+  for (peak = peaksNew.begin(); peak != peaksNew.end(); peak++)
+  {
+    if (peak->getValueZC() != 0.f && peak->getValue() >= 0.f)
+      break;
+  }
+
+  if (peak == peaksNew.end())
+    THROW(ERR_NO_PEAKS, "No positive zero-crossing");
+
+  while (true)
+  {
+    float floor = abs(peak->getValueZC() - 
+      QUIET_FACTOR * (peak->getValue() - peak->getRange()));
+
+    bool foundQuiet = false;
+    auto peakNew = peak;
+    while (true)
+    {
+      peakNew = PeakDetect::advanceZC(peakNew, peakNew->getIndexNextZC());
+      if (peakNew == peaksNew.end())
+        break;
+
+      // This is a zero-crossing that heads negative.
+      float valueNew = peakNew->getValueZC();
+      if (abs(valueNew) <= floor)
+      {
+        foundQuiet = true;
+        // Get the next, positive-heading zero-crossing.
+        peakNew = PeakDetect::advanceZC(peakNew, peakNew->getIndexNextZC());
+        if (peakNew == peaksNew.end())
+          break;
+      }
+      else
+        break;
+    }
+
+    if (foundQuiet)
+    {
+      peak->logQuietBegin();
+      peakNew = prev(peakNew);
+      peakNew->logQuietEnd();
+    }
+    else
+      break;
+  }
+}
+
+
 void PeakDetect::countPositiveRuns() const
 {
   unsigned run = 0;
@@ -867,6 +959,8 @@ void PeakDetect::reduceNew()
   PeakDetect::eliminatePositiveMinima();
 
   PeakDetect::reducePositiveMaxima();
+
+  PeakDetect::markZeroCrossings();
 
   // PeakDetect::countPositiveRuns();
 }
@@ -1073,9 +1167,54 @@ void PeakDetect::makeSynthPeaks(vector<float>& synthPeaks) const
   for (unsigned i = 0; i < synthPeaks.size(); i++)
     synthPeaks[i] = 0;
 
+  list<Peak>::const_iterator peak;
+  unsigned index1 = 0;
+  float value1 = 0.f, value2;
+  for (peak = peaksNew.begin(); peak != peaksNew.end(); peak++)
+  {
+    if (peak->getValueZC() != 0.f)
+    {
+      index1 = peak->getIndex();
+      value1 = peak->getValue();
+      break;
+    }
+  }
+
+  if (index1 == 0)
+    THROW(ERR_NO_PEAKS, "No zero-crossing");
+
+  unsigned index2;
+  while (true)
+  {
+    index2 = peak->getIndexNextZC();
+    if (index2 == 0)
+      break;
+
+    while (peak != peaksNew.end() && peak->getIndex() != index2)
+      peak++;
+
+    if (peak == peaksNew.end())
+      THROW(ERR_NO_PEAKS, "Algorithmic error");
+
+    value2 = peak->getValue();
+
+    // Now we have the last zero-crossing of this hopefully quiet
+    // interval.  Put a crude line.
+    const float grad = (value2 - value1) / (index2 - index1);
+
+    // Only put zeroes at positive maxima.
+
+    for (unsigned i = index1; i <= index2; i++)
+      synthPeaks[i] = value1 + grad * (i-index1);
+  }
+  
+
+
+
   // Put zeroes at peaks.  Interpolate linearly when at least 
   // one of the peaks is positive (and hence a maximum).
 
+  /* This is the way to visualize the experimental new peaks.
   for (auto peak = peaksNew.begin(); peak != peaksNew.end(); peak++)
   {
     const auto peakNext = next(peak);
@@ -1099,6 +1238,7 @@ void PeakDetect::makeSynthPeaks(vector<float>& synthPeaks) const
     for (unsigned i = i1; i <= index2; i++)
       synthPeaks[i] = value1 + grad * (i-index1);
   }
+  */
 
   // This is the usual way, temporarily replaced.
   /*

@@ -41,6 +41,12 @@ class Peak
     int match; // Number of matched peak in real list (or -1)
     PeakType ptype;
 
+    // TODO Maybe tmp
+    unsigned indexZC; // Location of *next* zero-crossing
+    float valueZC;
+    bool quietBegin;
+    bool quietEnd;
+
 
     void deviation(
       const unsigned v1,
@@ -83,6 +89,12 @@ class Peak
     void logCluster(const unsigned cno);
     void logType(PeakType ptypeIn);
     void logMatch(const int m);
+    void logZeroCrossing(
+      const unsigned indexIn,
+      const float valueIn);
+
+    void logQuietBegin();
+    void logQuietEnd();
 
     void update(
       Peak * peakPrev,
@@ -110,6 +122,10 @@ class Peak
     unsigned getCluster() const;
     int getMatch() const;
     PeakType getType() const;
+    float getValueZC() const;
+    unsigned getIndexNextZC() const;
+    bool getQuietBegin() const;
+    bool getQuietEnd() const;
 
     bool isCluster(const unsigned cno) const;
 

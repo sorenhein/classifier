@@ -71,6 +71,14 @@ class PeakDetect
 
     void reducePositiveFlats();
 
+    void markZeroCrossings();
+
+    list<Peak>::iterator advanceZC(
+      const list<Peak>::iterator peak,
+      const unsigned indexNext) const;
+
+    void markQuiet();
+
     void countPositiveRuns() const;
 
     void pickStartingClusters(
