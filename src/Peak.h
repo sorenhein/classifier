@@ -43,9 +43,12 @@ class Peak
 
     // TODO Maybe tmp
     unsigned indexZC; // Location of *next* zero-crossing
-    float valueZC;
+    float valueZC; // Size of *own* maximum within this zero-crossing
     bool quietBegin;
     bool quietEnd;
+    bool sharpFlag;
+
+    const Peak * origPtr; // Pointer to origin in more complete peak list
 
 
     void deviation(
@@ -93,6 +96,10 @@ class Peak
       const unsigned indexIn,
       const float valueIn);
 
+    void logOrigPointer(const Peak * const);
+
+    void logSharp();
+
     void logQuietBegin();
     void logQuietEnd();
 
@@ -117,6 +124,7 @@ class Peak
     float getRange() const;
     float getArea() const;
     float getArea(const Peak& p2) const;
+    float getFill() const;
     float getGradient() const;
     float getSymmetry() const;
     unsigned getCluster() const;
@@ -124,8 +132,10 @@ class Peak
     PeakType getType() const;
     float getValueZC() const;
     unsigned getIndexNextZC() const;
+    const Peak * const getOrigPointer() const;
     bool getQuietBegin() const;
     bool getQuietEnd() const;
+    bool getSharp() const;
 
     bool isCluster(const unsigned cno) const;
 

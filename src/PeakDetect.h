@@ -4,6 +4,7 @@
 #include <vector>
 #include <list>
 #include <string>
+#include <sstream>
 
 #include "Peak.h"
 #include "struct.h"
@@ -24,6 +25,108 @@ class PeakDetect
       unsigned numConvincing;
       bool good;
     };
+
+    struct Sharp
+    {
+      unsigned index;
+      float level;
+      float range1;
+      float rangeRatio;
+      float grad1;
+      float gradRatio;
+      float fill1;
+      float fillRatio;
+      unsigned clusterNo;
+
+      Sharp()
+      {
+        index = 0;
+        level = 0.f;
+        range1 = 0.f;
+        rangeRatio = 0.f;
+        grad1 = 0.f;
+        gradRatio = 0.f;
+        fill1 = 0.f;
+        fillRatio = 0.f;
+        clusterNo = 0;
+      };
+
+      void operator += (const Sharp& s2)
+      {
+        level += s2.level;
+        range1 += s2.range1;
+        rangeRatio += s2.rangeRatio;
+        grad1 += s2.grad1;
+        gradRatio += s2.gradRatio;
+        fill1 += s2.fill1;
+        fillRatio += s2.fillRatio;
+      };
+
+      void operator /= (const unsigned n)
+      {
+        level /= n;
+        range1 /= n;
+        rangeRatio /= n;
+        grad1 /= n;
+        gradRatio /= n;
+        fill1 /= n;
+        fillRatio /= n;
+      };
+
+      float distance(const Sharp& s2, const Sharp& scale) const
+      {
+        const float ldiff = (level - s2.level) / scale.level;
+        const float lrange = (range1 - s2.range1) / scale.range1;
+        const float lrratio = (rangeRatio - s2.rangeRatio);
+        const float lgrad = (grad1 - s2.grad1) / scale.grad1;
+        const float lgratio = (gradRatio - s2.gradRatio);
+        const float lfill = (fill1 - s2.fill1) / scale.fill1;
+        const float lfratio = (fillRatio - s2.fillRatio);
+
+        return ldiff * ldiff + 
+          lrange * lrange + lrratio * lrratio + 
+          lgrad * lgrad + lgratio * lgratio +
+          lfill * lfill + lfratio * lfratio;
+      };
+
+      string strHeader() const
+      {
+        stringstream ss;
+        ss << setw(6) << right << "Index" <<
+          setw(8) << right << "Level" <<
+          setw(8) << right << "Range1" <<
+          setw(8) << right << "Ratio" <<
+          setw(8) << right << "Grad1" <<
+          setw(8) << right << "Ratio" <<
+          setw(8) << right << "Fill1" <<
+          setw(8) << right << "Ratio" << endl;
+        return ss.str();
+      };
+
+      string str() const
+      {
+        stringstream ss;
+        ss << 
+          setw(6) << right << index <<
+          setw(8) << fixed << setprecision(2) << level <<
+          setw(8) << fixed << setprecision(2) << range1 <<
+          setw(8) << fixed << setprecision(2) << rangeRatio <<
+          setw(8) << fixed << setprecision(2) << grad1 <<
+          setw(8) << fixed << setprecision(2) << gradRatio <<
+          setw(8) << fixed << setprecision(2) << fill1 <<
+          setw(8) << fixed << setprecision(2) << fillRatio << endl;
+        return ss.str();
+      };
+    };
+
+    struct SharpCluster
+    {
+      Sharp centroid;
+      unsigned len;
+      unsigned numConvincing;
+      bool good;
+    };
+
 
     unsigned len;
     unsigned offset;
@@ -53,7 +156,7 @@ class PeakDetect
       const list<Peak>::iterator peak1,
       const list<Peak>::iterator peak2);
 
-    void collapsePeaksNew(
+    const list<Peak>::iterator collapsePeaksNew(
       const list<Peak>::iterator peak1,
       const list<Peak>::iterator peak2);
 
@@ -65,9 +168,13 @@ class PeakDetect
 
     void estimateScales();
 
+    void setOrigPointers();
+
     void eliminatePositiveMinima();
+    void eliminateNegativeMaxima();
 
     void reducePositiveMaxima();
+    void reduceNegativeMinima();
 
     void reducePositiveFlats();
 
@@ -79,13 +186,36 @@ class PeakDetect
 
     void markQuiet();
 
+    void markSharpPeaksPos(
+      list<Sharp>& sharps,
+      Sharp sharpScale,
+      vector<SharpCluster>& clusters,
+      const bool debug);
+
+    void markSharpPeaksNeg(
+      list<Sharp>& sharps,
+      Sharp sharpScale,
+      vector<SharpCluster>& clusters,
+      const bool debug);
+
+    void markSharpPeaks();
+
     void countPositiveRuns() const;
 
     void pickStartingClusters(
       vector<PeakCluster>& clusters,
       const unsigned n) const;
 
+    void pickStartingClustersSharp(
+      const list<Sharp>& sharps,
+      vector<SharpCluster>& clusters,
+      const unsigned n) const;
+
     void runKmeansOnce(vector<PeakCluster>& clusters);
+    void runKmeansOnceSharp(
+      list<Sharp>& sharps,
+      const Sharp& sharpScale,
+      vector<SharpCluster>& clusters);
 
     void pos2time(
       const vector<PeakPos>& posTrue,
@@ -122,6 +252,12 @@ class PeakDetect
 
     float getFirstPeakTime() const;
 
+    void makeSynthPeaksSharp(vector<float>& synthPeaks) const;
+    void makeSynthPeaksQuiet(vector<float>& synthPeaks) const;
+    void makeSynthPeaksLines(vector<float>& synthPeaks) const;
+    void makeSynthPeaksPosLines(vector<float>& synthPeaks) const;
+    void makeSynthPeaksClassical(vector<float>& synthPeaks) const;
+
     void printPeaks(const vector<PeakTime>& timesTrue) const;
 
     void printClustersDetail(
@@ -129,6 +265,17 @@ class PeakDetect
 
     void printClusters(
       const vector<PeakCluster>& clusters,
+      const bool debugDetails) const;
+
+    void printClustersSharpDetail(
+      const list<Sharp>& sharps,
+      const Sharp& sharpScale,
+      const vector<SharpCluster>& clusters) const;
+    
+    void printSharpClusters(
+      const list<Sharp>& sharps,
+      const Sharp& sharpScale,
+      const vector<SharpCluster>& clusters,
       const bool debugDetails) const;
 
   public:

@@ -49,6 +49,8 @@ void Peak::reset()
   indexZC = 0;
   valueZC = 0.f;
 
+  sharpFlag = false;
+
   quietBegin = false;
   quietEnd = false;
 }
@@ -109,6 +111,18 @@ void Peak::logZeroCrossing(
 }
 
 
+void Peak::logOrigPointer(const Peak * const ptr)
+{
+  origPtr = ptr;
+}
+
+
+void Peak::logSharp()
+{
+  sharpFlag = true;
+}
+
+
 void Peak::logQuietBegin()
 {
   quietBegin = true;
@@ -130,16 +144,18 @@ void Peak::update(
   // peakPrev is the predecessor of peakFirst if this exists.
   // peakNext is the successor of the present peak if this exists.
 
-  if (peakPrev == nullptr)
-    THROW(ERR_NO_PEAKS, "No previous peak");
+  if (peakPrev != nullptr)
+  {
+    len = static_cast<float>(index - peakPrev->index);
+    range = abs(value - peakPrev->value);
+    area = abs(areaCum - peakPrev->areaCum - 
+      (index - peakPrev->index) * min(value, peakPrev->value));
 
-  len = static_cast<float>(index - peakPrev->index);
-  range = abs(value - peakPrev->value);
-  area = abs(areaCum - peakPrev->areaCum - 
-    (index - peakPrev->index) * min(value, peakPrev->value));
+    gradient = range / len;
+    fill = area / (0.5f * range * len);
 
-  gradient = range / len;
-  fill = area / (0.5f * range * len);
+    peakPrev->symmetry = peakPrev->area / area;
+  }
 
   if (peakNext != nullptr)
   {
@@ -148,8 +164,6 @@ void Peak::update(
       (peakNext->index - index) * min(peakNext->value, value));
     symmetry = area / areaNext;
   }
-
-  peakPrev->symmetry = peakPrev->area / area;
 }
 
 
@@ -264,6 +278,12 @@ float Peak::getArea() const
 }
 
 
+float Peak::getFill() const
+{
+  return fill;
+}
+
+
 float Peak::getArea(const Peak& p2) const
 {
   // Calculate differential area to some other peak, not necessarily
@@ -306,6 +326,18 @@ float Peak::getValueZC() const
 unsigned Peak::getIndexNextZC() const
 {
   return indexZC;
+}
+
+
+const Peak * const Peak::getOrigPointer() const
+{
+  return origPtr;
+}
+
+
+bool Peak::getSharp() const
+{
+  return sharpFlag;
 }
 
 

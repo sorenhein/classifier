@@ -24,9 +24,11 @@
 #define KMEANS_ITERATIONS 20
 #define KMEANS_CONVERGENCE 0.999f
 
-#define QUIET_FACTOR 0.67f
+#define QUIET_FACTOR 0.8f
 
 #define MEASURE_CUTOFF 1.0f
+
+#define SHARP_CUTOFF 1.0f
 
 #define UNUSED(x) ((void)(true ? 0 : ((x), void(), 0)))
 
@@ -244,22 +246,39 @@ void PeakDetect::collapsePeaks(
 }
 
 
-void PeakDetect::collapsePeaksNew(
+const list<Peak>::iterator PeakDetect::collapsePeaksNew(
   const list<Peak>::iterator peak1,
   const list<Peak>::iterator peak2)
 {
   // Analogous to list.erase(), peak1 does not survive, while peak2 does.
   if (peak1 == peak2)
-    return;
+    return peak1;
 
   Peak * peak0 = 
-    (peak1 == peaksNew.begin() ? &*peak1 : &*prev(peak1));
+    (peak1 == peaksNew.begin() ? nullptr : &*prev(peak1));
   Peak * peakN = 
     (next(peak2) == peaksNew.end() ? nullptr : &*next(peak2));
 
+/*
+if (peak1->getIndex()+offset == 0 &&
+    peak2->getIndex()+offset == 23)
+{
+  cout << "About to fail? " << endl;
+}
+*/
   peak2->update(peak0, peakN);
 
-  peaksNew.erase(peak1, peak2);
+if (peak1->getIndex()+offset == 0 &&
+    peak2->getIndex()+offset == 23)
+  cout << "Updated" << endl;
+
+  return peaksNew.erase(peak1, peak2);
+
+/*
+if (peak1->getIndex()+offset == 0 &&
+    peak2->getIndex()+offset == 23)
+  cout << "Erased" << endl;
+  */
 }
 
 
@@ -444,6 +463,29 @@ void PeakDetect::pickStartingClusters(
 }
 
 
+void PeakDetect::pickStartingClustersSharp(
+  const list<Sharp>& sharps,
+  vector<SharpCluster>& clusters,
+  const unsigned n) const
+{
+  clusters.resize(n);
+  const unsigned lp = peaks.size();
+  if (n >= lp)
+    THROW(ERR_NO_PEAKS, "Not enough peaks for clusters");
+
+  const unsigned start = (lp - n) / 2;
+  auto sharp = sharps.begin();
+  for (unsigned i = 0; i < start; i++)
+    sharp++;
+
+  for (unsigned i = 0; i < n; i++)
+  {
+    clusters[i].centroid = * sharp;
+    sharp++;
+  }
+}
+
+
 void PeakDetect::runKmeansOnce(vector<PeakCluster>& clusters)
 {
   // Pick centroids from the data points.
@@ -477,6 +519,64 @@ void PeakDetect::runKmeansOnce(vector<PeakCluster>& clusters)
 
       peak.logCluster(bestCluster);
       clustersNew[bestCluster].centroid += peak;
+      counts[bestCluster]++;
+      distGlobal += distBest;
+    }
+
+    for (unsigned cno = 0; cno < clusters.size(); cno++)
+    {
+      clusters[cno].centroid = clustersNew[cno].centroid;
+      clusters[cno].centroid /= counts[cno];
+    }
+
+    if (distGlobal / distance >= KMEANS_CONVERGENCE)
+    {
+      cout << "Finishing after " << iter << " iterations" << endl;
+      cout << "Distance was " << distance << ", is " << distGlobal << endl;
+      break;
+    }
+    else if (distGlobal <= distance)
+      distance = distGlobal;
+
+    cout << "Iteration " << iter << ": dist " << distGlobal << 
+      ", distGlobal " << distGlobal << endl;
+  }
+}
+
+
+void PeakDetect::runKmeansOnceSharp(
+  list<Sharp>& sharps,
+  const Sharp& sharpScale,
+  vector<SharpCluster>& clusters)
+{
+  // Pick centroids from the data points.
+  PeakDetect::pickStartingClustersSharp(sharps, clusters, KMEANS_CLUSTERS);
+
+  float distance = numeric_limits<float>::max();
+
+  for (unsigned iter = 0; iter < KMEANS_ITERATIONS; iter++)
+  {
+    vector<SharpCluster> clustersNew(clusters.size());
+    vector<unsigned> counts(clusters.size(), 0);
+    float distGlobal = 0.f;
+
+    for (auto& sharp: sharps)
+    {
+      float distBest = numeric_limits<float>::max();
+      unsigned bestCluster = 0;
+      for (unsigned cno = 0; cno < clusters.size(); cno++)
+      {
+        const float dist = 
+          sharp.distance(clusters[cno].centroid, sharpScale);
+        if (dist < distBest)
+        {
+          distBest = dist;
+          bestCluster = cno;
+        }
+      }
+
+      sharp.clusterNo = bestCluster;
+      clustersNew[bestCluster].centroid += sharp;
       counts[bestCluster]++;
       distGlobal += distBest;
     }
@@ -789,42 +889,82 @@ unsigned PeakDetect::getConvincingClusters(vector<PeakCluster>& clusters)
 }
 
 
+void PeakDetect::setOrigPointers()
+{
+  for (auto peak = peaks.begin(), peakNew = peaksNew.begin(); 
+      peak != peaks.end(); peak++, peakNew++)
+    peakNew->logOrigPointer(&*peak);
+}
+
+
 void PeakDetect::eliminatePositiveMinima()
 {
-  for (auto peak = peaksNew.begin(); peak != peaksNew.end(); peak++)
+  auto peak = peaksNew.begin();
+  while (peak != peaksNew.end())
   {
     if (peak->getValue() >= 0. && peak->getMaxFlag() == false)
-      PeakDetect::collapsePeaksNew(peak, next(peak));
+      peak = PeakDetect::collapsePeaksNew(peak, next(peak));
+    else
+      peak++;
+  }
+}
+
+
+void PeakDetect::eliminateNegativeMaxima()
+{
+  auto peak = peaksNew.begin();
+  while (peak != peaksNew.end())
+  {
+    if (peak->getValue() < 0. && peak->getMaxFlag() == true)
+      peak = PeakDetect::collapsePeaksNew(peak, next(peak));
+    else
+      peak++;
   }
 }
 
 
 void PeakDetect::reducePositiveMaxima()
 {
-  for (auto peak = peaksNew.begin(); peak != peaksNew.end(); peak++)
+  auto peak = peaksNew.begin();
+  while (peak != peaksNew.end())
   {
     const float vmid = peak->getValue();
     if (vmid < 0. || peak->getMaxFlag() == false)
+    {
+      peak++;
       continue;
+    }
 
     if (peak == peaksNew.begin())
+    {
+      peak++;
       continue;
+    }
     const auto peakPrev = prev(peak);
     const float v0 = peakPrev->getValue();
 
     const auto peakNext = next(peak);
     if (peakNext == peaksNew.end())
-      continue;
+      break;
     const float v1 = peakNext->getValue();
 
     // Want the middle one and at least one other to be positive.
     // Want the the three to be monotonic.
     if (v0 < 0. && v1 < 0.)
+    {
+      peak++;
       continue;
+    }
     if (vmid > v0 && vmid > v1)
+    {
+      peak++;
       continue;
+    }
     else if (vmid < v0 && vmid < v1)
+    {
+      peak++;
       continue;
+    }
 
     // So now we have three consecutive positive maxima.
     // If they are reasonably aligned, cut out the middle one.
@@ -834,8 +974,204 @@ void PeakDetect::reducePositiveMaxima()
     const float ratio = grad2 / grad1;
 
     if (ratio >= 0.5f && ratio <= 2.0f)
-      PeakDetect::collapsePeaksNew(peak, peakNext);
+      peak = PeakDetect::collapsePeaksNew(peak, peakNext);
+    else
+      peak++;
   }
+}
+
+
+void PeakDetect::reduceNegativeMinima()
+{
+  auto peak = peaksNew.begin();
+  while (peak != peaksNew.end())
+  {
+    const float vmid = peak->getValue();
+    if (vmid >= 0. || peak->getMaxFlag() == true)
+    {
+      peak++;
+      continue;
+    }
+
+    if (peak == peaksNew.begin())
+    {
+      peak++;
+      continue;
+    }
+
+    const auto peakPrev = prev(peak);
+    const float v0 = peakPrev->getValue();
+
+    const auto peakNext = next(peak);
+    if (peakNext == peaksNew.end())
+      break;
+    const float v1 = peakNext->getValue();
+
+    // Want the middle one and at least one other to be negative.
+    // Want the the three to be monotonic.
+    if (v0 >= 0. && v1 >= 0.)
+    {
+      peak++;
+      continue;
+    }
+    if (vmid > v0 && vmid > v1)
+    {
+      peak++;
+      continue;
+    }
+    else if (vmid < v0 && vmid < v1)
+    {
+      peak++;
+      continue;
+    }
+
+    // So now we have three consecutive negative minima.
+    // If they are reasonably aligned, cut out the middle one.
+
+    const float grad1 = peak->getGradient();
+    const float grad2 = peakNext->getGradient();
+    const float ratio = grad2 / grad1;
+
+    if (ratio >= 0.5f && ratio <= 2.0f)
+      peak = PeakDetect::collapsePeaksNew(peak, peakNext);
+    else
+      peak++;
+  }
+}
+
+
+void PeakDetect::markSharpPeaksPos(
+  list<Sharp>& sharps,
+  Sharp sharpScale,
+  vector<SharpCluster>& clusters,
+  const bool debug)
+{
+  if (debug)
+  {
+    cout << "Positive sharp peaks\n";
+    cout << sharpScale.strHeader();
+  }
+
+  unsigned count = 0;
+  for (auto peak = next(peaksNew.begin()); 
+      peak != prev(peaksNew.end()); peak++)
+  {
+    auto peakPrev = prev(peak);
+    auto peakNext = next(peak);
+
+    if (peak->getMaxFlag())
+    {
+      // Both flanks must go negative for the current purpose.
+      if (peakPrev->getMaxFlag() || peakNext->getMaxFlag())
+        continue;
+
+      sharps.emplace_back(Sharp());
+      Sharp& s = sharps.back();
+
+      count++;
+      s.index = peak->getIndex();
+      s.level = peak->getValue();
+      s.range1 = peak->getRange();
+      s.rangeRatio = peakNext->getRange() / s.range1;
+      s.grad1 = peak->getGradient();
+      s.gradRatio = peakNext->getGradient() / s.grad1;
+      s.fill1 = peak->getFill();
+      s.fillRatio = peakNext->getFill() / s.fill1;
+
+      if (debug)
+        cout << s.str();
+
+      sharpScale += s;
+    }
+  }
+  cout << endl;
+
+  if (count == 0)
+    return;
+
+  sharpScale /= count;
+
+  runKmeansOnceSharp(sharps, sharpScale, clusters);
+
+  PeakDetect::printSharpClusters(sharps, sharpScale,
+    clusters, true);
+}
+
+
+void PeakDetect::markSharpPeaksNeg(
+  list<Sharp>& sharps,
+  Sharp sharpScale,
+  vector<SharpCluster>& clusters,
+  const bool debug)
+{
+
+  if (debug)
+  {
+    cout << "Positive sharp peaks\n";
+    cout << sharpScale.strHeader();
+  }
+
+  unsigned count = 0;
+  for (auto peak = next(peaksNew.begin()); 
+      peak != prev(peaksNew.end()); peak++)
+  {
+    auto peakPrev = prev(peak);
+    auto peakNext = next(peak);
+
+    if (! peak->getMaxFlag())
+    {
+      // Both flanks must go positive for the current purpose.
+      if (! peakPrev->getMaxFlag() || ! peakNext->getMaxFlag())
+        continue;
+
+      sharps.emplace_back(Sharp());
+      Sharp& s = sharps.back();
+
+      count++;
+      s.index = peak->getIndex();
+      s.level = peak->getValue();
+      s.range1 = peak->getRange();
+      s.rangeRatio = peakNext->getRange() / s.range1;
+      s.grad1 = peak->getGradient();
+      s.gradRatio = peakNext->getGradient() / s.grad1;
+      s.fill1 = peak->getFill();
+      s.fillRatio = peakNext->getFill() / s.fill1;
+
+      if (debug)
+        cout << s.str();
+
+      sharpScale += s;
+    }
+  }
+  cout << endl;
+
+  if (count == 0)
+    return;
+
+  sharpScale /= count;
+
+  runKmeansOnceSharp(sharps, sharpScale, clusters);
+
+  PeakDetect::printSharpClusters(sharps, sharpScale,
+    clusters, true);
+}
+
+
+void PeakDetect::markSharpPeaks()
+{
+  if (peaksNew.size() < 2)
+    THROW(ERR_NO_PEAKS, "No peaks");
+
+  const bool debug = true;
+
+  list<Sharp> sharpsPos, sharpsNeg;
+  Sharp sharpScalePos, sharpScaleNeg;
+  vector<SharpCluster> clustersPos, clustersNeg;
+
+  PeakDetect::markSharpPeaksPos(sharpsPos, sharpScalePos,
+    clustersPos, debug);
+  PeakDetect::markSharpPeaksNeg(sharpsNeg, sharpScaleNeg,
+    clustersNeg, debug);
 }
 
 
@@ -843,7 +1179,6 @@ void PeakDetect::markZeroCrossings()
 {
   unsigned nextZCindex = numeric_limits<unsigned>::max();
   float currentZCmax = 0.;
-  float prevZCmax = 0.;
   for (auto peak = peaksNew.rbegin(); peak != peaksNew.rend(); peak++)
   {
     const float v = peak->getValue();
@@ -858,9 +1193,8 @@ void PeakDetect::markZeroCrossings()
     if ((v >= 0.f && vnext < 0.f) || (v < 0.f && vnext >= 0.f))
     {
       if (nextZCindex != numeric_limits<unsigned>::max())
-        peak->logZeroCrossing(nextZCindex, prevZCmax);
+        peak->logZeroCrossing(nextZCindex, currentZCmax);
       nextZCindex = peak->getIndex();
-      prevZCmax = currentZCmax;
       currentZCmax = abs(vnext);
     }
   }
@@ -892,8 +1226,11 @@ void PeakDetect::markQuiet()
 
   while (true)
   {
-    float floor = abs(peak->getValueZC() - 
+    // Go QUIET_FACTOR of the way from the zero-crossing to the level.
+    float floor = abs((1.f - QUIET_FACTOR) * peak->getValueZC() + 
       QUIET_FACTOR * (peak->getValue() - peak->getRange()));
+cout << "floor: from " << peak->getValueZC() << " to " <<
+  (peak->getValue() - peak->getRange()) << " = " << floor << endl;
 
     bool foundQuiet = false;
     auto peakNew = peak;
@@ -905,6 +1242,8 @@ void PeakDetect::markQuiet()
 
       // This is a zero-crossing that heads negative.
       float valueNew = peakNew->getValueZC();
+cout << "Loop: " << peak->getIndex()+offset << " to " <<
+  peakNew->getIndex()+offset << ", vnew " << valueNew << endl;
       if (abs(valueNew) <= floor)
       {
         foundQuiet = true;
@@ -914,17 +1253,40 @@ void PeakDetect::markQuiet()
           break;
       }
       else
+      {
+cout << "value " << valueNew << " not in range\n";
         break;
+      }
     }
 
-    if (foundQuiet)
+    if (! foundQuiet)
+    {
+      peak = PeakDetect::advanceZC(peakNew, peakNew->getIndexNextZC());
+      if (peak == peaksNew.end())
+        break;
+      continue;
+    }
+
+    if (peakNew == peaksNew.end())
     {
       peak->logQuietBegin();
       peakNew = prev(peakNew);
+cout << "Marking " << peak->getIndex()+offset << " to final " << 
+peakNew->getIndex()+offset << endl;
       peakNew->logQuietEnd();
+      break;
     }
     else
-      break;
+    {
+      peak->logQuietBegin();
+cout << "Marking " << peak->getIndex()+offset << " to final ";
+      peak = PeakDetect::advanceZC(peakNew, peakNew->getIndexNextZC());
+      peakNew = prev(peakNew);
+      peakNew->logQuietEnd();
+cout << peakNew->getIndex()+offset << endl;
+      if (peak == peaksNew.end())
+        break;
+    }
   }
 }
 
@@ -955,12 +1317,18 @@ void PeakDetect::countPositiveRuns() const
 void PeakDetect::reduceNew()
 {
   peaksNew = peaks;
+  PeakDetect::setOrigPointers();
 
   PeakDetect::eliminatePositiveMinima();
+  PeakDetect::eliminateNegativeMaxima();
 
   PeakDetect::reducePositiveMaxima();
+  PeakDetect::reduceNegativeMinima();
 
-  PeakDetect::markZeroCrossings();
+  PeakDetect::markSharpPeaks();
+
+  // PeakDetect::markZeroCrossings();
+  // PeakDetect::markQuiet();
 
   // PeakDetect::countPositiveRuns();
 }
@@ -1167,54 +1535,118 @@ void PeakDetect::makeSynthPeaks(vector<float>& synthPeaks) const
   for (unsigned i = 0; i < synthPeaks.size(); i++)
     synthPeaks[i] = 0;
 
-  list<Peak>::const_iterator peak;
+  PeakDetect::makeSynthPeaksSharp(synthPeaks);
+
+  // PeakDetect::makeSynthPeaksLines(synthPeaks);
+
+  // PeakDetect::makeSynthPeaksQuiet(synthPeaks);
+
+  // PeakDetect::makeSynthPeaksLines(synthPeaks);
+
+  // PeakDetect::makeSynthPeaksClassical(synthPeaks);
+}
+
+
+void PeakDetect::makeSynthPeaksQuiet(vector<float>& synthPeaks) const
+{
   unsigned index1 = 0;
-  float value1 = 0.f, value2;
-  for (peak = peaksNew.begin(); peak != peaksNew.end(); peak++)
+  float value1 = 0.f;
+  bool activeFlag = false;
+
+  for (auto peak = peaksNew.begin(); peak != peaksNew.end(); peak++)
   {
-    if (peak->getValueZC() != 0.f)
+    if (activeFlag)
     {
+      if (peak->getQuietBegin())
+        THROW(ERR_ALGO_PEAK_INTERVALS, "Two begins");
+      else if (peak->getQuietEnd())
+      {
+        activeFlag = false;
+
+        const unsigned index2 = peak->getIndex();
+        const float value2 = peak->getValue();
+        const float grad = (value2 - value1) / (index2 - index1);
+
+        for (unsigned i = index1; i <= index2; i++)
+          synthPeaks[i] = value1 + grad * (i-index1);
+      }
+    }
+    else if (peak->getQuietEnd())
+        THROW(ERR_ALGO_PEAK_INTERVALS, "Two ends");
+    else if (peak->getQuietBegin())
+    {
+      activeFlag = true;
       index1 = peak->getIndex();
       value1 = peak->getValue();
-      break;
     }
   }
+}
 
-  if (index1 == 0)
-    THROW(ERR_NO_PEAKS, "No zero-crossing");
 
-  unsigned index2;
-  while (true)
+void PeakDetect::makeSynthPeaksSharp(vector<float>& synthPeaks) const
+{
+  // Draw lines from sharp peaks.
+
+  for (auto peak = peaksNew.begin(); peak != peaksNew.end(); peak++)
   {
-    index2 = peak->getIndexNextZC();
-    if (index2 == 0)
-      break;
+    if (! peak->getSharp())
+      continue;
 
-    while (peak != peaksNew.end() && peak->getIndex() != index2)
-      peak++;
+    // Otherwise it will be an interior peak.
+    auto peakPrev = prev(peak);
+    auto peakNext = next(peak);
 
-    if (peak == peaksNew.end())
-      THROW(ERR_NO_PEAKS, "Algorithmic error");
+    unsigned index1 = peak->getIndex();
+    unsigned index2 = peakNext->getIndex();
+    float value1 = peak->getValue();
+    float value2 = peakNext->getValue();
+    float grad = (value2 - value1) / (index2 - index1);
 
+    // Put zeroes at the peaks themselves.
+    for (unsigned i = index1+1; i < index2; i++)
+      synthPeaks[i] = value1 + grad * (i-index1);
+
+    index1 = peakPrev->getIndex();
+    index2 = peak->getIndex();
+    value1 = peakPrev->getValue();
     value2 = peak->getValue();
+    grad = (value2 - value1) / (index2 - index1);
 
-    // Now we have the last zero-crossing of this hopefully quiet
-    // interval.  Put a crude line.
-    const float grad = (value2 - value1) / (index2 - index1);
-
-    // Only put zeroes at positive maxima.
-
-    for (unsigned i = index1; i <= index2; i++)
+    // Put zeroes at the peaks themselves.
+    for (unsigned i = index1+1; i < index2; i++)
       synthPeaks[i] = value1 + grad * (i-index1);
   }
-  
+}
 
 
+void PeakDetect::makeSynthPeaksLines(vector<float>& synthPeaks) const
+{
+  // Draw lines between all peaks.
 
-  // Put zeroes at peaks.  Interpolate linearly when at least 
-  // one of the peaks is positive (and hence a maximum).
+  for (auto peak = peaksNew.begin(); peak != peaksNew.end(); peak++)
+  {
+    const auto peakNext = next(peak);
+    if (peakNext == peaksNew.end())
+     break;
 
-  /* This is the way to visualize the experimental new peaks.
+    const float value1 = peak->getValue();
+    const float value2 = peakNext->getValue();
+
+    unsigned index1 = peak->getIndex();
+    unsigned index2 = peakNext->getIndex();
+    const float grad = (value2 - value1) / (index2 - index1);
+
+    // Put zeroes at the peaks themselves.
+    for (unsigned i = index1+1; i < index2; i++)
+      synthPeaks[i] = value1 + grad * (i-index1);
+  }
+}
+
+
+void PeakDetect::makeSynthPeaksPosLines(vector<float>& synthPeaks) const
+{
+  // Show lines whenever a positive maximum is involved.
+
   for (auto peak = peaksNew.begin(); peak != peaksNew.end(); peak++)
   {
     const auto peakNext = next(peak);
@@ -1238,16 +1670,16 @@ void PeakDetect::makeSynthPeaks(vector<float>& synthPeaks) const
     for (unsigned i = i1; i <= index2; i++)
       synthPeaks[i] = value1 + grad * (i-index1);
   }
-  */
+}
 
-  // This is the usual way, temporarily replaced.
-  /*
+
+void PeakDetect::makeSynthPeaksClassical(vector<float>& synthPeaks) const
+{
   for (auto& peak: peaks)
   {
     if (peak.isSelected())
       synthPeaks[peak.getIndex()] = peak.getValue();
   }
-  */
 }
 
 
@@ -1375,5 +1807,73 @@ void PeakDetect::printClusters(
 
   if (debugDetails)
     PeakDetect::printClustersDetail(clusters);
+}
+
+
+
+void PeakDetect::printClustersSharpDetail(
+  const list<Sharp>& sharps,
+  const Sharp& sharpScale,
+  const vector<SharpCluster>& clusters) const
+{
+  // Graded content of each cluster.
+  vector<string> ctext(clusters.size());
+  vector<unsigned> ccount(clusters.size());
+
+  for (auto& sharp: sharps)
+  {
+    double m = 
+      sharp.distance(clusters[sharp.clusterNo].centroid, sharpScale);
+
+    stringstream ss;
+    ss << setw(6) << right << sharp.index + offset <<
+      setw(8) << fixed << setprecision(2) << m;
+    if (m <= SHARP_CUTOFF)
+      ss << " +";
+    ss << endl;
+
+    const unsigned c = sharp.clusterNo;
+    ccount[c]++;
+    ctext[c] += ss.str();
+  }
+
+  for (unsigned i = 0; i < clusters.size(); i++)
+  {
+    cout << "Cluster " << i << ": " << ccount[i];
+    if (clusters[i].good)
+      cout << " (good)";
+    cout << "\n" << ctext[i] << endl;
+  }
+}
+
+
+void PeakDetect::printSharpClusters(
+  const list<Sharp>& sharps,
+  const Sharp& sharpScale,
+  const vector<SharpCluster>& clusters,
+  const bool debugDetails) const
+{
+  // The actual cluster content.
+  cout << "clusters" << endl;
+  cout << clusters.front().centroid.strHeader();
+  for (auto& c: clusters)
+    cout << c.centroid.str();
+  cout << endl;
+
+  // The peak indices in each cluster.
+  for (unsigned i = 0; i < clusters.size(); i++)
+  {
+    cout << i << ":";
+    for (auto& sharp: sharps)
+    {
+      if (sharp.clusterNo == i)
+        cout << " " << sharp.index;
+    }
+    cout << "\n";
+  }
+  cout << endl;
+
+  if (debugDetails)
+    PeakDetect::printClustersSharpDetail(sharps, sharpScale, clusters);
 }
 
