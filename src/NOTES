@@ -1,19 +1,38 @@
-2018-09-17
+2018-09-23
 ----------
-It is not flexible enough to grade by proximity to the scales.
-Consider zero crossings to get the two large relaxation peaks,
-with some stuff in between.  As with peaks:
+- Detect positive maxima with some streamlining (done)
+- Detect negative minima with some streamlining (done)
 
+Clustering:
+
+- In each cluster, median and median deviation
+  Everything > 3 deviations comes out into some other list
+- Might be some tailing small clusters that we can eliminate
+  There is no large peak after them
 - 
 
-Some sensors are well suited to detecting clean minima.
-Other have chattering minima, but reasonably good maxima.
-Or actually zero crossings.
 
-Let's finish on the current trace type first.
+What's left?
 
-Find exception cause
+- Positive maxima without a negative minimum in between
+  - Can be chatter
+  - Can be a proper trough
+- Negative minima without a positive maximum in between
+  - Can be a negative maximum as a single spike
+  - Can be chatter
 
+Combine these into Pieces.
+
+Fill in single spikes and note more complicated behavior.
+
+By now the whole trace should be sliced up.
+
+Look for regularities.
+
+Fill out the complicated pieces.
+
+2018-09-17
+----------
 - Extract some key periodicity parameters
   - Cluster neighbors (same parameters as single peaks, but two
     together now in the distance measure), hoping to find a strong
