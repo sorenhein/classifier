@@ -103,11 +103,11 @@ class PeakDetect
         return ss.str();
       };
 
-      string str() const
+      string str(const unsigned offset = 0) const
       {
         stringstream ss;
         ss << 
-          setw(6) << right << index <<
+          setw(6) << right << index + offset <<
           setw(8) << fixed << setprecision(2) << level <<
           setw(8) << fixed << setprecision(2) << range1 <<
           setw(8) << fixed << setprecision(2) << rangeRatio <<

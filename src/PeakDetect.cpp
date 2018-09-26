@@ -1079,7 +1079,7 @@ void PeakDetect::markSharpPeaksPos(
       s.fillRatio = peakNext->getFill() / s.fill1;
 
       if (debug)
-        cout << s.str();
+        cout << s.str(offset);
 
       sharpScale += s;
     }
@@ -1107,7 +1107,7 @@ void PeakDetect::markSharpPeaksNeg(
 
   if (debug)
   {
-    cout << "Positive sharp peaks\n";
+    cout << "Negative sharp peaks\n";
     cout << sharpScale.strHeader();
   }
 
@@ -1138,7 +1138,7 @@ void PeakDetect::markSharpPeaksNeg(
       s.fillRatio = peakNext->getFill() / s.fill1;
 
       if (debug)
-        cout << s.str();
+        cout << s.str(offset);
 
       sharpScale += s;
     }
@@ -1535,9 +1535,9 @@ void PeakDetect::makeSynthPeaks(vector<float>& synthPeaks) const
   for (unsigned i = 0; i < synthPeaks.size(); i++)
     synthPeaks[i] = 0;
 
-  PeakDetect::makeSynthPeaksSharp(synthPeaks);
+  // PeakDetect::makeSynthPeaksSharp(synthPeaks);
 
-  // PeakDetect::makeSynthPeaksLines(synthPeaks);
+  PeakDetect::makeSynthPeaksLines(synthPeaks);
 
   // PeakDetect::makeSynthPeaksQuiet(synthPeaks);
 
@@ -1857,7 +1857,7 @@ void PeakDetect::printSharpClusters(
   cout << "clusters" << endl;
   cout << clusters.front().centroid.strHeader();
   for (auto& c: clusters)
-    cout << c.centroid.str();
+    cout << c.centroid.str(offset);
   cout << endl;
 
   // The peak indices in each cluster.
@@ -1867,7 +1867,7 @@ void PeakDetect::printSharpClusters(
     for (auto& sharp: sharps)
     {
       if (sharp.clusterNo == i)
-        cout << " " << sharp.index;
+        cout << " " << sharp.index + offset;
     }
     cout << "\n";
   }

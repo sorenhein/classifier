@@ -1,3 +1,35 @@
+2018-09-25
+----------
+Idea
+
+- Zero crossings at level 0
+- Label each chunk with its extremal value
+- Very small ones relative to neighbors are pushed to other side
+
+- Cut distance to top in half
+- Do level crossings again, same principle
+
+Types
+
+- Narrowing, but same peak
+- More than one peak emerging
+- New peaks arising
+
+- Somehow determine whether the line segments are good representations
+  - Largest wobble on the way not too large?
+  - Largest run or difference in opposite direction to the intended?
+
+- If they are, see where slopes would meet
+  - If way too high, probably a flat extremum
+  - If reasonable, still have to see if there are several close
+    to each other.  Tend to favor the first one?
+  - Could also be highly asymmetrical (relaxation)
+
+2018-09-24
+----------
+- Need even cleaner peaks before we start clustering.
+- s05, 053709, sample 1650: Do we have two peaks? Why not?
+
 2018-09-23
 ----------
 - Detect positive maxima with some streamlining (done)
