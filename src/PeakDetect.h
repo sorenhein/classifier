@@ -127,6 +127,83 @@ class PeakDetect
       bool good;
     };
 
+    struct Period
+    {
+      unsigned start;
+      unsigned len;
+      float lenScaled;
+      float depth;
+      float minLevel;
+      unsigned clusterNo;
+
+      Period()
+      {
+        start = 0;
+        len = 0;
+        lenScaled = 0.f;
+        depth = 0.f;
+        minLevel = 0.f;
+        clusterNo = 0;
+      };
+
+      void operator += (const Period& p2)
+      {
+        start += p2.start;
+        len += p2.len;
+        lenScaled += p2.lenScaled;
+        depth += p2.depth;
+      };
+
+      void operator /= (const unsigned n)
+      {
+        start /= n;
+        len /= n;
+        lenScaled /= n;
+        depth /= n;
+      };
+
+      float distance(const Period& p2) const
+      {
+        const float ldiff = lenScaled - p2.lenScaled;
+        const float ldepth = depth - p2.depth;
+
+        return ldiff * ldiff + ldepth * ldepth;
+      };
+
+      string strHeader() const
+      {
+        stringstream ss;
+        ss << setw(6) << right << "Start" <<
+          setw(8) << right << "Length" <<
+          setw(8) << right << "Lnorm" <<
+          setw(8) << right << "Dnorm" << endl;
+        return ss.str();
+      };
+
+      string str(const unsigned offset = 0) const
+      {
+        stringstream ss;
+        ss << 
+          setw(6) << right << start + offset <<
+          setw(8) << len <<
+          setw(8) << fixed << setprecision(2) << lenScaled <<
+          setw(8) << fixed << setprecision(2) << depth << endl;
+        return ss.str();
+      };
+
+    };
+
+    struct PeriodCluster
+    {
+      Period centroid;
+      unsigned len;
+      unsigned numConvincing;
+      bool good;
+    };
+
+    list<Period> quietCandidates;
+    unsigned quietFavorite;
+
 
     unsigned len;
     unsigned offset;
@@ -160,6 +237,7 @@ class PeakDetect
       const list<Peak>::iterator peak1,
       const list<Peak>::iterator peak2);
 
+    void reduceSmallRanges(const float rangeLimit);
     void reduceSmallAreas(const float areaLimit);
 
     void eliminateKinks();
@@ -186,6 +264,8 @@ class PeakDetect
 
     void markQuiet();
 
+    void markPossibleQuiet();
+
     void markSharpPeaksPos(
       list<Sharp>& sharps,
       Sharp sharpScale,
@@ -211,11 +291,19 @@ class PeakDetect
       vector<SharpCluster>& clusters,
       const unsigned n) const;
 
+    void pickStartingClustersQuiet(
+      list<Period>& quiets,
+      vector<PeriodCluster>& clusters,
+      const unsigned n) const;
+
     void runKmeansOnce(vector<PeakCluster>& clusters);
     void runKmeansOnceSharp(
       list<Sharp>& sharps,
       const Sharp& sharpScale,
       vector<SharpCluster>& clusters);
+    void runKmeansOnceQuiet(
+      list<Period>& quiets,
+      vector<PeriodCluster>& clusters);
 
     void pos2time(
       const vector<PeakPos>& posTrue,
@@ -253,6 +341,7 @@ class PeakDetect
     float getFirstPeakTime() const;
 
     void makeSynthPeaksSharp(vector<float>& synthPeaks) const;
+    void makeSynthPeaksQuietNew(vector<float>& synthPeaks) const;
     void makeSynthPeaksQuiet(vector<float>& synthPeaks) const;
     void makeSynthPeaksLines(vector<float>& synthPeaks) const;
     void makeSynthPeaksPosLines(vector<float>& synthPeaks) const;
@@ -276,6 +365,16 @@ class PeakDetect
       const list<Sharp>& sharps,
       const Sharp& sharpScale,
       const vector<SharpCluster>& clusters,
+      const bool debugDetails) const;
+
+
+    void printClustersQuietDetail(
+      const list<Period>& quiets,
+      const vector<PeriodCluster>& clusters) const;
+    
+    void printQuietClusters(
+      const list<Period>& quiets,
+      const vector<PeriodCluster>& clusters,
       const bool debugDetails) const;
 
   public:
