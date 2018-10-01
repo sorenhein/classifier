@@ -340,6 +340,10 @@ class PeakDetect
 
     float getFirstPeakTime() const;
 
+    unsigned countDuplicateUses(
+      const vector<Period>& quiets,
+      const unsigned cno) const;
+
     void makeSynthPeaksSharp(vector<float>& synthPeaks) const;
     void makeSynthPeaksQuietNew(vector<float>& synthPeaks) const;
     void makeSynthPeaksQuiet(vector<float>& synthPeaks) const;

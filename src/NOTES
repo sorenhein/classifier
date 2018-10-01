@@ -1,32 +1,27 @@
+Quiet clusters
+--------------
+Additional types of scores
+- Length median and "median deviation" and #median deviations
+- Ditto for difference between consecutive ones
+- Number of peaks that are used multiple times in that cluster
+
+Number with lengths that are very close (pos)
+Number with differences that are very close (pos)
+Number of reuses (neg)
+
+Pick out the cluster we like best on this basis
+Look for obvious gaps in other clusters
+Could be a couple of quiet lengths and a quite of differences
+Note consecutive set
+
+- Might have several such sets, look at the average peak at the
+  beginning and end of each period
+- Pick out the period with a sharp start and end
+- If more than one, then the innermost such period
+
+
 SmallRange doesn't quite work, #23/0, #24, #25, #33/0
 #28 asymm ranges pos and neg
-
-2018-09-25
-----------
-Idea
-
-- Zero crossings at level 0
-- Label each chunk with its extremal value
-- Very small ones relative to neighbors are pushed to other side
-
-- Cut distance to top in half
-- Do level crossings again, same principle
-
-Types
-
-- Narrowing, but same peak
-- More than one peak emerging
-- New peaks arising
-
-- Somehow determine whether the line segments are good representations
-  - Largest wobble on the way not too large?
-  - Largest run or difference in opposite direction to the intended?
-
-- If they are, see where slopes would meet
-  - If way too high, probably a flat extremum
-  - If reasonable, still have to see if there are several close
-    to each other.  Tend to favor the first one?
-  - Could also be highly asymmetrical (relaxation)
 
 2018-09-24
 ----------

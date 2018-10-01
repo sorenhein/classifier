@@ -1475,6 +1475,34 @@ void PeakDetect::countPositiveRuns() const
 }
 
 
+unsigned PeakDetect::countDuplicateUses(
+  const vector<Period>& quiets,
+  const unsigned cno) const
+{
+  unsigned top = 0;
+  for (auto& qc: quiets)
+  {
+    if (qc.clusterNo == cno && qc.start + qc.len >= top)
+      top = qc.start + qc.len;
+  }
+
+  vector<unsigned> hash(top+1);
+  for (auto& qc: quiets)
+  {
+    if (qc.clusterNo == cno)
+      hash[qc.start + qc.len]++;
+  }
+
+  unsigned count = 0;
+  for (auto h: hash)
+  {
+    if (h > 0)
+      count += h-1;
+  }
+  return count;
+}
+
+
 void PeakDetect::markPossibleQuiet()
 {
   vector<unsigned> lengths;
