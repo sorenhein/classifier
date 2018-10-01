@@ -199,6 +199,12 @@ class PeakDetect
       unsigned len;
       unsigned numConvincing;
       bool good;
+      unsigned lenMedian;
+      unsigned spacingMedian;
+      unsigned lenDevMedian; // A "standard deviation"
+      unsigned spacingDevMedian; // Ditto
+      unsigned lenCloseCount;
+      unsigned spacingCloseCount;
     };
 
     list<Period> quietCandidates;
@@ -343,6 +349,14 @@ class PeakDetect
     unsigned countDuplicateUses(
       const vector<Period>& quiets,
       const unsigned cno) const;
+
+    void setQuietMedians(
+      vector<Period>& quiets,
+      vector<PeriodCluster>& clusters);
+
+    void countPeriodicities(
+      const vector<Period>& quiets,
+      vector<PeriodCluster>& clusters) const;
 
     void makeSynthPeaksSharp(vector<float>& synthPeaks) const;
     void makeSynthPeaksQuietNew(vector<float>& synthPeaks) const;

@@ -30,6 +30,8 @@
 
 #define SHARP_CUTOFF 1.0f
 
+#define MEDIAN_DEVIATIONS 3
+
 #define UNUSED(x) ((void)(true ? 0 : ((x), void(), 0)))
 
 PeakDetect::PeakDetect()
@@ -1490,7 +1492,10 @@ unsigned PeakDetect::countDuplicateUses(
   for (auto& qc: quiets)
   {
     if (qc.clusterNo == cno)
+    {
+      hash[qc.start]++;
       hash[qc.start + qc.len]++;
+    }
   }
 
   unsigned count = 0;
@@ -1500,6 +1505,117 @@ unsigned PeakDetect::countDuplicateUses(
       count += h-1;
   }
   return count;
+}
+
+
+void PeakDetect::setQuietMedians(
+  vector<Period>& quiets,
+  vector<PeriodCluster>& clusters)
+{
+  vector<vector<unsigned>> lengths, spacings;
+  lengths.resize(clusters.size());
+  spacings.resize(clusters.size());
+
+  for (unsigned qno = 0; qno < quiets.size(); qno++)
+  {
+    const Period& qc = quiets[qno];
+    const unsigned cno = qc.clusterNo;
+
+    lengths[cno].push_back(qc.len);
+    if (qno > 0)
+      spacings[cno].push_back(qc.start - quiets[qno-1].start);
+  }
+
+  for (unsigned cno = 0; cno < clusters.size(); cno++)
+  {
+    unsigned n = lengths[cno].size() / 2;
+    nth_element(lengths[cno].begin(), lengths[cno].begin()+n, 
+      lengths[cno].end());
+    clusters[cno].lenMedian = lengths[cno][n];
+
+    unsigned m = spacings[cno].size() / 2;
+    nth_element(spacings[cno].begin(), spacings[cno].begin()+m, 
+      spacings[cno].end());
+    clusters[cno].spacingMedian = spacings[cno][m];
+  }
+
+  // Reuse the vectors for the deviations from the respective medians.
+  lengths.clear();
+  spacings.clear();
+  lengths.resize(clusters.size());
+  spacings.resize(clusters.size());
+
+  for (unsigned qno = 0; qno < quiets.size(); qno++)
+  {
+    const Period& qc = quiets[qno];
+    const unsigned cno = qc.clusterNo;
+      
+    if (qc.len >= clusters[cno].lenMedian)
+      lengths[cno].push_back(qc.len - clusters[cno].lenMedian);
+    else
+      lengths[cno].push_back(clusters[cno].lenMedian - qc.len);
+
+    if (qno > 0)
+    {
+      const unsigned d = qc.start - quiets[qno-1].start;
+      if (d >= clusters[cno].spacingMedian)
+        spacings[cno].push_back(d - clusters[cno].spacingMedian);
+      else
+        spacings[cno].push_back(clusters[cno].spacingMedian - d);
+    }
+  }
+
+  for (unsigned cno = 0; cno < clusters.size(); cno++)
+  {
+    unsigned n = lengths[cno].size() / 2;
+    nth_element(lengths[cno].begin(), lengths[cno].begin()+n, 
+      lengths[cno].end());
+    clusters[cno].lenDevMedian = lengths[cno][n];
+
+    unsigned m = spacings[cno].size() / 2;
+    nth_element(spacings[cno].begin(), spacings[cno].begin()+m, 
+      spacings[cno].end());
+    clusters[cno].spacingDevMedian = spacings[cno][m];
+  }
+}
+
+
+void PeakDetect::countPeriodicities(
+  const vector<Period>& quiets,
+  vector<PeriodCluster>& clusters) const
+{
+  for (unsigned cno = 0; cno < clusters.size(); cno++)
+  {
+    clusters[cno].lenCloseCount = 0;
+    clusters[cno].spacingCloseCount = 0;
+  }
+
+  for (unsigned qno = 0; qno < quiets.size(); qno++)
+  {
+    const Period& qc = quiets[qno];
+    const unsigned cno = qc.clusterNo;
+    const PeriodCluster& cluster = clusters[cno];
+
+    if (qc.len + MEDIAN_DEVIATIONS * cluster.lenDevMedian >= 
+          cluster.lenMedian &&
+        qc.len <= 
+          cluster.lenMedian + MEDIAN_DEVIATIONS * cluster.lenDevMedian)
+    {
+      clusters[cno].lenCloseCount++;
+    }
+
+    if (qno > 0)
+    {
+      const unsigned sp = qc.start - quiets[qno-1].start;
+      if (sp + MEDIAN_DEVIATIONS * cluster.spacingDevMedian >= 
+        cluster.spacingMedian &&
+          sp <= cluster.spacingMedian + 
+            MEDIAN_DEVIATIONS * cluster.spacingDevMedian)
+      {
+        clusters[cno].spacingCloseCount++;
+      }
+    }
+  }
 }
 
 
