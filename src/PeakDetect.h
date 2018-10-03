@@ -199,12 +199,12 @@ class PeakDetect
       unsigned len;
       unsigned numConvincing;
       bool good;
+      unsigned count;
+      unsigned periodDominant;
+      unsigned numPeriodics;
       unsigned lenMedian;
-      unsigned spacingMedian;
-      unsigned lenDevMedian; // A "standard deviation"
-      unsigned spacingDevMedian; // Ditto
       unsigned lenCloseCount;
-      unsigned spacingCloseCount;
+      unsigned duplicates;
     };
 
     list<Period> quietCandidates;
@@ -350,13 +350,23 @@ class PeakDetect
       const list<Period>& quiets,
       const unsigned cno) const;
 
+    void estimatePeriodicity(
+      vector<unsigned>& spacings,
+      unsigned& period,
+      unsigned& numMatches) const;
+
+    bool clustersCompatible(
+      const vector<Period *>& intervals1,
+      const vector<Period *>& intervals2) const;
+
+    void findCompatibles(
+      const vector<vector<Period *>>& intervals,
+      vector<vector<unsigned>>& compatibles) const;
+
     void setQuietMedians(
       list<Period>& quiets,
-      vector<PeriodCluster>& clusters);
-
-    void countPeriodicities(
-      const list<Period>& quiets,
-      vector<PeriodCluster>& clusters) const;
+      vector<PeriodCluster>& clusters,
+      unsigned& period);
 
     void makeSynthPeaksSharp(vector<float>& synthPeaks) const;
     void makeSynthPeaksQuietNew(vector<float>& synthPeaks) const;

@@ -1,23 +1,45 @@
-Quiet clusters
---------------
-Additional types of scores
-- Length median and "median deviation" and #median deviations
-- Ditto for difference between consecutive ones
-- Number of peaks that are used multiple times in that cluster
+Cleaning up clusters
+--------------------
+Maybe start by getting the periodicity right.  Inputs:
+- Periodicity within each cluster.
+- For all clusters combined.
+- For each cluster, turned into a synthetic, weighted vector.
 
-Number with lengths that are very close (pos)
-Number with differences that are very close (pos)
-Number of reuses (neg)
+Intervals (much) longer than the period are removed.
+Clusters are recalculated w.r.t. center, length etc., but 
+clustering remains.
 
-Pick out the cluster we like best on this basis
-Look for obvious gaps in other clusters
-Could be a couple of quiet lengths and a quite of differences
-Note consecutive set
+Look for a cluster with
+- The right period
+- Many intervals
+- lno close to count, >= half
+- #per close to lno-1
+- no dupes
 
-- Might have several such sets, look at the average peak at the
-  beginning and end of each period
-- Pick out the period with a sharp start and end
-- If more than one, then the innermost such period
+Clean it of very different lengths -> new cluster.
+Check that everything in it is in some periodic relation to
+something else in it.
+
+
+
+Maybe once we have the period, we start to fix and label things
+at this distance.  
+
+
+
+There may be some clusters whose lengths track the periodicity.
+So lengths AND spacings will be close to multiples.
+These should line up neatly in full-length intervals, sometimes
+covering multiple lengths, sometimes a single length.
+We won't know what the dominant feature is that the lock onto.
+We can make a note anyway.
+We can also reject spurious intervals out of these clusters that
+might be useful elsewhere.
+
+We might have spurious intervals elsewhere as well.
+
+
+
 
 
 SmallRange doesn't quite work, #23/0, #24, #25, #33/0
@@ -32,15 +54,6 @@ SmallRange doesn't quite work, #23/0, #24, #25, #33/0
 ----------
 - Detect positive maxima with some streamlining (done)
 - Detect negative minima with some streamlining (done)
-
-Clustering:
-
-- In each cluster, median and median deviation
-  Everything > 3 deviations comes out into some other list
-- Might be some tailing small clusters that we can eliminate
-  There is no large peak after them
-- 
-
 
 What's left?
 
