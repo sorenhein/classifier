@@ -1478,7 +1478,7 @@ void PeakDetect::countPositiveRuns() const
 
 
 unsigned PeakDetect::countDuplicateUses(
-  const vector<Period>& quiets,
+  const list<Period>& quiets,
   const unsigned cno) const
 {
   unsigned top = 0;
@@ -1509,21 +1509,20 @@ unsigned PeakDetect::countDuplicateUses(
 
 
 void PeakDetect::setQuietMedians(
-  vector<Period>& quiets,
+  list<Period>& quiets,
   vector<PeriodCluster>& clusters)
 {
   vector<vector<unsigned>> lengths, spacings;
   lengths.resize(clusters.size());
   spacings.resize(clusters.size());
 
-  for (unsigned qno = 0; qno < quiets.size(); qno++)
+  for (auto qc = quiets.begin(); qc != quiets.end(); qc++)
   {
-    const Period& qc = quiets[qno];
-    const unsigned cno = qc.clusterNo;
+    const unsigned cno = qc->clusterNo;
 
-    lengths[cno].push_back(qc.len);
-    if (qno > 0)
-      spacings[cno].push_back(qc.start - quiets[qno-1].start);
+    lengths[cno].push_back(qc->len);
+    if (qc != quiets.begin())
+      spacings[cno].push_back(qc->start - prev(qc)->start);
   }
 
   for (unsigned cno = 0; cno < clusters.size(); cno++)
@@ -1545,19 +1544,19 @@ void PeakDetect::setQuietMedians(
   lengths.resize(clusters.size());
   spacings.resize(clusters.size());
 
-  for (unsigned qno = 0; qno < quiets.size(); qno++)
+  for (auto qc = quiets.begin(); qc != quiets.end(); qc++)
   {
-    const Period& qc = quiets[qno];
-    const unsigned cno = qc.clusterNo;
+    const unsigned cno = qc->clusterNo;
       
-    if (qc.len >= clusters[cno].lenMedian)
-      lengths[cno].push_back(qc.len - clusters[cno].lenMedian);
+    if (qc->len >= clusters[cno].lenMedian)
+      lengths[cno].push_back(qc->len - clusters[cno].lenMedian);
     else
-      lengths[cno].push_back(clusters[cno].lenMedian - qc.len);
+      lengths[cno].push_back(clusters[cno].lenMedian - qc->len);
 
-    if (qno > 0)
+    if (qc != quiets.begin())
     {
-      const unsigned d = qc.start - quiets[qno-1].start;
+      const auto qprev = prev(qc);
+      const unsigned d = qc->start - qprev->start;
       if (d >= clusters[cno].spacingMedian)
         spacings[cno].push_back(d - clusters[cno].spacingMedian);
       else
@@ -1581,7 +1580,7 @@ void PeakDetect::setQuietMedians(
 
 
 void PeakDetect::countPeriodicities(
-  const vector<Period>& quiets,
+  const list<Period>& quiets,
   vector<PeriodCluster>& clusters) const
 {
   for (unsigned cno = 0; cno < clusters.size(); cno++)
@@ -1590,23 +1589,23 @@ void PeakDetect::countPeriodicities(
     clusters[cno].spacingCloseCount = 0;
   }
 
-  for (unsigned qno = 0; qno < quiets.size(); qno++)
+  for (auto qc = quiets.begin(); qc != quiets.end(); qc++)
   {
-    const Period& qc = quiets[qno];
-    const unsigned cno = qc.clusterNo;
+    const unsigned cno = qc->clusterNo;
     const PeriodCluster& cluster = clusters[cno];
 
-    if (qc.len + MEDIAN_DEVIATIONS * cluster.lenDevMedian >= 
+    if (qc->len + MEDIAN_DEVIATIONS * cluster.lenDevMedian >= 
           cluster.lenMedian &&
-        qc.len <= 
+        qc->len <= 
           cluster.lenMedian + MEDIAN_DEVIATIONS * cluster.lenDevMedian)
     {
       clusters[cno].lenCloseCount++;
     }
 
-    if (qno > 0)
+    if (qc != quiets.begin())
     {
-      const unsigned sp = qc.start - quiets[qno-1].start;
+      const auto qprev = prev(qc);
+      const unsigned sp = qc->start - qprev->start;
       if (sp + MEDIAN_DEVIATIONS * cluster.spacingDevMedian >= 
         cluster.spacingMedian &&
           sp <= cluster.spacingMedian + 
@@ -1734,6 +1733,36 @@ void PeakDetect::markPossibleQuiet()
     THROW(ERR_NO_PEAKS, "No quiet candidates");
 
   // TODO Could check for periodicity and no gaps between quiet periods
+
+  PeakDetect::setQuietMedians(quietCandidates, clusters);
+  PeakDetect::countPeriodicities(quietCandidates, clusters);
+
+  cout << "Cluster select scores\n";
+  cout << setw(2) << "No" << 
+    setw(6) << "Len" <<
+    setw(6) << "Ldev" <<
+    setw(6) << "Space" <<
+    setw(6) << "Sdev" <<
+    setw(6) << "Lno" <<
+    setw(6) << "Sno" <<
+    setw(6) << "Dupes" << endl;
+
+  for (unsigned i = 0; i < clusters.size(); i++)
+  {
+    int score = -static_cast<int>(
+      PeakDetect::countDuplicateUses(quietCandidates, i));
+
+    const PeriodCluster& c = clusters[i];
+
+    cout << setw(2) << right << i <<
+      setw(6) << c.lenMedian <<
+      setw(6) << c.lenDevMedian <<
+      setw(6) << c.spacingMedian <<
+      setw(6) << c.spacingDevMedian <<
+      setw(6) << c.lenCloseCount <<
+      setw(6) << c.spacingCloseCount <<
+      setw(6) << score << endl;
+  }
 
   quietFavorite = maxIndex;
 }

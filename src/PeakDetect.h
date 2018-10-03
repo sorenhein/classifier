@@ -347,15 +347,15 @@ class PeakDetect
     float getFirstPeakTime() const;
 
     unsigned countDuplicateUses(
-      const vector<Period>& quiets,
+      const list<Period>& quiets,
       const unsigned cno) const;
 
     void setQuietMedians(
-      vector<Period>& quiets,
+      list<Period>& quiets,
       vector<PeriodCluster>& clusters);
 
     void countPeriodicities(
-      const vector<Period>& quiets,
+      const list<Period>& quiets,
       vector<PeriodCluster>& clusters) const;
 
     void makeSynthPeaksSharp(vector<float>& synthPeaks) const;
