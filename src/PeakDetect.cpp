@@ -1664,15 +1664,23 @@ void PeakDetect::setQuietMedians(
     clusters[cno].duplicates = 
       PeakDetect::countDuplicateUses(quiets, cno);
 
-
-
+  // Each cluster on its own.
   vector<unsigned> periods(lc), matches(lc);
   for (unsigned cno = 0; cno < clusters.size(); cno++)
     PeakDetect::estimatePeriodicity(spacings[cno], 
       clusters[cno].periodDominant, clusters[cno].numPeriodics);
 
-  // Estimate overall periodicity?  Is it important?
-  period = 0;
+  // Pool the results of each cluster.
+  vector<unsigned> spacingsAll;
+  for (unsigned cno = 0; cno < clusters.size(); cno++)
+  {
+    spacingsAll.insert(spacingsAll.end(),
+      spacings[cno].begin(), spacings[cno].end());
+  }
+
+  unsigned numPer;
+  PeakDetect::estimatePeriodicity(spacingsAll, period, numPer);
+  cout << "Synthetic period: " << period << endl;
 
   for (unsigned cno = 0; cno < clusters.size(); cno++)
   {

@@ -1,44 +1,38 @@
 Cleaning up clusters
 --------------------
-Maybe start by getting the periodicity right.  Inputs:
-- Periodicity within each cluster.
-- For all clusters combined.
-- For each cluster, turned into a synthetic, weighted vector.
+Look for cluster with maximum 
+  lno + #per - dupes
+  should be in top 3 of dnorm, or pout
 
-Intervals (much) longer than the period are removed.
-Clusters are recalculated w.r.t. center, length etc., but 
-clustering remains.
+Pick out intervals with right lengths,
+put the rest in a catch-up cluster
 
-Look for a cluster with
-- The right period
-- Many intervals
-- lno close to count, >= half
-- #per close to lno-1
-- no dupes
+Derive the period from this interval
 
-Clean it of very different lengths -> new cluster.
-Check that everything in it is in some periodic relation to
-something else in it.
+Look for other intervals with the right length
+See whether they would fit with the right period into this cluster
+Move the ones we want
+Pout on too-long gaps (smaller ones are OK)
 
+Remove intervals > 1.25 period or so into the overlong bin
 
+Look for intervals with len = period
+Move them into a list
+Sort the list
+Look for seamless pieces
+Pout on too-long gaps (a little)
 
-Maybe once we have the period, we start to fix and label things
-at this distance.  
+Sort the remaining ones.
+Try to anchor the remaining ones to the winner.
+So find the abutting or overlapping piece to an interval.
+Look where the other pieces ought to be.
+Put them in a "cluster".
 
-
-
-There may be some clusters whose lengths track the periodicity.
-So lengths AND spacings will be close to multiples.
-These should line up neatly in full-length intervals, sometimes
-covering multiple lengths, sometimes a single length.
-We won't know what the dominant feature is that the lock onto.
-We can make a note anyway.
-We can also reject spurious intervals out of these clusters that
-might be useful elsewhere.
-
-We might have spurious intervals elsewhere as well.
-
-
+Look at each of the plausible "stories".
+dnorm is a factor.
+The average starting and ending peak is a factor:
+Should be spiky.
+If there are several, the one that's inside the other.
 
 
 
