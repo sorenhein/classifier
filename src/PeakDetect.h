@@ -363,10 +363,20 @@ class PeakDetect
       const vector<vector<Period *>>& intervals,
       vector<vector<unsigned>>& compatibles) const;
 
+    unsigned promisingCluster(
+      vector<vector<Period *>>& intervals,
+      vector<PeriodCluster>& clusters);
+
+    void removeOverlongIntervals(
+      list<Period>& quiets,
+      vector<vector<Period *>>& intervals,
+      const unsigned period);
+
     void setQuietMedians(
       list<Period>& quiets,
       vector<PeriodCluster>& clusters,
-      unsigned& period);
+      vector<vector<Period *>>& intervals,
+      vector<vector<unsigned>>& compatibles);
 
     void makeSynthPeaksSharp(vector<float>& synthPeaks) const;
     void makeSynthPeaksQuietNew(vector<float>& synthPeaks) const;
@@ -404,6 +414,10 @@ class PeakDetect
       const list<Period>& quiets,
       const vector<PeriodCluster>& clusters,
       const bool debugDetails) const;
+
+    void printSelectClusters(
+      const vector<PeriodCluster>& clusters,
+      const unsigned period) const;
 
   public:
 

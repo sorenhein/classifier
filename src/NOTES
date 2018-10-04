@@ -1,20 +1,9 @@
 Cleaning up clusters
 --------------------
-Look for cluster with maximum 
-  lno + #per - dupes
-  should be in top 3 of dnorm, or pout
-
-Pick out intervals with right lengths,
-put the rest in a catch-up cluster
-
-Derive the period from this interval
-
 Look for other intervals with the right length
 See whether they would fit with the right period into this cluster
 Move the ones we want
 Pout on too-long gaps (smaller ones are OK)
-
-Remove intervals > 1.25 period or so into the overlong bin
 
 Look for intervals with len = period
 Move them into a list

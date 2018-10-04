@@ -1605,10 +1605,63 @@ void PeakDetect::findCompatibles(
 }
 
 
+unsigned PeakDetect::promisingCluster(
+  vector<vector<Period *>>& intervals, 
+  vector<PeriodCluster>& clusters)
+{
+  // Find the cluster with the best configuration.
+  unsigned bestIndex = 0;
+  float bestScore = numeric_limits<float>::lowest();
+
+  for (unsigned i = 0; i < clusters.size(); i++)
+  {
+    auto& c = clusters[i];
+
+    float score =
+      c.lenCloseCount +
+      c.numPeriodics +
+      10.f * c.centroid.depth -
+      c.duplicates;
+
+    if (score > bestScore)
+    {
+      bestIndex = i;
+      bestScore = score;
+    }
+  }
+
+  // Move out those intervals with the right length.
+  intervals.push_back(vector<Period *>());
+  vector<Period *>& cint = intervals[bestIndex];
+
+  auto& cOld = clusters[bestIndex];
+  clusters.push_back(PeriodCluster());
+  const unsigned cNewNo = clusters.size()-1;
+
+  for (auto it = cint.begin(); it != cint.end(); )
+  {
+    if ((*it)->len > static_cast<unsigned>(0.9 * cOld.lenMedian) &&
+        (*it)->len < static_cast<unsigned>(1.1 * cOld.lenMedian))
+    {
+      intervals[cNewNo].push_back(*it);
+      (*it)->clusterNo = cNewNo;
+      it = cint.erase(it);
+    }
+    else
+    {
+      it++;
+      continue;
+    }
+  }
+  return cNewNo;
+}
+
+
 void PeakDetect::setQuietMedians(
   list<Period>& quiets,
   vector<PeriodCluster>& clusters,
-  unsigned& period)
+  vector<vector<Period *>>& intervals,
+  vector<vector<unsigned>>& compatibles)
 {
   const unsigned lc = clusters.size();
 
@@ -1616,7 +1669,6 @@ void PeakDetect::setQuietMedians(
   lengths.resize(lc);
   vector<vector<unsigned>> spacings(lc);
   vector<Period *> qprev(lc, nullptr);
-  vector<vector<Period *>> intervals;
   intervals.resize(lc);
 
   for (unsigned cno = 0; cno < lc; cno++)
@@ -1642,7 +1694,6 @@ void PeakDetect::setQuietMedians(
   }
 
   // Compatible clusters have no overlaps.
-  vector<vector<unsigned>> compatibles;
   compatibles.resize(lc);
 
   PeakDetect::findCompatibles(intervals, compatibles);
@@ -1664,26 +1715,16 @@ void PeakDetect::setQuietMedians(
     clusters[cno].duplicates = 
       PeakDetect::countDuplicateUses(quiets, cno);
 
-  // Each cluster on its own.
-  vector<unsigned> periods(lc), matches(lc);
-  for (unsigned cno = 0; cno < clusters.size(); cno++)
-    PeakDetect::estimatePeriodicity(spacings[cno], 
-      clusters[cno].periodDominant, clusters[cno].numPeriodics);
-
-  // Pool the results of each cluster.
-  vector<unsigned> spacingsAll;
+  // More statistics.
   for (unsigned cno = 0; cno < clusters.size(); cno++)
   {
-    spacingsAll.insert(spacingsAll.end(),
-      spacings[cno].begin(), spacings[cno].end());
-  }
+    if (lengths[cno].size() == 0)
+    {
+      clusters[cno].lenMedian = 0;
+      clusters[cno].lenCloseCount = 0;
+      continue;
+    }
 
-  unsigned numPer;
-  PeakDetect::estimatePeriodicity(spacingsAll, period, numPer);
-  cout << "Synthetic period: " << period << endl;
-
-  for (unsigned cno = 0; cno < clusters.size(); cno++)
-  {
     unsigned n = lengths[cno].size() / 2;
     nth_element(lengths[cno].begin(), lengths[cno].begin()+n, 
       lengths[cno].end());
@@ -1698,6 +1739,55 @@ void PeakDetect::setQuietMedians(
         clusters[cno].lenCloseCount++;
       }
     }
+  }
+
+  // Each cluster on its own.
+  vector<unsigned> periods(lc), matches(lc);
+  for (unsigned cno = 0; cno < clusters.size(); cno++)
+    PeakDetect::estimatePeriodicity(spacings[cno], 
+      clusters[cno].periodDominant, clusters[cno].numPeriodics);
+
+/*
+  // Pool the results of each cluster.
+  vector<unsigned> spacingsAll;
+  for (unsigned cno = 0; cno < clusters.size(); cno++)
+  {
+    spacingsAll.insert(spacingsAll.end(),
+      spacings[cno].begin(), spacings[cno].end());
+  }
+
+  unsigned numPer;
+  PeakDetect::estimatePeriodicity(spacingsAll, period, numPer);
+  cout << "Synthetic period: " << period << endl;
+*/
+
+}
+
+
+void PeakDetect::removeOverlongIntervals(
+  list<Period>& quiets,
+  vector<vector<Period *>>& intervals,
+  const unsigned period)
+{
+  const unsigned limit = static_cast<unsigned>(1.5 * period);
+
+  for (auto& cint: intervals)
+  {
+    for (auto it = cint.begin(); it != cint.end(); )
+    {
+      if ((*it)->len > limit)
+        it = cint.erase(it);
+      else
+        it++;
+    }
+  }
+
+  for (auto it = quiets.begin(); it != quiets.end(); )
+  {
+    if (it->len > limit)
+      it = quiets.erase(it);
+    else
+      it++;
   }
 }
 
@@ -1821,32 +1911,35 @@ void PeakDetect::markPossibleQuiet()
   // TODO Could check for periodicity and no gaps between quiet periods
 
   // Should maybe be a class variable.
-  unsigned period;
-  PeakDetect::setQuietMedians(quietCandidates, clusters, period);
+  vector<vector<Period *>> intervals;
+  vector<vector<unsigned>> compatibles;
 
-  cout << "Cluster select scores: period " << period << "\n";
-  cout << setw(2) << "No" << 
-    setw(6) << "Len" <<
-    setw(6) << "Count" <<
-    setw(6) << "Lno" <<
-    setw(6) << "Per" <<
-    setw(6) << "#per" <<
-    setw(6) << "Dupes" << endl;
+  PeakDetect::setQuietMedians(quietCandidates, clusters, 
+    intervals, compatibles);
 
-  for (unsigned i = 0; i < clusters.size(); i++)
-  {
-    const PeriodCluster& c = clusters[i];
+  PeakDetect::printSelectClusters(clusters, 0);
 
-    cout << setw(2) << right << i <<
-      setw(6) << c.lenMedian <<
-      setw(6) << c.count <<
-      setw(6) << c.lenCloseCount <<
-      setw(6) << c.periodDominant <<
-      setw(6) << c.numPeriodics <<
-      setw(6) << c.duplicates << endl;
-  }
+  unsigned bestCluster =
+    PeakDetect::promisingCluster(intervals, clusters);
 
-  quietFavorite = maxIndex;
+  // Redo with the new, promising cluster.
+  PeakDetect::setQuietMedians(quietCandidates, clusters, 
+    intervals, compatibles);
+
+  unsigned period = clusters.back().periodDominant;
+
+  PeakDetect::removeOverlongIntervals(quietCandidates, intervals, period);
+
+  // Redo yet again (wasteful).
+  PeakDetect::setQuietMedians(quietCandidates, clusters, 
+    intervals, compatibles);
+
+  PeakDetect::printQuietClusters(quietCandidates, clusters, false);
+
+  PeakDetect::printSelectClusters(clusters, period);
+
+  quietFavorite = bestCluster;
+  // quietFavorite = maxIndex;
 }
 
 
@@ -2498,4 +2591,35 @@ void PeakDetect::printQuietClusters(
   if (debugDetails)
     PeakDetect::printClustersQuietDetail(quiets, clusters);
 }
+
+
+void PeakDetect::printSelectClusters(
+  const vector<PeriodCluster>& clusters,
+  const unsigned period) const
+{
+  cout << "Cluster select scores: period " << period << "\n";
+  cout << setw(2) << "No" << 
+    setw(6) << "Len" <<
+    setw(6) << "Count" <<
+    setw(6) << "Lno" <<
+    setw(6) << "Per" <<
+    setw(6) << "#per" <<
+    setw(6) << "Dupes" << endl;
+
+  for (unsigned i = 0; i < clusters.size(); i++)
+  {
+    const PeriodCluster& c = clusters[i];
+    if (c.count == 0)
+      continue;
+
+    cout << setw(2) << right << i <<
+      setw(6) << c.lenMedian <<
+      setw(6) << c.count <<
+      setw(6) << c.lenCloseCount <<
+      setw(6) << c.periodDominant <<
+      setw(6) << c.numPeriodics <<
+      setw(6) << c.duplicates << endl;
+  }
+}
+
 
