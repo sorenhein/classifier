@@ -713,7 +713,7 @@ void PeakDetect::runKmeansOnceQuiet(
   const bool reclusterFlag)
 {
   // Pick centroids from the data points.
-  if (!reclusterFlag)
+  if (! reclusterFlag)
     PeakDetect::pickStartingClustersQuiet(quiets, clusters, csize);
 
   float distance = numeric_limits<float>::max();
@@ -734,7 +734,9 @@ void PeakDetect::runKmeansOnceQuiet(
       for (unsigned cno = 0; cno < csize; cno++)
       {
         const float dist = 
-          quiet.distance(clusters[cno].centroid);
+          (reclusterFlag ?
+            quiet.distance2(clusters[cno].centroid) :
+            quiet.distance(clusters[cno].centroid));
         if (dist < distBest)
         {
           distBest = dist;
@@ -2008,7 +2010,10 @@ void PeakDetect::recalcCluster(
   }
 
   if (no > 0)
+  {
+    centroid /= no;
     clusters[cno].centroid = centroid;
+  }
 }
 
 
@@ -2190,6 +2195,19 @@ void PeakDetect::markPossibleQuiet()
   PeakDetect::printQuietClusters(quietCandidates, clusters, false);
 
   cout << "Period cluster complete\n";
+  PeakDetect::printSelectClusters(clusters, period);
+
+  // Recluster.
+  PeakDetect::runKmeansOnceQuiet(quietCandidates, clusters, 
+    KMEANS_CLUSTERS, true);
+
+  // And again...
+  PeakDetect::setQuietMedians(quietCandidates, clusters, 
+    intervals, compatibles);
+
+  PeakDetect::printQuietClusters(quietCandidates, clusters, false);
+
+  cout << "Reclustered\n";
   PeakDetect::printSelectClusters(clusters, period);
 
   quietFavorite = bestCluster;

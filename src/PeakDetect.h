@@ -170,6 +170,13 @@ class PeakDetect
         return ldiff * ldiff + ldepth * ldepth;
       };
 
+      float distance2(const Period& p2) const
+      {
+        const float ldiff = 
+          static_cast<float>(len) - static_cast<float>(p2.len);
+        return ldiff * ldiff;
+      };
+
       string strHeader() const
       {
         stringstream ss;
