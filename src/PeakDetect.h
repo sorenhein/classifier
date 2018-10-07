@@ -309,7 +309,9 @@ class PeakDetect
       vector<SharpCluster>& clusters);
     void runKmeansOnceQuiet(
       list<Period>& quiets,
-      vector<PeriodCluster>& clusters);
+      vector<PeriodCluster>& clusters,
+      const unsigned csize,
+      const bool reclusterFlag);
 
     void pos2time(
       const vector<PeakPos>& posTrue,
@@ -365,12 +367,49 @@ class PeakDetect
 
     unsigned promisingCluster(
       vector<vector<Period *>>& intervals,
-      vector<PeriodCluster>& clusters);
+      vector<PeriodCluster>& clusters,
+      const unsigned clen);
 
     void removeOverlongIntervals(
       list<Period>& quiets,
       vector<vector<Period *>>& intervals,
       const unsigned period);
+
+    void moveIntervalsWithLength(
+      vector<vector<Period *>>& intervals,
+      vector<PeriodCluster>& clusters,
+      const unsigned clenOrig,
+      const unsigned lenTarget);
+
+    void hypothesizeIntervals(
+      const vector<Period *>& cintervals,
+      const unsigned period,
+      const unsigned lenMedian,
+      const unsigned lastSampleNo,
+      vector<Period>& hypints) const;
+
+    void findFillers(
+      vector<vector<Period *>>& intervals,
+      const unsigned period,
+      const unsigned clusterSampleLen,
+      const unsigned lastSampleNo,
+      const unsigned clen,
+      const unsigned cfill);
+
+    unsigned largestValue(const list<Period>& quiets) const;
+
+    unsigned intervalDist(
+      const Period * p1,
+      const Period * p2) const;
+
+    void recalcClusters(
+      const list<Period>& quiets,
+      vector<PeriodCluster>& clusters);
+
+    void recalcCluster(
+      const list<Period>& quiets,
+      vector<PeriodCluster>& clusters,
+      const unsigned cno);
 
     void setQuietMedians(
       list<Period>& quiets,
