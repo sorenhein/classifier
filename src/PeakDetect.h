@@ -421,8 +421,7 @@ class PeakDetect
     void setQuietMedians(
       list<Period>& quiets,
       vector<PeriodCluster>& clusters,
-      vector<vector<Period *>>& intervals,
-      vector<vector<unsigned>>& compatibles);
+      vector<vector<Period *>>& intervals);
 
     void makeSynthPeaksSharp(vector<float>& synthPeaks) const;
     void makeSynthPeaksQuietNew(vector<float>& synthPeaks) const;

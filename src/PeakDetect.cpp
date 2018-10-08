@@ -1605,8 +1605,14 @@ void PeakDetect::findCompatibles(
   const unsigned lc = intervals.size();
   for (unsigned cno = 0; cno < lc; cno++)
   {
+    if (intervals[cno].size() == 0)
+      continue;
+
     for (unsigned dno = cno+1; dno < lc; dno++)
     {
+      if (intervals[dno].size() == 0)
+        continue;
+
       if (PeakDetect::clustersCompatible(intervals[cno], intervals[dno]))
         compatibles[cno].push_back(dno);
     }
@@ -1670,8 +1676,7 @@ unsigned PeakDetect::promisingCluster(
 void PeakDetect::setQuietMedians(
   list<Period>& quiets,
   vector<PeriodCluster>& clusters,
-  vector<vector<Period *>>& intervals,
-  vector<vector<unsigned>>& compatibles)
+  vector<vector<Period *>>& intervals)
 {
   const unsigned lc = clusters.size();
 
@@ -1704,21 +1709,6 @@ void PeakDetect::setQuietMedians(
 
     qprev[cno] = &*qc;
   }
-
-  // Compatible clusters have no overlaps.
-  compatibles.clear();
-  compatibles.resize(lc);
-
-  PeakDetect::findCompatibles(intervals, compatibles);
-
-  for (unsigned cno = 0; cno < lc; cno++)
-  {
-    cout << cno << ":";
-    for (auto i: compatibles[cno])
-      cout << " " << i;
-    cout << "\n";
-  }
-  cout << endl;
 
 
   // Count instances where an end point occurs twice.  This is a bad
@@ -1816,7 +1806,7 @@ void PeakDetect::removeOverlongIntervals(
   vector<vector<Period *>>& intervals,
   const unsigned period)
 {
-  const unsigned limit = static_cast<unsigned>(1.5 * period);
+  const unsigned limit = static_cast<unsigned>(1.1 * period);
 
   for (auto& cint: intervals)
   {
@@ -2142,8 +2132,7 @@ void PeakDetect::markPossibleQuiet()
   vector<vector<Period *>> intervals;
   vector<vector<unsigned>> compatibles;
 
-  PeakDetect::setQuietMedians(quietCandidates, clusters, 
-    intervals, compatibles);
+  PeakDetect::setQuietMedians(quietCandidates, clusters, intervals);
 
   cout << "Starting clusters\n";
   PeakDetect::printSelectClusters(clusters, 0);
@@ -2153,16 +2142,14 @@ void PeakDetect::markPossibleQuiet()
     PeakDetect::promisingCluster(intervals, clusters, clenOrig);
 
   // Redo with the new, promising cluster.
-  PeakDetect::setQuietMedians(quietCandidates, clusters, 
-    intervals, compatibles);
+  PeakDetect::setQuietMedians(quietCandidates, clusters, intervals);
 
   unsigned period = clusters.back().periodDominant;
 
   PeakDetect::removeOverlongIntervals(quietCandidates, intervals, period);
 
   // Redo yet again (wasteful).
-  PeakDetect::setQuietMedians(quietCandidates, clusters, 
-    intervals, compatibles);
+  PeakDetect::setQuietMedians(quietCandidates, clusters, intervals);
 
   const unsigned cfill = clusters.size()-1;
   PeakDetect::recalcCluster(quietCandidates, clusters, cfill);
@@ -2174,7 +2161,7 @@ void PeakDetect::markPossibleQuiet()
 
   // And again...
   PeakDetect::setQuietMedians(quietCandidates, clusters, 
-    intervals, compatibles);
+    intervals);
 
   PeakDetect::recalcClusters(quietCandidates, clusters);
 
@@ -2187,8 +2174,7 @@ void PeakDetect::markPossibleQuiet()
     clenOrig, period);
 
   // And again...
-  PeakDetect::setQuietMedians(quietCandidates, clusters, 
-    intervals, compatibles);
+  PeakDetect::setQuietMedians(quietCandidates, clusters, intervals);
 
   PeakDetect::recalcClusters(quietCandidates, clusters);
 
@@ -2202,13 +2188,31 @@ void PeakDetect::markPossibleQuiet()
     KMEANS_CLUSTERS, true);
 
   // And again...
-  PeakDetect::setQuietMedians(quietCandidates, clusters, 
-    intervals, compatibles);
+  PeakDetect::setQuietMedians(quietCandidates, clusters, intervals);
 
   PeakDetect::printQuietClusters(quietCandidates, clusters, false);
 
   cout << "Reclustered\n";
   PeakDetect::printSelectClusters(clusters, period);
+
+  // Compatible clusters have no overlaps.
+  compatibles.clear();
+  compatibles.resize(clusters.size());
+
+/* */
+  PeakDetect::findCompatibles(intervals, compatibles);
+
+  cout << "Compatible" << endl;
+  for (unsigned cno = 0; cno < compatibles.size(); cno++)
+  {
+    cout << cno << ":";
+    for (auto i: compatibles[cno])
+      cout << " " << i;
+    cout << "\n";
+  }
+  cout << endl;
+/* */
+
 
   quietFavorite = bestCluster;
   // quietFavorite = maxIndex;
@@ -2222,7 +2226,9 @@ void PeakDetect::reduceNew()
 
 PeakDetect::reduceSmallRanges(scalesList.getRange() / 10.f);
 
+cout << "start markPQ" << endl;
 PeakDetect::markPossibleQuiet();
+cout << "end markPQ" << endl;
 
   /*
   PeakDetect::eliminatePositiveMinima();

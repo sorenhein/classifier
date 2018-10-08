@@ -1,21 +1,55 @@
 Cleaning up clusters
 --------------------
-Look for other intervals with the right length
-See whether they would fit with the right period into this cluster
-Move the ones we want
-Pout on too-long gaps (smaller ones are OK)
+Final clean-up of clusters
 
-Look for intervals with len = period
-Move them into a list
-Sort the list
-Look for seamless pieces
-Pout on too-long gaps (a little)
+Score of a list of intervals
+- For each interval, the lower of scores of neighbors
+- OK to skip partially overlapping interval on the way to a neighbor
+- Score = sum of squared distances using the period (closest multiple)
 
-Sort the remaining ones.
-Try to anchor the remaining ones to the winner.
-So find the abutting or overlapping piece to an interval.
-Look where the other pieces ought to be.
-Put them in a "cluster".
+- Score of moving one or more intervals
+  - Moving one out reduces score by own score, potentially neighbor scores
+    change as well (or even go away)
+  - Moving one in adds own score, potentially changes neighbor scores
+  - Must never overlap in new cluster
+  - An interval with a single entry is special
+
+Keep an overall deviation level for the whole set of interval lists.
+
+Iterate until done or at most 3 iterations:
+- Move singles, and intervals > 3 periods from closest neighbor, 
+  and intervals > 5 median deviations, to catch-up list.
+  Somehow avoid moving the one we want to keep, i.e. have an idea of
+  the periodic raster in the list.  Actually this is built in.
+  First mark all the period matches, only consider moving singles outside of this.
+- Move catch-ups to list if < 2 median deviations.
+  Take smallest absolute deviation if multiple candidates.
+- Move from smaller to larger if < 2 deviations in larger list
+
+
+What if the two are similar, but we want bigger clusters in that case?
+If the score is within the twice median deviation on both sides, prefer the
+larger cluster?
+
+
+- If two clusters are completely compatible
+  - Look at score of merging them
+- 
+
+- Move intervals out that are not periodic
+- Move intervals in that are periodic
+- Recalculate dnorm etc
+
+- Clusters should not have duplicates, other than cluster[9]
+  - Use periodicity to find the problems
+  - Move the aperiodic ones out
+- Completely compatible clusters
+  - Start from largest clusters down (no dupes only)
+  - Test for periodicity of each entry from the shorter into the longer one
+- Splitting clusters
+  - Start from largest clusters down (no dupes only)
+  - Look at small clusters and individual intervals
+- Short clusters with length > 1.1 period: Delete
 
 Look at each of the plausible "stories".
 dnorm is a factor.

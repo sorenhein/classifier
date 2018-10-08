@@ -23,7 +23,8 @@ Timer.obj: Timer.h
 Timers.obj: Timers.h Timer.h
 Trace.obj: Trace.h SegTransient.h struct.h SegQuiet.h SegActive.h
 Trace.obj: Median/median.h PeakDetect.h Peak.h Timers.h Timer.h read.h
-TraceDB.obj: TraceDB.h struct.h Database.h Clusters.h Align.h read.h
+TraceDB.obj: TraceDB.h struct.h Database.h Clusters.h Align.h Except.h
+TraceDB.obj: errors.h read.h
 args.obj: args.h struct.h
 read.obj: Database.h Clusters.h struct.h TraceDB.h read.h
 print.obj: print.h Database.h Clusters.h struct.h
