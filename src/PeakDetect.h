@@ -136,6 +136,11 @@ class PeakDetect
       float minLevel;
       unsigned clusterNo;
 
+      unsigned scoreLeft;
+      unsigned scoreRight;
+      unsigned scoreLowest;
+      bool fitsPeriodFlag;
+
       Period()
       {
         start = 0;
@@ -417,6 +422,27 @@ class PeakDetect
       const list<Period>& quiets,
       vector<PeriodCluster>& clusters,
       const unsigned cno);
+
+    unsigned intervalDistance(
+      const Period * int1,
+      const Period * int2,
+      const unsigned period) const;
+
+    void labelIntervalLists(
+      vector<vector<Period *>>& intervals,
+      const unsigned period);
+
+    bool matchesIntervalList(
+      const vector<Period *>& cint,
+      const Period * interval,
+      const unsigned period,
+      unsigned& matchingPos,
+      unsigned& matchingDist) const;
+
+    void purifyIntervalLists(
+      vector<PeriodCluster>& clusters,
+      vector<vector<Period *>>& intervals,
+      const unsigned period);
 
     void setQuietMedians(
       list<Period>& quiets,

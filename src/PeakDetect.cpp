@@ -1673,6 +1673,194 @@ unsigned PeakDetect::promisingCluster(
 }
 
 
+unsigned PeakDetect::intervalDistance(
+  const Period * int1,
+  const Period * int2,
+  const unsigned period) const
+{
+  // int2 comes after int1
+  int deltaLeft = static_cast<int>(int2->start) - static_cast<int>(int1->start);
+  int deltaRight = deltaLeft + 
+    static_cast<int>(int2->len) - static_cast<int>(int1->len);
+
+  float numPeriods = deltaLeft / static_cast<float>(period);
+  int intNumPeriods = static_cast<int>(numPeriods + 0.5f);
+
+  int diff1 = (deltaLeft - intNumPeriods * period);
+  int diff2 = (deltaRight - intNumPeriods * period);
+  return static_cast<unsigned>(diff1 * diff1 + diff2 * diff2);
+}
+
+
+void PeakDetect::labelIntervalLists(
+  vector<vector<Period *>>& intervals,
+  const unsigned period)
+{
+  const unsigned lc = intervals.size();
+
+  // (period/10)^2 times two, as both left and right points are counted.
+  const unsigned oneDeviation = period * period / 50;
+
+  for (unsigned cno = 0; cno < lc; cno++)
+  {
+    auto& cint = intervals[cno];
+
+    for (unsigned i = 0; i < cint.size(); i++)
+    {
+      if (i == 0)
+        cint[i]->scoreLeft = numeric_limits<unsigned>::max();
+      else
+        cint[i]->scoreLeft = cint[i-1]->scoreRight;
+
+      if (i == cint.size()-1)
+        cint[i]->scoreRight = numeric_limits<unsigned>::max();
+      else
+        cint[i]->scoreRight = PeakDetect::intervalDistance(
+          cint[i], cint[i+1], period);
+
+      cint[i]->scoreLowest = min(cint[i]->scoreLeft, cint[i]->scoreRight);
+
+      if (cint[i]->scoreLowest < oneDeviation)
+        cint[i]->fitsPeriodFlag = true;
+      else
+        cint[i]->fitsPeriodFlag = false;
+    }
+  }
+}
+
+
+bool PeakDetect::matchesIntervalList(
+  const vector<Period *>& cint,
+  const Period * interval,
+  const unsigned period,
+  unsigned& matchingPos,
+  unsigned& matchingDist) const
+{
+  const unsigned lc = cint.size();
+  if (lc == 0)
+    return false;
+
+  // (period/10)^2 times two, as both left and right points are counted.
+  const unsigned oneDeviation = period * period / 50;
+  
+  if (interval->start + interval->len <= cint[0]->start)
+  {
+    matchingPos = 0; // Before the current 0
+    matchingDist = PeakDetect::intervalDistance(interval, cint[0], period);
+    return (matchingDist < oneDeviation);
+  }
+  else if (interval->start < cint[0]->start + cint[0]->len)
+    return false;
+
+  if (interval->start >= cint.back()->start + cint.back()->len)
+  {
+    matchingPos = lc; // Before the current end()
+    matchingDist = PeakDetect::intervalDistance(&*cint.back(), interval, period);
+    return (matchingDist < oneDeviation);
+  }
+  else if (interval->start + interval->len > cint.back()->start)
+    return false;
+
+  for (unsigned i = 1; i < lc; i++)
+  {
+    if (interval->start >= cint[i-1]->start + cint[i-1]->len &&
+        interval->start + interval->len <= cint[i]->start)
+    {
+      matchingPos = i;
+      const unsigned d1 = PeakDetect::intervalDistance(
+        cint[i-1], interval, period);
+      const unsigned d2 = PeakDetect::intervalDistance(
+        interval, cint[i], period);
+      matchingDist = min(d1, d2);
+      return (matchingDist < oneDeviation);
+    }
+  }
+  return false;
+}
+
+
+void PeakDetect::purifyIntervalLists(
+  vector<PeriodCluster>& clusters,
+  vector<vector<Period *>>& intervals,
+  const unsigned period)
+{
+  // Make a catch-all cluster
+  intervals.push_back(vector<Period *>());
+
+  clusters.push_back(PeriodCluster());
+  const unsigned cNewNo = clusters.size()-1;
+
+  // Move all aperiodic ones
+  for (unsigned cno = 0; cno < cNewNo; cno++)
+  {
+    vector<Period *>& cint = intervals[cno];
+    for (auto it = cint.begin(); it != cint.end(); )
+    {
+      if ((*it)->fitsPeriodFlag)
+      {
+        it++;
+        continue;
+      }
+
+      // For each aperiodic interval of each cluster,
+      // look at other clusters
+      bool matchedFlag = false;
+      unsigned bestCluster = 0;
+      auto bestNo = 0;
+      unsigned bestDistance = numeric_limits<unsigned>::max();
+
+      for (unsigned dno = 0; dno < cNewNo; dno++)
+      {
+        if (dno == cno)
+          continue;
+
+        vector<Period *>& dint = intervals[dno];
+
+        // Check that the interval fits the cluster profile at all
+        const unsigned lref = clusters[dno].lenMedian;
+        const unsigned lstep = lref / 10;
+        if ((*it)->len + lstep < lref ||
+            (*it)->len > lref + lstep)
+          continue;
+
+        // Then look deeper within the cluster
+        unsigned matchingPos;
+        unsigned matchingDist;
+        if (matchesIntervalList(dint, * it, period,
+          matchingPos, matchingDist))
+        {
+          if (matchingDist < bestDistance)
+          {
+            matchedFlag = true;
+            bestCluster = dno;
+            bestNo = matchingPos;
+            bestDistance = matchingDist;
+          }
+        }
+      }
+
+      if (matchedFlag)
+      {
+        // Move to that cluster
+        intervals[bestCluster].insert(
+          intervals[bestCluster].begin() + bestNo,
+          * it);
+
+        (*it)->clusterNo = bestCluster;
+        it = cint.erase(it);
+      }
+      else
+      {
+        // Move to the catch-all cluster
+        intervals[cNewNo].push_back(*it);
+        (*it)->clusterNo = cNewNo;
+        it = cint.erase(it);
+      }
+    }
+  }
+}
+
+
 void PeakDetect::setQuietMedians(
   list<Period>& quiets,
   vector<PeriodCluster>& clusters,
