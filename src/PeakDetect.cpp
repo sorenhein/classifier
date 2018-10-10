@@ -2401,6 +2401,17 @@ void PeakDetect::markPossibleQuiet()
   cout << endl;
 /* */
 
+  PeakDetect::labelIntervalLists(intervals, period);
+
+  PeakDetect::purifyIntervalLists(clusters, intervals, period);
+
+  // And again...
+  PeakDetect::setQuietMedians(quietCandidates, clusters, intervals);
+
+  PeakDetect::printQuietClusters(quietCandidates, clusters, false);
+
+  cout << "Purified\n";
+  PeakDetect::printSelectClusters(clusters, period);
 
   quietFavorite = bestCluster;
   // quietFavorite = maxIndex;
