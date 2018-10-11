@@ -106,7 +106,7 @@ void printMotion(const vector<double>& motionEstimate)
       motionEstimate[2] << " m/s^2 = " <<
     setw(8) << motionEstimate[2] / G_FORCE << " g\n";
   
-  cout << "\n";
+  cout << endl;
 }
 
 

@@ -213,10 +213,15 @@ class PeakDetect
       bool good;
       unsigned count;
       unsigned periodDominant;
+      unsigned periodMedianDev;
+      unsigned periodLargestDev;
       unsigned numPeriodics;
       unsigned lenMedian;
       unsigned lenCloseCount;
+      unsigned lenMedianDev;
+      unsigned lenLargestDev;
       unsigned duplicates;
+      float depthAvg;
     };
 
     list<Period> quietCandidates;
@@ -247,7 +252,7 @@ class PeakDetect
     void logFirst(const vector<float>& samples);
     void logLast(const vector<float>& samples);
 
-    void collapsePeaks(
+    const list<Peak>::iterator collapsePeaks(
       const list<Peak>::iterator peak1,
       const list<Peak>::iterator peak2);
 

@@ -1,62 +1,20 @@
 Cleaning up clusters
 --------------------
-Final clean-up of clusters
+Prefer cluster according to score
+- 10 * depth
+- #per
+- minus (len / (0.6 * period))^2 * 10
+- Absolutely no duplicates
 
-Score of a list of intervals
-- For each interval, the lower of scores of neighbors
-- OK to skip partially overlapping interval on the way to a neighbor
-- Score = sum of squared distances using the period (closest multiple)
+Look graphically for misses
 
-- Score of moving one or more intervals
-  - Moving one out reduces score by own score, potentially neighbor scores
-    change as well (or even go away)
-  - Moving one in adds own score, potentially changes neighbor scores
-  - Must never overlap in new cluster
-  - An interval with a single entry is special
-
-Keep an overall deviation level for the whole set of interval lists.
-
-Iterate until done or at most 3 iterations:
-- Move singles, and intervals > 3 periods from closest neighbor, 
-  and intervals > 5 median deviations, to catch-up list.
-  Somehow avoid moving the one we want to keep, i.e. have an idea of
-  the periodic raster in the list.  Actually this is built in.
-  First mark all the period matches, only consider moving singles outside of this.
-- Move catch-ups to list if < 2 median deviations.
-  Take smallest absolute deviation if multiple candidates.
-- Move from smaller to larger if < 2 deviations in larger list
-
-
-What if the two are similar, but we want bigger clusters in that case?
-If the score is within the twice median deviation on both sides, prefer the
-larger cluster?
-
-
-- If two clusters are completely compatible
-  - Look at score of merging them
-- 
-
-- Move intervals out that are not periodic
-- Move intervals in that are periodic
-- Recalculate dnorm etc
-
-- Clusters should not have duplicates, other than cluster[9]
-  - Use periodicity to find the problems
-  - Move the aperiodic ones out
-- Completely compatible clusters
-  - Start from largest clusters down (no dupes only)
-  - Test for periodicity of each entry from the shorter into the longer one
-- Splitting clusters
-  - Start from largest clusters down (no dupes only)
-  - Look at small clusters and individual intervals
-- Short clusters with length > 1.1 period: Delete
-
-Look at each of the plausible "stories".
-dnorm is a factor.
-The average starting and ending peak is a factor:
-Should be spiky.
-If there are several, the one that's inside the other.
-
+Next stage: We need high-quality peaks in the open intervals.
+Probably need both the streamlined peaks and the original ones.
+Needs to be somewhat monotonic at the bottom.
+Need the same number in each interval as a rule (often 4).
+Then look in irregular internal intervals, using known spacings.
+Look at the end, using known spacings.
+Look at the beginning, messier.
 
 
 SmallRange doesn't quite work, #23/0, #24, #25, #33/0
@@ -93,17 +51,6 @@ Fill out the complicated pieces.
 
 2018-09-17
 ----------
-- Extract some key periodicity parameters
-  - Cluster neighbors (same parameters as single peaks, but two
-    together now in the distance measure), hoping to find a strong
-    signal for the bogeys.  Might be two clusters or even more.
-    - tentatively accepted bogeys
-  - For the tentative singles, look for neighbor peaks together with 
-    which they would fit a bogey cluster?
-    - Look everywhere except in rejected.  Early only if it makes
-      quantitative sense (how?)
-  - Drop remaining singles except at the beginning and end
-  
 
 PeakStats: 
 log the category (train or sensor).
@@ -165,3 +112,4 @@ Overall algorithm
   - Also add timers
 * Float (Accel) to double everywhere
 * Simpson integration?
+* Deconvolution of a "wheel response"?

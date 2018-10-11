@@ -60,7 +60,7 @@ void PeakStats::logSeenMatch(
     matchedTrueFront[matchNoTrue].good++;
     matchedTrueFront[matchNoTrue].len++;
   }
-  else if (matchNoTrue >= lenTrue-1-END_COUNT)
+  else if (matchNoTrue + (END_COUNT+1) > lenTrue)
   {
     matchedTrueBack[lenTrue-1-matchNoTrue].good++;
     matchedTrueBack[lenTrue-1-matchNoTrue].len++;
@@ -97,7 +97,7 @@ void PeakStats::logTrueReverseMatch(
     matchedTrueFront[matchNoTrue].reverse++;
     matchedTrueFront[matchNoTrue].len++;
   }
-  else if (matchNoTrue >= lenTrue-1-END_COUNT)
+  else if (matchNoTrue + (END_COUNT+1) > lenTrue)
   {
     matchedTrueBack[lenTrue-1-matchNoTrue].reverse++;
     matchedTrueBack[lenTrue-1-matchNoTrue].len++;
@@ -124,7 +124,7 @@ void PeakStats::logTrueReverseMiss(
     matchedTrueFront[matchNoTrue].len++;
     statsTrue[PEAK_TRUE_TOO_EARLY].len++;
   }
-  else if (matchNoTrue >= lenTrue-1-END_COUNT)
+  else if (matchNoTrue + (END_COUNT+1) > lenTrue)
   {
     matchedTrueBack[lenTrue-1-matchNoTrue].len++;
     statsTrue[PEAK_TRUE_TOO_LATE].len++;

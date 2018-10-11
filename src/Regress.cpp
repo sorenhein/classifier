@@ -134,7 +134,7 @@ printMatches(db, matches);
   {
     cout << "Regression alignment\n";
     printAlignment(bestAlign, db.lookupTrainName(bestAlign.trainNo));
-    cout << "\n";
+    cout << endl;
   }
 
   if (control.verboseRegressMotion)

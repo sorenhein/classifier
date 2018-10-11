@@ -145,8 +145,10 @@ void Trace::detect(const Control& control)
 
   if (control.verboseTransientMatch)
     cout << transient.str() << "\n";
+cout << "det6" << endl;
 
   (void) segActive.detect(samples, intAfterFront);
+cout << "det7" << endl;
 }
 
 

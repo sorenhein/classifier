@@ -226,13 +226,16 @@ void PeakDetect::log(
 }
 
 
-void PeakDetect::collapsePeaks(
+const list<Peak>::iterator PeakDetect::collapsePeaks(
   const list<Peak>::iterator peak1,
   const list<Peak>::iterator peak2)
 {
   // Analogous to list.erase(), peak1 does not survive, while peak2 does.
+if (peak2 == peaks.end())
+  cout << "ERROR HOPPLA" << endl;
+
   if (peak1 == peak2)
-    return;
+    return peak2;
 
   // Need same polarity.
   if (peak1->getMaxFlag() != peak2->getMaxFlag())
@@ -245,7 +248,7 @@ void PeakDetect::collapsePeaks(
 
   peak2->update(peak0, peakN);
 
-  peaks.erase(peak1, peak2);
+  return peaks.erase(peak1, peak2);
 }
 
 
@@ -262,26 +265,9 @@ const list<Peak>::iterator PeakDetect::collapsePeaksNew(
   Peak * peakN = 
     (next(peak2) == peaksNew.end() ? nullptr : &*next(peak2));
 
-/*
-if (peak1->getIndex()+offset == 0 &&
-    peak2->getIndex()+offset == 23)
-{
-  cout << "About to fail? " << endl;
-}
-*/
   peak2->update(peak0, peakN);
 
-if (peak1->getIndex()+offset == 0 &&
-    peak2->getIndex()+offset == 23)
-  cout << "Updated" << endl;
-
   return peaksNew.erase(peak1, peak2);
-
-/*
-if (peak1->getIndex()+offset == 0 &&
-    peak2->getIndex()+offset == 23)
-  cout << "Erased" << endl;
-  */
 }
 
 
@@ -343,7 +329,7 @@ void PeakDetect::reduceSmallRanges(const float rangeLimit)
     else if (peak->getMaxFlag() != maxFlag)
     {
       // Keep from peakCurrent to peak which is also often peakMax.
-      PeakDetect::collapsePeaksNew(--peakCurrent, peak);
+      peak = PeakDetect::collapsePeaksNew(--peakCurrent, peak);
       peak++;
     }
     else
@@ -359,8 +345,8 @@ cout << peakMax->str(offset);
 cout << peak->str(offset);
 */
 
-      PeakDetect::collapsePeaks(--peakCurrent, peakMax);
-      PeakDetect::collapsePeaks(++peakMax, peak);
+      peakMax = PeakDetect::collapsePeaksNew(--peakCurrent, peakMax);
+      peak = PeakDetect::collapsePeaksNew(++peakMax, peak);
       peak++;
     }
   }
@@ -372,7 +358,6 @@ void PeakDetect::reduceSmallAreas(const float areaLimit)
   if (peaks.empty())
     THROW(ERR_NO_PEAKS, "Peak list is empty");
 
-  const auto peakLast = prev(peaks.end());
   auto peak = next(peaks.begin());
 
   while (peak != peaks.end())
@@ -424,7 +409,7 @@ void PeakDetect::reduceSmallAreas(const float areaLimit)
     else if (peak->getMaxFlag() != maxFlag)
     {
       // Keep from peakCurrent to peak which is also often peakMax.
-      PeakDetect::collapsePeaks(--peakCurrent, peak);
+      peak = PeakDetect::collapsePeaks(--peakCurrent, peak);
       peak++;
     }
     else
@@ -440,8 +425,8 @@ cout << peakMax->str(offset);
 cout << peak->str(offset);
 */
 
-      PeakDetect::collapsePeaks(--peakCurrent, peakMax);
-      PeakDetect::collapsePeaks(++peakMax, peak);
+      peakMax = PeakDetect::collapsePeaks(--peakCurrent, peakMax);
+      peak = PeakDetect::collapsePeaks(++peakMax, peak);
       peak++;
     }
   }
@@ -450,27 +435,34 @@ cout << peak->str(offset);
 
 void PeakDetect::eliminateKinks()
 {
-  if (peaks.empty())
-    THROW(ERR_NO_PEAKS, "Peak list is empty");
+  if (peaks.size() < 4)
+    THROW(ERR_NO_PEAKS, "Peak list is short");
 
   for (auto peak = next(peaks.begin(), 2); 
-      peak != prev(peaks.end()); peak++)
+      peak != prev(peaks.end()); )
   {
+// cout << "peak " << peak->getIndex() << " count " << peaks.size() <<
+  // endl;
     const auto peakPrev = prev(peak);
     const auto peakPrevPrev = prev(peakPrev);
     const auto peakNext = next(peak);
 
+    const float areaPrev = peak->getArea(* peakPrev);
+    if (areaPrev == 0.f)
+      THROW(ERR_ALGO_PEAK_COLLAPSE, "Zero area");
+
     const float ratioPrev = 
-      peakPrev->getArea(* peakPrevPrev) / peak->getArea(* peakPrev);
-    const float ratioNext = 
-      peakNext->getArea(* peak) / peak->getArea(* peakPrev);
+      peakPrev->getArea(* peakPrevPrev) / areaPrev;
+    const float ratioNext = peakNext->getArea(* peak) / areaPrev;
 
     if (ratioPrev > 1.f && 
         ratioNext > 1.f &&
         ratioPrev * ratioNext > KINK_RATIO)
     {
-      PeakDetect::collapsePeaks(peakPrev, peakNext);
+      peak = PeakDetect::collapsePeaks(peakPrev, peakNext);
     }
+    else
+      peak++;
   }
 }
 
@@ -587,7 +579,6 @@ void PeakDetect::pickStartingClustersQuiet(
       break;
   }
 }
-
 
 
 void PeakDetect::runKmeansOnce(vector<PeakCluster>& clusters)
@@ -1001,6 +992,8 @@ PeakType PeakDetect::classifyPeak(
   const vector<PeakCluster>& clusters) const
 {
   const unsigned c = peak.getCluster();
+if (c >= clusters.size())
+  cout << "HOPPLA13" << endl;
   const float m = peak.measure();
 
   if (clusters[c].good)
@@ -1034,6 +1027,8 @@ void PeakDetect::countClusters(vector<PeakCluster>& clusters)
       continue;
     
     const unsigned c = peak.getCluster();
+if (c >= clusters.size())
+  cout << "HOPPLA12" << endl;
     const float m = peak.measure(scalesList);
     clusters[c].len++;
     if (m <= MEASURE_CUTOFF)
@@ -1784,11 +1779,13 @@ void PeakDetect::purifyIntervalLists(
   vector<vector<Period *>>& intervals,
   const unsigned period)
 {
+cout << "start purify" << endl;
   // Make a catch-all cluster
   intervals.push_back(vector<Period *>());
 
   clusters.push_back(PeriodCluster());
   const unsigned cNewNo = clusters.size()-1;
+cout << "start purify loop" << endl;
 
   // Move all aperiodic ones
   for (unsigned cno = 0; cno < cNewNo; cno++)
@@ -1796,12 +1793,6 @@ void PeakDetect::purifyIntervalLists(
     vector<Period *>& cint = intervals[cno];
     for (auto it = cint.begin(); it != cint.end(); )
     {
-      if ((*it)->fitsPeriodFlag)
-      {
-        it++;
-        continue;
-      }
-
       // For each aperiodic interval of each cluster,
       // look at other clusters
       bool matchedFlag = false;
@@ -1811,8 +1802,15 @@ void PeakDetect::purifyIntervalLists(
 
       for (unsigned dno = 0; dno < cNewNo; dno++)
       {
-        if (dno == cno)
+        if (dno == cno || intervals[dno].size() == 0)
           continue;
+
+        if ((*it)->fitsPeriodFlag &&
+          cint.size() > intervals[dno].size())
+        {
+          // Only move periodic entries to larger lists.
+          break;
+        }
 
         vector<Period *>& dint = intervals[dno];
 
@@ -1841,6 +1839,10 @@ void PeakDetect::purifyIntervalLists(
 
       if (matchedFlag)
       {
+cout << "match0 move from cluster " << 
+  cno << " to " << bestCluster << ", interval " <<
+  (*it)->start + offset << ", dist " << bestDistance << endl;
+
         // Move to that cluster
         intervals[bestCluster].insert(
           intervals[bestCluster].begin() + bestNo,
@@ -1849,13 +1851,18 @@ void PeakDetect::purifyIntervalLists(
         (*it)->clusterNo = bestCluster;
         it = cint.erase(it);
       }
-      else
+      else if ((*it)->fitsPeriodFlag == false)
       {
+cout << "match1 move from cluster " << 
+  cno << " to catch-all " << cNewNo << ", interval " <<
+  (*it)->start + offset << ", dist " << bestDistance << endl;
         // Move to the catch-all cluster
         intervals[cNewNo].push_back(*it);
         (*it)->clusterNo = cNewNo;
         it = cint.erase(it);
       }
+      else
+        it++;
     }
   }
 }
@@ -1866,17 +1873,18 @@ void PeakDetect::setQuietMedians(
   vector<PeriodCluster>& clusters,
   vector<vector<Period *>>& intervals)
 {
-  const unsigned lc = clusters.size();
+  const unsigned numCl = clusters.size();
 
   vector<vector<unsigned>> lengths;
-  lengths.resize(lc);
-  vector<vector<unsigned>> spacings(lc);
-  vector<Period *> qprev(lc, nullptr);
+  lengths.resize(numCl);
+  vector<vector<unsigned>> spacings(numCl);
+  vector<Period *> qprev(numCl, nullptr);
+  vector<float> depthSum(numCl);
 
   intervals.clear();
-  intervals.resize(lc);
+  intervals.resize(numCl);
 
-  for (unsigned cno = 0; cno < lc; cno++)
+  for (unsigned cno = 0; cno < numCl; cno++)
   {
     clusters[cno].lenCloseCount = 0;
     clusters[cno].count = 0;
@@ -1885,6 +1893,8 @@ void PeakDetect::setQuietMedians(
   for (auto qc = quiets.begin(); qc != quiets.end(); qc++)
   {
     const unsigned cno = qc->clusterNo;
+if (cno >= numCl)
+  cout << "HOPPLA10" << endl;
     clusters[cno].count++;
     lengths[cno].push_back(qc->len);
     intervals[cno].push_back(&*qc);
@@ -1895,6 +1905,8 @@ void PeakDetect::setQuietMedians(
         spacings[cno].push_back(qc->start - qprev[cno]->start);
     }
 
+    depthSum[cno] += qc->depth;
+
     qprev[cno] = &*qc;
   }
 
@@ -1902,24 +1914,46 @@ void PeakDetect::setQuietMedians(
   // Count instances where an end point occurs twice.  This is a bad
   // sign for the quality of a cluster.
   // TODO Use intervals for speed.
-  for (unsigned cno = 0; cno < clusters.size(); cno++)
+  for (unsigned cno = 0; cno < numCl; cno++)
     clusters[cno].duplicates = 
       PeakDetect::countDuplicateUses(quiets, cno);
 
   // More statistics.
-  for (unsigned cno = 0; cno < clusters.size(); cno++)
+  for (unsigned cno = 0; cno < numCl; cno++)
   {
-    if (lengths[cno].size() == 0)
+    const unsigned lc = lengths[cno].size();
+    if (lc == 0)
     {
       clusters[cno].lenMedian = 0;
       clusters[cno].lenCloseCount = 0;
+      clusters[cno].lenMedianDev = 0;
+      clusters[cno].lenLargestDev = 0;
+      clusters[cno].periodMedianDev = 0;
+      clusters[cno].periodLargestDev = 0;
       continue;
     }
 
-    unsigned n = lengths[cno].size() / 2;
+    unsigned n = lc / 2;
     nth_element(lengths[cno].begin(), lengths[cno].begin()+n, 
       lengths[cno].end());
     clusters[cno].lenMedian = lengths[cno][n];
+
+    // Each cluster on its own.
+    PeakDetect::estimatePeriodicity(spacings[cno], 
+      clusters[cno].periodDominant, clusters[cno].numPeriodics);
+
+    vector<unsigned> lengthDev;
+    for (auto l: lengths[cno])
+    {
+      if (l >= clusters[cno].lenMedian)
+        lengthDev.push_back(l - clusters[cno].lenMedian);
+      else
+        lengthDev.push_back(clusters[cno].lenMedian - l);
+    }
+
+    sort(lengthDev.begin(), lengthDev.end());
+    clusters[cno].lenMedianDev = lengthDev[n];
+    clusters[cno].lenLargestDev = lengthDev.back();
 
     // TODO: #define.  Just a rough number.
     for (unsigned l: lengths[cno])
@@ -1930,27 +1964,26 @@ void PeakDetect::setQuietMedians(
         clusters[cno].lenCloseCount++;
       }
     }
+
+    vector<unsigned> periodDev;
+    const unsigned ls = spacings[cno].size();
+    if (ls == 0)
+      continue;
+
+    for (auto s: spacings[cno])
+    {
+      if (s >= clusters[cno].periodDominant)
+        periodDev.push_back(s - clusters[cno].periodDominant);
+      else
+        periodDev.push_back(clusters[cno].periodDominant - s);
+    }
+
+    sort(periodDev.begin(), periodDev.end());
+    clusters[cno].periodMedianDev = periodDev[n];
+    clusters[cno].periodLargestDev = periodDev.back();
+
+    clusters[cno].depthAvg = depthSum[cno] / ls;
   }
-
-  // Each cluster on its own.
-  vector<unsigned> periods(lc), matches(lc);
-  for (unsigned cno = 0; cno < clusters.size(); cno++)
-    PeakDetect::estimatePeriodicity(spacings[cno], 
-      clusters[cno].periodDominant, clusters[cno].numPeriodics);
-
-/*
-  // Pool the results of each cluster.
-  vector<unsigned> spacingsAll;
-  for (unsigned cno = 0; cno < clusters.size(); cno++)
-  {
-    spacingsAll.insert(spacingsAll.end(),
-      spacings[cno].begin(), spacings[cno].end());
-  }
-
-  unsigned numPer;
-  PeakDetect::estimatePeriodicity(spacingsAll, period, numPer);
-  cout << "Synthetic period: " << period << endl;
-*/
 
 }
 
@@ -1965,6 +1998,8 @@ void PeakDetect::moveIntervalsWithLength(
   vector<Period *>& cnew = intervals.back();
 
   clusters.push_back(PeriodCluster());
+if (clusters.size() == 0)
+  cout << "HOPPLA9" << endl;
   const unsigned cNewNo = clusters.size()-1;
 
   for (unsigned cno = 0; cno < clenOrig; cno++)
@@ -2115,6 +2150,9 @@ void PeakDetect::findFillers(
   const unsigned clen,
   const unsigned cfill)
 {
+if (clen > intervals.size() || cfill >= intervals.size())
+  cout << "HOPPLA8" << endl;
+
   vector<Period> hypints;
   PeakDetect::hypothesizeIntervals(intervals[cfill],
     period, clusterSampleLen, lastSampleNo, hypints);
@@ -2189,6 +2227,8 @@ void PeakDetect::recalcCluster(
 
   if (no > 0)
   {
+if (no >= clusters.size())
+  cout << "HOPPLA6" << endl;
     centroid /= no;
     clusters[cno].centroid = centroid;
   }
@@ -2282,22 +2322,11 @@ void PeakDetect::markPossibleQuiet()
   nth_element(lengths.begin(), lengths.begin()+n, lengths.end());
   const float median = static_cast<float>(lengths[n]);
 
-  /*
-  for (auto& qc: quietCandidates)
-  {
-    qc.lenScaled = qc.len / median;
-    cout << qc.start + offset << 
-      " len " << qc.len << " to " << qc.start + offset + qc.len <<
-      " depth " << qc.depth << endl;
-  }
-  */
-
   vector<PeriodCluster> clusters;
   clusters.resize(KMEANS_CLUSTERS);
   PeakDetect::runKmeansOnceQuiet(quietCandidates, clusters, 
     KMEANS_CLUSTERS, false);
   PeakDetect::printQuietClusters(quietCandidates, clusters, false);
-
 
   float maxDepth = 0.f;
   unsigned maxIndex = 0;
@@ -2387,7 +2416,6 @@ void PeakDetect::markPossibleQuiet()
   compatibles.clear();
   compatibles.resize(clusters.size());
 
-/* */
   PeakDetect::findCompatibles(intervals, compatibles);
 
   cout << "Compatible" << endl;
@@ -2399,7 +2427,6 @@ void PeakDetect::markPossibleQuiet()
     cout << "\n";
   }
   cout << endl;
-/* */
 
   PeakDetect::labelIntervalLists(intervals, period);
 
@@ -2448,6 +2475,12 @@ cout << "end markPQ" << endl;
 
 void PeakDetect::reduce()
 {
+if (peaks.size() == 0)
+  return;
+
+cout << "peak address " << &peaks << endl;
+cout << "quiet address " << &quietCandidates << endl;
+cout << "pred0" << endl;
   const bool debug = true;
   const bool debugDetails = false;
 
@@ -2456,6 +2489,7 @@ void PeakDetect::reduce()
     cout << "Original peaks: " << peaks.size() << "\n";
     PeakDetect::print();
   }
+cout << "pred1" << endl;
 
   PeakDetect::reduceSmallAreas(0.1f);
   if (debugDetails)
@@ -2463,14 +2497,17 @@ void PeakDetect::reduce()
     cout << "Non-tiny list peaks: " << peaks.size() << "\n";
     PeakDetect::print();
   }
+cout << "pred2" << endl;
 
 
   PeakDetect::eliminateKinks();
+cout << "pred2a" << endl;
   if (debugDetails)
   {
     cout << "Non-kinky list peaks: " << peaks.size() << "\n";
     PeakDetect::print();
   }
+cout << "pred3" << endl;
 
   PeakDetect::estimateScales();
   if (debug)
@@ -2478,8 +2515,9 @@ void PeakDetect::reduce()
     cout << "Scale list\n";
     cout << scalesList.str(0) << endl;
   }
+cout << "pred4" << endl;
 
-reduceNew();
+  reduceNew();
 
   const float scaledCutoffList = AREA_CUTOFF * scalesList.getArea();
   if (debug)
@@ -2492,10 +2530,13 @@ reduceNew();
     PeakDetect::print();
     cout << endl;
   }
+cout << "pred5" << endl;
 
   vector<PeakCluster> clusters;
   PeakDetect::runKmeansOnce(clusters);
+cout << "pred6" << endl;
   PeakDetect::countClusters(clusters);
+cout << "pred7" << endl;
 
   if (! PeakDetect::getConvincingClusters(clusters))
   {
@@ -2503,6 +2544,7 @@ reduceNew();
     cout << "No convincing clusters found\n";
     return;
   }
+cout << "pred8" << endl;
 
   if (debug)
     PeakDetect::printClusters(clusters, debugDetails);
@@ -2537,6 +2579,7 @@ reduceNew();
     peak.logType(ptype);
   }
 
+cout << "pred9" << endl;
   // Fix the early and late peaks to different types.
   for (auto& peak: peaks)
   {
@@ -2549,6 +2592,7 @@ reduceNew();
     else if (peak.getIndex() > lastTentativeIndex)
       peak.logType(PEAK_TRANS_BACK);
   }
+cout << "pred10" << endl;
 
   cout << numCandidates << " candidate peaks" << endl;
   if (numTentatives == 0)
@@ -2600,6 +2644,8 @@ void PeakDetect::logPeakStats(
       const PeakType pt = peak.getType();
       if (m >= 0)
       {
+if (m >= static_cast<int>(posTrue.size()))
+  cout << "HOPPLA5" << endl;
         peakStats.logSeenMatch(static_cast<unsigned>(m), lt, pt);
         if (seenTrue[m] && debug)
           cout << "Already saw true peak " << m << endl;
@@ -2650,7 +2696,7 @@ void PeakDetect::makeSynthPeaks(vector<float>& synthPeaks) const
 
   // PeakDetect::makeSynthPeaksSharp(synthPeaks);
 
-  PeakDetect::makeSynthPeaksQuietNew(synthPeaks);
+//PeakDetect::makeSynthPeaksQuietNew(synthPeaks);
 
   // PeakDetect::makeSynthPeaksLines(synthPeaks);
 
@@ -2895,6 +2941,8 @@ void PeakDetect::printClustersDetail(
     ss << endl;
 
     const unsigned c = peak.getCluster();
+if (c >= clusters.size())
+  cout << "HOPPLA4" << endl;
     ccount[c]++;
     ctext[c] += ss.str();
   }
@@ -2949,6 +2997,8 @@ void PeakDetect::printClustersSharpDetail(
 
   for (auto& sharp: sharps)
   {
+if (sharp.clusterNo >= clusters.size())
+  cout << "HOPPLA3" << endl;
     double m = 
       sharp.distance(clusters[sharp.clusterNo].centroid, sharpScale);
 
@@ -3016,6 +3066,8 @@ void PeakDetect::printClustersQuietDetail(
 
   for (auto& quiet: quiets)
   {
+if (quiet.clusterNo >= clusters.size())
+  cout << "HOPPLA2" << endl;
     double m = 
       quiet.distance(clusters[quiet.clusterNo].centroid);
 
@@ -3077,11 +3129,16 @@ void PeakDetect::printSelectClusters(
   cout << "Cluster select scores: period " << period << "\n";
   cout << setw(2) << "No" << 
     setw(6) << "Len" <<
-    setw(6) << "Count" <<
-    setw(6) << "Lno" <<
+    setw(4) << "#" <<
+    setw(4) << "Lno" <<
+    setw(4) << "Ls" <<
+    setw(6) << "Lmax" <<
     setw(6) << "Per" <<
+    setw(6) << "Ps" <<
+    setw(6) << "Pmax" <<
     setw(6) << "#per" <<
-    setw(6) << "Dupes" << endl;
+    setw(6) << "Dupes" <<
+    setw(6) << "Depth" << endl;
 
   for (unsigned i = 0; i < clusters.size(); i++)
   {
@@ -3091,11 +3148,16 @@ void PeakDetect::printSelectClusters(
 
     cout << setw(2) << right << i <<
       setw(6) << c.lenMedian <<
-      setw(6) << c.count <<
-      setw(6) << c.lenCloseCount <<
+      setw(4) << c.count <<
+      setw(4) << c.lenCloseCount <<
+      setw(4) << c.lenMedianDev <<
+      setw(6) << c.lenLargestDev <<
       setw(6) << c.periodDominant <<
+      setw(6) << c.periodMedianDev <<
+      setw(6) << c.periodLargestDev <<
       setw(6) << c.numPeriodics <<
-      setw(6) << c.duplicates << endl;
+      setw(6) << c.duplicates << 
+      setw(6) << fixed << setprecision(2) << c.depthAvg << endl;
   }
 }
 
