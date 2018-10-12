@@ -136,54 +136,37 @@ int main(int argc, char * argv[])
       const int trainNoTrue = db.lookupTrainNumber(trainTrue);
       vector<PeakPos> posTrue;
       db.getPerfectPeaks(trainNoTrue, posTrue);
-cout << "Wil try" << endl;
       
       try
       {
-cout << "try1" << endl;
         trace.read(fname, true);
-cout << "try2" << endl;
         trace.detect(control);
-cout << "try3" << endl;
         trace.logPeakStats(posTrue, trainTrue, speedTrue, peakStats);
-cout << "try4" << endl;
         trace.write(control);
-cout << "try5" << endl;
 
         trace.getTrace(times);
-cout << "try6" << endl;
         align.bestMatches(times, db, country, 10, control, matchesAlign);
-cout << "try7" << endl;
 
 
         if (matchesAlign.size() == 0)
         {
-cout << "try8a" << endl;
           traceDB.log(fname, matchesAlign, times.size());
-cout << "try9a" << endl;
           traceDB.log(fname, matchesAlign, times.size());
-cout << "try10a" << endl;
           sensorStats.log(sensor, 10, 1000.);
-cout << "try11a" << endl;
           trainStats.log(trainTrue, 10, 1000.);
-cout << "try12a" << endl;
           continue;
         }
 
-cout << "try8b" << endl;
         regress.bestMatch(times, db, order, control, matchesAlign,
           bestAlign, motionEstimate);
 
-cout << "try9b" << endl;
         traceDB.log(fname, matchesAlign, times.size());
 
         const string trainDetected = db.lookupTrainName(bestAlign.trainNo);
         const unsigned rank = lookupMatchRank(db, matchesAlign, trainTrue);
-cout << "try10b" << endl;
 
         sensorStats.log(sensor, rank, bestAlign.distMatch);
         trainStats.log(trainTrue, rank, bestAlign.distMatch);
-cout << "try11b" << endl;
       }
       catch (Except& ex)
       {

@@ -454,6 +454,10 @@ class PeakDetect
       vector<PeriodCluster>& clusters,
       vector<vector<Period *>>& intervals);
 
+    unsigned estimateQuietCluster(
+      const vector<PeriodCluster>& clusters,
+      const unsigned period) const;
+
     void makeSynthPeaksSharp(vector<float>& synthPeaks) const;
     void makeSynthPeaksQuietNew(vector<float>& synthPeaks) const;
     void makeSynthPeaksQuiet(vector<float>& synthPeaks) const;

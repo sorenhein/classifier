@@ -184,7 +184,6 @@ bool SegActive::detect(
 {
   timers.start(TIMER_CONDITION);
 
-cout << "sdet0" << endl;
   writeInterval.first = active.first;
   writeInterval.len = active.first + active.len - 
     writeInterval.first;
@@ -197,21 +196,17 @@ cout << "sdet0" << endl;
 
   SegActive::integrateFloat();
   SegActive::highpass(synthPos);
-cout << "sdet1" << endl;
 
   timers.stop(TIMER_CONDITION);
 
   timers.start(TIMER_DETECT_PEAKS);
   peakDetect.log(synthPos, writeInterval.first);
-cout << "sdet2" << endl;
   peakDetect.reduce();
-cout << "sdet3" << endl;
   timers.stop(TIMER_DETECT_PEAKS);
 
 
   synthPeaks.resize(writeInterval.len);
   peakDetect.makeSynthPeaks(synthPeaks);
-cout << "sdet4" << endl;
 
   return true;
 }

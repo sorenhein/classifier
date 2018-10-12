@@ -1839,9 +1839,9 @@ cout << "start purify loop" << endl;
 
       if (matchedFlag)
       {
-cout << "match0 move from cluster " << 
-  cno << " to " << bestCluster << ", interval " <<
-  (*it)->start + offset << ", dist " << bestDistance << endl;
+// cout << "match0 move from cluster " << 
+  // cno << " to " << bestCluster << ", interval " <<
+  // (*it)->start + offset << ", dist " << bestDistance << endl;
 
         // Move to that cluster
         intervals[bestCluster].insert(
@@ -1853,9 +1853,9 @@ cout << "match0 move from cluster " <<
       }
       else if ((*it)->fitsPeriodFlag == false)
       {
-cout << "match1 move from cluster " << 
-  cno << " to catch-all " << cNewNo << ", interval " <<
-  (*it)->start + offset << ", dist " << bestDistance << endl;
+// cout << "match1 move from cluster " << 
+  // cno << " to catch-all " << cNewNo << ", interval " <<
+  // (*it)->start + offset << ", dist " << bestDistance << endl;
         // Move to the catch-all cluster
         intervals[cNewNo].push_back(*it);
         (*it)->clusterNo = cNewNo;
@@ -2227,11 +2227,39 @@ void PeakDetect::recalcCluster(
 
   if (no > 0)
   {
-if (no >= clusters.size())
+if (cno >= clusters.size())
   cout << "HOPPLA6" << endl;
     centroid /= no;
     clusters[cno].centroid = centroid;
   }
+}
+
+
+unsigned PeakDetect::estimateQuietCluster(
+  const vector<PeriodCluster>& clusters,
+  const unsigned period) const
+{
+  unsigned bestCluster = 0;
+  float bestScore = 0.f;
+  for (unsigned cno = 0; cno < clusters.size(); cno++)
+  {
+    const auto& c = clusters[cno];
+    if (c.duplicates > 0 || c.count == 0)
+      continue;
+
+    const float lenRatio = c.len / (0.6f * period);
+
+    float score = 10.f * c.depthAvg +
+      c.numPeriodics +
+      10.f * lenRatio * lenRatio;
+
+    if (score > bestScore)
+    {
+      bestScore = score;
+      bestCluster = cno;
+    }
+  }
+  return bestCluster;
 }
 
 
@@ -2355,7 +2383,7 @@ void PeakDetect::markPossibleQuiet()
   PeakDetect::printSelectClusters(clusters, 0);
 
   const unsigned clenOrig = clusters.size();
-  unsigned bestCluster =
+  // unsigned bestCluster =
     PeakDetect::promisingCluster(intervals, clusters, clenOrig);
 
   // Redo with the new, promising cluster.
@@ -2440,7 +2468,10 @@ void PeakDetect::markPossibleQuiet()
   cout << "Purified\n";
   PeakDetect::printSelectClusters(clusters, period);
 
-  quietFavorite = bestCluster;
+  quietFavorite = estimateQuietCluster(clusters, period);
+cout << "Best cluster is " << quietFavorite << endl;
+
+  // quietFavorite = bestCluster;
   // quietFavorite = maxIndex;
 }
 
@@ -2450,11 +2481,9 @@ void PeakDetect::reduceNew()
   peaksNew = peaks;
   PeakDetect::setOrigPointers();
 
-PeakDetect::reduceSmallRanges(scalesList.getRange() / 10.f);
+  PeakDetect::reduceSmallRanges(scalesList.getRange() / 10.f);
 
-cout << "start markPQ" << endl;
-PeakDetect::markPossibleQuiet();
-cout << "end markPQ" << endl;
+  PeakDetect::markPossibleQuiet();
 
   /*
   PeakDetect::eliminatePositiveMinima();
@@ -2478,9 +2507,6 @@ void PeakDetect::reduce()
 if (peaks.size() == 0)
   return;
 
-cout << "peak address " << &peaks << endl;
-cout << "quiet address " << &quietCandidates << endl;
-cout << "pred0" << endl;
   const bool debug = true;
   const bool debugDetails = false;
 
@@ -2489,7 +2515,6 @@ cout << "pred0" << endl;
     cout << "Original peaks: " << peaks.size() << "\n";
     PeakDetect::print();
   }
-cout << "pred1" << endl;
 
   PeakDetect::reduceSmallAreas(0.1f);
   if (debugDetails)
@@ -2497,17 +2522,14 @@ cout << "pred1" << endl;
     cout << "Non-tiny list peaks: " << peaks.size() << "\n";
     PeakDetect::print();
   }
-cout << "pred2" << endl;
 
 
   PeakDetect::eliminateKinks();
-cout << "pred2a" << endl;
   if (debugDetails)
   {
     cout << "Non-kinky list peaks: " << peaks.size() << "\n";
     PeakDetect::print();
   }
-cout << "pred3" << endl;
 
   PeakDetect::estimateScales();
   if (debug)
@@ -2515,7 +2537,6 @@ cout << "pred3" << endl;
     cout << "Scale list\n";
     cout << scalesList.str(0) << endl;
   }
-cout << "pred4" << endl;
 
   reduceNew();
 
@@ -2530,13 +2551,10 @@ cout << "pred4" << endl;
     PeakDetect::print();
     cout << endl;
   }
-cout << "pred5" << endl;
 
   vector<PeakCluster> clusters;
   PeakDetect::runKmeansOnce(clusters);
-cout << "pred6" << endl;
   PeakDetect::countClusters(clusters);
-cout << "pred7" << endl;
 
   if (! PeakDetect::getConvincingClusters(clusters))
   {
@@ -2544,7 +2562,6 @@ cout << "pred7" << endl;
     cout << "No convincing clusters found\n";
     return;
   }
-cout << "pred8" << endl;
 
   if (debug)
     PeakDetect::printClusters(clusters, debugDetails);
@@ -2579,7 +2596,6 @@ cout << "pred8" << endl;
     peak.logType(ptype);
   }
 
-cout << "pred9" << endl;
   // Fix the early and late peaks to different types.
   for (auto& peak: peaks)
   {
@@ -2592,7 +2608,6 @@ cout << "pred9" << endl;
     else if (peak.getIndex() > lastTentativeIndex)
       peak.logType(PEAK_TRANS_BACK);
   }
-cout << "pred10" << endl;
 
   cout << numCandidates << " candidate peaks" << endl;
   if (numTentatives == 0)
@@ -2696,7 +2711,7 @@ void PeakDetect::makeSynthPeaks(vector<float>& synthPeaks) const
 
   // PeakDetect::makeSynthPeaksSharp(synthPeaks);
 
-//PeakDetect::makeSynthPeaksQuietNew(synthPeaks);
+PeakDetect::makeSynthPeaksQuietNew(synthPeaks);
 
   // PeakDetect::makeSynthPeaksLines(synthPeaks);
 
