@@ -2247,10 +2247,10 @@ unsigned PeakDetect::estimateQuietCluster(
     if (c.duplicates > 0 || c.count == 0)
       continue;
 
-    const float lenRatio = c.len / (0.6f * period);
+    const float lenRatio = c.lenMedian / static_cast<float>(period) - 0.6f;
 
     float score = 10.f * c.depthAvg +
-      c.numPeriodics +
+      c.numPeriodics -
       10.f * lenRatio * lenRatio;
 
     if (score > bestScore)

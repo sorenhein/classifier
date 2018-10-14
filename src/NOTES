@@ -1,5 +1,33 @@
 Cleaning up clusters
 --------------------
+Put the intervals inside one another like Chinese boxes.
+Top level will be abutting intervals partitioning the range.
+Get rid of the overlong ones.
+Look for periodicity between and within intervals.
+
+
+
+
+Even after purify:
+- Start from the periodic cluster and the best cluster
+- Move out best dips that are very shallow into catch-all
+- Move in dips that would fit with the periodicity and are not shallow
+- Look at "interval peaks" between best dips in pieces where
+  the periodicity is good
+- Construct a wagon with wheel numbers 1-4 and ends that are
+  at the mid points / at the positive peaks in between
+- 
+
+
+- Pmax does not deal well with middle wagons
+- Lists with wrong periods
+- Create a raster and place lists relative to each other
+- Also use depth as criterion
+- markPossibleQuiet: Depth is always relative to prev, should
+  somehow be relative to peak with lowest absolute value out of
+  the two neighbors?
+- Look at hand-written issues, may be a bug in purify
+
 Prefer cluster according to score
 - 10 * depth
 - #per
