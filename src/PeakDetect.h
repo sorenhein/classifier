@@ -514,6 +514,7 @@ class PeakDetect
     void reduce();
 
     void reduceNew();
+    void reduceNewer();
 
     void logPeakStats(
       const vector<PeakPos>& posTrue,

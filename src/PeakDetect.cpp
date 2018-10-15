@@ -2391,6 +2391,9 @@ void PeakDetect::markPossibleQuiet()
 
   unsigned period = clusters.back().periodDominant;
 
+// Have to call once quiets exist and before they are decimated.
+PeakDetect::reduceNewer();
+
   PeakDetect::removeOverlongIntervals(quietCandidates, intervals, period);
 
   // Redo yet again (wasteful).
@@ -2473,6 +2476,49 @@ cout << "Best cluster is " << quietFavorite << endl;
 
   // quietFavorite = bestCluster;
   // quietFavorite = maxIndex;
+}
+
+
+void PeakDetect::reduceNewer()
+{
+  // Here the idea is to use geometrical properties of the peaks
+  // to extract some structure.
+
+  vector<Period *> quietByLength, quietByStart, quietByEnd;
+  for (auto& q: quietCandidates)
+  {
+    quietByLength.push_back(&q);
+    quietByStart.push_back(&q);
+    quietByEnd.push_back(&q);
+  }
+
+  sort(quietByLength.begin(), quietByLength.end(),
+    [](const Period * p1, const Period * p2) -> bool
+    { 
+      return p1->len < p2->len; 
+    });
+
+  sort(quietByStart.begin(), quietByStart.end(),
+    [](const Period * p1, const Period * p2) -> bool
+    { 
+      if (p1->start < p2->start)
+        return true;
+      else if (p1->start > p2->start)
+        return false;
+      else
+        return p1->len < p2->len; 
+    });
+
+  sort(quietByEnd.begin(), quietByEnd.end(),
+    [](const Period * p1, const Period * p2) -> bool
+    { 
+      if (p1->start + p1->len < p2->start + p2->len)
+        return true;
+      else if (p1->start + p1->len > p2->start + p2->len)
+        return false;
+      else
+        return p1->len < p2->len; 
+    });
 }
 
 
