@@ -2484,41 +2484,160 @@ void PeakDetect::reduceNewer()
   // Here the idea is to use geometrical properties of the peaks
   // to extract some structure.
 
-  vector<Period *> quietByLength, quietByStart, quietByEnd;
+  struct QuietEntry
+  {
+    Period * periodPtr;
+    unsigned indexLen;
+    unsigned indexStart;
+    unsigned indexEnd;
+    bool usedFlag;
+  };
+
+  vector<QuietEntry> quietByLength;
+  unsigned i = 0;
   for (auto& q: quietCandidates)
   {
-    quietByLength.push_back(&q);
-    quietByStart.push_back(&q);
-    quietByEnd.push_back(&q);
+    quietByLength.emplace_back(QuietEntry());
+    QuietEntry& qe = quietByLength.back();
+    qe.periodPtr = &q;
+    qe.usedFlag = false;
   }
 
   sort(quietByLength.begin(), quietByLength.end(),
-    [](const Period * p1, const Period * p2) -> bool
+    [](const QuietEntry& qe1, const QuietEntry& qe2) -> bool
     { 
-      return p1->len < p2->len; 
+      return qe1.periodPtr->len < qe2.periodPtr->len; 
     });
 
+  // These have indices back into quietByLength.
+  vector<QuietEntry> quietByStart, quietByEnd;
+  i = 0;
+  for (auto& qbl: quietByLength)
+  {
+    quietByStart.emplace_back(qbl);
+    QuietEntry& qs = quietByStart.back();
+    qs.indexLen = i;
+
+    quietByEnd.emplace_back(qbl);
+    QuietEntry& qe = quietByEnd.back();
+    qe.indexLen = i++;
+  }
+
   sort(quietByStart.begin(), quietByStart.end(),
-    [](const Period * p1, const Period * p2) -> bool
+    [](const QuietEntry& qe1, const QuietEntry& qe2) -> bool
     { 
-      if (p1->start < p2->start)
+      if (qe1.periodPtr->start < qe2.periodPtr->start)
         return true;
-      else if (p1->start > p2->start)
+      else if (qe1.periodPtr->start > qe2.periodPtr->start)
         return false;
       else
-        return p1->len < p2->len; 
+        return qe1.periodPtr->len < qe2.periodPtr->len; 
     });
 
   sort(quietByEnd.begin(), quietByEnd.end(),
-    [](const Period * p1, const Period * p2) -> bool
+    [](const QuietEntry& qe1, const QuietEntry& qe2) -> bool
     { 
-      if (p1->start + p1->len < p2->start + p2->len)
+      if (qe1.periodPtr->start + qe1.periodPtr->len < 
+          qe2.periodPtr->start + qe2.periodPtr->len)
         return true;
-      else if (p1->start + p1->len > p2->start + p2->len)
+      else if (qe1.periodPtr->start + qe1.periodPtr->len > 
+          qe2.periodPtr->start + qe2.periodPtr->len)
         return false;
       else
-        return p1->len < p2->len; 
+        return qe1.periodPtr->len < qe2.periodPtr->len; 
     });
+
+  // We can also get from quietByLength to the others.
+  i = 0;
+  for (auto& qbs: quietByStart)
+    quietByLength[qbs.indexLen].indexStart = i++;
+  
+  i = 0;
+  for (auto& qbe: quietByEnd)
+    quietByLength[qbe.indexLen].indexEnd = i++;
+  
+  // Smaller intervals are contained in larger ones.
+  vector<list<Period *>> nestedQuiets;
+
+  const unsigned qlen = quietByLength.size();
+  for (auto& qbl: quietByLength)
+  {
+    if (qbl.usedFlag)
+      continue;
+
+    nestedQuiets.emplace_back(list<Period *>());
+    list<Period *>& li = nestedQuiets.back();
+
+    QuietEntry * qeptr = &qbl;
+    while (true)
+    {
+      if (qeptr->usedFlag == true)
+        break;
+
+      li.push_back(qeptr->periodPtr);
+      qeptr->usedFlag = true;
+
+      // Look in starts.
+      const unsigned snext = qeptr->indexStart+1;
+      const unsigned enext = qeptr->indexEnd+1;
+
+      if (snext < qlen && 
+          quietByStart[snext].periodPtr->start == qeptr->periodPtr->start)
+      {
+        // Same start, next up in length.
+        qeptr = &quietByLength[quietByStart[snext].indexLen];
+      }
+      else if (enext < qlen && 
+        quietByEnd[enext].periodPtr->start +
+        quietByEnd[enext].periodPtr->len ==
+        qeptr->periodPtr->start + qeptr->periodPtr->len)
+      {
+        // Look in ends.
+        qeptr = &quietByLength[quietByEnd[enext].indexLen];
+      }
+      else
+        break;
+    }
+  }
+
+  // Sort the interval lists in order of appearance.
+  sort(nestedQuiets.begin(), nestedQuiets.end(),
+    [](const list<Period *>& li1, const list<Period *>& li2) -> bool
+    { 
+      return li1.front()->start < li2.front()->start;
+    });
+
+  // Remove overlong intervals that overlap into the next interval list.
+  for (i = 0; i+1 < nestedQuiets.size(); i++)
+  {
+    unsigned nextStart = nestedQuiets[i+1].back()->start;
+    for (auto it = nestedQuiets[i].begin(); it != nestedQuiets[i].end(); )
+    {
+      while ((*it)->start >= nextStart && nestedQuiets[i+1].size() > 0)
+      {
+        // As we fill in the lists short-first, we may have some
+        // overlong intervals in the "wrong" (later) list.
+        nestedQuiets[i+1].pop_back();
+        nextStart = nestedQuiets[i+1].back()->start;
+      }
+
+      if ((*it)->start + (*it)->len > nextStart)
+        it = nestedQuiets[i].erase(it);
+      else
+        it++;
+    }
+  }
+
+  cout << "Nested intervals\n";
+  for (auto& li: nestedQuiets)
+  {
+    for (auto& p: li)
+    {
+      cout << p->start + offset << "-" << p->start + offset + p->len <<
+        " (" << p->len << ")" << endl;
+    }
+    cout << endl;
+  }
 }
 
 
