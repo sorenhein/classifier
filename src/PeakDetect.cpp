@@ -2571,8 +2571,10 @@ void PeakDetect::reduceNewer()
     QuietEntry * qeptr = &qbl;
     while (true)
     {
+/*
       if (qeptr->usedFlag == true)
         break;
+*/
 
       li.push_back(qeptr->periodPtr);
       qeptr->usedFlag = true;
@@ -2607,6 +2609,17 @@ void PeakDetect::reduceNewer()
       return li1.front()->start < li2.front()->start;
     });
 
+  cout << "Nested intervals before pruning\n";
+  for (auto& li: nestedQuiets)
+  {
+    for (auto& p: li)
+    {
+      cout << p->start + offset << "-" << p->start + offset + p->len <<
+        " (" << p->len << ")" << endl;
+    }
+    cout << endl;
+  }
+
   // Remove overlong intervals that overlap into the next interval list.
   for (i = 0; i+1 < nestedQuiets.size(); i++)
   {
@@ -2628,7 +2641,7 @@ void PeakDetect::reduceNewer()
     }
   }
 
-  cout << "Nested intervals\n";
+  cout << "Nested intervals after pruning\n";
   for (auto& li: nestedQuiets)
   {
     for (auto& p: li)

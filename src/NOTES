@@ -1,9 +1,15 @@
 Cleaning up clusters
 --------------------
-Put the intervals inside one another like Chinese boxes.
-Top level will be abutting intervals partitioning the range.
-Get rid of the overlong ones.
-Look for periodicity between and within intervals.
+Nested intervals:
+- One example sensor34 182137
+- Another     sensor00 051045
+- When looking for the quiet interval, we want
+  left peak as negative as possible
+  right peak ditto
+  mid level as close to 0 while negative as possible
+  but this is not enough
+- something to do with sharpness of border peaks?  But speed-dependent
+
 
 
 
