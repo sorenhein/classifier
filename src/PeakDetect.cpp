@@ -2715,28 +2715,40 @@ void PeakDetect::reduceNewer()
   for (auto it = nestedQuiets.begin(); it != nestedQuiets.end(); it++)
   {
     list<Period *>& li = * it;
-    if (it == prev(nestedQuiets.end()))
-      continue;
+    const unsigned istart = li.back()->start;
+    if (peaksNewer.size() == 0 || istart != peaksNewer.back().getIndex())
+    {
+      // Very inefficient.
+      bool seenFlag = false;
+      for (auto& p: peaksNew)
+      {
+        if (p.getIndex() == istart)
+        {
+          seenFlag = true;
+          peaksNewer.push_back(p);
+          break;
+        }
+      }
+  
+      if (! seenFlag)
+        THROW(ERR_NO_PEAKS, "Bad peak index: " + to_string(istart));
+    }
 
-    list<Period *>& linext = * (next(it));
-    const unsigned index = linext.back()->start;
-    if (li.back()->start + li.back()->len != index)
-      continue;
-
+    const unsigned iend = istart + li.back()->len;
     // Very inefficient.
     bool seenFlag = false;
     for (auto& p: peaksNew)
     {
-      if (p.getIndex() == index)
+      if (p.getIndex() == iend)
       {
         seenFlag = true;
         peaksNewer.push_back(p);
         break;
       }
     }
-
+  
     if (! seenFlag)
-      THROW(ERR_NO_PEAKS, "Bad peak index: " + to_string(index));
+      THROW(ERR_NO_PEAKS, "Bad peak index: " + to_string(iend));
   }
 
 }
