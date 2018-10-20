@@ -235,6 +235,7 @@ class PeakDetect
     Peak scalesList;
 
     list<Peak> peaksNew;
+    list<Peak> peaksNewer;
 
     unsigned numCandidates;
     unsigned numTentatives;
@@ -464,6 +465,7 @@ class PeakDetect
     void makeSynthPeaksLines(vector<float>& synthPeaks) const;
     void makeSynthPeaksPosLines(vector<float>& synthPeaks) const;
     void makeSynthPeaksClassical(vector<float>& synthPeaks) const;
+    void makeSynthPeaksClassicalNewer(vector<float>& synthPeaks) const;
 
     void printPeaks(const vector<PeakTime>& timesTrue) const;
 

@@ -2620,25 +2620,81 @@ void PeakDetect::reduceNewer()
     cout << endl;
   }
 
-  // Remove overlong intervals that overlap into the next interval list.
+  // Merge lists that only differ in the first interval.
+  // Could maybe mark these.
+  for (i = 0; i+1 < nestedQuiets.size(); )
+  {
+    if (nestedQuiets[i].size() != nestedQuiets[i+1].size())
+    {
+      i++;
+      continue;
+    }
+
+    if (nestedQuiets[i].size() <= 1)
+    {
+      i++;
+      continue;
+    }
+
+    Period * p1 = nestedQuiets[i].front();
+    Period * p2 = nestedQuiets[i+1].front();
+    if (p1->start + p1->len == p2->start)
+      nestedQuiets.erase(nestedQuiets.begin() + i+1);
+    else
+      i++;
+  }
+
+  // Stop lists when they reach exact overlap.
   for (i = 0; i+1 < nestedQuiets.size(); i++)
   {
-    unsigned nextStart = nestedQuiets[i+1].back()->start;
-    for (auto it = nestedQuiets[i].begin(); it != nestedQuiets[i].end(); )
-    {
-      while ((*it)->start >= nextStart && nestedQuiets[i+1].size() > 0)
-      {
-        // As we fill in the lists short-first, we may have some
-        // overlong intervals in the "wrong" (later) list.
-        nestedQuiets[i+1].pop_back();
-        nextStart = nestedQuiets[i+1].back()->start;
-      }
+    auto& li1 = nestedQuiets[i];
+    auto& li2 = nestedQuiets[i+1];
 
-      if ((*it)->start + (*it)->len > nextStart)
-        it = nestedQuiets[i].erase(it);
-      else
-        it++;
+    // Count up in the ends of the first list.
+    unsigned index1 = 0;
+    list<Period *>::iterator nit1;
+    for (auto it = li1.begin(); it != prev(li1.end()); it++)
+    {
+      nit1 = next(it);
+      if ((*nit1)->start + (*nit1)->len >= li2.front()->start)
+      {
+        index1 = (*it)->start + (*it)->len;
+        break;
+      }
+      else if (next(nit1) == li1.end())
+      {
+        index1 = (*nit1)->start + (*nit1)->len;
+        nit1++;
+        break;
+      }
     }
+
+    bool foundFlag = false;
+    unsigned index2 = 0;
+    list<Period *>::iterator it2;
+   
+    // Count down in the starts of the second list.
+    for (it2 = li2.begin(); it2 != li2.end(); it2++)
+    {
+      if ((*it2)->start == index1)
+      {
+        foundFlag = true;
+        index2 = (*it2)->start;
+        while (it2 != li2.end() && (*it2)->start == index1)
+          it2++;
+        break;
+      }
+    }
+
+    if (! foundFlag)
+      continue;
+
+    if (index1 != index2)
+      continue;
+
+    if (nit1 != li1.end())
+      li1.erase(nit1, li1.end());
+    li2.erase(it2, li2.end());
   }
 
   cout << "Nested intervals after pruning\n";
@@ -2651,6 +2707,38 @@ void PeakDetect::reduceNewer()
     }
     cout << endl;
   }
+
+  // Peaks between abutting interval lists tend to be large and thus
+  // to be "real" peaks.
+
+  peaksNewer.clear();
+  for (auto it = nestedQuiets.begin(); it != nestedQuiets.end(); it++)
+  {
+    list<Period *>& li = * it;
+    if (it == prev(nestedQuiets.end()))
+      continue;
+
+    list<Period *>& linext = * (next(it));
+    const unsigned index = linext.back()->start;
+    if (li.back()->start + li.back()->len != index)
+      continue;
+
+    // Very inefficient.
+    bool seenFlag = false;
+    for (auto& p: peaksNew)
+    {
+      if (p.getIndex() == index)
+      {
+        seenFlag = true;
+        peaksNewer.push_back(p);
+        break;
+      }
+    }
+
+    if (! seenFlag)
+      THROW(ERR_NO_PEAKS, "Bad peak index: " + to_string(index));
+  }
+
 }
 
 
@@ -2889,7 +2977,7 @@ void PeakDetect::makeSynthPeaks(vector<float>& synthPeaks) const
 
   // PeakDetect::makeSynthPeaksSharp(synthPeaks);
 
-PeakDetect::makeSynthPeaksQuietNew(synthPeaks);
+// PeakDetect::makeSynthPeaksQuietNew(synthPeaks);
 
   // PeakDetect::makeSynthPeaksLines(synthPeaks);
 
@@ -2898,6 +2986,8 @@ PeakDetect::makeSynthPeaksQuietNew(synthPeaks);
   // PeakDetect::makeSynthPeaksLines(synthPeaks);
 
   // PeakDetect::makeSynthPeaksClassical(synthPeaks);
+
+PeakDetect::makeSynthPeaksClassicalNewer(synthPeaks);
 }
 
 
@@ -3047,6 +3137,13 @@ void PeakDetect::makeSynthPeaksClassical(vector<float>& synthPeaks) const
     if (peak.isSelected())
       synthPeaks[peak.getIndex()] = peak.getValue();
   }
+}
+
+
+void PeakDetect::makeSynthPeaksClassicalNewer(vector<float>& synthPeaks) const
+{
+  for (auto& peak: peaksNewer)
+    synthPeaks[peak.getIndex()] = peak.getValue();
 }
 
 

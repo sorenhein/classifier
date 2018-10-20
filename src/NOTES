@@ -1,5 +1,22 @@
 Cleaning up clusters
 --------------------
+The ends are non-decreasing, the starts are non-increasing.
+First find lists that are immediate splits:
+- Same length
+- Same second interval
+- First intervals abut
+- Second interval combines the two
+- Mark the first interval with a flag as a segmentation interval
+
+Looking at two consecutive lists:
+- Say there is a point of equality
+  - Stop the first list at that point (2279), is it unique?
+  - Stop the second list at the last such point
+
+- If there is no equality:
+  - What to do?
+
+
 Nested intervals:
 - One example sensor34 182137
 - Another     sensor00 051045
