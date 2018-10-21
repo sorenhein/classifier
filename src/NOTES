@@ -1,5 +1,12 @@
 Cleaning up clusters
 --------------------
+Not a good idea to include peaks with not-so-bad quality:
+Let in peaks that we shouldn't.
+
+Noisy bottoms:  Maybe look at initial vs overall slope.
+
+Patterns:  Look for adjacent peaks with at least one tall peak.
+
 3/21
 4/38, 45-47, 49
 5/36, 59
