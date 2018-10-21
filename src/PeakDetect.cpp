@@ -2656,7 +2656,7 @@ void PeakDetect::reduceNewer()
     for (auto it = li1.begin(); it != prev(li1.end()); it++)
     {
       nit1 = next(it);
-      if ((*nit1)->start + (*nit1)->len >= li2.front()->start)
+      if ((*nit1)->start + (*nit1)->len > li2.front()->start)
       {
         index1 = (*it)->start + (*it)->len;
         break;
@@ -2714,7 +2714,10 @@ void PeakDetect::reduceNewer()
   struct PeakEntry
   {
     Peak * peakPtr;
+    Peak * nextPeakPtr;
+    Sharp sharp;
     bool tallFlag;
+    bool similarFlag;
     float quality; // Always >= 0, low is good
   };
 
@@ -2723,17 +2726,26 @@ void PeakDetect::reduceNewer()
   unsigned ni1 = nestedQuiets[nindex].back()->start;
   unsigned ni2 = ni1 + nestedQuiets[nindex].back()->len;
 
-  for (auto& p: peaksNew)
+  // Note which peaks are tall.
+
+  for (auto pit = peaksNew.begin(); pit != peaksNew.end(); pit++)
   {
+    // Only want the negative minima here.
+    if (pit->getValue() >= 0.f || pit->getMaxFlag())
+      continue;
+
+    // Exclude tall peaks without a right neighbor.
+    auto npit = next(pit);
+    if (npit == peaksNew.end())
+      continue;
+
     peaksAnnot.emplace_back(PeakEntry());
     PeakEntry& pe = peaksAnnot.back();
 
-    // Only want the negative minima here.
-    if (p.getValue() >= 0.f || p.getMaxFlag())
-      continue;
+    pe.peakPtr = &*pit;
+    pe.nextPeakPtr = &*npit;
 
-    pe.peakPtr = &p;
-    const unsigned index = p.getIndex();
+    const unsigned index = pit->getIndex();
 
     if (index < ni1)
       pe.tallFlag = false;
@@ -2757,11 +2769,183 @@ void PeakDetect::reduceNewer()
     }
   }
 
+  // Find typical sizes of "tall" peaks.
+
+  const unsigned np = peaksAnnot.size();
+  if (np == 0)
+    THROW(ERR_NO_PEAKS, "No tall peaks");
+  vector<float> values, rangesLeft, rangesRight, gradLeft, gradRight;
+
+  for (auto& pa: peaksAnnot)
+  {
+    if (! pa.tallFlag)
+      continue;
+
+    auto pt = pa.peakPtr;
+    auto npt = pa.nextPeakPtr;
+
+    pa.sharp.index = pt->getIndex();
+    pa.sharp.level = pt->getValue();
+    pa.sharp.range1 = pt->getRange();
+    pa.sharp.grad1 = 10.f * pt->getGradient();
+    pa.sharp.range2 = npt->getRange();
+    pa.sharp.grad2 = 10.f * npt->getGradient();
+
+    values.push_back(pt->getValue());
+    rangesLeft.push_back(pt->getRange());
+    gradLeft.push_back(10.f * pt->getGradient());
+
+    rangesRight.push_back(npt->getRange());
+    gradRight.push_back(10.f * npt->getGradient());
+  }
+
+  Sharp tallSize;
+  const unsigned nvm = values.size() / 2;
+  nth_element(values.begin(), values.begin() + nvm, values.end());
+  tallSize.level = values[nvm];
+
+  nth_element(rangesLeft.begin(), rangesLeft.begin() + nvm, 
+    rangesLeft.end());
+  tallSize.range1 = rangesLeft[nvm];
+
+  nth_element(gradLeft.begin(), gradLeft.begin() + nvm, gradLeft.end());
+  tallSize.grad1 = gradLeft[nvm];
+
+  nth_element(rangesRight.begin(), rangesRight.begin() + nvm, 
+    rangesRight.end());
+  tallSize.range2 = rangesRight[nvm];
+
+  nth_element(gradRight.begin(), gradRight.begin() + nvm, gradRight.end());
+  tallSize.grad2 = gradRight[nvm];
+
+  if (tallSize.range2 != 0.f)
+    tallSize.rangeRatio = tallSize.range1 / tallSize.range2;
+  if (tallSize.grad2 != 0.f)
+    tallSize.gradRatio = tallSize.grad1 / tallSize.grad2;
+
+  // Print scale.
+  cout << "Tall scale" << endl;
+  cout << tallSize.strHeader();
+  cout << tallSize.str(offset);
+  cout << endl;
+
+  // Look at the "tall" peaks.
+  cout << tallSize.strHeader();
+  for (auto& pa: peaksAnnot)
+  {
+    if (! pa.tallFlag)
+      continue;
+    
+    if (pa.sharp.range2 != 0.f)
+      pa.sharp.rangeRatio = pa.sharp.range1 / pa.sharp.range2; 
+    if (pa.sharp.grad2 != 0.f)
+      pa.sharp.gradRatio = pa.sharp.grad1 / pa.sharp.grad2; 
+
+    cout << pa.sharp.str(offset);
+  }
+  cout << endl;
+
+  vector<float> qualities;
+  for (auto& pa: peaksAnnot)
+  {
+    if (! pa.tallFlag)
+      continue;
+
+    pa.quality = pa.sharp.distToScale(tallSize);
+    qualities.push_back(pa.quality);
+    cout << setw(6) << pa.peakPtr->getIndex() + offset <<
+      setw(12) << fixed << setprecision(2) << 
+      pa.quality << endl;
+  }
+  cout << endl;
+
+  // Find a reasonable peak quality.
+  const unsigned nq = qualities.size() / 2;
+  nth_element(qualities.begin(), qualities.begin() + nq, qualities.end());
+  const float qlevel = qualities[nq];
+
+  // Prune leading peaks that deviate too much.
+  for (auto& pa: peaksAnnot)
+  {
+    if (! pa.tallFlag)
+      continue;
+
+    if (pa.quality > 5.f * qlevel && pa.quality > 1.f)
+    {
+cout << "Removing tallFlag from " << pa.peakPtr->getIndex()+offset << endl;
+      pa.tallFlag = false;
+    }
+    else
+      break;
+  }
+
+  // Ditto for trailing peaks.
+  for (auto it = peaksAnnot.rbegin(); it != peaksAnnot.rend(); it++)
+  {
+    if (! it->tallFlag)
+      continue;
+
+    if (it->quality > 5.f * qlevel && it->quality > 1.f)
+    {
+cout << "Removing tallFlag from " << it->peakPtr->getIndex()+offset << endl;
+      it->tallFlag = false;
+    }
+    else
+      break;
+  }
+
+  // Find the worst remaining peak quality.
+  float worstQuality = 0.f;
+  for (auto& pa: peaksAnnot)
+  {
+    if (! pa.tallFlag)
+      continue;
+
+    if (pa.quality > worstQuality)
+      worstQuality = pa.quality;
+  }
+  cout << "Worst quality: " << worstQuality << endl;
+
+  // Let in peaks that are no worse than this.
+  for (auto& pa: peaksAnnot)
+  {
+    if (pa.tallFlag)
+      continue;
+
+    auto pt = pa.peakPtr;
+    auto npt = pa.nextPeakPtr;
+
+    pa.sharp.index = pt->getIndex();
+    pa.sharp.level = pt->getValue();
+    pa.sharp.range1 = pt->getRange();
+    pa.sharp.grad1 = 10.f * pt->getGradient();
+    pa.sharp.range2 = npt->getRange();
+    pa.sharp.grad2 = 10.f * npt->getGradient();
+
+    if (pa.sharp.range2 != 0.f)
+      pa.sharp.rangeRatio = pa.sharp.range1 / pa.sharp.range2; 
+    if (pa.sharp.grad2 != 0.f)
+      pa.sharp.gradRatio = pa.sharp.grad1 / pa.sharp.grad2; 
+
+    pa.quality = pa.sharp.distToScale(tallSize);
+    if (pa.quality <= worstQuality)
+    {
+cout << "Letting in " << pa.peakPtr->getIndex()+offset <<
+  ", quality " << pa.quality << endl;
+    cout << pa.sharp.str(offset);
+
+      pa.similarFlag = true;
+    }
+    else
+      pa.similarFlag = false;
+  }
+
+
   // Put peaks in the global list.
   peaksNewer.clear();
   for (auto& p: peaksAnnot)
   {
-    if (p.tallFlag)
+    if (p.tallFlag || p.similarFlag)
       peaksNewer.push_back(* p.peakPtr);
   }
 
@@ -3169,7 +3353,10 @@ void PeakDetect::makeSynthPeaksClassical(vector<float>& synthPeaks) const
 void PeakDetect::makeSynthPeaksClassicalNewer(vector<float>& synthPeaks) const
 {
   for (auto& peak: peaksNewer)
+  {
+cout << "Setting " << peak.getIndex() << " to " << peak.getValue() << endl;
     synthPeaks[peak.getIndex()] = peak.getValue();
+  }
 }
 
 

@@ -31,8 +31,10 @@ class PeakDetect
       unsigned index;
       float level;
       float range1;
+      float range2;
       float rangeRatio;
       float grad1;
+      float grad2;
       float gradRatio;
       float fill1;
       float fillRatio;
@@ -88,6 +90,27 @@ class PeakDetect
           lgrad * lgrad + lgratio * lgratio +
           lfill * lfill + lfratio * lfratio;
       };
+
+      float distToScale(const Sharp& scale) const
+      {
+        // scale is supposed to be negative.  Large negative peaks are OK.
+        const float ldiff = (level > scale.level ?
+          (level - scale.level) / scale.level : 0.f);
+        // ranges are always positive.
+        const float lrange1 = (range1 < scale.range1 ? 
+          (range1 - scale.range1) / scale.range1 : 0.f);
+        const float lrange2 = (range2 < scale.range2 ?
+          (range2 - scale.range2) / scale.range2 : 0.f);
+        const float lgrad1 = (grad1 - scale.grad1) / scale.grad1;
+        const float lgrad2 = (grad2 - scale.grad2) / scale.grad2;
+
+        return ldiff * ldiff + 
+          lrange1 * lrange1 +
+          lrange2 * lrange2 +
+          lgrad1 * lgrad1 +
+          lgrad2 * lgrad2;
+      };
+
 
       string strHeader() const
       {

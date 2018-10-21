@@ -1,37 +1,18 @@
 Cleaning up clusters
 --------------------
-- Get median depth, l/r range and l/r slope for the indicated peaks.
-- Get median deviations
-- Cut out big deviation, especially at beginning and end of peak list.
-- Grade all negative minima
-  - Add up linearly
-- Start to look for high-quality nearby peaks
-- Start to look for sequences.  How?
+3/21
+4/38, 45-47, 49
+5/36, 59
+7/1, 3, 4, 6, 7, 8, 9, 10, 12, 14, 15, 19, 24-27, 32-36, 
+  40, 42, 44, 46, 47
+9/0, 2, 5, 6, 8, 9, 10, 13, 14, 16, 19, 20, ...
 
+Next issues:
+- Peaks in e.g sensor09 are noisy at the bottom,
+  which disturbs index and gradient
+- How to look for patterns in adjacent peaks?
+- Once in a while a bad peak is let in at the front
 
-Nested intervals:
-- One example sensor34 182137
-- Another     sensor00 051045
-- When looking for the quiet interval, we want
-  left peak as negative as possible
-  right peak ditto
-  mid level as close to 0 while negative as possible
-  but this is not enough
-- something to do with sharpness of border peaks?  But speed-dependent
-
-
-
-
-
-Even after purify:
-- Start from the periodic cluster and the best cluster
-- Move out best dips that are very shallow into catch-all
-- Move in dips that would fit with the periodicity and are not shallow
-- Look at "interval peaks" between best dips in pieces where
-  the periodicity is good
-- Construct a wagon with wheel numbers 1-4 and ends that are
-  at the mid points / at the positive peaks in between
-- 
 
 
 - Pmax does not deal well with middle wagons
