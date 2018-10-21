@@ -2711,44 +2711,58 @@ void PeakDetect::reduceNewer()
   // Peaks between abutting interval lists tend to be large and thus
   // to be "real" peaks.
 
-  peaksNewer.clear();
-  for (auto it = nestedQuiets.begin(); it != nestedQuiets.end(); it++)
+  struct PeakEntry
   {
-    list<Period *>& li = * it;
-    const unsigned istart = li.back()->start;
-    if (peaksNewer.size() == 0 || istart != peaksNewer.back().getIndex())
-    {
-      // Very inefficient.
-      bool seenFlag = false;
-      for (auto& p: peaksNew)
-      {
-        if (p.getIndex() == istart)
-        {
-          seenFlag = true;
-          peaksNewer.push_back(p);
-          break;
-        }
-      }
-  
-      if (! seenFlag)
-        THROW(ERR_NO_PEAKS, "Bad peak index: " + to_string(istart));
-    }
+    Peak * peakPtr;
+    bool tallFlag;
+    float quality; // Always >= 0, low is good
+  };
 
-    const unsigned iend = istart + li.back()->len;
-    // Very inefficient.
-    bool seenFlag = false;
-    for (auto& p: peaksNew)
+  vector<PeakEntry> peaksAnnot;
+  unsigned nindex = 0;
+  unsigned ni1 = nestedQuiets[nindex].back()->start;
+  unsigned ni2 = ni1 + nestedQuiets[nindex].back()->len;
+
+  for (auto& p: peaksNew)
+  {
+    peaksAnnot.emplace_back(PeakEntry());
+    PeakEntry& pe = peaksAnnot.back();
+
+    // Only want the negative minima here.
+    if (p.getValue() >= 0.f || p.getMaxFlag())
+      continue;
+
+    pe.peakPtr = &p;
+    const unsigned index = p.getIndex();
+
+    if (index < ni1)
+      pe.tallFlag = false;
+    else if (index == ni1)
+      pe.tallFlag = true;
+    else if (index < ni2)
+      pe.tallFlag = false;
+    else
     {
-      if (p.getIndex() == iend)
+      if (index == ni2)
+        pe.tallFlag = true;
+      else
+        pe.tallFlag = false;
+
+      if (nindex+1 < nestedQuiets.size())
       {
-        seenFlag = true;
-        peaksNewer.push_back(p);
-        break;
+        nindex++;
+        ni1 = nestedQuiets[nindex].back()->start;
+        ni2 = ni1 + nestedQuiets[nindex].back()->len;
       }
     }
-  
-    if (! seenFlag)
-      THROW(ERR_NO_PEAKS, "Bad peak index: " + to_string(iend));
+  }
+
+  // Put peaks in the global list.
+  peaksNewer.clear();
+  for (auto& p: peaksAnnot)
+  {
+    if (p.tallFlag)
+      peaksNewer.push_back(* p.peakPtr);
   }
 
 }
