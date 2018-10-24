@@ -118,11 +118,26 @@ class PeakDetect
         ss << setw(6) << right << "Index" <<
           setw(8) << right << "Level" <<
           setw(8) << right << "Range1" <<
-          setw(8) << right << "Ratio" <<
+          setw(8) << right << "Range2" <<
+          // setw(8) << right << "Ratio" <<
           setw(8) << right << "Grad1" <<
-          setw(8) << right << "Ratio" <<
+          setw(8) << right << "Grad2" <<
+          // setw(8) << right << "Ratio" <<
           setw(8) << right << "Fill1" <<
           setw(8) << right << "Ratio" << endl;
+        return ss.str();
+      };
+
+      string strHeaderQ() const
+      {
+        stringstream ss;
+        ss << setw(6) << right << "Index" <<
+          setw(8) << right << "Level" <<
+          setw(8) << right << "Range1" <<
+          setw(8) << right << "Range2" <<
+          setw(8) << right << "Grad1" <<
+          setw(8) << right << "Grad2" <<
+          setw(8) << right << "Quality" << endl;
         return ss.str();
       };
 
@@ -133,11 +148,27 @@ class PeakDetect
           setw(6) << right << index + offset <<
           setw(8) << fixed << setprecision(2) << level <<
           setw(8) << fixed << setprecision(2) << range1 <<
-          setw(8) << fixed << setprecision(2) << rangeRatio <<
+          setw(8) << fixed << setprecision(2) << range2 <<
           setw(8) << fixed << setprecision(2) << grad1 <<
-          setw(8) << fixed << setprecision(2) << gradRatio <<
+          setw(8) << fixed << setprecision(2) << grad2 <<
           setw(8) << fixed << setprecision(2) << fill1 <<
           setw(8) << fixed << setprecision(2) << fillRatio << endl;
+        return ss.str();
+      };
+
+      string strQ(
+        const float quality, 
+        const unsigned offset = 0) const
+      {
+        stringstream ss;
+        ss << 
+          setw(6) << right << index + offset <<
+          setw(8) << fixed << setprecision(2) << level <<
+          setw(8) << fixed << setprecision(2) << range1 <<
+          setw(8) << fixed << setprecision(2) << range2 <<
+          setw(8) << fixed << setprecision(2) << grad1 <<
+          setw(8) << fixed << setprecision(2) << grad2 <<
+          setw(8) << fixed << setprecision(2) << quality << endl;
         return ss.str();
       };
     };

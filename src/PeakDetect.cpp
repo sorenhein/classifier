@@ -2778,9 +2778,6 @@ void PeakDetect::reduceNewer()
 
   for (auto& pa: peaksAnnot)
   {
-    if (! pa.tallFlag)
-      continue;
-
     auto pt = pa.peakPtr;
     auto npt = pa.nextPeakPtr;
 
@@ -2790,6 +2787,14 @@ void PeakDetect::reduceNewer()
     pa.sharp.grad1 = 10.f * pt->getGradient();
     pa.sharp.range2 = npt->getRange();
     pa.sharp.grad2 = 10.f * npt->getGradient();
+
+    if (pa.sharp.range2 != 0.f)
+      pa.sharp.rangeRatio = pa.sharp.range1 / pa.sharp.range2; 
+    if (pa.sharp.grad2 != 0.f)
+      pa.sharp.gradRatio = pa.sharp.grad1 / pa.sharp.grad2; 
+
+    if (! pa.tallFlag)
+      continue;
 
     values.push_back(pt->getValue());
     rangesLeft.push_back(pt->getRange());
@@ -2830,9 +2835,10 @@ void PeakDetect::reduceNewer()
   cout << endl;
 
   // Look at the "tall" peaks.
-  cout << tallSize.strHeader();
+  cout << tallSize.strHeaderQ();
   for (auto& pa: peaksAnnot)
   {
+    pa.quality = pa.sharp.distToScale(tallSize);
     if (! pa.tallFlag)
       continue;
     
@@ -2841,58 +2847,46 @@ void PeakDetect::reduceNewer()
     if (pa.sharp.grad2 != 0.f)
       pa.sharp.gradRatio = pa.sharp.grad1 / pa.sharp.grad2; 
 
-    cout << pa.sharp.str(offset);
+    cout << pa.sharp.strQ(pa.quality, offset);
   }
   cout << endl;
 
-  vector<float> qualities;
+  cout << "All peaks\n";
+  cout << tallSize.strHeaderQ();
   for (auto& pa: peaksAnnot)
-  {
-    if (! pa.tallFlag)
-      continue;
-
-    pa.quality = pa.sharp.distToScale(tallSize);
-    qualities.push_back(pa.quality);
-    cout << setw(6) << pa.peakPtr->getIndex() + offset <<
-      setw(12) << fixed << setprecision(2) << 
-      pa.quality << endl;
-  }
-  cout << endl;
+    cout << pa.sharp.strQ(pa.quality, offset);
 
   // Find a reasonable peak quality.
+  vector<float> qualities;
   const unsigned nq = qualities.size() / 2;
   nth_element(qualities.begin(), qualities.begin() + nq, qualities.end());
   const float qlevel = qualities[nq];
 
-  // Prune leading peaks that deviate too much.
+  // Prune peaks that deviate too much.
+  // Add other peaks that are as good.
   for (auto& pa: peaksAnnot)
   {
     if (! pa.tallFlag)
-      continue;
-
-    if (pa.quality > 5.f * qlevel && pa.quality > 1.f)
     {
-cout << "Removing tallFlag from " << pa.peakPtr->getIndex()+offset << endl;
-      pa.tallFlag = false;
+      if (pa.quality <= 0.3f)
+      {
+cout << "Adding tallFlag to " << 
+  pa.peakPtr->getIndex()+offset << endl;
+        pa.tallFlag = true;
+      }
     }
     else
-      break;
-  }
-
-  // Ditto for trailing peaks.
-  for (auto it = peaksAnnot.rbegin(); it != peaksAnnot.rend(); it++)
-  {
-    if (! it->tallFlag)
-      continue;
-
-    if (it->quality > 5.f * qlevel && it->quality > 1.f)
     {
-cout << "Removing tallFlag from " << it->peakPtr->getIndex()+offset << endl;
-      it->tallFlag = false;
+      if (pa.quality > 0.3f)
+      {
+cout << "Removing tallFlag from " << 
+  pa.peakPtr->getIndex()+offset << endl;
+        pa.tallFlag = false;
+      }
     }
-    else
-      break;
   }
+
+
 
   // Find the worst remaining peak quality.
   float worstQuality = 0.f;
@@ -2906,46 +2900,13 @@ cout << "Removing tallFlag from " << it->peakPtr->getIndex()+offset << endl;
   }
   cout << "Worst quality: " << worstQuality << endl;
 
-  // Let in peaks that are no worse than this.
-  for (auto& pa: peaksAnnot)
-  {
-    if (pa.tallFlag)
-      continue;
-
-    auto pt = pa.peakPtr;
-    auto npt = pa.nextPeakPtr;
-
-    pa.sharp.index = pt->getIndex();
-    pa.sharp.level = pt->getValue();
-    pa.sharp.range1 = pt->getRange();
-    pa.sharp.grad1 = 10.f * pt->getGradient();
-    pa.sharp.range2 = npt->getRange();
-    pa.sharp.grad2 = 10.f * npt->getGradient();
-
-    if (pa.sharp.range2 != 0.f)
-      pa.sharp.rangeRatio = pa.sharp.range1 / pa.sharp.range2; 
-    if (pa.sharp.grad2 != 0.f)
-      pa.sharp.gradRatio = pa.sharp.grad1 / pa.sharp.grad2; 
-
-    pa.quality = pa.sharp.distToScale(tallSize);
-    if (pa.quality <= worstQuality)
-    {
-cout << "Letting in " << pa.peakPtr->getIndex()+offset <<
-  ", quality " << pa.quality << endl;
-    cout << pa.sharp.str(offset);
-
-      pa.similarFlag = true;
-    }
-    else
-      pa.similarFlag = false;
-  }
 
 
   // Put peaks in the global list.
   peaksNewer.clear();
   for (auto& p: peaksAnnot)
   {
-    if (p.tallFlag || p.similarFlag)
+    if (p.tallFlag)
       peaksNewer.push_back(* p.peakPtr);
   }
 
