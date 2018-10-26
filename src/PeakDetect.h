@@ -111,6 +111,26 @@ class PeakDetect
           lgrad2 * lgrad2;
       };
 
+      float distToScaleQ(const Sharp& scale) const
+      {
+        // Ranges are always positive.
+        const float lrange1 = (range1 < 0.5f * scale.range1 ? 
+          (range1 - scale.range1) / scale.range1 : 0.f);
+        const float lrange2 = (range2 < 0.5f * scale.range2 ?
+          (range2 - scale.range2) / scale.range2 : 0.f);
+        // Gradients are always positive.
+        const float lgrad1 = (grad1 < scale.grad1 ? 
+          (grad1 - scale.grad1) / scale.grad1 : 0.f);
+        const float lgrad2 = (grad2 < scale.grad2 ?
+          (grad2 - scale.grad2) / scale.grad2 : 0.f);
+
+        return
+          lrange1 * lrange1 +
+          lrange2 * lrange2 +
+          lgrad1 * lgrad1 +
+          lgrad2 * lgrad2;
+      };
+
 
       string strHeader() const
       {
@@ -137,6 +157,7 @@ class PeakDetect
           setw(8) << right << "Range2" <<
           setw(8) << right << "Grad1" <<
           setw(8) << right << "Grad2" <<
+          setw(8) << right << "SQual" << 
           setw(8) << right << "Quality" << endl;
         return ss.str();
       };
@@ -158,6 +179,7 @@ class PeakDetect
 
       string strQ(
         const float quality, 
+        const float qualityShape, 
         const unsigned offset = 0) const
       {
         stringstream ss;
@@ -168,6 +190,7 @@ class PeakDetect
           setw(8) << fixed << setprecision(2) << range2 <<
           setw(8) << fixed << setprecision(2) << grad1 <<
           setw(8) << fixed << setprecision(2) << grad2 <<
+          setw(8) << fixed << setprecision(2) << qualityShape <<
           setw(8) << fixed << setprecision(2) << quality << endl;
         return ss.str();
       };
@@ -328,6 +351,8 @@ class PeakDetect
 
     void eliminatePositiveMinima();
     void eliminateNegativeMaxima();
+
+    unsigned findFirstSize(vector<unsigned>& dists) const;
 
     void reducePositiveMaxima();
     void reduceNegativeMinima();

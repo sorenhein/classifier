@@ -2479,6 +2479,72 @@ cout << "Best cluster is " << quietFavorite << endl;
 }
 
 
+unsigned PeakDetect::findFirstSize(vector<unsigned>& dists) const
+{
+  struct DistEntry
+  {
+    unsigned index;
+    int direction;
+
+    bool operator < (const DistEntry& de2)
+    {
+      return (index < de2.index);
+    };
+  };
+
+  vector<DistEntry> steps;
+  for (auto d: dists)
+  {
+    steps.emplace_back(DistEntry());
+    DistEntry& de1 = steps.back();
+    de1.index = static_cast<unsigned>(0.9f * d);
+    de1.direction = 1;
+
+    steps.emplace_back(DistEntry());
+    DistEntry& de2 = steps.back();
+    de2.index = static_cast<unsigned>(1.1f * d);
+    de2.direction = -1;
+  }
+
+  sort(steps.begin(), steps.end());
+
+  int bestCount = 0;
+  unsigned bestValueLeft = 0;
+  unsigned bestValueRight = 0;
+  int count = 0;
+  unsigned dindex = steps.size();
+
+  for (unsigned i = 0; i < dindex; i++)
+  {
+    const unsigned step = steps[i].index;
+    while (i < dindex && steps[i].index == step)
+    {
+      count += steps[i].direction;
+      i++;
+    }
+
+    if (count > bestCount)
+    {
+      bestCount = count;
+      bestValueLeft = step;
+      bestValueRight = step;
+      
+    }
+    else if (count == bestCount)
+    {
+      bestValueRight = step;
+    }
+    else if (bestCount > 0 && count == 0)
+      break;
+  }
+
+  if (bestCount > 0)
+    return (bestValueLeft + bestValueRight) / 2;
+  else
+    return 0;
+}
+
+
 void PeakDetect::reduceNewer()
 {
   // Here the idea is to use geometrical properties of the peaks
@@ -2719,6 +2785,7 @@ void PeakDetect::reduceNewer()
     bool tallFlag;
     bool similarFlag;
     float quality; // Always >= 0, low is good
+    float qualityShape; // Always >= 0, low is good
   };
 
   vector<PeakEntry> peaksAnnot;
@@ -2839,6 +2906,8 @@ void PeakDetect::reduceNewer()
   for (auto& pa: peaksAnnot)
   {
     pa.quality = pa.sharp.distToScale(tallSize);
+    pa.qualityShape = pa.sharp.distToScaleQ(tallSize);
+
     if (! pa.tallFlag)
       continue;
     
@@ -2847,14 +2916,14 @@ void PeakDetect::reduceNewer()
     if (pa.sharp.grad2 != 0.f)
       pa.sharp.gradRatio = pa.sharp.grad1 / pa.sharp.grad2; 
 
-    cout << pa.sharp.strQ(pa.quality, offset);
+    cout << pa.sharp.strQ(pa.quality, pa.qualityShape, offset);
   }
   cout << endl;
 
   cout << "All peaks\n";
   cout << tallSize.strHeaderQ();
   for (auto& pa: peaksAnnot)
-    cout << pa.sharp.strQ(pa.quality, offset);
+    cout << pa.sharp.strQ(pa.quality, pa.qualityShape, offset);
 
   // Find a reasonable peak quality.
   vector<float> qualities;
@@ -2866,26 +2935,35 @@ void PeakDetect::reduceNewer()
   // Add other peaks that are as good.
   for (auto& pa: peaksAnnot)
   {
-    if (! pa.tallFlag)
+    if (pa.tallFlag)
     {
-      if (pa.quality <= 0.3f)
-      {
-cout << "Adding tallFlag to " << 
-  pa.peakPtr->getIndex()+offset << endl;
-        pa.tallFlag = true;
-      }
-    }
-    else
-    {
-      if (pa.quality > 0.3f)
+      if (pa.quality > 0.3f && pa.qualityShape > 0.15f)
       {
 cout << "Removing tallFlag from " << 
   pa.peakPtr->getIndex()+offset << endl;
         pa.tallFlag = false;
       }
     }
+    else if (pa.quality <= 0.3f)
+    {
+cout << "Adding tallFlag to " << 
+  pa.peakPtr->getIndex()+offset << endl;
+      pa.tallFlag = true;
+    }
+    else if (pa.qualityShape <= 0.15f)
+    {
+cout << "Adding tallFlag(shape) to " << 
+  pa.peakPtr->getIndex()+offset << endl;
+      pa.tallFlag = true;
+    }
   }
 
+  cout << "Selected peaks\n";
+  for (auto& pa: peaksAnnot)
+  {
+    if (pa.tallFlag)
+      cout << pa.sharp.strQ(pa.quality, pa.qualityShape, offset);
+  }
 
 
   // Find the worst remaining peak quality.
@@ -2900,7 +2978,21 @@ cout << "Removing tallFlag from " <<
   }
   cout << "Worst quality: " << worstQuality << endl;
 
+  // Make list of distances between tall neighbors.
+  vector<unsigned> dists;
+  for (auto pit = peaksAnnot.begin(); pit != prev(peaksAnnot.end());
+    pit++)
+  {
+    auto npit = next(pit);
+    if (pit->tallFlag || npit->tallFlag)
+      dists.push_back(
+        npit->peakPtr->getIndex() - pit->peakPtr->getIndex());
+  }
 
+  sort(dists.begin(), dists.end());
+  const unsigned wheelDist = PeakDetect::findFirstSize(dists);
+  // Could be zero
+cout << "Guessing wheel distance " << wheelDist << endl;
 
   // Put peaks in the global list.
   peaksNewer.clear();
