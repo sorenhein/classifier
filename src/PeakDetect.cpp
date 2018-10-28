@@ -2514,7 +2514,8 @@ unsigned PeakDetect::findFirstSize(vector<unsigned>& dists) const
   int count = 0;
   unsigned dindex = steps.size();
 
-  for (unsigned i = 0; i < dindex; i++)
+  unsigned i = 0;
+  while (i < dindex)
   {
     const unsigned step = steps[i].index;
     while (i < dindex && steps[i].index == step)
