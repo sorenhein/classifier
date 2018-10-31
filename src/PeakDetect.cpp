@@ -2493,18 +2493,22 @@ unsigned PeakDetect::findFirstSize(vector<unsigned>& dists) const
   };
 
   vector<DistEntry> steps;
+// cout << "\nRaw steps\n";
   for (auto d: dists)
   {
     steps.emplace_back(DistEntry());
     DistEntry& de1 = steps.back();
     de1.index = static_cast<unsigned>(0.9f * d);
     de1.direction = 1;
+// cout << steps.size()-1 << ";" << de1.index << ";" << de1.direction << "\n";
 
     steps.emplace_back(DistEntry());
     DistEntry& de2 = steps.back();
     de2.index = static_cast<unsigned>(1.1f * d);
     de2.direction = -1;
+// cout << steps.size()-1 << ";" << de2.index << ";" << de2.direction << "\n";
   }
+// cout << "\n";
 
   sort(steps.begin(), steps.end());
 
@@ -2514,6 +2518,7 @@ unsigned PeakDetect::findFirstSize(vector<unsigned>& dists) const
   int count = 0;
   unsigned dindex = steps.size();
 
+cout << "\nSteps\n";
   unsigned i = 0;
   while (i < dindex)
   {
@@ -2523,6 +2528,8 @@ unsigned PeakDetect::findFirstSize(vector<unsigned>& dists) const
       count += steps[i].direction;
       i++;
     }
+
+cout << step << ";" << count << ";" << i << endl;
 
     if (count > bestCount)
     {
@@ -2538,6 +2545,9 @@ unsigned PeakDetect::findFirstSize(vector<unsigned>& dists) const
     else if (bestCount > 0 && count == 0)
       break;
   }
+cout << "\n";
+cout << "best count " << bestCount << ", " <<
+  bestValueLeft << ", " << bestValueRight << endl;
 
   if (bestCount > 0)
     return (bestValueLeft + bestValueRight) / 2;
@@ -2985,7 +2995,8 @@ cout << "Adding tallFlag(shape) to " <<
     pit++)
   {
     auto npit = next(pit);
-    if (pit->tallFlag || npit->tallFlag)
+    // if (pit->tallFlag || npit->tallFlag)
+    if (pit->tallFlag && npit->tallFlag)
       dists.push_back(
         npit->peakPtr->getIndex() - pit->peakPtr->getIndex());
   }
