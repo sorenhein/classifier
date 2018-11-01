@@ -352,7 +352,10 @@ class PeakDetect
     void eliminatePositiveMinima();
     void eliminateNegativeMaxima();
 
-    unsigned findFirstSize(vector<unsigned>& dists) const;
+    void findFirstSize(
+      const vector<unsigned>& dists,
+      unsigned& lower,
+      unsigned& upper) const;
 
     void reducePositiveMaxima();
     void reduceNegativeMinima();

@@ -2479,12 +2479,16 @@ cout << "Best cluster is " << quietFavorite << endl;
 }
 
 
-unsigned PeakDetect::findFirstSize(vector<unsigned>& dists) const
+void PeakDetect::findFirstSize(
+  const vector<unsigned>& dists,
+  unsigned& lower,
+  unsigned& upper) const
 {
   struct DistEntry
   {
     unsigned index;
     int direction;
+    unsigned origin;
 
     bool operator < (const DistEntry& de2)
     {
@@ -2500,12 +2504,14 @@ unsigned PeakDetect::findFirstSize(vector<unsigned>& dists) const
     DistEntry& de1 = steps.back();
     de1.index = static_cast<unsigned>(0.9f * d);
     de1.direction = 1;
+    de1.origin = d;
 // cout << steps.size()-1 << ";" << de1.index << ";" << de1.direction << "\n";
 
     steps.emplace_back(DistEntry());
     DistEntry& de2 = steps.back();
     de2.index = static_cast<unsigned>(1.1f * d);
     de2.direction = -1;
+    de2.origin = d;
 // cout << steps.size()-1 << ";" << de2.index << ";" << de2.direction << "\n";
   }
 // cout << "\n";
@@ -2513,46 +2519,55 @@ unsigned PeakDetect::findFirstSize(vector<unsigned>& dists) const
   sort(steps.begin(), steps.end());
 
   int bestCount = 0;
-  unsigned bestValueLeft = 0;
-  unsigned bestValueRight = 0;
+  unsigned bestValue = 0;
+  unsigned bestUpperValue = 0;
+  unsigned bestLowerValue = 0;
   int count = 0;
   unsigned dindex = steps.size();
 
-cout << "\nSteps\n";
+// cout << "\nSteps\n";
   unsigned i = 0;
   while (i < dindex)
   {
     const unsigned step = steps[i].index;
+    unsigned upperValue = 0;
     while (i < dindex && steps[i].index == step)
     {
       count += steps[i].direction;
+      if (steps[i].direction == 1)
+        upperValue = steps[i].origin;
       i++;
     }
 
-cout << step << ";" << count << ";" << i << endl;
+// cout << step << ";" << count << ";" << i << endl;
 
     if (count > bestCount)
     {
       bestCount = count;
-      bestValueLeft = step;
-      bestValueRight = step;
-      
-    }
-    else if (count == bestCount)
-    {
-      bestValueRight = step;
+      bestValue = step;
+      bestUpperValue = upperValue;
+
+      if (i == dindex)
+        THROW(ERR_NO_PEAKS, "Does not come back to zero");
+
+      unsigned j = i;
+      while (j < dindex && steps[j].direction == 1)
+        j++;
+
+      if (j == dindex || steps[j].direction == 1)
+        THROW(ERR_NO_PEAKS, "Does not come back to zero");
+
+      bestLowerValue = steps[j].origin;
     }
     else if (bestCount > 0 && count == 0)
       break;
   }
-cout << "\n";
-cout << "best count " << bestCount << ", " <<
-  bestValueLeft << ", " << bestValueRight << endl;
+// cout << "\n";
+// cout << "best count " << bestCount << ", " << bestValue << endl;
+// cout << "range " << bestLowerValue << "-" << bestUpperValue << endl;
 
-  if (bestCount > 0)
-    return (bestValueLeft + bestValueRight) / 2;
-  else
-    return 0;
+  lower = bestLowerValue;
+  upper = bestUpperValue;
 }
 
 
@@ -2788,6 +2803,21 @@ void PeakDetect::reduceNewer()
   // Peaks between abutting interval lists tend to be large and thus
   // to be "real" peaks.
 
+  enum WheelType
+  {
+    WHEEL_LEFT = 0,
+    WHEEL_RIGHT = 1,
+    WHEEL_ONLY = 2,
+    WHEEL_SIZE = 3
+  };
+
+  enum BogeyType
+  {
+    BOGEY_LEFT = 0,
+    BOGEY_RIGHT = 1,
+    BOGEY_SIZE = 2
+  };
+
   struct PeakEntry
   {
     Peak * peakPtr;
@@ -2797,6 +2827,11 @@ void PeakDetect::reduceNewer()
     bool similarFlag;
     float quality; // Always >= 0, low is good
     float qualityShape; // Always >= 0, low is good
+
+    bool wheelFlag;
+    WheelType wheelSide;
+
+    BogeyType bogeySide;
   };
 
   vector<PeakEntry> peaksAnnot;
@@ -2822,6 +2857,9 @@ void PeakDetect::reduceNewer()
 
     pe.peakPtr = &*pit;
     pe.nextPeakPtr = &*npit;
+    pe.wheelFlag = false;
+    pe.wheelSide = WHEEL_SIZE;
+    pe.bogeySide = BOGEY_SIZE;
 
     const unsigned index = pit->getIndex();
 
@@ -3002,9 +3040,214 @@ cout << "Adding tallFlag(shape) to " <<
   }
 
   sort(dists.begin(), dists.end());
-  const unsigned wheelDist = PeakDetect::findFirstSize(dists);
+  unsigned wheelDistLower, wheelDistUpper;
+  PeakDetect::findFirstSize(dists, wheelDistLower, wheelDistUpper);
   // Could be zero
-cout << "Guessing wheel distance " << wheelDist << endl;
+cout << "Guessing wheel distance " << wheelDistLower << "-" <<
+  wheelDistUpper << endl;
+
+  // Tentatively mark wheel pairs (bogeys).  If there are only 
+  // single wheels, we might be marking the wagon gaps instead.
+
+  for (auto pit = peaksAnnot.begin(); pit != prev(peaksAnnot.end());
+    pit++)
+  {
+    auto npit = next(pit);
+    if (pit->tallFlag && npit->tallFlag)
+    {
+      const unsigned dist = 
+        npit->peakPtr->getIndex() - pit->peakPtr->getIndex();
+      if (dist >= wheelDistLower && dist <= wheelDistUpper)
+      {
+        if (pit->wheelFlag)
+          THROW(ERR_NO_PEAKS, "Triple bogey?!");
+
+        pit->wheelFlag = true;
+        pit->wheelSide = WHEEL_LEFT;
+        npit->wheelFlag = true;
+        npit->wheelSide = WHEEL_RIGHT;
+cout << "Marking bogey at " << pit->peakPtr->getIndex()+offset << "-" <<
+  npit->peakPtr->getIndex()+offset << endl;
+      }
+    }
+  }
+
+  // Look for unpaired wheels where there is a nearby peaks that is
+  // not too bad.
+  // TODO There could be a spurious peak in between.
+
+  for (auto pit = peaksAnnot.begin(); pit != prev(peaksAnnot.end());
+    pit++)
+  {
+    auto npit = next(pit);
+    if (pit->tallFlag && ! npit->tallFlag)
+    {
+      const unsigned dist = 
+        npit->peakPtr->getIndex() - pit->peakPtr->getIndex();
+
+      if (dist < wheelDistLower || dist > wheelDistUpper)
+        continue;
+
+      if (npit->qualityShape <= 0.3f)
+      {
+cout << "Adding " <<
+  npit->peakPtr->getIndex()+offset << 
+  " as partner to " << 
+  pit->peakPtr->getIndex()+offset << endl;
+        
+        npit->tallFlag = true;
+        
+        pit->wheelFlag = true;
+        pit->wheelSide = WHEEL_LEFT;
+        npit->wheelFlag = true;
+        npit->wheelSide = WHEEL_RIGHT;
+      }
+    }
+    else if (! pit->tallFlag && npit->tallFlag)
+    {
+      const unsigned dist = 
+        npit->peakPtr->getIndex() - pit->peakPtr->getIndex();
+
+      if (dist < wheelDistLower || dist > wheelDistUpper)
+        continue;
+
+      if (pit->qualityShape <= 0.3f)
+      {
+cout << "Adding " <<
+  pit->peakPtr->getIndex()+offset << 
+  " as partner to " << 
+  npit->peakPtr->getIndex()+offset << endl;
+        
+        pit->tallFlag = true;
+        
+        pit->wheelFlag = true;
+        pit->wheelSide = WHEEL_LEFT;
+        npit->wheelFlag = true;
+        npit->wheelSide = WHEEL_RIGHT;
+      }
+    }
+  }
+
+  // Make a list of likely short gaps.
+  dists.clear();
+  for (auto pit = peaksAnnot.begin(); pit != prev(peaksAnnot.end());
+    pit++)
+  {
+    auto npit = next(pit);
+    if (pit->wheelSide == WHEEL_RIGHT &&
+        npit->wheelSide == WHEEL_LEFT)
+    {
+      dists.push_back(
+        npit->peakPtr->getIndex() - pit->peakPtr->getIndex());
+    }
+  }
+
+  // Look for inter-car gaps.
+  sort(dists.begin(), dists.end());
+  unsigned shortGapLower, shortGapUpper;
+  PeakDetect::findFirstSize(dists, shortGapLower, shortGapUpper);
+  // Could be zero
+cout << "Guessing short gap " << shortGapLower << "-" <<
+  shortGapUpper << endl;
+
+  // Tentatively mark short gaps (between cars).
+
+  for (auto pit = peaksAnnot.begin(); pit != prev(peaksAnnot.end());
+    pit++)
+  {
+    auto npit = next(pit);
+    if (pit->wheelSide != WHEEL_RIGHT || npit->wheelSide != WHEEL_LEFT)
+      continue;
+
+    const unsigned dist = 
+      npit->peakPtr->getIndex() - pit->peakPtr->getIndex();
+    if (dist >= shortGapLower && dist <= shortGapUpper)
+    {
+      pit->bogeySide = BOGEY_RIGHT;
+      npit->bogeySide = BOGEY_LEFT;
+cout << "Marking car gap at " << pit->peakPtr->getIndex()+offset << "-" <<
+  npit->peakPtr->getIndex()+offset << endl;
+    }
+  }
+
+
+  // Look for unpaired short gaps.
+  // TODO There could be a spurious peak in between.
+
+  for (auto pit = peaksAnnot.begin(); pit != prev(peaksAnnot.end());
+    pit++)
+  {
+    auto npit = next(pit);
+    if (pit->wheelSide == WHEEL_RIGHT && npit->wheelSide != WHEEL_LEFT)
+    {
+      const unsigned dist = 
+        npit->peakPtr->getIndex() - pit->peakPtr->getIndex();
+
+      if (dist < shortGapLower || dist > shortGapUpper)
+        continue;
+
+      if (npit->qualityShape <= 0.3f)
+      {
+cout << "Adding " <<
+  npit->peakPtr->getIndex()+offset << 
+  " as short-gap left partner to " << 
+  pit->peakPtr->getIndex()+offset << endl;
+        
+        npit->bogeySide = BOGEY_LEFT;
+      }
+    }
+    else if (pit->wheelSide != WHEEL_RIGHT && npit->wheelSide == WHEEL_LEFT)
+    {
+      const unsigned dist = 
+        npit->peakPtr->getIndex() - pit->peakPtr->getIndex();
+
+      if (dist < shortGapLower || dist > shortGapUpper)
+        continue;
+
+      if (pit->qualityShape <= 0.3f)
+      {
+cout << "Adding " <<
+  pit->peakPtr->getIndex()+offset << 
+  " as short-gap right partner to " << 
+  npit->peakPtr->getIndex()+offset << endl;
+        
+        npit->bogeySide = BOGEY_RIGHT;
+      }
+    }
+  }
+
+  // Look for smallest large gaps.
+  dists.clear();
+  for (auto pit = peaksAnnot.begin(); pit != prev(peaksAnnot.end());
+    pit++)
+  {
+    if (pit->wheelSide != WHEEL_RIGHT || pit->bogeySide != BOGEY_SIZE)
+      continue;
+
+    auto npit = next(pit);
+    while (npit != peaksAnnot.end() && 
+        npit->wheelSide != WHEEL_LEFT &&
+        npit->wheelSide != WHEEL_RIGHT)
+    {
+      npit = next(npit);
+    }
+
+    if (npit == peaksAnnot.end() || 
+        npit->wheelSide == WHEEL_RIGHT)
+      continue;
+
+    dists.push_back(
+      npit->peakPtr->getIndex() - pit->peakPtr->getIndex());
+  }
+
+  // Look for intra-car gaps.
+  sort(dists.begin(), dists.end());
+  unsigned longGapLower, longGapUpper;
+  PeakDetect::findFirstSize(dists, longGapLower, longGapUpper);
+  // Could be zero
+cout << "Guessing long gap " << longGapLower << "-" <<
+  longGapUpper << endl;
+
 
   // Put peaks in the global list.
   peaksNewer.clear();
