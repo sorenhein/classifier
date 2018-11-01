@@ -2832,6 +2832,8 @@ void PeakDetect::reduceNewer()
     WheelType wheelSide;
 
     BogeyType bogeySide;
+
+    bool spuriousFlag;
   };
 
   vector<PeakEntry> peaksAnnot;
@@ -2860,6 +2862,7 @@ void PeakDetect::reduceNewer()
     pe.wheelFlag = false;
     pe.wheelSide = WHEEL_SIZE;
     pe.bogeySide = BOGEY_SIZE;
+    pe.spuriousFlag = false;
 
     const unsigned index = pit->getIndex();
 
@@ -3248,6 +3251,42 @@ cout << "Adding " <<
 cout << "Guessing long gap " << longGapLower << "-" <<
   longGapUpper << endl;
 
+  // Label intra-car gaps.
+  for (auto pit = peaksAnnot.begin(); pit != prev(peaksAnnot.end());
+    pit++)
+  {
+    if (pit->wheelSide != WHEEL_RIGHT || pit->bogeySide != BOGEY_SIZE)
+      continue;
+
+    auto npit = next(pit);
+    while (npit != peaksAnnot.end() && 
+        npit->wheelSide != WHEEL_LEFT &&
+        npit->wheelSide != WHEEL_RIGHT)
+    {
+      npit = next(npit);
+    }
+
+    if (npit == peaksAnnot.end() || 
+        npit->wheelSide == WHEEL_RIGHT)
+      continue;
+
+    const unsigned dist = 
+      npit->peakPtr->getIndex() - pit->peakPtr->getIndex();
+
+    if (dist < longGapLower || dist > longGapUpper)
+      continue;
+
+    if (dist >= longGapLower && dist <= longGapUpper)
+    {
+      pit->bogeySide = BOGEY_LEFT;
+      npit->bogeySide = BOGEY_RIGHT;
+cout << "Marking long gap at " << pit->peakPtr->getIndex()+offset << "-" <<
+  npit->peakPtr->getIndex()+offset << endl;
+      
+      for (auto it = next(pit); it != npit; it++)
+        it->spuriousFlag = true;
+    }
+  }
 
   // Put peaks in the global list.
   peaksNewer.clear();
