@@ -2822,6 +2822,8 @@ void PeakDetect::reduceNewer()
   {
     Peak * peakPtr;
     Peak * nextPeakPtr;
+    Peak * nextLargePeakPtr;
+    Peak * prevLargePeakPtr;
     Sharp sharp;
     bool tallFlag;
     bool similarFlag;
@@ -2859,6 +2861,7 @@ void PeakDetect::reduceNewer()
 
     pe.peakPtr = &*pit;
     pe.nextPeakPtr = &*npit;
+
     pe.wheelFlag = false;
     pe.wheelSide = WHEEL_SIZE;
     pe.bogeySide = BOGEY_SIZE;
@@ -2888,6 +2891,14 @@ void PeakDetect::reduceNewer()
     }
   }
 
+  for (auto pit = peaksAnnot.begin(); pit != peaksAnnot.end(); pit++)
+  {
+    pit->prevLargePeakPtr = (pit == peaksAnnot.begin() ? nullptr : 
+      prev(pit)->peakPtr);
+    pit->nextLargePeakPtr = (next(pit) == peaksAnnot.end() ? nullptr : 
+      next(pit)->peakPtr);
+  }
+
   // Find typical sizes of "tall" peaks.
 
   const unsigned np = peaksAnnot.size();
@@ -2899,6 +2910,8 @@ void PeakDetect::reduceNewer()
   {
     auto pt = pa.peakPtr;
     auto npt = pa.nextPeakPtr;
+    if (npt == nullptr)
+      continue;
 
     pa.sharp.index = pt->getIndex();
     pa.sharp.level = pt->getValue();
@@ -3243,7 +3256,141 @@ cout << "Adding " <<
       npit->peakPtr->getIndex() - pit->peakPtr->getIndex());
   }
 
+  // For putting together complete cars.
+
+  struct Car
+  {
+    unsigned start; // Excluding offset
+    unsigned end;
+
+    bool leftGapSet;
+    bool rightGapSet;
+
+    unsigned leftGap;
+    unsigned leftBogeyGap; // Zero if single wheel
+    unsigned midGap;
+    unsigned rightBogeyGap; // Zero if single wheel
+    unsigned rightGap;
+
+    unsigned noLeftGap;
+    unsigned noRightGap;
+    unsigned no;
+
+    Peak * firstBogeyLeft;
+    Peak * firstBogeyRight;
+    Peak * secondBogeyLeft;
+    Peak * secondBogeyRight;
+
+    unsigned catStatIndex;
+
+    void operator += (const Car& c2)
+    {
+      if (c2.leftGapSet)
+      {
+        leftGap += c2.leftGap;
+        noLeftGap++;
+      }
+
+      if (c2.rightGapSet)
+      {
+        rightGap += c2.rightGap;
+        noRightGap++;
+      }
+
+      midGap += c2.midGap;
+      leftBogeyGap += c2.leftBogeyGap;
+      rightBogeyGap += c2.rightBogeyGap;
+      no++;
+    };
+
+    void avg()
+    {
+      if (noLeftGap)
+        leftGap /= noLeftGap;
+      if (noRightGap)
+        rightGap /= noRightGap;
+      if (no)
+      {
+        midGap /= no;
+        leftBogeyGap /= no;
+        rightBogeyGap /= no;
+      }
+    };
+  };
+
+  struct CarStat
+  {
+    Car carSum;
+    Peak firstBogeyLeftSum;
+    Peak firstBogeyRightSum;
+    Peak secondBogeyLeftSum;
+    Peak secondBogeyRightSum;
+
+    Car carAvg;
+    Peak firstBogeyLeftAvg;
+    Peak firstBogeyRightAvg;
+    Peak secondBogeyLeftAvg;
+    Peak secondBogeyRightAvg;
+
+    unsigned noFirstLeft;
+    unsigned noFirstRight;
+    unsigned noSecondLeft;
+    unsigned noSecondRight;
+
+    bool symmetryFlag;
+    unsigned numWheels;
+    unsigned count;
+
+    void operator += (const Car& c)
+    {
+      carSum += c;
+      count++;
+
+      if (c.firstBogeyLeft)
+      {
+        firstBogeyLeftSum += * c.firstBogeyLeft;
+        noFirstLeft++;
+      }
+
+      if (c.firstBogeyRight)
+      {
+        firstBogeyRightSum += * c.firstBogeyRight;
+        noFirstRight++;
+      }
+
+      if (c.secondBogeyLeft)
+      {
+        secondBogeyLeftSum += * c.secondBogeyLeft;
+        noSecondLeft++;
+      }
+
+      if (c.secondBogeyRight)
+      {
+        secondBogeyRightSum += * c.secondBogeyRight;
+        noSecondRight++;
+      }
+    };
+
+    void avg()
+    {
+      carSum.avg();
+
+      if (noFirstLeft)
+        firstBogeyLeftSum /= noFirstLeft;
+      if (noFirstRight)
+        firstBogeyRightSum /= noFirstRight;
+      if (noSecondLeft)
+        secondBogeyLeftSum /= noSecondLeft;
+      if (noSecondRight)
+        secondBogeyRightSum /= noSecondRight;
+    };
+  };
+
+  vector<CarStat> carStats;
+  vector<Car> cars;
+
   // Look for intra-car gaps.
+
   sort(dists.begin(), dists.end());
   unsigned longGapLower, longGapUpper;
   PeakDetect::findFirstSize(dists, longGapLower, longGapUpper);
@@ -3252,6 +3399,10 @@ cout << "Guessing long gap " << longGapLower << "-" <<
   longGapUpper << endl;
 
   // Label intra-car gaps.
+
+  carStats.emplace_back(CarStat());
+  CarStat& cs = carStats.back();
+
   for (auto pit = peaksAnnot.begin(); pit != prev(peaksAnnot.end());
     pit++)
   {
@@ -3276,17 +3427,127 @@ cout << "Guessing long gap " << longGapLower << "-" <<
     if (dist < longGapLower || dist > longGapUpper)
       continue;
 
-    if (dist >= longGapLower && dist <= longGapUpper)
-    {
-      pit->bogeySide = BOGEY_LEFT;
-      npit->bogeySide = BOGEY_RIGHT;
+    pit->bogeySide = BOGEY_LEFT;
+    npit->bogeySide = BOGEY_RIGHT;
 cout << "Marking long gap at " << pit->peakPtr->getIndex()+offset << "-" <<
   npit->peakPtr->getIndex()+offset << endl;
+
+    for (auto it = next(pit); it != npit; it++)
+      it->spuriousFlag = true;
       
-      for (auto it = next(pit); it != npit; it++)
-        it->spuriousFlag = true;
+    // Fill out cars.
+    cars.emplace_back(Car());
+    Car& car = cars.back();
+
+    car.firstBogeyRight = &*pit->peakPtr;
+    car.firstBogeyLeft = pit->prevLargePeakPtr;
+    car.secondBogeyLeft = &*npit->peakPtr;
+    car.secondBogeyRight = npit->nextLargePeakPtr;
+
+    car.midGap = dist;
+
+    car.leftBogeyGap = car.firstBogeyRight->getIndex() -
+      car.firstBogeyLeft->getIndex();
+    car.rightBogeyGap = car.secondBogeyRight->getIndex() -
+      car.secondBogeyLeft->getIndex();
+
+    car.catStatIndex = 0;
+
+    auto ppit = prev(pit);
+    Peak * p0 = ppit->prevLargePeakPtr;
+    if (p0 != nullptr && ppit->bogeySide != BOGEY_SIZE)
+    {
+      const unsigned b = car.firstBogeyLeft->getIndex();
+      const unsigned d = b - p0->getIndex();
+
+      car.start = p0->getIndex() + (d/2);
+      car.leftGapSet = true;
+      car.leftGap = b - car.start;
+    }
+    else
+      car.leftGapSet = false;
+
+    auto nnpit = next(npit);
+    Peak * p1 = nnpit->nextLargePeakPtr;
+    if (p1 != nullptr && nnpit->bogeySide != BOGEY_SIZE)
+    {
+      const unsigned e = car.secondBogeyRight->getIndex();
+      const unsigned d = p1->getIndex() - e;
+
+      car.end = e + (d/2);
+      car.rightGapSet = true;
+      car.rightGap = car.end - e;
+    }
+    else
+      car.rightGapSet = false;
+
+cout << "Marking car:\n";
+cout << "start " << car.start << ", end " << car.end << endl;
+cout << "Wheels " << car.firstBogeyLeft->getIndex()+offset << ", " <<
+  car.firstBogeyRight->getIndex()+offset << ", " <<
+  car.secondBogeyLeft->getIndex()+offset << ", " <<
+  car.secondBogeyRight->getIndex()+offset << endl;
+
+    // Fill out carStats[0].
+
+    cs.carSum += car;
+    cs.count++;
+
+    cs.firstBogeyLeftSum += * car.firstBogeyLeft;
+    cs.firstBogeyRightSum += * car.firstBogeyRight;
+    cs.secondBogeyLeftSum += * car.secondBogeyLeft;
+    cs.secondBogeyRightSum += * car.secondBogeyRight;
+
+    cs.numWheels = 2;
+    if (car.leftBogeyGap > 0)
+      cs.numWheels++;
+    if (car.rightBogeyGap > 0)
+      cs.numWheels++;
+  }
+
+  carStats[0].avg();
+
+  // Could print the average car.
+
+  // Make a list of intervals to check.
+
+  vector<Car> intervals;
+  if (peaksAnnot.front().peakPtr->getIndex() < cars.front().start)
+  {
+    intervals.emplace_back(Car());
+    Car& gap = intervals.back();
+    gap.start = peaksAnnot.front().peakPtr->getIndex();
+    gap.end = cars[0].start;
+cout << "Leading gap " << gap.start+offset << "-" << gap.end+offset << endl;
+  }
+
+  for (unsigned ii = 0; ii+1 < cars.size(); ii++)
+  {
+    if (cars[ii].end != cars[ii+1].start)
+    {
+      intervals.emplace_back(Car());
+      Car& gap = intervals.back();
+      gap.start = cars[ii].end;
+      gap.end = cars[ii+1].start;
+cout << "Intra-gap " << gap.start+offset << "-" << gap.end+offset << endl;
     }
   }
+
+  if (peaksAnnot.back().peakPtr->getIndex() > cars.back().end)
+  {
+    intervals.emplace_back(Car());
+    Car& gap = intervals.back();
+    gap.start = cars.back().end;
+    gap.end = peaksAnnot.back().peakPtr->getIndex();
+cout << "Trailing gap " << gap.start+offset << "-" << gap.end+offset << endl;
+  }
+
+
+  // TODO Check peak quality and deviations in carStats[0].
+  // Detect inner and open intervals that are not done.
+  // Could be carStats[0] with the right length etc, but missing peaks.
+  // Or could be a new type of car (or multiple cars).
+  // Ends come later.
 
   // Put peaks in the global list.
   peaksNewer.clear();

@@ -1,17 +1,7 @@
 Coming from wheel distances
 ---------------------------
 * Look at too-small peaks in wheel distance (2 or so)
-* findFirst to return explicit lower and upper limits
-* Label paired, tall peaks as wheelFlag = true, wheelSide = left/right
-* Look for unpaired, tall wheels at the right distance with a score
-  that is not too far off; label these as well
-* Look for smallest distances between two bogeys -> shortGap
-* Label bogeys endFlag = true, bogeySide = left/right
-* Look for smallest intra distances -> longGap,
-  should have poor peaks
-* Label bogeys midFlag = true
-* Come up with whole cars
-* Look at unlabeled peaks, maybe shorter cars or other gaps
+
 
 Cleaning up clusters
 --------------------
