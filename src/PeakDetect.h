@@ -196,14 +196,6 @@ class PeakDetect
       };
     };
 
-    struct SharpCluster
-    {
-      Sharp centroid;
-      unsigned len;
-      unsigned numConvincing;
-      bool good;
-    };
-
     struct Period
     {
       unsigned start;
@@ -280,25 +272,6 @@ class PeakDetect
         return ss.str();
       };
 
-    };
-
-    struct PeriodCluster
-    {
-      Period centroid;
-      unsigned len;
-      unsigned numConvincing;
-      bool good;
-      unsigned count;
-      unsigned periodDominant;
-      unsigned periodMedianDev;
-      unsigned periodLargestDev;
-      unsigned numPeriodics;
-      unsigned lenMedian;
-      unsigned lenCloseCount;
-      unsigned lenMedianDev;
-      unsigned lenLargestDev;
-      unsigned duplicates;
-      float depthAvg;
     };
 
     list<Period> quietCandidates;
@@ -583,75 +556,18 @@ class PeakDetect
 
     void eliminateKinks();
 
-    float estimateScale(vector<float>& data) const;
-
     void estimateScales();
 
     void setOrigPointers();
-
-    void eliminatePositiveMinima();
-    void eliminateNegativeMaxima();
 
     void findFirstSize(
       const vector<unsigned>& dists,
       unsigned& lower,
       unsigned& upper) const;
 
-    void reducePositiveMaxima();
-    void reduceNegativeMinima();
-
-    void reducePositiveFlats();
-
-    void markZeroCrossings();
-
-    list<Peak>::iterator advanceZC(
-      const list<Peak>::iterator peak,
-      const unsigned indexNext) const;
-
     void markQuiet();
 
     void markPossibleQuiet();
-
-    void markSharpPeaksPos(
-      list<Sharp>& sharps,
-      Sharp sharpScale,
-      vector<SharpCluster>& clusters,
-      const bool debug);
-
-    void markSharpPeaksNeg(
-      list<Sharp>& sharps,
-      Sharp sharpScale,
-      vector<SharpCluster>& clusters,
-      const bool debug);
-
-    void markSharpPeaks();
-
-    void countPositiveRuns() const;
-
-    void pickStartingClusters(
-      vector<PeakCluster>& clusters,
-      const unsigned n) const;
-
-    void pickStartingClustersSharp(
-      const list<Sharp>& sharps,
-      vector<SharpCluster>& clusters,
-      const unsigned n) const;
-
-    void pickStartingClustersQuiet(
-      list<Period>& quiets,
-      vector<PeriodCluster>& clusters,
-      const unsigned n) const;
-
-    void runKmeansOnce(vector<PeakCluster>& clusters);
-    void runKmeansOnceSharp(
-      list<Sharp>& sharps,
-      const Sharp& sharpScale,
-      vector<SharpCluster>& clusters);
-    void runKmeansOnceQuiet(
-      list<Period>& quiets,
-      vector<PeriodCluster>& clusters,
-      const unsigned csize,
-      const bool reclusterFlag);
 
     void pos2time(
       const vector<PeakPos>& posTrue,
@@ -678,108 +594,7 @@ class PeakDetect
       const double time,
       const double shift) const;
 
-    PeakType classifyPeak(
-      const Peak& peak,
-      const vector<PeakCluster>& clusters) const;
-
-    void countClusters(vector<PeakCluster>& clusters);
-
-    unsigned getConvincingClusters(vector<PeakCluster>& clusters);
-
     float getFirstPeakTime() const;
-
-    unsigned countDuplicateUses(
-      const list<Period>& quiets,
-      const unsigned cno) const;
-
-    void estimatePeriodicity(
-      vector<unsigned>& spacings,
-      unsigned& period,
-      unsigned& numMatches) const;
-
-    bool clustersCompatible(
-      const vector<Period *>& intervals1,
-      const vector<Period *>& intervals2) const;
-
-    void findCompatibles(
-      const vector<vector<Period *>>& intervals,
-      vector<vector<unsigned>>& compatibles) const;
-
-    unsigned promisingCluster(
-      vector<vector<Period *>>& intervals,
-      vector<PeriodCluster>& clusters,
-      const unsigned clen);
-
-    void removeOverlongIntervals(
-      list<Period>& quiets,
-      vector<vector<Period *>>& intervals,
-      const unsigned period);
-
-    void moveIntervalsWithLength(
-      vector<vector<Period *>>& intervals,
-      vector<PeriodCluster>& clusters,
-      const unsigned clenOrig,
-      const unsigned lenTarget);
-
-    void hypothesizeIntervals(
-      const vector<Period *>& cintervals,
-      const unsigned period,
-      const unsigned lenMedian,
-      const unsigned lastSampleNo,
-      vector<Period>& hypints) const;
-
-    void findFillers(
-      vector<vector<Period *>>& intervals,
-      const unsigned period,
-      const unsigned clusterSampleLen,
-      const unsigned lastSampleNo,
-      const unsigned clen,
-      const unsigned cfill);
-
-    unsigned largestValue(const list<Period>& quiets) const;
-
-    unsigned intervalDist(
-      const Period * p1,
-      const Period * p2) const;
-
-    void recalcClusters(
-      const list<Period>& quiets,
-      vector<PeriodCluster>& clusters);
-
-    void recalcCluster(
-      const list<Period>& quiets,
-      vector<PeriodCluster>& clusters,
-      const unsigned cno);
-
-    unsigned intervalDistance(
-      const Period * int1,
-      const Period * int2,
-      const unsigned period) const;
-
-    void labelIntervalLists(
-      vector<vector<Period *>>& intervals,
-      const unsigned period);
-
-    bool matchesIntervalList(
-      const vector<Period *>& cint,
-      const Period * interval,
-      const unsigned period,
-      unsigned& matchingPos,
-      unsigned& matchingDist) const;
-
-    void purifyIntervalLists(
-      vector<PeriodCluster>& clusters,
-      vector<vector<Period *>>& intervals,
-      const unsigned period);
-
-    void setQuietMedians(
-      list<Period>& quiets,
-      vector<PeriodCluster>& clusters,
-      vector<vector<Period *>>& intervals);
-
-    unsigned estimateQuietCluster(
-      const vector<PeriodCluster>& clusters,
-      const unsigned period) const;
 
     bool checkQuantity(
       const unsigned actual,
@@ -859,38 +674,6 @@ class PeakDetect
     void makeSynthPeaksClassicalNewer(vector<float>& synthPeaks) const;
 
     void printPeaks(const vector<PeakTime>& timesTrue) const;
-
-    void printClustersDetail(
-      const vector<PeakCluster>& clusters) const;
-
-    void printClusters(
-      const vector<PeakCluster>& clusters,
-      const bool debugDetails) const;
-
-    void printClustersSharpDetail(
-      const list<Sharp>& sharps,
-      const Sharp& sharpScale,
-      const vector<SharpCluster>& clusters) const;
-    
-    void printSharpClusters(
-      const list<Sharp>& sharps,
-      const Sharp& sharpScale,
-      const vector<SharpCluster>& clusters,
-      const bool debugDetails) const;
-
-
-    void printClustersQuietDetail(
-      const list<Period>& quiets,
-      const vector<PeriodCluster>& clusters) const;
-    
-    void printQuietClusters(
-      const list<Period>& quiets,
-      const vector<PeriodCluster>& clusters,
-      const bool debugDetails) const;
-
-    void printSelectClusters(
-      const vector<PeriodCluster>& clusters,
-      const unsigned period) const;
 
   public:
 
