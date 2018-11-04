@@ -2785,8 +2785,28 @@ bool PeakDetect::findLastThreeOfFourWheeler(
 
   if (! foundFlag)
   {
-    cout << "Suspect right bogey gap: " << car.rightBogeyGap << endl;
-    return false;
+    if (carStats.size() == 2)
+    {
+      if (car.rightBogeyGap >= carStats[0].carAvg.rightBogeyGap &&
+          car.rightBogeyGap >= carStats[1].carAvg.rightBogeyGap)
+      {
+        cout << "Suspect right bogey gap: " << car.rightBogeyGap << endl;
+        return false;
+      }
+
+      if (car.rightBogeyGap <= carStats[0].carAvg.rightBogeyGap &&
+          car.rightBogeyGap <= carStats[1].carAvg.rightBogeyGap)
+      {
+        cout << "Suspect right bogey gap: " << car.rightBogeyGap << endl;
+        return false;
+      }
+    }
+    else
+    {
+      cout << "Suspect right bogey gap: " << car.rightBogeyGap << endl;
+      return false;
+    }
+
   }
 
   if (car.midGap < 1.5f * car.rightBogeyGap)
@@ -2988,15 +3008,40 @@ cout << "Four leading wheels: Attempting to drop one\n";
   if (np == 4)
   {
     Car car;
-    if (! PeakDetect::findFourWheeler(start, end, 
+    if (PeakDetect::findFourWheeler(start, end, 
         leftGapPresent, rightGapPresent,
         peaksAnnot, peakNos, peakIndices,
         carStats[0].carAvg, car))
+    {
+      PeakDetect::fixFourWheels(peaksAnnot, peakIndices, 0, 1, 2, 3);
+
+      PeakDetect::updateCars(cars, carStats, car, 4);
+
+      return true;
+    }
+    
+    // Give up unless this is the first car.
+    if (leftGapPresent)
       return false;
 
-    PeakDetect::fixFourWheels(peaksAnnot, peakIndices, 0, 1, 2, 3);
+    // Try again without the first peak.
+cout << "Trying again without the very first peak of first car\n";
+    peakNos.erase(peakNos.begin());
+    peakIndices.erase(peakIndices.begin());
 
-    PeakDetect::updateCars(cars, carStats, car, 4);
+    unsigned numWheels;
+    if (! PeakDetect::findLastThreeOfFourWheeler(start, end,
+        rightGapPresent,
+        peaksAnnot, peakNos, peakIndices,
+        carStats, car, numWheels))
+      return false;
+
+    if (numWheels == 2)
+      PeakDetect::fixTwoWheels(peaksAnnot, peakIndices, 1, 2);
+    else 
+      PeakDetect::fixThreeWheels(peaksAnnot, peakIndices, 0, 1, 2);
+
+    PeakDetect::updateCars(cars, carStats, car, numWheels);
 
     return true;
   }
@@ -3811,7 +3856,6 @@ unsigned wcount = 0;
     if (p.wheelFlag)
     {
       wcount++;
-cout << "Seeing " << p.peakPtr->getIndex() + offset << endl;
     }
   }
 cout << "Counting " << wcount << " peaks" << endl << endl;
@@ -3921,12 +3965,12 @@ cout << "Counting " << wcount << " peaks" << endl;
       false, true, peaksAnnot, cars, carStats))
     {
       cout << "Couldn't understand leading gap " <<
-        u1+offset << "-" << u2+offset << endl;
+        u3+offset << "-" << u4+offset << endl;
     }
     else
     {
       cout << "Did leading gap " <<
-        u1+offset << "-" << u2+offset << endl;
+        u3+offset << "-" << u4+offset << endl;
     }
   }
 
