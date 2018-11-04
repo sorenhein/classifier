@@ -2788,18 +2788,30 @@ bool PeakDetect::findCars(
   vector<CarStat>& carStats) const
 {
   vector<unsigned> peakNos, peakIndices;
+  unsigned notTallCount = 0;
+  unsigned notTallNo = 0;
+  bool notTallFlag = false;
+
   for (unsigned i = 0; i < peaksAnnot.size(); i++)
   {
     const unsigned index = peaksAnnot[i].peakPtr->getIndex();
     if (index >= start && index <= end)
     {
+      if (! peaksAnnot[i].tallFlag)
+      {
+        notTallFlag = true;
+        notTallNo = peakNos.size();
+        notTallCount++;
+      }
+
       peakNos.push_back(index);
       peakIndices.push_back(i);
+      
     }
   }
 
   const unsigned np = peakNos.size();
-  if (np <= 2 || np >= 5)
+  if (np <= 2 || np >= 6)
   {
     cout << "Don't know how to do this yet: " << np << "\n";
     return false;
@@ -2820,6 +2832,28 @@ bool PeakDetect::findCars(
 
     return true;
   }
+
+  if (np == 5 && notTallFlag && notTallCount == 1)
+  {
+cout << "Five wheels: Attempting to drop one\n";
+
+    peakNos.erase(peakNos.begin() + notTallNo);
+    peakIndices.erase(peakIndices.begin() + notTallNo);
+
+    Car car;
+    if (! PeakDetect::findFourWheeler(start, end, 
+        leftGapPresent, rightGapPresent,
+        peaksAnnot, peakNos, peakIndices,
+        carStats[0].carAvg, car))
+      return false;
+
+    PeakDetect::fixFourWheels(peaksAnnot, peakIndices, 0, 1, 2, 3);
+
+    PeakDetect::updateCars(cars, carStats, car, 4);
+
+    return true;
+  }
+
 
   cout << "Don't know how to do this yet: " << np << "\n";
   return false;
@@ -3658,7 +3692,7 @@ cout << "Did intra-gap " << cars[ii].end+offset << "-" <<
   if (u2 > u1)
   {
     if (! PeakDetect::findCars(u1, u2,
-      true, true, peaksAnnot, cars, carStats))
+      true, false, peaksAnnot, cars, carStats))
     {
         cout << "Couldn't understand trailing gap " <<
           u1+offset << "-" << u2+offset << endl;
