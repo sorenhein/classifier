@@ -790,6 +790,31 @@ class PeakDetect
       const vector<CarStat>& carStats,
       unsigned& index) const;
 
+    bool findFourWheeler(
+      const unsigned start,
+      const unsigned end,
+      const bool leftGapPresent,
+      const bool rightGapPresent,
+      const vector<PeakEntry>& peaksAnnot,
+      const vector<unsigned>& peakNos,
+      const vector<unsigned>& peakIndices,
+      const Car& carAvg,
+      Car& car) const;
+
+    void fixFourWheels(
+      vector<PeakEntry>& peaksAnnot,
+      const vector<unsigned>& peakIndices,
+      const unsigned p0,
+      const unsigned p1,
+      const unsigned p2,
+      const unsigned p3) const;
+
+    void updateCars(
+      vector<Car>& cars,
+      vector<CarStat>& carStats,
+      Car& car,
+      const unsigned numWheels) const;
+
     bool findCars(
       const unsigned start,
       const unsigned end,
