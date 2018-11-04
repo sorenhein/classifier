@@ -1,17 +1,12 @@
-Coming from wheel distances
----------------------------
-* Look at too-small peaks in wheel distance (2 or so)
+sensor00, 092623: Missing peaks.
+
+Matching distance against X: inf -- why?  Probably some distance is 0.
+
+
 
 
 Cleaning up clusters
 --------------------
-Not a good idea to include peaks with not-so-bad quality:
-Let in peaks that we shouldn't.
-
-Noisy bottoms:  Maybe look at initial vs overall slope.
-
-Patterns:  Look for adjacent peaks with at least one tall peak.
-
 3/21
 4/38, 45-47, 49
 5/36, 59
@@ -22,76 +17,12 @@ Patterns:  Look for adjacent peaks with at least one tall peak.
 Next issues:
 - Peaks in e.g sensor09 are noisy at the bottom,
   which disturbs index and gradient
-- How to look for patterns in adjacent peaks?
-- Once in a while a bad peak is let in at the front
 
-
-
-- Pmax does not deal well with middle wagons
-- Lists with wrong periods
-- Create a raster and place lists relative to each other
-- Also use depth as criterion
-- markPossibleQuiet: Depth is always relative to prev, should
-  somehow be relative to peak with lowest absolute value out of
-  the two neighbors?
-- Look at hand-written issues, may be a bug in purify
-
-Prefer cluster according to score
-- 10 * depth
-- #per
-- minus (len / (0.6 * period))^2 * 10
-- Absolutely no duplicates
 
 Look graphically for misses
 
-Next stage: We need high-quality peaks in the open intervals.
-Probably need both the streamlined peaks and the original ones.
-Needs to be somewhat monotonic at the bottom.
-Need the same number in each interval as a rule (often 4).
-Then look in irregular internal intervals, using known spacings.
-Look at the end, using known spacings.
-Look at the beginning, messier.
-
-
-SmallRange doesn't quite work, #23/0, #24, #25, #33/0
-#28 asymm ranges pos and neg
-
-2018-09-24
-----------
-- Need even cleaner peaks before we start clustering.
-- s05, 053709, sample 1650: Do we have two peaks? Why not?
-
-2018-09-23
-----------
-- Detect positive maxima with some streamlining (done)
-- Detect negative minima with some streamlining (done)
-
-What's left?
-
-- Positive maxima without a negative minimum in between
-  - Can be chatter
-  - Can be a proper trough
-- Negative minima without a positive maximum in between
-  - Can be a negative maximum as a single spike
-  - Can be chatter
-
-Combine these into Pieces.
-
-Fill in single spikes and note more complicated behavior.
-
-By now the whole trace should be sliced up.
-
-Look for regularities.
-
-Fill out the complicated pieces.
-
 2018-09-17
 ----------
-
-PeakStats: 
-log the category (train or sensor).
-Output csv.
-
 Give out the whole PeakList, don't copy into PeakTime?
 
 
@@ -104,8 +35,6 @@ Maybe transients can be reduced with filter padding as in filtfilt.
 
 2018-09-02
 ----------
-* Improve the recognition (currently 1072 / 1778 = 60.3%)
-
 * Add separate timers for pre-align and align
 * And for peak extraction
 

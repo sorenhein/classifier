@@ -1025,6 +1025,107 @@ bool PeakDetect::findFourWheeler(
 }
 
 
+bool PeakDetect::findLastTwoOfFourWheeler(
+  const unsigned start, 
+  const unsigned end,
+  const bool rightGapPresent,
+  const vector<PeakEntry>& peaksAnnot, 
+  const vector<unsigned>& peakNos, 
+  const vector<unsigned>& peakIndices,
+  const vector<CarStat>& carStats, 
+  Car& car) const
+{
+  car.start = start;
+  car.end = end;
+  car.partialFlag = true;
+
+  car.leftGap = 0;
+  car.leftGapSet = false;
+
+  if (rightGapPresent)
+  {
+    car.rightGap = end - peakNos[1];
+    car.rightGapSet = true;
+  }
+  else
+  {
+    car.rightGap = 0;
+    car.rightGapSet = false;
+  }
+
+  car.leftBogeyGap = 0;
+  car.rightBogeyGap = peakNos[1] - peakNos[0];
+
+  car.firstBogeyLeft = nullptr;
+  car.firstBogeyRight = nullptr;
+  car.secondBogeyLeft = peaksAnnot[peakIndices[0]].peakPtr;
+  car.secondBogeyRight = peaksAnnot[peakIndices[1]].peakPtr;
+
+  if (rightGapPresent)
+  {
+    if (! PeakDetect::checkQuantity(car.rightGap,
+        carStats[0].carAvg.rightGap, 2.f, "right gap"))
+      return false;
+    if (car.rightGap < 0.5f * car.rightBogeyGap)
+    {
+      cout << "Suspect right gap: " << car.rightGap << 
+        " vs. bogey gap " << car.rightBogeyGap << endl;
+      return false;
+    }
+  }
+
+  // As we don't have a complete car, we'll at least require the
+  // right bogey gap to be similar to something we've seen.
+
+  bool foundFlag = false;
+  for (unsigned i = 0; i < carStats.size(); i++)
+  {
+    if (car.rightBogeyGap >= 0.9f * carStats[i].carAvg.rightBogeyGap &&
+        car.rightBogeyGap <= 1.1f * carStats[i].carAvg.rightBogeyGap)
+    {
+      foundFlag = true;
+      break;
+    }
+  }
+
+  if (! foundFlag)
+  {
+    if (carStats.size() == 1)
+    {
+      if (car.rightBogeyGap <= 0.75f * carStats[0].carAvg.rightBogeyGap ||
+          car.rightBogeyGap >= 1.25f * carStats[0].carAvg.rightBogeyGap)
+      {
+        cout << "Suspect right bogey gap: " << car.rightBogeyGap << endl;
+        return false;
+      }
+    }
+    else if (carStats.size() == 2)
+    {
+      if (car.rightBogeyGap >= carStats[0].carAvg.rightBogeyGap &&
+          car.rightBogeyGap >= carStats[1].carAvg.rightBogeyGap)
+      {
+        cout << "Suspect right bogey gap: " << car.rightBogeyGap << endl;
+        return false;
+      }
+
+      if (car.rightBogeyGap <= carStats[0].carAvg.rightBogeyGap &&
+          car.rightBogeyGap <= carStats[1].carAvg.rightBogeyGap)
+      {
+        cout << "Suspect right bogey gap: " << car.rightBogeyGap << endl;
+        return false;
+      }
+    }
+    else
+    {
+      cout << "Suspect right bogey gap: " << car.rightBogeyGap << endl;
+      return false;
+    }
+  }
+
+  return true;
+}
+
+
 bool PeakDetect::findLastThreeOfFourWheeler(
   const unsigned start, 
   const unsigned end,
@@ -1045,7 +1146,7 @@ bool PeakDetect::findLastThreeOfFourWheeler(
 
   if (rightGapPresent)
   {
-    car.rightGap = end - peakNos[3];
+    car.rightGap = end - peakNos[2];
     car.rightGapSet = true;
   }
   else
@@ -1347,43 +1448,6 @@ cout << "Failed second car\n";
 
     return true;
   }
-  else if (np >= 6)
-  {
-    // Might be two extra peaks.
-    vector<unsigned> peakNosNew, peakIndicesNew;
-
-    for (unsigned i: peakIndices)
-    {
-      if (peaksAnnot[i].qualityShape <= 0.5f)
-      {
-        peakNosNew.push_back(peaksAnnot[i].peakPtr->getIndex());
-        peakIndicesNew.push_back(i);
-      }
-    }
-
-    if (peakNosNew.size() != 4)
-    {
-      cout << "I don't yet see one car here: " << np << ", " <<
-        peakNosNew.size() << endl;
-      return false;
-    }
-
-    Car car;
-    // Try the car.
-cout << "Trying the car\n";
-    if (! PeakDetect::findFourWheeler(start, peakIndices[3],
-        leftGapPresent, false,
-        peaksAnnot, peakNosNew, peakIndicesNew,
-        carStats[0].carAvg, car))
-    {
-cout << "Failed the car: " << np << "\n";
-      return false;
-    }
-
-    PeakDetect::fixFourWheels(peaksAnnot, peakIndicesNew, 0, 1, 2, 3);
-    PeakDetect::updateCars(cars, carStats, car, 4);
-    return true;
-  }
 
 
   if (np <= 2)
@@ -1392,9 +1456,18 @@ cout << "Failed the car: " << np << "\n";
     return false;
   }
 
-  if (np == 4 && notTallFlag && notTallCount == 1 && ! leftGapPresent)
+  if (! leftGapPresent &&
+      (np == 4 || np == 5) && 
+      notTallFlag && 
+      notTallCount == np-3)
   {
-cout << "Four leading wheels: Attempting to drop one\n";
+cout << "4-5 leading wheels: Attempting to drop down to 3: " << np << "\n";
+
+    if (np == 5)
+    {
+      peakNos.erase(peakNos.begin() + notTallNos[1]);
+      peakIndices.erase(peakIndices.begin() + notTallNos[1]);
+    }
 
     peakNos.erase(peakNos.begin() + notTallNos[0]);
     peakIndices.erase(peakIndices.begin() + notTallNos[0]);
@@ -1458,88 +1531,145 @@ cout << "Trying again without the very first peak of first car\n";
     return true;
   }
 
-  if (np == 5 && notTallFlag && notTallCount == 1)
+  if (np >= 5)
   {
-cout << "Five wheels: Attempting to drop one\n";
+    // Might be several extra peaks (1-2).
+    vector<unsigned> peakNosNew, peakIndicesNew;
 
-    peakNos.erase(peakNos.begin() + notTallNos[0]);
-    peakIndices.erase(peakIndices.begin() + notTallNos[0]);
+    float qmax = 0.f;
+    unsigned qindex = 0;
+
+    for (unsigned j = 0; j < peakIndices.size(); j++)
+    {
+      unsigned i = peakIndices[j];
+
+      if (peaksAnnot[i].qualityShape > qmax)
+      {
+        qmax = peaksAnnot[i].qualityShape;
+        qindex = j;
+      }
+
+      if (peaksAnnot[i].qualityShape <= 0.5f)
+      {
+        peakNosNew.push_back(peaksAnnot[i].peakPtr->getIndex());
+        peakIndicesNew.push_back(i);
+      }
+    }
+
+    if (peakNosNew.size() != 4)
+    {
+      // If there are five and the middle one stands out, try that.
+      if (np == 5 && qindex == 2)
+      {
+cout << "General try with " << np << " didn't fit -- drop the middle?" <<
+ endl;
+        peakNos.erase(peakNos.begin() + 2);
+        peakIndices.erase(peakIndices.begin() + 2);
+      
+        Car car;
+    cout << "Trying the car anyway\n";
+        if (! PeakDetect::findFourWheeler(start, end,
+            leftGapPresent, rightGapPresent,
+            peaksAnnot, peakNos, peakIndices,
+            carStats[0].carAvg, car))
+        {
+    cout << "Failed the car: " << np << "\n";
+          return false;
+        }
+
+        PeakDetect::fixFourWheels(peaksAnnot, peakIndices, 0, 1, 2, 3);
+        PeakDetect::updateCars(cars, carStats, car, 4);
+        return true;
+      }
+      else
+      {
+        cout << "I don't yet see one car here: " << np << ", " <<
+          peakNosNew.size() << endl;
+
+for (unsigned i: peakIndices)
+  cout << "index " << peaksAnnot[i].peakPtr->getIndex() << ", qs " <<
+    peaksAnnot[i].qualityShape << endl;
+
+        return false;
+      }
+    }
 
     Car car;
-    if (! PeakDetect::findFourWheeler(start, end, 
+    // Try the car.
+cout << "Trying the car\n";
+    // if (! PeakDetect::findFourWheeler(start, peakNosNew[3],
+    if (! PeakDetect::findFourWheeler(start, end,
         leftGapPresent, rightGapPresent,
-        peaksAnnot, peakNos, peakIndices,
+        // leftGapPresent, false,
+        peaksAnnot, peakNosNew, peakIndicesNew,
         carStats[0].carAvg, car))
+    {
+cout << "Failed the car: " << np << "\n";
       return false;
+    }
 
-cout << "Five wheels: Fixing" << endl;
-
-    PeakDetect::fixFourWheels(peaksAnnot, peakIndices, 0, 1, 2, 3);
-
+    PeakDetect::fixFourWheels(peaksAnnot, peakIndicesNew, 0, 1, 2, 3);
     PeakDetect::updateCars(cars, carStats, car, 4);
-
     return true;
   }
 
-  if (np == 5 && notTallFlag && notTallCount >= 2)
+  if (! leftGapPresent && np == 3)
   {
-    // Maybe some peaks are not so convincing, but they fit the
-    // pattern anyway.
-
-    if (peaksAnnot[peakIndices[0]].qualityShape <= 0.5f &&
-        peaksAnnot[peakIndices[1]].qualityShape <= 0.5f &&
-        peaksAnnot[peakIndices[2]].qualityShape >= 1.0f &&
-        peaksAnnot[peakIndices[3]].qualityShape <= 0.5f &&
-        peaksAnnot[peakIndices[4]].qualityShape <= 0.5f)
+cout << "Trying 3-peak leading car\n";
+    // The first car, only three peaks.
+    if (notTallCount == 1 && 
+      ! peaksAnnot[peakIndices[0]].tallFlag)
     {
-      // Could plausibly be a dip in the middle.
-      peakNos.erase(peakNos.begin() + 2);
-      peakIndices.erase(peakIndices.begin() + 2);
+cout << "Two talls\n";
+      // Skip the first peak.
+      peakNos.erase(peakNos.begin() + notTallNos[0]);
+      peakIndices.erase(peakIndices.begin() + notTallNos[0]);
 
       Car car;
-      if (! PeakDetect::findFourWheeler(start, end, 
-          leftGapPresent, rightGapPresent,
+      if (! PeakDetect::findLastTwoOfFourWheeler(start, end,
+          rightGapPresent,
           peaksAnnot, peakNos, peakIndices,
-          carStats[0].carAvg, car))
+          carStats, car))
+      {
+cout << "Failed\n";
         return false;
+      }
 
-cout << "Five quite general wheels: Fixing" << endl;
+      PeakDetect::fixTwoWheels(peaksAnnot, peakIndices, 0, 1);
 
-      PeakDetect::fixFourWheels(peaksAnnot, peakIndices, 0, 1, 2, 3);
+      PeakDetect::updateCars(cars, carStats, car, 2);
 
-      PeakDetect::updateCars(cars, carStats, car, 4);
+      return true;
+    }
+    else if (peaksAnnot[peakIndices[0]].qualityShape > 0.5f &&
+        peaksAnnot[peakIndices[1]].qualityShape <= 0.5f &&
+        peaksAnnot[peakIndices[2]].qualityShape <= 0.5f)
+    {
+cout << "Two good shapes\n";
+      // Skip the first peak.
+      peakNos.erase(peakNos.begin() + notTallNos[0]);
+      peakIndices.erase(peakIndices.begin() + notTallNos[0]);
+
+      Car car;
+      if (! PeakDetect::findLastTwoOfFourWheeler(start, end,
+          rightGapPresent,
+          peaksAnnot, peakNos, peakIndices,
+          carStats, car))
+      {
+cout << "Failed\n";
+        return false;
+      }
+
+      PeakDetect::fixTwoWheels(peaksAnnot, peakIndices, 0, 1);
+
+      PeakDetect::updateCars(cars, carStats, car, 2);
 
       return true;
     }
   }
 
-  if (np == 6 && notTallFlag && notTallCount == 2)
-  {
-cout << "Six wheels: Attempting to drop two\n";
-
-    peakNos.erase(peakNos.begin() + notTallNos[1]);
-    peakIndices.erase(peakIndices.begin() + notTallNos[1]);
-    peakNos.erase(peakNos.begin() + notTallNos[0]);
-    peakIndices.erase(peakIndices.begin() + notTallNos[0]);
-
-    Car car;
-    if (! PeakDetect::findFourWheeler(start, end, 
-        leftGapPresent, rightGapPresent,
-        peaksAnnot, peakNos, peakIndices,
-        carStats[0].carAvg, car))
-      return false;
-
-cout << "Six wheels: Fixing" << endl;
-
-    PeakDetect::fixFourWheels(peaksAnnot, peakIndices, 0, 1, 2, 3);
-
-    PeakDetect::updateCars(cars, carStats, car, 4);
-
-    return true;
-  }
-
-
-  cout << "Don't know how to do this yet: " << np << "\n";
+  cout << "Don't know how to do this yet: " << np << ", notTallCount " <<
+    notTallCount << "\n";
   return false;
 
 }
@@ -2342,6 +2472,7 @@ cout << "Counting " << wcount << " peaks" << endl << endl;
       {
         car.start = car.firstBogeyLeft->getIndex() - 
           carStats[0].carAvg.leftGap;
+        car.leftGap = carStats[0].carAvg.leftGap;
 cout << "Filling out car left:\n";
 cout << "start " << car.start+offset << ", end " << car.end+offset << endl;
       }
@@ -2351,10 +2482,19 @@ cout << "start " << car.start+offset << ", end " << car.end+offset << endl;
     {
       car.end = car.secondBogeyRight->getIndex() +
         carStats[0].carAvg.rightGap;
+        car.rightGap = carStats[0].carAvg.rightGap;
 cout << "Filling out car right:\n";
 cout << "start " << car.start+offset << ", end " << car.end+offset << endl;
     }
   }
+
+  // Print cars in tight table.
+  cout << "Cars before intra-gaps:\n";
+  cout << cars[0].strHeader();
+  for (auto& car: cars)
+    cout << car.strLine(offset);
+  cout << endl;
+
 
   // Check open intervals.  Start with inner ones as they are complete.
 
@@ -2391,6 +2531,12 @@ wcount = 0;
       wcount++;
   }
 cout << "Counting " << wcount << " peaks" << endl;
+
+  cout << "Cars after inner gaps:\n";
+  cout << cars[0].strHeader();
+  for (auto& car: cars)
+    cout << car.strLine(offset);
+  cout << endl;
 
   cout << "After inner gaps\n";
   for (auto& csl: carStats)
@@ -2841,7 +2987,7 @@ void PeakDetect::makeSynthPeaksClassicalNewer(vector<float>& synthPeaks) const
 {
   for (auto& peak: peaksNewer)
   {
-cout << "Setting " << peak.getIndex() << " to " << peak.getValue() << endl;
+// cout << "Setting " << peak.getIndex() << " to " << peak.getValue() << endl;
     synthPeaks[peak.getIndex()] = peak.getValue();
   }
 }

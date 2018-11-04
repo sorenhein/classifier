@@ -356,6 +356,38 @@ class PeakDetect
         setw(6) << right << rightGap << " (" << noRightGap << ")\n";
       return ss.str();
     };
+
+    string strHeader()
+    {
+      stringstream ss;
+      ss << setw(6) << right << "start" <<
+        setw(6) << "end" <<
+        setw(6) << "len" <<
+        setw(6) << "leftg" <<
+        setw(6) << "leftb" <<
+        setw(6) << "mid" <<
+        setw(6) << "rgtb" <<
+        setw(6) << "rgtg" <<
+        setw(6) << "partl" <<
+        setw(6) << "#cs" << endl;
+      return ss.str();
+    };
+
+    string strLine(const unsigned offset)
+    {
+      stringstream ss;
+      ss << setw(6) << start + offset <<
+        setw(6) << end + offset <<
+        setw(6) << end-start <<
+        setw(6) << leftGap <<
+        setw(6) << leftBogeyGap <<
+        setw(6) << midGap <<
+        setw(6) << rightBogeyGap <<
+        setw(6) << rightGap <<
+        setw(6) << (partialFlag ? "yes" : "no") <<
+        setw(6) << catStatIndex << endl;
+      return ss.str();
+    };
   };
 
   struct CarStat
@@ -616,6 +648,16 @@ class PeakDetect
       const vector<unsigned>& peakNos,
       const vector<unsigned>& peakIndices,
       const Car& carAvg,
+      Car& car) const;
+
+    bool findLastTwoOfFourWheeler(
+      const unsigned start,
+      const unsigned end,
+      const bool rightGapPresent,
+      const vector<PeakEntry>& peaksAnnot,
+      const vector<unsigned>& peakNos,
+      const vector<unsigned>& peakIndices,
+      const vector<CarStat>& carStats,
       Car& car) const;
 
     bool findLastThreeOfFourWheeler(
