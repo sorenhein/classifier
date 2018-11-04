@@ -305,6 +305,244 @@ class PeakDetect
     unsigned quietFavorite;
 
 
+  // For putting together complete cars.
+
+  struct Car
+  {
+    unsigned start; // Excluding offset
+    unsigned end;
+
+    bool leftGapSet;
+    bool rightGapSet;
+
+    unsigned leftGap;
+    unsigned leftBogeyGap; // Zero if single wheel
+    unsigned midGap;
+    unsigned rightBogeyGap; // Zero if single wheel
+    unsigned rightGap;
+
+    unsigned noLeftGap;
+    unsigned noRightGap;
+    unsigned no;
+
+    Peak * firstBogeyLeft;
+    Peak * firstBogeyRight;
+    Peak * secondBogeyLeft;
+    Peak * secondBogeyRight;
+
+    unsigned catStatIndex;
+
+    void operator += (const Car& c2)
+    {
+      if (c2.leftGapSet)
+      {
+        leftGap += c2.leftGap;
+        noLeftGap++;
+      }
+
+      if (c2.rightGapSet)
+      {
+        rightGap += c2.rightGap;
+        noRightGap++;
+      }
+
+      midGap += c2.midGap;
+      leftBogeyGap += c2.leftBogeyGap;
+      rightBogeyGap += c2.rightBogeyGap;
+      no++;
+    };
+
+    void avg()
+    {
+      if (noLeftGap)
+        leftGap /= noLeftGap;
+      if (noRightGap)
+        rightGap /= noRightGap;
+      if (no)
+      {
+        midGap /= no;
+        leftBogeyGap /= no;
+        rightBogeyGap /= no;
+      }
+    };
+
+    string str()
+    {
+      stringstream ss;
+      ss << setw(12) << left << "Left gap" << 
+        setw(6) << right << leftGap << " (" << noLeftGap << ")\n";
+      ss << setw(12) << left << "Left bogey" << 
+        setw(6) << right << leftBogeyGap << " (" << no << ")\n";
+      ss << setw(12) << left << "Mid gap" << 
+        setw(6) << right << midGap << " (" << no << ")\n";
+      ss << setw(12) << left << "Right bogey" << 
+        setw(6) << right << rightBogeyGap << " (" << no << ")\n";
+      ss << setw(12) << left << "Right gap" << 
+        setw(6) << right << rightGap << " (" << noRightGap << ")\n";
+      return ss.str();
+    };
+  };
+
+  struct CarStat
+  {
+    Car carSum;
+    Peak firstBogeyLeftSum;
+    Peak firstBogeyRightSum;
+    Peak secondBogeyLeftSum;
+    Peak secondBogeyRightSum;
+
+    Car carAvg;
+    Peak firstBogeyLeftAvg;
+    Peak firstBogeyRightAvg;
+    Peak secondBogeyLeftAvg;
+    Peak secondBogeyRightAvg;
+
+    unsigned noFirstLeft;
+    unsigned noFirstRight;
+    unsigned noSecondLeft;
+    unsigned noSecondRight;
+
+    bool symmetryFlag;
+    unsigned numWheels;
+    unsigned count;
+
+    void operator += (const Car& c)
+    {
+      carSum += c;
+      count++;
+
+      if (c.firstBogeyLeft)
+      {
+        firstBogeyLeftSum += * c.firstBogeyLeft;
+        noFirstLeft++;
+      }
+
+      if (c.firstBogeyRight)
+      {
+        firstBogeyRightSum += * c.firstBogeyRight;
+        noFirstRight++;
+      }
+
+      if (c.secondBogeyLeft)
+      {
+        secondBogeyLeftSum += * c.secondBogeyLeft;
+        noSecondLeft++;
+      }
+
+      if (c.secondBogeyRight)
+      {
+        secondBogeyRightSum += * c.secondBogeyRight;
+        noSecondRight++;
+      }
+    };
+
+    void avg()
+    {
+      carAvg = carSum;
+      carAvg.avg();
+
+      if (noFirstLeft)
+      {
+        firstBogeyLeftAvg = firstBogeyLeftSum;
+        firstBogeyLeftAvg /= noFirstLeft;
+      }
+      if (noFirstRight)
+      {
+        firstBogeyRightAvg = firstBogeyRightSum;
+        firstBogeyRightAvg /= noFirstRight;
+      }
+      if (noSecondLeft)
+      {
+        secondBogeyLeftAvg = secondBogeyLeftSum;
+        secondBogeyLeftAvg /= noSecondLeft;
+      }
+      if (noSecondRight)
+      {
+        secondBogeyRightAvg = secondBogeyRightSum;
+        secondBogeyRightAvg /= noSecondRight;
+      }
+    };
+
+    float distComponent(const unsigned a, const unsigned b) const
+    {
+      const float ratio = (a > b ? 
+        static_cast<float>(a) / static_cast<float>(b) :
+        static_cast<float>(b) / static_cast<float>(a));
+
+      if (ratio <= 1.1f)
+        return 0.f;
+      else
+        return 100.f * (ratio - 1.f) * (ratio - 1.f);
+
+    };
+
+    float distance(const Car& car) const
+    {
+      // Could also involve peak quality.
+
+      float dist = 0.f;
+
+      if (carAvg.leftGapSet && car.leftGapSet)
+        dist += distComponent(carAvg.leftGap, car.leftGap);
+
+      if (carAvg.rightGapSet && car.rightGapSet)
+        dist += distComponent(carAvg.rightGap, car.rightGap);
+
+      dist += distComponent(carAvg.leftBogeyGap, car.leftBogeyGap);
+      dist += distComponent(carAvg.midGap, car.midGap);
+      dist += distComponent(carAvg.rightBogeyGap, car.rightBogeyGap);
+
+      return dist;
+    }
+
+    string str()
+    {
+      return carAvg.str();
+    };
+  };
+
+
+  // Peaks between abutting interval lists tend to be large and thus
+  // to be "real" peaks.
+
+  enum WheelType
+  {
+    WHEEL_LEFT = 0,
+    WHEEL_RIGHT = 1,
+    WHEEL_ONLY = 2,
+    WHEEL_SIZE = 3
+  };
+
+  enum BogeyType
+  {
+    BOGEY_LEFT = 0,
+    BOGEY_RIGHT = 1,
+    BOGEY_SIZE = 2
+  };
+
+  struct PeakEntry
+  {
+    Peak * peakPtr;
+    Peak * nextPeakPtr;
+    Peak * nextLargePeakPtr;
+    Peak * prevLargePeakPtr;
+    Sharp sharp;
+    bool tallFlag;
+    bool similarFlag;
+    float quality; // Always >= 0, low is good
+    float qualityShape; // Always >= 0, low is good
+
+    bool wheelFlag;
+    WheelType wheelSide;
+
+    BogeyType bogeySide;
+
+    bool spuriousFlag;
+  };
+
+
+
+
     unsigned len;
     unsigned offset;
     list<Peak> peaks;
@@ -540,6 +778,26 @@ class PeakDetect
     unsigned estimateQuietCluster(
       const vector<PeriodCluster>& clusters,
       const unsigned period) const;
+
+    bool checkQuantity(
+      const unsigned actual,
+      const unsigned reference,
+      const float factor,
+      const string& text) const;
+
+    bool matchesCarStat(
+      const Car& car,
+      const vector<CarStat>& carStats,
+      unsigned& index) const;
+
+    bool findCars(
+      const unsigned start,
+      const unsigned end,
+      const bool leftGapPresent,
+      const bool rightGapPresent,
+      vector<PeakEntry>& peaksAnnot,
+      vector<Car>& cars,
+      vector<CarStat>& carStats) const;
 
     void makeSynthPeaksSharp(vector<float>& synthPeaks) const;
     void makeSynthPeaksQuietNew(vector<float>& synthPeaks) const;
