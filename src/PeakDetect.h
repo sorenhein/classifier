@@ -325,6 +325,8 @@ class PeakDetect
     unsigned noRightGap;
     unsigned no;
 
+    bool partialFlag;
+
     Peak * firstBogeyLeft;
     Peak * firstBogeyRight;
     Peak * secondBogeyLeft;
@@ -800,6 +802,30 @@ class PeakDetect
       const vector<unsigned>& peakIndices,
       const Car& carAvg,
       Car& car) const;
+
+    bool findLastThreeOfFourWheeler(
+      const unsigned start,
+      const unsigned end,
+      const bool rightGapPresent,
+      const vector<PeakEntry>& peaksAnnot,
+      const vector<unsigned>& peakNos,
+      const vector<unsigned>& peakIndices,
+      const vector<CarStat>& carStats,
+      Car& car,
+      unsigned& numWheels) const;
+
+    void fixTwoWheels(
+      vector<PeakEntry>& peaksAnnot,
+      const vector<unsigned>& peakIndices,
+      const unsigned p0,
+      const unsigned p1) const;
+
+    void fixThreeWheels(
+      vector<PeakEntry>& peaksAnnot,
+      const vector<unsigned>& peakIndices,
+      const unsigned p0,
+      const unsigned p1,
+      const unsigned p2) const;
 
     void fixFourWheels(
       vector<PeakEntry>& peaksAnnot,
