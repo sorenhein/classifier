@@ -1895,8 +1895,6 @@ void PeakDetect::setQuietMedians(
   for (auto qc = quiets.begin(); qc != quiets.end(); qc++)
   {
     const unsigned cno = qc->clusterNo;
-if (cno >= numCl)
-  cout << "HOPPLA10" << endl;
     clusters[cno].count++;
     lengths[cno].push_back(qc->len);
     intervals[cno].push_back(&*qc);
@@ -2347,137 +2345,10 @@ void PeakDetect::markPossibleQuiet()
       lengths.push_back(p.len);
     }
   }
-
-  const unsigned n = lengths.size() / 2;
-  nth_element(lengths.begin(), lengths.begin()+n, lengths.end());
-  const float median = static_cast<float>(lengths[n]);
-
-  vector<PeriodCluster> clusters;
-  clusters.resize(KMEANS_CLUSTERS);
-  PeakDetect::runKmeansOnceQuiet(quietCandidates, clusters, 
-    KMEANS_CLUSTERS, false);
-  PeakDetect::printQuietClusters(quietCandidates, clusters, false);
-
-  float maxDepth = 0.f;
-  unsigned maxIndex = 0;
-
-  for (unsigned i = 0; i < clusters.size(); i++)
-  {
-    if (clusters[i].centroid.depth > maxDepth)
-    {
-      maxIndex = i;
-      maxDepth = clusters[i].centroid.depth;
-    }
-  }
-
-  if (maxDepth == 0.f)
-    THROW(ERR_NO_PEAKS, "No quiet candidates");
-
-  // TODO Could check for periodicity and no gaps between quiet periods
-
-  // Should maybe be a class variable.
-  vector<vector<Period *>> intervals;
-  vector<vector<unsigned>> compatibles;
-
-  PeakDetect::setQuietMedians(quietCandidates, clusters, intervals);
-
-  cout << "Starting clusters\n";
-  PeakDetect::printSelectClusters(clusters, 0);
-
-  const unsigned clenOrig = clusters.size();
-  // unsigned bestCluster =
-    PeakDetect::promisingCluster(intervals, clusters, clenOrig);
-
-  // Redo with the new, promising cluster.
-  PeakDetect::setQuietMedians(quietCandidates, clusters, intervals);
-
-  unsigned period = clusters.back().periodDominant;
-
 // Have to call once quiets exist and before they are decimated.
 PeakDetect::reduceNewer();
 
-  PeakDetect::removeOverlongIntervals(quietCandidates, intervals, period);
-
-  // Redo yet again (wasteful).
-  PeakDetect::setQuietMedians(quietCandidates, clusters, intervals);
-
-  const unsigned cfill = clusters.size()-1;
-  PeakDetect::recalcCluster(quietCandidates, clusters, cfill);
-
-  const unsigned lastSampleNo = PeakDetect::largestValue(quietCandidates);
-
-  PeakDetect::findFillers(intervals, period, clusters[cfill].lenMedian,
-    lastSampleNo, clenOrig, cfill);
-
-  // And again...
-  PeakDetect::setQuietMedians(quietCandidates, clusters, 
-    intervals);
-
-  PeakDetect::recalcClusters(quietCandidates, clusters);
-
-  PeakDetect::printQuietClusters(quietCandidates, clusters, false);
-
-  cout << "Dominant cluster complete\n";
-  PeakDetect::printSelectClusters(clusters, period);
-
-  PeakDetect::moveIntervalsWithLength(intervals, clusters, 
-    clenOrig, period);
-
-  // And again...
-  PeakDetect::setQuietMedians(quietCandidates, clusters, intervals);
-
-  PeakDetect::recalcClusters(quietCandidates, clusters);
-
-  PeakDetect::printQuietClusters(quietCandidates, clusters, false);
-
-  cout << "Period cluster complete\n";
-  PeakDetect::printSelectClusters(clusters, period);
-
-  // Recluster.
-  PeakDetect::runKmeansOnceQuiet(quietCandidates, clusters, 
-    KMEANS_CLUSTERS, true);
-
-  // And again...
-  PeakDetect::setQuietMedians(quietCandidates, clusters, intervals);
-
-  PeakDetect::printQuietClusters(quietCandidates, clusters, false);
-
-  cout << "Reclustered\n";
-  PeakDetect::printSelectClusters(clusters, period);
-
-  // Compatible clusters have no overlaps.
-  compatibles.clear();
-  compatibles.resize(clusters.size());
-
-  PeakDetect::findCompatibles(intervals, compatibles);
-
-  cout << "Compatible" << endl;
-  for (unsigned cno = 0; cno < compatibles.size(); cno++)
-  {
-    cout << cno << ":";
-    for (auto i: compatibles[cno])
-      cout << " " << i;
-    cout << "\n";
-  }
-  cout << endl;
-
-  PeakDetect::labelIntervalLists(intervals, period);
-
-  PeakDetect::purifyIntervalLists(clusters, intervals, period);
-
-  // And again...
-  PeakDetect::setQuietMedians(quietCandidates, clusters, intervals);
-
-  PeakDetect::printQuietClusters(quietCandidates, clusters, false);
-
-  cout << "Purified\n";
-  PeakDetect::printSelectClusters(clusters, period);
-
-  quietFavorite = estimateQuietCluster(clusters, period);
-cout << "Best cluster is " << quietFavorite << endl;
-
-  // quietFavorite = bestCluster;
-  // quietFavorite = maxIndex;
+peaks = peaksNewer;
 }
 
 
