@@ -1,4 +1,9 @@
-sensor00, 092623: Missing peaks.
+sensor00, 161216: 
+Probably there are two peak types, with range1 > range2 and the 
+other way round.
+They might be mixed in, or we can find them as neighbors of the 
+dominant scale.
+If we don't get them, we won't get enough bogey for later.
 
 Matching distance against X: inf -- why?  Probably some distance is 0.
 
