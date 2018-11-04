@@ -1281,7 +1281,112 @@ bool PeakDetect::findCars(
   }
 
   const unsigned np = peakNos.size();
-  if (np <= 2 || np >= 7)
+
+  if (np >= 8)
+  {
+    // Might be two cars.
+    vector<unsigned> peakNosNew, peakIndicesNew;
+
+    for (unsigned i: peakIndices)
+    {
+      if (peaksAnnot[i].qualityShape <= 0.5f)
+      {
+        peakNosNew.push_back(peaksAnnot[i].peakPtr->getIndex());
+        peakIndicesNew.push_back(i);
+      }
+    }
+
+    if (peakNosNew.size() != 8)
+    {
+      cout << "I don't yet see two cars here: " << np << ", " <<
+        peakNosNew.size() << endl;
+      return false;
+    }
+
+    peakNos.clear();
+    peakIndices.clear();
+    vector<unsigned> peakNosOther, peakIndicesOther;
+
+    for (unsigned i = 0; i < 4; i++)
+    {
+      peakNos.push_back(peakNosNew[i]);
+      peakIndices.push_back(peakIndicesNew[i]);
+
+      peakNosOther.push_back(peakNosNew[i+4]);
+      peakIndicesOther.push_back(peakIndicesNew[i+4]);
+    }
+
+
+    Car car, carOther;
+    // Try the first four peaks.
+cout << "Trying first of two cars\n";
+    if (! PeakDetect::findFourWheeler(start, peakIndices[3],
+        leftGapPresent, false,
+        peaksAnnot, peakNos, peakIndices,
+        carStats[0].carAvg, car))
+    {
+cout << "Failed first car\n";
+      return false;
+    }
+
+cout << "Trying second of two cars\n";
+    if (! PeakDetect::findFourWheeler(peakIndices[4], end, 
+        false, rightGapPresent,
+        peaksAnnot, peakNosOther, peakIndicesOther,
+        carStats[0].carAvg, carOther))
+    {
+cout << "Failed second car\n";
+      return false;
+    }
+
+    PeakDetect::fixFourWheels(peaksAnnot, peakIndices, 0, 1, 2, 3);
+    PeakDetect::updateCars(cars, carStats, car, 4);
+
+    PeakDetect::fixFourWheels(peaksAnnot, peakIndicesOther, 0, 1, 2, 3);
+    PeakDetect::updateCars(cars, carStats, carOther, 4);
+
+    return true;
+  }
+  else if (np >= 6)
+  {
+    // Might be two extra peaks.
+    vector<unsigned> peakNosNew, peakIndicesNew;
+
+    for (unsigned i: peakIndices)
+    {
+      if (peaksAnnot[i].qualityShape <= 0.5f)
+      {
+        peakNosNew.push_back(peaksAnnot[i].peakPtr->getIndex());
+        peakIndicesNew.push_back(i);
+      }
+    }
+
+    if (peakNosNew.size() != 4)
+    {
+      cout << "I don't yet see one car here: " << np << ", " <<
+        peakNosNew.size() << endl;
+      return false;
+    }
+
+    Car car;
+    // Try the car.
+cout << "Trying the car\n";
+    if (! PeakDetect::findFourWheeler(start, peakIndices[3],
+        leftGapPresent, false,
+        peaksAnnot, peakNosNew, peakIndicesNew,
+        carStats[0].carAvg, car))
+    {
+cout << "Failed the car: " << np << "\n";
+      return false;
+    }
+
+    PeakDetect::fixFourWheels(peaksAnnot, peakIndicesNew, 0, 1, 2, 3);
+    PeakDetect::updateCars(cars, carStats, car, 4);
+    return true;
+  }
+
+
+  if (np <= 2)
   {
     cout << "Don't know how to do this yet: " << np << "\n";
     return false;
@@ -1381,11 +1486,11 @@ cout << "Five wheels: Fixing" << endl;
     // Maybe some peaks are not so convincing, but they fit the
     // pattern anyway.
 
-    if (peaksAnnot[peakIndices[0]].qualityShape <= 0.6f &&
-        peaksAnnot[peakIndices[1]].qualityShape <= 0.6f &&
-        peaksAnnot[peakIndices[2]].qualityShape >= 1.2f &&
-        peaksAnnot[peakIndices[3]].qualityShape <= 0.6f &&
-        peaksAnnot[peakIndices[4]].qualityShape <= 0.6f)
+    if (peaksAnnot[peakIndices[0]].qualityShape <= 0.5f &&
+        peaksAnnot[peakIndices[1]].qualityShape <= 0.5f &&
+        peaksAnnot[peakIndices[2]].qualityShape >= 1.0f &&
+        peaksAnnot[peakIndices[3]].qualityShape <= 0.5f &&
+        peaksAnnot[peakIndices[4]].qualityShape <= 0.5f)
     {
       // Could plausibly be a dip in the middle.
       peakNos.erase(peakNos.begin() + 2);
