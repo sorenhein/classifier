@@ -595,7 +595,9 @@ class PeakDetect
     void findFirstSize(
       const vector<unsigned>& dists,
       unsigned& lower,
-      unsigned& upper) const;
+      unsigned& upper,
+      unsigned& counted,
+      const unsigned lowerCount = 0) const;
 
     void markQuiet();
 

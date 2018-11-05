@@ -315,6 +315,15 @@ void PeakDetect::reduceSmallRanges(const float rangeLimit)
         peaksNew.erase(peakCurrent, peaksNew.end());
       break;
     }
+/* */
+    else if (peakCurrent->getValue() > 0.f &&
+             ! peakCurrent->getMaxFlag())
+    {
+      // Don't connect two positive maxima.  This can mess up
+      // the gradient calculation which influences peak perception.
+      peak++;
+    }
+/* */
     else if (peak->getMaxFlag() != maxFlag)
     {
       // Keep from peakCurrent to peak which is also often peakMax.
@@ -448,7 +457,21 @@ void PeakDetect::eliminateKinks()
         ratioNext > 1.f &&
         ratioPrev * ratioNext > KINK_RATIO)
     {
-      peak = PeakDetect::collapsePeaks(peakPrev, peakNext);
+      // Candidate for removal.  But if it changes the gradient
+      // too much, don't do it.
+
+      const float grad = peakPrev->getGradient();
+      const float lenNew = peakPrev->getLength() +
+        peak->getLength() + peakNext->getLength();
+      const float rangeNew = 
+        abs(peakNext->getValue() - peakPrev->getValue()) +
+        peakPrev->getRange();
+      const float gradNew = rangeNew / lenNew;
+
+      if (gradNew > 1.1f * grad || gradNew < 0.9f * grad)
+        peak++;
+      else
+        peak = PeakDetect::collapsePeaks(peakPrev, peakNext);
     }
     else
       peak++;
@@ -791,7 +814,9 @@ void PeakDetect::markPossibleQuiet()
 void PeakDetect::findFirstSize(
   const vector<unsigned>& dists,
   unsigned& lower,
-  unsigned& upper) const
+  unsigned& upper,
+  unsigned& counted,
+  const unsigned lowerCount) const
 {
   struct DistEntry
   {
@@ -872,7 +897,7 @@ void PeakDetect::findFirstSize(
     {
       // Don't take a "small" maximum.
       // TODO Should really be more discerning.
-      if (bestCount == 1)
+      if (bestCount < static_cast<int>(lowerCount))
       {
         bestCount = 0;
         bestUpperValue = 0;
@@ -888,6 +913,7 @@ void PeakDetect::findFirstSize(
 
   lower = bestLowerValue;
   upper = bestUpperValue;
+  counted = bestCount;
 }
 
 
@@ -2124,7 +2150,9 @@ cout << "Adding tallFlag(shape) to " <<
 
   sort(dists.begin(), dists.end());
   unsigned wheelDistLower, wheelDistUpper;
-  PeakDetect::findFirstSize(dists, wheelDistLower, wheelDistUpper);
+  unsigned whcount;
+  PeakDetect::findFirstSize(dists, wheelDistLower, wheelDistUpper,
+    whcount);
   // Could be zero
 cout << "Guessing wheel distance " << wheelDistLower << "-" <<
   wheelDistUpper << endl;
@@ -2228,7 +2256,9 @@ cout << "Adding " <<
   // Look for inter-car gaps.
   sort(dists.begin(), dists.end());
   unsigned shortGapLower, shortGapUpper;
-  PeakDetect::findFirstSize(dists, shortGapLower, shortGapUpper);
+  unsigned shcount;
+  PeakDetect::findFirstSize(dists, shortGapLower, shortGapUpper,
+    shcount, 0);
   // Could be zero
 cout << "Guessing short gap " << shortGapLower << "-" <<
   shortGapUpper << endl;
@@ -2330,7 +2360,9 @@ cout << "Adding " <<
 
   sort(dists.begin(), dists.end());
   unsigned longGapLower, longGapUpper;
-  PeakDetect::findFirstSize(dists, longGapLower, longGapUpper);
+  unsigned lcount;
+  PeakDetect::findFirstSize(dists, longGapLower, longGapUpper,
+    lcount, shcount / 2);
   // Could be zero
 cout << "Guessing long gap " << longGapLower << "-" <<
   longGapUpper << endl;
