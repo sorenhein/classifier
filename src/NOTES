@@ -1,9 +1,14 @@
-sensor00, 161216: 
-Probably there are two peak types, with range1 > range2 and the 
-other way round.
-They might be mixed in, or we can find them as neighbors of the 
-dominant scale.
-If we don't get them, we won't get enough bogey for later.
+Once wheel distance has been estimated, if very narrow (or in general?):
+Center +/ 10%
+Look for neighboring peaks with shape and/or qshape < 1.0
+Average these into a second central peak
+See if peaks are then better in terms of quality (might catch even more).
+Make the new ones tall as well etc.
+
+Add their neighbors as well (all neighbors in one step).
+
+Example: sensor00, 161216:
+
 
 Matching distance against X: inf -- why?  Probably some distance is 0.
 
