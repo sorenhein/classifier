@@ -2095,7 +2095,7 @@ void PeakDetect::reduceNewer()
   {
     if (pa.tallFlag)
     {
-      if (pa.quality > 0.3f && pa.qualityShape > 0.15f)
+      if (pa.quality > 0.3f && pa.qualityShape > 0.20f)
       {
 cout << "Removing tallFlag from " << 
   pa.peakPtr->getIndex()+offset << endl;
@@ -2108,7 +2108,7 @@ cout << "Adding tallFlag to " <<
   pa.peakPtr->getIndex()+offset << endl;
       pa.tallFlag = true;
     }
-    else if (pa.qualityShape <= 0.15f)
+    else if (pa.qualityShape <= 0.20f)
     {
 cout << "Adding tallFlag(shape) to " << 
   pa.peakPtr->getIndex()+offset << endl;
@@ -2160,6 +2160,7 @@ cout << "Guessing wheel distance " << wheelDistLower << "-" <<
   // Tentatively mark wheel pairs (bogeys).  If there are only 
   // single wheels, we might be marking the wagon gaps instead.
 
+  unsigned numBogeys = 0;
   for (auto pit = peaksAnnot.begin(); pit != prev(peaksAnnot.end());
     pit++)
   {
@@ -2177,11 +2178,13 @@ cout << "Guessing wheel distance " << wheelDistLower << "-" <<
         pit->wheelSide = WHEEL_LEFT;
         npit->wheelFlag = true;
         npit->wheelSide = WHEEL_RIGHT;
+        numBogeys++;
 cout << "Marking bogey at " << pit->peakPtr->getIndex()+offset << "-" <<
   npit->peakPtr->getIndex()+offset << endl;
       }
     }
   }
+
 
   // Look for unpaired wheels where there is a nearby peak that is
   // not too bad.
@@ -2212,6 +2215,7 @@ cout << "Adding " <<
         pit->wheelSide = WHEEL_LEFT;
         npit->wheelFlag = true;
         npit->wheelSide = WHEEL_RIGHT;
+        numBogeys++;
       }
     }
     else if (! pit->tallFlag && npit->tallFlag)
@@ -2235,9 +2239,203 @@ cout << "Adding " <<
         pit->wheelSide = WHEEL_LEFT;
         npit->wheelFlag = true;
         npit->wheelSide = WHEEL_RIGHT;
+        numBogeys++;
       }
     }
   }
+
+
+  // Find the average first and second peak in a wheel pair.
+  vector<float> values1, 
+    rangesLeft1, 
+    rangesRight1, 
+    gradLeft1, 
+    gradRight1;
+  vector<float> values2, 
+    rangesLeft2, 
+    rangesRight2, 
+    gradLeft2, 
+    gradRight2;
+  for (auto& pa: peaksAnnot)
+  {
+    auto pt = pa.peakPtr;
+    auto npt = pa.nextPeakPtr;
+    if (npt == nullptr)
+      continue;
+
+    if (! pa.tallFlag)
+      continue;
+
+    if (! pa.wheelFlag)
+      continue;
+
+    if (pa.wheelSide == WHEEL_LEFT)
+    {
+      values1.push_back(pt->getValue());
+      rangesLeft1.push_back(pt->getRange());
+      gradLeft1.push_back(10.f * pt->getGradient());
+
+      rangesRight1.push_back(npt->getRange());
+      gradRight1.push_back(10.f * npt->getGradient());
+    }
+    else if (pa.wheelSide == WHEEL_RIGHT)
+    {
+      values2.push_back(pt->getValue());
+      rangesLeft2.push_back(pt->getRange());
+      gradLeft2.push_back(10.f * pt->getGradient());
+
+      rangesRight2.push_back(npt->getRange());
+      gradRight2.push_back(10.f * npt->getGradient());
+    }
+
+  }
+
+  Sharp tallLeftSize, tallRightSize;
+
+  const unsigned nvm1 = values1.size() / 2;
+  nth_element(values1.begin(), values1.begin() + nvm1, values1.end());
+  tallLeftSize.level = values1[nvm1];
+
+  nth_element(rangesLeft1.begin(), rangesLeft1.begin() + nvm1, 
+    rangesLeft1.end());
+  tallLeftSize.range1 = rangesLeft1[nvm1];
+
+  nth_element(gradLeft1.begin(), gradLeft1.begin() + nvm1, gradLeft1.end());
+  tallLeftSize.grad1 = gradLeft1[nvm1];
+
+  nth_element(rangesRight1.begin(), rangesRight1.begin() + nvm1, 
+    rangesRight1.end());
+  tallLeftSize.range2 = rangesRight1[nvm1];
+
+  nth_element(gradRight1.begin(), gradRight1.begin() + nvm1, gradRight1.end());
+  tallLeftSize.grad2 = gradRight1[nvm1];
+
+  if (tallLeftSize.range2 != 0.f)
+    tallLeftSize.rangeRatio = tallLeftSize.range1 / tallLeftSize.range2;
+  if (tallLeftSize.grad2 != 0.f)
+    tallLeftSize.gradRatio = tallLeftSize.grad1 / tallLeftSize.grad2;
+
+  // Print scale.
+  cout << "Tall left scale" << endl;
+  cout << tallLeftSize.strHeader();
+  cout << tallLeftSize.str(offset);
+  cout << endl;
+
+  const unsigned nvm2 = values2.size() / 2;
+  nth_element(values2.begin(), values2.begin() + nvm2, values2.end());
+  tallRightSize.level = values2[nvm2];
+
+  nth_element(rangesLeft2.begin(), rangesLeft2.begin() + nvm2, 
+    rangesLeft2.end());
+  tallRightSize.range1 = rangesLeft2[nvm2];
+
+  nth_element(gradLeft2.begin(), gradLeft2.begin() + nvm2, gradLeft2.end());
+  tallRightSize.grad1 = gradLeft2[nvm2];
+
+  nth_element(rangesRight2.begin(), rangesRight2.begin() + nvm2, 
+    rangesRight2.end());
+  tallRightSize.range2 = rangesRight2[nvm2];
+
+  nth_element(gradRight2.begin(), gradRight2.begin() + nvm2, gradRight2.end());
+  tallRightSize.grad2 = gradRight2[nvm2];
+
+  if (tallRightSize.range2 != 0.f)
+    tallRightSize.rangeRatio = tallRightSize.range1 / tallRightSize.range2;
+  if (tallRightSize.grad2 != 0.f)
+    tallRightSize.gradRatio = tallRightSize.grad1 / tallRightSize.grad2;
+
+  // Print scale.
+  cout << "Tall right scale" << endl;
+  cout << tallRightSize.strHeader();
+  cout << tallRightSize.str(offset);
+  cout << endl;
+
+
+  // Recalibrate the peak qualities.
+  cout << "Refined peak qualities:\n";
+  cout << tallLeftSize.strHeaderQ();
+  for (auto& pa: peaksAnnot)
+  {
+    if (! pa.wheelFlag)
+    {
+      const float distLeft = pa.sharp.distToScale(tallLeftSize);
+      const float distRight = pa.sharp.distToScale(tallRightSize);
+      pa.quality = min(distLeft, distRight);
+
+      const float distQLeft = pa.sharp.distToScaleQ(tallLeftSize);
+      const float distQRight = pa.sharp.distToScaleQ(tallRightSize);
+      pa.qualityShape = min(distQLeft, distQRight);
+    }
+    else if (pa.wheelSide == WHEEL_LEFT)
+    {
+      pa.quality = pa.sharp.distToScale(tallLeftSize);
+      pa.qualityShape = pa.sharp.distToScaleQ(tallLeftSize);
+    }
+    else if (pa.wheelSide == WHEEL_RIGHT)
+    {
+      pa.quality = pa.sharp.distToScale(tallRightSize);
+      pa.qualityShape = pa.sharp.distToScaleQ(tallRightSize);
+    }
+
+    cout << pa.sharp.strQ(pa.quality, pa.qualityShape, offset);
+
+    if (pa.quality <= 0.3f || pa.qualityShape <= 0.20f)
+      pa.tallFlag = true;
+    else
+      pa.tallFlag = false;
+  }
+
+  // Redo the distances.
+  dists.clear();
+  for (auto pit = peaksAnnot.begin(); pit != prev(peaksAnnot.end());
+    pit++)
+  {
+    auto npit = next(pit);
+    if (pit->tallFlag && npit->tallFlag)
+      dists.push_back(
+        npit->peakPtr->getIndex() - pit->peakPtr->getIndex());
+  }
+
+  sort(dists.begin(), dists.end());
+  unsigned wheelDistLowerNew, wheelDistUpperNew;
+  unsigned whcountNew;
+  PeakDetect::findFirstSize(dists, wheelDistLowerNew, 
+    wheelDistUpperNew, whcountNew);
+  // Could be zero
+cout << "Guessing new wheel distance " << wheelDistLowerNew << "-" <<
+  wheelDistUpperNew << endl;
+
+
+  // Mark more bogeys with the refined peak qualities.
+
+  for (auto pit = peaksAnnot.begin(); pit != prev(peaksAnnot.end());
+    pit++)
+  {
+    auto npit = next(pit);
+    // Already paired up?
+    if (pit->wheelFlag || npit->wheelFlag)
+      continue;
+
+    if (pit->tallFlag && npit->tallFlag)
+    {
+      const unsigned dist = 
+        npit->peakPtr->getIndex() - pit->peakPtr->getIndex();
+      if (dist >= wheelDistLowerNew && dist <= wheelDistUpperNew)
+      {
+        if (pit->wheelFlag)
+          THROW(ERR_NO_PEAKS, "Triple bogey?!");
+
+        pit->wheelFlag = true;
+        pit->wheelSide = WHEEL_LEFT;
+        npit->wheelFlag = true;
+        npit->wheelSide = WHEEL_RIGHT;
+        numBogeys++;
+cout << "Marking new bogey at " << pit->peakPtr->getIndex()+offset << "-" <<
+  npit->peakPtr->getIndex()+offset << endl;
+      }
+    }
+  }
+
 
   // Make a list of likely short gaps.
   dists.clear();
