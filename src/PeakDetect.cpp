@@ -1407,72 +1407,85 @@ bool PeakDetect::findCars(
     }
   }
 
-  const unsigned np = peakNos.size();
+  unsigned np = peakNos.size();
+  bool firstRightFlag = true;
+  const unsigned firstIndex = peakIndices.front();
 
-  if (np >= 8)
+  while (np >= 8)
   {
-    // Might be two cars.
-    vector<unsigned> peakNosNew, peakIndicesNew;
-
-    for (unsigned i: peakIndices)
+    // Might be multiple cars.  Work backwards, as this works best
+    // for the leading cars.  Use groups of four good peaks.
+    unsigned i = np;
+    unsigned seen = 0;
+    while (i > 0 && seen < 4)
     {
-      if (peaksAnnot[i].qualityShape <= 0.5f)
+      i--;
+      if (peaksAnnot[peakIndices[i]].qualityShape <= 0.5f)
+        seen++;
+    }
+
+    if (seen == 4)
+    {
+      vector<unsigned> peakNosNew, peakIndicesNew;
+      for (unsigned j = i; j < np; j++)
       {
-        peakNosNew.push_back(peaksAnnot[i].peakPtr->getIndex());
-        peakIndicesNew.push_back(i);
+        if (peaksAnnot[peakIndices[j]].qualityShape <= 0.5f)
+        {
+          peakNosNew.push_back(peakNos[j]);
+          peakIndicesNew.push_back(peakIndices[j]);
+
+          peakNos.pop_back();
+          peakIndices.pop_back();
+        }
+      }
+cout << "Trying a multi-peak split, np was " << np << ", is " << i << endl;
+      np = i;
+
+      unsigned s, e, fl, fr;
+      if (peakIndicesNew.front() == peakIndices.front())
+      {
+        s = start;
+        fl = leftGapPresent;
+      }
+      else
+      {
+        s = peaksAnnot[peakIndicesNew[0]].peakPtr->getIndex();
+        fl = false;
+      }
+
+      if (firstRightFlag)
+      {
+        e = end;
+        fr = rightGapPresent;
+      }
+      else
+      {
+        e = peaksAnnot[peakIndicesNew[3]].peakPtr->getIndex();
+        fr = false;
+      }
+cout << "Range is " << s+offset << "-" << e+offset << endl;
+
+      Car car;
+      if (PeakDetect::findFourWheeler(s, e, fl, fr,
+        peaksAnnot, peakNosNew, peakIndicesNew,
+        carStats[0].carAvg, car))
+      {
+        PeakDetect::fixFourWheels(peaksAnnot, peakIndicesNew, 0, 1, 2, 3);
+        PeakDetect::updateCars(cars, carStats, car, 4);
+        return true;
+      }
+      else
+      {
+cout << "Failed multi-peak split " << start+offset << "-" << end+offset << endl;
+        return false;
       }
     }
-
-    if (peakNosNew.size() != 8)
+    else
     {
-      cout << "I don't yet see two cars here: " << np << ", " <<
-        peakNosNew.size() << endl;
-      return false;
+      // Fall through to the other chances.
+cout << "Falling through with remaining peaks, np " << np << endl;
+      break;
     }
-
-    peakNos.clear();
-    peakIndices.clear();
-    vector<unsigned> peakNosOther, peakIndicesOther;
-
-    for (unsigned i = 0; i < 4; i++)
-    {
-      peakNos.push_back(peakNosNew[i]);
-      peakIndices.push_back(peakIndicesNew[i]);
-
-      peakNosOther.push_back(peakNosNew[i+4]);
-      peakIndicesOther.push_back(peakIndicesNew[i+4]);
-    }
-
-
-    Car car, carOther;
-    // Try the first four peaks.
-cout << "Trying first of two cars\n";
-    if (! PeakDetect::findFourWheeler(start, peakIndices[3],
-        leftGapPresent, false,
-        peaksAnnot, peakNos, peakIndices,
-        carStats[0].carAvg, car))
-    {
-cout << "Failed first car\n";
-      return false;
-    }
-
-cout << "Trying second of two cars\n";
-    if (! PeakDetect::findFourWheeler(peakIndices[4], end, 
-        false, rightGapPresent,
-        peaksAnnot, peakNosOther, peakIndicesOther,
-        carStats[0].carAvg, carOther))
-    {
-cout << "Failed second car\n";
-      return false;
-    }
-
-    PeakDetect::fixFourWheels(peaksAnnot, peakIndices, 0, 1, 2, 3);
-    PeakDetect::updateCars(cars, carStats, car, 4);
-
-    PeakDetect::fixFourWheels(peaksAnnot, peakIndicesOther, 0, 1, 2, 3);
-    PeakDetect::updateCars(cars, carStats, carOther, 4);
-
-    return true;
   }
 
 
