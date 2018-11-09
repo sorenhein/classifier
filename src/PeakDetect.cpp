@@ -1519,6 +1519,9 @@ cout << "Falling through with remaining peaks, np " << np << endl;
   if (npOrig > np)
   {
     // Kludge
+    if (peakIndices.size() == 0)
+      THROW(ERR_NO_PEAKS, "No residual peaks?");
+
         startLocal = start;
         leftFlagLocal = leftGapPresent;
 
@@ -2372,6 +2375,9 @@ cout << "Adding " <<
   Sharp tallLeftSize, tallRightSize;
 
   const unsigned nvm1 = values1.size() / 2;
+  if (nvm1 == 0)
+    THROW(ERR_NO_PEAKS, "No left wheels?");
+
   nth_element(values1.begin(), values1.begin() + nvm1, values1.end());
   tallLeftSize.level = values1[nvm1];
 
