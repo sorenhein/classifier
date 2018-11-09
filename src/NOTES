@@ -1,17 +1,23 @@
-Once wheel distance has been estimated, if very narrow (or in general?):
-Center +/ 10%
-Look for neighboring peaks with shape and/or qshape < 1.0
-Average these into a second central peak
-See if peaks are then better in terms of quality (might catch even more).
-Make the new ones tall as well etc.
-
-Add their neighbors as well (all neighbors in one step).
-
-Example: sensor00, 161216:
-
+Remaining sensor00 errors:
+#23, 082401: Tell findCars it's the first or last car
+  (do we know?), last car with 6 peaks --> drop very last peak
+  and try 5
+#47, 061030: After making car[0], make *4* tall peaks, refine again
+#68, 074731: The first car bogey is very odd (too long)
 
 Matching distance against X: inf -- why?  Probably some distance is 0.
 
+
+Fix distance = inf
+Use distance on cars to eliminate some car types
+Sort cars
+
+When printing peaks, at T (tall) as well as L, R, L1, R1, L2, R2
+
+Make a Car class
+Maybe Car has a subclass that's used for carSum and has only
+the gaps.  Then carSum has one of these and the counts.
+Car has one of these and start, end, peaks etc.
 
 
 

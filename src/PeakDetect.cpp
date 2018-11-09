@@ -3135,8 +3135,6 @@ void PeakDetect::makeSynthPeaks(vector<float>& synthPeaks) const
 
   // PeakDetect::makeSynthPeaksSharp(synthPeaks);
 
-// PeakDetect::makeSynthPeaksQuietNew(synthPeaks);
-
   // PeakDetect::makeSynthPeaksLines(synthPeaks);
 
   // PeakDetect::makeSynthPeaksQuiet(synthPeaks);
@@ -3146,19 +3144,6 @@ void PeakDetect::makeSynthPeaks(vector<float>& synthPeaks) const
   // PeakDetect::makeSynthPeaksClassical(synthPeaks);
 
 PeakDetect::makeSynthPeaksClassicalNewer(synthPeaks);
-}
-
-
-void PeakDetect::makeSynthPeaksQuietNew(vector<float>& synthPeaks) const
-{
-  for (auto& qc: quietCandidates)
-  {
-    if (qc.clusterNo != quietFavorite)
-      continue;
-
-    for (unsigned i = qc.start; i <= qc.start + qc.len; i++)
-      synthPeaks[i] = qc.minLevel;
-  }
 }
 
 

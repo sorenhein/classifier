@@ -200,78 +200,16 @@ class PeakDetect
     {
       unsigned start;
       unsigned len;
-      float lenScaled;
       float depth;
       float minLevel;
-      unsigned clusterNo;
-
-      unsigned scoreLeft;
-      unsigned scoreRight;
-      unsigned scoreLowest;
-      bool fitsPeriodFlag;
 
       Period()
       {
         start = 0;
         len = 0;
-        lenScaled = 0.f;
         depth = 0.f;
         minLevel = 0.f;
-        clusterNo = 0;
       };
-
-      void operator += (const Period& p2)
-      {
-        start += p2.start;
-        len += p2.len;
-        lenScaled += p2.lenScaled;
-        depth += p2.depth;
-      };
-
-      void operator /= (const unsigned n)
-      {
-        start /= n;
-        len /= n;
-        lenScaled /= n;
-        depth /= n;
-      };
-
-      float distance(const Period& p2) const
-      {
-        const float ldiff = lenScaled - p2.lenScaled;
-        const float ldepth = depth - p2.depth;
-
-        return ldiff * ldiff + ldepth * ldepth;
-      };
-
-      float distance2(const Period& p2) const
-      {
-        const float ldiff = 
-          static_cast<float>(len) - static_cast<float>(p2.len);
-        return ldiff * ldiff;
-      };
-
-      string strHeader() const
-      {
-        stringstream ss;
-        ss << setw(6) << right << "Start" <<
-          setw(8) << right << "Length" <<
-          setw(8) << right << "Lnorm" <<
-          setw(8) << right << "Dnorm" << endl;
-        return ss.str();
-      };
-
-      string str(const unsigned offset = 0) const
-      {
-        stringstream ss;
-        ss << 
-          setw(6) << right << start + offset <<
-          setw(8) << len <<
-          setw(8) << fixed << setprecision(2) << lenScaled <<
-          setw(8) << fixed << setprecision(2) << depth << endl;
-        return ss.str();
-      };
-
     };
 
     list<Period> quietCandidates;
@@ -710,7 +648,6 @@ class PeakDetect
       vector<CarStat>& carStats) const;
 
     void makeSynthPeaksSharp(vector<float>& synthPeaks) const;
-    void makeSynthPeaksQuietNew(vector<float>& synthPeaks) const;
     void makeSynthPeaksQuiet(vector<float>& synthPeaks) const;
     void makeSynthPeaksLines(vector<float>& synthPeaks) const;
     void makeSynthPeaksPosLines(vector<float>& synthPeaks) const;
