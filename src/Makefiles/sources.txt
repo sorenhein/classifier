@@ -1,5 +1,6 @@
 SOURCE_FILES    =               \
                 Align.cpp       \
+                CarGeom.cpp     \
                 Clusters.cpp    \
                 CompStats.cpp   \
                 Database.cpp    \

@@ -1,4 +1,5 @@
 Align.obj: Align.h struct.h Database.h Clusters.h Timers.h Timer.h print.h
+CarGeom.obj: CarGeom.h
 Clusters.obj: Ckmeans/Ckmeans.1d.dp.h Ckmeans/within_cluster.h Clusters.h
 Clusters.obj: struct.h Database.h
 CompStats.obj: CompStats.h
