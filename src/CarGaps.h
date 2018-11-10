@@ -71,6 +71,7 @@ class CarGaps
 
     bool hasLeftGap() const;
     bool hasRightGap() const;
+    bool isPartial() const;
 
     float relativeDistance(const CarGaps& cg2) const;
 

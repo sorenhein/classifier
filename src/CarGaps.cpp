@@ -136,6 +136,12 @@ bool CarGaps::hasRightGap() const
 }
 
 
+bool CarGaps::isPartial() const
+{
+  return (! leftGapSet || ! rightGapSet);
+}
+
+
 float CarGaps::relativeComponent(
   const unsigned a,
   const unsigned b) const

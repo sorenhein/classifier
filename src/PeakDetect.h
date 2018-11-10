@@ -226,14 +226,20 @@ class PeakDetect
 
     CarGaps gaps;
 
-    bool partialFlag;
-
     Peak * firstBogeyLeft;
     Peak * firstBogeyRight;
     Peak * secondBogeyLeft;
     Peak * secondBogeyRight;
 
     unsigned catStatIndex;
+
+    void setLimits(
+      const unsigned startIn,
+      const unsigned endIn)
+    {
+      start = startIn;
+      end = endIn;
+    };
 
     void operator += (const Car& c2)
     {
@@ -267,6 +273,11 @@ class PeakDetect
       return filledFlag;
     };
 
+    bool isPartial() const
+    {
+      return gaps.isPartial();
+    };
+
 
     string str()
     {
@@ -280,7 +291,6 @@ class PeakDetect
         setw(6) << "end" <<
         setw(6) << "len" <<
         gaps.strHeader() << 
-        setw(6) << "partl" <<
         setw(6) << "#cs" << endl;
       return ss.str();
     };
@@ -292,7 +302,6 @@ class PeakDetect
         setw(6) << end + offset <<
         setw(6) << end-start <<
     gaps.str() << 
-        setw(6) << (partialFlag ? "yes" : "no") <<
         setw(6) << catStatIndex << endl;
       return ss.str();
     };

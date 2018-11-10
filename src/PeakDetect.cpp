@@ -976,7 +976,6 @@ bool PeakDetect::findFourWheeler(
 {
   car.start = start;
   car.end = end;
-  car.partialFlag = false;
 
   if (leftGapPresent)
     car.gaps.logLeftGap(peakNos[0] - start);
@@ -1008,9 +1007,7 @@ bool PeakDetect::findLastTwoOfFourWheeler(
   const vector<CarStat>& carStats, 
   Car& car) const
 {
-  car.start = start;
-  car.end = end;
-  car.partialFlag = true;
+  car.setLimits(start, end);
 
   if (rightGapPresent)
     car.gaps.logRightGap(end - peakNos[1]);
@@ -1076,9 +1073,7 @@ bool PeakDetect::findLastThreeOfFourWheeler(
 {
   UNUSED(rightGapPresent);
 
-  car.start = start;
-  car.end = end;
-  car.partialFlag = true;
+  car.setLimits(start, end);
 
   car.gaps.logRightGap(end - peakNos[2]);
 
@@ -1238,7 +1233,8 @@ void PeakDetect::updateCars(
   const unsigned numWheels) const
 {
   unsigned index;
-  if (! car.partialFlag &&
+
+  if (! car.isPartial() &&
       PeakDetect::matchesCarStat(car, carStats, index))
   {
     car.catStatIndex = index;
@@ -2598,13 +2594,7 @@ cout << "\nMarking long gap at " << pit->peakPtr->getIndex()+offset << "-" <<
 
       car.end = e + (d/2);
       car.gaps.logRightGap(car.end - e);
-      // car.rightGapSet = true;
-      // car.rightGap = car.end - e;
     }
-    // else
-      // car.rightGapSet = false;
-
-    car.partialFlag = false;
 
 cout << "Marking car:\n";
 cout << "start " << car.start+offset << ", end " << car.end+offset << endl;
