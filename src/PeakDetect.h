@@ -7,7 +7,7 @@
 #include <sstream>
 
 #include "Peak.h"
-#include "CarGeom.h"
+#include "CarGaps.h"
 #include "struct.h"
 
 using namespace std;
@@ -224,7 +224,7 @@ class PeakDetect
     unsigned start; // Excluding offset
     unsigned end;
 
-    CarGeom carGeom;
+    CarGaps gaps;
 
     unsigned noLeftGap;
     unsigned noRightGap;
@@ -241,15 +241,15 @@ class PeakDetect
 
     void operator += (const Car& c2)
     {
-      if (c2.carGeom.hasLeftGap())
+      if (c2.gaps.hasLeftGap())
         noLeftGap++;
 
       no++;
 
-      if (c2.carGeom.hasRightGap())
+      if (c2.gaps.hasRightGap())
         noRightGap++;
 
-      carGeom += c2.carGeom;
+      gaps += c2.gaps;
     };
 
     bool fillSides(
@@ -257,22 +257,22 @@ class PeakDetect
       const unsigned rightGap)
     {
       bool filledFlag = false;
-      if (! carGeom.hasLeftGap())
+      if (! gaps.hasLeftGap())
       {
         if (leftGap <= firstBogeyLeft->getIndex())
         {
           start = firstBogeyLeft->getIndex() - leftGap;
-          carGeom.logLeftGap(leftGap);
+          gaps.logLeftGap(leftGap);
           filledFlag = true;
         }
       }
 
-      if (! carGeom.hasRightGap())
+      if (! gaps.hasRightGap())
       {
         if (rightGap <= secondBogeyRight->getIndex())
         {
           end = secondBogeyRight->getIndex() + rightGap;
-          carGeom.logRightGap(rightGap);
+          gaps.logRightGap(rightGap);
           filledFlag = true;
         }
       }
@@ -282,7 +282,7 @@ class PeakDetect
 
     string str()
     {
-      return carGeom.str() + "\n";
+      return gaps.str() + "\n";
     };
 
     string strHeader()
@@ -291,7 +291,7 @@ class PeakDetect
       ss << setw(6) << right << "start" <<
         setw(6) << "end" <<
         setw(6) << "len" <<
-        carGeom.strHeader() << 
+        gaps.strHeader() << 
         setw(6) << "partl" <<
         setw(6) << "#cs" << endl;
       return ss.str();
@@ -303,7 +303,7 @@ class PeakDetect
       ss << setw(6) << start + offset <<
         setw(6) << end + offset <<
         setw(6) << end-start <<
-    carGeom.str() << 
+    gaps.str() << 
         setw(6) << (partialFlag ? "yes" : "no") <<
         setw(6) << catStatIndex << endl;
       return ss.str();
@@ -372,7 +372,7 @@ class PeakDetect
     void avg()
     {
       carAvg = carSum;
-      carAvg.carGeom.average(carAvg.noLeftGap, carAvg.no, carAvg.noRightGap);
+      carAvg.gaps.average(carAvg.noLeftGap, carAvg.no, carAvg.noRightGap);
       if (noFirstLeft)
       {
         firstBogeyLeftAvg = firstBogeyLeftSum;
@@ -398,7 +398,7 @@ class PeakDetect
     float distance(const Car& car) const
     {
       // Only gaps, no peak quality for now.
-      return carAvg.carGeom.relativeDistance(car.carGeom);
+      return carAvg.gaps.relativeDistance(car.gaps);
     }
 
     string strHeader()

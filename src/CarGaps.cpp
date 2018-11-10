@@ -2,7 +2,7 @@
 #include <iomanip>
 #include <sstream>
 
-#include "CarGeom.h"
+#include "CarGaps.h"
 
 #define SIDE_GAP_FACTOR 2.f
 #define SIDE_GAP_TO_BOGEY_FACTOR 2.f
@@ -12,18 +12,18 @@
 #define BOGEY_TO_REF_HARD_FACTOR 1.1f
 
 
-CarGeom::CarGeom()
+CarGaps::CarGaps()
 {
-  CarGeom::reset();
+  CarGaps::reset();
 }
 
 
-CarGeom::~CarGeom()
+CarGaps::~CarGaps()
 {
 }
 
 
-void CarGeom::reset()
+void CarGaps::reset()
 {
   leftGapSet = false;
   rightGapSet = false;
@@ -36,27 +36,27 @@ void CarGeom::reset()
 }
 
 
-void CarGeom::logAll(
+void CarGaps::logAll(
   const unsigned leftGapIn,
   const unsigned leftBogeyGapIn, // Zero if single wheel
   const unsigned midGapIn,
   const unsigned rightBogeyGapIn, // Zero if single wheel
   const unsigned rightGapIn)
 {
-  CarGeom::logLeftGap(leftGapIn);
-  CarGeom::logCore(leftBogeyGapIn, midGapIn, rightBogeyGapIn);
-  CarGeom::logRightGap(rightGapIn);
+  CarGaps::logLeftGap(leftGapIn);
+  CarGaps::logCore(leftBogeyGapIn, midGapIn, rightBogeyGapIn);
+  CarGaps::logRightGap(rightGapIn);
 }
 
 
-void CarGeom::logLeftGap(const unsigned leftGapIn)
+void CarGaps::logLeftGap(const unsigned leftGapIn)
 {
   leftGapSet = true;
   leftGap = leftGapIn;
 }
 
 
-void CarGeom::logCore(
+void CarGaps::logCore(
   const unsigned leftBogeyGapIn, // Zero if single wheel
   const unsigned midGapIn,
   const unsigned rightBogeyGapIn) // Zero if single wheel
@@ -67,14 +67,14 @@ void CarGeom::logCore(
 }
 
 
-void CarGeom::logRightGap(const unsigned rightGapIn)
+void CarGaps::logRightGap(const unsigned rightGapIn)
 {
   rightGapSet = true;
   rightGap = rightGapIn;
 }
 
 
-void CarGeom::operator += (const CarGeom& cg2)
+void CarGaps::operator += (const CarGaps& cg2)
 {
   if (cg2.leftGapSet)
     leftGapSet = true;
@@ -92,7 +92,7 @@ void CarGeom::operator += (const CarGeom& cg2)
 }
 
 
-void CarGeom::average(
+void CarGaps::average(
   const unsigned numLeftGap,
   const unsigned numCore,
   const unsigned numRightGap)
@@ -112,31 +112,31 @@ void CarGeom::average(
 }
 
 
-unsigned CarGeom::leftGapValue() const
+unsigned CarGaps::leftGapValue() const
 {
   return leftGap;
 }
 
 
-unsigned CarGeom::rightGapValue() const
+unsigned CarGaps::rightGapValue() const
 {
   return rightGap;
 }
 
 
-bool CarGeom::hasLeftGap() const
+bool CarGaps::hasLeftGap() const
 {
   return leftGapSet;
 }
 
 
-bool CarGeom::hasRightGap() const
+bool CarGaps::hasRightGap() const
 {
   return rightGapSet;
 }
 
 
-float CarGeom::relativeComponent(
+float CarGaps::relativeComponent(
   const unsigned a,
   const unsigned b) const
 {
@@ -154,19 +154,19 @@ float CarGeom::relativeComponent(
 }
 
 
-float CarGeom::relativeDistance(const CarGeom& cg2) const
+float CarGaps::relativeDistance(const CarGaps& cg2) const
 {
   return 100.f * (
-    CarGeom::relativeComponent(leftGap, cg2.leftGap) +
-    CarGeom::relativeComponent(leftBogeyGap, cg2.leftBogeyGap) +
-    CarGeom::relativeComponent(midGap, cg2.midGap) +
-    CarGeom::relativeComponent(rightBogeyGap, cg2.rightBogeyGap) +
-    CarGeom::relativeComponent(rightGap, cg2.rightGap)
+    CarGaps::relativeComponent(leftGap, cg2.leftGap) +
+    CarGaps::relativeComponent(leftBogeyGap, cg2.leftBogeyGap) +
+    CarGaps::relativeComponent(midGap, cg2.midGap) +
+    CarGaps::relativeComponent(rightBogeyGap, cg2.rightBogeyGap) +
+    CarGaps::relativeComponent(rightGap, cg2.rightGap)
       );
 }
 
 
-bool CarGeom::checkTwoSided(
+bool CarGaps::checkTwoSided(
   const unsigned actual,
   const unsigned reference,
   const float factor,
@@ -184,7 +184,7 @@ bool CarGeom::checkTwoSided(
 }
 
 
-bool CarGeom::checkTooShort(
+bool CarGaps::checkTooShort(
   const unsigned actual,
   const unsigned reference,
   const float factor,
@@ -203,26 +203,26 @@ bool CarGeom::checkTooShort(
 
 
 
-bool CarGeom::sideGapsPlausible(const CarGeom& cgref) const
+bool CarGaps::sideGapsPlausible(const CarGaps& cgref) const
 {
   if (leftGapSet)
   {
-    if (! CarGeom::checkTwoSided(leftGap, cgref.leftGap, 
+    if (! CarGaps::checkTwoSided(leftGap, cgref.leftGap, 
         SIDE_GAP_FACTOR, "left gap"))
       return false;
 
-    if (! CarGeom::checkTooShort(leftGap, cgref.leftBogeyGap,
+    if (! CarGaps::checkTooShort(leftGap, cgref.leftBogeyGap,
         SIDE_GAP_TO_BOGEY_FACTOR, "left gap vs. bogey"))
       return false;
   }
 
   if (rightGapSet)
   {
-    if (! CarGeom::checkTwoSided(rightGap, cgref.rightGap, 
+    if (! CarGaps::checkTwoSided(rightGap, cgref.rightGap, 
         SIDE_GAP_FACTOR, "right gap"))
       return false;
 
-    if (! CarGeom::checkTooShort(rightGap, cgref.rightBogeyGap,
+    if (! CarGaps::checkTooShort(rightGap, cgref.rightBogeyGap,
         SIDE_GAP_TO_BOGEY_FACTOR, "right gap vs. bogey"))
       return false;
   }
@@ -230,50 +230,50 @@ bool CarGeom::sideGapsPlausible(const CarGeom& cgref) const
 }
 
 
-bool CarGeom::midGapPlausible() const
+bool CarGaps::midGapPlausible() const
 {
   if (leftBogeyGap > 0)
-    return CarGeom::checkTooShort(midGap, leftBogeyGap,
+    return CarGaps::checkTooShort(midGap, leftBogeyGap,
       MID_GAP_TO_BOGEY_FACTOR, "mid-gap vs. left bogey");
   else if (rightBogeyGap > 0)
-    return CarGeom::checkTooShort(midGap, rightBogeyGap,
+    return CarGaps::checkTooShort(midGap, rightBogeyGap,
       MID_GAP_TO_BOGEY_FACTOR, "mid-gap vs. right bogey");
   else
     return false;
 }
 
 
-bool CarGeom::rightBogeyPlausible(const CarGeom& cgref) const
+bool CarGaps::rightBogeyPlausible(const CarGaps& cgref) const
 {
-  return CarGeom::checkTwoSided(rightBogeyGap, cgref.rightBogeyGap,
+  return CarGaps::checkTwoSided(rightBogeyGap, cgref.rightBogeyGap,
       BOGEY_TO_REF_SOFT_FACTOR, "");
 }
 
 
-bool CarGeom::rightBogeyConvincing(const CarGeom& cgref) const
+bool CarGaps::rightBogeyConvincing(const CarGaps& cgref) const
 {
-  return CarGeom::checkTwoSided(rightBogeyGap, cgref.rightBogeyGap,
+  return CarGaps::checkTwoSided(rightBogeyGap, cgref.rightBogeyGap,
       BOGEY_TO_REF_HARD_FACTOR, "");
 }
 
 
-bool CarGeom::gapsPlausible(const CarGeom& cgref) const
+bool CarGaps::gapsPlausible(const CarGaps& cgref) const
 {
-  if (! CarGeom::sideGapsPlausible(cgref))
+  if (! CarGaps::sideGapsPlausible(cgref))
     return false;
 
-  if (! CarGeom::checkTwoSided(leftBogeyGap, rightBogeyGap,
+  if (! CarGaps::checkTwoSided(leftBogeyGap, rightBogeyGap,
       BOGEY_TO_BOGEY_FACTOR, "bogey size"))
     return false;
   
-  if (! CarGeom::midGapPlausible())
+  if (! CarGaps::midGapPlausible())
     return false;
 
   return true;
 }
 
 
-string CarGeom::strHeader() const
+string CarGaps::strHeader() const
 {
   stringstream ss;
   ss << right <<
@@ -286,7 +286,7 @@ string CarGeom::strHeader() const
 }
 
 
-string CarGeom::str() const
+string CarGaps::str() const
 {
   stringstream ss;
   ss << right << 

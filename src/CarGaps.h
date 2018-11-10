@@ -1,12 +1,12 @@
-#ifndef TRAIN_CARGEOM_H
-#define TRAIN_CARGEOM_H
+#ifndef TRAIN_CARGAPS_H
+#define TRAIN_CARGAPS_H
 
 #include <string>
 
 using namespace std;
 
 
-class CarGeom
+class CarGaps
 {
   private:
 
@@ -38,9 +38,9 @@ class CarGeom
 
   public:
 
-    CarGeom();
+    CarGaps();
 
-    ~CarGeom();
+    ~CarGaps();
 
     void reset();
 
@@ -59,7 +59,7 @@ class CarGeom
     void logLeftGap(const unsigned leftGapIn);
     void logRightGap(const unsigned rightGapIn);
 
-    void operator += (const CarGeom& cg2);
+    void operator += (const CarGaps& cg2);
 
     void average(
       const unsigned numLeftGap,
@@ -72,13 +72,13 @@ class CarGeom
     bool hasLeftGap() const;
     bool hasRightGap() const;
 
-    float relativeDistance(const CarGeom& cg2) const;
+    float relativeDistance(const CarGaps& cg2) const;
 
-    bool sideGapsPlausible(const CarGeom& cgref) const;
+    bool sideGapsPlausible(const CarGaps& cgref) const;
     bool midGapPlausible() const;
-    bool rightBogeyPlausible(const CarGeom& cgref) const;
-    bool rightBogeyConvincing(const CarGeom& cgref) const;
-    bool gapsPlausible(const CarGeom& cgref) const;
+    bool rightBogeyPlausible(const CarGaps& cgref) const;
+    bool rightBogeyConvincing(const CarGaps& cgref) const;
+    bool gapsPlausible(const CarGaps& cgref) const;
 
     string strHeader() const;
 
