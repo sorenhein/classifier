@@ -579,7 +579,6 @@ class PeakDetect
     bool findLastThreeOfFourWheeler(
       const unsigned start,
       const unsigned end,
-      const bool rightGapPresent,
       const vector<PeakEntry>& peaksAnnot,
       const vector<unsigned>& peakNos,
       const vector<unsigned>& peakIndices,

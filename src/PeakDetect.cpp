@@ -1025,35 +1025,22 @@ bool PeakDetect::findLastTwoOfFourWheeler(
   // As we don't have a complete car, we'll at least require the
   // right bogey gap to be similar to something we've seen.
 
-  bool foundFlag = false;
+  bool seenFlag = false;
   for (auto& cs: carStats)
   {
-    if (car.gaps.rightBogeyConvincing(cs.carAvg.gaps))
+    if (car.gaps.rightBogeyPlausible(cs.carAvg.gaps))
     {
-      foundFlag = true;
+      seenFlag = true;
       break;
     }
   }
 
-  if (! foundFlag)
+  if (! seenFlag)
   {
-    bool seenFlag = false;
-    for (auto& cs: carStats)
-    {
-      if (car.gaps.rightBogeyPlausible(cs.carAvg.gaps))
-      {
-        seenFlag = true;
-        break;
-      }
-    }
-
-    if (! seenFlag)
-    {
-      cout << "Error: Suspect right bogey gap: ";
-      cout << car.gaps.str() << endl;
-      cout << "Checked against " << carStats.size() << " ref cars\n";
-      return false;
-    }
+    cout << "Error: Suspect right bogey gap: ";
+    cout << car.gaps.str() << endl;
+    cout << "Checked against " << carStats.size() << " ref cars\n";
+    return false;
   }
 
   return true;
@@ -1063,7 +1050,6 @@ bool PeakDetect::findLastTwoOfFourWheeler(
 bool PeakDetect::findLastThreeOfFourWheeler(
   const unsigned start, 
   const unsigned end,
-  const bool rightGapPresent,
   const vector<PeakEntry>& peaksAnnot, 
   const vector<unsigned>& peakNos, 
   const vector<unsigned>& peakIndices,
@@ -1071,16 +1057,14 @@ bool PeakDetect::findLastThreeOfFourWheeler(
   Car& car,
   unsigned& numWheels) const
 {
-  UNUSED(rightGapPresent);
-
   car.setLimits(start, end);
-
-  car.gaps.logRightGap(end - peakNos[2]);
 
   car.gaps.logCore(
     0, 
     peakNos[1] - peakNos[0],
     peakNos[2] - peakNos[1]);
+
+  car.gaps.logRightGap(end - peakNos[2]);
 
   car.firstBogeyLeft = nullptr;
   car.firstBogeyRight = peaksAnnot[peakIndices[0]].peakPtr;
@@ -1093,35 +1077,22 @@ bool PeakDetect::findLastThreeOfFourWheeler(
   // As we don't have a complete car, we'll at least require the
   // right bogey gap to be similar to something we've seen.
 
-  bool foundFlag = false;
+  bool seenFlag = false;
   for (auto& cs: carStats)
   {
-    if (car.gaps.rightBogeyConvincing(cs.carAvg.gaps))
+    if (car.gaps.rightBogeyPlausible(cs.carAvg.gaps))
     {
-      foundFlag = true;
+      seenFlag = true;
       break;
     }
   }
 
-  if (! foundFlag)
+  if (! seenFlag)
   {
-    bool seenFlag = false;
-    for (auto& cs: carStats)
-    {
-      if (car.gaps.rightBogeyPlausible(cs.carAvg.gaps))
-      {
-        seenFlag = true;
-        break;
-      }
-    }
-
-    if (! seenFlag)
-    {
-      cout << "Error: Suspect right bogey gap: ";
-      cout << car.gaps.str() << endl;
-      cout << "Checked against " << carStats.size() << " ref cars\n";
-      return false;
-    }
+    cout << "Error: Suspect right bogey gap: ";
+    cout << car.gaps.str() << endl;
+    cout << "Checked against " << carStats.size() << " ref cars\n";
+    return false;
   }
 
   if (! car.gaps.midGapPlausible())
@@ -1450,7 +1421,6 @@ cout << "4-5 leading wheels: Attempting to drop down to 3: " << np << "\n";
     Car car;
     unsigned numWheels;
     if (! PeakDetect::findLastThreeOfFourWheeler(startLocal, endLocal,
-        rightFlagLocal,
         peaksAnnot, peakNos, peakIndices,
         carStats, car, numWheels))
       return false;
@@ -1491,7 +1461,6 @@ cout << "Trying again without the very first peak of first car\n";
 
     unsigned numWheels;
     if (! PeakDetect::findLastThreeOfFourWheeler(startLocal, endLocal,
-        rightFlagLocal,
         peaksAnnot, peakNos, peakIndices,
         carStats, car, numWheels))
       return false;
