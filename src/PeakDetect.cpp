@@ -979,37 +979,15 @@ bool PeakDetect::findFourWheeler(
   car.partialFlag = false;
 
   if (leftGapPresent)
-  {
     car.carGeom.logLeftGap(peakNos[0] - start);
-    // car.leftGap = peakNos[0] - start;
-    // car.leftGapSet = true;
-  }
-  else
-  {
-    // car.leftGap = 0;
-    // car.leftGapSet = false;
-  }
 
   if (rightGapPresent)
-  {
     car.carGeom.logRightGap(end - peakNos[3]);
-    // car.rightGap = end - peakNos[3];
-    // car.rightGapSet = true;
-  }
-  else
-  {
-    // car.rightGap = 0;
-    // car.rightGapSet = false;
-  }
 
   car.carGeom.logCore(
     peakNos[1] - peakNos[0],
     peakNos[2] - peakNos[1],
     peakNos[3] - peakNos[2]);
-
-  // car.leftBogeyGap = peakNos[1] - peakNos[0];
-  // car.midGap = peakNos[2] - peakNos[1];
-  // car.rightBogeyGap = peakNos[3] - peakNos[2];
 
   car.firstBogeyLeft = peaksAnnot[peakIndices[0]].peakPtr;
   car.firstBogeyRight = peaksAnnot[peakIndices[1]].peakPtr;
@@ -1017,48 +995,6 @@ bool PeakDetect::findFourWheeler(
   car.secondBogeyRight = peaksAnnot[peakIndices[3]].peakPtr;
 
   return car.carGeom.gapsPlausible(carAvg.carGeom);
-
-  /*
-  if (leftGapPresent)
-  {
-    if (! PeakDetect::checkQuantity(car.carGeom.leftGapValue(),
-        carAvg.carGeom.leftGapValue(), 2.f, "left gap"))
-      return false;
-
-    if (car.carGeom.leftGapValue() < 0.5f * car.carGeom.leftBogeyGap())
-    {
-      cout << "Suspect left gap: " << car.leftGap << 
-        " vs. bogey gap " << car.leftBogeyGap << endl;
-      return false;
-    }
-  }
-
-  if (rightGapPresent)
-  {
-    if (! PeakDetect::checkQuantity(car.rightGap,
-        carAvg.rightGap, 2.f, "right gap"))
-      return false;
-    if (car.rightGap < 0.5f * car.rightBogeyGap)
-    {
-      cout << "Suspect right gap: " << car.rightGap << 
-        " vs. bogey gap " << car.rightBogeyGap << endl;
-      return false;
-    }
-  }
-
-  if (! PeakDetect::checkQuantity(car.leftBogeyGap, 
-      car.rightBogeyGap, 1.2f, "bogey size"))
-    return false;
-
-  if (car.midGap < 1.5f * car.leftBogeyGap)
-  {
-    cout << "Suspect mid-gap: " << car.midGap << 
-      " vs. bogey gap " << car.leftBogeyGap << endl;
-    return false;
-  }
-
-  return true;
-  */
 }
 
 
@@ -1076,31 +1012,9 @@ bool PeakDetect::findLastTwoOfFourWheeler(
   car.end = end;
   car.partialFlag = true;
 
-  /*
-  car.leftGap = 0;
-  car.leftGapSet = false;
-
   if (rightGapPresent)
-  {
-    car.rightGap = end - peakNos[1];
-    car.rightGapSet = true;
-  }
-  else
-  {
-    car.rightGap = 0;
-    car.rightGapSet = false;
-  }
-  */
-
-  if (rightGapPresent)
-  {
     car.carGeom.logRightGap(end - peakNos[3]);
-    // car.rightGap = end - peakNos[1];
-    // car.rightGapSet = true;
-  }
 
-
-  // car.leftBogeyGap = 0;
   car.carGeom.logCore(0, 0, peakNos[1] - peakNos[0]);
 
   car.firstBogeyLeft = nullptr;
@@ -1110,21 +1024,6 @@ bool PeakDetect::findLastTwoOfFourWheeler(
 
   if (! car.carGeom.sideGapsPlausible(carStats[0].carAvg.carGeom))
     return false;
-
-  /*
-  if (rightGapPresent)
-  {
-    if (! PeakDetect::checkQuantity(car.rightGap,
-        carStats[0].carAvg.rightGap, 2.f, "right gap"))
-      return false;
-    if (car.rightGap < 0.5f * car.rightBogeyGap)
-    {
-      cout << "Suspect right gap: " << car.rightGap << 
-        " vs. bogey gap " << car.rightBogeyGap << endl;
-      return false;
-    }
-  }
-  */
 
   // As we don't have a complete car, we'll at least require the
   // right bogey gap to be similar to something we've seen.
@@ -1158,42 +1057,6 @@ bool PeakDetect::findLastTwoOfFourWheeler(
       cout << "Checked against " << carStats.size() << " ref cars\n";
       return false;
     }
-
-    /*
-    if (carStats.size() == 1)
-    {
-      if (! car.carGeom.rightBogeyPlausible(carStats[0].carAvg.carGeom))
-      // if (car.rightBogeyGap <= 0.5f * carStats[0].carAvg.rightBogeyGap ||
-          // car.rightBogeyGap >= 1.5f * carStats[0].carAvg.rightBogeyGap)
-      else if (car.rightBogeyGap <= 0.75f * carStats[0].carAvg.rightBogeyGap ||
-          car.rightBogeyGap >= 1.25f * carStats[0].carAvg.rightBogeyGap)
-      {
-        cout << "Warning(1): Suspect right bogey gap: " << car.rightBogeyGap << endl;
-      }
-
-    }
-    else if (carStats.size() == 2)
-    {
-      if (car.rightBogeyGap >= carStats[0].carAvg.rightBogeyGap &&
-          car.rightBogeyGap >= carStats[1].carAvg.rightBogeyGap)
-      {
-        cout << "Suspect right bogey gap(2): " << car.rightBogeyGap << endl;
-        return false;
-      }
-
-      if (car.rightBogeyGap <= carStats[0].carAvg.rightBogeyGap &&
-          car.rightBogeyGap <= carStats[1].carAvg.rightBogeyGap)
-      {
-        cout << "Suspect right bogey gap(3): " << car.rightBogeyGap << endl;
-        return false;
-      }
-    }
-    else
-    {
-      cout << "Suspect right bogey gap(4): " << car.rightBogeyGap << endl;
-      return false;
-    }
-    */
   }
 
   return true;
@@ -1217,31 +1080,12 @@ bool PeakDetect::findLastThreeOfFourWheeler(
   car.end = end;
   car.partialFlag = true;
 
-  // car.leftGap = 0;
-  // car.leftGapSet = false;
-
   car.carGeom.logRightGap(end - peakNos[2]);
-  /*
-  if (rightGapPresent)
-  {
-    car.rightGap = end - peakNos[2];
-    car.rightGapSet = true;
-  }
-  else
-  {
-    car.rightGap = 0;
-    car.rightGapSet = false;
-  }
-  */
 
   car.carGeom.logCore(
     0, 
     peakNos[1] - peakNos[0],
     peakNos[2] - peakNos[1]);
-
-  // car.leftBogeyGap = 0;
-  // car.midGap = peakNos[1] - peakNos[0];
-  // car.rightBogeyGap = peakNos[2] - peakNos[1];
 
   car.firstBogeyLeft = nullptr;
   car.firstBogeyRight = peaksAnnot[peakIndices[0]].peakPtr;
@@ -1250,21 +1094,6 @@ bool PeakDetect::findLastThreeOfFourWheeler(
 
   if (! car.carGeom.sideGapsPlausible(carStats[0].carAvg.carGeom))
     return false;
-
-  /*
-  if (rightGapPresent)
-  {
-    if (! PeakDetect::checkQuantity(car.rightGap,
-        carStats[0].carAvg.rightGap, 2.f, "right gap"))
-      return false;
-    if (car.rightGap < 0.5f * car.rightBogeyGap)
-    {
-      cout << "Suspect right gap(5): " << car.rightGap << 
-        " vs. bogey gap " << car.rightBogeyGap << endl;
-      return false;
-    }
-  }
-  */
 
   // As we don't have a complete car, we'll at least require the
   // right bogey gap to be similar to something we've seen.
@@ -1298,42 +1127,6 @@ bool PeakDetect::findLastThreeOfFourWheeler(
       cout << "Checked against " << carStats.size() << " ref cars\n";
       return false;
     }
-
-    /*
-    if (carStats.size() == 2)
-    {
-      if (car.rightBogeyGap >= carStats[0].carAvg.rightBogeyGap &&
-          car.rightBogeyGap >= carStats[1].carAvg.rightBogeyGap)
-      {
-        cout << "Suspect right bogey gap(6): " << car.rightBogeyGap << endl;
-        return false;
-      }
-
-      if (car.rightBogeyGap <= carStats[0].carAvg.rightBogeyGap &&
-          car.rightBogeyGap <= carStats[1].carAvg.rightBogeyGap)
-      {
-        cout << "Suspect right bogey gap(7): " << car.rightBogeyGap << endl;
-        return false;
-      }
-    }
-    else
-    {
-      if (car.rightBogeyGap <= 0.5f * carStats[0].carAvg.rightBogeyGap ||
-          car.rightBogeyGap >= 1.5f * carStats[0].carAvg.rightBogeyGap)
-      {
-        cout << "Error(8): Suspect right bogey gap: " << car.rightBogeyGap << endl;
-        return false;
-      }
-      else if (car.rightBogeyGap <= 0.75f * carStats[0].carAvg.rightBogeyGap ||
-          car.rightBogeyGap >= 1.25f * carStats[0].carAvg.rightBogeyGap)
-      {
-        cout << "Warning(9): Suspect right bogey gap: " << car.rightBogeyGap << endl;
-      }
-
-
-    }
-    */
-
   }
 
   if (! car.carGeom.midGapPlausible())
@@ -2822,24 +2615,7 @@ cout << "Wheels " << car.firstBogeyLeft->getIndex()+offset << ", " <<
 
     // Fill out carStats[0].
 
-/*
-    cs.carSum += car;
-    cs.count++;
-
-    cs.firstBogeyLeftSum += * car.firstBogeyLeft;
-    cs.firstBogeyRightSum += * car.firstBogeyRight;
-    cs.secondBogeyLeftSum += * car.secondBogeyLeft;
-    cs.secondBogeyRightSum += * car.secondBogeyRight;
-*/
     cs += car;
-
-    /*
-    cs.numWheels = 2;
-    if (car.leftBogeyGap > 0)
-      cs.numWheels++;
-    if (car.rightBogeyGap > 0)
-      cs.numWheels++;
-      */
   }
 
 unsigned wcount = 0;
@@ -2868,30 +2644,6 @@ cout << "Counting " << wcount << " peaks" << endl << endl;
 cout << "Filled out car:\n";
 cout << "start " << car.start+offset << ", end " << car.end+offset << endl;
     }
-
-    /*
-    if (! car.leftGapSet)
-    {
-      // TODO Could be nullptr.  The first real one.
-      if (carStats[0].carAvg.leftGap <= car.firstBogeyLeft->getIndex())
-      {
-        car.start = car.firstBogeyLeft->getIndex() - 
-          carStats[0].carAvg.leftGap;
-        car.leftGap = carStats[0].carAvg.leftGap;
-cout << "Filling out car left:\n";
-cout << "start " << car.start+offset << ", end " << car.end+offset << endl;
-      }
-    }
-
-    if (! car.rightGapSet)
-    {
-      car.end = car.secondBogeyRight->getIndex() +
-        carStats[0].carAvg.rightGap;
-        car.rightGap = carStats[0].carAvg.rightGap;
-cout << "Filling out car right:\n";
-cout << "start " << car.start+offset << ", end " << car.end+offset << endl;
-    }
-    */
   }
 
   // Print cars in tight table.

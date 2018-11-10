@@ -225,16 +225,6 @@ class PeakDetect
     unsigned end;
 
     CarGeom carGeom;
-/*
-    bool leftGapSet;
-    bool rightGapSet;
-
-    unsigned leftGap;
-    unsigned leftBogeyGap; // Zero if single wheel
-    unsigned midGap;
-    unsigned rightBogeyGap; // Zero if single wheel
-    unsigned rightGap;
-*/
 
     unsigned noLeftGap;
     unsigned noRightGap;
@@ -260,43 +250,7 @@ class PeakDetect
         noRightGap++;
 
       carGeom += c2.carGeom;
-
-      /*
-      if (c2.leftGapSet)
-      {
-        leftGap += c2.leftGap;
-        noLeftGap++;
-      }
-
-      if (c2.rightGapSet)
-      {
-        rightGap += c2.rightGap;
-        noRightGap++;
-      }
-
-      midGap += c2.midGap;
-      leftBogeyGap += c2.leftBogeyGap;
-      rightBogeyGap += c2.rightBogeyGap;
-      no++;
-      */
     };
-
-/*
-    void avg()
-    {
-      carGeom.average(noLeftGap, no, noRightGap);
-      if (noLeftGap)
-        leftGap /= noLeftGap;
-      if (noRightGap)
-        rightGap /= noRightGap;
-      if (no)
-      {
-        midGap /= no;
-        leftBogeyGap /= no;
-        rightBogeyGap /= no;
-      }
-    };
-*/
 
     bool fillSides(
       const unsigned leftGap,
@@ -329,20 +283,6 @@ class PeakDetect
     string str()
     {
       return carGeom.str() + "\n";
-/*
-      stringstream ss;
-      ss << setw(12) << left << "Left gap" << 
-        setw(6) << right << leftGap << " (" << noLeftGap << ")\n";
-      ss << setw(12) << left << "Left bogey" << 
-        setw(6) << right << leftBogeyGap << " (" << no << ")\n";
-      ss << setw(12) << left << "Mid gap" << 
-        setw(6) << right << midGap << " (" << no << ")\n";
-      ss << setw(12) << left << "Right bogey" << 
-        setw(6) << right << rightBogeyGap << " (" << no << ")\n";
-      ss << setw(12) << left << "Right gap" << 
-        setw(6) << right << rightGap << " (" << noRightGap << ")\n";
-      return ss.str();
-*/
     };
 
     string strHeader()
@@ -351,14 +291,7 @@ class PeakDetect
       ss << setw(6) << right << "start" <<
         setw(6) << "end" <<
         setw(6) << "len" <<
-    carGeom.strHeader() << 
-        /*
-        setw(6) << "leftg" <<
-        setw(6) << "leftb" <<
-        setw(6) << "mid" <<
-        setw(6) << "rgtb" <<
-        setw(6) << "rgtg" <<
-        */
+        carGeom.strHeader() << 
         setw(6) << "partl" <<
         setw(6) << "#cs" << endl;
       return ss.str();
@@ -371,13 +304,6 @@ class PeakDetect
         setw(6) << end + offset <<
         setw(6) << end-start <<
     carGeom.str() << 
-        /*
-        setw(6) << leftGap <<
-        setw(6) << leftBogeyGap <<
-        setw(6) << midGap <<
-        setw(6) << rightBogeyGap <<
-        setw(6) << rightGap <<
-        */
         setw(6) << (partialFlag ? "yes" : "no") <<
         setw(6) << catStatIndex << endl;
       return ss.str();
@@ -447,8 +373,6 @@ class PeakDetect
     {
       carAvg = carSum;
       carAvg.carGeom.average(carAvg.noLeftGap, carAvg.no, carAvg.noRightGap);
-      // carAvg.avg();
-
       if (noFirstLeft)
       {
         firstBogeyLeftAvg = firstBogeyLeftSum;
@@ -471,43 +395,10 @@ class PeakDetect
       }
     };
 
-    /*
-    float distComponent(const unsigned a, const unsigned b) const
-    {
-      const float ratio = (a > b ? 
-        static_cast<float>(a) / static_cast<float>(b) :
-        static_cast<float>(b) / static_cast<float>(a));
-
-      if (ratio <= 1.1f)
-        return 0.f;
-      else
-        return 100.f * (ratio - 1.f) * (ratio - 1.f);
-
-    };
-    */
-
     float distance(const Car& car) const
     {
       // Only gaps, no peak quality for now.
       return carAvg.carGeom.relativeDistance(car.carGeom);
-/* 
-      // Could also involve peak quality.
-
-      float dist = 0.f;
-
-      // if (carAvg.leftGapSet && car.leftGapSet)
-      if (carAvg.carGeom.hasLeftGap() && car.carGeom.hasLeftGap())
-        dist += distComponent(carAvg.leftGap, car.leftGap);
-
-      if (carAvg.rightGapSet && car.rightGapSet)
-        dist += distComponent(carAvg.rightGap, car.rightGap);
-
-      dist += distComponent(carAvg.leftBogeyGap, car.leftBogeyGap);
-      dist += distComponent(carAvg.midGap, car.midGap);
-      dist += distComponent(carAvg.rightBogeyGap, car.rightBogeyGap);
-
-      return dist;
-*/
     }
 
     string strHeader()

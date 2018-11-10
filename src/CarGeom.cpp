@@ -192,8 +192,9 @@ bool CarGeom::checkTooShort(
 {
   if (actual * factor < reference)
   {
-    cout << "Suspect " << text << ": " << actual << " vs. " <<
-      reference << endl;
+    if (text != "")
+      cout << "Suspect " << text << ": " << actual << " vs. " <<
+        reference << endl;
     return false;
   }
   else
