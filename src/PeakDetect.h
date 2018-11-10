@@ -226,10 +226,6 @@ class PeakDetect
 
     CarGaps gaps;
 
-    unsigned noLeftGap;
-    unsigned noRightGap;
-    unsigned no;
-
     bool partialFlag;
 
     Peak * firstBogeyLeft;
@@ -241,14 +237,6 @@ class PeakDetect
 
     void operator += (const Car& c2)
     {
-      if (c2.gaps.hasLeftGap())
-        noLeftGap++;
-
-      no++;
-
-      if (c2.gaps.hasRightGap())
-        noRightGap++;
-
       gaps += c2.gaps;
     };
 
@@ -329,6 +317,10 @@ class PeakDetect
     unsigned noSecondLeft;
     unsigned noSecondRight;
 
+    unsigned noLeftGap;
+    unsigned noCoreGaps;
+    unsigned noRightGap;
+
     bool symmetryFlag;
     unsigned numWheels;
     unsigned count;
@@ -367,12 +359,21 @@ class PeakDetect
         numWheels++;
       if (c.secondBogeyLeft && c.secondBogeyRight)
         numWheels++;
+
+      if (c.gaps.hasLeftGap())
+        noLeftGap++;
+
+      noCoreGaps++;
+
+      if (c.gaps.hasRightGap())
+        noRightGap++;
+
     };
 
     void avg()
     {
       carAvg = carSum;
-      carAvg.gaps.average(carAvg.noLeftGap, carAvg.no, carAvg.noRightGap);
+      carAvg.gaps.average(noLeftGap, noCoreGaps, noRightGap);
       if (noFirstLeft)
       {
         firstBogeyLeftAvg = firstBogeyLeftSum;

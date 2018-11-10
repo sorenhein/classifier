@@ -1013,7 +1013,7 @@ bool PeakDetect::findLastTwoOfFourWheeler(
   car.partialFlag = true;
 
   if (rightGapPresent)
-    car.gaps.logRightGap(end - peakNos[3]);
+    car.gaps.logRightGap(end - peakNos[1]);
 
   car.gaps.logCore(0, 0, peakNos[1] - peakNos[0]);
 
