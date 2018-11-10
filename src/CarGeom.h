@@ -19,6 +19,22 @@ class CarGeom
     unsigned rightBogeyGap; // Zero if single wheel
     unsigned rightGap;
 
+    float relativeComponent(
+      const unsigned a,
+      const unsigned b) const;
+
+    bool checkTwoSided(
+      const unsigned actual,
+      const unsigned reference,
+      const float factor,
+      const string& text) const;
+
+    bool checkTooShort(
+      const unsigned actual,
+      const unsigned reference,
+      const float factor,
+      const string& text) const;
+
 
   public:
 
@@ -50,8 +66,19 @@ class CarGeom
       const unsigned numCore,
       const unsigned numRightGap);
 
+    unsigned leftGapValue() const;
+    unsigned rightGapValue() const;
+
     bool hasLeftGap() const;
     bool hasRightGap() const;
+
+    float relativeDistance(const CarGeom& cg2) const;
+
+    bool sideGapsPlausible(const CarGeom& cgref) const;
+    bool midGapPlausible() const;
+    bool rightBogeyPlausible(const CarGeom& cgref) const;
+    bool rightBogeyConvincing(const CarGeom& cgref) const;
+    bool gapsPlausible(const CarGeom& cgref) const;
 
     string strHeader() const;
 
