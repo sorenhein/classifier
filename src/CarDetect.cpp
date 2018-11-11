@@ -132,17 +132,21 @@ bool CarDetect::fillSides(
   if (leftGap > 0 && 
       leftGap <= peaksPtr.firstBogeyLeftPtr->getIndex())
   {
-    start = peaksPtr.firstBogeyLeftPtr->getIndex() - leftGap;
-    gaps.logLeftGap(leftGap);
-    filledFlag = true;
+    if (gaps.logLeftGap(leftGap))
+    {
+      start = peaksPtr.firstBogeyLeftPtr->getIndex() - leftGap;
+      filledFlag = true;
+    }
   }
 
   if (rightGap > 0 &&
       rightGap <= peaksPtr.secondBogeyRightPtr->getIndex())
   {
-    end = peaksPtr.secondBogeyRightPtr->getIndex() + rightGap;
-    gaps.logRightGap(rightGap);
-    filledFlag = true;
+    if (gaps.logRightGap(rightGap))
+    {
+      end = peaksPtr.secondBogeyRightPtr->getIndex() + rightGap;
+      filledFlag = true;
+    }
   }
   return filledFlag;
 }
@@ -197,13 +201,13 @@ bool CarDetect::rightBogeyPlausible(const CarDetect& cref) const
 }
 
 
-string CarDetect::strGaps() const
-{
-  return gaps.str() + "\n";
-}
-
-
 string CarDetect::strHeaderGaps() const
+{
+  return gaps.strHeader() + "\n";
+};
+
+
+string CarDetect::strHeaderFull() const
 {
   stringstream ss;
   ss << 
@@ -216,7 +220,13 @@ string CarDetect::strHeaderGaps() const
 };
 
 
-string CarDetect::strLine(const unsigned offset) const
+string CarDetect::strGaps() const
+{
+  return gaps.str() + "\n";
+}
+
+
+string CarDetect::strFull(const unsigned offset) const
 {
   stringstream ss;
   ss << 

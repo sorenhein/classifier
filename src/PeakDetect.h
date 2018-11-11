@@ -231,7 +231,6 @@ class PeakDetect
     CarDetectNumbers gapNumbers;
 
     bool symmetryFlag;
-    // unsigned numWheels;
     unsigned count;
 
     void operator += (const CarDetect& c)
@@ -241,28 +240,13 @@ class PeakDetect
 
       peaksSum.increment(c.getPeaksPtr(), peaksNumbers);
 
-      // numWheels = 2;
-      // if (c.hasFirstBogeyLeft() && c.hasFirstBogeyRight())
-        // numWheels++;
-      // if (c.hasSecondBogeyLeft() && c.hasSecondBogeyRight())
-        // numWheels++;
-
       c.increment(gapNumbers);
-      // if (c.hasLeftGap())
-        // noLeftGap++;
-
-      // noCoreGaps++;
-
-      // if (c.hasRightGap())
-        // noRightGap++;
-
     };
 
     void avg()
     {
       carAvg = carSum;
       carAvg.averageGaps(gapNumbers);
-      // carAvg.averageGaps(noLeftGap, noCoreGaps, noRightGap);
 
       peaksAvg = peaksSum;
       peaksAvg.average(peaksNumbers);
@@ -482,6 +466,16 @@ class PeakDetect
       vector<PeakEntry>& peaksAnnot,
       vector<CarDetect>& cars,
       vector<CarStat>& carStats) const;
+
+    unsigned countWheels(const vector<PeakEntry>& peaksAnnot) const;
+
+    void printCarStats(
+      vector<CarStat>& carStats,
+      const string& text) const;
+
+    void printCars(
+      const vector<CarDetect>& cars,
+      const string& text) const;
 
     void makeSynthPeaksSharp(vector<float>& synthPeaks) const;
     void makeSynthPeaksQuiet(vector<float>& synthPeaks) const;

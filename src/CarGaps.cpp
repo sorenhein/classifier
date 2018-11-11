@@ -53,7 +53,7 @@ void CarGaps::logAll(
 }
 
 
-void CarGaps::logLeftGap(const unsigned leftGapIn)
+bool CarGaps::logLeftGap(const unsigned leftGapIn)
 {
   if (leftGapSet)
   {
@@ -63,15 +63,12 @@ void CarGaps::logLeftGap(const unsigned leftGapIn)
       THROW(ERR_CAR_SIDE_GAP_RESET, 
         "Left gap reset from " + to_string(leftGap) + 
         " to " + to_string(leftGapIn));
-
-    // This happens when the stored gap is half the distance to
-    // a previous peak, and the average car has a different gap.
-    // If we were to use the average gap, the cars wouldn't addup.
-    return;
+    return false;
   }
 
   leftGapSet = true;
   leftGap = leftGapIn;
+  return true;
 }
 
 
@@ -86,7 +83,7 @@ void CarGaps::logCore(
 }
 
 
-void CarGaps::logRightGap(const unsigned rightGapIn)
+bool CarGaps::logRightGap(const unsigned rightGapIn)
 {
   if (rightGapSet)
   {
@@ -96,11 +93,12 @@ void CarGaps::logRightGap(const unsigned rightGapIn)
       THROW(ERR_CAR_SIDE_GAP_RESET, 
         "Right gap reset from " + to_string(rightGap) + 
         " to " + to_string(rightGapIn));
-    return;
+    return false;
   }
 
   rightGapSet = true;
   rightGap = rightGapIn;
+  return true;
 }
 
 

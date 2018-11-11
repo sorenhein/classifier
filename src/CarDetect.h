@@ -89,11 +89,12 @@ class CarDetect
     bool midGapPlausible() const;
     bool rightBogeyPlausible(const CarDetect& cref) const;
 
-    string strGaps() const;
 
     string strHeaderGaps() const;
+    string strHeaderFull() const;
 
-    string strLine(const unsigned offset) const;
+    string strGaps() const;
+    string strFull(const unsigned offset) const;
 
     string strLimits(const unsigned offset) const;
 };

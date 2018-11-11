@@ -1635,6 +1635,45 @@ cout << "Failed\n";
 }
 
 
+unsigned PeakDetect::countWheels(const vector<PeakEntry>& peaksAnnot) const
+{
+  unsigned count = 0;
+  for (auto& p: peaksAnnot)
+  {
+    if (p.wheelFlag)
+      count++;
+  }
+  return count;
+}
+
+
+void PeakDetect::printCarStats(
+  vector<CarStat>& carStats,
+  const string& text) const
+{
+  cout << "Car stats " << text << "\n";
+  cout << carStats[0].carAvg.strHeaderGaps();
+  for (auto& csl: carStats)
+  {
+    csl.avg();
+    cout << csl.str();
+  }
+  cout << endl;
+}
+
+
+void PeakDetect::printCars(
+  const vector<CarDetect>& cars,
+  const string& text) const
+{
+  cout << "Cars " << text << "\n";
+  cout << cars[0].strHeaderFull();
+  for (auto& car: cars)
+    cout << car.strFull(offset);
+  cout << endl;
+}
+
+
 void PeakDetect::reduceNewer()
 {
   // Here the idea is to use geometrical properties of the peaks
@@ -2553,10 +2592,6 @@ cout << "\nMarking long gap at " <<
       &*pit->peakPtr,
       &*npit->peakPtr,
       npit->nextLargePeakPtr);
-    // car.firstBogeyLeft = pit->prevLargePeakPtr;
-    // car.firstBogeyRight = &*pit->peakPtr;
-    // car.secondBogeyLeft = &*npit->peakPtr;
-    // car.secondBogeyRight = npit->nextLargePeakPtr;
 
     car.logCore(
       posRight1 - posLeft1,
@@ -2570,7 +2605,11 @@ cout << "\nMarking long gap at " <<
 
     unsigned leftGap;
     if (p0 != nullptr && ppit->bogeySide != BOGEY_SIZE)
-      leftGap  = (posLeft1 - p0->getIndex()) / 2;
+    {
+      // This rounds to make the cars abut.
+      const unsigned d = posLeft1 - p0->getIndex();
+      leftGap  = d - (d/2);
+    }
     else
       leftGap = 0;
 
@@ -2596,16 +2635,8 @@ cout << "Marking car: " << car.strLimits(offset) << endl;
     cs += car;
   }
 
-unsigned wcount = 0;
-  for (auto& p: peaksAnnot)
-  {
-    if (p.wheelFlag)
-    {
-      wcount++;
-    }
-  }
-cout << "Counting " << wcount << " peaks" << endl << endl;
-
+  cout << "Counting " << PeakDetect::countWheels(peaksAnnot) << 
+    " peaks" << endl << endl;
 
   // Fill out interval ends.
   if (carStats.size() == 0)
@@ -2625,7 +2656,7 @@ cout << "Filled out complete car: " << car.strLimits(offset) << endl;
   cout << "Cars before intra-gaps:\n";
   cout << cars[0].strHeaderGaps();
   for (auto& car: cars)
-    cout << car.strLine(offset);
+    cout << car.strFull(offset);
   cout << endl;
 
 
@@ -2659,28 +2690,17 @@ cout << "Did intra-gap " << cars[ii].endValue()+offset << "-" <<
       }
     }
   }
-wcount = 0;
-  for (auto& p: peaksAnnot)
-  {
-    if (p.wheelFlag)
-      wcount++;
-  }
-cout << "Counting " << wcount << " peaks" << endl;
+
+  cout << "Counting " << PeakDetect::countWheels(peaksAnnot) << 
+    " peaks" << endl << endl;
 
   cout << "Cars after inner gaps:\n";
-  cout << cars[0].strHeaderGaps();
+  cout << cars[0].strHeaderFull();
   for (auto& car: cars)
-    cout << car.strLine(offset);
+    cout << car.strFull(offset);
   cout << endl;
 
-  cout << "Car stats after inner gaps\n";
-  cout << carStats[0].carAvg.strHeaderGaps() << endl;
-  for (auto& csl: carStats)
-  {
-    csl.avg();
-    cout << csl.str();
-  }
-  cout << "\n";
+  PeakDetect::printCarStats(carStats, "after inner gaps");
 
   if (u2 > u1)
   {
@@ -2696,22 +2716,11 @@ cout << "Counting " << wcount << " peaks" << endl;
         u1+offset << "-" << u2+offset << endl;
     }
   }
-wcount = 0;
-  for (auto& p: peaksAnnot)
-  {
-    if (p.wheelFlag)
-      wcount++;
-  }
-cout << "Counting " << wcount << " peaks" << endl;
 
+  cout << "Counting " << PeakDetect::countWheels(peaksAnnot) << 
+    " peaks" << endl << endl;
 
-  cout << "After trailing gap\n";
-  for (auto& csl: carStats)
-  {
-    csl.avg();
-    cout << "Car stats:\n";
-    cout << csl.str() << "\n";
-  }
+  PeakDetect::printCarStats(carStats, "after trailing gap");
 
 
   const unsigned u3 = peaksAnnot.front().peakPtr->getIndex();
@@ -2732,14 +2741,7 @@ cout << "Counting " << wcount << " peaks" << endl;
     }
   }
 
-  cout << "After leading gap\n";
-  for (auto& csl: carStats)
-  {
-    csl.avg();
-    cout << "Car stats:\n";
-    cout << csl.str() << "\n";
-  }
-
+  PeakDetect::printCarStats(carStats, "after leading gap");
 
   // TODO Check peak quality and deviations in carStats[0].
   // Detect inner and open intervals that are not done.
@@ -2749,17 +2751,14 @@ cout << "Counting " << wcount << " peaks" << endl;
 
   // Put peaks in the global list.
   peaksNewer.clear();
-wcount = 0;
   for (auto& p: peaksAnnot)
   {
-    // if (p.tallFlag)
     if (p.wheelFlag)
-    {
-wcount++;
       peaksNewer.push_back(* p.peakPtr);
-    }
   }
-cout << "Returning " << wcount << " peaks" << endl;
+
+  cout << "Returning " << PeakDetect::countWheels(peaksAnnot) << 
+    " peaks" << endl << endl;
 
 }
 
