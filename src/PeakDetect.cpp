@@ -1682,6 +1682,14 @@ bool PeakDetect::bothTall(
 }
 
 
+bool PeakDetect::areBogeyGap(
+  const PeakEntry& pe1,
+  const PeakEntry& pe2) const
+{
+  return (pe1.wheelSide == WHEEL_RIGHT && pe2.wheelSide == WHEEL_LEFT);
+}
+
+
 void PeakDetect::guessDistance(
   const vector<PeakEntry>& peaksAnnot, 
   const PeakFncPtr fptr,
@@ -2129,43 +2137,12 @@ cout << "Adding tallFlag(shape) to " <<
       cout << pa.sharp.strQ(pa.quality, pa.qualityShape, offset);
   }
 
-
-  // Find the worst remaining peak quality.
-  float worstQuality = 0.f;
-  for (auto& pa: peaksAnnot)
-  {
-    if (! pa.tallFlag)
-      continue;
-
-    if (pa.quality > worstQuality)
-      worstQuality = pa.quality;
-  }
-  cout << "Worst quality: " << worstQuality << endl;
-
-  PeakFncPtr fptr = &PeakDetect::bothTall;
   unsigned wheelDistLower, wheelDistUpper;
   unsigned whcount;
 
-  PeakDetect::guessDistance(peaksAnnot, fptr,
+  PeakDetect::guessDistance(peaksAnnot, &PeakDetect::bothTall,
     wheelDistLower, wheelDistUpper, whcount);
 
-
-
-  // Make list of distances between tall neighbors.
-  vector<unsigned> dists;
-  for (auto pit = peaksAnnot.begin(); pit != prev(peaksAnnot.end());
-    pit++)
-  {
-    auto npit = next(pit);
-    if ((this->* fptr)(* pit, * npit))
-      dists.push_back(
-        npit->peakPtr->getIndex() - pit->peakPtr->getIndex());
-  }
-
-  sort(dists.begin(), dists.end());
-  PeakDetect::findFirstSize(dists, wheelDistLower, wheelDistUpper,
-    whcount);
-  // Could be zero
 cout << "Guessing wheel distance " << wheelDistLower << "-" <<
   wheelDistUpper << endl;
 
@@ -2401,21 +2378,15 @@ cout << "Adding " <<
   }
 
   // Redo the distances.
-  dists.clear();
-  for (auto pit = peaksAnnot.begin(); pit != prev(peaksAnnot.end());
-    pit++)
-  {
-    auto npit = next(pit);
-    if (pit->tallFlag && npit->tallFlag)
-      dists.push_back(
-        npit->peakPtr->getIndex() - pit->peakPtr->getIndex());
-  }
 
-  sort(dists.begin(), dists.end());
   unsigned wheelDistLowerNew, wheelDistUpperNew;
   unsigned whcountNew;
-  PeakDetect::findFirstSize(dists, wheelDistLowerNew, 
-    wheelDistUpperNew, whcountNew);
+
+  PeakDetect::guessDistance(peaksAnnot, &PeakDetect::bothTall,
+    wheelDistLowerNew, wheelDistUpperNew, whcountNew);
+
+
+
   // Could be zero
 cout << "Guessing new wheel distance " << wheelDistLowerNew << "-" <<
   wheelDistUpperNew << endl;
@@ -2451,27 +2422,13 @@ cout << "Marking new bogey at " << pit->peakPtr->getIndex()+offset << "-" <<
     }
   }
 
-
-  // Make a list of likely short gaps.
-  dists.clear();
-  for (auto pit = peaksAnnot.begin(); pit != prev(peaksAnnot.end());
-    pit++)
-  {
-    auto npit = next(pit);
-    if (pit->wheelSide == WHEEL_RIGHT &&
-        npit->wheelSide == WHEEL_LEFT)
-    {
-      dists.push_back(
-        npit->peakPtr->getIndex() - pit->peakPtr->getIndex());
-    }
-  }
-
-  // Look for inter-car gaps.
-  sort(dists.begin(), dists.end());
+  // Look for inter-car short gaps.
   unsigned shortGapLower, shortGapUpper;
   unsigned shcount;
-  PeakDetect::findFirstSize(dists, shortGapLower, shortGapUpper,
-    shcount, 0);
+
+  PeakDetect::guessDistance(peaksAnnot, &PeakDetect::areBogeyGap,
+    shortGapLower, shortGapUpper, shcount);
+
   // Could be zero
 cout << "Guessing short gap " << shortGapLower << "-" <<
   shortGapUpper << endl;
@@ -2543,7 +2500,8 @@ cout << "Adding " <<
   }
 
   // Look for smallest large gaps.
-  dists.clear();
+  vector<unsigned> dists;
+
   for (auto pit = peaksAnnot.begin(); pit != prev(peaksAnnot.end());
     pit++)
   {
