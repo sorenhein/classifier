@@ -317,8 +317,6 @@ class PeakDetect
     PeakData scales;
     Peak scalesList;
 
-    list<Peak> peaksNewer;
-
     unsigned numCandidates;
     unsigned numTentatives;
 

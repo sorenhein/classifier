@@ -2734,11 +2734,11 @@ cout << "Did intra-gap " << cars[ii].endValue()+offset << "-" <<
   // Ends come later.
 
   // Put peaks in the global list.
-  peaksNewer.clear();
+  peaks.clear();
   for (auto& p: peaksAnnot)
   {
     if (p.wheelFlag)
-      peaksNewer.push_back(* p.peakPtr);
+      peaks.push_back(* p.peakPtr);
   }
 
   cout << "Returning " << PeakDetect::countWheels(peaksAnnot) << 
@@ -2815,8 +2815,6 @@ cout << "RANGE: " << fixed <<
   PeakDetect::markPossibleQuiet();
 
 PeakDetect::reduceNewer();
-
-peaks = peaksNewer;
 
   bool firstSeen = false;
   unsigned firstTentativeIndex = peaks.front().getIndex();
@@ -3113,7 +3111,7 @@ void PeakDetect::makeSynthPeaksClassical(vector<float>& synthPeaks) const
 
 void PeakDetect::makeSynthPeaksClassicalNewer(vector<float>& synthPeaks) const
 {
-  for (auto& peak: peaksNewer)
+  for (auto& peak: peaks)
   {
 // cout << "Setting " << peak.getIndex() << " to " << peak.getValue() << endl;
     synthPeaks[peak.getIndex()] = peak.getValue();
