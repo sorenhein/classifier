@@ -37,7 +37,12 @@ PeakDetect::~PeakDetect()
 void PeakDetect::reset()
 {
   len = 0;
+  offset = 0;
   peaks.clear();
+  scales.reset();
+  scalesList.reset();
+  numCandidates = 0;
+  numTentatives = 0;
   quietCandidates.clear();
 }
 
@@ -2231,7 +2236,6 @@ cout << "Adding " <<
     }
   }
 
-
   // Find the average first and second peak in a wheel pair.
   vector<float> values1, 
     rangesLeft1, 
@@ -2388,7 +2392,6 @@ cout << "Adding " <<
   // Could be zero
 cout << "Guessing new wheel distance " << wheelDistLowerNew << "-" <<
   wheelDistUpperNew << endl;
-
 
   // Mark more bogeys with the refined peak qualities.
 
@@ -2727,6 +2730,7 @@ cout << "Did intra-gap " << cars[ii].endValue()+offset << "-" <<
 
   PeakDetect::printCarStats(carStats, "after leading gap");
 
+
   // TODO Check peak quality and deviations in carStats[0].
   // Detect inner and open intervals that are not done.
   // Could be carStats[0] with the right length etc, but missing peaks.
@@ -2734,12 +2738,13 @@ cout << "Did intra-gap " << cars[ii].endValue()+offset << "-" <<
   // Ends come later.
 
   // Put peaks in the global list.
-  peaks.clear();
+  // peaks.clear();
   for (auto& p: peaksAnnot)
   {
     if (p.wheelFlag)
-      peaks.push_back(* p.peakPtr);
+      p.peakPtr->select();
   }
+
 
   cout << "Returning " << PeakDetect::countWheels(peaksAnnot) << 
     " peaks" << endl << endl;
@@ -2761,6 +2766,8 @@ if (peaks.size() == 0)
     PeakDetect::print();
   }
 
+cout << "Peak size 1: " << peaks.size() << endl;
+
 /*
 float minRange = numeric_limits<float>::max();
 for (auto& p: peaks)
@@ -2774,6 +2781,8 @@ for (auto& p: peaks)
   // PeakDetect::reduceSmallRanges(0.05f, false);
 
   PeakDetect::reduceSmallAreas(0.1f);
+
+cout << "Peak size 2: " << peaks.size() << endl;
 
 /*
 float minRange2 = numeric_limits<float>::max();
@@ -2801,6 +2810,8 @@ cout << "RANGE: " << fixed <<
     PeakDetect::print();
   }
 
+cout << "Peak size 3: " << peaks.size() << endl;
+
   PeakDetect::estimateScales();
   if (debug)
   {
@@ -2812,7 +2823,11 @@ cout << "RANGE: " << fixed <<
 
   PeakDetect::reduceSmallRanges(scalesList.getRange() / 10.f, true);
 
+cout << "Peak size 4: " << peaks.size() << endl;
+
   PeakDetect::markPossibleQuiet();
+
+cout << "Peak size 5: " << peaks.size() << endl;
 
 PeakDetect::reduceNewer();
 
@@ -2834,7 +2849,7 @@ PeakDetect::reduceNewer();
     if (ptype == PEAK_TENTATIVE)
     {
       numTentatives++;
-      peak.select();
+      // peak.select();
       if (! firstSeen)
       {
         firstTentativeIndex = peak.getIndex();
@@ -2909,8 +2924,6 @@ void PeakDetect::logPeakStats(
       const PeakType pt = peak.getType();
       if (m >= 0)
       {
-if (m >= static_cast<int>(posTrue.size()))
-  cout << "HOPPLA5" << endl;
         peakStats.logSeenMatch(static_cast<unsigned>(m), lt, pt);
         if (seenTrue[m] && debug)
           cout << "Already saw true peak " << m << endl;
@@ -2918,7 +2931,9 @@ if (m >= static_cast<int>(posTrue.size()))
         seen++;
       }
       else
+      {
         peakStats.logSeenMiss(pt);
+      }
     }
   }
 
@@ -2959,162 +2974,10 @@ void PeakDetect::makeSynthPeaks(vector<float>& synthPeaks) const
   for (unsigned i = 0; i < synthPeaks.size(); i++)
     synthPeaks[i] = 0;
 
-  // PeakDetect::makeSynthPeaksSharp(synthPeaks);
-
-  // PeakDetect::makeSynthPeaksLines(synthPeaks);
-
-  // PeakDetect::makeSynthPeaksQuiet(synthPeaks);
-
-  // PeakDetect::makeSynthPeaksLines(synthPeaks);
-
-  // PeakDetect::makeSynthPeaksClassical(synthPeaks);
-
-PeakDetect::makeSynthPeaksClassicalNewer(synthPeaks);
-}
-
-
-void PeakDetect::makeSynthPeaksQuiet(vector<float>& synthPeaks) const
-{
-  unsigned index1 = 0;
-  float value1 = 0.f;
-  bool activeFlag = false;
-
-  for (auto peak = peaks.begin(); peak != peaks.end(); peak++)
-  {
-    if (activeFlag)
-    {
-      if (peak->getQuietBegin())
-        THROW(ERR_ALGO_PEAK_INTERVALS, "Two begins");
-      else if (peak->getQuietEnd())
-      {
-        activeFlag = false;
-
-        const unsigned index2 = peak->getIndex();
-        const float value2 = peak->getValue();
-        const float grad = (value2 - value1) / (index2 - index1);
-
-        for (unsigned i = index1; i <= index2; i++)
-          synthPeaks[i] = value1 + grad * (i-index1);
-      }
-    }
-    else if (peak->getQuietEnd())
-        THROW(ERR_ALGO_PEAK_INTERVALS, "Two ends");
-    else if (peak->getQuietBegin())
-    {
-      activeFlag = true;
-      index1 = peak->getIndex();
-      value1 = peak->getValue();
-    }
-  }
-}
-
-
-void PeakDetect::makeSynthPeaksSharp(vector<float>& synthPeaks) const
-{
-  // Draw lines from sharp peaks.
-
-  for (auto peak = peaks.begin(); peak != peaks.end(); peak++)
-  {
-    if (! peak->getSharp())
-      continue;
-
-    // Otherwise it will be an interior peak.
-    auto peakPrev = prev(peak);
-    auto peakNext = next(peak);
-
-    unsigned index1 = peak->getIndex();
-    unsigned index2 = peakNext->getIndex();
-    float value1 = peak->getValue();
-    float value2 = peakNext->getValue();
-    float grad = (value2 - value1) / (index2 - index1);
-
-    // Put zeroes at the peaks themselves.
-    for (unsigned i = index1+1; i < index2; i++)
-      synthPeaks[i] = value1 + grad * (i-index1);
-
-    index1 = peakPrev->getIndex();
-    index2 = peak->getIndex();
-    value1 = peakPrev->getValue();
-    value2 = peak->getValue();
-    grad = (value2 - value1) / (index2 - index1);
-
-    // Put zeroes at the peaks themselves.
-    for (unsigned i = index1+1; i < index2; i++)
-      synthPeaks[i] = value1 + grad * (i-index1);
-  }
-}
-
-
-void PeakDetect::makeSynthPeaksLines(vector<float>& synthPeaks) const
-{
-  // Draw lines between all peaks.
-
-  for (auto peak = peaks.begin(); peak != peaks.end(); peak++)
-  {
-    const auto peakNext = next(peak);
-    if (peakNext == peaks.end())
-     break;
-
-    const float value1 = peak->getValue();
-    const float value2 = peakNext->getValue();
-
-    unsigned index1 = peak->getIndex();
-    unsigned index2 = peakNext->getIndex();
-    const float grad = (value2 - value1) / (index2 - index1);
-
-    // Put zeroes at the peaks themselves.
-    for (unsigned i = index1+1; i < index2; i++)
-      synthPeaks[i] = value1 + grad * (i-index1);
-  }
-}
-
-
-void PeakDetect::makeSynthPeaksPosLines(vector<float>& synthPeaks) const
-{
-  // Show lines whenever a positive maximum is involved.
-
-  for (auto peak = peaks.begin(); peak != peaks.end(); peak++)
-  {
-    const auto peakNext = next(peak);
-    if (peakNext == peaks.end())
-     break;
-
-    const float value1 = peak->getValue();
-    const float value2 = peakNext->getValue();
-    if (value1 < 0.f && value2 < 0.f)
-      continue;
-
-    unsigned index1 = peak->getIndex();
-    unsigned index2 = peakNext->getIndex();
-    const float grad = (value2 - value1) / (index2 - index1);
-
-    // Only put zeroes at positive maxima.
-    unsigned i1 = (peak->getValue() >= 0.f ? index1+1 : index1);
-    if (peakNext->getValue() >= 0.f)
-      index2--;
-
-    for (unsigned i = i1; i <= index2; i++)
-      synthPeaks[i] = value1 + grad * (i-index1);
-  }
-}
-
-
-void PeakDetect::makeSynthPeaksClassical(vector<float>& synthPeaks) const
-{
   for (auto& peak: peaks)
   {
     if (peak.isSelected())
       synthPeaks[peak.getIndex()] = peak.getValue();
-  }
-}
-
-
-void PeakDetect::makeSynthPeaksClassicalNewer(vector<float>& synthPeaks) const
-{
-  for (auto& peak: peaks)
-  {
-// cout << "Setting " << peak.getIndex() << " to " << peak.getValue() << endl;
-    synthPeaks[peak.getIndex()] = peak.getValue();
   }
 }
 

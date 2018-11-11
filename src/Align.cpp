@@ -394,7 +394,11 @@ void Align::estimateMotion(
 // if (flag)
 // cout << "posLeft " << posLeft << endl;
   if (posLeft == 0 || posLeft == lp-1 || refPeaks[posLeft+1].pos <= posMid)
-    cout << "Should not happen\n";
+  {
+    cout << "Should not happen:";
+    cout << "posLeft " << posLeft << ", lp " << lp <<
+      ", posMid " << posMid << endl;
+  }
   const double propRight = (posMid - refPeaks[posLeft].pos) /
     (refPeaks[posLeft+1].pos - refPeaks[posLeft].pos);
 

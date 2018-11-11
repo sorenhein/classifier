@@ -214,9 +214,6 @@ class PeakDetect
       };
     };
 
-    list<Period> quietCandidates;
-    unsigned quietFavorite;
-
 
   struct CarStat
   {
@@ -319,6 +316,9 @@ class PeakDetect
 
     unsigned numCandidates;
     unsigned numTentatives;
+
+    list<Period> quietCandidates;
+
 
 
     float integrate(
@@ -491,13 +491,6 @@ class PeakDetect
     void printCars(
       const vector<CarDetect>& cars,
       const string& text) const;
-
-    void makeSynthPeaksSharp(vector<float>& synthPeaks) const;
-    void makeSynthPeaksQuiet(vector<float>& synthPeaks) const;
-    void makeSynthPeaksLines(vector<float>& synthPeaks) const;
-    void makeSynthPeaksPosLines(vector<float>& synthPeaks) const;
-    void makeSynthPeaksClassical(vector<float>& synthPeaks) const;
-    void makeSynthPeaksClassicalNewer(vector<float>& synthPeaks) const;
 
     void printPeaks(const vector<PeakTime>& timesTrue) const;
 

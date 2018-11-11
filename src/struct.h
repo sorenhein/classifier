@@ -230,6 +230,16 @@ struct PeakData
   FlankData right;
   bool activeFlag;
 
+  void reset()
+  {
+    index = 0;
+    value = 0.f;
+    maxFlag = false;
+    left.reset();
+    right.reset();
+    activeFlag = false;
+  };
+
   void operator += (const PeakData& pd2)
   {
     value += pd2.value;
