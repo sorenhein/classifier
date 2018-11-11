@@ -260,7 +260,9 @@ const list<Peak>::iterator PeakDetect::collapsePeaksNew(
 }
 
 
-void PeakDetect::reduceSmallRanges(const float rangeLimit)
+void PeakDetect::reduceSmallRanges(
+  const float rangeLimit,
+  const bool preserveFlag)
 {
   if (peaksNew.empty())
     THROW(ERR_NO_PEAKS, "Peak list is empty");
@@ -316,8 +318,9 @@ void PeakDetect::reduceSmallRanges(const float rangeLimit)
       break;
     }
 /* */
-    else if (peakCurrent->getValue() > 0.f &&
-             ! peakCurrent->getMaxFlag())
+    else if (preserveFlag &&
+        peakCurrent->getValue() > 0.f &&
+        ! peakCurrent->getMaxFlag())
     {
       // Don't connect two positive maxima.  This can mess up
       // the gradient calculation which influences peak perception.
@@ -1807,11 +1810,6 @@ void PeakDetect::reduceNewer()
     QuietEntry * qeptr = &qbl;
     while (true)
     {
-/*
-      if (qeptr->usedFlag == true)
-        break;
-*/
-
       li.push_back(qeptr->periodPtr);
       qeptr->usedFlag = true;
 
@@ -2763,7 +2761,34 @@ if (peaks.size() == 0)
     PeakDetect::print();
   }
 
+/*
+float minRange = numeric_limits<float>::max();
+for (auto& p: peaks)
+{
+  const float r = p.getRange();
+  if (r != 0.f && r < minRange)
+    minRange = r;
+}
+*/
+
+  // peaksNew = peaks;
+  // PeakDetect::reduceSmallRanges(0.05f, false);
+  // peaks = peaksNew;
+
   PeakDetect::reduceSmallAreas(0.1f);
+
+/*
+float minRange2 = numeric_limits<float>::max();
+for (auto& p: peaks)
+{
+  const float r = p.getRange();
+  if (r != 0.f && r < minRange2)
+    minRange2 = r;
+}
+cout << "RANGE: " << fixed <<
+  setprecision(6) << minRange << " -> " << minRange2 << endl;
+  */
+
   if (debugDetails)
   {
     cout << "Non-tiny list peaks: " << peaks.size() << "\n";
@@ -2788,7 +2813,7 @@ if (peaks.size() == 0)
   peaksNew = peaks;
   PeakDetect::setOrigPointers();
 
-  PeakDetect::reduceSmallRanges(scalesList.getRange() / 10.f);
+  PeakDetect::reduceSmallRanges(scalesList.getRange() / 10.f, true);
 
   PeakDetect::markPossibleQuiet();
 

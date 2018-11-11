@@ -344,7 +344,9 @@ class PeakDetect
       const list<Peak>::iterator peak1,
       const list<Peak>::iterator peak2);
 
-    void reduceSmallRanges(const float rangeLimit);
+    void reduceSmallRanges(
+      const float rangeLimit,
+      const bool preserveFlag);
     void reduceSmallAreas(const float areaLimit);
 
     void eliminateKinks();
