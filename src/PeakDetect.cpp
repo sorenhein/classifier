@@ -7,6 +7,7 @@
 #include <sstream>
 
 #include "PeakDetect.h"
+#include "PeakSeeds.h"
 #include "PeakStats.h"
 #include "Except.h"
 
@@ -1025,10 +1026,6 @@ bool PeakDetect::findLastThreeOfFourWheeler(
     peaksAnnot[peakIndices[0]].peakPtr,
     peaksAnnot[peakIndices[1]].peakPtr,
     peaksAnnot[peakIndices[2]].peakPtr);
-  // car.firstBogeyLeft = nullptr;
-  // car.firstBogeyRight = peaksAnnot[peakIndices[0]].peakPtr;
-  // car.secondBogeyLeft = peaksAnnot[peakIndices[1]].peakPtr;
-  // car.secondBogeyRight = peaksAnnot[peakIndices[2]].peakPtr;
 
   if (! models.sideGapsPlausible(car))
     return false;
@@ -1166,7 +1163,6 @@ cout << "Recognized car " << index << endl;
   }
   else
   {
-
     car.logStatIndex(models.size());
 
     models.append();

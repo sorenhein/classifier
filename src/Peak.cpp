@@ -53,6 +53,8 @@ void Peak::reset()
 
   quietBegin = false;
   quietEnd = false;
+
+  seedFlag = false;
 }
 
 
@@ -411,6 +413,18 @@ void Peak::select()
 bool Peak::isSelected() const
 {
   return selectFlag;
+}
+
+
+void Peak::setSeed()
+{
+  seedFlag = true;
+}
+
+
+bool Peak::isSeed() const
+{
+  return seedFlag;
 }
 
 

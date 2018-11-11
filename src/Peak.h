@@ -48,6 +48,8 @@ class Peak
     bool quietEnd;
     bool sharpFlag;
 
+    bool seedFlag;
+
     const Peak * origPtr; // Pointer to origin in more complete peak list
 
 
@@ -146,6 +148,9 @@ class Peak
 
     void select();
     bool isSelected() const;
+
+    void setSeed();
+    bool isSeed() const;
 
     bool check(
       const Peak& p2,

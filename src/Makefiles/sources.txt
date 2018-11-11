@@ -11,6 +11,7 @@ SOURCE_FILES    =               \
                 Except.cpp      \
                 Peak.cpp        \
                 PeakDetect.cpp  \
+                PeakSeeds.cpp   \
                 PeakStats.cpp   \
                 Regress.cpp     \
                 SegActive.cpp   \

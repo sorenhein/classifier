@@ -1,3 +1,5 @@
+Move out the quiet, Period stuff to PeakSeeds
+
 Gap distance:
 actual = 0, ref != 0: dist = 0
 actual != 0, ref = 0: dist = inf
@@ -19,12 +21,6 @@ Use distance on cars to eliminate some car types
 Sort cars
 
 When printing peaks, at T (tall) as well as L, R, L1, R1, L2, R2
-
-Make a Car class
-Maybe Car has a subclass that's used for carSum and has only
-the gaps.  Then carSum has one of these and the counts.
-Car has one of these and start, end, peaks etc.
-
 
 
 Cleaning up clusters

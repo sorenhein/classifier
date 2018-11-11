@@ -218,58 +218,6 @@ class PeakDetect
 
   CarModels models;
 
-  /*
-  struct CarStat
-  {
-    CarDetect carSum;
-    CarPeaks peaksSum;
-
-    CarDetect carAvg;
-    CarPeaks peaksAvg;
-
-    CarPeaksNumbers peaksNumbers;
-
-    CarDetectNumbers gapNumbers;
-
-    bool symmetryFlag;
-    unsigned count;
-
-    void operator += (const CarDetect& c)
-    {
-      carSum += c;
-      count++;
-
-      peaksSum.increment(c.getPeaksPtr(), peaksNumbers);
-
-      c.increment(gapNumbers);
-    };
-
-    void avg()
-    {
-      carAvg = carSum;
-      carAvg.averageGaps(gapNumbers);
-
-      peaksAvg = peaksSum;
-      peaksAvg.average(peaksNumbers);
-    };
-
-    float distance(const CarDetect& car) const
-    {
-      return carAvg.distance(car);
-    }
-
-    string strHeader()
-    {
-      return carAvg.strHeaderGaps();
-    };
-
-    string str()
-    {
-      return carAvg.strGaps();
-    };
-  };
-  */
-
 
   // Peaks between abutting interval lists tend to be large and thus
   // to be "real" peaks.
