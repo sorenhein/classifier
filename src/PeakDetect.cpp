@@ -250,13 +250,13 @@ const list<Peak>::iterator PeakDetect::collapsePeaksNew(
     return peak1;
 
   Peak * peak0 = 
-    (peak1 == peaksNew.begin() ? nullptr : &*prev(peak1));
+    (peak1 == peaks.begin() ? nullptr : &*prev(peak1));
   Peak * peakN = 
-    (next(peak2) == peaksNew.end() ? nullptr : &*next(peak2));
+    (next(peak2) == peaks.end() ? nullptr : &*next(peak2));
 
   peak2->update(peak0, peakN);
 
-  return peaksNew.erase(peak1, peak2);
+  return peaks.erase(peak1, peak2);
 }
 
 
@@ -264,13 +264,13 @@ void PeakDetect::reduceSmallRanges(
   const float rangeLimit,
   const bool preserveFlag)
 {
-  if (peaksNew.empty())
+  if (peaks.empty())
     THROW(ERR_NO_PEAKS, "Peak list is empty");
 
-  const auto peakLast = prev(peaksNew.end());
-  auto peak = next(peaksNew.begin());
+  const auto peakLast = prev(peaks.end());
+  auto peak = next(peaks.begin());
 
-  while (peak != peaksNew.end())
+  while (peak != peaks.end())
   {
     const float range = peak->getRange();
     if (range >= rangeLimit)
@@ -287,7 +287,7 @@ void PeakDetect::reduceSmallRanges(
     do
     {
       peak++;
-      if (peak == peaksNew.end())
+      if (peak == peaks.end())
         break;
 
       // sumRange = peak->getArea(* peakCurrent);
@@ -313,8 +313,8 @@ void PeakDetect::reduceSmallRanges(
       // of the same polarity as peakCurrent (instead of peakCurrent).
       // It's a bit random whether or not this would be a "real" peak,
       // and we also don't keep track of this above.  So we just stop.
-      if (peakCurrent != peaksNew.end())
-        peaksNew.erase(peakCurrent, peaksNew.end());
+      if (peakCurrent != peaks.end())
+        peaks.erase(peakCurrent, peaks.end());
       break;
     }
 /* */
@@ -726,7 +726,7 @@ PeakType PeakDetect::findCandidate(
 
 void PeakDetect::setOrigPointers()
 {
-  for (auto peak = peaks.begin(), peakNew = peaksNew.begin(); 
+  for (auto peak = peaks.begin(), peakNew = peaks.begin(); 
       peak != peaks.end(); peak++, peakNew++)
     peakNew->logOrigPointer(&*peak);
 }
@@ -736,7 +736,7 @@ void PeakDetect::markPossibleQuiet()
 {
   quietCandidates.clear();
 
-  for (auto peak = peaksNew.begin(); peak != peaksNew.end(); peak++)
+  for (auto peak = peaks.begin(); peak != peaks.end(); peak++)
   {
     // Get a negative minimum.
     const float value = peak->getValue();
@@ -751,7 +751,7 @@ void PeakDetect::markPossibleQuiet()
     float lowerMinValue = 0.f;
     do
     {
-      if (peakPrev == peaksNew.begin())
+      if (peakPrev == peaks.begin())
         break;
 
       peakPrev = prev(peakPrev);
@@ -767,7 +767,7 @@ void PeakDetect::markPossibleQuiet()
     while (vPrev >= value || maxPrevFlag);
 
     if (posFlag && lowerMinValue < 0.f &&
-        peakPrev != peaksNew.begin() && vPrev < value)
+        peakPrev != peaks.begin() && vPrev < value)
     {
       quietCandidates.emplace_back(Period());
       Period& p = quietCandidates.back();
@@ -785,7 +785,7 @@ void PeakDetect::markPossibleQuiet()
     lowerMinValue = 0.f;
     do
     {
-      if (peakNext == peaksNew.end())
+      if (peakNext == peaks.end())
         break;
 
       peakNext = next(peakNext);
@@ -801,7 +801,7 @@ void PeakDetect::markPossibleQuiet()
     while (vNext >= value || maxNextFlag);
 
     if (posFlag && lowerMinValue < 0.f &&
-        peakNext != peaksNew.end() && vNext < value)
+        peakNext != peaks.end() && vNext < value)
     {
       quietCandidates.emplace_back(Period());
       Period& p = quietCandidates.back();
@@ -1950,7 +1950,7 @@ void PeakDetect::reduceNewer()
 
   // Note which peaks are tall.
 
-  for (auto pit = peaksNew.begin(); pit != peaksNew.end(); pit++)
+  for (auto pit = peaks.begin(); pit != peaks.end(); pit++)
   {
     // Only want the negative minima here.
     if (pit->getValue() >= 0.f || pit->getMaxFlag())
@@ -1958,7 +1958,7 @@ void PeakDetect::reduceNewer()
 
     // Exclude tall peaks without a right neighbor.
     auto npit = next(pit);
-    if (npit == peaksNew.end())
+    if (npit == peaks.end())
       continue;
 
     peaksAnnot.emplace_back(PeakEntry());
@@ -2771,9 +2771,7 @@ for (auto& p: peaks)
 }
 */
 
-  // peaksNew = peaks;
   // PeakDetect::reduceSmallRanges(0.05f, false);
-  // peaks = peaksNew;
 
   PeakDetect::reduceSmallAreas(0.1f);
 
@@ -2810,7 +2808,6 @@ cout << "RANGE: " << fixed <<
     cout << scalesList.str(0) << endl;
   }
 
-  peaksNew = peaks;
   PeakDetect::setOrigPointers();
 
   PeakDetect::reduceSmallRanges(scalesList.getRange() / 10.f, true);
@@ -2984,7 +2981,7 @@ void PeakDetect::makeSynthPeaksQuiet(vector<float>& synthPeaks) const
   float value1 = 0.f;
   bool activeFlag = false;
 
-  for (auto peak = peaksNew.begin(); peak != peaksNew.end(); peak++)
+  for (auto peak = peaks.begin(); peak != peaks.end(); peak++)
   {
     if (activeFlag)
     {
@@ -3018,7 +3015,7 @@ void PeakDetect::makeSynthPeaksSharp(vector<float>& synthPeaks) const
 {
   // Draw lines from sharp peaks.
 
-  for (auto peak = peaksNew.begin(); peak != peaksNew.end(); peak++)
+  for (auto peak = peaks.begin(); peak != peaks.end(); peak++)
   {
     if (! peak->getSharp())
       continue;
@@ -3054,10 +3051,10 @@ void PeakDetect::makeSynthPeaksLines(vector<float>& synthPeaks) const
 {
   // Draw lines between all peaks.
 
-  for (auto peak = peaksNew.begin(); peak != peaksNew.end(); peak++)
+  for (auto peak = peaks.begin(); peak != peaks.end(); peak++)
   {
     const auto peakNext = next(peak);
-    if (peakNext == peaksNew.end())
+    if (peakNext == peaks.end())
      break;
 
     const float value1 = peak->getValue();
@@ -3078,10 +3075,10 @@ void PeakDetect::makeSynthPeaksPosLines(vector<float>& synthPeaks) const
 {
   // Show lines whenever a positive maximum is involved.
 
-  for (auto peak = peaksNew.begin(); peak != peaksNew.end(); peak++)
+  for (auto peak = peaks.begin(); peak != peaks.end(); peak++)
   {
     const auto peakNext = next(peak);
-    if (peakNext == peaksNew.end())
+    if (peakNext == peaks.end())
      break;
 
     const float value1 = peak->getValue();
