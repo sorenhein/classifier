@@ -1674,6 +1674,39 @@ void PeakDetect::printCars(
 }
 
 
+bool PeakDetect::bothTall(
+  const PeakEntry& pe1,
+  const PeakEntry& pe2) const
+{
+  return (pe1.tallFlag && pe2.tallFlag);
+}
+
+
+void PeakDetect::guessDistance(
+  const vector<PeakEntry>& peaksAnnot, 
+  const PeakFncPtr fptr,
+  unsigned& distLower, 
+  unsigned& distUpper, 
+  unsigned& count) const
+{
+  // Make list of distances between neighbors for which fptr
+  // evaluates to true.
+
+  vector<unsigned> dists;
+  for (auto pit = peaksAnnot.begin(); pit != prev(peaksAnnot.end());
+    pit++)
+  {
+    auto npit = next(pit);
+    if ((this->* fptr)(* pit, * npit))
+      dists.push_back(
+        npit->peakPtr->getIndex() - pit->peakPtr->getIndex());
+  }
+
+  sort(dists.begin(), dists.end());
+  PeakDetect::findFirstSize(dists, distLower, distUpper, count);
+}
+
+
 void PeakDetect::reduceNewer()
 {
   // Here the idea is to use geometrical properties of the peaks
@@ -2109,21 +2142,27 @@ cout << "Adding tallFlag(shape) to " <<
   }
   cout << "Worst quality: " << worstQuality << endl;
 
+  PeakFncPtr fptr = &PeakDetect::bothTall;
+  unsigned wheelDistLower, wheelDistUpper;
+  unsigned whcount;
+
+  PeakDetect::guessDistance(peaksAnnot, fptr,
+    wheelDistLower, wheelDistUpper, whcount);
+
+
+
   // Make list of distances between tall neighbors.
   vector<unsigned> dists;
   for (auto pit = peaksAnnot.begin(); pit != prev(peaksAnnot.end());
     pit++)
   {
     auto npit = next(pit);
-    // if (pit->tallFlag || npit->tallFlag)
-    if (pit->tallFlag && npit->tallFlag)
+    if ((this->* fptr)(* pit, * npit))
       dists.push_back(
         npit->peakPtr->getIndex() - pit->peakPtr->getIndex());
   }
 
   sort(dists.begin(), dists.end());
-  unsigned wheelDistLower, wheelDistUpper;
-  unsigned whcount;
   PeakDetect::findFirstSize(dists, wheelDistLower, wheelDistUpper,
     whcount);
   // Could be zero
@@ -2652,13 +2691,7 @@ cout << "Filled out complete car: " << car.strLimits(offset) << endl;
     }
   }
 
-  // Print cars in tight table.
-  cout << "Cars before intra-gaps:\n";
-  cout << cars[0].strHeaderGaps();
-  for (auto& car: cars)
-    cout << car.strFull(offset);
-  cout << endl;
-
+  PeakDetect::printCars(cars, "before intra gaps");
 
   // Check open intervals.  Start with inner ones as they are complete.
 
@@ -2694,12 +2727,7 @@ cout << "Did intra-gap " << cars[ii].endValue()+offset << "-" <<
   cout << "Counting " << PeakDetect::countWheels(peaksAnnot) << 
     " peaks" << endl << endl;
 
-  cout << "Cars after inner gaps:\n";
-  cout << cars[0].strHeaderFull();
-  for (auto& car: cars)
-    cout << car.strFull(offset);
-  cout << endl;
-
+  PeakDetect::printCars(cars, "after inner gaps");
   PeakDetect::printCarStats(carStats, "after inner gaps");
 
   if (u2 > u1)

@@ -307,7 +307,8 @@ class PeakDetect
     bool spuriousFlag;
   };
 
-
+  typedef bool (PeakDetect::*PeakFncPtr)(
+    const PeakEntry& pe1, const PeakEntry& pe2) const;
 
 
     unsigned len;
@@ -466,6 +467,17 @@ class PeakDetect
       vector<PeakEntry>& peaksAnnot,
       vector<CarDetect>& cars,
       vector<CarStat>& carStats) const;
+
+    bool bothTall(
+      const PeakEntry& pe1,
+      const PeakEntry& pe2) const;
+
+    void guessDistance(
+      const vector<PeakEntry>& peaksAnnot,
+      const PeakFncPtr fptr,
+      unsigned& distLower,
+      unsigned& distUpper,
+      unsigned& count) const;
 
     unsigned countWheels(const vector<PeakEntry>& peaksAnnot) const;
 
