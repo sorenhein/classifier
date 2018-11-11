@@ -7,7 +7,8 @@
 #include <sstream>
 
 #include "Peak.h"
-#include "CarGaps.h"
+#include "CarDetect.h"
+#include "CarPeaks.h"
 #include "struct.h"
 
 using namespace std;
@@ -217,208 +218,69 @@ class PeakDetect
     unsigned quietFavorite;
 
 
-  // For putting together complete cars.
-
-  struct Car
-  {
-    unsigned start; // Excluding offset
-    unsigned end;
-
-    CarGaps gaps;
-
-    Peak * firstBogeyLeft;
-    Peak * firstBogeyRight;
-    Peak * secondBogeyLeft;
-    Peak * secondBogeyRight;
-
-    unsigned catStatIndex;
-
-    void setLimits(
-      const unsigned startIn,
-      const unsigned endIn)
-    {
-      start = startIn;
-      end = endIn;
-    };
-
-    void operator += (const Car& c2)
-    {
-      gaps += c2.gaps;
-    };
-
-    bool fillSides(
-      const unsigned leftGap,
-      const unsigned rightGap)
-    {
-      bool filledFlag = false;
-      if (! gaps.hasLeftGap())
-      {
-        if (leftGap <= firstBogeyLeft->getIndex())
-        {
-          start = firstBogeyLeft->getIndex() - leftGap;
-          gaps.logLeftGap(leftGap);
-          filledFlag = true;
-        }
-      }
-
-      if (! gaps.hasRightGap())
-      {
-        if (rightGap <= secondBogeyRight->getIndex())
-        {
-          end = secondBogeyRight->getIndex() + rightGap;
-          gaps.logRightGap(rightGap);
-          filledFlag = true;
-        }
-      }
-      return filledFlag;
-    };
-
-    bool isPartial() const
-    {
-      return gaps.isPartial();
-    };
-
-
-    string str()
-    {
-      return gaps.str() + "\n";
-    };
-
-    string strHeader()
-    {
-      stringstream ss;
-      ss << setw(6) << right << "start" <<
-        setw(6) << "end" <<
-        setw(6) << "len" <<
-        gaps.strHeader() << 
-        setw(6) << "#cs" << endl;
-      return ss.str();
-    };
-
-    string strLine(const unsigned offset)
-    {
-      stringstream ss;
-      ss << setw(6) << start + offset <<
-        setw(6) << end + offset <<
-        setw(6) << end-start <<
-    gaps.str() << 
-        setw(6) << catStatIndex << endl;
-      return ss.str();
-    };
-  };
-
   struct CarStat
   {
-    Car carSum;
-    Peak firstBogeyLeftSum;
-    Peak firstBogeyRightSum;
-    Peak secondBogeyLeftSum;
-    Peak secondBogeyRightSum;
+    CarDetect carSum;
+    CarPeaks peaksSum;
 
-    Car carAvg;
-    Peak firstBogeyLeftAvg;
-    Peak firstBogeyRightAvg;
-    Peak secondBogeyLeftAvg;
-    Peak secondBogeyRightAvg;
+    CarDetect carAvg;
+    CarPeaks peaksAvg;
 
-    unsigned noFirstLeft;
-    unsigned noFirstRight;
-    unsigned noSecondLeft;
-    unsigned noSecondRight;
+    CarPeaksNumbers peaksNumbers;
 
-    unsigned noLeftGap;
-    unsigned noCoreGaps;
-    unsigned noRightGap;
+    CarDetectNumbers gapNumbers;
 
     bool symmetryFlag;
-    unsigned numWheels;
+    // unsigned numWheels;
     unsigned count;
 
-    void operator += (const Car& c)
+    void operator += (const CarDetect& c)
     {
       carSum += c;
       count++;
 
-      if (c.firstBogeyLeft)
-      {
-        firstBogeyLeftSum += * c.firstBogeyLeft;
-        noFirstLeft++;
-      }
+      peaksSum.increment(c.getPeaksPtr(), peaksNumbers);
 
-      if (c.firstBogeyRight)
-      {
-        firstBogeyRightSum += * c.firstBogeyRight;
-        noFirstRight++;
-      }
+      // numWheels = 2;
+      // if (c.hasFirstBogeyLeft() && c.hasFirstBogeyRight())
+        // numWheels++;
+      // if (c.hasSecondBogeyLeft() && c.hasSecondBogeyRight())
+        // numWheels++;
 
-      if (c.secondBogeyLeft)
-      {
-        secondBogeyLeftSum += * c.secondBogeyLeft;
-        noSecondLeft++;
-      }
+      c.increment(gapNumbers);
+      // if (c.hasLeftGap())
+        // noLeftGap++;
 
-      if (c.secondBogeyRight)
-      {
-        secondBogeyRightSum += * c.secondBogeyRight;
-        noSecondRight++;
-      }
+      // noCoreGaps++;
 
-      numWheels = 2;
-      if (c.firstBogeyLeft && c.firstBogeyRight)
-        numWheels++;
-      if (c.secondBogeyLeft && c.secondBogeyRight)
-        numWheels++;
-
-      if (c.gaps.hasLeftGap())
-        noLeftGap++;
-
-      noCoreGaps++;
-
-      if (c.gaps.hasRightGap())
-        noRightGap++;
+      // if (c.hasRightGap())
+        // noRightGap++;
 
     };
 
     void avg()
     {
       carAvg = carSum;
-      carAvg.gaps.average(noLeftGap, noCoreGaps, noRightGap);
-      if (noFirstLeft)
-      {
-        firstBogeyLeftAvg = firstBogeyLeftSum;
-        firstBogeyLeftAvg /= noFirstLeft;
-      }
-      if (noFirstRight)
-      {
-        firstBogeyRightAvg = firstBogeyRightSum;
-        firstBogeyRightAvg /= noFirstRight;
-      }
-      if (noSecondLeft)
-      {
-        secondBogeyLeftAvg = secondBogeyLeftSum;
-        secondBogeyLeftAvg /= noSecondLeft;
-      }
-      if (noSecondRight)
-      {
-        secondBogeyRightAvg = secondBogeyRightSum;
-        secondBogeyRightAvg /= noSecondRight;
-      }
+      carAvg.averageGaps(gapNumbers);
+      // carAvg.averageGaps(noLeftGap, noCoreGaps, noRightGap);
+
+      peaksAvg = peaksSum;
+      peaksAvg.average(peaksNumbers);
     };
 
-    float distance(const Car& car) const
+    float distance(const CarDetect& car) const
     {
-      // Only gaps, no peak quality for now.
-      return carAvg.gaps.relativeDistance(car.gaps);
+      return carAvg.distance(car);
     }
 
     string strHeader()
     {
-      return carAvg.strHeader();
+      return carAvg.strHeaderGaps();
     };
 
     string str()
     {
-      return carAvg.str();
+      return carAvg.strGaps();
     };
   };
 
@@ -551,7 +413,7 @@ class PeakDetect
       const string& text) const;
 
     bool matchesCarStat(
-      const Car& car,
+      const CarDetect& car,
       const vector<CarStat>& carStats,
       unsigned& index) const;
 
@@ -563,8 +425,8 @@ class PeakDetect
       const vector<PeakEntry>& peaksAnnot,
       const vector<unsigned>& peakNos,
       const vector<unsigned>& peakIndices,
-      const Car& carAvg,
-      Car& car) const;
+      const CarDetect& carAvg,
+      CarDetect& car) const;
 
     bool findLastTwoOfFourWheeler(
       const unsigned start,
@@ -574,7 +436,7 @@ class PeakDetect
       const vector<unsigned>& peakNos,
       const vector<unsigned>& peakIndices,
       const vector<CarStat>& carStats,
-      Car& car) const;
+      CarDetect& car) const;
 
     bool findLastThreeOfFourWheeler(
       const unsigned start,
@@ -583,7 +445,7 @@ class PeakDetect
       const vector<unsigned>& peakNos,
       const vector<unsigned>& peakIndices,
       const vector<CarStat>& carStats,
-      Car& car,
+      CarDetect& car,
       unsigned& numWheels) const;
 
     void fixTwoWheels(
@@ -608,10 +470,9 @@ class PeakDetect
       const unsigned p3) const;
 
     void updateCars(
-      vector<Car>& cars,
+      vector<CarDetect>& cars,
       vector<CarStat>& carStats,
-      Car& car,
-      const unsigned numWheels) const;
+      CarDetect& car) const;
 
     bool findCars(
       const unsigned start,
@@ -619,7 +480,7 @@ class PeakDetect
       const bool leftGapPresent,
       const bool rightGapPresent,
       vector<PeakEntry>& peaksAnnot,
-      vector<Car>& cars,
+      vector<CarDetect>& cars,
       vector<CarStat>& carStats) const;
 
     void makeSynthPeaksSharp(vector<float>& synthPeaks) const;

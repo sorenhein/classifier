@@ -1,3 +1,9 @@
+Gap distance:
+actual = 0, ref != 0: dist = 0
+actual != 0, ref = 0: dist = inf
+Both = 0: dist = 0
+Neither = 0: actual
+
 Remaining sensor00 errors:
 #23, 082401: Tell findCars it's the first or last car
   (do we know?), last car with 6 peaks --> drop very last peak

@@ -3,6 +3,8 @@
 #include <sstream>
 
 #include "CarGaps.h"
+#include "Except.h"
+#include "errors.h"
 
 #define SIDE_GAP_FACTOR 2.f
 #define SIDE_GAP_TO_BOGEY_FACTOR 2.f
@@ -10,6 +12,8 @@
 #define BOGEY_TO_BOGEY_FACTOR 1.2f
 #define BOGEY_TO_REF_SOFT_FACTOR 1.5f
 #define BOGEY_TO_REF_HARD_FACTOR 1.1f
+
+#define RESET_SIDE_GAP_TOLERANCE 10 // Samples
 
 
 CarGaps::CarGaps()
@@ -51,6 +55,21 @@ void CarGaps::logAll(
 
 void CarGaps::logLeftGap(const unsigned leftGapIn)
 {
+  if (leftGapSet)
+  {
+    const unsigned d = (leftGapIn >= leftGap ? 
+      leftGapIn - leftGap : leftGap - leftGapIn);
+    if (d > RESET_SIDE_GAP_TOLERANCE)
+      THROW(ERR_CAR_SIDE_GAP_RESET, 
+        "Left gap reset from " + to_string(leftGap) + 
+        " to " + to_string(leftGapIn));
+
+    // This happens when the stored gap is half the distance to
+    // a previous peak, and the average car has a different gap.
+    // If we were to use the average gap, the cars wouldn't addup.
+    return;
+  }
+
   leftGapSet = true;
   leftGap = leftGapIn;
 }
@@ -69,6 +88,17 @@ void CarGaps::logCore(
 
 void CarGaps::logRightGap(const unsigned rightGapIn)
 {
+  if (rightGapSet)
+  {
+    const unsigned d = (rightGapIn >= rightGap ? 
+      rightGapIn - rightGap : rightGap - rightGapIn);
+    if (d > RESET_SIDE_GAP_TOLERANCE)
+      THROW(ERR_CAR_SIDE_GAP_RESET, 
+        "Right gap reset from " + to_string(rightGap) + 
+        " to " + to_string(rightGapIn));
+    return;
+  }
+
   rightGapSet = true;
   rightGap = rightGapIn;
 }
