@@ -225,32 +225,6 @@ const list<Peak>::iterator PeakDetect::collapsePeaks(
   const list<Peak>::iterator peak2)
 {
   // Analogous to list.erase(), peak1 does not survive, while peak2 does.
-if (peak2 == peaks.end())
-  cout << "ERROR HOPPLA" << endl;
-
-  if (peak1 == peak2)
-    return peak2;
-
-  // Need same polarity.
-  if (peak1->getMaxFlag() != peak2->getMaxFlag())
-    THROW(ERR_ALGO_PEAK_COLLAPSE, "Peaks with different polarity");
-
-  Peak * peak0 = 
-    (peak1 == peaks.begin() ? &*peak1 : &*prev(peak1));
-  Peak * peakN = 
-    (next(peak2) == peaks.end() ? nullptr : &*next(peak2));
-
-  peak2->update(peak0, peakN);
-
-  return peaks.erase(peak1, peak2);
-}
-
-
-const list<Peak>::iterator PeakDetect::collapsePeaksNew(
-  const list<Peak>::iterator peak1,
-  const list<Peak>::iterator peak2)
-{
-  // Analogous to list.erase(), peak1 does not survive, while peak2 does.
   if (peak1 == peak2)
     return peak1;
 
@@ -335,7 +309,7 @@ void PeakDetect::reduceSmallRanges(
     else if (peak->getMaxFlag() != maxFlag)
     {
       // Keep from peakCurrent to peak which is also often peakMax.
-      peak = PeakDetect::collapsePeaksNew(--peakCurrent, peak);
+      peak = PeakDetect::collapsePeaks(--peakCurrent, peak);
       peak++;
     }
     else
@@ -351,8 +325,8 @@ cout << peakMax->str(offset);
 cout << peak->str(offset);
 */
 
-      peakMax = PeakDetect::collapsePeaksNew(--peakCurrent, peakMax);
-      peak = PeakDetect::collapsePeaksNew(++peakMax, peak);
+      peakMax = PeakDetect::collapsePeaks(--peakCurrent, peakMax);
+      peak = PeakDetect::collapsePeaks(++peakMax, peak);
       peak++;
     }
   }
@@ -2779,6 +2753,7 @@ for (auto& p: peaks)
 */
 
   // PeakDetect::reduceSmallRanges(0.05f, false);
+  // PeakDetect::reduceSmallRanges(scalesList.getRange() / 40.f, true);
 
   PeakDetect::reduceSmallAreas(0.1f);
 

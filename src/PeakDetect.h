@@ -337,10 +337,6 @@ class PeakDetect
       const list<Peak>::iterator peak1,
       const list<Peak>::iterator peak2);
 
-    const list<Peak>::iterator collapsePeaksNew(
-      const list<Peak>::iterator peak1,
-      const list<Peak>::iterator peak2);
-
     void reduceSmallRanges(
       const float rangeLimit,
       const bool preserveFlag);
