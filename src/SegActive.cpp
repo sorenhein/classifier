@@ -200,6 +200,7 @@ bool SegActive::detect(
   timers.stop(TIMER_CONDITION);
 
   timers.start(TIMER_DETECT_PEAKS);
+  peakDetect.reset();
   peakDetect.log(synthPos, writeInterval.first);
   peakDetect.reduce();
   timers.stop(TIMER_DETECT_PEAKS);

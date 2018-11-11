@@ -7,6 +7,7 @@
 #include <sstream>
 
 #include "Peak.h"
+#include "CarModels.h"
 #include "CarDetect.h"
 #include "CarPeaks.h"
 #include "struct.h"
@@ -215,6 +216,9 @@ class PeakDetect
     };
 
 
+  CarModels models;
+
+  /*
   struct CarStat
   {
     CarDetect carSum;
@@ -264,6 +268,7 @@ class PeakDetect
       return carAvg.strGaps();
     };
   };
+  */
 
 
   // Peaks between abutting interval lists tend to be large and thus
@@ -392,9 +397,8 @@ class PeakDetect
       const float factor,
       const string& text) const;
 
-    bool matchesCarStat(
+    bool matchesModel(
       const CarDetect& car,
-      const vector<CarStat>& carStats,
       unsigned& index) const;
 
     bool findFourWheeler(
@@ -405,7 +409,6 @@ class PeakDetect
       const vector<PeakEntry>& peaksAnnot,
       const vector<unsigned>& peakNos,
       const vector<unsigned>& peakIndices,
-      const CarDetect& carAvg,
       CarDetect& car) const;
 
     bool findLastTwoOfFourWheeler(
@@ -415,7 +418,6 @@ class PeakDetect
       const vector<PeakEntry>& peaksAnnot,
       const vector<unsigned>& peakNos,
       const vector<unsigned>& peakIndices,
-      const vector<CarStat>& carStats,
       CarDetect& car) const;
 
     bool findLastThreeOfFourWheeler(
@@ -424,7 +426,6 @@ class PeakDetect
       const vector<PeakEntry>& peaksAnnot,
       const vector<unsigned>& peakNos,
       const vector<unsigned>& peakIndices,
-      const vector<CarStat>& carStats,
       CarDetect& car,
       unsigned& numWheels) const;
 
@@ -451,8 +452,7 @@ class PeakDetect
 
     void updateCars(
       vector<CarDetect>& cars,
-      vector<CarStat>& carStats,
-      CarDetect& car) const;
+      CarDetect& car);
 
     bool findCars(
       const unsigned start,
@@ -460,8 +460,7 @@ class PeakDetect
       const bool leftGapPresent,
       const bool rightGapPresent,
       vector<PeakEntry>& peaksAnnot,
-      vector<CarDetect>& cars,
-      vector<CarStat>& carStats) const;
+      vector<CarDetect>& cars);
 
     bool bothTall(
       const PeakEntry& pe1,
@@ -480,9 +479,7 @@ class PeakDetect
 
     unsigned countWheels(const vector<PeakEntry>& peaksAnnot) const;
 
-    void printCarStats(
-      vector<CarStat>& carStats,
-      const string& text) const;
+    void printCarStats(const string& text) const;
 
     void printCars(
       const vector<CarDetect>& cars,

@@ -2,6 +2,7 @@ SOURCE_FILES    =               \
                 Align.cpp       \
                 CarDetect.cpp   \
                 CarGaps.cpp     \
+                CarModels.cpp   \
                 CarPeaks.cpp    \
                 Clusters.cpp    \
                 CompStats.cpp   \
