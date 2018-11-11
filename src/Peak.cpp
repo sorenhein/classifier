@@ -46,9 +46,6 @@ void Peak::reset()
   match = -1;
   ptype = PEAK_TYPE_SIZE;
 
-  indexZC = 0;
-  valueZC = 0.f;
-
   sharpFlag = false;
 
   quietBegin = false;
@@ -86,12 +83,6 @@ void Peak::log(
 }
 
 
-void Peak::logCluster(const unsigned cno)
-{
-  clusterNo = cno;
-}
-
-
 void Peak::logMatch(const int matchIn)
 {
   match = matchIn;
@@ -104,36 +95,9 @@ void Peak::logType(const PeakType ptypeIn)
 }
 
 
-void Peak::logZeroCrossing(
-  const unsigned indexIn,
-  const float valueIn)
-{
-  indexZC = indexIn;
-  valueZC = valueIn;
-}
-
-
 void Peak::logOrigPointer(const Peak * const ptr)
 {
   origPtr = ptr;
-}
-
-
-void Peak::logSharp()
-{
-  sharpFlag = true;
-}
-
-
-void Peak::logQuietBegin()
-{
-  quietBegin = true;
-}
-
-
-void Peak::logQuietEnd()
-{
-  quietEnd = true;
 }
 
 
@@ -295,12 +259,6 @@ float Peak::getArea(const Peak& p2) const
 }
 
 
-float Peak::getSymmetry() const
-{
-  return symmetry;
-}
-
-
 unsigned Peak::getCluster() const
 {
   return clusterNo;
@@ -316,18 +274,6 @@ int Peak::getMatch() const
 PeakType Peak::getType() const
 {
   return ptype;
-}
-
-
-float Peak::getValueZC() const
-{
-  return valueZC;
-}
-
-
-unsigned Peak::getIndexNextZC() const
-{
-  return indexZC;
 }
 
 
@@ -375,32 +321,6 @@ float Peak::penalty(const float val) const
     return 0.f;
   else
     return (v - 2.f) * (v - 2.f);
-}
-
-
-float Peak::measure(const Peak& scale)
-{
-  measureFlag = true;
-  if (len == 0)
-  {
-    measureVal = 999.99f;
-    return measureVal;
-  }
-
-  measureVal = Peak::penalty(value / scale.value) +
-    Peak::penalty(len / scale.len) +
-    Peak::penalty(range / scale.range) +
-    Peak::penalty(area / scale.area) +
-    Peak::penalty(gradient / scale.gradient);
-  return measureVal;
-}
-
-
-float Peak::measure() const
-{
-  if (! measureFlag)
-    THROW(ERR_ALGO_MEASURE, "Measure not set");
-  return measureVal;
 }
 
 

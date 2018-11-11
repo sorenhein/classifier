@@ -33,20 +33,9 @@ class Peak
     float fill; // area / (0.5 * range * len)
     float symmetry; // area relative to the area to the *right*
 
-    float measureVal;
-    bool measureFlag;
-
-    unsigned clusterNo;
     bool selectFlag;
     int match; // Number of matched peak in real list (or -1)
     PeakType ptype;
-
-    // TODO Maybe tmp
-    unsigned indexZC; // Location of *next* zero-crossing
-    float valueZC; // Size of *own* maximum within this zero-crossing
-    bool quietBegin;
-    bool quietEnd;
-    bool sharpFlag;
 
     bool seedFlag;
 
@@ -91,19 +80,10 @@ class Peak
       const float areaCumIn,
       const bool maxFlagIn);
 
-    void logCluster(const unsigned cno);
     void logType(PeakType ptypeIn);
     void logMatch(const int m);
-    void logZeroCrossing(
-      const unsigned indexIn,
-      const float valueIn);
 
     void logOrigPointer(const Peak * const);
-
-    void logSharp();
-
-    void logQuietBegin();
-    void logQuietEnd();
 
     void update(
       Peak * peakPrev,
@@ -128,23 +108,14 @@ class Peak
     float getArea(const Peak& p2) const;
     float getFill() const;
     float getGradient() const;
-    float getSymmetry() const;
     unsigned getCluster() const;
     int getMatch() const;
     PeakType getType() const;
-    float getValueZC() const;
-    unsigned getIndexNextZC() const;
     const Peak * const getOrigPointer() const;
-    bool getQuietBegin() const;
-    bool getQuietEnd() const;
-    bool getSharp() const;
 
     bool isCluster(const unsigned cno) const;
 
     bool isCandidate() const;
-
-    float measure(const Peak& scale);
-    float measure() const;
 
     void select();
     bool isSelected() const;

@@ -21,14 +21,6 @@ class PeakDetect
 {
   private:
 
-    struct PeakCluster
-    {
-      Peak centroid;
-      unsigned len;
-      unsigned numConvincing;
-      bool good;
-    };
-
     struct Sharp
     {
       unsigned index;
@@ -228,7 +220,6 @@ class PeakDetect
     Peak * prevLargePeakPtr;
     Sharp sharp;
     bool tallFlag;
-    bool similarFlag;
     float quality; // Always >= 0, low is good
     float qualityShape; // Always >= 0, low is good
 
@@ -236,8 +227,6 @@ class PeakDetect
     WheelType wheelSide;
 
     BogeyType bogeySide;
-
-    bool spuriousFlag;
   };
 
   typedef bool (PeakDetect::*PeakFncPtr)(

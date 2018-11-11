@@ -1574,7 +1574,6 @@ void PeakDetect::reduceNewer()
     pe.wheelFlag = false;
     pe.wheelSide = WHEEL_SIZE;
     pe.bogeySide = BOGEY_SIZE;
-    pe.spuriousFlag = false;
 
     pe.tallFlag = pit->isSeed();
   }
@@ -2154,9 +2153,6 @@ cout << "\nMarking long gap at " <<
   posRight1 + offset << "-" <<
   posLeft2 + offset << endl;
 
-    for (auto it = next(pit); it != npit; it++)
-      it->spuriousFlag = true;
-      
     // Fill out cars.
     cars.emplace_back(CarDetect());
     CarDetect& car = cars.back();

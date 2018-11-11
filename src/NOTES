@@ -1,4 +1,21 @@
-Move out the quiet, Period stuff to PeakSeeds
+Keep cars sorted?
+When car models complete?
+  recombine
+  mark cars accordingly (new indices)
+
+Maybe try simple thresholding instead of PeakSeeds
+
+PeakTruth:
+pos2time
+setOffsets
+simpleScore
+findMatch
+findCandidate
+logPeakStats
+advance
+
+Clean up Peak some more?
+Move PeakEntry and Sharp into Peak?
 
 Gap distance:
 actual = 0, ref != 0: dist = 0
@@ -42,12 +59,11 @@ Look graphically for misses
 2018-09-17
 ----------
 Give out the whole PeakList, don't copy into PeakTime?
+Also output the like number of missed front peaks
 
 
 2018-09-14
 ----------
-We often get the 2nd of maxima above the line.  sensor34, 180956, #2.
-
 Maybe transients can be reduced with filter padding as in filtfilt.
 
 
@@ -96,3 +112,4 @@ Overall algorithm
 * Float (Accel) to double everywhere
 * Simpson integration?
 * Deconvolution of a "wheel response"?
+* Move out code in driver and directories that is not used
