@@ -1850,11 +1850,11 @@ void PeakDetect::reduceNewer()
     cout << endl;
   }
 
+// Try PeakSeeds
+PeakSeeds seeds;
+seeds.mark(peaks, offset, scalesList.getRange());
 
   vector<PeakEntry> peaksAnnot;
-  unsigned nindex = 0;
-  unsigned ni1 = nestedQuiets[nindex].back()->start;
-  unsigned ni2 = ni1 + nestedQuiets[nindex].back()->len;
 
   // Note which peaks are tall.
 
@@ -1882,26 +1882,7 @@ void PeakDetect::reduceNewer()
 
     const unsigned index = pit->getIndex();
 
-    if (index < ni1)
-      pe.tallFlag = false;
-    else if (index == ni1)
-      pe.tallFlag = true;
-    else if (index < ni2)
-      pe.tallFlag = false;
-    else
-    {
-      if (index == ni2)
-        pe.tallFlag = true;
-      else
-        pe.tallFlag = false;
-
-      if (nindex+1 < nestedQuiets.size())
-      {
-        nindex++;
-        ni1 = nestedQuiets[nindex].back()->start;
-        ni2 = ni1 + nestedQuiets[nindex].back()->len;
-      }
-    }
+    pe.tallFlag = pit->isSeed();
   }
 
   for (auto pit = peaksAnnot.begin(); pit != peaksAnnot.end(); pit++)

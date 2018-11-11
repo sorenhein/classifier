@@ -4,8 +4,6 @@
 #include <algorithm>
 
 #include "PeakSeeds.h"
-#include "Except.h"
-#include "errors.h"
 
 
 PeakSeeds::PeakSeeds()
@@ -388,6 +386,8 @@ void PeakSeeds::mark(
 
   PeakSeeds::makeIntervals(peaks, scale);
 
+  PeakSeeds::makeNestedIntervals();
+
   // TODO Input flag
   if (true)
     cout << PeakSeeds::str(offset, "before pruning");
@@ -416,7 +416,7 @@ string PeakSeeds::str(
   const string& text) const
 {
   stringstream ss;
-  ss << "Nested intervals " << text << "\n";
+  ss << "NEW Nested intervals " << text << "\n";
   for (auto& li: nestedIntervals)
   {
     for (auto& p: li)
