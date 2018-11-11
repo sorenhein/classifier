@@ -45,7 +45,6 @@ void PeakDetect::reset()
   scalesList.reset();
   numCandidates = 0;
   numTentatives = 0;
-  quietCandidates.clear();
 }
 
 
@@ -710,88 +709,6 @@ void PeakDetect::setOrigPointers()
   for (auto peak = peaks.begin(), peakNew = peaks.begin(); 
       peak != peaks.end(); peak++, peakNew++)
     peakNew->logOrigPointer(&*peak);
-}
-
-
-void PeakDetect::markPossibleQuiet()
-{
-  quietCandidates.clear();
-
-  for (auto peak = peaks.begin(); peak != peaks.end(); peak++)
-  {
-    // Get a negative minimum.
-    const float value = peak->getValue();
-    if (value >= 0. || peak->getMaxFlag())
-      continue;
-
-    // Find the previous negative minimum that was deeper.
-    auto peakPrev = peak;
-    bool posFlag = false;
-    bool maxPrevFlag;
-    float vPrev = 0.;
-    float lowerMinValue = 0.f;
-    do
-    {
-      if (peakPrev == peaks.begin())
-        break;
-
-      peakPrev = prev(peakPrev);
-      maxPrevFlag = peakPrev->getMaxFlag();
-      vPrev = peakPrev->getValue();
-
-      if (! maxPrevFlag && vPrev > value)
-        lowerMinValue = min(vPrev, lowerMinValue);
-
-      if (vPrev >= 0.f)
-        posFlag = true;
-    }
-    while (vPrev >= value || maxPrevFlag);
-
-    if (posFlag && lowerMinValue < 0.f &&
-        peakPrev != peaks.begin() && vPrev < value)
-    {
-      quietCandidates.emplace_back(Period());
-      Period& p = quietCandidates.back();
-      p.start = peakPrev->getIndex();
-      p.len = peak->getIndex() - p.start;
-      p.depth = (lowerMinValue - vPrev) / scalesList.getRange();
-      p.minLevel = lowerMinValue;
-    }
-
-    // Same thing forwards.
-    auto peakNext = peak;
-    posFlag = false;
-    bool maxNextFlag;
-    float vNext = 0.;
-    lowerMinValue = 0.f;
-    do
-    {
-      if (peakNext == peaks.end())
-        break;
-
-      peakNext = next(peakNext);
-      maxNextFlag = peakNext->getMaxFlag();
-      vNext = peakNext->getValue();
-
-      if (! maxNextFlag && vNext > value)
-        lowerMinValue = min(vNext, lowerMinValue);
-
-      if (vNext >= 0.f)
-        posFlag = true;
-    }
-    while (vNext >= value || maxNextFlag);
-
-    if (posFlag && lowerMinValue < 0.f &&
-        peakNext != peaks.end() && vNext < value)
-    {
-      quietCandidates.emplace_back(Period());
-      Period& p = quietCandidates.back();
-      p.start = peak->getIndex();
-      p.len = peakNext->getIndex() - p.start;
-      p.depth = (lowerMinValue - vNext) / scalesList.getRange();
-      p.minLevel = lowerMinValue;
-    }
-  }
 }
 
 
@@ -1628,231 +1545,10 @@ void PeakDetect::guessDistance(
 
 void PeakDetect::reduceNewer()
 {
-  // Here the idea is to use geometrical properties of the peaks
-  // to extract some structure.
-
-  struct QuietEntry
-  {
-    Period * periodPtr;
-    unsigned indexLen;
-    unsigned indexStart;
-    unsigned indexEnd;
-    bool usedFlag;
-  };
-
-  vector<QuietEntry> quietByLength;
-  unsigned i = 0;
-  for (auto& q: quietCandidates)
-  {
-    quietByLength.emplace_back(QuietEntry());
-    QuietEntry& qe = quietByLength.back();
-    qe.periodPtr = &q;
-    qe.usedFlag = false;
-  }
-
-  sort(quietByLength.begin(), quietByLength.end(),
-    [](const QuietEntry& qe1, const QuietEntry& qe2) -> bool
-    { 
-      return qe1.periodPtr->len < qe2.periodPtr->len; 
-    });
-
-  // These have indices back into quietByLength.
-  vector<QuietEntry> quietByStart, quietByEnd;
-  i = 0;
-  for (auto& qbl: quietByLength)
-  {
-    quietByStart.emplace_back(qbl);
-    QuietEntry& qs = quietByStart.back();
-    qs.indexLen = i;
-
-    quietByEnd.emplace_back(qbl);
-    QuietEntry& qe = quietByEnd.back();
-    qe.indexLen = i++;
-  }
-
-  sort(quietByStart.begin(), quietByStart.end(),
-    [](const QuietEntry& qe1, const QuietEntry& qe2) -> bool
-    { 
-      if (qe1.periodPtr->start < qe2.periodPtr->start)
-        return true;
-      else if (qe1.periodPtr->start > qe2.periodPtr->start)
-        return false;
-      else
-        return qe1.periodPtr->len < qe2.periodPtr->len; 
-    });
-
-  sort(quietByEnd.begin(), quietByEnd.end(),
-    [](const QuietEntry& qe1, const QuietEntry& qe2) -> bool
-    { 
-      if (qe1.periodPtr->start + qe1.periodPtr->len < 
-          qe2.periodPtr->start + qe2.periodPtr->len)
-        return true;
-      else if (qe1.periodPtr->start + qe1.periodPtr->len > 
-          qe2.periodPtr->start + qe2.periodPtr->len)
-        return false;
-      else
-        return qe1.periodPtr->len < qe2.periodPtr->len; 
-    });
-
-  // We can also get from quietByLength to the others.
-  i = 0;
-  for (auto& qbs: quietByStart)
-    quietByLength[qbs.indexLen].indexStart = i++;
-  
-  i = 0;
-  for (auto& qbe: quietByEnd)
-    quietByLength[qbe.indexLen].indexEnd = i++;
-  
-  // Smaller intervals are contained in larger ones.
-  vector<list<Period *>> nestedQuiets;
-
-  const unsigned qlen = quietByLength.size();
-  for (auto& qbl: quietByLength)
-  {
-    if (qbl.usedFlag)
-      continue;
-
-    nestedQuiets.emplace_back(list<Period *>());
-    list<Period *>& li = nestedQuiets.back();
-
-    QuietEntry * qeptr = &qbl;
-    while (true)
-    {
-      li.push_back(qeptr->periodPtr);
-      qeptr->usedFlag = true;
-
-      // Look in starts.
-      const unsigned snext = qeptr->indexStart+1;
-      const unsigned enext = qeptr->indexEnd+1;
-
-      if (snext < qlen && 
-          quietByStart[snext].periodPtr->start == qeptr->periodPtr->start)
-      {
-        // Same start, next up in length.
-        qeptr = &quietByLength[quietByStart[snext].indexLen];
-      }
-      else if (enext < qlen && 
-        quietByEnd[enext].periodPtr->start +
-        quietByEnd[enext].periodPtr->len ==
-        qeptr->periodPtr->start + qeptr->periodPtr->len)
-      {
-        // Look in ends.
-        qeptr = &quietByLength[quietByEnd[enext].indexLen];
-      }
-      else
-        break;
-    }
-  }
-
-  // Sort the interval lists in order of appearance.
-  sort(nestedQuiets.begin(), nestedQuiets.end(),
-    [](const list<Period *>& li1, const list<Period *>& li2) -> bool
-    { 
-      return li1.front()->start < li2.front()->start;
-    });
-
-  cout << "Nested intervals before pruning\n";
-  for (auto& li: nestedQuiets)
-  {
-    for (auto& p: li)
-    {
-      cout << p->start + offset << "-" << p->start + offset + p->len <<
-        " (" << p->len << ")" << endl;
-    }
-    cout << endl;
-  }
-
-  // Merge lists that only differ in the first interval.
-  // Could maybe mark these.
-  for (i = 0; i+1 < nestedQuiets.size(); )
-  {
-    if (nestedQuiets[i].size() != nestedQuiets[i+1].size())
-    {
-      i++;
-      continue;
-    }
-
-    if (nestedQuiets[i].size() <= 1)
-    {
-      i++;
-      continue;
-    }
-
-    Period * p1 = nestedQuiets[i].front();
-    Period * p2 = nestedQuiets[i+1].front();
-    if (p1->start + p1->len == p2->start)
-      nestedQuiets.erase(nestedQuiets.begin() + i+1);
-    else
-      i++;
-  }
-
-  // Stop lists when they reach exact overlap.
-  for (i = 0; i+1 < nestedQuiets.size(); i++)
-  {
-    auto& li1 = nestedQuiets[i];
-    auto& li2 = nestedQuiets[i+1];
-
-    // Count up in the ends of the first list.
-    unsigned index1 = 0;
-    list<Period *>::iterator nit1;
-    for (auto it = li1.begin(); it != prev(li1.end()); it++)
-    {
-      nit1 = next(it);
-      if ((*nit1)->start + (*nit1)->len > li2.front()->start)
-      {
-        index1 = (*it)->start + (*it)->len;
-        break;
-      }
-      else if (next(nit1) == li1.end())
-      {
-        index1 = (*nit1)->start + (*nit1)->len;
-        nit1++;
-        break;
-      }
-    }
-
-    bool foundFlag = false;
-    unsigned index2 = 0;
-    list<Period *>::iterator it2;
-   
-    // Count down in the starts of the second list.
-    for (it2 = li2.begin(); it2 != li2.end(); it2++)
-    {
-      if ((*it2)->start == index1)
-      {
-        foundFlag = true;
-        index2 = (*it2)->start;
-        while (it2 != li2.end() && (*it2)->start == index1)
-          it2++;
-        break;
-      }
-    }
-
-    if (! foundFlag)
-      continue;
-
-    if (index1 != index2)
-      continue;
-
-    if (nit1 != li1.end())
-      li1.erase(nit1, li1.end());
-    li2.erase(it2, li2.end());
-  }
-
-  cout << "Nested intervals after pruning\n";
-  for (auto& li: nestedQuiets)
-  {
-    for (auto& p: li)
-    {
-      cout << p->start + offset << "-" << p->start + offset + p->len <<
-        " (" << p->len << ")" << endl;
-    }
-    cout << endl;
-  }
-
-// Try PeakSeeds
-PeakSeeds seeds;
-seeds.mark(peaks, offset, scalesList.getRange());
+  // Mark some tall peaks as seeds.
+  PeakSeeds seeds;
+  seeds.mark(peaks, offset, scalesList.getRange());
+  cout << seeds.str(offset, "after pruning");
 
   vector<PeakEntry> peaksAnnot;
 
@@ -1879,8 +1575,6 @@ seeds.mark(peaks, offset, scalesList.getRange());
     pe.wheelSide = WHEEL_SIZE;
     pe.bogeySide = BOGEY_SIZE;
     pe.spuriousFlag = false;
-
-    const unsigned index = pit->getIndex();
 
     pe.tallFlag = pit->isSeed();
   }
@@ -2689,8 +2383,6 @@ cout << "RANGE: " << fixed <<
     PeakDetect::print();
   }
 
-cout << "Peak size 3: " << peaks.size() << endl;
-
   PeakDetect::estimateScales();
   if (debug)
   {
@@ -2701,12 +2393,6 @@ cout << "Peak size 3: " << peaks.size() << endl;
   PeakDetect::setOrigPointers();
 
   PeakDetect::reduceSmallRanges(scalesList.getRange() / 10.f, true);
-
-cout << "Peak size 4: " << peaks.size() << endl;
-
-  PeakDetect::markPossibleQuiet();
-
-cout << "Peak size 5: " << peaks.size() << endl;
 
 PeakDetect::reduceNewer();
 

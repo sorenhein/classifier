@@ -199,23 +199,6 @@ class PeakDetect
       };
     };
 
-    struct Period
-    {
-      unsigned start;
-      unsigned len;
-      float depth;
-      float minLevel;
-
-      Period()
-      {
-        start = 0;
-        len = 0;
-        depth = 0.f;
-        minLevel = 0.f;
-      };
-    };
-
-
   CarModels models;
 
 
@@ -270,9 +253,6 @@ class PeakDetect
     unsigned numCandidates;
     unsigned numTentatives;
 
-    list<Period> quietCandidates;
-
-
 
     float integrate(
       const vector<float>& samples,
@@ -307,10 +287,6 @@ class PeakDetect
       unsigned& upper,
       unsigned& counted,
       const unsigned lowerCount = 0) const;
-
-    void markQuiet();
-
-    void markPossibleQuiet();
 
     void pos2time(
       const vector<PeakPos>& posTrue,
