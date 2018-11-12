@@ -131,6 +131,11 @@ double PeakMatch::simpleScore(
       score += (TIME_PROXIMITY - dabs) / TIME_PROXIMITY;
       shift += d;
       scoring++;
+      // TODO
+      // if (logFlag)
+      //   peakBest->logMatch(tno);
+      // In firstMatch, the first call has logFlag == false,
+      // the second one true.
     }
   }
 

@@ -1,3 +1,20 @@
+PeakMatch:
+In order not to modify peaks:
+struct PeakWrapper
+{
+  Peak * peakPtr;
+  int match, starts as -1
+};
+
+list<PeakWrapper> peaksWrapped;
+
+for (auto& peak: peaks)
+  peaksWrapped push back
+
+Then in simpleScore:
+Not peakBest->logMatch, but peakBest.match = tno
+ 
+
 Keep cars sorted?
 When car models complete?
   recombine

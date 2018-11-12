@@ -8,6 +8,7 @@
 
 #include "PeakDetect.h"
 #include "PeakSeeds.h"
+#include "PeakMatch.h"
 #include "PeakStats.h"
 #include "Except.h"
 
@@ -580,6 +581,8 @@ double PeakDetect::simpleScore(
       score += (TIME_PROXIMITY - dabs) / TIME_PROXIMITY;
       shift += d;
       scoring++;
+      if (logFlag)
+        peakBest->logMatch(tno);
     }
   }
 
@@ -2447,6 +2450,12 @@ void PeakDetect::logPeakStats(
   const double speedTrue,
   PeakStats& peakStats)
 {
+  // PeakMatch matches;
+  // matches.logPeakStats(peaks, posTrue, trainTrue, speedTrue,
+    // peakStats);
+  // return;
+
+
   const bool debug = true;
   const bool debugDetails = false;
 
