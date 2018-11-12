@@ -41,15 +41,9 @@ void Peak::reset()
   fill = 0.f;
   symmetry = 0.f;
 
-  clusterNo = numeric_limits<unsigned>::max();
   selectFlag = false;
   match = -1;
   ptype = PEAK_TYPE_SIZE;
-
-  sharpFlag = false;
-
-  quietBegin = false;
-  quietEnd = false;
 
   seedFlag = false;
 }
@@ -259,12 +253,6 @@ float Peak::getArea(const Peak& p2) const
 }
 
 
-unsigned Peak::getCluster() const
-{
-  return clusterNo;
-}
-
-
 int Peak::getMatch() const
 {
   return match;
@@ -280,30 +268,6 @@ PeakType Peak::getType() const
 const Peak * const Peak::getOrigPointer() const
 {
   return origPtr;
-}
-
-
-bool Peak::getSharp() const
-{
-  return sharpFlag;
-}
-
-
-bool Peak::getQuietBegin() const
-{
-  return quietBegin;
-}
-
-
-bool Peak::getQuietEnd() const
-{
-  return quietEnd;
-}
-
-
-bool Peak::isCluster(const unsigned cno) const
-{
-  return (cno == clusterNo);
 }
 
 
@@ -406,7 +370,6 @@ bool Peak::check(
   Peak::deviation(gradient, p2.gradient, issues[6], flag);
   Peak::deviation(fill, p2.fill, issues[7], flag);
   Peak::deviation(symmetry, p2.symmetry, issues[8], flag);
-  Peak::deviation(clusterNo, p2.clusterNo, issues[9], flag);
 
   if (! flag)
   {
@@ -424,7 +387,6 @@ bool Peak::check(
       setw(8) << (issues[5] ? "*" : "") << // gradient
       setw(8) << (issues[5] ? "*" : "") << // fill
       setw(8) << (issues[5] ? "*" : "") << // symmetry
-      setw(6) << (issues[9] ? "*" : "") << // clusterNo
     "\n\n";
   }
 
@@ -475,7 +437,6 @@ string Peak::strHeader() const
     setw(8) << "Grad" <<
     setw(8) << "Fill" <<
     setw(8) << "Symm" <<
-    setw(6) << "Group" <<
     "\n";
   return ss.str();
 }
@@ -495,8 +456,6 @@ string Peak::str(const unsigned offset) const
     setw(8) << fixed << setprecision(2) << 100.f * gradient <<
     setw(8) << fixed << setprecision(2) << fill <<
     setw(8) << fixed << setprecision(2) << symmetry <<
-    setw(6) << right << (clusterNo == numeric_limits<unsigned>::max() ? 
-      "-" : to_string(clusterNo)) <<
     "\n";
   return ss.str();
 }
