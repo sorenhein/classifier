@@ -81,7 +81,6 @@ class Peak
       const bool maxFlagIn);
 
     void logType(PeakType ptypeIn);
-    void logMatch(const int m);
 
     void logOrigPointer(const Peak * const);
 

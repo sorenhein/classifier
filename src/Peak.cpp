@@ -77,12 +77,6 @@ void Peak::log(
 }
 
 
-void Peak::logMatch(const int matchIn)
-{
-  match = matchIn;
-}
-
-
 void Peak::logType(const PeakType ptypeIn)
 {
   ptype = ptypeIn;

@@ -16,12 +16,12 @@
 
 #define KINK_RATIO 100.f
 
-#define TIME_PROXIMITY 0.03 // s
-
-#define SCORE_CUTOFF 0.75
-
 #define UNUSED(x) ((void)(true ? 0 : ((x), void(), 0)))
 
+
+// TMP
+#define TIME_PROXIMITY 0.03
+#define SCORE_CUTOFF 0.75
 
 
 PeakDetect::PeakDetect()
@@ -510,6 +510,7 @@ double PeakDetect::simpleScore(
   double& shift)
 {
   // This is similar to Align::simpleScore.
+  UNUSED(logFlag);
   
   list<Peak>::iterator peak = peaks.begin();
   if (! PeakDetect::advance(peak))
@@ -579,8 +580,6 @@ double PeakDetect::simpleScore(
       score += (TIME_PROXIMITY - dabs) / TIME_PROXIMITY;
       shift += d;
       scoring++;
-      if (logFlag)
-        peakBest->logMatch(tno);
     }
   }
 
