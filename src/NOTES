@@ -1,18 +1,6 @@
 PeakMatch:
-In order not to modify peaks:
-struct PeakWrapper
-{
-  Peak * peakPtr;
-  int match, starts as -1
-};
-
-list<PeakWrapper> peaksWrapped;
-
-for (auto& peak: peaks)
-  peaksWrapped push back
-
-Then in simpleScore:
-Not peakBest->logMatch, but peakBest.match = tno
+- Something spurious (segfault) seems to happen in findMatch
+- Something seems to affect the s00.txt results 
  
 
 Keep cars sorted?

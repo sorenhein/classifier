@@ -45,30 +45,28 @@ void PeakMatch::pos2time(
 }
 
 
-bool PeakMatch::advance(
-  const list<Peak>& peaks,
-  list<Peak>::const_iterator& peak) const
+bool PeakMatch::advance(list<PeakWrapper>::const_iterator& peak) const
 {
-  while (peak != peaks.end() && ! peak->isSelected())
+  while (peak != peaksWrapped.end() && ! peak->peakPtr->isSelected())
     peak++;
-  return (peak != peaks.end());
+  return (peak != peaksWrapped.end());
 }
 
 
 double PeakMatch::simpleScore(
-  const list<Peak>& peaks,
   const vector<PeakTime>& timesTrue,
   const double offsetScore,
+  const bool logFlag,
   double& shift)
 {
   // This is similar to Align::simpleScore.
   
-  list<Peak>::const_iterator peak = peaks.begin();
-  if (! PeakMatch::advance(peaks, peak))
+  list<PeakWrapper>::iterator peak = peaksWrapped.begin();
+  if (! PeakMatch::advance(peak))
     THROW(ERR_NO_PEAKS, "No peaks present or selected");
 
   const auto peakFirst = peak;
-  list<Peak>::const_iterator peakBest, peakPrev;
+  list<PeakWrapper>::iterator peakBest, peakPrev;
   double score = 0.;
   unsigned scoring = 0;
 
@@ -76,7 +74,7 @@ double PeakMatch::simpleScore(
   {
     double d = TIME_PROXIMITY, dabs = TIME_PROXIMITY;
     const double timeTrue = timesTrue[tno].time;
-    double timeSeen = peak->getTime() - offsetScore;
+    double timeSeen = peak->peakPtr->getTime() - offsetScore;
 
     d = timeSeen - timeTrue;
     if (d >= 0.)
@@ -88,9 +86,9 @@ double PeakMatch::simpleScore(
     {
       double dleft = numeric_limits<double>::max();
       double dright = numeric_limits<double>::max();
-      while (PeakMatch::advance(peaks, peak))
+      while (PeakMatch::advance(peak))
       {
-        timeSeen = peak->getTime() - offsetScore;
+        timeSeen = peak->peakPtr->getTime() - offsetScore;
         dright = timeSeen - timeTrue;
         if (dright >= 0.)
           break;
@@ -110,7 +108,7 @@ double PeakMatch::simpleScore(
       }
       else 
       {
-        dleft = timeTrue - (peakPrev->getTime() - offsetScore);
+        dleft = timeTrue - (peakPrev->peakPtr->getTime() - offsetScore);
         if (dleft <= dright)
         {
           dabs = dleft;
@@ -131,11 +129,8 @@ double PeakMatch::simpleScore(
       score += (TIME_PROXIMITY - dabs) / TIME_PROXIMITY;
       shift += d;
       scoring++;
-      // TODO
-      // if (logFlag)
-      //   peakBest->logMatch(tno);
-      // In firstMatch, the first call has logFlag == false,
-      // the second one true.
+      if (logFlag)
+        peakBest->match = tno;
     }
   }
 
@@ -203,7 +198,7 @@ bool PeakMatch::findMatch(
   {
     double shiftNew = 0.;
     double scoreNew = 
-      PeakMatch::simpleScore(peaks, timesTrue, offsetList[i], shiftNew);
+      PeakMatch::simpleScore(timesTrue, offsetList[i], false, shiftNew);
 
     if (scoreNew > score)
     {
@@ -217,7 +212,7 @@ bool PeakMatch::findMatch(
   // and intermediate storage.
   double tmp;
   shift += offsetList[ino];
-  score = PeakMatch::simpleScore(peaks, timesTrue, shift, tmp);
+  score = PeakMatch::simpleScore(timesTrue, shift, true, tmp);
 
   if (score >= SCORE_CUTOFF * timesTrue.size())
     return true;
@@ -275,6 +270,17 @@ void PeakMatch::logPeakStats(
   if (debugDetails)
     PeakMatch::printPeaks(peaks, timesTrue);
 
+  // Make a wrapper such that we don't have to modify the peaks
+  // themselves
+  for (auto& peak: peaks)
+  {
+    peaksWrapped.emplace_back(PeakWrapper());
+    PeakWrapper& pw = peaksWrapped.back();
+
+    pw.peakPtr = &peak;
+    pw.match = -1;
+  }
+
   // Find a good line-up.
   double shift = 0.;
   if (! PeakMatch::findMatch(peaks, timesTrue, shift))
@@ -287,16 +293,20 @@ void PeakMatch::logPeakStats(
     }
     return;
   }
+return;
 
   // Make statistics.
   vector<unsigned> seenTrue(posTrue.size(), 0);
   unsigned seen = 0;
-  for (auto& peak: peaks)
+  for (auto& pw: peaksWrapped)
+  // for (auto& peak: peaks)
   {
+    auto& peak = * pw.peakPtr;
     if (peak.isCandidate())
     {
-      const int m = peak.getMatch();
+      // const int m = peak.getMatch();
       const PeakType pt = peak.getType();
+      const int m = pw.match;
       if (m >= 0)
       {
         peakStats.logSeenMatch(static_cast<unsigned>(m), lt, pt);

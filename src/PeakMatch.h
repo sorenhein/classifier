@@ -22,19 +22,25 @@ class PeakMatch
 {
   private:
 
+    struct PeakWrapper
+    {
+      Peak const * peakPtr;
+      int match;
+    };
+
+    list<PeakWrapper> peaksWrapped;
+
     void pos2time(
       const vector<PeakPos>& posTrue,
       const double speed,
       vector<PeakTime>& timesTrue) const;
 
-    bool advance(
-      const list<Peak>& peaks,
-      list<Peak>::const_iterator& peak) const;
+    bool advance(list<PeakWrapper>::const_iterator& peak) const;
 
     double simpleScore(
-      const list<Peak>& peaks,
       const vector<PeakTime>& timesTrue,
       const double offsetScore,
+      const bool logFlag,
       double& shift);
 
     void setOffsets(

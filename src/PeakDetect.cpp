@@ -2450,10 +2450,9 @@ void PeakDetect::logPeakStats(
   const double speedTrue,
   PeakStats& peakStats)
 {
-  // PeakMatch matches;
-  // matches.logPeakStats(peaks, posTrue, trainTrue, speedTrue,
-    // peakStats);
-  // return;
+  PeakMatch matches;
+  matches.logPeakStats(peaks, posTrue, trainTrue, speedTrue, peakStats);
+  return;
 
 
   const bool debug = true;
