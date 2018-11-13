@@ -1,6 +1,5 @@
 PeakMatch:
-- Something spurious (segfault) seems to happen in findMatch
-- Something seems to affect the s00.txt results 
+- Doesn't bomb, but stats also aren't right?
  
 
 Keep cars sorted?
@@ -9,15 +8,6 @@ When car models complete?
   mark cars accordingly (new indices)
 
 Maybe try simple thresholding instead of PeakSeeds
-
-PeakTruth:
-pos2time
-setOffsets
-simpleScore
-findMatch
-findCandidate
-logPeakStats
-advance
 
 Clean up Peak some more?
 Move PeakEntry and Sharp into Peak?

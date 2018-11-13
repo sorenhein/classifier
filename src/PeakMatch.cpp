@@ -29,6 +29,7 @@ PeakMatch::~PeakMatch()
 
 void PeakMatch::reset()
 {
+  peaksWrapped.clear();
 }
 
 
@@ -63,9 +64,8 @@ double PeakMatch::simpleScore(
   
   list<PeakWrapper>::iterator peak = peaksWrapped.begin();
   if (! PeakMatch::advance(peak))
-    THROW(ERR_NO_PEAKS, "No peaks present or selected");
+    THROW(ERR_ALGO_PEAK_MATCH, "No peaks present or selected");
 
-  const auto peakFirst = peak;
   list<PeakWrapper>::iterator peakBest, peakPrev;
   double score = 0.;
   unsigned scoring = 0;
@@ -74,7 +74,9 @@ double PeakMatch::simpleScore(
   {
     double d = TIME_PROXIMITY, dabs = TIME_PROXIMITY;
     const double timeTrue = timesTrue[tno].time;
-    double timeSeen = peak->peakPtr->getTime() - offsetScore;
+    double timeSeen = (peak == peaksWrapped.end() ?
+      peakPrev->peakPtr->getTime() :
+      peak->peakPtr->getTime()) - offsetScore;
 
     d = timeSeen - timeTrue;
     if (d >= 0.)
@@ -99,7 +101,7 @@ double PeakMatch::simpleScore(
         }
       }
 
-      if (dright < 0.)
+      if (dright < 0. || peak == peaksWrapped.end())
       {
         // We reached the end.
         dabs = -dright;
@@ -176,6 +178,7 @@ void PeakMatch::setOffsets(
     peak = prev(peak);
   }
   while (peak != peaks.begin() && ! peak->isSelected());
+
   const double lastTime = peak->getTime();
 
   for (unsigned i = 1; i <= maxShiftTrue; i++)
@@ -211,7 +214,7 @@ bool PeakMatch::findMatch(
   // This extra run could be eliminated at the cost of some copying
   // and intermediate storage.
   double tmp;
-  shift += offsetList[ino];
+  shift += offsetList[ino]; // TODO WTF?
   score = PeakMatch::simpleScore(timesTrue, shift, true, tmp);
 
   if (score >= SCORE_CUTOFF * timesTrue.size())
@@ -293,7 +296,6 @@ void PeakMatch::logPeakStats(
     }
     return;
   }
-return;
 
   // Make statistics.
   vector<unsigned> seenTrue(posTrue.size(), 0);
@@ -331,6 +333,7 @@ return;
       posTrue.size() << " true peaks)" << endl;
   }
 
+// return;
   for (unsigned m = 0; m < posTrue.size(); m++)
   {
     if (seenTrue[m])
@@ -342,7 +345,12 @@ return;
       PeakMatch::findCandidate(peaks, timesTrue[m].time, shift);
 
     if (ctype == PEAK_TENTATIVE)
-      THROW(ERR_ALGO_PEAK_MATCH, "Odd: Tentative matched again");
+    {
+      // TODO Matching doesn't really work anymore?
+      cout << "Odd: Tentative matched again\n";
+      continue;
+      // THROW(ERR_ALGO_PEAK_MATCH, "Odd: Tentative matched again");
+    }
 
     // The missed ones are detected as early/late/missing.
     if (ctype == PEAK_TRUE_MISSING)
