@@ -448,21 +448,6 @@ void PeakDetect::eliminateKinks()
         peak = PeakDetect::collapsePeaks(peakPrev, peakNext);
       else
         peak++;
-      
-      /*
-      const float grad = peakPrev->getGradient();
-      const float lenNew = peakPrev->getLength() +
-        peak->getLength() + peakNext->getLength();
-      const float rangeNew = 
-        abs(peakNext->getValue() - peakPrev->getValue()) +
-        peakPrev->getRange();
-      const float gradNew = rangeNew / lenNew;
-
-      if (gradNew > 1.1f * grad || gradNew < 0.9f * grad)
-        peak++;
-      else
-        peak = PeakDetect::collapsePeaks(peakPrev, peakNext);
-        */
     }
     else
       peak++;
@@ -1348,6 +1333,7 @@ void PeakDetect::reduceNewer()
 
     pe.peakPtr = &*pit;
     pe.nextPeakPtr = &*npit;
+    pit->logNextPeak(&*npit);
 
     pe.wheelFlag = false;
     pe.wheelSide = WHEEL_SIZE;
@@ -1378,7 +1364,7 @@ void PeakDetect::reduceNewer()
     if (npt == nullptr)
       continue;
 
-    pa.sharp.index = pt->getIndex();
+    // pa.sharp.index = pt->getIndex();
     pa.sharp.level = pt->getValue();
     pa.sharp.range1 = pt->getRange();
     pa.sharp.grad1 = 10.f * pt->getGradient();
@@ -1446,14 +1432,16 @@ void PeakDetect::reduceNewer()
     if (pa.sharp.grad2 != 0.f)
       pa.sharp.gradRatio = pa.sharp.grad1 / pa.sharp.grad2; 
 
-    cout << pa.sharp.strQ(pa.quality, pa.qualityShape, offset);
+    cout << pa.sharp.strQ(pa.peakPtr->getIndex(),
+      pa.quality, pa.qualityShape, offset);
   }
   cout << endl;
 
   cout << "All peaks\n";
   cout << tallSize.strHeaderQ();
   for (auto& pa: peaksAnnot)
-    cout << pa.sharp.strQ(pa.quality, pa.qualityShape, offset);
+    cout << pa.sharp.strQ(pa.peakPtr->getIndex(),
+      pa.quality, pa.qualityShape, offset);
 
   // Find a reasonable peak quality.
   vector<float> qualities;
@@ -1492,7 +1480,8 @@ cout << "Adding tallFlag(shape) to " <<
   for (auto& pa: peaksAnnot)
   {
     if (pa.tallFlag)
-      cout << pa.sharp.strQ(pa.quality, pa.qualityShape, offset);
+      cout << pa.sharp.strQ(pa.peakPtr->getIndex(),
+        pa.quality, pa.qualityShape, offset);
   }
 
   unsigned wheelDistLower, wheelDistUpper;
@@ -1726,7 +1715,8 @@ cout << "Adding " <<
       pa.qualityShape = pa.sharp.distToScaleQ(tallRightSize);
     }
 
-    cout << pa.sharp.strQ(pa.quality, pa.qualityShape, offset);
+    cout << pa.sharp.strQ(pa.peakPtr->getIndex(),
+      pa.quality, pa.qualityShape, offset);
 
     if (pa.quality <= 0.3f || pa.qualityShape <= 0.20f)
       pa.tallFlag = true;

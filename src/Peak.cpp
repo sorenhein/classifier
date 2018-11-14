@@ -41,6 +41,9 @@ void Peak::reset()
   fill = 0.f;
   symmetry = 0.f;
 
+  rangeRatio = 0.f;
+  gradRatio = 0.f;
+
   selectFlag = false;
   seedFlag = false;
 }
@@ -71,6 +74,20 @@ void Peak::log(
   value = valueIn;
   areaCum = areaCumIn;
   maxFlag = maxFlagIn;
+}
+
+
+void Peak::logNextPeak(Peak const * nextPtrIn)
+{
+  if (nextPtrIn == nullptr)
+    return;
+
+  nextPtr = nextPtrIn;
+
+  if (nextPtr->range)
+    rangeRatio = range / nextPtr->range;
+  if (nextPtr->gradient)
+    gradRatio = gradient / nextPtr->gradient;
 }
 
 
@@ -148,10 +165,6 @@ float Peak::distance(
   const Peak& p2,
   const Peak& scale) const
 {
-  // This distance-squared function is used in K-means clustering.
-  // Many possibilities here: len, range etc.
-  // Normalized or not, and if so, by what.
-
   const float vdiff = (value - p2.value) / scale.value;
   const float vlen = (len - p2.len) / scale.len;
   const float vgrad = (gradient - p2.gradient) / scale.gradient;
@@ -194,12 +207,6 @@ float Peak::getAreaCum() const
 float Peak::getGradient() const
 {
   return gradient;
-}
-
-
-float Peak::getLength() const
-{
-  return len;
 }
 
 

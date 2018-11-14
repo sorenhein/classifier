@@ -33,10 +33,13 @@ class Peak
     float fill; // area / (0.5 * range * len)
     float symmetry; // area relative to the area to the *right*
 
+    float rangeRatio; // Our range / next range
+    float gradRatio;
+
     bool selectFlag;
     bool seedFlag;
 
-    const Peak * origPtr; // Pointer to origin in more complete peak list
+    Peak const * nextPtr;
 
 
     void deviation(
@@ -77,6 +80,8 @@ class Peak
       const float areaCumIn,
       const bool maxFlagIn);
 
+    void logNextPeak(Peak const * nextPtrIn);
+
     void update(
       Peak * peakPrev,
       const Peak * peakNext);
@@ -94,7 +99,6 @@ class Peak
     bool getMaxFlag() const;
     float getValue() const;
     float getAreaCum() const;
-    float getLength() const;
     float getRange() const;
     float getArea() const;
     float getArea(const Peak& p2) const;

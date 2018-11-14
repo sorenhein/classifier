@@ -23,7 +23,6 @@ class PeakDetect
 
     struct Sharp
     {
-      unsigned index;
       float level;
       float range1;
       float range2;
@@ -37,7 +36,6 @@ class PeakDetect
 
       Sharp()
       {
-        index = 0;
         level = 0.f;
         range1 = 0.f;
         rangeRatio = 0.f;
@@ -157,7 +155,9 @@ class PeakDetect
         return ss.str();
       };
 
-      string str(const unsigned offset = 0) const
+      string str(
+        const unsigned index,
+        const unsigned offset = 0) const
       {
         stringstream ss;
         ss << 
@@ -173,6 +173,7 @@ class PeakDetect
       };
 
       string strQ(
+        const unsigned index,
         const float quality, 
         const float qualityShape, 
         const unsigned offset = 0) const
