@@ -1404,10 +1404,28 @@ void PeakDetect::reduceNewer()
   if (tallSize.grad2 != 0.f)
     tallSize.gradRatio = tallSize.grad1 / tallSize.grad2;
 
+  Peak altTallSize;
+  unsigned count = 0;
+  for (auto& pa: peaksAnnot)
+  {
+    if (! pa.tallFlag || pa.nextPeakPtr == nullptr)
+      continue;
+
+    altTallSize += * pa.peakPtr;
+    count++;
+  }
+  altTallSize /= count;
+
+
   // Print scale.
   cout << "Tall scale" << endl;
   cout << tallSize.strHeader();
   cout << tallSize.str(offset);
+  cout << endl;
+  
+  cout << "ALT tall scale" << endl;
+  cout << altTallSize.strHeaderSum();
+  cout << altTallSize.strSum(offset);
   cout << endl;
 
   // Look at the "tall" peaks.
@@ -1416,6 +1434,14 @@ void PeakDetect::reduceNewer()
   {
     pa.quality = pa.sharp.distToScale(tallSize);
     pa.qualityShape = pa.sharp.distToScaleQ(tallSize);
+
+/*
+pa.peakPtr->calcQualities(altTallSize);
+cout << "Peak quality " << pa.quality << " vs. " << 
+  pa.peakPtr->getQualityPeak() << endl;
+cout << "Shape quality " << pa.qualityShape << " vs. " << 
+  pa.peakPtr->getQualityShape() << endl;
+  */
 
     if (! pa.tallFlag)
       continue;

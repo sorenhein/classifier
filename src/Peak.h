@@ -58,6 +58,9 @@ class Peak
     float rangeRatio; // Our range / next range
     float gradRatio;
 
+    float qualityPeak;
+    float qualityShape;
+
     bool selectFlag;
     bool seedFlag;
 
@@ -79,6 +82,9 @@ class Peak
       const float v2,
       unsigned& issue,
       bool& flag) const;
+
+    float calcQualityPeak(const Peak& scale) const;
+    float calcQualityShape(const Peak& scale) const;
 
     float penalty(const float val) const;
 
@@ -106,6 +112,8 @@ class Peak
 
     void annotate(const Peak * peakPrev);
 
+    void calcQualities(const Peak& scale);
+
     float distance(
       const Peak& p2,
       const Peak& scale) const;
@@ -121,6 +129,9 @@ class Peak
     float getArea() const;
     float getArea(const Peak& p2) const;
     float getGradient() const;
+
+    float getQualityPeak() const;
+    float getQualityShape() const;
 
     bool isCandidate() const;
 
@@ -143,8 +154,10 @@ class Peak
     void operator /= (const unsigned no);
 
     string strHeader() const;
+    string strHeaderSum() const;
 
     string str(const unsigned offset = 0) const;
+    string strSum(const unsigned offset = 0) const;
 };
 
 #endif

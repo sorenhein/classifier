@@ -40,6 +40,9 @@ void Peak::reset()
   rangeRatio = 0.f;
   gradRatio = 0.f;
 
+  qualityPeak = 0.f;
+  qualityShape = 0.f;
+
   selectFlag = false;
   seedFlag = false;
 }
@@ -145,7 +148,35 @@ float Peak::distance(
 }
 
 
-float Peak::distToScaleQ(const Peak& scale) const
+float Peak::calcQualityPeak(const Peak& scale) const
+{
+  // level is supposed to be negative.  Large negative peaks are OK.
+  const float vdiff = (value > scale.value ?
+    (value - scale.value) / scale.value : 0.f);
+
+  // Ranges are always positive
+  const float vrange1 = (left.range < scale.left.range ?
+    (left.range - scale.left.range) / scale.left.range : 0.f);
+
+  const float vrange2 = (right.range < scale.right.range ?
+    (right.range - scale.right.range) / scale.right.range : 0.f);
+
+  const float vgrad1 = (left.gradient - scale.left.gradient) /
+    scale.left.gradient;
+
+  const float vgrad2 = (right.gradient - scale.right.gradient) /
+    scale.right.gradient;
+
+  return
+    vdiff * vdiff +
+    vrange1 * vrange1 +
+    vrange2 * vrange2 +
+    vgrad1 * vgrad1 +
+    vgrad2 * vgrad2;
+}
+
+
+float Peak::calcQualityShape(const Peak& scale) const
 {
   // Ranges are always positive.
   const float vrange1 = (left.range < 0.5f * scale.left.range ?
@@ -166,6 +197,13 @@ float Peak::distToScaleQ(const Peak& scale) const
     vrange2 * vrange2 +
     vgrad1 * vgrad1 +
     vgrad2 * vgrad2;
+}
+
+
+void Peak::calcQualities(const Peak& scale)
+{
+  qualityPeak = Peak::calcQualityPeak(scale);
+  qualityShape = Peak::calcQualityShape(scale);
 }
 
 
@@ -225,6 +263,18 @@ float Peak::getArea(const Peak& p2) const
   // the immediate predecessor (but a predecessor).
   return abs(areaCum - p2.areaCum -
     (index - p2.index) * min(value, p2.value));
+}
+
+
+float Peak::getQualityPeak() const
+{
+  return qualityPeak;
+}
+
+
+float Peak::getQualityShape() const
+{
+  return qualityShape;
 }
 
 
@@ -372,6 +422,10 @@ void Peak::operator += (const Peak& p2)
   areaCum += p2.areaCum;
 
   left += p2.left;
+  right += p2.right;
+
+  rangeRatio += p2.rangeRatio;
+  gradRatio += p2.gradRatio;
 }
 
 
@@ -383,6 +437,7 @@ void Peak::operator /= (const unsigned no)
     areaCum /= no;
 
     left /= no;
+    right /= no;
   }
 }
 
@@ -404,6 +459,23 @@ string Peak::strHeader() const
 }
 
 
+string Peak::strHeaderSum() const
+{
+  stringstream ss;
+  
+  ss <<
+    setw(6) << "Index" <<
+    setw(8) << "Value" <<
+    setw(8) << "Range1" <<
+    setw(8) << "Range2" <<
+    setw(8) << "Grad1" <<
+    setw(8) << "Grad2" <<
+    setw(8) << "Fill1" <<
+    "\n";
+  return ss.str();
+}
+
+
 string Peak::str(const unsigned offset) const
 {
   stringstream ss;
@@ -416,6 +488,23 @@ string Peak::str(const unsigned offset) const
     setw(7) << fixed << setprecision(2) << left.range <<
     setw(8) << fixed << setprecision(2) << left.area <<
     setw(8) << fixed << setprecision(2) << 100.f * left.gradient <<
+    setw(8) << fixed << setprecision(2) << left.fill <<
+    "\n";
+  return ss.str();
+}
+
+
+string Peak::strSum(const unsigned offset) const
+{
+  stringstream ss;
+
+  ss <<
+    setw(6) << std::right << index + offset <<
+    setw(8) << fixed << setprecision(2) << value <<
+    setw(8) << fixed << setprecision(2) << left.range <<
+    setw(8) << fixed << setprecision(2) << right.range <<
+    setw(8) << fixed << setprecision(2) << 100. * left.gradient <<
+    setw(8) << fixed << setprecision(2) << 100. * right.gradient <<
     setw(8) << fixed << setprecision(2) << left.fill <<
     "\n";
   return ss.str();
