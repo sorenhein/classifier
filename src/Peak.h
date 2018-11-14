@@ -13,32 +13,53 @@ class Peak
 {
   private:
 
+    struct Flank
+    {
+      // These quantities are non-negative
+      float len; // In samples
+      float range;
+      float area; // From the lowest of the peaks
+      float gradient; // range/len
+      float fill; // area / (0.5 * range * len)
+
+      void reset()
+      {
+        len = 0.f; range = 0.f; area = 0.f; gradient = 0.f; fill = 0.f;
+      };
+
+      void operator += (const Flank& f2)
+      {
+        len += f2.len; range += f2.range; area += f2.area;
+        gradient += f2.gradient; fill += f2.fill;
+      };
+
+      void operator /= (const unsigned no)
+      {
+        len /= no; range /= no; area /= no; gradient /= no; fill /= no;
+      };
+    };
+
     // We mainly quantify the left flank of the peaks.
     // There are dummy peaks on each end of the peak list.
 
     // Absolute quantities associated with the peak.
     unsigned index;
     double time;
-    bool maxFlag;
     float value; // Signed
     float areaCum; // Integral from beginning of trace, signed
+    bool maxFlag;
 
-    // The following quantities are measured relative to other
-    // peaks and are always non-negative.
+    // We start with the left flank and later copy in the right flank.
+    // Sometimes we need the data here, so it's not enough to store
+    // a pointer to the neighboring peak.
 
-    float len; // To the left, in samples
-    float range; // To the left (always positive)
-    float area; // To the left, from the lowest of the peaks (positive)
-    float gradient; // range/len
-    float fill; // area / (0.5 * range * len)
+    Flank left, right;
 
     float rangeRatio; // Our range / next range
     float gradRatio;
 
     bool selectFlag;
     bool seedFlag;
-
-    Peak const * nextPtr;
 
 
     void deviation(

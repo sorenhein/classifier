@@ -34,11 +34,8 @@ void Peak::reset()
   maxFlag = false;
 
   // Derived quantities
-  len = 0.f;
-  range = 0.f;
-  area = 0.f;
-  gradient = 0.f;
-  fill = 0.f;
+  left.reset();
+  right.reset();
 
   rangeRatio = 0.f;
   gradRatio = 0.f;
@@ -81,12 +78,12 @@ void Peak::logNextPeak(Peak const * nextPtrIn)
   if (nextPtrIn == nullptr)
     return;
 
-  nextPtr = nextPtrIn;
+  right = nextPtrIn->left;
 
-  if (nextPtr->range)
-    rangeRatio = range / nextPtr->range;
-  if (nextPtr->gradient)
-    gradRatio = gradient / nextPtr->gradient;
+  if (right.range)
+    rangeRatio = left.range / right.range;
+  if (right.gradient)
+    gradRatio = left.gradient / right.gradient;
 }
 
 
@@ -95,18 +92,17 @@ void Peak::update(const Peak * peakPrev)
   // This is used before we delete all peaks from peakFirst (included)
   // up to the present peak (excluded).  
   // peakPrev is the predecessor of peakFirst if this exists.
-  // peakNext is the successor of the present peak if this exists.
 
-  if (peakPrev != nullptr)
-  {
-    len = static_cast<float>(index - peakPrev->index);
-    range = abs(value - peakPrev->value);
-    area = abs(areaCum - peakPrev->areaCum - 
-      (index - peakPrev->index) * min(value, peakPrev->value));
+  if (peakPrev == nullptr)
+    return;
 
-    gradient = range / len;
-    fill = area / (0.5f * range * len);
-  }
+  left.len = static_cast<float>(index - peakPrev->index);
+  left.range = abs(value - peakPrev->value);
+  left.area = abs(areaCum - peakPrev->areaCum - 
+    (index - peakPrev->index) * min(value, peakPrev->value));
+
+  left.gradient = left.range / left.len;
+  left.fill = left.area / (0.5f * left.range * left.len);
 }
 
 
@@ -116,22 +112,22 @@ void Peak::annotate(const Peak * peakPrev)
 
   if (peakPrev == nullptr)
   {
-    len = static_cast<float>(index);
-    range = 0.f;
-    area = 0.f;
+    left.len = static_cast<float>(index);
+    left.range = 0.f;
+    left.area = 0.f;
   }
   else
   {
-    len = static_cast<float>(index - peakPrev->index);
-    range = abs(value - peakPrev->value);
-    area = abs(areaCum - peakPrev->areaCum - 
+    left.len = static_cast<float>(index - peakPrev->index);
+    left.range = abs(value - peakPrev->value);
+    left.area = abs(areaCum - peakPrev->areaCum - 
       (index - peakPrev->index) * min(value, peakPrev->value));
   }
 
-  if (len > 0)
+  if (left.len > 0)
   {
-    gradient = range / len;
-    fill = area / (0.5f * range * len);
+    left.gradient = left.range / left.len;
+    left.fill = left.area / (0.5f * left.range * left.len);
   }
 }
 
@@ -141,8 +137,9 @@ float Peak::distance(
   const Peak& scale) const
 {
   const float vdiff = (value - p2.value) / scale.value;
-  const float vlen = (len - p2.len) / scale.len;
-  const float vgrad = (gradient - p2.gradient) / scale.gradient;
+  const float vlen = (left.len - p2.left.len) / scale.left.len;
+  const float vgrad = (left.gradient - p2.left.gradient) / 
+    scale.left.gradient;
 
   return vdiff * vdiff + vlen * vlen + vgrad * vgrad;
 }
@@ -151,19 +148,18 @@ float Peak::distance(
 float Peak::distToScaleQ(const Peak& scale) const
 {
   // Ranges are always positive.
-  const float vrange1 = (range < 0.5f * scale.range ?
-    (range - scale.range) / scale.range : 0.f);
+  const float vrange1 = (left.range < 0.5f * scale.left.range ?
+    (left.range - scale.left.range) / scale.left.range : 0.f);
 
-  float vrange2 = (nextPtr->range < 0.5f * scale.range ?
-    (nextPtr->range - scale.nextPtr->range) / scale.nextPtr->range : 0.f);
+  float vrange2 = (right.range < 0.5f * scale.right.range ?
+    (right.range - scale.right.range) / scale.right.range : 0.f);
 
   // Gradients are always positive.
-  const float vgrad1 = (gradient < scale.gradient ?
-    (gradient - scale.gradient) / scale.gradient : 0.f);
+  const float vgrad1 = (left.gradient < scale.left.gradient ?
+    (left.gradient - scale.left.gradient) / scale.left.gradient : 0.f);
 
-  const float vgrad2 = (nextPtr->gradient < scale.nextPtr->gradient ?
-    (nextPtr->gradient - scale.nextPtr->gradient) / 
-      scale.nextPtr->gradient : 0.f);
+  const float vgrad2 = (right.gradient < scale.right.gradient ?
+    (right.gradient - scale.right.gradient) / scale.right.gradient : 0.f);
 
   return
     vrange1 * vrange1 +
@@ -205,13 +201,13 @@ float Peak::getAreaCum() const
 
 float Peak::getGradient() const
 {
-  return gradient;
+  return left.gradient;
 }
 
 
 float Peak::getRange() const
 {
-  return range;
+  return left.range;
 }
 
 
@@ -219,7 +215,7 @@ float Peak::getArea() const
 {
   // Assumes that the differential area has already been annotated.
   // Return differential area to the immediate predecessor.
-  return area;
+  return left.area;
 }
 
 
@@ -278,12 +274,13 @@ bool Peak::similarGradient(
   const Peak& p2) const
 {
   // We are the peak preceding p1, which precedes p2.
-  const float lenNew = len + p1.len + p2.len;
-  const float rangeNew = abs(p2.value - value) + range;
+  const float lenNew = left.len + p1.left.len + p2.left.len;
+  const float rangeNew = abs(p2.value - value) + left.range;
   const float gradNew = rangeNew / lenNew;
 
   // TODO #define
-  return (gradNew >= 0.9f * gradient && gradNew <= 1.1f * gradient);
+  return (gradNew >= 0.9f * left.gradient && 
+    gradNew <= 1.1f * left.gradient);
 }
 
 
@@ -337,13 +334,14 @@ bool Peak::check(
   vector<unsigned> issues(10, 0);
 
   Peak::deviation(index, p2.index, issues[0], flag);
-  Peak::deviation(maxFlag, p2.maxFlag, issues[1], flag);
-  Peak::deviation(value, p2.value, issues[2], flag);
-  Peak::deviation(len, p2.len, issues[3], flag);
-  Peak::deviation(range, p2.range, issues[4], flag);
-  Peak::deviation(area, p2.area, issues[5], flag);
-  Peak::deviation(gradient, p2.gradient, issues[6], flag);
-  Peak::deviation(fill, p2.fill, issues[7], flag);
+  Peak::deviation(value, p2.value, issues[1], flag);
+  Peak::deviation(maxFlag, p2.maxFlag, issues[2], flag);
+
+  Peak::deviation(left.len, p2.left.len, issues[3], flag);
+  Peak::deviation(left.range, p2.left.range, issues[4], flag);
+  Peak::deviation(left.area, p2.left.area, issues[5], flag);
+  Peak::deviation(left.gradient, p2.left.gradient, issues[6], flag);
+  Peak::deviation(left.fill, p2.left.fill, issues[7], flag);
 
   if (! flag)
   {
@@ -353,8 +351,8 @@ bool Peak::check(
 
     cout <<
       setw(6) << (issues[0] ? "*" : "") << // index
-      setw(5) << (issues[1] ? "*" : "") << // maxFlag
-      setw(9) << (issues[2] ? "*" : "") << // value
+      setw(9) << (issues[1] ? "*" : "") << // value
+      setw(5) << (issues[2] ? "*" : "") << // maxFlag
       setw(7) << (issues[3] ? "*" : "") << // len
       setw(7) << (issues[4] ? "*" : "") << // range
       setw(8) << (issues[5] ? "*" : "") << // area
@@ -372,11 +370,8 @@ void Peak::operator += (const Peak& p2)
   // This is not a "real" peak, but an accumulator for statistics.
   value += p2.value;
   areaCum += p2.areaCum;
-  len += p2.len;
-  range += p2.range;
-  area += p2.area;
-  gradient += p2.gradient;
-  fill += p2.fill;
+
+  left += p2.left;
 }
 
 
@@ -386,11 +381,8 @@ void Peak::operator /= (const unsigned no)
   {
     value /= no;
     areaCum /= no;
-    len /= no;
-    range /= no;
-    area /= no;
-    gradient /= no;
-    fill /= no;
+
+    left /= no;
   }
 }
 
@@ -400,8 +392,8 @@ string Peak::strHeader() const
   
   ss <<
     setw(6) << "Index" <<
-    setw(5) << "Type" <<
     setw(9) << "Value" <<
+    setw(5) << "Type" <<
     setw(7) << "Len" <<
     setw(7) << "Range" <<
     setw(8) << "Area" <<
@@ -417,14 +409,14 @@ string Peak::str(const unsigned offset) const
   stringstream ss;
 
   ss <<
-    setw(6) << right << index + offset <<
-    setw(5) << (maxFlag ? "max" : "min") <<
+    setw(6) << std::right << index + offset <<
     setw(9) << fixed << setprecision(2) << value <<
-    setw(7) << fixed << setprecision(2) << len <<
-    setw(7) << fixed << setprecision(2) << range <<
-    setw(8) << fixed << setprecision(2) << area <<
-    setw(8) << fixed << setprecision(2) << 100.f * gradient <<
-    setw(8) << fixed << setprecision(2) << fill <<
+    setw(5) << (maxFlag ? "max" : "min") <<
+    setw(7) << fixed << setprecision(2) << left.len <<
+    setw(7) << fixed << setprecision(2) << left.range <<
+    setw(8) << fixed << setprecision(2) << left.area <<
+    setw(8) << fixed << setprecision(2) << 100.f * left.gradient <<
+    setw(8) << fixed << setprecision(2) << left.fill <<
     "\n";
   return ss.str();
 }
