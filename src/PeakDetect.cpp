@@ -1436,7 +1436,6 @@ void PeakDetect::reduceNewer()
     // pa.quality = pa.sharp.distToScale(tallSize);
     // pa.qualityShape = pa.sharp.distToScaleQ(tallSize);
 
-pa.peakPtr->calcQualities(altTallSize);
 /*
 cout << "Peak quality " << pa.quality << " vs. " << 
   pa.peakPtr->getQualityPeak() << endl;
@@ -1444,6 +1443,7 @@ cout << "Shape quality " << pa.qualityShape << " vs. " <<
   pa.peakPtr->getQualityShape() << endl;
   */
 
+    pa.peakPtr->calcQualities(altTallSize);
     pa.quality = pa.peakPtr->getQualityPeak();
     pa.qualityShape = pa.peakPtr->getQualityShape();
 
@@ -1881,13 +1881,15 @@ cout << "Adding " <<
     auto npit = next(pit);
     while (npit != peaksAnnot.end() && 
         npit->wheelSide != WHEEL_LEFT &&
-        npit->wheelSide != WHEEL_RIGHT)
+        npit->wheelSide != WHEEL_RIGHT &&
+        ! npit->tallFlag)
     {
       npit = next(npit);
     }
 
+
     if (npit == peaksAnnot.end() || 
-        npit->wheelSide == WHEEL_RIGHT)
+        npit->wheelSide != WHEEL_LEFT)
       continue;
 
     dists.push_back(
