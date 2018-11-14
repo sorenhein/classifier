@@ -476,6 +476,24 @@ string Peak::strHeaderSum() const
 }
 
 
+string Peak::strHeaderQuality() const
+{
+  stringstream ss;
+  
+  ss <<
+    setw(6) << "Index" <<
+    setw(8) << "Value" <<
+    setw(8) << "Range1" <<
+    setw(8) << "Range2" <<
+    setw(8) << "Grad1" <<
+    setw(8) << "Grad2" <<
+    setw(8) << "Squal" <<
+    setw(8) << "Quality" <<
+    "\n";
+  return ss.str();
+}
+
+
 string Peak::str(const unsigned offset) const
 {
   stringstream ss;
@@ -506,6 +524,24 @@ string Peak::strSum(const unsigned offset) const
     setw(8) << fixed << setprecision(2) << 100. * left.gradient <<
     setw(8) << fixed << setprecision(2) << 100. * right.gradient <<
     setw(8) << fixed << setprecision(2) << left.fill <<
+    "\n";
+  return ss.str();
+}
+
+
+string Peak::strQuality(const unsigned offset) const
+{
+  stringstream ss;
+
+  ss <<
+    setw(6) << std::right << index + offset <<
+    setw(8) << fixed << setprecision(2) << value <<
+    setw(8) << fixed << setprecision(2) << left.range <<
+    setw(8) << fixed << setprecision(2) << right.range <<
+    setw(8) << fixed << setprecision(2) << 100. * left.gradient <<
+    setw(8) << fixed << setprecision(2) << 100. * right.gradient <<
+    setw(8) << fixed << setprecision(2) << qualityShape <<
+    setw(8) << fixed << setprecision(2) << qualityPeak <<
     "\n";
   return ss.str();
 }

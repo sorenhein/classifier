@@ -1348,7 +1348,6 @@ void PeakDetect::reduceNewer()
   const unsigned np = peaksAnnot.size();
   if (np == 0)
     THROW(ERR_NO_PEAKS, "No tall peaks");
-  vector<float> values, rangesLeft, rangesRight, gradLeft, gradRight;
 
   for (auto& pa: peaksAnnot)
   {
@@ -1368,81 +1367,30 @@ void PeakDetect::reduceNewer()
       pa.sharp.rangeRatio = pa.sharp.range1 / pa.sharp.range2; 
     if (pa.sharp.grad2 != 0.f)
       pa.sharp.gradRatio = pa.sharp.grad1 / pa.sharp.grad2; 
-
-    if (! pa.tallFlag)
-      continue;
-
-    values.push_back(pt->getValue());
-    rangesLeft.push_back(pt->getRange());
-    gradLeft.push_back(10.f * pt->getGradient());
-
-    rangesRight.push_back(npt->getRange());
-    gradRight.push_back(10.f * npt->getGradient());
   }
-
-  Sharp tallSize;
-  const unsigned nvm = values.size() / 2;
-  nth_element(values.begin(), values.begin() + nvm, values.end());
-  tallSize.level = values[nvm];
-
-  nth_element(rangesLeft.begin(), rangesLeft.begin() + nvm, 
-    rangesLeft.end());
-  tallSize.range1 = rangesLeft[nvm];
-
-  nth_element(gradLeft.begin(), gradLeft.begin() + nvm, gradLeft.end());
-  tallSize.grad1 = gradLeft[nvm];
-
-  nth_element(rangesRight.begin(), rangesRight.begin() + nvm, 
-    rangesRight.end());
-  tallSize.range2 = rangesRight[nvm];
-
-  nth_element(gradRight.begin(), gradRight.begin() + nvm, gradRight.end());
-  tallSize.grad2 = gradRight[nvm];
-
-  if (tallSize.range2 != 0.f)
-    tallSize.rangeRatio = tallSize.range1 / tallSize.range2;
-  if (tallSize.grad2 != 0.f)
-    tallSize.gradRatio = tallSize.grad1 / tallSize.grad2;
 
   Peak altTallSize;
   unsigned count = 0;
-  for (auto& pa: peaksAnnot)
+  for (auto& peak: peaks)
   {
-    if (! pa.tallFlag || pa.nextPeakPtr == nullptr)
-      continue;
-
-    altTallSize += * pa.peakPtr;
-    count++;
+    if (peak.isSeed())
+    {
+      altTallSize += peak;
+      count++;
+    }
   }
   altTallSize /= count;
 
-
-  // Print scale.
-  cout << "Tall scale" << endl;
-  cout << tallSize.strHeader();
-  cout << tallSize.str(offset);
-  cout << endl;
-  
   cout << "ALT tall scale" << endl;
   cout << altTallSize.strHeaderSum();
   cout << altTallSize.strSum(offset);
   cout << endl;
 
   // Look at the "tall" peaks.
-  cout << tallSize.strHeaderQ();
-  // cout << peaksAnnot.front().sharp.strHeaderQ();
+  cout << "Tall peaks\n";
+  cout << peaks.front().strHeaderQuality();
   for (auto& pa: peaksAnnot)
   {
-    // pa.quality = pa.sharp.distToScale(tallSize);
-    // pa.qualityShape = pa.sharp.distToScaleQ(tallSize);
-
-/*
-cout << "Peak quality " << pa.quality << " vs. " << 
-  pa.peakPtr->getQualityPeak() << endl;
-cout << "Shape quality " << pa.qualityShape << " vs. " << 
-  pa.peakPtr->getQualityShape() << endl;
-  */
-
     pa.peakPtr->calcQualities(altTallSize);
     pa.quality = pa.peakPtr->getQualityPeak();
     pa.qualityShape = pa.peakPtr->getQualityShape();
@@ -1450,28 +1398,17 @@ cout << "Shape quality " << pa.qualityShape << " vs. " <<
     if (! pa.tallFlag)
       continue;
     
-    if (pa.sharp.range2 != 0.f)
-      pa.sharp.rangeRatio = pa.sharp.range1 / pa.sharp.range2; 
-    if (pa.sharp.grad2 != 0.f)
-      pa.sharp.gradRatio = pa.sharp.grad1 / pa.sharp.grad2; 
-
-    cout << pa.sharp.strQ(pa.peakPtr->getIndex(),
-      pa.quality, pa.qualityShape, offset);
+    cout << pa.peakPtr->strQuality(offset);
   }
   cout << endl;
 
   cout << "All peaks\n";
-  cout << tallSize.strHeaderQ();
-  // cout << peaksAnnot.front().sharp.strHeaderQ();
-  for (auto& pa: peaksAnnot)
-    cout << pa.sharp.strQ(pa.peakPtr->getIndex(),
-      pa.quality, pa.qualityShape, offset);
-
-  // Find a reasonable peak quality.
-  vector<float> qualities;
-  const unsigned nq = qualities.size() / 2;
-  nth_element(qualities.begin(), qualities.begin() + nq, qualities.end());
-  const float qlevel = qualities[nq];
+  cout << peaks.front().strHeaderQuality();
+  for (auto& peak: peaks)
+  {
+    if (peak.isCandidate())
+      cout << peak.strQuality(offset);
+  }
 
   // Prune peaks that deviate too much.
   // Add other peaks that are as good.
@@ -1501,11 +1438,11 @@ cout << "Adding tallFlag(shape) to " <<
   }
 
   cout << "Selected peaks\n";
-  for (auto& pa: peaksAnnot)
+  cout << peaks.front().strHeaderQuality();
+  for (auto& peak: peaks)
   {
-    if (pa.tallFlag)
-      cout << pa.sharp.strQ(pa.peakPtr->getIndex(),
-        pa.quality, pa.qualityShape, offset);
+    if (peak.isSeed())
+      cout << peak.strQuality(offset);
   }
 
   unsigned wheelDistLower, wheelDistUpper;

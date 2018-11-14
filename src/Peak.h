@@ -155,9 +155,11 @@ class Peak
 
     string strHeader() const;
     string strHeaderSum() const;
+    string strHeaderQuality() const;
 
     string str(const unsigned offset = 0) const;
     string strSum(const unsigned offset = 0) const;
+    string strQuality(const unsigned offset = 0) const;
 };
 
 #endif

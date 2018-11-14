@@ -1,6 +1,7 @@
-PeakMatch:
-- Doesn't bomb, but stats also aren't right?
- 
+Moving PeakEntry and Sharp into Peak:
+Keep going.
+
+When printing peaks, at T (tall) as well as L, R, L1, R1, L2, R2
 
 Keep cars sorted?
 When car models complete?
@@ -10,7 +11,6 @@ When car models complete?
 Maybe try simple thresholding instead of PeakSeeds
 
 Clean up Peak some more?
-Move PeakEntry and Sharp into Peak?
 
 Gap distance:
 actual = 0, ref != 0: dist = 0
@@ -31,8 +31,6 @@ Matching distance against X: inf -- why?  Probably some distance is 0.
 Fix distance = inf
 Use distance on cars to eliminate some car types
 Sort cars
-
-When printing peaks, at T (tall) as well as L, R, L1, R1, L2, R2
 
 
 Cleaning up clusters
