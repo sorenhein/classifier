@@ -39,7 +39,6 @@ void Peak::reset()
   area = 0.f;
   gradient = 0.f;
   fill = 0.f;
-  symmetry = 0.f;
 
   rangeRatio = 0.f;
   gradRatio = 0.f;
@@ -91,9 +90,7 @@ void Peak::logNextPeak(Peak const * nextPtrIn)
 }
 
 
-void Peak::update(
-  Peak * peakPrev,
-  const Peak * peakNext)
+void Peak::update(const Peak * peakPrev)
 {
   // This is used before we delete all peaks from peakFirst (included)
   // up to the present peak (excluded).  
@@ -109,23 +106,11 @@ void Peak::update(
 
     gradient = range / len;
     fill = area / (0.5f * range * len);
-
-    peakPrev->symmetry = peakPrev->area / area;
-  }
-
-  if (peakNext != nullptr)
-  {
-    // Next area will not in general be set!
-    const float areaNext = abs(peakNext->areaCum - areaCum - 
-      (peakNext->index - index) * min(peakNext->value, value));
-    symmetry = area / areaNext;
   }
 }
 
 
-void Peak::annotate(
-  const Peak * peakPrev,
-  const Peak * peakNext)
+void Peak::annotate(const Peak * peakPrev)
 {
   // This is used once the basic parameters of the peaks have been set.
 
@@ -148,16 +133,6 @@ void Peak::annotate(
     gradient = range / len;
     fill = area / (0.5f * range * len);
   }
-
-  if (peakNext == nullptr)
-    symmetry = 1.f;
-  else
-  {
-    // Next area will not in general be set!
-    const float areaNext = abs(peakNext->areaCum - areaCum - 
-      (peakNext->index - index) * min(peakNext->value, value));
-    symmetry = area / areaNext;
-  }
 }
 
 
@@ -168,9 +143,33 @@ float Peak::distance(
   const float vdiff = (value - p2.value) / scale.value;
   const float vlen = (len - p2.len) / scale.len;
   const float vgrad = (gradient - p2.gradient) / scale.gradient;
-  const float vsymm = symmetry - p2.symmetry;
 
-  return vdiff * vdiff + vlen * vlen + vgrad * vgrad + vsymm * vsymm;
+  return vdiff * vdiff + vlen * vlen + vgrad * vgrad;
+}
+
+
+float Peak::distToScaleQ(const Peak& scale) const
+{
+  // Ranges are always positive.
+  const float vrange1 = (range < 0.5f * scale.range ?
+    (range - scale.range) / scale.range : 0.f);
+
+  float vrange2 = (nextPtr->range < 0.5f * scale.range ?
+    (nextPtr->range - scale.nextPtr->range) / scale.nextPtr->range : 0.f);
+
+  // Gradients are always positive.
+  const float vgrad1 = (gradient < scale.gradient ?
+    (gradient - scale.gradient) / scale.gradient : 0.f);
+
+  const float vgrad2 = (nextPtr->gradient < scale.nextPtr->gradient ?
+    (nextPtr->gradient - scale.nextPtr->gradient) / 
+      scale.nextPtr->gradient : 0.f);
+
+  return
+    vrange1 * vrange1 +
+    vrange2 * vrange2 +
+    vgrad1 * vgrad1 +
+    vgrad2 * vgrad2;
 }
 
 
@@ -345,7 +344,6 @@ bool Peak::check(
   Peak::deviation(area, p2.area, issues[5], flag);
   Peak::deviation(gradient, p2.gradient, issues[6], flag);
   Peak::deviation(fill, p2.fill, issues[7], flag);
-  Peak::deviation(symmetry, p2.symmetry, issues[8], flag);
 
   if (! flag)
   {
@@ -360,9 +358,8 @@ bool Peak::check(
       setw(7) << (issues[3] ? "*" : "") << // len
       setw(7) << (issues[4] ? "*" : "") << // range
       setw(8) << (issues[5] ? "*" : "") << // area
-      setw(8) << (issues[5] ? "*" : "") << // gradient
-      setw(8) << (issues[5] ? "*" : "") << // fill
-      setw(8) << (issues[5] ? "*" : "") << // symmetry
+      setw(8) << (issues[6] ? "*" : "") << // gradient
+      setw(8) << (issues[7] ? "*" : "") << // flag
     "\n\n";
   }
 
@@ -380,7 +377,6 @@ void Peak::operator += (const Peak& p2)
   area += p2.area;
   gradient += p2.gradient;
   fill += p2.fill;
-  symmetry += p2.symmetry;
 }
 
 
@@ -395,7 +391,6 @@ void Peak::operator /= (const unsigned no)
     area /= no;
     gradient /= no;
     fill /= no;
-    symmetry /= no;
   }
 }
 
@@ -412,7 +407,6 @@ string Peak::strHeader() const
     setw(8) << "Area" <<
     setw(8) << "Grad" <<
     setw(8) << "Fill" <<
-    setw(8) << "Symm" <<
     "\n";
   return ss.str();
 }
@@ -431,7 +425,6 @@ string Peak::str(const unsigned offset) const
     setw(8) << fixed << setprecision(2) << area <<
     setw(8) << fixed << setprecision(2) << 100.f * gradient <<
     setw(8) << fixed << setprecision(2) << fill <<
-    setw(8) << fixed << setprecision(2) << symmetry <<
     "\n";
   return ss.str();
 }

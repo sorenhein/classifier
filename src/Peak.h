@@ -31,7 +31,6 @@ class Peak
     float area; // To the left, from the lowest of the peaks (positive)
     float gradient; // range/len
     float fill; // area / (0.5 * range * len)
-    float symmetry; // area relative to the area to the *right*
 
     float rangeRatio; // Our range / next range
     float gradRatio;
@@ -82,17 +81,15 @@ class Peak
 
     void logNextPeak(Peak const * nextPtrIn);
 
-    void update(
-      Peak * peakPrev,
-      const Peak * peakNext);
+    void update(const Peak * peakPrev);
 
-    void annotate(
-      const Peak * peakPrev,
-      const Peak * peakNext);
+    void annotate(const Peak * peakPrev);
 
     float distance(
       const Peak& p2,
       const Peak& scale) const;
+
+    float distToScaleQ(const Peak& scale) const;
 
     unsigned getIndex() const;
     double getTime() const;

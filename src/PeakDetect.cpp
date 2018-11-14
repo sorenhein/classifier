@@ -68,14 +68,12 @@ void PeakDetect::annotate()
     THROW(ERR_NO_PEAKS, "Too few peaks: " + to_string(peaks.size()));
 
   const auto peakFirst = peaks.begin();
-  const auto peakLast = prev(peaks.end());
 
   for (auto it = peakFirst; it != peaks.end(); it++)
   {
     const Peak * peakPrev = (it == peakFirst ? nullptr : &*prev(it));
-    const Peak * peakNext = (it == peakLast ? nullptr : &*next(it));
 
-    it->annotate(peakPrev, peakNext);
+    it->annotate(peakPrev);
   }
 }
 
@@ -95,7 +93,7 @@ bool PeakDetect::check(const vector<float>& samples) const
   for (auto it = peakFirst; it != peaks.end(); it++)
   {
     Peak peakSynth;
-    Peak const * peakPrev = nullptr, * peakNext = nullptr;
+    Peak const * peakPrev = nullptr;
     float areaFull = 0.f;
     const unsigned index = it->getIndex();
 
@@ -106,11 +104,8 @@ bool PeakDetect::check(const vector<float>& samples) const
         PeakDetect::integrate(samples, peakPrev->getIndex(), index);
     }
 
-    if (it != peakLast)
-      peakNext = &*next(it);
-
     peakSynth.log(index, it->getValue(), areaFull, it->getMaxFlag());
-    peakSynth.annotate(peakPrev, peakNext);
+    peakSynth.annotate(peakPrev);
 
     if (! it->check(peakSynth, offset))
       flag = false;
@@ -232,10 +227,8 @@ const list<Peak>::iterator PeakDetect::collapsePeaks(
 
   Peak * peak0 = 
     (peak1 == peaks.begin() ? nullptr : &*prev(peak1));
-  Peak * peakN = 
-    (next(peak2) == peaks.end() ? nullptr : &*next(peak2));
 
-  peak2->update(peak0, peakN);
+  peak2->update(peak0);
 
   return peaks.erase(peak1, peak2);
 }
