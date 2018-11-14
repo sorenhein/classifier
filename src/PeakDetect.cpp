@@ -1430,18 +1430,22 @@ void PeakDetect::reduceNewer()
 
   // Look at the "tall" peaks.
   cout << tallSize.strHeaderQ();
+  // cout << peaksAnnot.front().sharp.strHeaderQ();
   for (auto& pa: peaksAnnot)
   {
-    pa.quality = pa.sharp.distToScale(tallSize);
-    pa.qualityShape = pa.sharp.distToScaleQ(tallSize);
+    // pa.quality = pa.sharp.distToScale(tallSize);
+    // pa.qualityShape = pa.sharp.distToScaleQ(tallSize);
 
-/*
 pa.peakPtr->calcQualities(altTallSize);
+/*
 cout << "Peak quality " << pa.quality << " vs. " << 
   pa.peakPtr->getQualityPeak() << endl;
 cout << "Shape quality " << pa.qualityShape << " vs. " << 
   pa.peakPtr->getQualityShape() << endl;
   */
+
+    pa.quality = pa.peakPtr->getQualityPeak();
+    pa.qualityShape = pa.peakPtr->getQualityShape();
 
     if (! pa.tallFlag)
       continue;
@@ -1458,6 +1462,7 @@ cout << "Shape quality " << pa.qualityShape << " vs. " <<
 
   cout << "All peaks\n";
   cout << tallSize.strHeaderQ();
+  // cout << peaksAnnot.front().sharp.strHeaderQ();
   for (auto& pa: peaksAnnot)
     cout << pa.sharp.strQ(pa.peakPtr->getIndex(),
       pa.quality, pa.qualityShape, offset);
@@ -1938,7 +1943,8 @@ cout << "Guessing long gap " << longGapLower << "-" <<
     npit->bogeySide = BOGEY_RIGHT;
 cout << "\nMarking long gap at " << 
   posRight1 + offset << "-" <<
-  posLeft2 + offset << endl;
+  posLeft2 + offset << 
+  " (" << posLeft1+offset << "-" << posRight2+offset << ")" << endl;
 
     // Fill out cars.
     cars.emplace_back(CarDetect());
@@ -1983,7 +1989,17 @@ cout << "\nMarking long gap at " <<
     if (car.fillSides(leftGap, rightGap))
       cout << "Filled out complete car: " << car.strLimits(offset) << endl;
     else
-      cout << "Could not fill out any limits\n";
+    {
+      cout << "Could not fill out any limits: " <<
+        leftGap << ", " << rightGap << 
+        ", " << p0 << ", " << p1 << endl;
+      if (p0 != nullptr)
+      {
+        cout << "p0 " << p0->getIndex() << endl;
+        if (nnpit == peaksAnnot.end())
+          cout << "nnpit is at end()" << endl;
+      }
+    }
 
 cout << "Marking car: " << car.strLimits(offset) << endl;
 
