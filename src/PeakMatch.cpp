@@ -9,12 +9,20 @@
 #include "errors.h"
 
 // A measure (in s) of how close we would like real and seen peaks
-// to be.
+// to be, for purposes of guessing the right shift between seen and
+// true peaks.
 #define TIME_PROXIMITY 0.03
 
-// This fraction of the peaks should be present in the sipmle score.
+// This fraction of the seen peaks should count in the sipmle score.
+// Effectively this fraction of the peaks must match up in order for
+//  the shift to be considered valid.
 #define SCORE_CUTOFF 0.75
 
+// These are the maximum shifts that we will consider when matching
+// true and seen peaks.  If the number is 3, then we will skip up
+// to this many peaks.
+#define MAX_SHIFT_SEEN 3
+#define MAX_SHIFT_TRUE 3
 
 PeakMatch::PeakMatch()
 {
@@ -62,6 +70,12 @@ double PeakMatch::simpleScore(
   double& shift)
 {
   // This is similar to Align::simpleScore.
+  // For each true peak, we find the closest seen peak.
+  // It can happen that multiple true peaks map to the same seen peak.
+  // (This is why it's considered a simple score.)
+  // For peaks that are matched up, a distance measure is applied
+  // which is 0 if they are too far apart, and which otherwise drops
+  // off linearly from 1 in case of a perfect match.
   
   list<PeakWrapper>::iterator peak = peaksWrapped.begin();
   if (! PeakMatch::advance(peak))
@@ -69,20 +83,25 @@ double PeakMatch::simpleScore(
 
   list<PeakWrapper>::iterator peakBest, peakPrev;
   double score = 0.;
-  unsigned scoring = 0;
+  unsigned numScores = 0;
 
   for (unsigned tno = 0; tno < timesTrue.size(); tno++)
   {
-    double d = TIME_PROXIMITY, dabs = TIME_PROXIMITY;
     const double timeTrue = timesTrue[tno].time;
     double timeSeen = (peak == peaksWrapped.end() ?
       peakPrev->peakPtr->getTime() :
       peak->peakPtr->getTime()) - offsetScore;
 
-    d = timeSeen - timeTrue;
+    double d = timeSeen - timeTrue;
+    double dabs = TIME_PROXIMITY;
     if (d >= 0.)
     {
       dabs = d;
+      peakBest = peak;
+    }
+    else if (peak == peaksWrapped.end())
+    {
+      dabs = -d;
       peakBest = peak;
     }
     else
@@ -131,7 +150,7 @@ double PeakMatch::simpleScore(
     {
       score += (TIME_PROXIMITY - dabs) / TIME_PROXIMITY;
       shift += d;
-      scoring++;
+      numScores++;
     }
 
     if (logFlag)
@@ -145,8 +164,8 @@ double PeakMatch::simpleScore(
     }
   }
 
-  if (scoring)
-    shift /= scoring;
+  if (numScores)
+    shift /= numScores;
 
   return score;
 }
@@ -161,16 +180,14 @@ void PeakMatch::setOffsets(
   const unsigned lt = timesTrue.size();
 
   // Probably too many.
-  const unsigned maxShiftSeen = 3;
-  const unsigned maxShiftTrue = 3;
-  if (lp <= maxShiftSeen || lt <= maxShiftTrue)
+  if (lp <= MAX_SHIFT_SEEN || lt <= MAX_SHIFT_TRUE)
     THROW(ERR_NO_PEAKS, "Not enough peaks");
 
-  offsetList.resize(maxShiftSeen + maxShiftTrue + 1);
+  offsetList.resize(MAX_SHIFT_SEEN + MAX_SHIFT_TRUE + 1);
 
   // Offsets are subtracted from the seen peaks.
   list<Peak>::const_iterator peak = peaks.end();
-  for (unsigned i = 0; i <= maxShiftSeen; i++)
+  for (unsigned i = 0; i <= MAX_SHIFT_SEEN; i++)
   {
     do
     {
@@ -190,8 +207,8 @@ void PeakMatch::setOffsets(
 
   const double lastTime = peak->getTime();
 
-  for (unsigned i = 1; i <= maxShiftTrue; i++)
-    offsetList[maxShiftSeen+i] = timesTrue[lt-1-i].time - lastTime;
+  for (unsigned i = 1; i <= MAX_SHIFT_TRUE; i++)
+    offsetList[MAX_SHIFT_SEEN+i] = timesTrue[lt-1-i].time - lastTime;
 }
 
 
@@ -220,16 +237,13 @@ bool PeakMatch::findMatch(
     }
   }
 
-  // This extra run could be eliminated at the cost of some copying
-  // and intermediate storage.
+  // We detected a shift from the offset in the list above.
+  // We compensate for this and do a final calcuation.
+  shift += offsetList[ino];
   double tmp;
-  shift += offsetList[ino]; // TODO WTF?
   score = PeakMatch::simpleScore(timesTrue, shift, true, tmp);
 
-  if (score >= SCORE_CUTOFF * timesTrue.size())
-    return true;
-  else
-    return false;
+  return (score >= SCORE_CUTOFF * timesTrue.size());
 }
   
 
@@ -269,6 +283,7 @@ void PeakMatch::logPeakStats(
   const double speedTrue,
   PeakStats& peakStats)
 {
+  // TODO Could be global flags.
   const bool debug = true;
   const bool debugDetails = false;
 
@@ -284,8 +299,7 @@ void PeakMatch::logPeakStats(
   if (debugDetails)
     PeakMatch::printPeaks(peaks, timesTrue);
 
-  // Make a wrapper such that we don't have to modify the peaks
-  // themselves
+  // Make a wrapper such that we don't have to modify the peaks.
   for (auto& peak: peaks)
   {
     peaksWrapped.emplace_back(PeakWrapper());
@@ -308,10 +322,6 @@ void PeakMatch::logPeakStats(
     }
     return;
   }
-
-  // TODO Isn't is possible that a single seen peak is the closest one
-  // to several true peaks?  Then we should mark the one with the 
-  // lowest distance in simpleDistance?
 
   // Go through the candidates we've seen (negative minima).  They were 
   // either mapped to a true peak or not.  Some of the candidates were
@@ -357,9 +367,6 @@ void PeakMatch::logPeakStats(
   // Several true peaks could be mapped to the same seen peak (only one
   // of them will be thus marked).  The other true peaks were either
   // early, late or just plain missing.
-  //
-  // TODO Rename TRANS_* to SEEN_*, TENTATIVE to SEEN_MAIN
-
   unsigned mFirst = 0;
   for (unsigned m = 0; m < posTrue.size(); m++)
   {
