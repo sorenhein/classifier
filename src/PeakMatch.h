@@ -56,11 +56,6 @@ class PeakMatch
       const vector<PeakTime>& timesTrue,
       double& shift);
 
-    PeakType findCandidate(
-      const list<Peak>& peaks,
-      const double time,
-      const double shift) const;
-
     void printPeaks(
       const list<Peak>& peaks,
       const vector<PeakTime>& timesTrue) const;

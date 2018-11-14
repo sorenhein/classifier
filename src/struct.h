@@ -258,20 +258,6 @@ struct PeakData
   }
 };
 
-enum PeakType
-{
-  PEAK_TENTATIVE = 0,
-  PEAK_POSSIBLE = 1,
-  PEAK_CONCEIVABLE = 2,
-  PEAK_REJECTED = 3,
-  PEAK_TRANS_FRONT = 4,
-  PEAK_TRANS_BACK = 5,
-  PEAK_TRUE_TOO_EARLY = 6,
-  PEAK_TRUE_TOO_LATE = 7,
-  PEAK_TRUE_MISSING = 8,
-  PEAK_TYPE_SIZE = 9
-};
-
 enum PeakSeenType
 {
   PEAK_SEEN_TOO_EARLY = 0,
@@ -284,10 +270,10 @@ enum PeakSeenType
 
 enum PeakTrueType
 {
-  PEAK_TRUE2_TOO_EARLY = 0,
-  PEAK_TRUE2_MISSED = 1,
-  PEAK_TRUE2_TOO_LATE = 2,
-  PEAK_TRUE2_SIZE = 3
+  PEAK_TRUE_TOO_EARLY = 0,
+  PEAK_TRUE_MISSED = 1,
+  PEAK_TRUE_TOO_LATE = 2,
+  PEAK_TRUE_SIZE = 3
 };
 
 #endif

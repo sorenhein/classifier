@@ -42,9 +42,6 @@ void Peak::reset()
   symmetry = 0.f;
 
   selectFlag = false;
-  match = -1;
-  ptype = PEAK_TYPE_SIZE;
-
   seedFlag = false;
 }
 
@@ -74,24 +71,6 @@ void Peak::log(
   value = valueIn;
   areaCum = areaCumIn;
   maxFlag = maxFlagIn;
-}
-
-
-void Peak::logMatch(const int matchIn)
-{
-  match = matchIn;
-}
-
-
-void Peak::logType(const PeakType ptypeIn)
-{
-  ptype = ptypeIn;
-}
-
-
-void Peak::logOrigPointer(const Peak * const ptr)
-{
-  origPtr = ptr;
 }
 
 
@@ -238,36 +217,12 @@ float Peak::getArea() const
 }
 
 
-float Peak::getFill() const
-{
-  return fill;
-}
-
-
 float Peak::getArea(const Peak& p2) const
 {
   // Calculate differential area to some other peak, not necessarily
   // the immediate predecessor (but a predecessor).
   return abs(areaCum - p2.areaCum -
     (index - p2.index) * min(value, p2.value));
-}
-
-
-int Peak::getMatch() const
-{
-  return match;
-}
-
-
-PeakType Peak::getType() const
-{
-  return ptype;
-}
-
-
-const Peak * const Peak::getOrigPointer() const
-{
-  return origPtr;
 }
 
 
@@ -309,6 +264,20 @@ void Peak::setSeed()
 bool Peak::isSeed() const
 {
   return seedFlag;
+}
+
+
+bool Peak::similarGradient(
+  const Peak& p1,
+  const Peak& p2) const
+{
+  // We are the peak preceding p1, which precedes p2.
+  const float lenNew = len + p1.len + p2.len;
+  const float rangeNew = abs(p2.value - value) + range;
+  const float gradNew = rangeNew / lenNew;
+
+  // TODO #define
+  return (gradNew >= 0.9f * gradient && gradNew <= 1.1f * gradient);
 }
 
 

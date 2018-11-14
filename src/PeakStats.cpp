@@ -38,11 +38,11 @@ void PeakStats::reset()
 
   for (unsigned i = 0; i < PEAKSTATS_END_COUNT; i++)
   {
-    missedTrueFront[i].resize(PEAK_TRUE2_SIZE);
-    missedTrueBack[i].resize(PEAK_TRUE2_SIZE);
+    missedTrueFront[i].resize(PEAK_TRUE_SIZE);
+    missedTrueBack[i].resize(PEAK_TRUE_SIZE);
   }
 
-  missedTrueCore.resize(PEAK_TRUE2_SIZE);
+  missedTrueCore.resize(PEAK_TRUE_SIZE);
 
   typeNamesSeen.resize(PEAK_SEEN_SIZE);
   typeNamesSeen[PEAK_SEEN_TOO_EARLY] = "too early";
@@ -51,10 +51,10 @@ void PeakStats::reset()
   typeNamesSeen[PEAK_SEEN_LATE] = "late";
   typeNamesSeen[PEAK_SEEN_TOO_LATE] = "too late";
 
-  typeNamesTrue.resize(PEAK_TRUE2_SIZE);
-  typeNamesTrue[PEAK_TRUE2_TOO_EARLY] = "early";
-  typeNamesTrue[PEAK_TRUE2_MISSED] = "missed";
-  typeNamesTrue[PEAK_TRUE2_TOO_LATE] = "late";
+  typeNamesTrue.resize(PEAK_TRUE_SIZE);
+  typeNamesTrue[PEAK_TRUE_TOO_EARLY] = "early";
+  typeNamesTrue[PEAK_TRUE_MISSED] = "missed";
+  typeNamesTrue[PEAK_TRUE_TOO_LATE] = "late";
 }
 
 
@@ -141,7 +141,7 @@ void PeakStats::printTrueHeader(ofstream& fout) const
     setw(8) << "Not #" <<
     setw(8) << "Not %";
 
-  for (unsigned i = 0; i < PEAK_TRUE2_SIZE; i++)
+  for (unsigned i = 0; i < PEAK_TRUE_SIZE; i++)
     fout << setw(8) << typeNamesTrue[i];
 
   fout << endl;
@@ -165,7 +165,7 @@ void PeakStats::printTrueLine(
 
   ecum += e;
 
-  for (unsigned i = 0; i < PEAK_TRUE2_SIZE; i++)
+  for (unsigned i = 0; i < PEAK_TRUE_SIZE; i++)
   {
     fout << setw(8) << v[i];
     vcum[i] += v[i];
@@ -181,7 +181,7 @@ void PeakStats::printTrueTable(ofstream& fout) const
 
   Entry sumTrue;
   vector<unsigned> sumMisses;
-  sumMisses.resize(PEAK_TRUE2_SIZE);
+  sumMisses.resize(PEAK_TRUE_SIZE);
 
   for (unsigned i = 0; i < statsTrueFront.size(); i++)
   {

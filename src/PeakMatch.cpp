@@ -247,35 +247,6 @@ bool PeakMatch::findMatch(
 }
   
 
-PeakType PeakMatch::findCandidate(
-  const list<Peak>& peaks,
-  const double time,
-  const double shift) const
-{
-  double dist = numeric_limits<double>::max();
-  PeakType type = PEAK_TRUE_MISSING;
-
-  for (auto& peak: peaks)
-  {
-    if (! peak.isCandidate() || peak.isSelected())
-      continue;
-    
-    const double pt = peak.getTime() - shift;
-    const double distNew = time - pt;
-    if (abs(distNew) < dist)
-    {
-      dist = abs(distNew);
-      if (dist < TIME_PROXIMITY)
-        type = peak.getType();
-    }
-
-    if (distNew < 0.)
-      break;
-  }
-  return type;
-}
-
-
 void PeakMatch::logPeakStats(
   const list<Peak>& peaks,
   const vector<PeakPos>& posTrue,
@@ -393,11 +364,11 @@ void PeakMatch::logPeakStats(
     if (seenTrue[m])
       peakStats.logTrueHit(m, lt);
     else if (m < mFirst)
-      peakStats.logTrueMiss(m, lt, PEAK_TRUE2_TOO_EARLY);
+      peakStats.logTrueMiss(m, lt, PEAK_TRUE_TOO_EARLY);
     else if (m > mLast)
-      peakStats.logTrueMiss(m, lt, PEAK_TRUE2_TOO_LATE);
+      peakStats.logTrueMiss(m, lt, PEAK_TRUE_TOO_LATE);
     else
-      peakStats.logTrueMiss(m, lt, PEAK_TRUE2_MISSED);
+      peakStats.logTrueMiss(m, lt, PEAK_TRUE_MISSED);
   }
 
   if (debug)
@@ -424,7 +395,7 @@ void PeakMatch::printPeaks(
   unsigned pp = 0;
   for (auto& peak: peaks)
   {
-    if (peak.isCandidate() && peak.getType() == PEAK_TENTATIVE)
+    if (peak.isCandidate())
     {
       cout << pp << ";" <<
         fixed << setprecision(6) << peak.getTime() << endl;

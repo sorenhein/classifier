@@ -34,9 +34,6 @@ class Peak
     float symmetry; // area relative to the area to the *right*
 
     bool selectFlag;
-    int match; // Number of matched peak in real list (or -1)
-    PeakType ptype;
-
     bool seedFlag;
 
     const Peak * origPtr; // Pointer to origin in more complete peak list
@@ -80,11 +77,6 @@ class Peak
       const float areaCumIn,
       const bool maxFlagIn);
 
-    void logType(PeakType ptypeIn);
-    void logMatch(const int matchIn);
-
-    void logOrigPointer(const Peak * const);
-
     void update(
       Peak * peakPrev,
       const Peak * peakNext);
@@ -106,14 +98,7 @@ class Peak
     float getRange() const;
     float getArea() const;
     float getArea(const Peak& p2) const;
-    float getFill() const;
     float getGradient() const;
-    unsigned getCluster() const;
-    int getMatch() const;
-    PeakType getType() const;
-    const Peak * const getOrigPointer() const;
-
-    bool isCluster(const unsigned cno) const;
 
     bool isCandidate() const;
 
@@ -122,6 +107,10 @@ class Peak
 
     void setSeed();
     bool isSeed() const;
+
+    bool similarGradient(
+      const Peak& p1,
+      const Peak& p2) const;
 
     bool check(
       const Peak& p2,

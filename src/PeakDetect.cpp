@@ -444,6 +444,12 @@ void PeakDetect::eliminateKinks()
       // Candidate for removal.  But if it changes the gradient
       // too much, don't do it.
 
+      if (peakPrev->similarGradient(* peak, * peakNext))
+        peak = PeakDetect::collapsePeaks(peakPrev, peakNext);
+      else
+        peak++;
+      
+      /*
       const float grad = peakPrev->getGradient();
       const float lenNew = peakPrev->getLength() +
         peak->getLength() + peakNext->getLength();
@@ -456,6 +462,7 @@ void PeakDetect::eliminateKinks()
         peak++;
       else
         peak = PeakDetect::collapsePeaks(peakPrev, peakNext);
+        */
     }
     else
       peak++;
@@ -480,15 +487,6 @@ void PeakDetect::estimateScales()
     THROW(ERR_NO_PEAKS, "No negative minima");
 
   scalesList /= no;
-}
-
-
-
-void PeakDetect::setOrigPointers()
-{
-  for (auto peak = peaks.begin(), peakNew = peaks.begin(); 
-      peak != peaks.end(); peak++, peakNew++)
-    peakNew->logOrigPointer(&*peak);
 }
 
 
@@ -2086,13 +2084,11 @@ cout << "Did intra-gap " << cars[ii].endValue()+offset << "-" <<
   // Ends come later.
 
   // Put peaks in the global list.
-  // peaks.clear();
   for (auto& p: peaksAnnot)
   {
     if (p.wheelFlag)
       p.peakPtr->select();
   }
-
 
   cout << "Returning " << PeakDetect::countWheels(peaksAnnot) << 
     " peaks" << endl << endl;
@@ -2166,8 +2162,6 @@ cout << "RANGE: " << fixed <<
     cout << scalesList.str(0) << endl;
   }
 
-  PeakDetect::setOrigPointers();
-
   PeakDetect::reduceSmallRanges(scalesList.getRange() / 10.f, true);
 
 PeakDetect::reduceNewer();
@@ -2191,19 +2185,6 @@ PeakDetect::reduceNewer();
         firstSeen = true;
       }
       lastTentativeIndex = peak.getIndex();
-    }
-  }
-
-  for (auto& peak: peaks)
-  {
-    if (peak.isSelected())
-    {
-      if (peak.getIndex() < firstTentativeIndex)
-        peak.logType(PEAK_TRANS_FRONT);
-      else if (peak.getIndex() > lastTentativeIndex)
-        peak.logType(PEAK_TRANS_BACK);
-      else
-        peak.logType(PEAK_TENTATIVE);
     }
   }
 }
@@ -2284,7 +2265,7 @@ void PeakDetect::printPeaks(const vector<PeakTime>& timesTrue) const
   unsigned pp = 0;
   for (auto& peak: peaks)
   {
-    if (peak.isCandidate() && peak.getType() == PEAK_TENTATIVE)
+    if (peak.isSelected())
     {
       cout << pp << ";" << 
         fixed << setprecision(6) << peak.getTime() << endl;
