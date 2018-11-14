@@ -185,7 +185,6 @@ int main(int argc, char * argv[])
     sensorStats.print("sensorstats.txt", "Sensor");
     trainStats.print("trainstats.txt", "Train");
     peakStats.print("peakstats.txt");
-    peakStats.printDetail("peakdetails.txt");
   }
   else
   {

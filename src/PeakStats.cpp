@@ -7,8 +7,6 @@
 #include "PeakStats.h"
 #include "Except.h"
 
-#define END_COUNT 4
-
 
 PeakStats::PeakStats()
 {
@@ -23,116 +21,97 @@ PeakStats::~PeakStats()
 
 void PeakStats::reset()
 {
-  matchedTrueFront.clear();
-  matchedTrueMiddle.clear();
-  matchedTrueBack.clear();
-
   statsSeen.clear();
-  statsTrue.clear();
+  statsSeen.resize(PEAK_SEEN_SIZE);
 
-  matchedTrueFront.resize(END_COUNT);
-  matchedTrueMiddle.resize(1);
-  matchedTrueBack.resize(END_COUNT);
+  statsTrueFront.clear();
+  statsTrueFront.resize(PEAKSTATS_END_COUNT);
 
-  statsSeen.resize(PEAK_TYPE_SIZE);
-  statsTrue.resize(PEAK_TYPE_SIZE);
+  statsTrueCore.good = 0;
+  statsTrueCore.len = 0;
 
-  typeNames.resize(PEAK_TYPE_SIZE);
-  typeNames[PEAK_TENTATIVE] = "tentative";
-  typeNames[PEAK_POSSIBLE] = "possible";
-  typeNames[PEAK_CONCEIVABLE] = "conceivable";
-  typeNames[PEAK_REJECTED] = "rejected";
-  typeNames[PEAK_TRANS_FRONT] = "trans-front";
-  typeNames[PEAK_TRANS_BACK] = "trans-back";
-  typeNames[PEAK_TRUE_TOO_EARLY] = "true too early";
-  typeNames[PEAK_TRUE_TOO_LATE] = "true too late";
-  typeNames[PEAK_TRUE_MISSING] = "true missing";
+  statsTrueBack.clear();
+  statsTrueBack.resize(PEAKSTATS_END_COUNT);
+
+  missedTrueFront.resize(PEAKSTATS_END_COUNT);
+  missedTrueBack.resize(PEAKSTATS_END_COUNT);
+
+  for (unsigned i = 0; i < PEAKSTATS_END_COUNT; i++)
+  {
+    missedTrueFront[i].resize(PEAK_TRUE2_SIZE);
+    missedTrueBack[i].resize(PEAK_TRUE2_SIZE);
+  }
+
+  missedTrueCore.resize(PEAK_TRUE2_SIZE);
+
+  typeNamesSeen.resize(PEAK_SEEN_SIZE);
+  typeNamesSeen[PEAK_SEEN_TOO_EARLY] = "too early";
+  typeNamesSeen[PEAK_SEEN_EARLY] = "early";
+  typeNamesSeen[PEAK_SEEN_CORE] = "core";
+  typeNamesSeen[PEAK_SEEN_LATE] = "late";
+  typeNamesSeen[PEAK_SEEN_TOO_LATE] = "too late";
+
+  typeNamesTrue.resize(PEAK_TRUE2_SIZE);
+  typeNamesTrue[PEAK_TRUE2_TOO_EARLY] = "early";
+  typeNamesTrue[PEAK_TRUE2_MISSED] = "missed";
+  typeNamesTrue[PEAK_TRUE2_TOO_LATE] = "late";
 }
 
 
-void PeakStats::logSeenMatch(
-  const unsigned matchNoTrue,
-  const unsigned lenTrue,
-  const PeakType type)
+void PeakStats::logSeenHit(const PeakSeenType stype)
 {
-  if (matchNoTrue < END_COUNT)
+  statsSeen[stype].good++;
+  statsSeen[stype].len++;
+}
+
+
+void PeakStats::logSeenMiss(const PeakSeenType stype)
+{
+  statsSeen[stype].len++;
+}
+
+
+void PeakStats::logTrueHit(
+  const unsigned trueNo,
+  const unsigned trueLen)
+{
+  if (trueNo < PEAKSTATS_END_COUNT)
   {
-    matchedTrueFront[matchNoTrue].good++;
-    matchedTrueFront[matchNoTrue].len++;
+    statsTrueFront[trueNo].good++;
+    statsTrueFront[trueNo].len++;
   }
-  else if (matchNoTrue + (END_COUNT+1) > lenTrue)
+  else if (trueNo + (PEAKSTATS_END_COUNT+1) > trueLen)
   {
-    matchedTrueBack[lenTrue-1-matchNoTrue].good++;
-    matchedTrueBack[lenTrue-1-matchNoTrue].len++;
+    statsTrueBack[trueLen-1-trueNo].good++;
+    statsTrueBack[trueLen-1-trueNo].len++;
   }
   else
   {
-    matchedTrueMiddle[0].good++;
-    matchedTrueMiddle[0].len++;
+    statsTrueCore.good++;
+    statsTrueCore.len++;
   }
-
-  statsSeen[type].good++;
-  statsSeen[type].len++;
-
-  statsTrue[type].good++;
-  statsTrue[type].len++;
 }
 
 
-void PeakStats::logSeenMiss(const PeakType type)
+void PeakStats::logTrueMiss(
+  const unsigned trueNo,
+  const unsigned trueLen,
+  const PeakTrueType ttype)
 {
-  statsSeen[type].len++;
-}
-
-
-void PeakStats::logTrueReverseMatch(
-  const unsigned matchNoTrue,
-  const unsigned lenTrue,
-  const PeakType type)
-{
-  // Was already logged as a seen miss.
-
-  if (matchNoTrue < END_COUNT)
+  if (trueNo < PEAKSTATS_END_COUNT)
   {
-    matchedTrueFront[matchNoTrue].reverse++;
-    matchedTrueFront[matchNoTrue].len++;
+    statsTrueFront[trueNo].len++;
+    missedTrueFront[trueNo][ttype]++;
   }
-  else if (matchNoTrue + (END_COUNT+1) > lenTrue)
+  else if (trueNo + (PEAKSTATS_END_COUNT+1) > trueLen)
   {
-    matchedTrueBack[lenTrue-1-matchNoTrue].reverse++;
-    matchedTrueBack[lenTrue-1-matchNoTrue].len++;
+    statsTrueBack[trueLen-1-trueNo].len++;
+    missedTrueBack[trueLen-1-trueNo][ttype]++;
   }
   else
   {
-    matchedTrueMiddle[0].reverse++;
-    matchedTrueMiddle[0].len++;
-  }
-  
-  statsSeen[type].reverse++;
-
-  statsTrue[type].reverse++;
-  statsTrue[type].len++;
-}
-
-
-void PeakStats::logTrueReverseMiss(
-  const unsigned matchNoTrue,
-  const unsigned lenTrue)
-{
-  if (matchNoTrue < END_COUNT)
-  {
-    matchedTrueFront[matchNoTrue].len++;
-    statsTrue[PEAK_TRUE_TOO_EARLY].len++;
-  }
-  else if (matchNoTrue + (END_COUNT+1) > lenTrue)
-  {
-    matchedTrueBack[lenTrue-1-matchNoTrue].len++;
-    statsTrue[PEAK_TRUE_TOO_LATE].len++;
-  }
-  else
-  {
-    matchedTrueMiddle[0].len++;
-    statsTrue[PEAK_TRUE_MISSING].len++;
+    statsTrueCore.len++;
+    missedTrueCore[ttype]++;
   }
 }
 
@@ -153,72 +132,125 @@ string PeakStats::percent(
 }
 
 
-string PeakStats::strDetailLine(
-  const string& name,
-  const unsigned width,
-  const Entry& entry) const
+void PeakStats::printTrueHeader(ofstream& fout) const
 {
-  stringstream ss;
+  fout << setw(12) << left << "True peaks" <<
+    setw(8) << right << "Sum" <<
+    setw(8) << "Seen #" <<
+    setw(8) << "Seen %" <<
+    setw(8) << "Not #" <<
+    setw(8) << "Not %";
 
-  if (entry.len == 0)
-    return "";
+  for (unsigned i = 0; i < PEAK_TRUE2_SIZE; i++)
+    fout << setw(8) << typeNamesTrue[i];
 
-  const unsigned d = entry.len - entry.good - entry.reverse;
-
-  ss << 
-    setw(width) << left << name <<
-    setw(8) << right << entry.len <<
-    setw(8) << right << entry.good <<
-    setw(8) << right << PeakStats::percent(entry.good, entry.len) << 
-    setw(8) << right << entry.reverse <<
-    setw(8) << right << PeakStats::percent(entry.reverse, entry.len) << 
-    setw(8) << right << d <<
-    setw(8) << right << PeakStats::percent(d, entry.len) << endl;
-  
-  return ss.str();
+  fout << endl;
 }
 
 
-void PeakStats::printDetailTable(
+void PeakStats::printTrueLine(
   ofstream& fout,
-  const string& title,
-  const bool indexFlag,
-  const vector<Entry>& matched) const
+  const string& text,
+  const Entry& e,
+  const vector<unsigned>& v,
+  Entry& ecum,
+  vector<unsigned>& vcum) const
 {
-  fout << title << endl;
+  fout << setw(12) << left << text <<
+    setw(8) << right << e.len <<
+    setw(8) << e.good <<
+    setw(8) << PeakStats::percent(e.good, e.len) << 
+    setw(8) << right << e.len - e.good <<
+    setw(8) << PeakStats::percent(e.len - e.good, e.len);
 
-  string e;
-  unsigned w;
-  if (indexFlag)
+  ecum += e;
+
+  for (unsigned i = 0; i < PEAK_TRUE2_SIZE; i++)
   {
-    e = "Index";
-    w = 8;
+    fout << setw(8) << v[i];
+    vcum[i] += v[i];
   }
-  else
+  fout << "\n";
+}
+
+
+
+void PeakStats::printTrueTable(ofstream& fout) const
+{
+  PeakStats::printTrueHeader(fout);
+
+  Entry sumTrue;
+  vector<unsigned> sumMisses;
+  sumMisses.resize(PEAK_TRUE2_SIZE);
+
+  for (unsigned i = 0; i < statsTrueFront.size(); i++)
   {
-    e = "Type";
-    w = 15;
+    PeakStats::printTrueLine(fout, to_string(i),
+      statsTrueFront[i], missedTrueFront[i],
+      sumTrue, sumMisses);
   }
 
-  fout << 
-    setw(w) << left << e <<
-    setw(8) << right << "Total" <<
-    setw(16) << right << "Match" <<
-    setw(16) << right << "Reverse" <<
-    setw(16) << right << "Unmatched" << endl;
+  PeakStats::printTrueLine(fout, "core",
+    statsTrueCore, missedTrueCore,
+    sumTrue, sumMisses);
 
-  Entry sum;
-
-  for (unsigned i = 0; i < matched.size(); i++)
+  for (unsigned i = 0; i < statsTrueBack.size(); i++)
   {
-    fout << PeakStats::strDetailLine(
-      (indexFlag ? to_string(i) : typeNames[i]), w, matched[i]);
-    
-    sum += matched[i];
+    const unsigned rev = statsTrueBack.size() - i - 1;
+
+    PeakStats::printTrueLine(fout, "-" + to_string(rev),
+      statsTrueBack[rev], missedTrueBack[rev],
+      sumTrue, sumMisses);
   }
 
-  fout << string(w+56, '-') << endl;
-  fout << PeakStats::strDetailLine("Sum", w, sum) << endl;
+  fout << string(76, '-') << "\n";
+  PeakStats::printTrueLine(fout, "Sum",
+    sumTrue, sumMisses,
+    sumTrue, sumMisses);
+  fout << "\n";
+}
+
+
+void PeakStats::printSeenHeader(ofstream& fout) const
+{
+  fout << setw(12) << left << "Seen peaks" <<
+    setw(8) << right << "Sum" <<
+    setw(8) << "True #" <<
+    setw(8) << "True %" <<
+    setw(8) << "Not #" <<
+    setw(8) << "Not %" <<
+    endl;
+}
+
+
+void PeakStats::printSeenLine(
+  ofstream& fout,
+  const string& text,
+  const Entry& e) const
+{
+  fout << setw(12) << left << text <<
+  setw(8) << right << e.len <<
+  setw(8) << right << e.good <<
+  setw(8) << PeakStats::percent(e.good, e.len) << 
+  setw(8) << right << e.len - e.good <<
+  setw(8) << PeakStats::percent(e.len - e.good, e.len) << 
+  endl;
+}
+
+
+void PeakStats::printSeenTable(ofstream& fout) const
+{
+  PeakStats::printSeenHeader(fout);
+
+  Entry sumSeen;
+  for (unsigned i = 0; i < statsSeen.size(); i++)
+  {
+    PeakStats::printSeenLine(fout, typeNamesSeen[i], statsSeen[i]);
+    sumSeen += statsSeen[i];
+  }
+
+  fout << string(52, '-') << "\n";
+  PeakStats::printSeenLine(fout, "Sum", sumSeen);
 }
 
 
@@ -227,30 +259,9 @@ void PeakStats::print(const string& fname) const
   ofstream fout;
   fout.open(fname);
 
-  PeakStats::printDetailTable(fout, 
-    "Number of seen peaks", false, statsSeen);
+  PeakStats::printTrueTable(fout);
 
-  PeakStats::printDetailTable(fout, 
-    "Number of true peaks", false, statsTrue);
-  fout << "Number of true peaks\n";
-
-  fout.close();
-}
-
-
-void PeakStats::printDetail(const string& fname) const
-{
-  ofstream fout;
-  fout.open(fname);
-
-  PeakStats::printDetailTable(fout, "True fronts", true, 
-    matchedTrueFront);
-
-  PeakStats::printDetailTable(fout, "True middles", true, 
-    matchedTrueMiddle);
-
-  PeakStats::printDetailTable(fout, "True backs", true, 
-    matchedTrueBack);
+  PeakStats::printSeenTable(fout);
 
   fout.close();
 }

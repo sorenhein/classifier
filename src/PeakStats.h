@@ -6,6 +6,8 @@
 
 #include "struct.h"
 
+#define PEAKSTATS_END_COUNT 4
+
 
 using namespace std;
 
@@ -17,51 +19,61 @@ class PeakStats
     struct Entry
     {
       unsigned good;
-      unsigned reverse;
       unsigned len;
 
       Entry()
       {
-        good = 0; reverse = 0; len = 0;
+        good = 0; 
+        len = 0;
       };
 
       void operator +=(const Entry& e2)
       {
         good += e2.good;
-        reverse += e2.reverse;
         len += e2.len;
       };
     };
 
-    // Number of true peaks of a given number that have matches among 
-    // the seen peaks.  There is a vector for the first N and the 
-    // last N, and an entry for all others together.
-    vector<Entry> matchedTrueFront;
-    vector<Entry> matchedTrueMiddle;
-    vector<Entry> matchedTrueBack;
-
-    // Number of peaks of each type that are true.
+    // Number of seen peaks (total and matched to true).
     vector<Entry> statsSeen;
 
-    // Number of true peaks of each type.
-    vector<Entry> statsTrue;
+    // Number of true peaks (total and matched to seen).
+    vector<Entry> statsTrueFront;
+    Entry statsTrueCore;
+    vector<Entry> statsTrueBack;
 
-    vector<string> typeNames;
+    // Number of missed true peaks (among seen peaks).
+    vector<vector<unsigned>> missedTrueFront;
+    vector<unsigned> missedTrueCore;
+    vector<vector<unsigned>> missedTrueBack;
+
+    vector<string> typeNamesSeen;
+    vector<string> typeNamesTrue;
 
     string percent(
       const unsigned num,
       const unsigned denom) const;
 
-    string strDetailLine(
-      const string& name,
-      const unsigned width,
-      const Entry& matched) const;
+    void printTrueHeader(ofstream& fout) const;
 
-    void printDetailTable(
+    void printTrueLine(
       ofstream& fout,
-      const string& title,
-      const bool indexFlag,
-      const vector<Entry>& matched) const;
+      const string& text,
+      const Entry& e,
+      const vector<unsigned>& v,
+      Entry& ecum,
+      vector<unsigned>& vcum) const;
+
+    void printTrueTable(ofstream& fout) const;
+
+    void printSeenHeader(ofstream& fout) const;
+
+    void printSeenLine(
+      ofstream& fout,
+      const string& text,
+      const Entry& e) const;
+
+    void printSeenTable(ofstream& fout) const;
 
 
   public:
@@ -72,25 +84,20 @@ class PeakStats
 
     void reset();
 
-    void logSeenMatch(
-      const unsigned matchNoTrue,
-      const unsigned lenTrue,
-      const PeakType type);
+    void logSeenHit(const PeakSeenType stype);
 
-    void logSeenMiss(const PeakType type);
+    void logSeenMiss(const PeakSeenType stype);
 
-    void logTrueReverseMatch(
-      const unsigned matchNoTrue,
-      const unsigned lenTrue,
-      const PeakType type);
+    void logTrueHit(
+      const unsigned trueNo,
+      const unsigned trueLen);
 
-    void logTrueReverseMiss(
-      const unsigned matchNoTrue,
-      const unsigned lenTrue);
+    void logTrueMiss(
+      const unsigned trueNo,
+      const unsigned trueLen,
+      const PeakTrueType ttype);
 
     void print(const string& fname) const;
-
-    void printDetail(const string& fname) const;
 
 };
 

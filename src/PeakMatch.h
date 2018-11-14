@@ -25,10 +25,13 @@ class PeakMatch
     struct PeakWrapper
     {
       Peak const * peakPtr;
+      double bestDistance;
       int match;
     };
 
     list<PeakWrapper> peaksWrapped;
+
+    vector<Peak const *> trueMatches;
 
     void pos2time(
       const vector<PeakPos>& posTrue,

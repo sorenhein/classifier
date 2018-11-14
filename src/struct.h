@@ -272,5 +272,22 @@ enum PeakType
   PEAK_TYPE_SIZE = 9
 };
 
+enum PeakSeenType
+{
+  PEAK_SEEN_TOO_EARLY = 0,
+  PEAK_SEEN_EARLY = 1,
+  PEAK_SEEN_CORE = 2,
+  PEAK_SEEN_LATE = 3,
+  PEAK_SEEN_TOO_LATE = 4,
+  PEAK_SEEN_SIZE = 5
+};
+
+enum PeakTrueType
+{
+  PEAK_TRUE2_TOO_EARLY = 0,
+  PEAK_TRUE2_MISSED = 1,
+  PEAK_TRUE2_TOO_LATE = 2,
+  PEAK_TRUE2_SIZE = 3
+};
 
 #endif

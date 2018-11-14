@@ -30,6 +30,7 @@ PeakMatch::~PeakMatch()
 void PeakMatch::reset()
 {
   peaksWrapped.clear();
+  trueMatches.clear();
 }
 
 
@@ -131,8 +132,16 @@ double PeakMatch::simpleScore(
       score += (TIME_PROXIMITY - dabs) / TIME_PROXIMITY;
       shift += d;
       scoring++;
-      if (logFlag)
+    }
+
+    if (logFlag)
+    {
+      if (dabs < peakBest->bestDistance)
+      {
         peakBest->match = tno;
+        peakBest->bestDistance = dabs;
+      }
+      trueMatches[tno] = peakBest->peakPtr;
     }
   }
 
@@ -270,6 +279,8 @@ void PeakMatch::logPeakStats(
   timesTrue.resize(lt);
   PeakMatch::pos2time(posTrue, speedTrue, timesTrue);
 
+  trueMatches.resize(lt);
+
   if (debugDetails)
     PeakMatch::printPeaks(peaks, timesTrue);
 
@@ -282,6 +293,7 @@ void PeakMatch::logPeakStats(
 
     pw.peakPtr = &peak;
     pw.match = -1;
+    pw.bestDistance = numeric_limits<float>::max();
   }
 
   // Find a good line-up.
@@ -308,27 +320,77 @@ void PeakMatch::logPeakStats(
   vector<unsigned> seenTrue(posTrue.size(), 0);
   unsigned seen = 0;
   for (auto& pw: peaksWrapped)
-  // for (auto& peak: peaks)
   {
     auto& peak = * pw.peakPtr;
     if (peak.isCandidate())
     {
-      // const int m = peak.getMatch();
-      const PeakType pt = peak.getType();
       const int m = pw.match;
       if (m >= 0)
       {
-        peakStats.logSeenMatch(static_cast<unsigned>(m), lt, pt);
-        if (seenTrue[m] && debug)
-          cout << "Already saw true peak " << m << endl;
+        if (m < PEAKSTATS_END_COUNT)
+          peakStats.logSeenHit(PEAK_SEEN_EARLY);
+        else if (static_cast<unsigned>(m) + (PEAKSTATS_END_COUNT+1) > lt)
+          peakStats.logSeenHit(PEAK_SEEN_LATE);
+        else
+          peakStats.logSeenHit(PEAK_SEEN_CORE);
+
         seenTrue[m]++;
         seen++;
       }
       else
       {
-        peakStats.logSeenMiss(pt);
+        const unsigned pi = peak.getIndex();
+        if (pi < trueMatches[0]->getIndex())
+          peakStats.logSeenMiss(PEAK_SEEN_TOO_EARLY);
+        else if (pi <= trueMatches[PEAKSTATS_END_COUNT]->getIndex())
+          peakStats.logSeenMiss(PEAK_SEEN_EARLY);
+        else if (pi <= trueMatches[lt-PEAKSTATS_END_COUNT]->getIndex())
+          peakStats.logSeenMiss(PEAK_SEEN_CORE);
+        else if (pi <= trueMatches[lt-1]->getIndex())
+          peakStats.logSeenMiss(PEAK_SEEN_LATE);
+        else
+          peakStats.logSeenMiss(PEAK_SEEN_TOO_LATE);
       }
     }
+  }
+
+  // Several true peaks could be mapped to the same seen peak (only one
+  // of them will be thus marked).  The other true peaks were either
+  // early, late or just plain missing.
+  //
+  // TODO Rename TRANS_* to SEEN_*, TENTATIVE to SEEN_MAIN
+
+  unsigned mFirst = 0;
+  for (unsigned m = 0; m < posTrue.size(); m++)
+  {
+    if (seenTrue[m])
+    {
+      mFirst = m;
+      break;
+    }
+  }
+
+  unsigned mLast = 0;
+  for (unsigned m = 0; m < posTrue.size(); m++)
+  {
+    const unsigned mrev = posTrue.size() - m - 1;
+    if (seenTrue[mrev])
+    {
+      mLast = m;
+      break;
+    }
+  }
+
+  for (unsigned m = 0; m < posTrue.size(); m++)
+  {
+    if (seenTrue[m])
+      peakStats.logTrueHit(m, lt);
+    else if (m < mFirst)
+      peakStats.logTrueMiss(m, lt, PEAK_TRUE2_TOO_EARLY);
+    else if (m > mLast)
+      peakStats.logTrueMiss(m, lt, PEAK_TRUE2_TOO_LATE);
+    else
+      peakStats.logTrueMiss(m, lt, PEAK_TRUE2_MISSED);
   }
 
   if (debug)
@@ -338,36 +400,6 @@ void PeakMatch::logPeakStats(
 
     cout << seen << " of the observed peaks are close to true ones (" << 
       posTrue.size() << " true peaks)" << endl;
-  }
-
-  // Several true peaks could be mapped to the same seen peak (only one
-  // of them will be thus marked).  The other true peaks were either
-  // early, late or just plain missing.
-  //
-  // TODO Rename TRANS_* to SEEN_*, TENTATIVE to SEEN_MAIN
-  for (unsigned m = 0; m < posTrue.size(); m++)
-  {
-    if (seenTrue[m])
-      continue;
-
-    // Look for posTrue[m].time vs (peaks time - shift),
-    // must be within TIME_PROXIMITY.
-    PeakType ctype = 
-      PeakMatch::findCandidate(peaks, timesTrue[m].time, shift);
-
-    if (ctype == PEAK_TENTATIVE)
-    {
-      // TODO Matching doesn't really work anymore?
-      // cout << "Odd: Tentative matched again\n";
-      // continue;
-      // THROW(ERR_ALGO_PEAK_MATCH, "Odd: Tentative matched again");
-    }
-
-    // The missed ones are detected as early/late/missing.
-    if (ctype == PEAK_TRUE_MISSING)
-      peakStats.logTrueReverseMiss(m, lt);
-    else
-      peakStats.logTrueReverseMatch(m, lt, ctype);
   }
 }
 

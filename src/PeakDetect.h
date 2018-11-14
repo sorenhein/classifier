@@ -277,31 +277,6 @@ class PeakDetect
       unsigned& counted,
       const unsigned lowerCount = 0) const;
 
-    void pos2time(
-      const vector<PeakPos>& posTrue,
-      const double speed,
-      vector<PeakTime>& timesTrue) const;
-
-    bool advance(list<Peak>::iterator& peak) const;
-
-    double simpleScore(
-      const vector<PeakTime>& timesTrue,
-      const double offsetScore,
-      const bool logFlag,
-      double& shift);
-
-    void setOffsets(
-      const vector<PeakTime>& timesTrue,
-      vector<double>& offsetList) const;
-
-    bool findMatch(
-      const vector<PeakTime>& timesTrue,
-      double& shift);
-
-    PeakType findCandidate(
-      const double time,
-      const double shift) const;
-
     float getFirstPeakTime() const;
 
     bool checkQuantity(
