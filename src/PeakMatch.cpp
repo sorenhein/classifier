@@ -297,7 +297,14 @@ void PeakMatch::logPeakStats(
     return;
   }
 
-  // Make statistics.
+  // TODO Isn't is possible that a single seen peak is the closest one
+  // to several true peaks?  Then we should mark the one with the 
+  // lowest distance in simpleDistance?
+
+  // Go through the candidates we've seen (negative minima).  They were 
+  // either mapped to a true peak or not.  Some of the candidates were
+  // selected, so their type is TENTATIVE, TRANS_FRONT or TRANS_BACK.
+  // Some of them weren't, so they still have the default type.
   vector<unsigned> seenTrue(posTrue.size(), 0);
   unsigned seen = 0;
   for (auto& pw: peaksWrapped)
@@ -333,7 +340,11 @@ void PeakMatch::logPeakStats(
       posTrue.size() << " true peaks)" << endl;
   }
 
-// return;
+  // Several true peaks could be mapped to the same seen peak (only one
+  // of them will be thus marked).  The other true peaks were either
+  // early, late or just plain missing.
+  //
+  // TODO Rename TRANS_* to SEEN_*, TENTATIVE to SEEN_MAIN
   for (unsigned m = 0; m < posTrue.size(); m++)
   {
     if (seenTrue[m])
@@ -347,8 +358,8 @@ void PeakMatch::logPeakStats(
     if (ctype == PEAK_TENTATIVE)
     {
       // TODO Matching doesn't really work anymore?
-      cout << "Odd: Tentative matched again\n";
-      continue;
+      // cout << "Odd: Tentative matched again\n";
+      // continue;
       // THROW(ERR_ALGO_PEAK_MATCH, "Odd: Tentative matched again");
     }
 

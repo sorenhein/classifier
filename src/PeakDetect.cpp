@@ -2400,6 +2400,36 @@ PeakDetect::reduceNewer();
   numCandidates = 0;
   numTentatives = 0;
 
+// cout << "Starting FRONT " << firstTentativeIndex << " LAST " <<
+  // lastTentativeIndex << endl;
+
+  for (auto& peak: peaks)
+  {
+    if (peak.isSelected())
+    {
+      if (! firstSeen)
+      {
+        firstTentativeIndex = peak.getIndex();
+        firstSeen = true;
+      }
+      lastTentativeIndex = peak.getIndex();
+    }
+  }
+
+  for (auto& peak: peaks)
+  {
+    if (peak.isSelected())
+    {
+      if (peak.getIndex() < firstTentativeIndex)
+        peak.logType(PEAK_TRANS_FRONT);
+      else if (peak.getIndex() > lastTentativeIndex)
+        peak.logType(PEAK_TRANS_BACK);
+      else
+        peak.logType(PEAK_TENTATIVE);
+    }
+  }
+
+  /*
   for (auto& peak: peaks)
   {
     if (! peak.isCandidate())
@@ -2423,6 +2453,8 @@ PeakDetect::reduceNewer();
 
     peak.logType(ptype);
   }
+cout << "Ending FRONT " << firstTentativeIndex << " LAST " <<
+  lastTentativeIndex << endl;
 
   // Fix the early and late peaks to different types.
   for (auto& peak: peaks)
@@ -2431,6 +2463,7 @@ PeakDetect::reduceNewer();
         peak.getType() == PEAK_TENTATIVE)
       continue;
 
+cout << "STRANGE\n";
     if (peak.getIndex() < firstTentativeIndex)
       peak.logType(PEAK_TRANS_FRONT);
     else if (peak.getIndex() > lastTentativeIndex)
@@ -2440,6 +2473,7 @@ PeakDetect::reduceNewer();
   cout << numCandidates << " candidate peaks" << endl;
   if (numTentatives == 0)
     THROW(ERR_NO_PEAKS, "No tentative peaks");
+  */
 
 }
 
