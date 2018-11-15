@@ -1740,7 +1740,8 @@ cout << "Adding " <<
   for (auto pit = peaksAnnot.begin(); pit != prev(peaksAnnot.end());
     pit++)
   {
-    if (pit->wheelSide != WHEEL_RIGHT || pit->bogeySide != BOGEY_SIZE)
+    // if (pit->wheelSide != WHEEL_RIGHT || pit->bogeySide != BOGEY_SIZE)
+    if (pit->wheelSide != WHEEL_RIGHT || pit->peakPtr->isBogey())
       continue;
 
     auto npit = next(pit);
@@ -1781,7 +1782,8 @@ cout << "Guessing long gap " << longGapLower << "-" <<
   for (auto pit = peaksAnnot.begin(); pit != prev(peaksAnnot.end());
     pit++)
   {
-    if (pit->wheelSide != WHEEL_RIGHT || pit->bogeySide != BOGEY_SIZE)
+    // if (pit->wheelSide != WHEEL_RIGHT || pit->bogeySide != BOGEY_SIZE)
+    if (pit->wheelSide != WHEEL_RIGHT || pit->peakPtr->isBogey())
       continue;
 
     auto npit = next(pit);
@@ -1837,7 +1839,8 @@ cout << "\nMarking long gap at " <<
     Peak * p0 = ppit->prevLargePeakPtr;
 
     unsigned leftGap;
-    if (p0 != nullptr && ppit->bogeySide != BOGEY_SIZE)
+    // if (p0 != nullptr && ppit->bogeySide != BOGEY_SIZE)
+    if (p0 != nullptr && ppit->peakPtr->isBogey())
     {
       // This rounds to make the cars abut.
       const unsigned d = posLeft1 - p0->getIndex();
@@ -1851,7 +1854,8 @@ cout << "\nMarking long gap at " <<
     Peak * p1 = nnpit->nextLargePeakPtr;
 
     unsigned rightGap;
-    if (p1 != nullptr && nnpit->bogeySide != BOGEY_SIZE)
+    // if (p1 != nullptr && nnpit->bogeySide != BOGEY_SIZE)
+    if (p1 != nullptr && nnpit->peakPtr->isBogey())
       rightGap = (p1->getIndex() - posRight2) / 2;
     else
       rightGap = 0;

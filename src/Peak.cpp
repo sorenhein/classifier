@@ -48,6 +48,8 @@ void Peak::reset()
 
   wheelFlag = false;
   wheelSide = WHEEL_SIZE;
+
+  bogeySide = BOGEY_SIZE;
 }
 
 
