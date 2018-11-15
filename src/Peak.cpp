@@ -393,6 +393,13 @@ bool Peak::greatQuality() const
 }
 
 
+bool Peak::goodQuality() const
+{
+  // TODO #define
+  return (qualityShape <= 0.5f);
+}
+
+
 bool Peak::acceptableQuality() const
 {
   // TODO #define

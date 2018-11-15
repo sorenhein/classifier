@@ -907,7 +907,7 @@ cout << "Starting out with " << np << " peaks\n";
     while (i > 0 && seen < 4)
     {
       i--;
-      if (peaksAnnot[peakIndices[i]].qualityShape <= 0.5f)
+      if (peaksAnnot[peakIndices[i]].peakPtr->goodQuality())
         seen++;
     }
 
@@ -916,7 +916,7 @@ cout << "Starting out with " << np << " peaks\n";
       vector<unsigned> peakNosNew, peakIndicesNew;
       for (unsigned j = i; j < np; j++)
       {
-        if (peaksAnnot[peakIndices[j]].qualityShape <= 0.5f)
+        if (peaksAnnot[peakIndices[j]].peakPtr->goodQuality())
         {
           peakNosNew.push_back(peakNos[j]);
           peakIndicesNew.push_back(peakIndices[j]);
@@ -1116,7 +1116,7 @@ cout << "Trying again without the very first peak of first car\n";
         qindex = j;
       }
 
-      if (peaksAnnot[i].qualityShape <= 0.5f)
+      if (peaksAnnot[i].peakPtr->goodQuality())
       {
         peakNosNew.push_back(peaksAnnot[i].peakPtr->getIndex());
         peakIndicesNew.push_back(i);
@@ -1154,7 +1154,7 @@ cout << "General try with " << np << " didn't fit -- drop the middle?" <<
 
 for (unsigned i: peakIndices)
   cout << "index " << peaksAnnot[i].peakPtr->getIndex() << ", qs " <<
-    peaksAnnot[i].qualityShape << endl;
+    peaksAnnot[i].peakPtr->getQualityShape() << endl;
 
         return false;
       }
@@ -1203,9 +1203,9 @@ cout << "Failed\n";
 
       return true;
     }
-    else if (peaksAnnot[peakIndices[0]].qualityShape > 0.5f &&
-        peaksAnnot[peakIndices[1]].qualityShape <= 0.5f &&
-        peaksAnnot[peakIndices[2]].qualityShape <= 0.5f)
+    else if (! peaksAnnot[peakIndices[0]].peakPtr->goodQuality() &&
+        peaksAnnot[peakIndices[1]].peakPtr->goodQuality() &&
+        peaksAnnot[peakIndices[2]].peakPtr->goodQuality())
     {
 cout << "Two good shapes\n";
       // Skip the first peak.
@@ -1502,8 +1502,7 @@ cout << "Guessing wheel distance " << wheelDistLower << "-" <<
       if (dist < wheelDistLower || dist > wheelDistUpper)
         continue;
 
-      if (npit->qualityShape <= 0.75f)
-      // if (npit->peakPtr->acceptableQuality())
+      if (npit->peakPtr->acceptableQuality())
       {
         npit->peakPtr->setSeed();
         
@@ -1526,8 +1525,7 @@ cout << "Guessing wheel distance " << wheelDistLower << "-" <<
       if (dist < wheelDistLower || dist > wheelDistUpper)
         continue;
 
-      if (pit->qualityShape <= 0.75f)
-      // if (pit->peakPtr->acceptableQuality())
+      if (pit->peakPtr->acceptableQuality())
       {
         pit->peakPtr->setSeed();
         

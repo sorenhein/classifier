@@ -172,6 +172,7 @@ class Peak
     bool isBogey() const;
 
     bool greatQuality() const;
+    bool goodQuality() const;
     bool acceptableQuality() const;
 
     bool similarGradient(
