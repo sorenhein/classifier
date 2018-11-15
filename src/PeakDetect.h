@@ -35,8 +35,6 @@ class PeakDetect
 
     bool wheelFlag;
     WheelType wheelSide;
-
-    BogeyType bogeySide;
   };
 
   typedef bool (PeakDetect::*PeakFncPtr)(

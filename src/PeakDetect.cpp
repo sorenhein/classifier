@@ -758,9 +758,6 @@ void PeakDetect::fixTwoWheels(
   peaksAnnot[peakIndices[p0]].peakPtr->markBogey(BOGEY_RIGHT);
   peaksAnnot[peakIndices[p1]].peakPtr->markBogey(BOGEY_RIGHT);
 
-  peaksAnnot[peakIndices[p0]].bogeySide = BOGEY_RIGHT;
-  peaksAnnot[peakIndices[p1]].bogeySide = BOGEY_RIGHT;
-
   for (unsigned i = 0; i < peakIndices.size(); i++)
   {
     if (i != p0 && i != p1)
@@ -779,15 +776,12 @@ void PeakDetect::fixThreeWheels(
   // Assume the two rightmost wheels, as the front one was lost.
   peaksAnnot[peakIndices[p0]].wheelFlag = true;
   peaksAnnot[peakIndices[p0]].wheelSide = WHEEL_RIGHT;
-  peaksAnnot[peakIndices[p0]].bogeySide = BOGEY_LEFT;
 
   peaksAnnot[peakIndices[p1]].wheelFlag = true;
   peaksAnnot[peakIndices[p1]].wheelSide = WHEEL_LEFT;
-  peaksAnnot[peakIndices[p1]].bogeySide = BOGEY_RIGHT;
 
   peaksAnnot[peakIndices[p2]].wheelFlag = true;
   peaksAnnot[peakIndices[p2]].wheelSide = WHEEL_RIGHT;
-  peaksAnnot[peakIndices[p2]].bogeySide = BOGEY_RIGHT;
 
   peaksAnnot[peakIndices[p0]].peakPtr->markBogey(BOGEY_LEFT);
   peaksAnnot[peakIndices[p1]].peakPtr->markBogey(BOGEY_RIGHT);
@@ -811,19 +805,15 @@ void PeakDetect::fixFourWheels(
 {
   peaksAnnot[peakIndices[p0]].wheelFlag = true;
   peaksAnnot[peakIndices[p0]].wheelSide = WHEEL_LEFT;
-  peaksAnnot[peakIndices[p0]].bogeySide = BOGEY_LEFT;
 
   peaksAnnot[peakIndices[p1]].wheelFlag = true;
   peaksAnnot[peakIndices[p1]].wheelSide = WHEEL_RIGHT;
-  peaksAnnot[peakIndices[p1]].bogeySide = BOGEY_LEFT;
 
   peaksAnnot[peakIndices[p2]].wheelFlag = true;
   peaksAnnot[peakIndices[p2]].wheelSide = WHEEL_LEFT;
-  peaksAnnot[peakIndices[p2]].bogeySide = BOGEY_RIGHT;
 
   peaksAnnot[peakIndices[p3]].wheelFlag = true;
   peaksAnnot[peakIndices[p3]].wheelSide = WHEEL_RIGHT;
-  peaksAnnot[peakIndices[p3]].bogeySide = BOGEY_RIGHT;
 
   peaksAnnot[peakIndices[p0]].peakPtr->markBogey(BOGEY_LEFT);
   peaksAnnot[peakIndices[p1]].peakPtr->markBogey(BOGEY_LEFT);
@@ -1394,7 +1384,6 @@ void PeakDetect::reduceNewer()
 
     pe.wheelFlag = false;
     pe.wheelSide = WHEEL_SIZE;
-    pe.bogeySide = BOGEY_SIZE;
   }
 
   for (auto pit = peaksAnnot.begin(); pit != peaksAnnot.end(); pit++)
@@ -1677,12 +1666,6 @@ cout << "Guessing short gap " << shortGapLower << "-" <<
     {
       PeakDetect::markBogeyShortGap(* pit->peakPtr, * npit->peakPtr,
         "Marking");
-
-      pit->bogeySide = BOGEY_RIGHT;
-      npit->bogeySide = BOGEY_LEFT;
-cout << "Marking car gap at " << pit->peakPtr->getIndex()+offset << "-" <<
-  npit->peakPtr->getIndex()+offset << endl;
-
     }
   }
 
@@ -1710,7 +1693,6 @@ cout << "Adding " <<
   pit->peakPtr->getIndex()+offset << endl;
         
         npit->peakPtr->markBogey(BOGEY_LEFT);
-        npit->bogeySide = BOGEY_LEFT;
       }
     }
     else if (pit->wheelSide != WHEEL_RIGHT && npit->wheelSide == WHEEL_LEFT)
@@ -1729,7 +1711,6 @@ cout << "Adding " <<
   npit->peakPtr->getIndex()+offset << endl;
         
         npit->peakPtr->markBogey(BOGEY_RIGHT);
-        npit->bogeySide = BOGEY_RIGHT;
       }
     }
   }
@@ -1740,7 +1721,6 @@ cout << "Adding " <<
   for (auto pit = peaksAnnot.begin(); pit != prev(peaksAnnot.end());
     pit++)
   {
-    // if (pit->wheelSide != WHEEL_RIGHT || pit->bogeySide != BOGEY_SIZE)
     if (pit->wheelSide != WHEEL_RIGHT || pit->peakPtr->isBogey())
       continue;
 
@@ -1782,7 +1762,6 @@ cout << "Guessing long gap " << longGapLower << "-" <<
   for (auto pit = peaksAnnot.begin(); pit != prev(peaksAnnot.end());
     pit++)
   {
-    // if (pit->wheelSide != WHEEL_RIGHT || pit->bogeySide != BOGEY_SIZE)
     if (pit->wheelSide != WHEEL_RIGHT || pit->peakPtr->isBogey())
       continue;
 
@@ -1808,8 +1787,6 @@ cout << "Guessing long gap " << longGapLower << "-" <<
     if (dist < longGapLower || dist > longGapUpper)
       continue;
 
-    pit->bogeySide = BOGEY_LEFT;
-    npit->bogeySide = BOGEY_RIGHT;
 cout << "\nMarking long gap at " << 
   posRight1 + offset << "-" <<
   posLeft2 + offset << 
@@ -1839,7 +1816,6 @@ cout << "\nMarking long gap at " <<
     Peak * p0 = ppit->prevLargePeakPtr;
 
     unsigned leftGap;
-    // if (p0 != nullptr && ppit->bogeySide != BOGEY_SIZE)
     if (p0 != nullptr && ppit->peakPtr->isBogey())
     {
       // This rounds to make the cars abut.
@@ -1854,7 +1830,6 @@ cout << "\nMarking long gap at " <<
     Peak * p1 = nnpit->nextLargePeakPtr;
 
     unsigned rightGap;
-    // if (p1 != nullptr && nnpit->bogeySide != BOGEY_SIZE)
     if (p1 != nullptr && nnpit->peakPtr->isBogey())
       rightGap = (p1->getIndex() - posRight2) / 2;
     else
