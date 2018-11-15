@@ -374,6 +374,18 @@ bool Peak::isWheel() const
 }
 
 
+void Peak::markBogey(const BogeyType bogeyType)
+{
+  bogeySide = bogeyType;
+}
+
+
+bool Peak::isBogey() const
+{
+  return (bogeySide != BOGEY_SIZE);
+}
+
+
 bool Peak::greatQuality() const
 {
   // TODO #define

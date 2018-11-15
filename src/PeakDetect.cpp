@@ -746,10 +746,19 @@ void PeakDetect::fixTwoWheels(
   // Assume the two rightmost wheels, as the front ones were lost.
   peaksAnnot[peakIndices[p0]].wheelFlag = true;
   peaksAnnot[peakIndices[p0]].wheelSide = WHEEL_LEFT;
-  peaksAnnot[peakIndices[p0]].bogeySide = BOGEY_RIGHT;
 
   peaksAnnot[peakIndices[p1]].wheelFlag = true;
   peaksAnnot[peakIndices[p1]].wheelSide = WHEEL_RIGHT;
+
+  PeakDetect::markWheelPair(
+    * peaksAnnot[peakIndices[p0]].peakPtr,
+    * peaksAnnot[peakIndices[p1]].peakPtr,
+    "");
+
+  peaksAnnot[peakIndices[p0]].peakPtr->markBogey(BOGEY_RIGHT);
+  peaksAnnot[peakIndices[p1]].peakPtr->markBogey(BOGEY_RIGHT);
+
+  peaksAnnot[peakIndices[p0]].bogeySide = BOGEY_RIGHT;
   peaksAnnot[peakIndices[p1]].bogeySide = BOGEY_RIGHT;
 
   for (unsigned i = 0; i < peakIndices.size(); i++)
@@ -1304,14 +1313,30 @@ void PeakDetect::markWheelPair(
   Peak& p2,
   const string& text) const
 {
-  cout << text << " wheel pair at " << p1.getIndex() + offset <<
-    "-" << p2.getIndex() + offset << "\n";
+  if (text != "")
+    cout << text << " wheel pair at " << p1.getIndex() + offset <<
+      "-" << p2.getIndex() + offset << "\n";
     
   p1.setSeed();
   p2.setSeed();
 
   p1.markWheel(WHEEL_LEFT);
   p2.markWheel(WHEEL_RIGHT);
+}
+
+
+
+void PeakDetect::markBogeyPair(
+  Peak& p1,
+  Peak& p2,
+  const string& text) const
+{
+  if (text != "")
+    cout << text << " car gap at " << p1.getIndex() + offset <<
+      "-" << p2.getIndex() + offset << "\n";
+  
+  p1.markBogey(BOGEY_RIGHT);
+  p2.markBogey(BOGEY_LEFT);
 }
 
 
@@ -1451,7 +1476,6 @@ cout << "Guessing wheel distance " << wheelDistLower << "-" <<
         npit->peakPtr->getIndex() - pit->peakPtr->getIndex();
       if (dist >= wheelDistLower && dist <= wheelDistUpper)
       {
-        // if (pit->wheelFlag)
         if (pit->peakPtr->isWheel())
           THROW(ERR_NO_PEAKS, "Triple bogey?!");
 
@@ -1642,10 +1666,14 @@ cout << "Guessing short gap " << shortGapLower << "-" <<
       npit->peakPtr->getIndex() - pit->peakPtr->getIndex();
     if (dist >= shortGapLower && dist <= shortGapUpper)
     {
+      PeakDetect::markBogeyPair(* pit->peakPtr, * npit->peakPtr,
+        "Marking");
+
       pit->bogeySide = BOGEY_RIGHT;
       npit->bogeySide = BOGEY_LEFT;
 cout << "Marking car gap at " << pit->peakPtr->getIndex()+offset << "-" <<
   npit->peakPtr->getIndex()+offset << endl;
+
     }
   }
 

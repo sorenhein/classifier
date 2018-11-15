@@ -185,6 +185,11 @@ class PeakDetect
       Peak& p2,
       const string& text) const;
 
+    void markBogeyPair(
+      Peak& p1,
+      Peak& p2,
+      const string& text) const;
+
     void printCarStats(const string& text) const;
 
     void printCars(

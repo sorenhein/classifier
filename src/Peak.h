@@ -82,6 +82,7 @@ class Peak
 
     bool wheelFlag;
     WheelType wheelSide;
+    BogeyType bogeySide;
 
 
     void deviation(
@@ -163,10 +164,12 @@ class Peak
     bool isSeed() const;
 
     void markWheel(const WheelType wheelType);
-
     bool isLeftWheel() const;
     bool isRightWheel() const;
     bool isWheel() const;
+
+    void markBogey(const BogeyType bogeyType);
+    bool isBogey() const;
 
     bool greatQuality() const;
     bool acceptableQuality() const;
