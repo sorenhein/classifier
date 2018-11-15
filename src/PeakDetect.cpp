@@ -1428,17 +1428,17 @@ void PeakDetect::reduceNewer()
   }
 
   // Modify selection based on quality.
-  for (auto& pa: peaksAnnot)
+  for (auto& peak: peaks)
   {
-    if (pa.peakPtr->greatQuality())
+    if (peak.greatQuality())
     {
-cout << "Adding tallFlag to " << pa.peakPtr->getIndex()+offset << endl;
-      pa.peakPtr->setSeed();
+cout << "Adding tallFlag to " << peak.getIndex() + offset << endl;
+      peak.setSeed();
     }
-    else if (pa.peakPtr->isSeed() && ! pa.peakPtr->greatQuality())
+    else
     {
-cout << "Removing tallFlag from " << pa.peakPtr->getIndex()+offset << endl;
-      pa.peakPtr->unsetSeed();
+cout << "Removing tallFlag from " << peak.getIndex() + offset << endl;
+      peak.unsetSeed();
     }
   }
 

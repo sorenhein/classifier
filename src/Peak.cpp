@@ -40,8 +40,8 @@ void Peak::reset()
   rangeRatio = 0.f;
   gradRatio = 0.f;
 
-  qualityPeak = 0.f;
-  qualityShape = 0.f;
+  qualityPeak = numeric_limits<float>::max();
+  qualityShape = numeric_limits<float>::max();
 
   selectFlag = false;
   seedFlag = false;
