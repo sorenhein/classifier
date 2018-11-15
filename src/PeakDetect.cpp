@@ -1110,9 +1110,9 @@ cout << "Trying again without the very first peak of first car\n";
     {
       unsigned i = peakIndices[j];
 
-      if (peaksAnnot[i].qualityShape > qmax)
+      if (peaksAnnot[i].peakPtr->getQualityShape() > qmax)
       {
-        qmax = peaksAnnot[i].qualityShape;
+        qmax = peaksAnnot[i].peakPtr->getQualityShape();
         qindex = j;
       }
 
@@ -1411,7 +1411,6 @@ void PeakDetect::reduceNewer()
   for (auto& pa: peaksAnnot)
   {
     pa.peakPtr->calcQualities(altTallSize);
-    pa.qualityShape = pa.peakPtr->getQualityShape();
 
     if (pa.peakPtr->isSeed())
       cout << pa.peakPtr->strQuality(offset);
@@ -1583,8 +1582,6 @@ cout << "Guessing wheel distance " << wheelDistLower << "-" <<
     else if (pa.wheelSide == WHEEL_RIGHT)
       pa.peakPtr->calcQualities(altTallSizes.back());
 
-    pa.qualityShape = pa.peakPtr->getQualityShape();
-
     cout << pa.peakPtr->strQuality(offset);
 
     if (pa.peakPtr->greatQuality())
@@ -1682,7 +1679,7 @@ cout << "Marking car gap at " << pit->peakPtr->getIndex()+offset << "-" <<
       if (dist < shortGapLower || dist > shortGapUpper)
         continue;
 
-      if (npit->qualityShape <= 0.3f)
+      if (npit->peakPtr->greatQuality())
       {
 cout << "Adding " <<
   npit->peakPtr->getIndex()+offset << 
@@ -1700,7 +1697,7 @@ cout << "Adding " <<
       if (dist < shortGapLower || dist > shortGapUpper)
         continue;
 
-      if (pit->qualityShape <= 0.3f)
+      if (pit->peakPtr->greatQuality())
       {
 cout << "Adding " <<
   pit->peakPtr->getIndex()+offset << 
