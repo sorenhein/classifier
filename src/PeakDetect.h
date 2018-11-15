@@ -32,7 +32,6 @@ class PeakDetect
     Peak * nextPeakPtr;
     Peak * nextLargePeakPtr;
     Peak * prevLargePeakPtr;
-    float qualityShape; // Always >= 0, low is good
 
     bool wheelFlag;
     WheelType wheelSide;
@@ -183,7 +182,12 @@ class PeakDetect
       Peak& p2,
       const string& text) const;
 
-    void markBogeyPair(
+    void markBogeyShortGap(
+      Peak& p1,
+      Peak& p2,
+      const string& text) const;
+
+    void markBogeyLongGap(
       Peak& p1,
       Peak& p2,
       const string& text) const;

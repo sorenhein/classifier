@@ -789,6 +789,10 @@ void PeakDetect::fixThreeWheels(
   peaksAnnot[peakIndices[p2]].wheelSide = WHEEL_RIGHT;
   peaksAnnot[peakIndices[p2]].bogeySide = BOGEY_RIGHT;
 
+  peaksAnnot[peakIndices[p0]].peakPtr->markBogey(BOGEY_LEFT);
+  peaksAnnot[peakIndices[p1]].peakPtr->markBogey(BOGEY_RIGHT);
+  peaksAnnot[peakIndices[p2]].peakPtr->markBogey(BOGEY_RIGHT);
+
   for (unsigned i = 0; i < peakIndices.size(); i++)
   {
     if (i != p0 && i != p1 && i != p2)
@@ -820,6 +824,11 @@ void PeakDetect::fixFourWheels(
   peaksAnnot[peakIndices[p3]].wheelFlag = true;
   peaksAnnot[peakIndices[p3]].wheelSide = WHEEL_RIGHT;
   peaksAnnot[peakIndices[p3]].bogeySide = BOGEY_RIGHT;
+
+  peaksAnnot[peakIndices[p0]].peakPtr->markBogey(BOGEY_LEFT);
+  peaksAnnot[peakIndices[p1]].peakPtr->markBogey(BOGEY_LEFT);
+  peaksAnnot[peakIndices[p2]].peakPtr->markBogey(BOGEY_RIGHT);
+  peaksAnnot[peakIndices[p3]].peakPtr->markBogey(BOGEY_RIGHT);
 
   for (unsigned i = 0; i < peakIndices.size(); i++)
   {
@@ -1326,17 +1335,31 @@ void PeakDetect::markWheelPair(
 
 
 
-void PeakDetect::markBogeyPair(
+void PeakDetect::markBogeyShortGap(
   Peak& p1,
   Peak& p2,
   const string& text) const
 {
   if (text != "")
-    cout << text << " car gap at " << p1.getIndex() + offset <<
+    cout << text << " short car gap at " << p1.getIndex() + offset <<
       "-" << p2.getIndex() + offset << "\n";
   
   p1.markBogey(BOGEY_RIGHT);
   p2.markBogey(BOGEY_LEFT);
+}
+
+
+void PeakDetect::markBogeyLongGap(
+  Peak& p1,
+  Peak& p2,
+  const string& text) const
+{
+  if (text != "")
+    cout << text << " long car gap at " << p1.getIndex() + offset <<
+      "-" << p2.getIndex() + offset << "\n";
+  
+  p1.markBogey(BOGEY_LEFT);
+  p2.markBogey(BOGEY_RIGHT);
 }
 
 
@@ -1652,7 +1675,7 @@ cout << "Guessing short gap " << shortGapLower << "-" <<
       npit->peakPtr->getIndex() - pit->peakPtr->getIndex();
     if (dist >= shortGapLower && dist <= shortGapUpper)
     {
-      PeakDetect::markBogeyPair(* pit->peakPtr, * npit->peakPtr,
+      PeakDetect::markBogeyShortGap(* pit->peakPtr, * npit->peakPtr,
         "Marking");
 
       pit->bogeySide = BOGEY_RIGHT;
@@ -1686,6 +1709,7 @@ cout << "Adding " <<
   " as short-gap left partner to " << 
   pit->peakPtr->getIndex()+offset << endl;
         
+        npit->peakPtr->markBogey(BOGEY_LEFT);
         npit->bogeySide = BOGEY_LEFT;
       }
     }
@@ -1704,6 +1728,7 @@ cout << "Adding " <<
   " as short-gap right partner to " << 
   npit->peakPtr->getIndex()+offset << endl;
         
+        npit->peakPtr->markBogey(BOGEY_RIGHT);
         npit->bogeySide = BOGEY_RIGHT;
       }
     }
@@ -1787,6 +1812,9 @@ cout << "\nMarking long gap at " <<
   posRight1 + offset << "-" <<
   posLeft2 + offset << 
   " (" << posLeft1+offset << "-" << posRight2+offset << ")" << endl;
+
+    PeakDetect::markBogeyLongGap(* pit->peakPtr, * npit->peakPtr,
+        "Marking");
 
     // Fill out cars.
     cars.emplace_back(CarDetect());
