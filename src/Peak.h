@@ -9,6 +9,22 @@
 using namespace std;
 
 
+enum WheelType
+{
+  WHEEL_LEFT = 0,
+  WHEEL_RIGHT = 1,
+  WHEEL_ONLY = 2,
+  WHEEL_SIZE = 3
+};
+
+enum BogeyType
+{
+  BOGEY_LEFT = 0,
+  BOGEY_RIGHT = 1,
+  BOGEY_SIZE = 2
+};
+
+
 class Peak
 {
   private:
@@ -63,6 +79,9 @@ class Peak
 
     bool selectFlag;
     bool seedFlag;
+
+    bool wheelFlag;
+    WheelType wheelSide;
 
 
     void deviation(
@@ -139,7 +158,12 @@ class Peak
     bool isSelected() const;
 
     void setSeed();
+    void unsetSeed();
     bool isSeed() const;
+
+    void markWheel(const WheelType wheelType);
+
+    bool greatQuality() const;
 
     bool similarGradient(
       const Peak& p1,

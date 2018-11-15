@@ -1299,6 +1299,22 @@ void PeakDetect::guessDistance(
 }
 
 
+void PeakDetect::markWheelPair(
+  Peak& p1,
+  Peak& p2,
+  const string& text) const
+{
+  cout << text << " wheel pair at " << p1.getIndex() + offset <<
+    "-" << p2.getIndex() + offset << "\n";
+    
+  p1.setSeed();
+  p2.setSeed();
+
+  p1.markWheel(WHEEL_LEFT);
+  p2.markWheel(WHEEL_RIGHT);
+}
+
+
 void PeakDetect::reduceNewer()
 {
   // Mark some tall peaks as seeds.
@@ -1395,10 +1411,8 @@ void PeakDetect::reduceNewer()
     pa.quality = pa.peakPtr->getQualityPeak();
     pa.qualityShape = pa.peakPtr->getQualityShape();
 
-    if (! pa.tallFlag)
-      continue;
-    
-    cout << pa.peakPtr->strQuality(offset);
+    if (pa.tallFlag)
+      cout << pa.peakPtr->strQuality(offset);
   }
   cout << endl;
 
@@ -1410,30 +1424,20 @@ void PeakDetect::reduceNewer()
       cout << peak.strQuality(offset);
   }
 
-  // Prune peaks that deviate too much.
-  // Add other peaks that are as good.
+  // Modify selection based on quality.
   for (auto& pa: peaksAnnot)
   {
-    if (pa.tallFlag)
+    if (pa.peakPtr->greatQuality())
     {
-      if (pa.quality > 0.3f && pa.qualityShape > 0.20f)
-      {
-cout << "Removing tallFlag from " << 
-  pa.peakPtr->getIndex()+offset << endl;
-        pa.tallFlag = false;
-      }
-    }
-    else if (pa.quality <= 0.3f)
-    {
-cout << "Adding tallFlag to " << 
-  pa.peakPtr->getIndex()+offset << endl;
+cout << "Adding tallFlag to " << pa.peakPtr->getIndex()+offset << endl;
       pa.tallFlag = true;
+      pa.peakPtr->setSeed();
     }
-    else if (pa.qualityShape <= 0.20f)
+    else if (pa.tallFlag && ! pa.peakPtr->greatQuality())
     {
-cout << "Adding tallFlag(shape) to " << 
-  pa.peakPtr->getIndex()+offset << endl;
-      pa.tallFlag = true;
+cout << "Removing tallFlag from " << pa.peakPtr->getIndex()+offset << endl;
+      pa.tallFlag = false;
+      pa.peakPtr->unsetSeed();
     }
   }
 

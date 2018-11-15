@@ -198,21 +198,6 @@ class PeakDetect
   // Peaks between abutting interval lists tend to be large and thus
   // to be "real" peaks.
 
-  enum WheelType
-  {
-    WHEEL_LEFT = 0,
-    WHEEL_RIGHT = 1,
-    WHEEL_ONLY = 2,
-    WHEEL_SIZE = 3
-  };
-
-  enum BogeyType
-  {
-    BOGEY_LEFT = 0,
-    BOGEY_RIGHT = 1,
-    BOGEY_SIZE = 2
-  };
-
   struct PeakEntry
   {
     Peak * peakPtr;
@@ -367,6 +352,11 @@ class PeakDetect
       unsigned& count) const;
 
     unsigned countWheels(const vector<PeakEntry>& peaksAnnot) const;
+
+    void markWheelPair(
+      Peak& p1,
+      Peak& p2,
+      const string& text) const;
 
     void printCarStats(const string& text) const;
 

@@ -45,6 +45,9 @@ void Peak::reset()
 
   selectFlag = false;
   seedFlag = false;
+
+  wheelFlag = false;
+  wheelSide = WHEEL_SIZE;
 }
 
 
@@ -313,9 +316,29 @@ void Peak::setSeed()
 }
 
 
+void Peak::unsetSeed()
+{
+  seedFlag = false;
+}
+
+
 bool Peak::isSeed() const
 {
   return seedFlag;
+}
+
+
+void Peak::markWheel(const WheelType wheelType)
+{
+  wheelFlag = true;
+  wheelSide = wheelType;
+}
+
+
+bool Peak::greatQuality() const
+{
+  // TODO #define
+  return (qualityPeak <= 0.3f || qualityShape <= 0.2f);
 }
 
 
