@@ -1365,26 +1365,6 @@ void PeakDetect::reduceNewer()
   if (np == 0)
     THROW(ERR_NO_PEAKS, "No tall peaks");
 
-  for (auto& pa: peaksAnnot)
-  {
-    auto pt = pa.peakPtr;
-    auto npt = pa.nextPeakPtr;
-    if (npt == nullptr)
-      continue;
-
-    // pa.sharp.index = pt->getIndex();
-    pa.sharp.level = pt->getValue();
-    pa.sharp.range1 = pt->getRange();
-    pa.sharp.grad1 = 10.f * pt->getGradient();
-    pa.sharp.range2 = npt->getRange();
-    pa.sharp.grad2 = 10.f * npt->getGradient();
-
-    if (pa.sharp.range2 != 0.f)
-      pa.sharp.rangeRatio = pa.sharp.range1 / pa.sharp.range2; 
-    if (pa.sharp.grad2 != 0.f)
-      pa.sharp.gradRatio = pa.sharp.grad1 / pa.sharp.grad2; 
-  }
-
   Peak altTallSize;
   unsigned count = 0;
   for (auto& peak: peaks)
