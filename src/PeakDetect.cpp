@@ -1479,9 +1479,13 @@ cout << "Guessing wheel distance " << wheelDistLower << "-" <<
         pit->wheelSide = WHEEL_LEFT;
         npit->wheelFlag = true;
         npit->wheelSide = WHEEL_RIGHT;
-        numBogeys++;
-cout << "Marking bogey at " << pit->peakPtr->getIndex()+offset << "-" <<
-  npit->peakPtr->getIndex()+offset << endl;
+
+        PeakDetect::markWheelPair(* pit->peakPtr, * npit->peakPtr, 
+          "Marking");
+
+        // numBogeys++;
+// cout << "Marking bogey at " << pit->peakPtr->getIndex()+offset << "-" <<
+  // npit->peakPtr->getIndex()+offset << endl;
       }
     }
   }
@@ -1505,10 +1509,10 @@ cout << "Marking bogey at " << pit->peakPtr->getIndex()+offset << "-" <<
 
       if (npit->qualityShape <= 0.75f)
       {
-cout << "Adding " <<
-  npit->peakPtr->getIndex()+offset << 
-  " as partner to " << 
-  pit->peakPtr->getIndex()+offset << endl;
+// cout << "Adding " <<
+  // npit->peakPtr->getIndex()+offset << 
+  // " as partner to " << 
+  // pit->peakPtr->getIndex()+offset << endl;
         
         npit->tallFlag = true;
         
@@ -1516,7 +1520,11 @@ cout << "Adding " <<
         pit->wheelSide = WHEEL_LEFT;
         npit->wheelFlag = true;
         npit->wheelSide = WHEEL_RIGHT;
-        numBogeys++;
+
+        PeakDetect::markWheelPair(* pit->peakPtr, * npit->peakPtr, 
+          "Adding");
+
+        // numBogeys++;
       }
     }
     else if (! pit->tallFlag && npit->tallFlag)
@@ -1529,10 +1537,10 @@ cout << "Adding " <<
 
       if (pit->qualityShape <= 0.75f)
       {
-cout << "Adding " <<
-  pit->peakPtr->getIndex()+offset << 
-  " as partner to " << 
-  npit->peakPtr->getIndex()+offset << endl;
+// cout << "Adding " <<
+  // pit->peakPtr->getIndex()+offset << 
+  // " as partner to " << 
+  // npit->peakPtr->getIndex()+offset << endl;
         
         pit->tallFlag = true;
         
@@ -1540,7 +1548,11 @@ cout << "Adding " <<
         pit->wheelSide = WHEEL_LEFT;
         npit->wheelFlag = true;
         npit->wheelSide = WHEEL_RIGHT;
-        numBogeys++;
+
+        PeakDetect::markWheelPair(* pit->peakPtr, * npit->peakPtr, 
+          "Adding");
+
+        // numBogeys++;
       }
     }
   }
@@ -1589,6 +1601,26 @@ cout << "Adding " <<
     }
 
   }
+
+  list<Peak> altTallSizes;
+  altTallSizes.resize(2);
+
+  unsigned countLeft = 0, countRight = 0;
+  for (auto& peak: peaks)
+  {
+    if (peak.isLeftWheel())
+    {
+      altTallSizes.front() += peak;
+      countLeft++;
+    }
+    else if (peak.isRightWheel())
+    {
+      altTallSizes.back() += peak;
+      countRight++;
+    }
+  }
+  altTallSizes.front() /= countLeft;
+  altTallSizes.back() /= countRight;
 
   Sharp tallLeftSize, tallRightSize;
 
@@ -1653,6 +1685,16 @@ cout << "Adding " <<
   cout << tallRightSize.str(offset);
   cout << endl;
 
+  cout << "ALT tall left scale" << endl;
+  cout << altTallSizes.front().strHeaderSum();
+  cout << altTallSizes.front().strSum(offset);
+  cout << endl;
+
+  cout << "ALT tall right scale" << endl;
+  cout << altTallSizes.back().strHeaderSum();
+  cout << altTallSizes.back().strSum(offset);
+  cout << endl;
+
 
   // Recalibrate the peak qualities.
   cout << "Refined peak qualities:\n";
@@ -1660,25 +1702,14 @@ cout << "Adding " <<
   for (auto& pa: peaksAnnot)
   {
     if (! pa.wheelFlag)
-    {
-      const float distLeft = pa.sharp.distToScale(tallLeftSize);
-      const float distRight = pa.sharp.distToScale(tallRightSize);
-      pa.quality = min(distLeft, distRight);
-
-      const float distQLeft = pa.sharp.distToScaleQ(tallLeftSize);
-      const float distQRight = pa.sharp.distToScaleQ(tallRightSize);
-      pa.qualityShape = min(distQLeft, distQRight);
-    }
+      pa.peakPtr->calcQualities(altTallSizes);
     else if (pa.wheelSide == WHEEL_LEFT)
-    {
-      pa.quality = pa.sharp.distToScale(tallLeftSize);
-      pa.qualityShape = pa.sharp.distToScaleQ(tallLeftSize);
-    }
+      pa.peakPtr->calcQualities(altTallSizes.front());
     else if (pa.wheelSide == WHEEL_RIGHT)
-    {
-      pa.quality = pa.sharp.distToScale(tallRightSize);
-      pa.qualityShape = pa.sharp.distToScaleQ(tallRightSize);
-    }
+      pa.peakPtr->calcQualities(altTallSizes.back());
+
+    pa.quality = pa.peakPtr->getQualityPeak();
+    pa.qualityShape = pa.peakPtr->getQualityShape();
 
     cout << pa.sharp.strQ(pa.peakPtr->getIndex(),
       pa.quality, pa.qualityShape, offset);

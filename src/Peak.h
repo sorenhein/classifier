@@ -1,7 +1,7 @@
 #ifndef TRAIN_PEAK_H
 #define TRAIN_PEAK_H
 
-#include <vector>
+#include <list>
 #include <string>
 
 #include "struct.h"
@@ -132,6 +132,7 @@ class Peak
     void annotate(const Peak * peakPrev);
 
     void calcQualities(const Peak& scale);
+    void calcQualities(const list<Peak>& scales);
 
     float distance(
       const Peak& p2,
@@ -162,6 +163,9 @@ class Peak
     bool isSeed() const;
 
     void markWheel(const WheelType wheelType);
+
+    bool isLeftWheel() const;
+    bool isRightWheel() const;
 
     bool greatQuality() const;
 

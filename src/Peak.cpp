@@ -210,6 +210,27 @@ void Peak::calcQualities(const Peak& scale)
 }
 
 
+void Peak::calcQualities(const list<Peak>& scales)
+{
+  float distPeakMin = numeric_limits<float>::max();
+  float distShapeMin = numeric_limits<float>::max();
+
+  for (auto& scale: scales)
+  {
+    const float dPeak = Peak::calcQualityPeak(scale);
+    if (dPeak < distPeakMin)
+      distPeakMin = dPeak;
+
+    const float dShape = Peak::calcQualityShape(scale);
+    if (dShape < distShapeMin)
+      distShapeMin = dShape;
+  }
+
+  qualityPeak = distPeakMin;
+  qualityShape = distShapeMin;
+}
+
+
 unsigned Peak::getIndex() const
 {
   return index;
@@ -332,6 +353,18 @@ void Peak::markWheel(const WheelType wheelType)
 {
   wheelFlag = true;
   wheelSide = wheelType;
+}
+
+
+bool Peak::isLeftWheel() const
+{
+  return (wheelFlag && wheelSide == WHEEL_LEFT);
+}
+
+
+bool Peak::isRightWheel() const
+{
+  return (wheelFlag && wheelSide == WHEEL_RIGHT);
 }
 
 
