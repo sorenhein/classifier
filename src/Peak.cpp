@@ -381,6 +381,13 @@ bool Peak::greatQuality() const
 }
 
 
+bool Peak::acceptableQuality() const
+{
+  // TODO #define
+  return (qualityShape <= 0.75f);
+}
+
+
 bool Peak::similarGradient(
   const Peak& p1,
   const Peak& p2) const

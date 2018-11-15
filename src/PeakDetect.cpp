@@ -1504,6 +1504,7 @@ cout << "Guessing wheel distance " << wheelDistLower << "-" <<
         continue;
 
       if (npit->qualityShape <= 0.75f)
+      // if (npit->peakPtr->acceptableQuality())
       {
         npit->tallFlag = true;
         
@@ -1527,6 +1528,7 @@ cout << "Guessing wheel distance " << wheelDistLower << "-" <<
         continue;
 
       if (pit->qualityShape <= 0.75f)
+      // if (pit->peakPtr->acceptableQuality())
       {
         pit->tallFlag = true;
         
@@ -1589,7 +1591,11 @@ cout << "Guessing wheel distance " << wheelDistLower << "-" <<
 
     cout << pa.peakPtr->strQuality(offset);
 
-    pa.tallFlag = pa.peakPtr->greatQuality();
+    if (pa.peakPtr->greatQuality())
+    {
+      pa.tallFlag = true;
+      pa.peakPtr->setSeed();
+    }
   }
 
   // Redo the distances.
@@ -1611,13 +1617,13 @@ cout << "Guessing new wheel distance " << wheelDistLowerNew << "-" <<
     if (pit->peakPtr->isWheel())
       continue;
 
-    if (pit->tallFlag && npit->tallFlag)
+    if (pit->peakPtr->isSeed() && npit->peakPtr->isSeed())
     {
       const unsigned dist = 
         npit->peakPtr->getIndex() - pit->peakPtr->getIndex();
       if (dist >= wheelDistLowerNew && dist <= wheelDistUpperNew)
       {
-        if (pit->wheelFlag)
+        if (pit->peakPtr->isWheel())
           THROW(ERR_NO_PEAKS, "Triple bogey?!");
 
         pit->wheelFlag = true;

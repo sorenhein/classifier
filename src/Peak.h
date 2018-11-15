@@ -169,6 +169,7 @@ class Peak
     bool isWheel() const;
 
     bool greatQuality() const;
+    bool acceptableQuality() const;
 
     bool similarGradient(
       const Peak& p1,
