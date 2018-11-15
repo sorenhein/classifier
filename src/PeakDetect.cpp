@@ -783,6 +783,13 @@ void PeakDetect::fixThreeWheels(
   peaksAnnot[peakIndices[p2]].wheelFlag = true;
   peaksAnnot[peakIndices[p2]].wheelSide = WHEEL_RIGHT;
 
+  peaksAnnot[peakIndices[p0]].peakPtr->markWheel(WHEEL_RIGHT);
+
+  PeakDetect::markWheelPair(
+    * peaksAnnot[peakIndices[p1]].peakPtr,
+    * peaksAnnot[peakIndices[p2]].peakPtr,
+    "");
+
   peaksAnnot[peakIndices[p0]].peakPtr->markBogey(BOGEY_LEFT);
   peaksAnnot[peakIndices[p1]].peakPtr->markBogey(BOGEY_RIGHT);
   peaksAnnot[peakIndices[p2]].peakPtr->markBogey(BOGEY_RIGHT);
@@ -814,6 +821,16 @@ void PeakDetect::fixFourWheels(
 
   peaksAnnot[peakIndices[p3]].wheelFlag = true;
   peaksAnnot[peakIndices[p3]].wheelSide = WHEEL_RIGHT;
+
+  PeakDetect::markWheelPair(
+    * peaksAnnot[peakIndices[p0]].peakPtr,
+    * peaksAnnot[peakIndices[p1]].peakPtr,
+    "");
+
+  PeakDetect::markWheelPair(
+    * peaksAnnot[peakIndices[p2]].peakPtr,
+    * peaksAnnot[peakIndices[p3]].peakPtr,
+    "");
 
   peaksAnnot[peakIndices[p0]].peakPtr->markBogey(BOGEY_LEFT);
   peaksAnnot[peakIndices[p1]].peakPtr->markBogey(BOGEY_LEFT);
