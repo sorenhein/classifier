@@ -1537,11 +1537,6 @@ cout << "Guessing wheel distance " << wheelDistLower << "-" <<
 
       if (pit->qualityShape <= 0.75f)
       {
-// cout << "Adding " <<
-  // pit->peakPtr->getIndex()+offset << 
-  // " as partner to " << 
-  // npit->peakPtr->getIndex()+offset << endl;
-        
         pit->tallFlag = true;
         
         pit->wheelFlag = true;
@@ -1551,55 +1546,8 @@ cout << "Guessing wheel distance " << wheelDistLower << "-" <<
 
         PeakDetect::markWheelPair(* pit->peakPtr, * npit->peakPtr, 
           "Adding");
-
-        // numBogeys++;
       }
     }
-  }
-
-  // Find the average first and second peak in a wheel pair.
-  vector<float> values1, 
-    rangesLeft1, 
-    rangesRight1, 
-    gradLeft1, 
-    gradRight1;
-  vector<float> values2, 
-    rangesLeft2, 
-    rangesRight2, 
-    gradLeft2, 
-    gradRight2;
-  for (auto& pa: peaksAnnot)
-  {
-    auto pt = pa.peakPtr;
-    auto npt = pa.nextPeakPtr;
-    if (npt == nullptr)
-      continue;
-
-    if (! pa.tallFlag)
-      continue;
-
-    if (! pa.wheelFlag)
-      continue;
-
-    if (pa.wheelSide == WHEEL_LEFT)
-    {
-      values1.push_back(pt->getValue());
-      rangesLeft1.push_back(pt->getRange());
-      gradLeft1.push_back(10.f * pt->getGradient());
-
-      rangesRight1.push_back(npt->getRange());
-      gradRight1.push_back(10.f * npt->getGradient());
-    }
-    else if (pa.wheelSide == WHEEL_RIGHT)
-    {
-      values2.push_back(pt->getValue());
-      rangesLeft2.push_back(pt->getRange());
-      gradLeft2.push_back(10.f * pt->getGradient());
-
-      rangesRight2.push_back(npt->getRange());
-      gradRight2.push_back(10.f * npt->getGradient());
-    }
-
   }
 
   list<Peak> altTallSizes;
@@ -1622,69 +1570,6 @@ cout << "Guessing wheel distance " << wheelDistLower << "-" <<
   altTallSizes.front() /= countLeft;
   altTallSizes.back() /= countRight;
 
-  Sharp tallLeftSize, tallRightSize;
-
-  const unsigned nvm1 = values1.size() / 2;
-  if (nvm1 == 0)
-    THROW(ERR_NO_PEAKS, "No left wheels?");
-
-  nth_element(values1.begin(), values1.begin() + nvm1, values1.end());
-  tallLeftSize.level = values1[nvm1];
-
-  nth_element(rangesLeft1.begin(), rangesLeft1.begin() + nvm1, 
-    rangesLeft1.end());
-  tallLeftSize.range1 = rangesLeft1[nvm1];
-
-  nth_element(gradLeft1.begin(), gradLeft1.begin() + nvm1, gradLeft1.end());
-  tallLeftSize.grad1 = gradLeft1[nvm1];
-
-  nth_element(rangesRight1.begin(), rangesRight1.begin() + nvm1, 
-    rangesRight1.end());
-  tallLeftSize.range2 = rangesRight1[nvm1];
-
-  nth_element(gradRight1.begin(), gradRight1.begin() + nvm1, gradRight1.end());
-  tallLeftSize.grad2 = gradRight1[nvm1];
-
-  if (tallLeftSize.range2 != 0.f)
-    tallLeftSize.rangeRatio = tallLeftSize.range1 / tallLeftSize.range2;
-  if (tallLeftSize.grad2 != 0.f)
-    tallLeftSize.gradRatio = tallLeftSize.grad1 / tallLeftSize.grad2;
-
-  // Print scale.
-  cout << "Tall left scale" << endl;
-  cout << tallLeftSize.strHeader();
-  cout << tallLeftSize.str(offset);
-  cout << endl;
-
-  const unsigned nvm2 = values2.size() / 2;
-  nth_element(values2.begin(), values2.begin() + nvm2, values2.end());
-  tallRightSize.level = values2[nvm2];
-
-  nth_element(rangesLeft2.begin(), rangesLeft2.begin() + nvm2, 
-    rangesLeft2.end());
-  tallRightSize.range1 = rangesLeft2[nvm2];
-
-  nth_element(gradLeft2.begin(), gradLeft2.begin() + nvm2, gradLeft2.end());
-  tallRightSize.grad1 = gradLeft2[nvm2];
-
-  nth_element(rangesRight2.begin(), rangesRight2.begin() + nvm2, 
-    rangesRight2.end());
-  tallRightSize.range2 = rangesRight2[nvm2];
-
-  nth_element(gradRight2.begin(), gradRight2.begin() + nvm2, gradRight2.end());
-  tallRightSize.grad2 = gradRight2[nvm2];
-
-  if (tallRightSize.range2 != 0.f)
-    tallRightSize.rangeRatio = tallRightSize.range1 / tallRightSize.range2;
-  if (tallRightSize.grad2 != 0.f)
-    tallRightSize.gradRatio = tallRightSize.grad1 / tallRightSize.grad2;
-
-  // Print scale.
-  cout << "Tall right scale" << endl;
-  cout << tallRightSize.strHeader();
-  cout << tallRightSize.str(offset);
-  cout << endl;
-
   cout << "ALT tall left scale" << endl;
   cout << altTallSizes.front().strHeaderSum();
   cout << altTallSizes.front().strSum(offset);
@@ -1698,7 +1583,7 @@ cout << "Guessing wheel distance " << wheelDistLower << "-" <<
 
   // Recalibrate the peak qualities.
   cout << "Refined peak qualities:\n";
-  cout << tallLeftSize.strHeaderQ();
+  cout << altTallSizes.front().strHeaderQuality();
   for (auto& pa: peaksAnnot)
   {
     if (! pa.wheelFlag)
