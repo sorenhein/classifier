@@ -32,7 +32,6 @@ class PeakDetect
     Peak * nextPeakPtr;
     Peak * nextLargePeakPtr;
     Peak * prevLargePeakPtr;
-    bool tallFlag;
     float quality; // Always >= 0, low is good
     float qualityShape; // Always >= 0, low is good
 

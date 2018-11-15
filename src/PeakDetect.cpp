@@ -874,7 +874,7 @@ bool PeakDetect::findCars(
     const unsigned index = peaksAnnot[i].peakPtr->getIndex();
     if (index >= start && index <= end)
     {
-      if (! peaksAnnot[i].tallFlag)
+      if (! peaksAnnot[i].peakPtr->isSeed())
       {
         notTallFlag = true;
         notTallNos.push_back(peakNos.size());
@@ -1003,7 +1003,7 @@ cout << "Fell through to " << startLocal+offset << "-" << endLocal+offset << end
     const unsigned index = peaksAnnot[i].peakPtr->getIndex();
     if (index >= startLocal && index <= endLocal)
     {
-      if (! peaksAnnot[i].tallFlag)
+      if (! peaksAnnot[i].peakPtr->isSeed())
       {
         notTallFlag = true;
         notTallNos.push_back(peakNos.size());
@@ -1181,7 +1181,7 @@ cout << "Failed the car: " << np << "\n";
 cout << "Trying 3-peak leading car\n";
     // The first car, only three peaks.
     if (notTallCount == 1 && 
-      ! peaksAnnot[peakIndices[0]].tallFlag)
+      ! peaksAnnot[peakIndices[0]].peakPtr->isSeed())
     {
 cout << "Two talls\n";
       // Skip the first peak.
@@ -1271,7 +1271,7 @@ bool PeakDetect::bothTall(
   const PeakEntry& pe1,
   const PeakEntry& pe2) const
 {
-  return (pe1.tallFlag && pe2.tallFlag);
+  return (pe1.peakPtr->isSeed() && pe2.peakPtr->isSeed());
 }
 
 
@@ -1372,8 +1372,6 @@ void PeakDetect::reduceNewer()
     pe.wheelFlag = false;
     pe.wheelSide = WHEEL_SIZE;
     pe.bogeySide = BOGEY_SIZE;
-
-    pe.tallFlag = pit->isSeed();
   }
 
   for (auto pit = peaksAnnot.begin(); pit != peaksAnnot.end(); pit++)
@@ -1416,7 +1414,7 @@ void PeakDetect::reduceNewer()
     pa.quality = pa.peakPtr->getQualityPeak();
     pa.qualityShape = pa.peakPtr->getQualityShape();
 
-    if (pa.tallFlag)
+    if (pa.peakPtr->isSeed())
       cout << pa.peakPtr->strQuality(offset);
   }
   cout << endl;
@@ -1435,13 +1433,11 @@ void PeakDetect::reduceNewer()
     if (pa.peakPtr->greatQuality())
     {
 cout << "Adding tallFlag to " << pa.peakPtr->getIndex()+offset << endl;
-      pa.tallFlag = true;
       pa.peakPtr->setSeed();
     }
-    else if (pa.tallFlag && ! pa.peakPtr->greatQuality())
+    else if (pa.peakPtr->isSeed() && ! pa.peakPtr->greatQuality())
     {
 cout << "Removing tallFlag from " << pa.peakPtr->getIndex()+offset << endl;
-      pa.tallFlag = false;
       pa.peakPtr->unsetSeed();
     }
   }
@@ -1499,7 +1495,7 @@ cout << "Guessing wheel distance " << wheelDistLower << "-" <<
     pit++)
   {
     auto npit = next(pit);
-    if (pit->tallFlag && ! npit->tallFlag)
+    if (pit->peakPtr->isSeed() && ! npit->peakPtr->isSeed())
     {
       const unsigned dist = 
         npit->peakPtr->getIndex() - pit->peakPtr->getIndex();
@@ -1510,7 +1506,7 @@ cout << "Guessing wheel distance " << wheelDistLower << "-" <<
       if (npit->qualityShape <= 0.75f)
       // if (npit->peakPtr->acceptableQuality())
       {
-        npit->tallFlag = true;
+        npit->peakPtr->setSeed();
         
         pit->wheelFlag = true;
         pit->wheelSide = WHEEL_LEFT;
@@ -1523,7 +1519,7 @@ cout << "Guessing wheel distance " << wheelDistLower << "-" <<
         // numBogeys++;
       }
     }
-    else if (! pit->tallFlag && npit->tallFlag)
+    if (! pit->peakPtr->isSeed() && npit->peakPtr->isSeed())
     {
       const unsigned dist = 
         npit->peakPtr->getIndex() - pit->peakPtr->getIndex();
@@ -1534,7 +1530,7 @@ cout << "Guessing wheel distance " << wheelDistLower << "-" <<
       if (pit->qualityShape <= 0.75f)
       // if (pit->peakPtr->acceptableQuality())
       {
-        pit->tallFlag = true;
+        pit->peakPtr->setSeed();
         
         pit->wheelFlag = true;
         pit->wheelSide = WHEEL_LEFT;
@@ -1596,10 +1592,7 @@ cout << "Guessing wheel distance " << wheelDistLower << "-" <<
     cout << pa.peakPtr->strQuality(offset);
 
     if (pa.peakPtr->greatQuality())
-    {
-      pa.tallFlag = true;
       pa.peakPtr->setSeed();
-    }
   }
 
   // Redo the distances.
@@ -1736,7 +1729,7 @@ cout << "Adding " <<
     while (npit != peaksAnnot.end() && 
         npit->wheelSide != WHEEL_LEFT &&
         npit->wheelSide != WHEEL_RIGHT &&
-        ! npit->tallFlag)
+        ! npit->peakPtr->isSeed())
     {
       npit = next(npit);
     }
