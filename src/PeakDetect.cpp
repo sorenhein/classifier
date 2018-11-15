@@ -1461,18 +1461,18 @@ cout << "Guessing wheel distance " << wheelDistLower << "-" <<
   // Tentatively mark wheel pairs (bogeys).  If there are only 
   // single wheels, we might be marking the wagon gaps instead.
 
-  unsigned numBogeys = 0;
   for (auto pit = peaksAnnot.begin(); pit != prev(peaksAnnot.end());
     pit++)
   {
     auto npit = next(pit);
-    if (pit->tallFlag && npit->tallFlag)
+    if (pit->peakPtr->isSeed() && npit->peakPtr->isSeed())
     {
       const unsigned dist = 
         npit->peakPtr->getIndex() - pit->peakPtr->getIndex();
       if (dist >= wheelDistLower && dist <= wheelDistUpper)
       {
-        if (pit->wheelFlag)
+        // if (pit->wheelFlag)
+        if (pit->peakPtr->isWheel())
           THROW(ERR_NO_PEAKS, "Triple bogey?!");
 
         pit->wheelFlag = true;
@@ -1482,10 +1482,6 @@ cout << "Guessing wheel distance " << wheelDistLower << "-" <<
 
         PeakDetect::markWheelPair(* pit->peakPtr, * npit->peakPtr, 
           "Marking");
-
-        // numBogeys++;
-// cout << "Marking bogey at " << pit->peakPtr->getIndex()+offset << "-" <<
-  // npit->peakPtr->getIndex()+offset << endl;
       }
     }
   }
@@ -1509,11 +1505,6 @@ cout << "Guessing wheel distance " << wheelDistLower << "-" <<
 
       if (npit->qualityShape <= 0.75f)
       {
-// cout << "Adding " <<
-  // npit->peakPtr->getIndex()+offset << 
-  // " as partner to " << 
-  // pit->peakPtr->getIndex()+offset << endl;
-        
         npit->tallFlag = true;
         
         pit->wheelFlag = true;
@@ -1596,24 +1587,15 @@ cout << "Guessing wheel distance " << wheelDistLower << "-" <<
     pa.quality = pa.peakPtr->getQualityPeak();
     pa.qualityShape = pa.peakPtr->getQualityShape();
 
-    cout << pa.sharp.strQ(pa.peakPtr->getIndex(),
-      pa.quality, pa.qualityShape, offset);
+    cout << pa.peakPtr->strQuality(offset);
 
-    if (pa.quality <= 0.3f || pa.qualityShape <= 0.20f)
-      pa.tallFlag = true;
-    else
-      pa.tallFlag = false;
+    pa.tallFlag = pa.peakPtr->greatQuality();
   }
 
   // Redo the distances.
-
-  unsigned wheelDistLowerNew, wheelDistUpperNew;
-  unsigned whcountNew;
-
+  unsigned wheelDistLowerNew, wheelDistUpperNew, whcountNew;
   PeakDetect::guessDistance(peaksAnnot, &PeakDetect::bothTall,
     wheelDistLowerNew, wheelDistUpperNew, whcountNew);
-
-
 
   // Could be zero
 cout << "Guessing new wheel distance " << wheelDistLowerNew << "-" <<
@@ -1626,7 +1608,7 @@ cout << "Guessing new wheel distance " << wheelDistLowerNew << "-" <<
   {
     auto npit = next(pit);
     // Already paired up?
-    if (pit->wheelFlag || npit->wheelFlag)
+    if (pit->peakPtr->isWheel())
       continue;
 
     if (pit->tallFlag && npit->tallFlag)
@@ -1642,9 +1624,10 @@ cout << "Guessing new wheel distance " << wheelDistLowerNew << "-" <<
         pit->wheelSide = WHEEL_LEFT;
         npit->wheelFlag = true;
         npit->wheelSide = WHEEL_RIGHT;
-        numBogeys++;
-cout << "Marking new bogey at " << pit->peakPtr->getIndex()+offset << "-" <<
-  npit->peakPtr->getIndex()+offset << endl;
+
+        PeakDetect::markWheelPair(* pit->peakPtr, * npit->peakPtr, 
+          "Marking new");
+
       }
     }
   }

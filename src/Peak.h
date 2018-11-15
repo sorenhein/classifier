@@ -166,6 +166,7 @@ class Peak
 
     bool isLeftWheel() const;
     bool isRightWheel() const;
+    bool isWheel() const;
 
     bool greatQuality() const;
 

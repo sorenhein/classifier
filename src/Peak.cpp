@@ -368,6 +368,12 @@ bool Peak::isRightWheel() const
 }
 
 
+bool Peak::isWheel() const
+{
+  return wheelFlag;
+}
+
+
 bool Peak::greatQuality() const
 {
   // TODO #define
