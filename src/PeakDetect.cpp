@@ -1411,7 +1411,6 @@ void PeakDetect::reduceNewer()
   for (auto& pa: peaksAnnot)
   {
     pa.peakPtr->calcQualities(altTallSize);
-    pa.quality = pa.peakPtr->getQualityPeak();
     pa.qualityShape = pa.peakPtr->getQualityShape();
 
     if (pa.peakPtr->isSeed())
@@ -1586,7 +1585,6 @@ cout << "Guessing wheel distance " << wheelDistLower << "-" <<
     else if (pa.wheelSide == WHEEL_RIGHT)
       pa.peakPtr->calcQualities(altTallSizes.back());
 
-    pa.quality = pa.peakPtr->getQualityPeak();
     pa.qualityShape = pa.peakPtr->getQualityShape();
 
     cout << pa.peakPtr->strQuality(offset);
