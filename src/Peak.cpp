@@ -358,6 +358,13 @@ void Peak::markWheel(const WheelType wheelType)
 }
 
 
+void Peak::markNoWheel()
+{
+  wheelFlag = false;
+  wheelSide = WHEEL_SIZE;
+}
+
+
 bool Peak::isLeftWheel() const
 {
   return (wheelFlag && wheelSide == WHEEL_LEFT);

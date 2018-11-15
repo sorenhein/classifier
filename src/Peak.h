@@ -164,6 +164,7 @@ class Peak
     bool isSeed() const;
 
     void markWheel(const WheelType wheelType);
+    void markNoWheel();
     bool isLeftWheel() const;
     bool isRightWheel() const;
     bool isWheel() const;

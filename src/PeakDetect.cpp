@@ -744,12 +744,6 @@ void PeakDetect::fixTwoWheels(
   const unsigned p1) const
 {
   // Assume the two rightmost wheels, as the front ones were lost.
-  peaksAnnot[peakIndices[p0]].wheelFlag = true;
-  peaksAnnot[peakIndices[p0]].wheelSide = WHEEL_LEFT;
-
-  peaksAnnot[peakIndices[p1]].wheelFlag = true;
-  peaksAnnot[peakIndices[p1]].wheelSide = WHEEL_RIGHT;
-
   PeakDetect::markWheelPair(
     * peaksAnnot[peakIndices[p0]].peakPtr,
     * peaksAnnot[peakIndices[p1]].peakPtr,
@@ -761,7 +755,7 @@ void PeakDetect::fixTwoWheels(
   for (unsigned i = 0; i < peakIndices.size(); i++)
   {
     if (i != p0 && i != p1)
-      peaksAnnot[peakIndices[i]].wheelFlag = false;
+      peaksAnnot[peakIndices[i]].peakPtr->markNoWheel();
   }
 }
 
@@ -774,15 +768,6 @@ void PeakDetect::fixThreeWheels(
   const unsigned p2) const
 {
   // Assume the two rightmost wheels, as the front one was lost.
-  peaksAnnot[peakIndices[p0]].wheelFlag = true;
-  peaksAnnot[peakIndices[p0]].wheelSide = WHEEL_RIGHT;
-
-  peaksAnnot[peakIndices[p1]].wheelFlag = true;
-  peaksAnnot[peakIndices[p1]].wheelSide = WHEEL_LEFT;
-
-  peaksAnnot[peakIndices[p2]].wheelFlag = true;
-  peaksAnnot[peakIndices[p2]].wheelSide = WHEEL_RIGHT;
-
   peaksAnnot[peakIndices[p0]].peakPtr->markWheel(WHEEL_RIGHT);
 
   PeakDetect::markWheelPair(
@@ -797,7 +782,7 @@ void PeakDetect::fixThreeWheels(
   for (unsigned i = 0; i < peakIndices.size(); i++)
   {
     if (i != p0 && i != p1 && i != p2)
-      peaksAnnot[peakIndices[i]].wheelFlag = false;
+      peaksAnnot[peakIndices[i]].peakPtr->markNoWheel();
   }
 }
 
@@ -810,18 +795,6 @@ void PeakDetect::fixFourWheels(
   const unsigned p2,
   const unsigned p3) const
 {
-  peaksAnnot[peakIndices[p0]].wheelFlag = true;
-  peaksAnnot[peakIndices[p0]].wheelSide = WHEEL_LEFT;
-
-  peaksAnnot[peakIndices[p1]].wheelFlag = true;
-  peaksAnnot[peakIndices[p1]].wheelSide = WHEEL_RIGHT;
-
-  peaksAnnot[peakIndices[p2]].wheelFlag = true;
-  peaksAnnot[peakIndices[p2]].wheelSide = WHEEL_LEFT;
-
-  peaksAnnot[peakIndices[p3]].wheelFlag = true;
-  peaksAnnot[peakIndices[p3]].wheelSide = WHEEL_RIGHT;
-
   PeakDetect::markWheelPair(
     * peaksAnnot[peakIndices[p0]].peakPtr,
     * peaksAnnot[peakIndices[p1]].peakPtr,
@@ -840,7 +813,7 @@ void PeakDetect::fixFourWheels(
   for (unsigned i = 0; i < peakIndices.size(); i++)
   {
     if (i != p0 && i != p1 && i != p2 && i != p3)
-      peaksAnnot[peakIndices[i]].wheelFlag = false;
+      peaksAnnot[peakIndices[i]].peakPtr->markNoWheel();
   }
 }
 
@@ -1257,7 +1230,7 @@ unsigned PeakDetect::countWheels(const vector<PeakEntry>& peaksAnnot) const
   unsigned count = 0;
   for (auto& p: peaksAnnot)
   {
-    if (p.wheelFlag)
+    if (p.peakPtr->isWheel())
       count++;
   }
   return count;
@@ -1295,7 +1268,7 @@ bool PeakDetect::areBogeyGap(
   const PeakEntry& pe1,
   const PeakEntry& pe2) const
 {
-  return (pe1.wheelSide == WHEEL_RIGHT && pe2.wheelSide == WHEEL_LEFT);
+  return (pe1.peakPtr->isRightWheel() && pe2.peakPtr->isLeftWheel());
 }
 
 
@@ -1398,9 +1371,6 @@ void PeakDetect::reduceNewer()
     pe.peakPtr = &*pit;
     pe.nextPeakPtr = &*npit;
     pit->logNextPeak(&*npit);
-
-    pe.wheelFlag = false;
-    pe.wheelSide = WHEEL_SIZE;
   }
 
   for (auto pit = peaksAnnot.begin(); pit != peaksAnnot.end(); pit++)
@@ -1502,11 +1472,6 @@ cout << "Guessing wheel distance " << wheelDistLower << "-" <<
         if (pit->peakPtr->isWheel())
           THROW(ERR_NO_PEAKS, "Triple bogey?!");
 
-        pit->wheelFlag = true;
-        pit->wheelSide = WHEEL_LEFT;
-        npit->wheelFlag = true;
-        npit->wheelSide = WHEEL_RIGHT;
-
         PeakDetect::markWheelPair(* pit->peakPtr, * npit->peakPtr, 
           "Marking");
       }
@@ -1534,15 +1499,8 @@ cout << "Guessing wheel distance " << wheelDistLower << "-" <<
       {
         npit->peakPtr->setSeed();
         
-        pit->wheelFlag = true;
-        pit->wheelSide = WHEEL_LEFT;
-        npit->wheelFlag = true;
-        npit->wheelSide = WHEEL_RIGHT;
-
         PeakDetect::markWheelPair(* pit->peakPtr, * npit->peakPtr, 
           "Adding");
-
-        // numBogeys++;
       }
     }
     if (! pit->peakPtr->isSeed() && npit->peakPtr->isSeed())
@@ -1557,11 +1515,6 @@ cout << "Guessing wheel distance " << wheelDistLower << "-" <<
       {
         pit->peakPtr->setSeed();
         
-        pit->wheelFlag = true;
-        pit->wheelSide = WHEEL_LEFT;
-        npit->wheelFlag = true;
-        npit->wheelSide = WHEEL_RIGHT;
-
         PeakDetect::markWheelPair(* pit->peakPtr, * npit->peakPtr, 
           "Adding");
       }
@@ -1604,11 +1557,11 @@ cout << "Guessing wheel distance " << wheelDistLower << "-" <<
   cout << altTallSizes.front().strHeaderQuality();
   for (auto& pa: peaksAnnot)
   {
-    if (! pa.wheelFlag)
+    if (! pa.peakPtr->isWheel())
       pa.peakPtr->calcQualities(altTallSizes);
-    else if (pa.wheelSide == WHEEL_LEFT)
+    else if (pa.peakPtr->isLeftWheel())
       pa.peakPtr->calcQualities(altTallSizes.front());
-    else if (pa.wheelSide == WHEEL_RIGHT)
+    else if (pa.peakPtr->isRightWheel())
       pa.peakPtr->calcQualities(altTallSizes.back());
 
     cout << pa.peakPtr->strQuality(offset);
@@ -1645,14 +1598,8 @@ cout << "Guessing new wheel distance " << wheelDistLowerNew << "-" <<
         if (pit->peakPtr->isWheel())
           THROW(ERR_NO_PEAKS, "Triple bogey?!");
 
-        pit->wheelFlag = true;
-        pit->wheelSide = WHEEL_LEFT;
-        npit->wheelFlag = true;
-        npit->wheelSide = WHEEL_RIGHT;
-
         PeakDetect::markWheelPair(* pit->peakPtr, * npit->peakPtr, 
           "Marking new");
-
       }
     }
   }
@@ -1674,7 +1621,7 @@ cout << "Guessing short gap " << shortGapLower << "-" <<
     pit++)
   {
     auto npit = next(pit);
-    if (pit->wheelSide != WHEEL_RIGHT || npit->wheelSide != WHEEL_LEFT)
+    if (! pit->peakPtr->isRightWheel() || ! npit->peakPtr->isLeftWheel())
       continue;
 
     const unsigned dist = 
@@ -1694,7 +1641,7 @@ cout << "Guessing short gap " << shortGapLower << "-" <<
     pit++)
   {
     auto npit = next(pit);
-    if (pit->wheelSide == WHEEL_RIGHT && npit->wheelSide != WHEEL_LEFT)
+    if (pit->peakPtr->isRightWheel() && ! npit->peakPtr->isLeftWheel())
     {
       const unsigned dist = 
         npit->peakPtr->getIndex() - pit->peakPtr->getIndex();
@@ -1712,7 +1659,7 @@ cout << "Adding " <<
         npit->peakPtr->markBogey(BOGEY_LEFT);
       }
     }
-    else if (pit->wheelSide != WHEEL_RIGHT && npit->wheelSide == WHEEL_LEFT)
+    else if (! pit->peakPtr->isRightWheel() && npit->peakPtr->isLeftWheel())
     {
       const unsigned dist = 
         npit->peakPtr->getIndex() - pit->peakPtr->getIndex();
@@ -1738,21 +1685,20 @@ cout << "Adding " <<
   for (auto pit = peaksAnnot.begin(); pit != prev(peaksAnnot.end());
     pit++)
   {
-    if (pit->wheelSide != WHEEL_RIGHT || pit->peakPtr->isBogey())
+    if (! pit->peakPtr->isRightWheel() || pit->peakPtr->isBogey())
       continue;
 
     auto npit = next(pit);
     while (npit != peaksAnnot.end() && 
-        npit->wheelSide != WHEEL_LEFT &&
-        npit->wheelSide != WHEEL_RIGHT &&
+        ! npit->peakPtr->isLeftWheel() &&
+        ! npit->peakPtr->isRightWheel() &&
         ! npit->peakPtr->isSeed())
     {
       npit = next(npit);
     }
 
 
-    if (npit == peaksAnnot.end() || 
-        npit->wheelSide != WHEEL_LEFT)
+    if (npit == peaksAnnot.end() || ! npit->peakPtr->isLeftWheel())
       continue;
 
     dists.push_back(
@@ -1779,19 +1725,18 @@ cout << "Guessing long gap " << longGapLower << "-" <<
   for (auto pit = peaksAnnot.begin(); pit != prev(peaksAnnot.end());
     pit++)
   {
-    if (pit->wheelSide != WHEEL_RIGHT || pit->peakPtr->isBogey())
+    if (! pit->peakPtr->isRightWheel()|| pit->peakPtr->isBogey())
       continue;
 
     auto npit = next(pit);
     while (npit != peaksAnnot.end() && 
-        npit->wheelSide != WHEEL_LEFT &&
-        npit->wheelSide != WHEEL_RIGHT)
+        ! npit->peakPtr->isLeftWheel() &&
+        ! npit->peakPtr->isRightWheel())
     {
       npit = next(npit);
     }
 
-    if (npit == peaksAnnot.end() || 
-        npit->wheelSide == WHEEL_RIGHT)
+    if (npit == peaksAnnot.end() || npit->peakPtr->isRightWheel())
       continue;
 
     const unsigned posLeft1 = pit->prevLargePeakPtr->getIndex();
@@ -1977,7 +1922,7 @@ cout << "Did intra-gap " << cars[ii].endValue()+offset << "-" <<
   // Put peaks in the global list.
   for (auto& p: peaksAnnot)
   {
-    if (p.wheelFlag)
+    if (p.peakPtr->isWheel())
       p.peakPtr->select();
   }
 

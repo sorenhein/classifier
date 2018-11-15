@@ -32,9 +32,6 @@ class PeakDetect
     Peak * nextPeakPtr;
     Peak * nextLargePeakPtr;
     Peak * prevLargePeakPtr;
-
-    bool wheelFlag;
-    WheelType wheelSide;
   };
 
   typedef bool (PeakDetect::*PeakFncPtr)(
