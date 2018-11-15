@@ -29,7 +29,6 @@ class PeakDetect
   struct PeakEntry
   {
     Peak * peakPtr;
-    Peak * nextPeakPtr;
     Peak * nextLargePeakPtr;
     Peak * prevLargePeakPtr;
   };

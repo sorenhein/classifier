@@ -1369,7 +1369,6 @@ void PeakDetect::reduceNewer()
     PeakEntry& pe = peaksAnnot.back();
 
     pe.peakPtr = &*pit;
-    pe.nextPeakPtr = &*npit;
     pit->logNextPeak(&*npit);
   }
 
