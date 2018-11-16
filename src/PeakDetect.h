@@ -33,8 +33,18 @@ class PeakDetect
     Peak * prevLargePeakPtr;
   };
 
+  struct Gap
+  {
+    unsigned lower;
+    unsigned upper;
+    unsigned count;
+  };
+
   typedef bool (PeakDetect::*PeakFncPtr)(
     const PeakEntry& pe1, const PeakEntry& pe2) const;
+
+  typedef bool (PeakDetect::*CandFncPtr)(
+    const Peak * p1, const Peak * p2) const;
 
 
     unsigned len;
@@ -79,6 +89,11 @@ class PeakDetect
       unsigned& lower,
       unsigned& upper,
       unsigned& counted,
+      const unsigned lowerCount = 0) const;
+
+    void findFirstSize(
+      const vector<unsigned>& dists,
+      Gap& gap,
       const unsigned lowerCount = 0) const;
 
     float getFirstPeakTime() const;
@@ -158,6 +173,10 @@ class PeakDetect
       const PeakEntry& pe1,
       const PeakEntry& pe2) const;
 
+    bool bothSeed(
+      const Peak * p1,
+      const Peak * p2) const;
+
     bool areBogeyGap(
       const PeakEntry& pe1,
       const PeakEntry& pe2) const;
@@ -168,6 +187,11 @@ class PeakDetect
       unsigned& distLower,
       unsigned& distUpper,
       unsigned& count) const;
+
+    void guessDistance(
+      const list<Peak *>& candidates,
+      const CandFncPtr fptr,
+      Gap& gap) const;
 
     unsigned countWheels(const vector<PeakEntry>& peaksAnnot) const;
 

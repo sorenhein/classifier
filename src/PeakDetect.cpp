@@ -470,6 +470,16 @@ void PeakDetect::estimateScales()
 
 void PeakDetect::findFirstSize(
   const vector<unsigned>& dists,
+  Gap& gap,
+  const unsigned lowerCount) const
+{
+  PeakDetect::findFirstSize(dists,
+    gap.lower, gap.upper, gap.count, lowerCount);
+}
+
+
+void PeakDetect::findFirstSize(
+  const vector<unsigned>& dists,
   unsigned& lower,
   unsigned& upper,
   unsigned& counted,
@@ -1264,6 +1274,14 @@ bool PeakDetect::bothTall(
 }
 
 
+bool PeakDetect::bothSeed(
+  const Peak * p1,
+  const Peak * p2) const
+{
+  return (p1->isSeed() && p2->isSeed());
+}
+
+
 bool PeakDetect::areBogeyGap(
   const PeakEntry& pe1,
   const PeakEntry& pe2) const
@@ -1294,6 +1312,28 @@ void PeakDetect::guessDistance(
 
   sort(dists.begin(), dists.end());
   PeakDetect::findFirstSize(dists, distLower, distUpper, count);
+}
+
+
+void PeakDetect::guessDistance(
+  const list<Peak *>& candidates,
+  const CandFncPtr fptr,
+  Gap& gap) const
+{
+  // Make list of distances between neighbors for which fptr
+  // evaluates to true.
+
+  vector<unsigned> dists;
+  for (auto pit = candidates.begin(); pit != prev(candidates.end()); pit++)
+  {
+    auto npit = next(pit);
+    if ((this->* fptr)(* pit, * npit))
+      dists.push_back(
+        (*npit)->getIndex() - (*pit)->getIndex());
+  }
+
+  sort(dists.begin(), dists.end());
+  PeakDetect::findFirstSize(dists, gap);
 }
 
 
@@ -1354,11 +1394,8 @@ void PeakDetect::reduceNewer()
   list<Peak *> candidates;
 
   // Note which peaks are tall.
-
   for (auto pit = peaks.begin(); pit != peaks.end(); pit++)
   {
-    // Only want the negative minima here.
-    // if (pit->getValue() >= 0.f || pit->getMaxFlag())
     if (! pit->isCandidate())
       continue;
 
@@ -1394,95 +1431,93 @@ void PeakDetect::reduceNewer()
   if (np == 0)
     THROW(ERR_NO_PEAKS, "No tall peaks");
 
-  Peak altTallSize;
+  Peak candidateSize;
   unsigned count = 0;
-  // for (auto& peak: peaks)
   for (auto candidate: candidates)
   {
-    // if (peak.isSeed())
     if (candidate->isSeed())
     {
-      altTallSize += * candidate;
+      candidateSize += * candidate;
       count++;
     }
   }
-  altTallSize /= count;
+  candidateSize /= count;
 
-  cout << "ALT tall scale" << endl;
-  cout << altTallSize.strHeaderSum();
-  cout << altTallSize.strSum(offset);
+  // Use this as a first yardstick.
+  for (auto candidate: candidates)
+    candidate->calcQualities(candidateSize);
+
+
+  cout << "All negative minima\n";
+  cout << candidateSize.strHeaderQuality();
+  for (auto candidate: candidates)
+    cout << candidate->strQuality(offset);
   cout << endl;
 
-  // Look at the "tall" peaks.
-  cout << "Tall peaks\n";
-  cout << peaks.front().strHeaderQuality();
-  for (auto& pa: peaksAnnot)
-  {
-    pa.peakPtr->calcQualities(altTallSize);
+  cout << "Single seed scale" << endl;
+  cout << candidateSize.strHeaderSum();
+  cout << candidateSize.strSum(offset);
+  cout << endl;
 
-    if (pa.peakPtr->isSeed())
-      cout << pa.peakPtr->strQuality(offset);
+  cout << "Seeds\n";
+  cout << candidateSize.strHeaderQuality();
+  for (auto candidate: candidates)
+  {
+    if (candidate->isSeed())
+      cout << candidate->strQuality(offset);
   }
   cout << endl;
 
-  cout << "All peaks\n";
-  cout << peaks.front().strHeaderQuality();
-  for (auto& peak: peaks)
-  {
-    if (peak.isCandidate())
-      cout << peak.strQuality(offset);
-  }
 
   // Modify selection based on quality.
-  for (auto& peak: peaks)
+  for (auto candidate: candidates)
   {
-    if (peak.greatQuality())
+    if (candidate->greatQuality())
     {
-cout << "Adding tallFlag to " << peak.getIndex() + offset << endl;
-      peak.setSeed();
+      candidate->setSeed();
+      cout << "Adding tallFlag to " << 
+        candidate->getIndex() + offset << endl;
     }
     else
     {
-cout << "Removing tallFlag from " << peak.getIndex() + offset << endl;
-      peak.unsetSeed();
+      candidate->unsetSeed();
+      cout << "Removing tallFlag from " << 
+        candidate->getIndex() + offset << endl;
     }
   }
+  cout << "\n";
 
-  cout << "Selected peaks\n";
-  cout << peaks.front().strHeaderQuality();
-  for (auto& peak: peaks)
+  cout << "Great-quality seeds\n";
+  cout << candidateSize.strHeaderQuality();
+  for (auto candidate: candidates)
   {
-    if (peak.isSeed())
-      cout << peak.strQuality(offset);
+    if (candidate->isSeed())
+      cout << candidate->strQuality(offset);
   }
+  cout << endl;
 
-  unsigned wheelDistLower, wheelDistUpper;
-  unsigned whcount;
 
-  PeakDetect::guessDistance(peaksAnnot, &PeakDetect::bothTall,
-    wheelDistLower, wheelDistUpper, whcount);
+  Gap wheelGap;
+  PeakDetect::guessDistance(candidates, &PeakDetect::bothSeed, wheelGap);
 
-cout << "Guessing wheel distance " << wheelDistLower << "-" <<
-  wheelDistUpper << endl;
+  cout << "Guessing wheel distance " << wheelGap.lower << "-" <<
+    wheelGap.upper << endl;
 
   // Tentatively mark wheel pairs (bogeys).  If there are only 
   // single wheels, we might be marking the wagon gaps instead.
-
-  for (auto pit = peaksAnnot.begin(); pit != prev(peaksAnnot.end());
-    pit++)
+  for (auto cit = candidates.begin(); cit != prev(candidates.end()); cit++)
   {
-    auto npit = next(pit);
-    if (pit->peakPtr->isSeed() && npit->peakPtr->isSeed())
+    Peak * cand = * cit;
+    Peak * nextCand = * next(cit);
+    if (PeakDetect::bothSeed(cand, nextCand))
     {
-      const unsigned dist = 
-        npit->peakPtr->getIndex() - pit->peakPtr->getIndex();
-      if (dist >= wheelDistLower && dist <= wheelDistUpper)
+      const unsigned dist = nextCand->getIndex() - cand->getIndex();
+      if (dist >= wheelGap.lower && dist <= wheelGap.upper)
       {
-        if (pit->peakPtr->isWheel())
+        if (cand->isWheel())
           THROW(ERR_NO_PEAKS, "Triple bogey?!");
 
-        PeakDetect::markWheelPair(* pit->peakPtr, * npit->peakPtr, 
-          "Marking");
+        PeakDetect::markWheelPair(* cand, * nextCand, "Marking");
       }
     }
   }
@@ -1501,7 +1536,7 @@ cout << "Guessing wheel distance " << wheelDistLower << "-" <<
       const unsigned dist = 
         npit->peakPtr->getIndex() - pit->peakPtr->getIndex();
 
-      if (dist < wheelDistLower || dist > wheelDistUpper)
+      if (dist < wheelGap.lower || dist > wheelGap.upper)
         continue;
 
       if (npit->peakPtr->acceptableQuality())
@@ -1517,7 +1552,7 @@ cout << "Guessing wheel distance " << wheelDistLower << "-" <<
       const unsigned dist = 
         npit->peakPtr->getIndex() - pit->peakPtr->getIndex();
 
-      if (dist < wheelDistLower || dist > wheelDistUpper)
+      if (dist < wheelGap.lower || dist > wheelGap.upper)
         continue;
 
       if (pit->peakPtr->acceptableQuality())
@@ -1811,14 +1846,7 @@ cout << "\nMarking long gap at " <<
     else
     {
       cout << "Could not fill out any limits: " <<
-        leftGap << ", " << rightGap << 
-        ", " << p0 << ", " << p1 << endl;
-      if (p0 != nullptr)
-      {
-        cout << "p0 " << p0->getIndex() << endl;
-        if (nnpit == peaksAnnot.end())
-          cout << "nnpit is at end()" << endl;
-      }
+        leftGap << ", " << rightGap << endl;
     }
 
 cout << "Marking car: " << car.strLimits(offset) << endl;
