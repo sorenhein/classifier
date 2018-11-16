@@ -133,7 +133,7 @@ class Peak
     void annotate(const Peak * peakPrev);
 
     void calcQualities(const Peak& scale);
-    void calcQualities(const list<Peak>& scales);
+    void calcQualities(const vector<Peak>& scales);
 
     float distance(
       const Peak& p2,

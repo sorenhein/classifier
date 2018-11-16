@@ -1431,36 +1431,37 @@ void PeakDetect::reduceNewer()
   if (np == 0)
     THROW(ERR_NO_PEAKS, "No tall peaks");
 
-  Peak candidateSize;
-  unsigned count = 0;
+  // Will need one later on for each wheel/bogey combination.
+  vector<Peak> candidateSize(1);
+  vector<unsigned> candidateCount(1);
   for (auto candidate: candidates)
   {
     if (candidate->isSeed())
     {
-      candidateSize += * candidate;
-      count++;
+      candidateSize[0] += * candidate;
+      candidateCount[0]++;
     }
   }
-  candidateSize /= count;
+  candidateSize[0] /= candidateCount[0];
 
   // Use this as a first yardstick.
   for (auto candidate: candidates)
-    candidate->calcQualities(candidateSize);
+    candidate->calcQualities(candidateSize[0]);
 
 
   cout << "All negative minima\n";
-  cout << candidateSize.strHeaderQuality();
+  cout << candidateSize[0].strHeaderQuality();
   for (auto candidate: candidates)
     cout << candidate->strQuality(offset);
   cout << endl;
 
   cout << "Single seed scale" << endl;
-  cout << candidateSize.strHeaderSum();
-  cout << candidateSize.strSum(offset);
+  cout << candidateSize[0].strHeaderSum();
+  cout << candidateSize[0].strSum(offset);
   cout << endl;
 
   cout << "Seeds\n";
-  cout << candidateSize.strHeaderQuality();
+  cout << candidateSize[0].strHeaderQuality();
   for (auto candidate: candidates)
   {
     if (candidate->isSeed())
@@ -1488,7 +1489,7 @@ void PeakDetect::reduceNewer()
   cout << "\n";
 
   cout << "Great-quality seeds\n";
-  cout << candidateSize.strHeaderQuality();
+  cout << candidateSize[0].strHeaderQuality();
   for (auto candidate: candidates)
   {
     if (candidate->isSeed())
@@ -1541,48 +1542,49 @@ void PeakDetect::reduceNewer()
       PeakDetect::markWheelPair(* cand, * nextCand, "Adding");
   }
 
-  list<Peak> altTallSizes;
-  altTallSizes.resize(2);
-
-  unsigned countLeft = 0, countRight = 0;
-  for (auto& peak: peaks)
+  candidateSize.clear();
+  candidateSize.resize(2);
+  candidateCount.clear();
+  candidateCount.resize(2);
+  for (auto candidate: candidates)
   {
-    if (peak.isLeftWheel())
+    if (candidate->isLeftWheel())
     {
-      altTallSizes.front() += peak;
-      countLeft++;
+      candidateSize[0] += * candidate;
+      candidateCount[0]++;
     }
-    else if (peak.isRightWheel())
+    else if (candidate->isRightWheel())
     {
-      altTallSizes.back() += peak;
-      countRight++;
+      candidateSize[1] += * candidate;
+      candidateCount[1]++;
     }
   }
-  altTallSizes.front() /= countLeft;
-  altTallSizes.back() /= countRight;
+  candidateSize[0] /= candidateCount[0];
+  candidateSize[1] /= candidateCount[1];
 
-  cout << "ALT tall left scale" << endl;
-  cout << altTallSizes.front().strHeaderSum();
-  cout << altTallSizes.front().strSum(offset);
+
+  cout << "Left-wheel scale" << endl;
+  cout << candidateSize[0].strHeaderSum();
+  cout << candidateSize[0].strSum();
   cout << endl;
 
-  cout << "ALT tall right scale" << endl;
-  cout << altTallSizes.back().strHeaderSum();
-  cout << altTallSizes.back().strSum(offset);
+  cout << "Right-wheel scale" << endl;
+  cout << candidateSize[1].strHeaderSum();
+  cout << candidateSize[1].strSum();
   cout << endl;
 
 
   // Recalibrate the peak qualities.
   cout << "Refined peak qualities:\n";
-  cout << altTallSizes.front().strHeaderQuality();
+  cout << candidateSize[0].strHeaderQuality();
   for (auto& pa: peaksAnnot)
   {
     if (! pa.peakPtr->isWheel())
-      pa.peakPtr->calcQualities(altTallSizes);
+      pa.peakPtr->calcQualities(candidateSize);
     else if (pa.peakPtr->isLeftWheel())
-      pa.peakPtr->calcQualities(altTallSizes.front());
+      pa.peakPtr->calcQualities(candidateSize[0]);
     else if (pa.peakPtr->isRightWheel())
-      pa.peakPtr->calcQualities(altTallSizes.back());
+      pa.peakPtr->calcQualities(candidateSize[1]);
 
     cout << pa.peakPtr->strQuality(offset);
 

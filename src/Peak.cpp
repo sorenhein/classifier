@@ -212,7 +212,7 @@ void Peak::calcQualities(const Peak& scale)
 }
 
 
-void Peak::calcQualities(const list<Peak>& scales)
+void Peak::calcQualities(const vector<Peak>& scales)
 {
   float distPeakMin = numeric_limits<float>::max();
   float distShapeMin = numeric_limits<float>::max();
