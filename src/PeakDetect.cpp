@@ -1290,6 +1290,14 @@ bool PeakDetect::areBogeyGap(
 }
 
 
+bool PeakDetect::formBogeyGap(
+  const Peak * p1,
+  const Peak * p2) const
+{
+  return (p1->isRightWheel() && p2->isLeftWheel());
+}
+
+
 void PeakDetect::guessDistance(
   const vector<PeakEntry>& peaksAnnot, 
   const PeakFncPtr fptr,
@@ -1624,15 +1632,13 @@ void PeakDetect::reduceNewer()
 
 
   // Look for inter-car short gaps.
-  unsigned shortGapLower, shortGapUpper;
-  unsigned shcount;
+  Gap shortGap;
+  PeakDetect::guessDistance(candidates, &PeakDetect::formBogeyGap, 
+    shortGap);
 
-  PeakDetect::guessDistance(peaksAnnot, &PeakDetect::areBogeyGap,
-    shortGapLower, shortGapUpper, shcount);
+  cout << "Guessing short gap " << shortGap.lower << "-" <<
+    shortGap.upper << endl;
 
-  // Could be zero
-cout << "Guessing short gap " << shortGapLower << "-" <<
-  shortGapUpper << endl;
 
   // Tentatively mark short gaps (between cars).
 
@@ -1645,7 +1651,7 @@ cout << "Guessing short gap " << shortGapLower << "-" <<
 
     const unsigned dist = 
       npit->peakPtr->getIndex() - pit->peakPtr->getIndex();
-    if (dist >= shortGapLower && dist <= shortGapUpper)
+    if (dist >= shortGap.lower && dist <= shortGap.upper)
     {
       PeakDetect::markBogeyShortGap(* pit->peakPtr, * npit->peakPtr,
         "Marking");
@@ -1665,7 +1671,7 @@ cout << "Guessing short gap " << shortGapLower << "-" <<
       const unsigned dist = 
         npit->peakPtr->getIndex() - pit->peakPtr->getIndex();
 
-      if (dist < shortGapLower || dist > shortGapUpper)
+      if (dist < shortGap.lower || dist > shortGap.upper)
         continue;
 
       if (npit->peakPtr->greatQuality())
@@ -1683,7 +1689,7 @@ cout << "Adding " <<
       const unsigned dist = 
         npit->peakPtr->getIndex() - pit->peakPtr->getIndex();
 
-      if (dist < shortGapLower || dist > shortGapUpper)
+      if (dist < shortGap.lower || dist > shortGap.upper)
         continue;
 
       if (pit->peakPtr->greatQuality())
@@ -1732,7 +1738,7 @@ cout << "Adding " <<
   unsigned longGapLower, longGapUpper;
   unsigned lcount;
   PeakDetect::findFirstSize(dists, longGapLower, longGapUpper,
-    lcount, shcount / 2);
+    lcount, shortGap.count / 2);
   // Could be zero
 cout << "Guessing long gap " << longGapLower << "-" <<
   longGapUpper << endl;
