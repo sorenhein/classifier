@@ -185,6 +185,10 @@ class PeakDetect
       const Peak * p1,
       const Peak * p2) const;
 
+    bool formOpenBogeyGap(
+      const Peak * p1,
+      const Peak * p2) const;
+
     void guessDistance(
       const vector<PeakEntry>& peaksAnnot,
       const PeakFncPtr fptr,

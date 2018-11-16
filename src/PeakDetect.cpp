@@ -1298,6 +1298,14 @@ bool PeakDetect::formBogeyGap(
 }
 
 
+bool PeakDetect::formOpenBogeyGap(
+  const Peak * p1,
+  const Peak * p2) const
+{
+  return (p1->isRightWheel() && p2->isLeftWheel() && ! p1->isBogey());
+}
+
+
 void PeakDetect::guessDistance(
   const vector<PeakEntry>& peaksAnnot, 
   const PeakFncPtr fptr,
@@ -1677,6 +1685,15 @@ void PeakDetect::reduceNewer()
 
 
   // Look for smallest large gaps.
+
+  // Gap longGap;
+  // PeakDetect::guessDistance(candidates, &PeakDetect::formOpenBogeyGap, 
+    // longGap);
+
+  // cout << "Guessing long gap " << longGap.lower << "-" <<
+    // longGap.upper << endl;
+
+
   vector<unsigned> dists;
 
   for (auto pit = peaksAnnot.begin(); pit != prev(peaksAnnot.end());
