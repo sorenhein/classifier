@@ -1522,47 +1522,23 @@ void PeakDetect::reduceNewer()
     }
   }
 
-
   // Look for unpaired wheels where there is a nearby peak that is
-  // not too bad.
-  // TODO There could be a spurious peak in between.
-
-  for (auto pit = peaksAnnot.begin(); pit != prev(peaksAnnot.end());
-    pit++)
+  // not too bad.  If there is a spurious peak in between, we'll fail...
+  for (auto cit = candidates.begin(); cit != prev(candidates.end()); cit++)
   {
-    auto npit = next(pit);
-    if (pit->peakPtr->isSeed() && ! npit->peakPtr->isSeed())
-    {
-      const unsigned dist = 
-        npit->peakPtr->getIndex() - pit->peakPtr->getIndex();
+    Peak * cand = * cit;
+    Peak * nextCand = * next(cit);
+    // If neither is set, or both are set, there is nothing to repair.
+    if (cand->isSeed() == nextCand->isSeed())
+      continue;
 
-      if (dist < wheelGap.lower || dist > wheelGap.upper)
-        continue;
+    const unsigned dist = nextCand->getIndex() - cand->getIndex();
+    if (dist < wheelGap.lower || dist > wheelGap.upper)
+      continue;
 
-      if (npit->peakPtr->acceptableQuality())
-      {
-        npit->peakPtr->setSeed();
-        
-        PeakDetect::markWheelPair(* pit->peakPtr, * npit->peakPtr, 
-          "Adding");
-      }
-    }
-    if (! pit->peakPtr->isSeed() && npit->peakPtr->isSeed())
-    {
-      const unsigned dist = 
-        npit->peakPtr->getIndex() - pit->peakPtr->getIndex();
-
-      if (dist < wheelGap.lower || dist > wheelGap.upper)
-        continue;
-
-      if (pit->peakPtr->acceptableQuality())
-      {
-        pit->peakPtr->setSeed();
-        
-        PeakDetect::markWheelPair(* pit->peakPtr, * npit->peakPtr, 
-          "Adding");
-      }
-    }
+    if ((cand->isSeed() && nextCand->acceptableQuality()) ||
+        (nextCand->isSeed() && cand->acceptableQuality()))
+      PeakDetect::markWheelPair(* cand, * nextCand, "Adding");
   }
 
   list<Peak> altTallSizes;
