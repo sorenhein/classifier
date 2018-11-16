@@ -218,6 +218,12 @@ class PeakDetect
       Peak& p2,
       const string& text) const;
 
+    void markSinglePeaks(
+      vector<PeakEntry>& peaksAnnot,
+      list<Peak *>& candidates);
+
+    void markBogeys(list<Peak *>& candidates);
+
     void printScale(
       const Peak& scale,
       const string& text) const;

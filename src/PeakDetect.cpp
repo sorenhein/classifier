@@ -1410,16 +1410,10 @@ void PeakDetect::printScale(
 }
 
 
-void PeakDetect::reduceNewer()
+void PeakDetect::markSinglePeaks(
+  vector<PeakEntry>& peaksAnnot,
+  list<Peak *>& candidates)
 {
-  // Mark some tall peaks as seeds.
-  PeakSeeds seeds;
-  seeds.mark(peaks, offset, scalesList.getRange());
-  cout << seeds.str(offset, "after pruning");
-
-  vector<PeakEntry> peaksAnnot;
-  list<Peak *> candidates;
-
   // Note which peaks are tall.
   for (auto pit = peaks.begin(); pit != peaks.end(); pit++)
   {
@@ -1454,38 +1448,38 @@ void PeakDetect::reduceNewer()
 
   // Find typical sizes of "tall" peaks.
 
-  const unsigned np = peaksAnnot.size();
+  const unsigned np = candidates.size();
   if (np == 0)
     THROW(ERR_NO_PEAKS, "No tall peaks");
 
   // Will need one later on for each wheel/bogey combination.
-  vector<Peak> candidateSize(1);
-  vector<unsigned> candidateCount(1);
+  Peak candidateSize;
+  unsigned candidateCount = 0;
   for (auto candidate: candidates)
   {
     if (candidate->isSeed())
     {
-      candidateSize[0] += * candidate;
-      candidateCount[0]++;
+      candidateSize += * candidate;
+      candidateCount++;
     }
   }
-  candidateSize[0] /= candidateCount[0];
+  candidateSize /= candidateCount;
 
   // Use this as a first yardstick.
   for (auto candidate: candidates)
-    candidate->calcQualities(candidateSize[0]);
+    candidate->calcQualities(candidateSize);
 
 
   cout << "All negative minima\n";
-  cout << candidateSize[0].strHeaderQuality();
+  cout << candidateSize.strHeaderQuality();
   for (auto candidate: candidates)
     cout << candidate->strQuality(offset);
   cout << endl;
 
-  PeakDetect::printScale(candidateSize[0], "Single seed scale");
+  PeakDetect::printScale(candidateSize, "Single seed scale");
 
   cout << "Seeds\n";
-  cout << candidateSize[0].strHeaderQuality();
+  cout << candidateSize.strHeaderQuality();
   for (auto candidate: candidates)
   {
     if (candidate->isSeed())
@@ -1513,15 +1507,18 @@ void PeakDetect::reduceNewer()
   cout << "\n";
 
   cout << "Great-quality seeds\n";
-  cout << candidateSize[0].strHeaderQuality();
+  cout << candidateSize.strHeaderQuality();
   for (auto candidate: candidates)
   {
     if (candidate->isSeed())
       cout << candidate->strQuality(offset);
   }
   cout << endl;
+}
 
 
+void PeakDetect::markBogeys(list<Peak *>& candidates)
+{
   Gap wheelGap;
   PeakDetect::guessDistance(candidates, &PeakDetect::bothSeed, wheelGap);
 
@@ -1566,10 +1563,8 @@ void PeakDetect::reduceNewer()
       PeakDetect::markWheelPair(* cand, * nextCand, "Adding");
   }
 
-  candidateSize.clear();
-  candidateSize.resize(2);
-  candidateCount.clear();
-  candidateCount.resize(2);
+  vector<Peak> candidateSize(2);
+  vector<unsigned> candidateCount(2);
   for (auto candidate: candidates)
   {
     if (candidate->isLeftWheel())
@@ -1607,8 +1602,8 @@ void PeakDetect::reduceNewer()
 
   cout << "All peak qualities using left and right scales:\n";
   cout << candidateSize[0].strHeaderQuality();
-  for (auto& pa: peaksAnnot)
-    cout << pa.peakPtr->strQuality(offset);
+  for (auto cand: candidates)
+    cout << cand->strQuality(offset);
 
 
   // Redo the distances using the new qualities (left and right peaks).
@@ -1637,6 +1632,22 @@ void PeakDetect::reduceNewer()
       }
     }
   }
+}
+
+
+void PeakDetect::reduceNewer()
+{
+  // Mark some tall peaks as seeds.
+  PeakSeeds seeds;
+  seeds.mark(peaks, offset, scalesList.getRange());
+  cout << seeds.str(offset, "after pruning");
+
+  vector<PeakEntry> peaksAnnot;
+  list<Peak *> candidates;
+
+  PeakDetect::markSinglePeaks(peaksAnnot, candidates);
+
+  PeakDetect::markBogeys(candidates);
 
 
   // Look for inter-car short gaps.
