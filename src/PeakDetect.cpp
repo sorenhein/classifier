@@ -1641,21 +1641,17 @@ void PeakDetect::reduceNewer()
 
 
   // Tentatively mark short gaps (between cars).
-
-  for (auto pit = peaksAnnot.begin(); pit != prev(peaksAnnot.end());
-    pit++)
+  for (auto cit = candidates.begin(); cit != prev(candidates.end()); cit++)
   {
-    auto npit = next(pit);
-    if (! pit->peakPtr->isRightWheel() || ! npit->peakPtr->isLeftWheel())
+    Peak * cand = * cit;
+    Peak * nextCand = * next(cit);
+
+    if (! cand->isRightWheel() || ! nextCand->isLeftWheel())
       continue;
 
-    const unsigned dist = 
-      npit->peakPtr->getIndex() - pit->peakPtr->getIndex();
+    const unsigned dist = nextCand->getIndex() - cand->getIndex();
     if (dist >= shortGap.lower && dist <= shortGap.upper)
-    {
-      PeakDetect::markBogeyShortGap(* pit->peakPtr, * npit->peakPtr,
-        "Marking");
-    }
+      PeakDetect::markBogeyShortGap(* cand, * nextCand, "Marking");
   }
 
 
