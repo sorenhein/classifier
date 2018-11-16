@@ -210,6 +210,10 @@ class PeakDetect
       Peak& p2,
       const string& text) const;
 
+    void printScale(
+      const Peak& scale,
+      const string& text) const;
+
     void printCarStats(const string& text) const;
 
     void printCars(

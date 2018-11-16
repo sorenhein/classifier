@@ -1383,6 +1383,17 @@ void PeakDetect::markBogeyLongGap(
 }
 
 
+void PeakDetect::printScale(
+  const Peak& scale,
+  const string& text) const
+{
+  cout << text << "\n";
+  cout << scale.strHeaderSum();
+  cout << scale.strSum(offset);
+  cout << endl;
+}
+
+
 void PeakDetect::reduceNewer()
 {
   // Mark some tall peaks as seeds.
@@ -1455,10 +1466,7 @@ void PeakDetect::reduceNewer()
     cout << candidate->strQuality(offset);
   cout << endl;
 
-  cout << "Single seed scale" << endl;
-  cout << candidateSize[0].strHeaderSum();
-  cout << candidateSize[0].strSum(offset);
-  cout << endl;
+  PeakDetect::printScale(candidateSize[0], "Single seed scale");
 
   cout << "Seeds\n";
   cout << candidateSize[0].strHeaderQuality();
@@ -1562,35 +1570,30 @@ void PeakDetect::reduceNewer()
   candidateSize[0] /= candidateCount[0];
   candidateSize[1] /= candidateCount[1];
 
+  PeakDetect::printScale(candidateSize[0], "Left-wheel scale");
+  PeakDetect::printScale(candidateSize[1], "Right-wheel scale");
 
-  cout << "Left-wheel scale" << endl;
-  cout << candidateSize[0].strHeaderSum();
-  cout << candidateSize[0].strSum();
-  cout << endl;
+  // Recalculate the peak qualities using both left and right peaks.
+  for (auto cand: candidates)
+  {
+    if (! cand->isWheel())
+      cand->calcQualities(candidateSize);
+    else if (cand->isLeftWheel())
+      cand->calcQualities(candidateSize[0]);
+    else if (cand->isRightWheel())
+      cand->calcQualities(candidateSize[1]);
 
-  cout << "Right-wheel scale" << endl;
-  cout << candidateSize[1].strHeaderSum();
-  cout << candidateSize[1].strSum();
-  cout << endl;
+    if (cand->greatQuality())
+      cand->setSeed();
+    else
+      cand->unsetSeed();
+  }
 
-
-  // Recalibrate the peak qualities.
-  cout << "Refined peak qualities:\n";
+  cout << "All peak qualities using left and right scales:\n";
   cout << candidateSize[0].strHeaderQuality();
   for (auto& pa: peaksAnnot)
-  {
-    if (! pa.peakPtr->isWheel())
-      pa.peakPtr->calcQualities(candidateSize);
-    else if (pa.peakPtr->isLeftWheel())
-      pa.peakPtr->calcQualities(candidateSize[0]);
-    else if (pa.peakPtr->isRightWheel())
-      pa.peakPtr->calcQualities(candidateSize[1]);
-
     cout << pa.peakPtr->strQuality(offset);
 
-    if (pa.peakPtr->greatQuality())
-      pa.peakPtr->setSeed();
-  }
 
   // Redo the distances.
   unsigned wheelDistLowerNew, wheelDistUpperNew, whcountNew;
