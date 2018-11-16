@@ -1635,23 +1635,11 @@ void PeakDetect::markBogeys(list<Peak *>& candidates)
 }
 
 
-void PeakDetect::reduceNewer()
+void PeakDetect::markShortGaps(
+  list<Peak *>& candidates,
+  Gap& shortGap)
 {
-  // Mark some tall peaks as seeds.
-  PeakSeeds seeds;
-  seeds.mark(peaks, offset, scalesList.getRange());
-  cout << seeds.str(offset, "after pruning");
-
-  vector<PeakEntry> peaksAnnot;
-  list<Peak *> candidates;
-
-  PeakDetect::markSinglePeaks(peaksAnnot, candidates);
-
-  PeakDetect::markBogeys(candidates);
-
-
   // Look for inter-car short gaps.
-  Gap shortGap;
   PeakDetect::guessDistance(candidates, &PeakDetect::formBogeyGap, 
     shortGap);
 
@@ -1693,6 +1681,25 @@ void PeakDetect::reduceNewer()
         (nextCand->isLeftWheel() && cand->greatQuality()))
       PeakDetect::markBogeyShortGap(* cand, * nextCand, "Marking");
   }
+}
+
+
+void PeakDetect::reduceNewer()
+{
+  // Mark some tall peaks as seeds.
+  PeakSeeds seeds;
+  seeds.mark(peaks, offset, scalesList.getRange());
+  cout << seeds.str(offset, "after pruning");
+
+  vector<PeakEntry> peaksAnnot;
+  list<Peak *> candidates;
+
+  PeakDetect::markSinglePeaks(peaksAnnot, candidates);
+
+  PeakDetect::markBogeys(candidates);
+
+  Gap shortGap;
+  PeakDetect::markShortGaps(candidates, shortGap);
 
 
   // Look for smallest large gaps.

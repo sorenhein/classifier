@@ -224,6 +224,10 @@ class PeakDetect
 
     void markBogeys(list<Peak *>& candidates);
 
+    void markShortGaps(
+      list<Peak *>& candidates,
+      Gap& shortGap);
+
     void printScale(
       const Peak& scale,
       const string& text) const;
