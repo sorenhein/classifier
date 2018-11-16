@@ -1595,39 +1595,33 @@ void PeakDetect::reduceNewer()
     cout << pa.peakPtr->strQuality(offset);
 
 
-  // Redo the distances.
-  unsigned wheelDistLowerNew, wheelDistUpperNew, whcountNew;
-  PeakDetect::guessDistance(peaksAnnot, &PeakDetect::bothTall,
-    wheelDistLowerNew, wheelDistUpperNew, whcountNew);
+  // Redo the distances using the new qualities (left and right peaks).
+  PeakDetect::guessDistance(candidates, &PeakDetect::bothSeed, wheelGap);
+  cout << "Guessing new wheel distance " << wheelGap.lower << "-" <<
+    wheelGap.upper << endl;
 
-  // Could be zero
-cout << "Guessing new wheel distance " << wheelDistLowerNew << "-" <<
-  wheelDistUpperNew << endl;
 
   // Mark more bogeys with the refined peak qualities.
-
-  for (auto pit = peaksAnnot.begin(); pit != prev(peaksAnnot.end());
-    pit++)
+  for (auto cit = candidates.begin(); cit != prev(candidates.end()); cit++)
   {
-    auto npit = next(pit);
-    // Already paired up?
-    if (pit->peakPtr->isWheel())
+    Peak * cand = * cit;
+    if (cand->isWheel())
       continue;
 
-    if (pit->peakPtr->isSeed() && npit->peakPtr->isSeed())
+    Peak * nextCand = * next(cit);
+    if (PeakDetect::bothSeed(cand, nextCand))
     {
-      const unsigned dist = 
-        npit->peakPtr->getIndex() - pit->peakPtr->getIndex();
-      if (dist >= wheelDistLowerNew && dist <= wheelDistUpperNew)
+      const unsigned dist = nextCand->getIndex() - cand->getIndex();
+      if (dist >= wheelGap.lower && dist <= wheelGap.upper)
       {
-        if (pit->peakPtr->isWheel())
+        if (cand->isWheel())
           THROW(ERR_NO_PEAKS, "Triple bogey?!");
 
-        PeakDetect::markWheelPair(* pit->peakPtr, * npit->peakPtr, 
-          "Marking new");
+        PeakDetect::markWheelPair(* cand, * nextCand, "Marking");
       }
     }
   }
+
 
   // Look for inter-car short gaps.
   unsigned shortGapLower, shortGapUpper;
