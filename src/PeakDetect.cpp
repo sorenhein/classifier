@@ -1351,13 +1351,15 @@ void PeakDetect::reduceNewer()
   cout << seeds.str(offset, "after pruning");
 
   vector<PeakEntry> peaksAnnot;
+  list<Peak *> candidates;
 
   // Note which peaks are tall.
 
   for (auto pit = peaks.begin(); pit != peaks.end(); pit++)
   {
     // Only want the negative minima here.
-    if (pit->getValue() >= 0.f || pit->getMaxFlag())
+    // if (pit->getValue() >= 0.f || pit->getMaxFlag())
+    if (! pit->isCandidate())
       continue;
 
     // Exclude tall peaks without a right neighbor.
@@ -1380,6 +1382,12 @@ void PeakDetect::reduceNewer()
       next(pit)->peakPtr);
   }
 
+  for (auto& peak: peaks)
+  {
+    if (peak.isCandidate())
+      candidates.push_back(&peak);
+  }
+
   // Find typical sizes of "tall" peaks.
 
   const unsigned np = peaksAnnot.size();
@@ -1388,11 +1396,13 @@ void PeakDetect::reduceNewer()
 
   Peak altTallSize;
   unsigned count = 0;
-  for (auto& peak: peaks)
+  // for (auto& peak: peaks)
+  for (auto candidate: candidates)
   {
-    if (peak.isSeed())
+    // if (peak.isSeed())
+    if (candidate->isSeed())
     {
-      altTallSize += peak;
+      altTallSize += * candidate;
       count++;
     }
   }
