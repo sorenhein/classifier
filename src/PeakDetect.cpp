@@ -1655,50 +1655,26 @@ void PeakDetect::reduceNewer()
   }
 
 
-  // Look for unpaired short gaps.
-  // TODO There could be a spurious peak in between.
-
-  for (auto pit = peaksAnnot.begin(); pit != prev(peaksAnnot.end());
-    pit++)
+  // Look for unpaired short gaps.  If there is a spurious peak
+  // in between, we will fail.
+  for (auto cit = candidates.begin(); cit != prev(candidates.end()); cit++)
   {
-    auto npit = next(pit);
-    if (pit->peakPtr->isRightWheel() && ! npit->peakPtr->isLeftWheel())
-    {
-      const unsigned dist = 
-        npit->peakPtr->getIndex() - pit->peakPtr->getIndex();
+    Peak * cand = * cit;
+    Peak * nextCand = * next(cit);
 
-      if (dist < shortGap.lower || dist > shortGap.upper)
-        continue;
+    // If neither is set, or both are set, there is nothing to repair.
+    if (cand->isRightWheel() == nextCand->isLeftWheel())
+      continue;
 
-      if (npit->peakPtr->greatQuality())
-      {
-cout << "Adding " <<
-  npit->peakPtr->getIndex()+offset << 
-  " as short-gap left partner to " << 
-  pit->peakPtr->getIndex()+offset << endl;
-        
-        npit->peakPtr->markBogey(BOGEY_LEFT);
-      }
-    }
-    else if (! pit->peakPtr->isRightWheel() && npit->peakPtr->isLeftWheel())
-    {
-      const unsigned dist = 
-        npit->peakPtr->getIndex() - pit->peakPtr->getIndex();
+    const unsigned dist = nextCand->getIndex() - cand->getIndex();
+    if (dist < shortGap.lower || dist > shortGap.upper)
+      continue;
 
-      if (dist < shortGap.lower || dist > shortGap.upper)
-        continue;
-
-      if (pit->peakPtr->greatQuality())
-      {
-cout << "Adding " <<
-  pit->peakPtr->getIndex()+offset << 
-  " as short-gap right partner to " << 
-  npit->peakPtr->getIndex()+offset << endl;
-        
-        npit->peakPtr->markBogey(BOGEY_RIGHT);
-      }
-    }
+    if ((cand->isRightWheel() && nextCand->greatQuality()) ||
+        (nextCand->isLeftWheel() && cand->greatQuality()))
+      PeakDetect::markBogeyShortGap(* cand, * nextCand, "Marking");
   }
+
 
   // Look for smallest large gaps.
   vector<unsigned> dists;
