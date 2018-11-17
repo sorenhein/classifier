@@ -1,5 +1,7 @@
-Moving PeakEntry and Sharp into Peak:
-Keep going.
+PeakDetect around line 1050: Only use peaks of acceptable quality?
+
+
+Tiny gaps between cars due to some kind of rounding?
 
 When printing peaks, at T (tall) as well as L, R, L1, R1, L2, R2
 

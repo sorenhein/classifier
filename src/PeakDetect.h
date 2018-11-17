@@ -111,49 +111,40 @@ class PeakDetect
       const unsigned end,
       const bool leftGapPresent,
       const bool rightGapPresent,
-      const vector<PeakEntry>& peaksAnnot,
       const vector<unsigned>& peakNos,
-      const vector<unsigned>& peakIndices,
+      const vector<Peak *>& peakPtrs,
       CarDetect& car) const;
 
     bool findLastTwoOfFourWheeler(
       const unsigned start,
       const unsigned end,
       const bool rightGapPresent,
-      const vector<PeakEntry>& peaksAnnot,
       const vector<unsigned>& peakNos,
-      const vector<unsigned>& peakIndices,
+      const vector<Peak *>& peakPtrs,
       CarDetect& car) const;
 
     bool findLastThreeOfFourWheeler(
       const unsigned start,
       const unsigned end,
-      const vector<PeakEntry>& peaksAnnot,
       const vector<unsigned>& peakNos,
-      const vector<unsigned>& peakIndices,
+      const vector<Peak *>& peakPtrs,
       CarDetect& car,
       unsigned& numWheels) const;
 
     void fixTwoWheels(
-      vector<PeakEntry>& peaksAnnot,
-      const vector<unsigned>& peakIndices,
-      const unsigned p0,
-      const unsigned p1) const;
+      Peak& p1,
+      Peak& p2) const;
 
     void fixThreeWheels(
-      vector<PeakEntry>& peaksAnnot,
-      const vector<unsigned>& peakIndices,
-      const unsigned p0,
-      const unsigned p1,
-      const unsigned p2) const;
+      Peak& p1,
+      Peak& p2,
+      Peak& p3) const;
 
     void fixFourWheels(
-      vector<PeakEntry>& peaksAnnot,
-      const vector<unsigned>& peakIndices,
-      const unsigned p0,
-      const unsigned p1,
-      const unsigned p2,
-      const unsigned p3) const;
+      Peak& p1,
+      Peak& p2,
+      Peak& p3,
+      Peak& p4) const;
 
     void updateCars(
       vector<CarDetect>& cars,
@@ -164,7 +155,7 @@ class PeakDetect
       const unsigned end,
       const bool leftGapPresent,
       const bool rightGapPresent,
-      vector<PeakEntry>& peaksAnnot,
+      list<Peak *>& candidates,
       vector<CarDetect>& cars);
 
     bool bothTall(
@@ -205,9 +196,7 @@ class PeakDetect
       Peak& p2,
       const string& text) const;
 
-    void markSinglePeaks(
-      vector<PeakEntry>& peaksAnnot,
-      list<Peak *>& candidates);
+    void markSinglePeaks(list<Peak *>& candidates);
 
     void markBogeys(list<Peak *>& candidates);
 

@@ -57,7 +57,8 @@ void PeakMatch::pos2time(
 
 bool PeakMatch::advance(list<PeakWrapper>::const_iterator& peak) const
 {
-  while (peak != peaksWrapped.end() && ! peak->peakPtr->isSelected())
+  // while (peak != peaksWrapped.end() && ! peak->peakPtr->isSelected())
+  while (peak != peaksWrapped.end() && ! peak->peakPtr->isSeed())
     peak++;
   return (peak != peaksWrapped.end());
 }
@@ -97,12 +98,12 @@ double PeakMatch::simpleScore(
     if (d >= 0.)
     {
       dabs = d;
-      peakBest = peak;
+      peakBest = (peak == peaksWrapped.end() ? peakPrev : peak);
     }
     else if (peak == peaksWrapped.end())
     {
       dabs = -d;
-      peakBest = peak;
+      peakBest = peakPrev;
     }
     else
     {
@@ -295,9 +296,7 @@ void PeakMatch::logPeakStats(
   }
 
   // Go through the candidates we've seen (negative minima).  They were 
-  // either mapped to a true peak or not.  Some of the candidates were
-  // selected, so their type is TENTATIVE, TRANS_FRONT or TRANS_BACK.
-  // Some of them weren't, so they still have the default type.
+  // either mapped to a true peak or not.
   vector<unsigned> seenTrue(posTrue.size(), 0);
   unsigned seen = 0;
   for (auto& pw: peaksWrapped)
@@ -308,6 +307,7 @@ void PeakMatch::logPeakStats(
       const int m = pw.match;
       if (m >= 0)
       {
+        // The seen peak was matched to a true peak.
         if (m < PEAKSTATS_END_COUNT)
           peakStats.logSeenHit(PEAK_SEEN_EARLY);
         else if (static_cast<unsigned>(m) + (PEAKSTATS_END_COUNT+1) > lt)
@@ -320,7 +320,9 @@ void PeakMatch::logPeakStats(
       }
       else
       {
+        // The seen peak was not matched to a true peak.
         const unsigned pi = peak.getIndex();
+
         if (pi < trueMatches[0]->getIndex())
           peakStats.logSeenMiss(PEAK_SEEN_TOO_EARLY);
         else if (pi <= trueMatches[PEAKSTATS_END_COUNT]->getIndex())
