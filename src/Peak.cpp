@@ -263,12 +263,6 @@ float Peak::getAreaCum() const
 }
 
 
-float Peak::getGradient() const
-{
-  return left.gradient;
-}
-
-
 float Peak::getRange() const
 {
   return left.range;
@@ -307,17 +301,6 @@ float Peak::getQualityShape() const
 bool Peak::isCandidate() const
 {
   return (! maxFlag && value < 0.f);
-}
-
-
-float Peak::penalty(const float val) const
-{
-  const float a = abs(val);
-  const float v = (a < 1.f ? 1.f / a : a);
-  if (v <= 2.f)
-    return 0.f;
-  else
-    return (v - 2.f) * (v - 2.f);
 }
 
 
@@ -386,6 +369,18 @@ bool Peak::isWheel() const
 void Peak::markBogey(const BogeyType bogeyType)
 {
   bogeySide = bogeyType;
+}
+
+
+bool Peak::isLeftBogey() const
+{
+  return (bogeySide == BOGEY_LEFT);
+}
+
+
+bool Peak::isRightBogey() const
+{
+  return (bogeySide == BOGEY_RIGHT);
 }
 
 

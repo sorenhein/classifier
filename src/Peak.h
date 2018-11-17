@@ -106,8 +106,6 @@ class Peak
     float calcQualityPeak(const Peak& scale) const;
     float calcQualityShape(const Peak& scale) const;
 
-    float penalty(const float val) const;
-
   public:
 
     Peak();
@@ -139,8 +137,6 @@ class Peak
       const Peak& p2,
       const Peak& scale) const;
 
-    float distToScaleQ(const Peak& scale) const;
-
     unsigned getIndex() const;
     double getTime() const;
     bool getMaxFlag() const;
@@ -149,7 +145,6 @@ class Peak
     float getRange() const;
     float getArea() const;
     float getArea(const Peak& p2) const;
-    float getGradient() const;
 
     float getQualityPeak() const;
     float getQualityShape() const;
@@ -170,6 +165,8 @@ class Peak
     bool isWheel() const;
 
     void markBogey(const BogeyType bogeyType);
+    bool isLeftBogey() const;
+    bool isRightBogey() const;
     bool isBogey() const;
 
     bool greatQuality() const;

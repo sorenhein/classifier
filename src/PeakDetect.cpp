@@ -1298,14 +1298,6 @@ bool PeakDetect::formBogeyGap(
 }
 
 
-bool PeakDetect::formOpenBogeyGap(
-  const Peak * p1,
-  const Peak * p2) const
-{
-  return (p1->isRightWheel() && p2->isLeftWheel() && ! p1->isBogey());
-}
-
-
 void PeakDetect::guessDistance(
   const vector<PeakEntry>& peaksAnnot, 
   const PeakFncPtr fptr,
@@ -1684,6 +1676,89 @@ void PeakDetect::markShortGaps(
 }
 
 
+void PeakDetect::markLongGaps(
+  list<Peak *>& candidates,
+  const unsigned shortGapCount)
+{
+  // Look for intra-car (long) gaps.
+  vector<unsigned> dists;
+  for (auto cit = candidates.begin(); cit != prev(candidates.end()); cit++)
+  {
+    Peak * cand = * cit;
+    if (! cand->isRightWheel() || cand->isBogey())
+      continue;
+
+    auto ncit = cit;
+    do
+    {
+      ncit = next(ncit);
+    }
+    while (ncit != candidates.end() && ! (* ncit)->isSeed());
+
+    if (ncit == candidates.end())
+      break;
+
+    Peak * nextCand = * ncit;
+    if (nextCand->isLeftWheel())
+      dists.push_back(nextCand->getIndex() - cand->getIndex());
+  }
+  sort(dists.begin(), dists.end());
+
+  // Guess the intra-car gap.
+  Gap longGap;
+  PeakDetect::findFirstSize(dists, longGap, shortGapCount / 2);
+  cout << "Guessing long gap " << longGap.lower << "-" <<
+    longGap.upper << endl;
+
+  // Label intra-car gaps.
+  for (auto cit = candidates.begin(); cit != prev(candidates.end()); cit++)
+  {
+    Peak * cand = * cit;
+    if (! cand->isRightWheel() || cand->isBogey())
+      continue;
+
+    auto ncit = cit;
+    do
+    {
+      ncit = next(ncit);
+    }
+    while (ncit != candidates.end() && ! (* ncit)->isSeed());
+
+    if (ncit == candidates.end())
+      break;
+
+    Peak * nextCand = * ncit;
+    if (! nextCand->isLeftWheel())
+      continue;
+
+    const unsigned dist = nextCand->getIndex() - cand->getIndex();
+    if (dist >= longGap.lower && dist <= longGap.upper)
+    {
+      PeakDetect::markBogeyLongGap(* cand, * nextCand, "Marking");
+
+      cout << "Marking long gap at " << 
+        cand->getIndex() + offset << "-" <<
+        nextCand->getIndex() + offset << endl;
+      
+      // Neighboring wheels may not have bogeys yet.
+      if (cit != candidates.begin())
+      {
+        Peak * prevCand = * prev(cit);
+        if (prevCand->isLeftWheel())
+          prevCand->markBogey(BOGEY_LEFT);
+      }
+
+      if (next(ncit) != candidates.end())
+      {
+        Peak * nextNextCand = * next(ncit);
+        if (nextNextCand->isRightWheel())
+          nextNextCand->markBogey(BOGEY_RIGHT);
+      }
+    }
+  }
+}
+
+
 void PeakDetect::reduceNewer()
 {
   // Mark some tall peaks as seeds.
@@ -1701,146 +1776,105 @@ void PeakDetect::reduceNewer()
   Gap shortGap;
   PeakDetect::markShortGaps(candidates, shortGap);
 
+  PeakDetect::markLongGaps(candidates, shortGap.count);
 
-  // Look for smallest large gaps.
-
-  // Gap longGap;
-  // PeakDetect::guessDistance(candidates, &PeakDetect::formOpenBogeyGap, 
-    // longGap);
-
-  // cout << "Guessing long gap " << longGap.lower << "-" <<
-    // longGap.upper << endl;
-
-
-  vector<unsigned> dists;
-
-  for (auto pit = peaksAnnot.begin(); pit != prev(peaksAnnot.end());
-    pit++)
-  {
-    if (! pit->peakPtr->isRightWheel() || pit->peakPtr->isBogey())
-      continue;
-
-    auto npit = next(pit);
-    while (npit != peaksAnnot.end() && 
-        ! npit->peakPtr->isLeftWheel() &&
-        ! npit->peakPtr->isRightWheel() &&
-        ! npit->peakPtr->isSeed())
-    {
-      npit = next(npit);
-    }
-
-
-    if (npit == peaksAnnot.end() || ! npit->peakPtr->isLeftWheel())
-      continue;
-
-    dists.push_back(
-      npit->peakPtr->getIndex() - pit->peakPtr->getIndex());
-  }
 
   vector<CarDetect> cars;
-
-  // Look for intra-car gaps.
-
-  sort(dists.begin(), dists.end());
-  unsigned longGapLower, longGapUpper;
-  unsigned lcount;
-  PeakDetect::findFirstSize(dists, longGapLower, longGapUpper,
-    lcount, shortGap.count / 2);
-  // Could be zero
-cout << "Guessing long gap " << longGapLower << "-" <<
-  longGapUpper << endl;
-
-  // Label intra-car gaps.
-
   models.append();
 
-  for (auto pit = peaksAnnot.begin(); pit != prev(peaksAnnot.end());
-    pit++)
+  // Set up a sliding vector of running peaks.
+  vector<list<Peak *>::iterator> runIter;
+  vector<Peak *> runPtr;
+  auto cit = candidates.begin();
+  for (unsigned i = 0; i < 4; i++)
   {
-    if (! pit->peakPtr->isRightWheel()|| pit->peakPtr->isBogey())
-      continue;
+    while (cit != candidates.end() && ! (* cit)->isSeed())
+      cit++;
 
-    auto npit = next(pit);
-    while (npit != peaksAnnot.end() && 
-        ! npit->peakPtr->isLeftWheel() &&
-        ! npit->peakPtr->isRightWheel())
-    {
-      npit = next(npit);
-    }
-
-    if (npit == peaksAnnot.end() || npit->peakPtr->isRightWheel())
-      continue;
-
-    const unsigned posLeft1 = pit->prevLargePeakPtr->getIndex();
-    const unsigned posRight1 = pit->peakPtr->getIndex();
-    const unsigned posLeft2 = npit->peakPtr->getIndex();
-    const unsigned posRight2 = npit->nextLargePeakPtr->getIndex();
-
-    const unsigned dist = posLeft2 - posRight1;
-
-    if (dist < longGapLower || dist > longGapUpper)
-      continue;
-
-cout << "\nMarking long gap at " << 
-  posRight1 + offset << "-" <<
-  posLeft2 + offset << 
-  " (" << posLeft1+offset << "-" << posRight2+offset << ")" << endl;
-
-    PeakDetect::markBogeyLongGap(* pit->peakPtr, * npit->peakPtr,
-        "Marking");
-
-    // Fill out cars.
-    cars.emplace_back(CarDetect());
-    CarDetect& car = cars.back();
-
-    car.logPeakPointers(
-      pit->prevLargePeakPtr,
-      &*pit->peakPtr,
-      &*npit->peakPtr,
-      npit->nextLargePeakPtr);
-
-    car.logCore(
-      posRight1 - posLeft1,
-      dist,
-      posRight2 - posLeft2);
-
-    car.logStatIndex(0);
-
-    auto ppit = prev(pit);
-    Peak * p0 = ppit->prevLargePeakPtr;
-
-    unsigned leftGap;
-    if (p0 != nullptr && ppit->peakPtr->isBogey())
-    {
-      // This rounds to make the cars abut.
-      const unsigned d = posLeft1 - p0->getIndex();
-      leftGap  = d - (d/2);
-    }
-    else
-      leftGap = 0;
-
-    auto nnpit = next(npit);
-    pit = nnpit; // Advance across the peaks that we've marked
-    Peak * p1 = nnpit->nextLargePeakPtr;
-
-    unsigned rightGap;
-    if (p1 != nullptr && nnpit->peakPtr->isBogey())
-      rightGap = (p1->getIndex() - posRight2) / 2;
-    else
-      rightGap = 0;
-
-    if (car.fillSides(leftGap, rightGap))
-      cout << "Filled out complete car: " << car.strLimits(offset) << endl;
+    if (cit == candidates.end())
+      THROW(ERR_NO_PEAKS, "Not enough peaks in train");
     else
     {
-      cout << "Could not fill out any limits: " <<
-        leftGap << ", " << rightGap << endl;
+      runIter.push_back(cit);
+      runPtr.push_back(* cit);
+
     }
-
-cout << "Marking car: " << car.strLimits(offset) << endl;
-
-    models += car;
   }
+
+  while (cit != candidates.end())
+  {
+    if (runPtr[0]->isLeftWheel() && runPtr[0]->isLeftBogey() &&
+        runPtr[1]->isRightWheel() && runPtr[1]->isLeftBogey() &&
+        runPtr[2]->isLeftWheel() && runPtr[2]->isRightBogey() &&
+        runPtr[3]->isRightWheel() && runPtr[3]->isRightBogey())
+    {
+      // Fill out cars.
+      cars.emplace_back(CarDetect());
+      CarDetect& car = cars.back();
+
+      car.logPeakPointers(
+        runPtr[0], runPtr[1], runPtr[2], runPtr[3]);
+
+      car.logCore(
+        runPtr[1]->getIndex() - runPtr[0]->getIndex(),
+        runPtr[2]->getIndex() - runPtr[1]->getIndex(),
+        runPtr[3]->getIndex() - runPtr[2]->getIndex());
+
+      car.logStatIndex(0); 
+
+      // Check for gap in front of run[0].
+      unsigned leftGap = 0;
+      if (runIter[0] != candidates.begin())
+      {
+        Peak * prevPtr = * prev(runIter[0]);
+        if (prevPtr->isBogey())
+        {
+          // This rounds to make the cars abut.
+          const unsigned d = runPtr[0]->getIndex() - prevPtr->getIndex();
+          leftGap  = d - (d/2);
+        }
+      }
+
+      // Check for gap after run[3].
+      unsigned rightGap = 0;
+      auto postIter = next(runIter[3]);
+      if (postIter != candidates.end())
+      {
+        Peak * nextPtr = * postIter;
+        if (nextPtr->isBogey())
+          rightGap = (nextPtr->getIndex() - runPtr[3]->getIndex()) / 2;
+      }
+
+      if (car.fillSides(leftGap, rightGap))
+      {
+        cout << "Filled out complete car: " << 
+          car.strLimits(offset) << endl;
+        cout << "limits: " << leftGap << ", " << rightGap << endl;
+      }
+      else
+      {
+        cout << "Could not fill out any limits: " <<
+          leftGap << ", " << rightGap << endl;
+      }
+
+      models += car;
+    }
+
+    for (unsigned i = 0; i < 3; i++)
+    {
+      runIter[i] = runIter[i+1];
+      runPtr[i] = runPtr[i+1];
+    }
+
+    do
+    {
+      cit++;
+    } 
+    while (cit != candidates.end() && ! (* cit)->isSeed());
+    runIter[3] = cit;
+    runPtr[3] = * cit;
+  }
+
 
   cout << "Counting " << PeakDetect::countWheels(peaksAnnot) << 
     " peaks" << endl << endl;
@@ -1856,6 +1890,9 @@ cout << "Marking car: " << car.strLimits(offset) << endl;
 cout << "Filled out complete car: " << car.strLimits(offset) << endl;
     }
   }
+
+  // TODO Could actually be multiple cars, e.g. same wheel gaps
+  // but different spacing between cars, ICET_DEU_56_N.
 
   PeakDetect::printCars(cars, "before intra gaps");
 

@@ -60,10 +60,11 @@ bool CarGaps::logLeftGap(const unsigned leftGapIn)
     const unsigned d = (leftGapIn >= leftGap ? 
       leftGapIn - leftGap : leftGap - leftGapIn);
     if (d > RESET_SIDE_GAP_TOLERANCE)
-      THROW(ERR_CAR_SIDE_GAP_RESET, 
-        "Left gap reset from " + to_string(leftGap) + 
-        " to " + to_string(leftGapIn));
-    return false;
+    {
+      cout << "Left gap attempted reset from " + to_string(leftGap) + 
+        " to " + to_string(leftGapIn) << endl;
+    }
+    return true;
   }
 
   leftGapSet = true;
@@ -90,10 +91,11 @@ bool CarGaps::logRightGap(const unsigned rightGapIn)
     const unsigned d = (rightGapIn >= rightGap ? 
       rightGapIn - rightGap : rightGap - rightGapIn);
     if (d > RESET_SIDE_GAP_TOLERANCE)
-      THROW(ERR_CAR_SIDE_GAP_RESET, 
-        "Right gap reset from " + to_string(rightGap) + 
-        " to " + to_string(rightGapIn));
-    return false;
+    {
+      cout << "Right gap attempted reset from " + to_string(rightGap) + 
+        " to " + to_string(rightGapIn) << endl;
+    }
+    return true;
   }
 
   rightGapSet = true;
