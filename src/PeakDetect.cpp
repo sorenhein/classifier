@@ -1759,29 +1759,10 @@ void PeakDetect::markLongGaps(
 }
 
 
-void PeakDetect::reduceNewer()
+void PeakDetect::findInitialWholeCars(
+  list<Peak *>& candidates,
+  vector<CarDetect>& cars)
 {
-  // Mark some tall peaks as seeds.
-  PeakSeeds seeds;
-  seeds.mark(peaks, offset, scalesList.getRange());
-  cout << seeds.str(offset, "after pruning");
-
-  vector<PeakEntry> peaksAnnot;
-  list<Peak *> candidates;
-
-  PeakDetect::markSinglePeaks(peaksAnnot, candidates);
-
-  PeakDetect::markBogeys(candidates);
-
-  Gap shortGap;
-  PeakDetect::markShortGaps(candidates, shortGap);
-
-  PeakDetect::markLongGaps(candidates, shortGap.count);
-
-
-  vector<CarDetect> cars;
-  models.append();
-
   // Set up a sliding vector of running peaks.
   vector<list<Peak *>::iterator> runIter;
   vector<Peak *> runPtr;
@@ -1874,6 +1855,32 @@ void PeakDetect::reduceNewer()
     runIter[3] = cit;
     runPtr[3] = * cit;
   }
+}
+
+
+void PeakDetect::reduceNewer()
+{
+  // Mark some tall peaks as seeds.
+  PeakSeeds seeds;
+  seeds.mark(peaks, offset, scalesList.getRange());
+  cout << seeds.str(offset, "after pruning");
+
+  vector<PeakEntry> peaksAnnot;
+  list<Peak *> candidates;
+
+  PeakDetect::markSinglePeaks(peaksAnnot, candidates);
+
+  PeakDetect::markBogeys(candidates);
+
+  Gap shortGap;
+  PeakDetect::markShortGaps(candidates, shortGap);
+
+  PeakDetect::markLongGaps(candidates, shortGap.count);
+
+  vector<CarDetect> cars;
+  models.append(); // Make room for initial model
+  PeakDetect::findInitialWholeCars(candidates, cars);
+
 
 
   cout << "Counting " << PeakDetect::countWheels(peaksAnnot) << 

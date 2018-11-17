@@ -228,6 +228,10 @@ class PeakDetect
       list<Peak *>& candidates,
       const unsigned shortGapCount);
 
+    void findInitialWholeCars(
+      list<Peak *>& candidates,
+      vector<CarDetect>& cars);
+
     void printScale(
       const Peak& scale,
       const string& text) const;
