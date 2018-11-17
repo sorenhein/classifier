@@ -23,23 +23,12 @@ class PeakDetect
 
   CarModels models;
 
-  // Peaks between abutting interval lists tend to be large and thus
-  // to be "real" peaks.
-
-  struct PeakEntry
-  {
-    Peak * peakPtr;
-  };
-
   struct Gap
   {
     unsigned lower;
     unsigned upper;
     unsigned count;
   };
-
-  typedef bool (PeakDetect::*PeakFncPtr)(
-    const PeakEntry& pe1, const PeakEntry& pe2) const;
 
   typedef bool (PeakDetect::*CandFncPtr)(
     const Peak * p1, const Peak * p2) const;
@@ -50,9 +39,6 @@ class PeakDetect
     list<Peak> peaks;
     PeakData scales;
     Peak scalesList;
-
-    unsigned numCandidates;
-    unsigned numTentatives;
 
 
     float integrate(
@@ -158,17 +144,9 @@ class PeakDetect
       list<Peak *>& candidates,
       vector<CarDetect>& cars);
 
-    bool bothTall(
-      const PeakEntry& pe1,
-      const PeakEntry& pe2) const;
-
     bool bothSeed(
       const Peak * p1,
       const Peak * p2) const;
-
-    bool areBogeyGap(
-      const PeakEntry& pe1,
-      const PeakEntry& pe2) const;
 
     bool formBogeyGap(
       const Peak * p1,

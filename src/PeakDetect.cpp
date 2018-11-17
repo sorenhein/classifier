@@ -44,8 +44,6 @@ void PeakDetect::reset()
   models.reset();
   scales.reset();
   scalesList.reset();
-  numCandidates = 0;
-  numTentatives = 0;
 }
 
 
@@ -1292,27 +1290,11 @@ void PeakDetect::printCars(
 }
 
 
-bool PeakDetect::bothTall(
-  const PeakEntry& pe1,
-  const PeakEntry& pe2) const
-{
-  return (pe1.peakPtr->isSeed() && pe2.peakPtr->isSeed());
-}
-
-
 bool PeakDetect::bothSeed(
   const Peak * p1,
   const Peak * p2) const
 {
   return (p1->isSeed() && p2->isSeed());
-}
-
-
-bool PeakDetect::areBogeyGap(
-  const PeakEntry& pe1,
-  const PeakEntry& pe2) const
-{
-  return (pe1.peakPtr->isRightWheel() && pe2.peakPtr->isLeftWheel());
 }
 
 
@@ -1895,7 +1877,6 @@ if (cars.size() == 0)
 
   const unsigned u1 = cars.back().endValue();
 
-  // const unsigned u2 = peaksAnnot.back().peakPtr->getIndex();
   const unsigned u2 = candidates.back()->getIndex();
   const unsigned csize = cars.size();
 
@@ -1946,7 +1927,6 @@ cout << "Did intra-gap " << cars[ii].endValue()+offset << "-" <<
   PeakDetect::printCarStats("after trailing gap");
 
 
-  // const unsigned u3 = peaksAnnot.front().peakPtr->getIndex();
   const unsigned u3 = candidates.front()->getIndex();
   const unsigned u4 = cars.front().startValue();
 
@@ -1975,11 +1955,8 @@ cout << "Did intra-gap " << cars[ii].endValue()+offset << "-" <<
   // Ends come later.
 
   // Put peaks in the global list.
-  // for (auto& p: peaksAnnot)
   for (auto& cand: candidates)
   {
-    // if (p.peakPtr->isWheel())
-      // p.peakPtr->select();
     if (cand->isWheel())
       cand->select();
   }
@@ -2063,11 +2040,6 @@ PeakDetect::reduceNewer();
   bool firstSeen = false;
   unsigned firstTentativeIndex = peaks.front().getIndex();
   unsigned lastTentativeIndex = peaks.back().getIndex();
-  numCandidates = 0;
-  numTentatives = 0;
-
-// cout << "Starting FRONT " << firstTentativeIndex << " LAST " <<
-  // lastTentativeIndex << endl;
 
   for (auto& peak: peaks)
   {
