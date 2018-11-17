@@ -1235,12 +1235,12 @@ cout << "Failed\n";
 }
 
 
-unsigned PeakDetect::countWheels(const vector<PeakEntry>& peaksAnnot) const
+unsigned PeakDetect::countWheels(const list<Peak *>& candidates) const
 {
   unsigned count = 0;
-  for (auto& p: peaksAnnot)
+  for (auto& cand: candidates)
   {
-    if (p.peakPtr->isWheel())
+    if (cand->isWheel())
       count++;
   }
   return count;
@@ -1295,31 +1295,6 @@ bool PeakDetect::formBogeyGap(
   const Peak * p2) const
 {
   return (p1->isRightWheel() && p2->isLeftWheel());
-}
-
-
-void PeakDetect::guessDistance(
-  const vector<PeakEntry>& peaksAnnot, 
-  const PeakFncPtr fptr,
-  unsigned& distLower, 
-  unsigned& distUpper, 
-  unsigned& count) const
-{
-  // Make list of distances between neighbors for which fptr
-  // evaluates to true.
-
-  vector<unsigned> dists;
-  for (auto pit = peaksAnnot.begin(); pit != prev(peaksAnnot.end());
-    pit++)
-  {
-    auto npit = next(pit);
-    if ((this->* fptr)(* pit, * npit))
-      dists.push_back(
-        npit->peakPtr->getIndex() - pit->peakPtr->getIndex());
-  }
-
-  sort(dists.begin(), dists.end());
-  PeakDetect::findFirstSize(dists, distLower, distUpper, count);
 }
 
 
@@ -1422,14 +1397,6 @@ void PeakDetect::markSinglePeaks(
 
     pe.peakPtr = &*pit;
     pit->logNextPeak(&*npit);
-  }
-
-  for (auto pit = peaksAnnot.begin(); pit != peaksAnnot.end(); pit++)
-  {
-    pit->prevLargePeakPtr = (pit == peaksAnnot.begin() ? nullptr : 
-      prev(pit)->peakPtr);
-    pit->nextLargePeakPtr = (next(pit) == peaksAnnot.end() ? nullptr : 
-      next(pit)->peakPtr);
   }
 
   for (auto& peak: peaks)
@@ -1883,7 +1850,7 @@ void PeakDetect::reduceNewer()
 
 
 
-  cout << "Counting " << PeakDetect::countWheels(peaksAnnot) << 
+  cout << "Counting " << PeakDetect::countWheels(candidates) << 
     " peaks" << endl << endl;
 
   // Fill out interval ends.
@@ -1911,7 +1878,8 @@ if (cars.size() == 0)
 
   const unsigned u1 = cars.back().endValue();
 
-  const unsigned u2 = peaksAnnot.back().peakPtr->getIndex();
+  // const unsigned u2 = peaksAnnot.back().peakPtr->getIndex();
+  const unsigned u2 = candidates.back()->getIndex();
   const unsigned csize = cars.size();
 
   for (unsigned ii = 0; ii+1 < csize; ii++)
@@ -1934,7 +1902,7 @@ cout << "Did intra-gap " << cars[ii].endValue()+offset << "-" <<
     }
   }
 
-  cout << "Counting " << PeakDetect::countWheels(peaksAnnot) << 
+  cout << "Counting " << PeakDetect::countWheels(candidates) << 
     " peaks" << endl << endl;
 
   PeakDetect::printCars(cars, "after inner gaps");
@@ -1955,13 +1923,14 @@ cout << "Did intra-gap " << cars[ii].endValue()+offset << "-" <<
     }
   }
 
-  cout << "Counting " << PeakDetect::countWheels(peaksAnnot) << 
+  cout << "Counting " << PeakDetect::countWheels(candidates) << 
     " peaks" << endl << endl;
 
   PeakDetect::printCarStats("after trailing gap");
 
 
-  const unsigned u3 = peaksAnnot.front().peakPtr->getIndex();
+  // const unsigned u3 = peaksAnnot.front().peakPtr->getIndex();
+  const unsigned u3 = candidates.front()->getIndex();
   const unsigned u4 = cars.front().startValue();
 
   if (u3 < u4)
@@ -1989,13 +1958,16 @@ cout << "Did intra-gap " << cars[ii].endValue()+offset << "-" <<
   // Ends come later.
 
   // Put peaks in the global list.
-  for (auto& p: peaksAnnot)
+  // for (auto& p: peaksAnnot)
+  for (auto& cand: candidates)
   {
-    if (p.peakPtr->isWheel())
-      p.peakPtr->select();
+    // if (p.peakPtr->isWheel())
+      // p.peakPtr->select();
+    if (cand->isWheel())
+      cand->select();
   }
 
-  cout << "Returning " << PeakDetect::countWheels(peaksAnnot) << 
+  cout << "Returning " << PeakDetect::countWheels(candidates) << 
     " peaks" << endl << endl;
 
 }

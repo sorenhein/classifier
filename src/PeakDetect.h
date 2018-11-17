@@ -29,8 +29,6 @@ class PeakDetect
   struct PeakEntry
   {
     Peak * peakPtr;
-    Peak * nextLargePeakPtr;
-    Peak * prevLargePeakPtr;
   };
 
   struct Gap
@@ -186,18 +184,11 @@ class PeakDetect
       const Peak * p2) const;
 
     void guessDistance(
-      const vector<PeakEntry>& peaksAnnot,
-      const PeakFncPtr fptr,
-      unsigned& distLower,
-      unsigned& distUpper,
-      unsigned& count) const;
-
-    void guessDistance(
       const list<Peak *>& candidates,
       const CandFncPtr fptr,
       Gap& gap) const;
 
-    unsigned countWheels(const vector<PeakEntry>& peaksAnnot) const;
+    unsigned countWheels(const list<Peak *>& candidates) const;
 
     void markWheelPair(
       Peak& p1,
