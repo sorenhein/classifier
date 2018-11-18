@@ -13,11 +13,12 @@ Except.obj: Except.h errors.h
 Peak.obj: Peak.h struct.h Except.h errors.h
 PeakDetect.obj: PeakDetect.h Peak.h struct.h CarModels.h CarDetect.h
 PeakDetect.obj: CarGaps.h CarPeaks.h PeakSeeds.h PeakMinima.h PeakMatch.h
-PeakDetect.obj: PeakStats.h Except.h errors.h
+PeakDetect.obj: PeakStats.h PeakStructure.h Except.h errors.h
 PeakMatch.obj: PeakMatch.h Peak.h struct.h PeakStats.h Except.h errors.h
-PeakMinima.obj: PeakMinima.h Peak.h struct.h Except.h errors.h
+PeakMinima.obj: Peak.h struct.h PeakMinima.h Except.h errors.h
 PeakSeeds.obj: PeakSeeds.h Peak.h struct.h
 PeakStats.obj: PeakStats.h struct.h Except.h errors.h
+PeakStructure.obj: PeakStructure.h struct.h Except.h errors.h
 Regress.obj: Regress.h struct.h Database.h Clusters.h Timers.h Timer.h
 Regress.obj: Except.h errors.h print.h regress/PolynomialRegression.h
 SegActive.obj: SegActive.h Median/median.h PeakDetect.h Peak.h struct.h

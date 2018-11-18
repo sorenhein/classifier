@@ -15,6 +15,7 @@ SOURCE_FILES    =               \
                 PeakMinima.cpp  \
                 PeakSeeds.cpp   \
                 PeakStats.cpp   \
+                PeakStructure.cpp \
                 Regress.cpp     \
                 SegActive.cpp   \
                 SegQuiet.cpp    \
