@@ -198,6 +198,22 @@ class PeakDetect
       list<Peak *>& candidates,
       vector<CarDetect>& cars);
 
+    void makeSeedAverage(
+      const list<Peak *>& candidates,
+      Peak& seed) const;
+
+    void makeWheelAverages(
+      const list<Peak *>& candidates,
+      vector<Peak>& wheels) const;
+
+    void makeBogeyAverages(
+      const list<Peak *>& candidates,
+      vector<Peak>& wheels) const;
+
+    void printPeak(
+      const Peak& peak,
+      const string& text) const;
+
     void printScale(
       const Peak& scale,
       const string& text) const;
@@ -221,14 +237,6 @@ class PeakDetect
     void log(
       const vector<float>& samples,
       const unsigned offsetSamples);
-
-    void printPeak(
-      const Peak& peak,
-      const string& text) const;
-
-    void printPeakQualities(
-      const list<Peak *>& candidates,
-      const PrintQuality pq) const;
 
     void reduce();
 

@@ -1409,29 +1409,17 @@ void PeakDetect::markSinglePeaks(list<Peak *>& candidates)
 
   // Will need one later on for each wheel/bogey combination.
   Peak candidateSize;
-  unsigned candidateCount = 0;
-  for (auto candidate: candidates)
-  {
-    if (candidate->isSeed())
-    {
-      candidateSize += * candidate;
-      candidateCount++;
-    }
-  }
-  candidateSize /= candidateCount;
+  PeakDetect::makeSeedAverage(candidates, candidateSize);
 
   // Use this as a first yardstick.
   for (auto candidate: candidates)
     candidate->calcQualities(candidateSize);
-
 
   cout << "All negative minima\n";
   cout << candidateSize.strHeaderQuality();
   for (auto candidate: candidates)
     cout << candidate->strQuality(offset);
   cout << endl;
-
-  PeakDetect::printScale(candidateSize, "Single seed scale");
 
   cout << "Seeds\n";
   cout << candidateSize.strHeaderQuality();
@@ -1442,26 +1430,17 @@ void PeakDetect::markSinglePeaks(list<Peak *>& candidates)
   }
   cout << endl;
 
-  PeakDetect::printPeakQualities(candidates, PRINT_SEED);
-
+  PeakDetect::makeSeedAverage(candidates, candidateSize);
+  PeakDetect::printPeak(candidateSize, "Seed average");
 
   // Modify selection based on quality.
   for (auto candidate: candidates)
   {
     if (candidate->greatQuality())
-    {
       candidate->setSeed();
-      // cout << "Adding tallFlag to " << 
-        // candidate->getIndex() + offset << endl;
-    }
     else
-    {
       candidate->unsetSeed();
-      // cout << "Removing tallFlag from " << 
-        // candidate->getIndex() + offset << endl;
-    }
   }
-  cout << "\n";
 
   cout << "Great-quality seeds\n";
   cout << candidateSize.strHeaderQuality();
@@ -1472,7 +1451,8 @@ void PeakDetect::markSinglePeaks(list<Peak *>& candidates)
   }
   cout << endl;
 
-  PeakDetect::printPeakQualities(candidates, PRINT_SEED);
+  PeakDetect::makeSeedAverage(candidates, candidateSize);
+  PeakDetect::printPeak(candidateSize, "Great-quality average");
 }
 
 
@@ -1522,26 +1502,8 @@ void PeakDetect::markBogeys(list<Peak *>& candidates)
       PeakDetect::markWheelPair(* cand, * nextCand, "Adding");
   }
 
-  vector<Peak> candidateSize(2);
-  vector<unsigned> candidateCount(2);
-  for (auto candidate: candidates)
-  {
-    if (candidate->isLeftWheel())
-    {
-      candidateSize[0] += * candidate;
-      candidateCount[0]++;
-    }
-    else if (candidate->isRightWheel())
-    {
-      candidateSize[1] += * candidate;
-      candidateCount[1]++;
-    }
-  }
-  candidateSize[0] /= candidateCount[0];
-  candidateSize[1] /= candidateCount[1];
-
-  PeakDetect::printScale(candidateSize[0], "Left-wheel scale");
-  PeakDetect::printScale(candidateSize[1], "Right-wheel scale");
+  vector<Peak> candidateSize;
+  makeWheelAverages(candidates, candidateSize);
 
   // Recalculate the peak qualities using both left and right peaks.
   for (auto cand: candidates)
@@ -1565,7 +1527,9 @@ void PeakDetect::markBogeys(list<Peak *>& candidates)
     cout << cand->strQuality(offset);
   cout << endl;
 
-  PeakDetect::printPeakQualities(candidates, PRINT_WHEEL);
+  makeWheelAverages(candidates, candidateSize);
+  PeakDetect::printPeak(candidateSize[0], "Left-wheel average");
+  PeakDetect::printPeak(candidateSize[1], "Right-wheel average");
 
   // Redo the distances using the new qualities (left and right peaks).
   PeakDetect::guessDistance(candidates, &PeakDetect::bothSeed, wheelGap);
@@ -1705,10 +1669,6 @@ void PeakDetect::markLongGaps(
     {
       PeakDetect::markBogeyLongGap(* cand, * nextCand, "");
 
-      // cout << "Marking long gap at " << 
-        // cand->getIndex() + offset << "-" <<
-        // nextCand->getIndex() + offset << endl;
-      
       // Neighboring wheels may not have bogeys yet.
       if (cit != candidates.begin())
       {
@@ -1732,7 +1692,13 @@ void PeakDetect::markLongGaps(
     cout << cand->strQuality(offset);
   cout << endl;
 
-  PeakDetect::printPeakQualities(candidates, PRINT_BOGEY);
+  vector<Peak> bogeys;
+  PeakDetect::makeBogeyAverages(candidates, bogeys);
+
+  PeakDetect::printPeak(bogeys[0], "Left bogey, left wheel average");
+  PeakDetect::printPeak(bogeys[1], "Left bogey, right wheel average");
+  PeakDetect::printPeak(bogeys[2], "Right bogey, left wheel average");
+  PeakDetect::printPeak(bogeys[3], "Right bogey, right wheel average");
 }
 
 
@@ -1755,7 +1721,6 @@ void PeakDetect::findInitialWholeCars(
     {
       runIter.push_back(cit);
       runPtr.push_back(* cit);
-
     }
   }
 
@@ -1835,6 +1800,104 @@ void PeakDetect::findInitialWholeCars(
 }
 
 
+void PeakDetect::makeSeedAverage(
+  const list<Peak *>& candidates,
+  Peak& seed) const
+{
+  seed.reset();
+
+  unsigned count = 0;
+  for (auto& cand: candidates)
+  {
+    if (cand->isSeed())
+    {
+      seed += * cand;
+      count++;
+    }
+  }
+
+  if (count)
+    seed /= count;
+}
+
+
+void PeakDetect::makeWheelAverages(
+  const list<Peak *>& candidates,
+  vector<Peak>& wheels) const
+{
+  wheels.clear();
+  wheels.resize(2);
+
+  unsigned cleft = 0, cright = 0;
+  for (auto& cand: candidates)
+  {
+    if (cand->isLeftWheel())
+    {
+      wheels[0] += * cand;
+      cleft++;
+    }
+    else if (cand->isRightWheel())
+    {
+      wheels[1] += * cand;
+      cright++;
+    }
+  }
+
+  if (cleft)
+    wheels[0] /= cleft;
+  if (cright)
+    wheels[1] /= cright;
+}
+
+
+void PeakDetect::makeBogeyAverages(
+  const list<Peak *>& candidates,
+  vector<Peak>& wheels) const
+{
+  wheels.clear();
+  wheels.resize(4);
+
+  vector<unsigned> count;
+  count.resize(4);
+
+  for (auto& cand: candidates)
+  {
+    if (cand->isLeftBogey())
+    {
+      if (cand->isLeftWheel())
+      {
+        wheels[0] += * cand;
+        count[0]++;
+      }
+      else if (cand->isRightWheel())
+      {
+        wheels[1] += * cand;
+        count[1]++;
+      }
+    }
+    else if (cand->isRightBogey())
+    {
+      if (cand->isLeftWheel())
+      {
+        wheels[2] += * cand;
+        count[2]++;
+      }
+      else if (cand->isRightWheel())
+      {
+        wheels[3] += * cand;
+        count[3]++;
+      }
+    }
+  }
+
+  for (unsigned i = 0; i < 4; i++)
+  {
+    if (count[i])
+      wheels[i] /= count[i];
+  }
+}
+
+
 void PeakDetect::printPeak(
   const Peak& peak,
   const string& text) const
@@ -1842,96 +1905,6 @@ void PeakDetect::printPeak(
   cout << text << "\n";
   cout << peak.strHeaderQuality();
   cout << peak.strQuality(offset) << "\n";
-}
-
-
-void PeakDetect::printPeakQualities(
-  const list<Peak *>& candidates,
-  const PrintQuality pq) const
-{
-  if (pq == PRINT_SEED)
-  {
-    Peak seed;
-    unsigned count = 0;
-    for (auto& cand: candidates)
-    {
-      if (cand->isSeed())
-      {
-        seed += * cand;
-        count++;
-      }
-    }
-    seed /= count;
-
-    PeakDetect::printPeak(seed, "Seed average");
-  }
-  else if (pq == PRINT_WHEEL)
-  {
-    Peak wheelLeft, wheelRight;
-    unsigned cleft = 0, cright = 0;
-    for (auto& cand: candidates)
-    {
-      if (cand->isLeftWheel())
-      {
-        wheelLeft += * cand;
-        cleft++;
-      }
-      else if (cand->isRightWheel())
-      {
-        wheelRight += * cand;
-        cright++;
-      }
-    }
-    wheelLeft /= cleft;
-    wheelRight /= cright;
-
-    PeakDetect::printPeak(wheelLeft, "Left-wheel average");
-    PeakDetect::printPeak(wheelRight, "Right-wheel average");
-  }
-  else if (pq == PRINT_BOGEY)
-  {
-    Peak wheel1, wheel2, wheel3, wheel4;
-    unsigned c1 = 0, c2 = 0, c3 = 0, c4 = 0;
-    for (auto& cand: candidates)
-    {
-      if (cand->isLeftBogey())
-      {
-        if (cand->isLeftWheel())
-        {
-          wheel1 += * cand;
-          c1++;
-        }
-        else if (cand->isRightWheel())
-        {
-          wheel2 += * cand;
-          c2++;
-        }
-      }
-      else if (cand->isRightBogey())
-      {
-        if (cand->isLeftWheel())
-        {
-          wheel3 += * cand;
-          c3++;
-        }
-        else if (cand->isRightWheel())
-        {
-          wheel4 += * cand;
-          c4++;
-        }
-      }
-    }
-    wheel1 /= c1;
-    wheel2 /= c2;
-    wheel3 /= c3;
-    wheel4 /= c4;
-
-    PeakDetect::printPeak(wheel1, "Left bogey, left wheel average");
-    PeakDetect::printPeak(wheel2, "Left bogey, right wheel average");
-    PeakDetect::printPeak(wheel3, "Right bogey, left wheel average");
-    PeakDetect::printPeak(wheel4, "Right bogey, right wheel average");
-  }
-
 }
 
 
