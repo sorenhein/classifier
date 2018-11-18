@@ -389,7 +389,7 @@ void PeakSeeds::mark(
   PeakSeeds::makeNestedIntervals();
 
   // TODO Input flag
-  if (true)
+  if (false)
     cout << PeakSeeds::str(offset, "before pruning");
 
   // It happens that two collections of intervals are identical after
@@ -404,7 +404,7 @@ void PeakSeeds::mark(
   PeakSeeds::pruneListEnds();
 
   // TODO Input flag
-  if (true)
+  if (false)
     cout << PeakSeeds::str(offset, "after pruning");
 
   PeakSeeds::markSeeds(peaks);
@@ -416,7 +416,7 @@ string PeakSeeds::str(
   const string& text) const
 {
   stringstream ss;
-  ss << "NEW Nested intervals " << text << "\n";
+  ss << "Nested intervals " << text << "\n";
   for (auto& li: nestedIntervals)
   {
     for (auto& p: li)

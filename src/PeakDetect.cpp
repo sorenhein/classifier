@@ -20,10 +20,6 @@
 #define UNUSED(x) ((void)(true ? 0 : ((x), void(), 0)))
 
 
-// TMP
-#define TIME_PROXIMITY 0.03
-#define SCORE_CUTOFF 0.75
-
 
 PeakDetect::PeakDetect()
 {
@@ -1446,6 +1442,8 @@ void PeakDetect::markSinglePeaks(list<Peak *>& candidates)
   }
   cout << endl;
 
+  PeakDetect::printPeakQualities(candidates, PRINT_SEED);
+
 
   // Modify selection based on quality.
   for (auto candidate: candidates)
@@ -1453,14 +1451,14 @@ void PeakDetect::markSinglePeaks(list<Peak *>& candidates)
     if (candidate->greatQuality())
     {
       candidate->setSeed();
-      cout << "Adding tallFlag to " << 
-        candidate->getIndex() + offset << endl;
+      // cout << "Adding tallFlag to " << 
+        // candidate->getIndex() + offset << endl;
     }
     else
     {
       candidate->unsetSeed();
-      cout << "Removing tallFlag from " << 
-        candidate->getIndex() + offset << endl;
+      // cout << "Removing tallFlag from " << 
+        // candidate->getIndex() + offset << endl;
     }
   }
   cout << "\n";
@@ -1473,6 +1471,8 @@ void PeakDetect::markSinglePeaks(list<Peak *>& candidates)
       cout << candidate->strQuality(offset);
   }
   cout << endl;
+
+  PeakDetect::printPeakQualities(candidates, PRINT_SEED);
 }
 
 
@@ -1482,7 +1482,7 @@ void PeakDetect::markBogeys(list<Peak *>& candidates)
   PeakDetect::guessDistance(candidates, &PeakDetect::bothSeed, wheelGap);
 
   cout << "Guessing wheel distance " << wheelGap.lower << "-" <<
-    wheelGap.upper << endl;
+    wheelGap.upper << "\n\n";
 
   // Tentatively mark wheel pairs (bogeys).  If there are only 
   // single wheels, we might be marking the wagon gaps instead.
@@ -1498,7 +1498,7 @@ void PeakDetect::markBogeys(list<Peak *>& candidates)
         if (cand->isWheel())
           THROW(ERR_NO_PEAKS, "Triple bogey?!");
 
-        PeakDetect::markWheelPair(* cand, * nextCand, "Marking");
+        PeakDetect::markWheelPair(* cand, * nextCand, "");
       }
     }
   }
@@ -1563,12 +1563,14 @@ void PeakDetect::markBogeys(list<Peak *>& candidates)
   cout << candidateSize[0].strHeaderQuality();
   for (auto cand: candidates)
     cout << cand->strQuality(offset);
+  cout << endl;
 
+  PeakDetect::printPeakQualities(candidates, PRINT_WHEEL);
 
   // Redo the distances using the new qualities (left and right peaks).
   PeakDetect::guessDistance(candidates, &PeakDetect::bothSeed, wheelGap);
   cout << "Guessing new wheel distance " << wheelGap.lower << "-" <<
-    wheelGap.upper << endl;
+    wheelGap.upper << "\n\n";
 
 
   // Mark more bogeys with the refined peak qualities.
@@ -1587,7 +1589,7 @@ void PeakDetect::markBogeys(list<Peak *>& candidates)
         if (cand->isWheel())
           THROW(ERR_NO_PEAKS, "Triple bogey?!");
 
-        PeakDetect::markWheelPair(* cand, * nextCand, "Marking");
+        PeakDetect::markWheelPair(* cand, * nextCand, "");
       }
     }
   }
@@ -1603,7 +1605,7 @@ void PeakDetect::markShortGaps(
     shortGap);
 
   cout << "Guessing short gap " << shortGap.lower << "-" <<
-    shortGap.upper << endl;
+    shortGap.upper << "\n\n";
 
 
   // Tentatively mark short gaps (between cars).
@@ -1617,7 +1619,7 @@ void PeakDetect::markShortGaps(
 
     const unsigned dist = nextCand->getIndex() - cand->getIndex();
     if (dist >= shortGap.lower && dist <= shortGap.upper)
-      PeakDetect::markBogeyShortGap(* cand, * nextCand, "Marking");
+      PeakDetect::markBogeyShortGap(* cand, * nextCand, "");
   }
 
 
@@ -1638,7 +1640,7 @@ void PeakDetect::markShortGaps(
 
     if ((cand->isRightWheel() && nextCand->greatQuality()) ||
         (nextCand->isLeftWheel() && cand->greatQuality()))
-      PeakDetect::markBogeyShortGap(* cand, * nextCand, "Marking");
+      PeakDetect::markBogeyShortGap(* cand, * nextCand, "");
   }
 }
 
@@ -1675,7 +1677,7 @@ void PeakDetect::markLongGaps(
   Gap longGap;
   PeakDetect::findFirstSize(dists, longGap, shortGapCount / 2);
   cout << "Guessing long gap " << longGap.lower << "-" <<
-    longGap.upper << endl;
+    longGap.upper << "\n\n";
 
   // Label intra-car gaps.
   for (auto cit = candidates.begin(); cit != prev(candidates.end()); cit++)
@@ -1701,11 +1703,11 @@ void PeakDetect::markLongGaps(
     const unsigned dist = nextCand->getIndex() - cand->getIndex();
     if (dist >= longGap.lower && dist <= longGap.upper)
     {
-      PeakDetect::markBogeyLongGap(* cand, * nextCand, "Marking");
+      PeakDetect::markBogeyLongGap(* cand, * nextCand, "");
 
-      cout << "Marking long gap at " << 
-        cand->getIndex() + offset << "-" <<
-        nextCand->getIndex() + offset << endl;
+      // cout << "Marking long gap at " << 
+        // cand->getIndex() + offset << "-" <<
+        // nextCand->getIndex() + offset << endl;
       
       // Neighboring wheels may not have bogeys yet.
       if (cit != candidates.begin())
@@ -1723,6 +1725,14 @@ void PeakDetect::markLongGaps(
       }
     }
   }
+
+  cout << "All peaks using bogeys:\n";
+  cout << candidates.front()->strHeaderQuality();
+  for (auto cand: candidates)
+    cout << cand->strQuality(offset);
+  cout << endl;
+
+  PeakDetect::printPeakQualities(candidates, PRINT_BOGEY);
 }
 
 
@@ -1822,6 +1832,106 @@ void PeakDetect::findInitialWholeCars(
     runIter[3] = cit;
     runPtr[3] = * cit;
   }
+}
+
+
+void PeakDetect::printPeak(
+  const Peak& peak,
+  const string& text) const
+{
+  cout << text << "\n";
+  cout << peak.strHeaderQuality();
+  cout << peak.strQuality(offset) << "\n";
+}
+
+
+void PeakDetect::printPeakQualities(
+  const list<Peak *>& candidates,
+  const PrintQuality pq) const
+{
+  if (pq == PRINT_SEED)
+  {
+    Peak seed;
+    unsigned count = 0;
+    for (auto& cand: candidates)
+    {
+      if (cand->isSeed())
+      {
+        seed += * cand;
+        count++;
+      }
+    }
+    seed /= count;
+
+    PeakDetect::printPeak(seed, "Seed average");
+  }
+  else if (pq == PRINT_WHEEL)
+  {
+    Peak wheelLeft, wheelRight;
+    unsigned cleft = 0, cright = 0;
+    for (auto& cand: candidates)
+    {
+      if (cand->isLeftWheel())
+      {
+        wheelLeft += * cand;
+        cleft++;
+      }
+      else if (cand->isRightWheel())
+      {
+        wheelRight += * cand;
+        cright++;
+      }
+    }
+    wheelLeft /= cleft;
+    wheelRight /= cright;
+
+    PeakDetect::printPeak(wheelLeft, "Left-wheel average");
+    PeakDetect::printPeak(wheelRight, "Right-wheel average");
+  }
+  else if (pq == PRINT_BOGEY)
+  {
+    Peak wheel1, wheel2, wheel3, wheel4;
+    unsigned c1 = 0, c2 = 0, c3 = 0, c4 = 0;
+    for (auto& cand: candidates)
+    {
+      if (cand->isLeftBogey())
+      {
+        if (cand->isLeftWheel())
+        {
+          wheel1 += * cand;
+          c1++;
+        }
+        else if (cand->isRightWheel())
+        {
+          wheel2 += * cand;
+          c2++;
+        }
+      }
+      else if (cand->isRightBogey())
+      {
+        if (cand->isLeftWheel())
+        {
+          wheel3 += * cand;
+          c3++;
+        }
+        else if (cand->isRightWheel())
+        {
+          wheel4 += * cand;
+          c4++;
+        }
+      }
+    }
+    wheel1 /= c1;
+    wheel2 /= c2;
+    wheel3 /= c3;
+    wheel4 /= c4;
+
+    PeakDetect::printPeak(wheel1, "Left bogey, left wheel average");
+    PeakDetect::printPeak(wheel2, "Left bogey, right wheel average");
+    PeakDetect::printPeak(wheel3, "Right bogey, left wheel average");
+    PeakDetect::printPeak(wheel4, "Right bogey, right wheel average");
+  }
+
 }
 
 
@@ -1981,7 +2091,6 @@ if (peaks.size() == 0)
     PeakDetect::print();
   }
 
-cout << "Peak size 1: " << peaks.size() << endl;
 
 /*
 float minRange = numeric_limits<float>::max();
@@ -1997,8 +2106,6 @@ for (auto& p: peaks)
   // PeakDetect::reduceSmallRanges(scalesList.getRange() / 500.f, false);
 
   PeakDetect::reduceSmallAreas(0.1f);
-
-cout << "Peak size 2: " << peaks.size() << endl;
 
 /*
 float minRange2 = numeric_limits<float>::max();
@@ -2030,6 +2137,7 @@ cout << "RANGE: " << fixed <<
   if (debug)
   {
     cout << "Scale list\n";
+    cout << scalesList.strHeader();
     cout << scalesList.str(0) << endl;
   }
 

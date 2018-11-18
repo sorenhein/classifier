@@ -30,6 +30,14 @@ class PeakDetect
     unsigned count;
   };
 
+  enum PrintQuality
+  {
+    PRINT_SEED = 0,
+    PRINT_WHEEL = 1,
+    PRINT_BOGEY = 2,
+    PRINT_SIZE = 3
+  };
+
   typedef bool (PeakDetect::*CandFncPtr)(
     const Peak * p1, const Peak * p2) const;
 
@@ -213,6 +221,14 @@ class PeakDetect
     void log(
       const vector<float>& samples,
       const unsigned offsetSamples);
+
+    void printPeak(
+      const Peak& peak,
+      const string& text) const;
+
+    void printPeakQualities(
+      const list<Peak *>& candidates,
+      const PrintQuality pq) const;
 
     void reduce();
 

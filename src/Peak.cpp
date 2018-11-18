@@ -40,8 +40,8 @@ void Peak::reset()
   rangeRatio = 0.f;
   gradRatio = 0.f;
 
-  qualityPeak = numeric_limits<float>::max();
-  qualityShape = numeric_limits<float>::max();
+  qualityPeak = 0.f;
+  qualityShape = 0.f;
 
   selectFlag = false;
   seedFlag = false;
@@ -518,6 +518,9 @@ void Peak::operator += (const Peak& p2)
 
   rangeRatio += p2.rangeRatio;
   gradRatio += p2.gradRatio;
+
+  qualityPeak += p2.qualityPeak;
+  qualityShape += p2.qualityShape;
 }
 
 
@@ -530,6 +533,12 @@ void Peak::operator /= (const unsigned no)
 
     left /= no;
     right /= no;
+
+    rangeRatio /= no;
+    gradRatio /= no;
+
+    qualityPeak /= no;
+    qualityShape /= no;
   }
 }
 
@@ -633,8 +642,35 @@ string Peak::strQuality(const unsigned offset) const
     setw(8) << fixed << setprecision(2) << 100. * left.gradient <<
     setw(8) << fixed << setprecision(2) << 100. * right.gradient <<
     setw(8) << fixed << setprecision(2) << qualityShape <<
-    setw(8) << fixed << setprecision(2) << qualityPeak <<
-    "\n";
-  return ss.str();
+    setw(8) << fixed << setprecision(2) << qualityPeak << "";
+
+  string str = "  ";
+  if (! seedFlag || ! wheelFlag)
+  {
+    if (Peak::greatQuality())
+      str += "***";
+    else if (Peak::goodQuality())
+      str += "**";
+    else if (Peak::acceptableQuality())
+      str += "*";
+  }
+  else if (bogeySide != BOGEY_SIZE)
+  {
+    if (bogeySide == BOGEY_LEFT)
+      str += (wheelSide == WHEEL_LEFT ? "1" : " 2");
+    else 
+      str += (wheelSide == WHEEL_LEFT ? "  3" : "   4");
+  }
+  else if (wheelFlag)
+  {
+    str += "      ";
+    str += (wheelSide == WHEEL_LEFT ? "1" : " 2");
+  }
+  str += "\n";
+
+  if (bogeySide == BOGEY_RIGHT && wheelSide == WHEEL_RIGHT)
+    str += string(62, '-') + "\n";
+
+  return ss.str() + str;
 }
 
