@@ -181,9 +181,10 @@ class PeakDetect
 
     void markLongGaps(const unsigned shortGapCount);
 
-    void findInitialWholeCars(vector<CarDetect>& cars);
-
+    void findWholeCars(vector<CarDetect>& cars);
     void findWholeInnerCars(vector<CarDetect>& cars);
+    void findWholeFirstCar(vector<CarDetect>& cars);
+    void findWholeLastCar(vector<CarDetect>& cars);
 
     void makeSeedAverage(Peak& seed) const;
 

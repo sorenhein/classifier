@@ -245,8 +245,11 @@ string CarDetect::strFull(const unsigned offset) const
 }
 
 
-string CarDetect::strLimits(const unsigned offset) const
+string CarDetect::strLimits(
+  const unsigned offset,
+  const string& text) const
 {
-  return to_string(start + offset) + "-" + to_string(end + offset);
+  return text + ":" +
+    to_string(start + offset) + "-" + to_string(end + offset);
 }
 

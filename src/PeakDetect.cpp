@@ -1617,102 +1617,6 @@ void PeakDetect::markLongGaps(const unsigned shortGapCount)
 }
 
 
-void PeakDetect::findInitialWholeCars(vector<CarDetect>& cars)
-{
-  // Set up a sliding vector of running peaks.
-  vector<list<Peak *>::iterator> runIter;
-  vector<Peak *> runPtr;
-  auto cit = candidates.begin();
-  for (unsigned i = 0; i < 4; i++)
-  {
-    while (cit != candidates.end() && ! (* cit)->isSeed())
-      cit++;
-
-    if (cit == candidates.end())
-      THROW(ERR_NO_PEAKS, "Not enough peaks in train");
-    else
-    {
-      runIter.push_back(cit);
-      runPtr.push_back(* cit);
-    }
-  }
-
-  while (cit != candidates.end())
-  {
-    if (runPtr[0]->isLeftWheel() && runPtr[0]->isLeftBogey() &&
-        runPtr[1]->isRightWheel() && runPtr[1]->isLeftBogey() &&
-        runPtr[2]->isLeftWheel() && runPtr[2]->isRightBogey() &&
-        runPtr[3]->isRightWheel() && runPtr[3]->isRightBogey())
-    {
-      // Fill out cars.
-      cars.emplace_back(CarDetect());
-      CarDetect& car = cars.back();
-
-      car.logPeakPointers(
-        runPtr[0], runPtr[1], runPtr[2], runPtr[3]);
-
-      car.logCore(
-        runPtr[1]->getIndex() - runPtr[0]->getIndex(),
-        runPtr[2]->getIndex() - runPtr[1]->getIndex(),
-        runPtr[3]->getIndex() - runPtr[2]->getIndex());
-
-      car.logStatIndex(0); 
-
-      // Check for gap in front of run[0].
-      unsigned leftGap = 0;
-      if (runIter[0] != candidates.begin())
-      {
-        Peak * prevPtr = * prev(runIter[0]);
-        if (prevPtr->isBogey())
-        {
-          // This rounds to make the cars abut.
-          const unsigned d = runPtr[0]->getIndex() - prevPtr->getIndex();
-          leftGap  = d - (d/2);
-        }
-      }
-
-      // Check for gap after run[3].
-      unsigned rightGap = 0;
-      auto postIter = next(runIter[3]);
-      if (postIter != candidates.end())
-      {
-        Peak * nextPtr = * postIter;
-        if (nextPtr->isBogey())
-          rightGap = (nextPtr->getIndex() - runPtr[3]->getIndex()) / 2;
-      }
-
-      if (car.fillSides(leftGap, rightGap))
-      {
-        cout << "Filled out complete car: " << 
-          car.strLimits(offset) << endl;
-        cout << "limits: " << leftGap << ", " << rightGap << endl;
-      }
-      else
-      {
-        cout << "Could not fill out any limits: " <<
-          leftGap << ", " << rightGap << endl;
-      }
-
-      models += car;
-    }
-
-    for (unsigned i = 0; i < 3; i++)
-    {
-      runIter[i] = runIter[i+1];
-      runPtr[i] = runPtr[i+1];
-    }
-
-    do
-    {
-      cit++;
-    } 
-    while (cit != candidates.end() && ! (* cit)->isSeed());
-    runIter[3] = cit;
-    runPtr[3] = * cit;
-  }
-}
-
-
 void PeakDetect::makeSeedAverage(Peak& seed) const
 {
   seed.reset();
@@ -1805,6 +1709,101 @@ void PeakDetect::makeBogeyAverages(vector<Peak>& wheels) const
 }
 
 
+void PeakDetect::findWholeCars(vector<CarDetect>& cars)
+{
+  // Set up a sliding vector of running peaks.
+  vector<list<Peak *>::iterator> runIter;
+  vector<Peak *> runPtr;
+  auto cit = candidates.begin();
+  for (unsigned i = 0; i < 4; i++)
+  {
+    while (cit != candidates.end() && ! (* cit)->isSeed())
+      cit++;
+
+    if (cit == candidates.end())
+      THROW(ERR_NO_PEAKS, "Not enough peaks in train");
+    else
+    {
+      runIter.push_back(cit);
+      runPtr.push_back(* cit);
+    }
+  }
+
+  while (cit != candidates.end())
+  {
+    if (runPtr[0]->isLeftWheel() && runPtr[0]->isLeftBogey() &&
+        runPtr[1]->isRightWheel() && runPtr[1]->isLeftBogey() &&
+        runPtr[2]->isLeftWheel() && runPtr[2]->isRightBogey() &&
+        runPtr[3]->isRightWheel() && runPtr[3]->isRightBogey())
+    {
+      // Fill out cars.
+      cars.emplace_back(CarDetect());
+      CarDetect& car = cars.back();
+
+      car.logPeakPointers(
+        runPtr[0], runPtr[1], runPtr[2], runPtr[3]);
+
+      car.logCore(
+        runPtr[1]->getIndex() - runPtr[0]->getIndex(),
+        runPtr[2]->getIndex() - runPtr[1]->getIndex(),
+        runPtr[3]->getIndex() - runPtr[2]->getIndex());
+
+      car.logStatIndex(0); 
+
+      // Check for gap in front of run[0].
+      unsigned leftGap = 0;
+      if (runIter[0] != candidates.begin())
+      {
+        Peak * prevPtr = * prev(runIter[0]);
+        if (prevPtr->isBogey())
+        {
+          // This rounds to make the cars abut.
+          const unsigned d = runPtr[0]->getIndex() - prevPtr->getIndex();
+          leftGap  = d - (d/2);
+        }
+      }
+
+      // Check for gap after run[3].
+      unsigned rightGap = 0;
+      auto postIter = next(runIter[3]);
+      if (postIter != candidates.end())
+      {
+        Peak * nextPtr = * postIter;
+        if (nextPtr->isBogey())
+          rightGap = (nextPtr->getIndex() - runPtr[3]->getIndex()) / 2;
+      }
+
+      if (car.fillSides(leftGap, rightGap))
+      {
+        cout << car.strLimits(offset, "Filled out complete car");
+        cout << "limits: " << leftGap << ", " << rightGap << endl;
+      }
+      else
+      {
+        cout << "Could not fill out any limits: " <<
+          leftGap << ", " << rightGap << endl;
+      }
+
+      models += car;
+    }
+
+    for (unsigned i = 0; i < 3; i++)
+    {
+      runIter[i] = runIter[i+1];
+      runPtr[i] = runPtr[i+1];
+    }
+
+    do
+    {
+      cit++;
+    } 
+    while (cit != candidates.end() && ! (* cit)->isSeed());
+    runIter[3] = cit;
+    runPtr[3] = * cit;
+  }
+}
+
+
 void PeakDetect::findWholeInnerCars(vector<CarDetect>& cars)
 {
   const unsigned csize = cars.size(); // As cars grows in the loop
@@ -1823,6 +1822,32 @@ void PeakDetect::findWholeInnerCars(vector<CarDetect>& cars)
 }
 
 
+void PeakDetect::findWholeFirstCar(vector<CarDetect>& cars)
+{
+  const unsigned u1 = candidates.front()->getIndex();
+  const unsigned u2 = cars.front().startValue();
+  if (u1 < u2)
+  {
+    if (PeakDetect::findCars(u1, u2, false, true, cars))
+      PeakDetect::printRange(u1, u2, "Did first whole-car gap");
+    else
+      PeakDetect::printRange(u1, u2, "Didn't do first whole-car gap");
+  }
+}
+
+
+void PeakDetect::findWholeLastCar(vector<CarDetect>& cars)
+{
+  const unsigned u1 = cars.back().endValue();
+  const unsigned u2 = candidates.back()->getIndex();
+  if (u2 > u1)
+  {
+    if (PeakDetect::findCars(u1, u2, true, false, cars))
+      PeakDetect::printRange(u1, u2, "Did last whole-car gap");
+    else
+      PeakDetect::printRange(u1, u2, "Didn't do last whole-car gap");
+  }
+}
 
 
 void PeakDetect::reduceNewer()
@@ -1845,10 +1870,10 @@ void PeakDetect::reduceNewer()
 
   vector<CarDetect> cars;
   models.append(); // Make room for initial model
-  PeakDetect::findInitialWholeCars(cars);
+  PeakDetect::findWholeCars(cars);
 
-if (cars.size() == 0)
-  THROW(ERR_NO_PEAKS, "No cars?");
+  if (cars.size() == 0)
+    THROW(ERR_NO_PEAKS, "No cars?");
 
   PeakDetect::printCars(cars, "after inner gaps");
 
@@ -1856,88 +1881,32 @@ if (cars.size() == 0)
   for (auto& car: cars)
   {
     if (models.fillSides(car))
-    {
-cout << "Filled out complete car: " << car.strLimits(offset) << endl;
-    }
+      cout << car.strLimits(offset, "Filled out complete car");
   }
 
-  // TODO Could actually be multiple cars, e.g. same wheel gaps
+  // TODO Could actually be multiple cars in vector, e.g. same wheel gaps
   // but different spacing between cars, ICET_DEU_56_N.
 
   PeakDetect::printCars(cars, "before intra gaps");
 
   // Check open intervals.  Start with inner ones as they are complete.
 
-  // TODO cars change in the inner loop, not so pretty.
-
-  const unsigned u1 = cars.back().endValue();
-
-  const unsigned u2 = candidates.back()->getIndex();
-
-  // PeakDetect::findWholeInnerCars(cars);
-  // sort(cars.begin(), cars.end());
-
-  const unsigned csize = cars.size();
-
-  for (unsigned ii = 0; ii+1 < csize; ii++)
-  {
-    if (cars[ii].endValue() != cars[ii+1].startValue())
-    {
-      if (! PeakDetect::findCars(
-        cars[ii].endValue(), cars[ii+1].startValue(), true, true, cars))
-      {
-        cout << "Couldn't understand intra-gap " <<
-          cars[ii].endValue()+offset << "-" << 
-          cars[ii+1].startValue()+offset << endl;
-      }
-      else
-      {
-cout << "Did intra-gap " << cars[ii].endValue()+offset << "-" << 
-  cars[ii+1].startValue()+offset << endl;
-      }
-    }
-  }
+  PeakDetect::findWholeInnerCars(cars);
+  sort(cars.begin(), cars.end());
 
   PeakDetect::printWheelCount("Counting");
-  PeakDetect::printCars(cars, "after inner gaps");
-  PeakDetect::printCarStats("after inner gaps");
+  PeakDetect::printCars(cars, "after whole-car gaps");
+  PeakDetect::printCarStats("after whole-car inner gaps");
 
-  if (u2 > u1)
-  {
-    if (! PeakDetect::findCars(u1, u2, true, false, cars))
-    {
-      cout << "Couldn't understand trailing gap " <<
-        u1+offset << "-" << u2+offset << endl;
-    }
-    else
-    {
-      cout << "Did trailing gap " <<
-        u1+offset << "-" << u2+offset << endl;
-    }
-  }
+  PeakDetect::findWholeLastCar(cars);
 
   PeakDetect::printWheelCount("Counting");
-  PeakDetect::printCarStats("after trailing gap");
+  PeakDetect::printCarStats("after trailing whole car");
 
+  PeakDetect::findWholeFirstCar(cars);
+  sort(cars.begin(), cars.end());
 
-  const unsigned u3 = candidates.front()->getIndex();
-  const unsigned u4 = cars.front().startValue();
-
-  if (u3 < u4)
-  {
-    if (! PeakDetect::findCars(u3, u4, false, true, cars))
-    {
-      cout << "Couldn't understand leading gap " <<
-        u3+offset << "-" << u4+offset << endl;
-    }
-    else
-    {
-      cout << "Did leading gap " <<
-        u3+offset << "-" << u4+offset << endl;
-    }
-  }
-
-  PeakDetect::printCarStats("after leading gap");
+  PeakDetect::printCarStats("after leading whole car");
 
 
   // TODO Check peak quality and deviations in carStats[0].

@@ -98,7 +98,9 @@ class CarDetect
     string strGaps() const;
     string strFull(const unsigned offset) const;
 
-    string strLimits(const unsigned offset) const;
+    string strLimits(
+      const unsigned offset,
+      const string& text) const;
 };
 
 #endif
