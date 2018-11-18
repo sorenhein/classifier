@@ -1,5 +1,15 @@
 * Clean up Peak some more?
+
 * Eliminate function pointers for reduceSmall*
+
+* Make a PeakStruct out of PeakDetect (with the car structure stuff)
+
+* PeakMinima:
+  - Some TODO's (algorithmic errors, actually)
+  - The second guessLongGapDistance doesn't pick up anything,
+    as the second peak is always a bogey already?
+
+
 
 * When car models complete?
   - recombine
@@ -13,10 +23,6 @@ Both = 0: dist = 0
 Neither = 0: actual
 
 Remaining sensor00 errors:
-#23, 082401: Tell findCars it's the first or last car
-  (do we know?), last car with 6 peaks --> drop very last peak
-  and try 5
-#47, 061030: After making car[0], make *4* tall peaks, refine again
 #68, 074731: The first car bogey is very odd (too long)
 
 Matching distance against X: inf -- why?  Probably some distance is 0.

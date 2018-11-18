@@ -77,6 +77,10 @@ class PeakMinima
       list<Peak *>& candidates,
       const vector<Peak>& bogeyScale) const;
 
+    void reseedLongGapsUsingQuality(
+      list<Peak *>& candidates,
+      const vector<Peak>& longGapScale) const;
+
     void makeWheelAverage(
       list<Peak *>& candidates,
       Peak& wheel) const;
@@ -95,6 +99,7 @@ class PeakMinima
 
     void markSinglePeaks(list<Peak *>& candidates) const;
 
+
     void markBogeysOfSelects(
       list<Peak *>& candidates,
       const Gap& wheelGap) const;
@@ -106,10 +111,28 @@ class PeakMinima
     void markBogeys(list<Peak *>& candidates) const;
 
 
+    void markShortGapsOfSelects(
+      list<Peak *>& candidates,
+      const Gap& wheelGap) const;
+
+    void markShortGapsOfUnpaired(
+      list<Peak *>& candidates,
+      const Gap& wheelGap) const;
+
+    void markLongGapsOfSelects(
+      list<Peak *>& candidates,
+      const Gap& wheelGap) const;
 
     void markShortGaps(
       list<Peak *>& candidates,
       Gap& shortGap);
+
+
+
+    void guessLongGapDistance(
+      const list<Peak *>& candidates,
+      const unsigned shortGapCount,
+      Gap& gap) const;
 
     void markLongGaps(
       list<Peak *>& candidates,
