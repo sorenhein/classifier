@@ -78,8 +78,6 @@ class PeakDetect
       unsigned& index,
       float& distance) const;
 
-    void updateCarDistances(vector<CarDetect>& cars) const;
-
     bool findFourWheeler(
       const unsigned start,
       const unsigned end,
@@ -141,6 +139,7 @@ class PeakDetect
     void findWholeFirstCar(vector<CarDetect>& cars);
     void findWholeLastCar(vector<CarDetect>& cars);
 
+    void updateCarDistances(vector<CarDetect>& cars) const;
 
     float getFirstPeakTime() const;
 
@@ -176,8 +175,6 @@ class PeakDetect
       const unsigned offsetSamples);
 
     void reduce();
-
-
 
     void logPeakStats(
       const vector<PeakPos>& posTrue,

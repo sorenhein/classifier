@@ -128,7 +128,6 @@ class PeakMinima
       Gap& shortGap);
 
 
-
     void guessLongGapDistance(
       const list<Peak *>& candidates,
       const unsigned shortGapCount,
@@ -137,7 +136,6 @@ class PeakMinima
     void markLongGaps(
       list<Peak *>& candidates,
       const unsigned shortGapCount);
-
 
 
     void printPeakQuality(

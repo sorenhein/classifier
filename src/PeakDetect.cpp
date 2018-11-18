@@ -668,7 +668,7 @@ void PeakDetect::updateCars(
     car.logDistance(distance);
 
     models.add(car, index);
-cout << "Recognized car " << index << endl;
+    cout << "Recognized car " << index << endl;
   }
   else
   {
@@ -676,7 +676,7 @@ cout << "Recognized car " << index << endl;
 
     models.append();
     models += car;
-cout << "Created new car\n";
+    cout << "Created new car\n";
   }
 
   cars.push_back(car);
