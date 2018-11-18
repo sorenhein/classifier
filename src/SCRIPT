@@ -2,8 +2,11 @@ foreach i (../data/control/sensors/sensor*.txt)
   set bn = `basename $i`
   echo $bn >> overview.txt
   ./driver -c $i > $bn
-  grep "No good" $bn | wc >> overview.txt
   grep "Except" $bn | wc >> overview.txt
   grep "File" $bn | wc >> overview.txt
+  echo >> overview.txt
+  cat trainstats.txt >> overview.txt
+  echo >> overview.txt
   cat peakstats.txt >> overview.txt
+  echo >> overview.txt
 end
