@@ -1238,18 +1238,6 @@ if (peakPtrs.size() != 3)
 }
 
 
-unsigned PeakDetect::countWheels() const
-{
-  unsigned count = 0;
-  for (auto& cand: candidates)
-  {
-    if (cand->isWheel())
-      count++;
-  }
-  return count;
-}
-
-
 bool PeakDetect::bothSeed(
   const Peak * p1,
   const Peak * p2) const
@@ -1817,6 +1805,26 @@ void PeakDetect::makeBogeyAverages(vector<Peak>& wheels) const
 }
 
 
+void PeakDetect::findWholeInnerCars(vector<CarDetect>& cars)
+{
+  const unsigned csize = cars.size(); // As cars grows in the loop
+  for (unsigned cno = 0; cno+1 < csize; cno++)
+  {
+    const unsigned end = cars[cno].endValue();
+    const unsigned start = cars[cno+1].startValue();
+    if (end == start)
+      continue;
+
+    if (PeakDetect::findCars(end, start, true, true, cars))
+      PeakDetect::printRange(end, start, "Did intra-gap");
+    else
+      PeakDetect::printRange(end, start, "Didn't do intra-gap");
+  }
+}
+
+
+
+
 void PeakDetect::reduceNewer()
 {
   // Mark some tall peaks as seeds.
@@ -1839,15 +1847,12 @@ void PeakDetect::reduceNewer()
   models.append(); // Make room for initial model
   PeakDetect::findInitialWholeCars(cars);
 
+if (cars.size() == 0)
+  THROW(ERR_NO_PEAKS, "No cars?");
 
-
-  cout << "Counting " << PeakDetect::countWheels() << 
-    " peaks" << endl << endl;
+  PeakDetect::printCars(cars, "after inner gaps");
 
   // Fill out interval ends.
-  if (models.size() == 0)
-    THROW(ERR_NO_PEAKS, "No first car type found");
-
   for (auto& car: cars)
   {
     if (models.fillSides(car))
@@ -1864,12 +1869,14 @@ cout << "Filled out complete car: " << car.strLimits(offset) << endl;
   // Check open intervals.  Start with inner ones as they are complete.
 
   // TODO cars change in the inner loop, not so pretty.
-if (cars.size() == 0)
-  THROW(ERR_NO_PEAKS, "No cars?");
 
   const unsigned u1 = cars.back().endValue();
 
   const unsigned u2 = candidates.back()->getIndex();
+
+  // PeakDetect::findWholeInnerCars(cars);
+  // sort(cars.begin(), cars.end());
+
   const unsigned csize = cars.size();
 
   for (unsigned ii = 0; ii+1 < csize; ii++)
@@ -1891,9 +1898,7 @@ cout << "Did intra-gap " << cars[ii].endValue()+offset << "-" <<
     }
   }
 
-  cout << "Counting " << PeakDetect::countWheels() << 
-    " peaks" << endl << endl;
-
+  PeakDetect::printWheelCount("Counting");
   PeakDetect::printCars(cars, "after inner gaps");
   PeakDetect::printCarStats("after inner gaps");
 
@@ -1911,9 +1916,7 @@ cout << "Did intra-gap " << cars[ii].endValue()+offset << "-" <<
     }
   }
 
-  cout << "Counting " << PeakDetect::countWheels() << 
-    " peaks" << endl << endl;
-
+  PeakDetect::printWheelCount("Counting");
   PeakDetect::printCarStats("after trailing gap");
 
 
@@ -1950,9 +1953,7 @@ cout << "Did intra-gap " << cars[ii].endValue()+offset << "-" <<
       cand->select();
   }
 
-  cout << "Returning " << PeakDetect::countWheels() << 
-    " peaks" << endl << endl;
-
+  PeakDetect::printWheelCount("Returning");
 }
 
 
@@ -1996,11 +1997,7 @@ cout << "RANGE: " << fixed <<
   */
 
   if (debugDetails)
-  {
-    cout << "Non-tiny list peaks: " << peaks.size() << "\n";
-    PeakDetect::printAllPeaks();
-  }
-
+    PeakDetect::printAllPeaks("Non-tiny peaks");
 
   PeakDetect::eliminateKinks();
   if (debugDetails)
@@ -2014,24 +2011,6 @@ cout << "RANGE: " << fixed <<
 
 PeakDetect::reduceNewer();
 
-  /*
-  bool firstSeen = false;
-  unsigned firstTentativeIndex = peaks.front().getIndex();
-  unsigned lastTentativeIndex = peaks.back().getIndex();
-
-  for (auto& peak: peaks)
-  {
-    if (peak.isSelected())
-    {
-      if (! firstSeen)
-      {
-        firstTentativeIndex = peak.getIndex();
-        firstSeen = true;
-      }
-      lastTentativeIndex = peak.getIndex();
-    }
-  }
-  */
 }
 
 
@@ -2089,6 +2068,47 @@ void PeakDetect::getPeakTimes(vector<PeakTime>& times) const
 }
 
 
+void PeakDetect::printPeak(
+  const Peak& peak,
+  const string& text) const
+{
+  cout << text << "\n";
+  cout << peak.strHeader();
+  cout << peak.str(0) << endl;
+}
+
+
+void PeakDetect::printPeakQuality(
+  const Peak& peak,
+  const string& text) const
+{
+  cout << text << "\n";
+  cout << peak.strHeaderQuality();
+  cout << peak.strQuality(offset) << endl;
+}
+
+
+void PeakDetect::printRange(
+  const unsigned start,
+  const unsigned end,
+  const string& text) const
+{
+  cout << text << " " << start + offset << "-" << end + offset << endl;
+}
+
+
+void PeakDetect::printWheelCount(const string& text) const
+{
+  unsigned count = 0;
+  for (auto cand: candidates)
+  {
+    if (cand->isWheel())
+      count++;
+  }
+  cout << text << " " << count << " peaks" << endl;
+}
+
+
 void PeakDetect::printCars(
   const vector<CarDetect>& cars,
   const string& text) const
@@ -2108,26 +2128,6 @@ void PeakDetect::printCarStats(const string& text) const
 {
   cout << "Car stats " << text << "\n";
   cout << models.str() << endl;
-}
-
-
-void PeakDetect::printPeak(
-  const Peak& peak,
-  const string& text) const
-{
-  cout << text << "\n";
-  cout << peak.strHeader();
-  cout << peak.str(0) << endl;
-}
-
-
-void PeakDetect::printPeakQuality(
-  const Peak& peak,
-  const string& text) const
-{
-  cout << text << "\n";
-  cout << peak.strHeaderQuality();
-  cout << peak.strQuality(offset) << endl;
 }
 
 

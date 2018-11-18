@@ -158,8 +158,6 @@ class PeakDetect
       const CandFncPtr fptr,
       Gap& gap) const;
 
-    unsigned countWheels() const;
-
     void markWheelPair(
       Peak& p1,
       Peak& p2,
@@ -185,6 +183,8 @@ class PeakDetect
 
     void findInitialWholeCars(vector<CarDetect>& cars);
 
+    void findWholeInnerCars(vector<CarDetect>& cars);
+
     void makeSeedAverage(Peak& seed) const;
 
     void makeWheelAverages(vector<Peak>& wheels) const;
@@ -195,12 +195,6 @@ class PeakDetect
 
 
 
-    void printCars(
-      const vector<CarDetect>& cars,
-      const string& text) const;
-
-    void printCarStats(const string& text) const;
-
     float getFirstPeakTime() const;
 
     void printPeak(
@@ -210,6 +204,19 @@ class PeakDetect
     void printPeakQuality(
       const Peak& peak,
       const string& text) const;
+
+    void printRange(
+      const unsigned start,
+      const unsigned end,
+      const string& text) const;
+
+    void printWheelCount(const string& text) const;
+
+    void printCars(
+      const vector<CarDetect>& cars,
+      const string& text) const;
+
+    void printCarStats(const string& text) const;
 
     void printPeaksCSV(const vector<PeakTime>& timesTrue) const;
 

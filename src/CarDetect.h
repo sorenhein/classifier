@@ -62,6 +62,8 @@ class CarDetect
 
     void operator += (const CarDetect& c2);
 
+    bool operator < (const CarDetect& c2) const;
+
     void increment(CarDetectNumbers& cdn) const;
 
     const unsigned startValue() const;

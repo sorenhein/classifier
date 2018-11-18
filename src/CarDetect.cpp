@@ -82,6 +82,12 @@ void CarDetect::operator += (const CarDetect& c2)
 }
 
 
+bool CarDetect::operator < (const CarDetect& c2) const
+{
+  return (start < c2.start);
+}
+
+
 void CarDetect::increment(CarDetectNumbers& cdn) const
 {
   if (gaps.hasLeftGap())
