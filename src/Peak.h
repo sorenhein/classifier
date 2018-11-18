@@ -77,8 +77,7 @@ class Peak
     float qualityPeak;
     float qualityShape;
 
-    // bool selectFlag;
-    bool seedFlag;
+    bool selectFlag;
 
     bool wheelFlag;
     WheelType wheelSide;
@@ -151,12 +150,9 @@ class Peak
 
     bool isCandidate() const;
 
-    // void select();
-    // bool isSelected() const;
-
-    void setSeed();
-    void unsetSeed();
-    bool isSeed() const;
+    void select();
+    void unselect();
+    bool isSelected() const;
 
     void markWheel(const WheelType wheelType);
     void markNoWheel();

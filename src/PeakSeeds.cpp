@@ -362,7 +362,7 @@ void PeakSeeds::markSeeds(list<Peak>& peaks)
 
     const unsigned index = pit->getIndex();
     if (index == ni1 || index == ni2)
-      pit->setSeed();
+      pit->select();
 
     if (index >= ni2)
     {

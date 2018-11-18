@@ -57,7 +57,7 @@ void PeakMatch::pos2time(
 
 bool PeakMatch::advance(list<PeakWrapper>::const_iterator& peak) const
 {
-  while (peak != peaksWrapped.end() && ! peak->peakPtr->isSeed())
+  while (peak != peaksWrapped.end() && ! peak->peakPtr->isSelected())
     peak++;
   return (peak != peaksWrapped.end());
 }
@@ -193,7 +193,7 @@ void PeakMatch::setOffsets(
     {
       peak = prev(peak);
     }
-    while (peak != peaks.begin() && ! peak->isSeed());
+    while (peak != peaks.begin() && ! peak->isSelected());
 
     offsetList[i] = peak->getTime() - timesTrue[lt-1].time;
   }
@@ -203,7 +203,7 @@ void PeakMatch::setOffsets(
   {
     peak = prev(peak);
   }
-  while (peak != peaks.begin() && ! peak->isSeed());
+  while (peak != peaks.begin() && ! peak->isSelected());
 
   const double lastTime = peak->getTime();
 

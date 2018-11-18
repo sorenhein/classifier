@@ -43,7 +43,7 @@ void Peak::reset()
   qualityPeak = 0.f;
   qualityShape = 0.f;
 
-  seedFlag = false;
+  selectFlag = false;
 
   wheelFlag = false;
   wheelSide = WHEEL_SIZE;
@@ -303,21 +303,21 @@ bool Peak::isCandidate() const
 }
 
 
-void Peak::setSeed()
+void Peak::select()
 {
-  seedFlag = true;
+  selectFlag = true;
 }
 
 
-void Peak::unsetSeed()
+void Peak::unselect()
 {
-  seedFlag = false;
+  selectFlag = false;
 }
 
 
-bool Peak::isSeed() const
+bool Peak::isSelected() const
 {
-  return seedFlag;
+  return selectFlag;
 }
 
 
@@ -632,7 +632,7 @@ string Peak::strQuality(const unsigned offset) const
     setw(8) << fixed << setprecision(2) << qualityPeak << "";
 
   string str = "  ";
-  if (! seedFlag || ! wheelFlag)
+  if (! selectFlag || ! wheelFlag)
   {
     if (Peak::greatQuality())
       str += "***";

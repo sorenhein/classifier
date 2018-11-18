@@ -727,7 +727,7 @@ void PeakDetect::fixThreeWheels(
   Peak& p3) const
 {
   // Assume the two rightmost wheels, as the front one was lost.
-  p1.setSeed();
+  p1.select();
   p1.markWheel(WHEEL_RIGHT);
   PeakDetect::markWheelPair(p2, p3, "");
 
@@ -800,7 +800,7 @@ bool PeakDetect::findCars(
     const unsigned index = cand->getIndex();
     if (index >= start && index <= end)
     {
-      if (! cand->isSeed())
+      if (! cand->isSelected())
       {
         notTallFlag = true;
         notTallNos.push_back(peakNos.size());
@@ -892,7 +892,7 @@ cout << "Range is " << startLocal+offset << "-" <<
         for (unsigned k = 4; k < peakPtrsNew.size(); k++)
         {
           peakPtrsNew[k]->markNoWheel();
-          peakPtrsNew[k]->unsetSeed();
+          peakPtrsNew[k]->unselect();
         }
         
         PeakDetect::updateCars(cars, car);
@@ -938,7 +938,7 @@ cout << "Fell through to " << startLocal+offset << "-" << endLocal+offset << end
     const unsigned index = cand->getIndex();
     if (index >= startLocal && index <= endLocal)
     {
-      if (! cand->isSeed())
+      if (! cand->isSelected())
       {
         notTallFlag = true;
         notTallNos.push_back(peakNos.size());
@@ -990,7 +990,7 @@ cout << "4-5 leading wheels: Attempting to drop down to 3: " << np << "\n";
     {
       PeakDetect::fixTwoWheels(* peakPtrs[1], * peakPtrs[2]);
       peakPtrs[0]->markNoWheel();
-      peakPtrs[0]->unsetSeed();
+      peakPtrs[0]->unselect();
 if (peakPtrs.size() != 3)
   cout << "ERRORW " << peakPtrs.size() << endl;
     }
@@ -1061,7 +1061,7 @@ if (peakPtrs.size() != 4)
         if (! peakPtrs[i]->acceptableQuality())
         {
           peakPtrs[i]->markNoWheel();
-          peakPtrs[i]->unsetSeed();
+          peakPtrs[i]->unselect();
         }
       }
 
@@ -1086,7 +1086,7 @@ cout << "Trying again without the very first peak of first car\n";
     {
       PeakDetect::fixTwoWheels(* peakPtrs[1], * peakPtrs[2]);
       peakPtrs[0]->markNoWheel();
-      peakPtrs[0]->unsetSeed();
+      peakPtrs[0]->unselect();
 if (peakPtrs.size() != 3)
   cout << "ERRORX " << peakPtrs.size() << endl;
     }
@@ -1098,7 +1098,7 @@ if (peakPtrs.size() != 3)
   cout << "ERRORb " << peakPtrs.size() << endl;
 
       peakErased->markNoWheel();
-      peakErased->unsetSeed();
+      peakErased->unselect();
 
     PeakDetect::updateCars(cars, car);
 
@@ -1187,7 +1187,7 @@ cout << "Failed the car: " << np << "\n";
     for (unsigned k = 4; k < peakPtrsNew.size(); k++)
     {
       peakPtrsNew[k]->markNoWheel();
-      peakPtrsNew[k]->unsetSeed();
+      peakPtrsNew[k]->unselect();
     }
 
     PeakDetect::updateCars(cars, car);
@@ -1199,7 +1199,7 @@ cout << "Failed the car: " << np << "\n";
 cout << "Trying 3-peak leading car\n";
     // The first car, only three peaks.
     if (notTallCount == 1 && 
-      ! peakPtrs[0]->isSeed())
+      ! peakPtrs[0]->isSelected())
     {
 cout << "Two talls\n";
       // Skip the first peak.
@@ -1242,7 +1242,7 @@ cout << "Failed\n";
 
       PeakDetect::fixTwoWheels(* peakPtrs[0], * peakPtrs[1]);
       peakPtrs[2]->markNoWheel();
-      peakPtrs[2]->unsetSeed();
+      peakPtrs[2]->unselect();
 if (peakPtrs.size() != 3)
   cout << "ERRORZ " << peakPtrs.size() << endl;
 
@@ -1263,7 +1263,7 @@ bool PeakDetect::bothSeed(
   const Peak * p1,
   const Peak * p2) const
 {
-  return (p1->isSeed() && p2->isSeed());
+  return (p1->isSelected() && p2->isSelected());
 }
 
 
@@ -1306,8 +1306,8 @@ void PeakDetect::markWheelPair(
     cout << text << " wheel pair at " << p1.getIndex() + offset <<
       "-" << p2.getIndex() + offset << "\n";
     
-  p1.setSeed();
-  p2.setSeed();
+  p1.select();
+  p2.select();
 
   p1.markWheel(WHEEL_LEFT);
   p2.markWheel(WHEEL_RIGHT);
@@ -1348,9 +1348,9 @@ void PeakDetect::reseedUsingQuality()
   for (auto candidate: candidates)
   {
     if (candidate->greatQuality())
-      candidate->setSeed();
+      candidate->select();
     else
-      candidate->unsetSeed();
+      candidate->unselect();
   }
 }
 
@@ -1439,15 +1439,15 @@ void PeakDetect::markBogeys()
     Peak * cand = * cit;
     Peak * nextCand = * next(cit);
     // If neither is set, or both are set, there is nothing to repair.
-    if (cand->isSeed() == nextCand->isSeed())
+    if (cand->isSelected() == nextCand->isSelected())
       continue;
 
     const unsigned dist = nextCand->getIndex() - cand->getIndex();
     if (dist < wheelGap.lower || dist > wheelGap.upper)
       continue;
 
-    if ((cand->isSeed() && nextCand->acceptableQuality()) ||
-        (nextCand->isSeed() && cand->acceptableQuality()))
+    if ((cand->isSelected() && nextCand->acceptableQuality()) ||
+        (nextCand->isSelected() && cand->acceptableQuality()))
       PeakDetect::markWheelPair(* cand, * nextCand, "Adding");
   }
 
@@ -1465,9 +1465,9 @@ void PeakDetect::markBogeys()
       cand->calcQualities(candidateSize[1]);
 
     if (cand->greatQuality())
-      cand->setSeed();
+      cand->select();
     else
-      cand->unsetSeed();
+      cand->unselect();
   }
 
   PeakDetect::printAllCandidates("All peaks using left/right scales");
@@ -1566,7 +1566,7 @@ void PeakDetect::markLongGaps(const unsigned shortGapCount)
     {
       ncit = next(ncit);
     }
-    while (ncit != candidates.end() && ! (* ncit)->isSeed());
+    while (ncit != candidates.end() && ! (* ncit)->isSelected());
 
     if (ncit == candidates.end())
       break;
@@ -1595,7 +1595,7 @@ void PeakDetect::markLongGaps(const unsigned shortGapCount)
     {
       ncit = next(ncit);
     }
-    while (ncit != candidates.end() && ! (* ncit)->isSeed());
+    while (ncit != candidates.end() && ! (* ncit)->isSelected());
 
     if (ncit == candidates.end())
       break;
@@ -1645,7 +1645,7 @@ void PeakDetect::makeSeedAverage(Peak& seed) const
   unsigned count = 0;
   for (auto& cand: candidates)
   {
-    if (cand->isSeed())
+    if (cand->isSelected())
     {
       seed += * cand;
       count++;
@@ -1738,7 +1738,7 @@ void PeakDetect::findWholeCars(vector<CarDetect>& cars)
   auto cit = candidates.begin();
   for (unsigned i = 0; i < 4; i++)
   {
-    while (cit != candidates.end() && ! (* cit)->isSeed())
+    while (cit != candidates.end() && ! (* cit)->isSelected())
       cit++;
 
     if (cit == candidates.end())
@@ -1818,7 +1818,7 @@ void PeakDetect::findWholeCars(vector<CarDetect>& cars)
     {
       cit++;
     } 
-    while (cit != candidates.end() && ! (* cit)->isSeed());
+    while (cit != candidates.end() && ! (* cit)->isSelected());
     runIter[3] = cit;
     runPtr[3] = * cit;
   }
@@ -2022,7 +2022,7 @@ void PeakDetect::makeSynthPeaks(vector<float>& synthPeaks) const
 
   for (auto& peak: peaks)
   {
-    if (peak.isSeed())
+    if (peak.isSelected())
       synthPeaks[peak.getIndex()] = peak.getValue();
   }
 }
@@ -2032,7 +2032,7 @@ float PeakDetect::getFirstPeakTime() const
 {
   for (auto& peak: peaks)
   {
-    if (peak.isSeed())
+    if (peak.isSelected())
       return peak.getIndex() / static_cast<float>(SAMPLE_RATE);
   }
 
@@ -2047,7 +2047,7 @@ void PeakDetect::getPeakTimes(vector<PeakTime>& times) const
 
   for (auto& peak: peaks)
   {
-    if (peak.isSeed())
+    if (peak.isSelected())
     {
       times.emplace_back(PeakTime());
       PeakTime& p = times.back();
@@ -2132,7 +2132,7 @@ void PeakDetect::printPeaksCSV(const vector<PeakTime>& timesTrue) const
   i = 0;
   for (auto& peak: peaks)
   {
-    if (peak.isSeed())
+    if (peak.isSelected())
       cout << i++ << ";" << 
         fixed << setprecision(6) << peak.getTime() << "\n";
   }
@@ -2179,7 +2179,7 @@ void PeakDetect::printSeedCandidates(const string& text) const
   cout << candidates.front()->strHeaderQuality();
   for (auto candidate: candidates)
   {
-    if (candidate->isSeed())
+    if (candidate->isSelected())
       cout << candidate->strQuality(offset);
   }
   cout << endl;
