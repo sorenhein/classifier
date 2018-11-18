@@ -12,6 +12,7 @@ SOURCE_FILES    =               \
                 Peak.cpp        \
                 PeakDetect.cpp  \
                 PeakMatch.cpp   \
+                PeakMinima.cpp  \
                 PeakSeeds.cpp   \
                 PeakStats.cpp   \
                 Regress.cpp     \

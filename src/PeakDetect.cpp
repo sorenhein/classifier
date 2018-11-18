@@ -8,6 +8,7 @@
 
 #include "PeakDetect.h"
 #include "PeakSeeds.h"
+#include "PeakMinima.h"
 #include "PeakMatch.h"
 #include "PeakStats.h"
 #include "Except.h"
@@ -1900,6 +1901,9 @@ void PeakDetect::reduceNewer()
   seeds.mark(peaks, offset, scalesList.getRange());
   cout << seeds.str(offset, "after pruning");
 
+  PeakMinima minima;
+  minima.mark(peaks, candidates, offset);
+  /*
   candidates.clear();
 
   PeakDetect::markSinglePeaks();
@@ -1910,6 +1914,7 @@ void PeakDetect::reduceNewer()
   PeakDetect::markShortGaps(shortGap);
 
   PeakDetect::markLongGaps(shortGap.count);
+  */
 
   vector<CarDetect> cars;
   models.append(); // Make room for initial model
