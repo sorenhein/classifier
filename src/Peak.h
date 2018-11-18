@@ -132,10 +132,6 @@ class Peak
     void calcQualities(const Peak& scale);
     void calcQualities(const vector<Peak>& scales);
 
-    float distance(
-      const Peak& p2,
-      const Peak& scale) const;
-
     unsigned getIndex() const;
     double getTime() const;
     bool getMaxFlag() const;
@@ -150,8 +146,7 @@ class Peak
       const Peak& p2,
       const PeakParam param) const;
 
-    float getQualityPeak() const;
-    float getQualityShape() const;
+    float getQualityShape() const; // TODO Delete later
 
     bool isCandidate() const;
 
@@ -187,11 +182,9 @@ class Peak
     void operator /= (const unsigned no);
 
     string strHeader() const;
-    string strHeaderSum() const;
     string strHeaderQuality() const;
 
     string str(const unsigned offset = 0) const;
-    string strSum(const unsigned offset = 0) const;
     string strQuality(const unsigned offset = 0) const;
 
     string stars() const;

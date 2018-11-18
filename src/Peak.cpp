@@ -139,19 +139,6 @@ void Peak::annotate(const Peak * peakPrev)
 }
 
 
-float Peak::distance(
-  const Peak& p2,
-  const Peak& scale) const
-{
-  const float vdiff = (value - p2.value) / scale.value;
-  const float vlen = (left.len - p2.left.len) / scale.left.len;
-  const float vgrad = (left.gradient - p2.left.gradient) / 
-    scale.left.gradient;
-
-  return vdiff * vdiff + vlen * vlen + vgrad * vgrad;
-}
-
-
 float Peak::calcQualityPeak(const Peak& scale) const
 {
   // level is supposed to be negative.  Large negative peaks are OK.
@@ -282,12 +269,6 @@ float Peak::getArea(const Peak& p2) const
   // the immediate predecessor (but a predecessor).
   return abs(areaCum - p2.areaCum -
     (index - p2.index) * min(value, p2.value));
-}
-
-
-float Peak::getQualityPeak() const
-{
-  return qualityPeak;
 }
 
 
@@ -571,23 +552,6 @@ string Peak::strHeader() const
 }
 
 
-string Peak::strHeaderSum() const
-{
-  stringstream ss;
-  
-  ss <<
-    setw(6) << "Index" <<
-    setw(8) << "Value" <<
-    setw(8) << "Range1" <<
-    setw(8) << "Range2" <<
-    setw(8) << "Grad1" <<
-    setw(8) << "Grad2" <<
-    setw(8) << "Fill1" <<
-    "\n";
-  return ss.str();
-}
-
-
 string Peak::strHeaderQuality() const
 {
   stringstream ss;
@@ -618,23 +582,6 @@ string Peak::str(const unsigned offset) const
     setw(7) << fixed << setprecision(2) << left.range <<
     setw(8) << fixed << setprecision(2) << left.area <<
     setw(8) << fixed << setprecision(2) << 100.f * left.gradient <<
-    setw(8) << fixed << setprecision(2) << left.fill <<
-    "\n";
-  return ss.str();
-}
-
-
-string Peak::strSum(const unsigned offset) const
-{
-  stringstream ss;
-
-  ss <<
-    setw(6) << std::right << index + offset <<
-    setw(8) << fixed << setprecision(2) << value <<
-    setw(8) << fixed << setprecision(2) << left.range <<
-    setw(8) << fixed << setprecision(2) << right.range <<
-    setw(8) << fixed << setprecision(2) << 100. * left.gradient <<
-    setw(8) << fixed << setprecision(2) << 100. * right.gradient <<
     setw(8) << fixed << setprecision(2) << left.fill <<
     "\n";
   return ss.str();

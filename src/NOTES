@@ -1,7 +1,3 @@
-* Clean up Peak some more?
-
-* Eliminate function pointers for reduceSmall*
-
 * Make a PeakStruct out of PeakDetect (with the car structure stuff)
 
 * PeakMinima:
@@ -9,12 +5,9 @@
   - The second guessLongGapDistance doesn't pick up anything,
     as the second peak is always a bogey already?
 
-
-
 * When car models complete?
   - recombine
   - mark cars accordingly (new indices)
-
 
 Gap distance:
 actual = 0, ref != 0: dist = 0
@@ -24,13 +17,6 @@ Neither = 0: actual
 
 Remaining sensor00 errors:
 #68, 074731: The first car bogey is very odd (too long)
-
-Matching distance against X: inf -- why?  Probably some distance is 0.
-
-
-Fix distance = inf
-Use distance on cars to eliminate some car types
-Sort cars
 
 
 Cleaning up clusters
@@ -46,13 +32,12 @@ Next issues:
 - Peaks in e.g sensor09 are noisy at the bottom,
   which disturbs index and gradient
 
-
 Look graphically for misses
 
 2018-09-17
 ----------
 Give out the whole PeakList, don't copy into PeakTime?
-Also output the like number of missed front peaks
+Also output the likely number of missed front peaks
 
 
 2018-09-14
@@ -93,7 +78,6 @@ Overall algorithm
 
 * Check against laser measurements!
 * Output a diagram with the wagons suggested
-* throw/catch with error codes (like Build)
 * filtfilt padding, how?
 * Make independent of sample rate (other than Butterworth?)
 * Move to less padding in SegQuiet back
