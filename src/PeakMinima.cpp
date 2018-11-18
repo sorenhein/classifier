@@ -223,7 +223,7 @@ void PeakMinima::markBogeyLongGap(
 }
 
 
-void PeakMinima::reseedUsingQuality(list<Peak *>& candidates) const
+void PeakMinima::reseedWheelUsingQuality(list<Peak *>& candidates) const
 {
   for (auto candidate: candidates)
   {
@@ -231,6 +231,27 @@ void PeakMinima::reseedUsingQuality(list<Peak *>& candidates) const
       candidate->select();
     else
       candidate->unselect();
+  }
+}
+
+
+void PeakMinima::reseedBogeysUsingQuality(
+  list<Peak *>& candidates,
+  const vector<Peak>& bogeyScale) const
+{
+  for (auto cand: candidates)
+  {
+    if (! cand->isWheel())
+      cand->calcQualities(bogeyScale);
+    else if (cand->isLeftWheel())
+      cand->calcQualities(bogeyScale[0]);
+    else if (cand->isRightWheel())
+      cand->calcQualities(bogeyScale[1]);
+
+    if (cand->greatQuality())
+      cand->select();
+    else
+      cand->unselect();
   }
 }
 
@@ -370,15 +391,15 @@ void PeakMinima::markSinglePeaks(list<Peak *>& candidates) const
     candidate->calcQualities(wheelPeak);
 
   PeakMinima::printAllCandidates(candidates, "All negative minima");
-  PeakMinima::printSeedCandidates(candidates, "Seeds");
+  PeakMinima::printSelected(candidates, "Seeds");
 
   PeakMinima::makeWheelAverage(candidates, wheelPeak);
   PeakMinima::printPeakQuality(wheelPeak, "Seed average");
 
   // Modify selection based on quality.
-  PeakMinima::reseedUsingQuality(candidates);
+  PeakMinima::reseedWheelUsingQuality(candidates);
 
-  PeakMinima::printSeedCandidates(candidates, "Great-quality seeds");
+  PeakMinima::printSelected(candidates, "Great-quality seeds");
 
   // Remake the average.
   PeakMinima::makeWheelAverage(candidates, wheelPeak);
@@ -386,114 +407,11 @@ void PeakMinima::markSinglePeaks(list<Peak *>& candidates) const
 }
 
 
-void PeakMinima::markBogeyOfSelects(
+void PeakMinima::markBogeysOfSelects(
   list<Peak *>& candidates,
   const Gap& wheelGap) const
 {
   // Here we mark bogeys where both gaps are already selected.
-  for (auto cit = candidates.begin(); cit != prev(candidates.end()); cit++)
-  {
-    Peak * cand = * cit;
-    Peak * nextCand = * next(cit);
-    if (PeakMinima::bothSelected(cand, nextCand))
-    {
-      const unsigned dist = nextCand->getIndex() - cand->getIndex();
-      if (dist >= wheelGap.lower && dist <= wheelGap.upper)
-      {
-        if (cand->isWheel())
-          THROW(ERR_NO_PEAKS, "Triple bogey?!");
-
-        PeakMinima::markWheelPair(* cand, * nextCand, "");
-      }
-    }
-  }
-}
-
-
-void PeakMinima::markBogeys(list<Peak *>& candidates) const
-{
-  Gap wheelGap;
-  PeakMinima::guessNeighborDistance(candidates, 
-    &PeakMinima::bothSelected, wheelGap);
-
-  cout << "Guessing wheel distance " << wheelGap.lower << "-" <<
-    wheelGap.upper << "\n\n";
-
-  PeakMinima::markBogeyOfSelects(candidates, wheelGap);
-/*
-  // Tentatively mark wheel pairs (bogeys).  If there are only 
-  // single wheels, we might be marking the wagon gaps instead.
-  for (auto cit = candidates.begin(); cit != prev(candidates.end()); cit++)
-  {
-    Peak * cand = * cit;
-    Peak * nextCand = * next(cit);
-    if (PeakMinima::bothSelected(cand, nextCand))
-    {
-      const unsigned dist = nextCand->getIndex() - cand->getIndex();
-      if (dist >= wheelGap.lower && dist <= wheelGap.upper)
-      {
-        if (cand->isWheel())
-          THROW(ERR_NO_PEAKS, "Triple bogey?!");
-
-        PeakMinima::markWheelPair(* cand, * nextCand, "");
-      }
-    }
-  }
-*/
-
-  // Look for unpaired wheels where there is a nearby peak that is
-  // not too bad.  If there is a spurious peak in between, we'll fail...
-  for (auto cit = candidates.begin(); cit != prev(candidates.end()); cit++)
-  {
-    Peak * cand = * cit;
-    Peak * nextCand = * next(cit);
-    // If neither is set, or both are set, there is nothing to repair.
-    if (cand->isSelected() == nextCand->isSelected())
-      continue;
-
-    const unsigned dist = nextCand->getIndex() - cand->getIndex();
-    if (dist < wheelGap.lower || dist > wheelGap.upper)
-      continue;
-
-    if ((cand->isSelected() && nextCand->acceptableQuality()) ||
-        (nextCand->isSelected() && cand->acceptableQuality()))
-      PeakMinima::markWheelPair(* cand, * nextCand, "Adding");
-  }
-
-  vector<Peak> candidateSize;
-  makeBogeyAverages(candidates, candidateSize);
-
-  // Recalculate the peak qualities using both left and right peaks.
-  for (auto cand: candidates)
-  {
-    if (! cand->isWheel())
-      cand->calcQualities(candidateSize);
-    else if (cand->isLeftWheel())
-      cand->calcQualities(candidateSize[0]);
-    else if (cand->isRightWheel())
-      cand->calcQualities(candidateSize[1]);
-
-    if (cand->greatQuality())
-      cand->select();
-    else
-      cand->unselect();
-  }
-
-  PeakMinima::printAllCandidates(candidates,
-    "All peaks using left/right scales");
-
-  makeBogeyAverages(candidates, candidateSize);
-  PeakMinima::printPeakQuality(candidateSize[0], "Left-wheel average");
-  PeakMinima::printPeakQuality(candidateSize[1], "Right-wheel average");
-
-  // Redo the distances using the new qualities (left and right peaks).
-  PeakMinima::guessNeighborDistance(candidates,
-    &PeakMinima::bothSelected, wheelGap);
-  cout << "Guessing new wheel distance " << wheelGap.lower << "-" <<
-    wheelGap.upper << "\n\n";
-
-
-  // Mark more bogeys with the refined peak qualities.
   for (auto cit = candidates.begin(); cit != prev(candidates.end()); cit++)
   {
     Peak * cand = * cit;
@@ -516,6 +434,71 @@ void PeakMinima::markBogeys(list<Peak *>& candidates) const
 }
 
 
+void PeakMinima::markBogeysOfUnpaired(
+  list<Peak *>& candidates,
+  const Gap& wheelGap) const
+{
+  for (auto cit = candidates.begin(); cit != prev(candidates.end()); cit++)
+  {
+    Peak * cand = * cit;
+    Peak * nextCand = * next(cit);
+    // If neither is set, or both are set, there is nothing to work on.
+    if (cand->isSelected() == nextCand->isSelected())
+      continue;
+
+    const unsigned dist = nextCand->getIndex() - cand->getIndex();
+    if (dist < wheelGap.lower || dist > wheelGap.upper)
+      continue;
+
+    // If the distance is right, we can relax our quality requirements.
+    if ((cand->isSelected() && nextCand->acceptableQuality()) ||
+        (nextCand->isSelected() && cand->acceptableQuality()))
+      PeakMinima::markWheelPair(* cand, * nextCand, "Adding");
+  }
+}
+
+
+void PeakMinima::markBogeys(list<Peak *>& candidates) const
+{
+  Gap wheelGap;
+  PeakMinima::guessNeighborDistance(candidates, 
+    &PeakMinima::bothSelected, wheelGap);
+
+  PeakMinima::printRange(wheelGap.lower, wheelGap.upper,
+    "Guessing wheel distance");
+
+  PeakMinima::markBogeysOfSelects(candidates, wheelGap);
+
+  // Look for unpaired wheels where there is a nearby peak that is
+  // not too bad.  If there is a spurious peak in between, we'll fail...
+  PeakMinima::markBogeysOfUnpaired(candidates, wheelGap);
+
+  vector<Peak> bogeyScale;
+  makeBogeyAverages(candidates, bogeyScale);
+
+  // Recalculate the peak qualities using both left and right peaks.
+  PeakMinima::reseedBogeysUsingQuality(candidates, bogeyScale);
+
+  PeakMinima::printAllCandidates(candidates,
+    "All peaks using left/right scales");
+
+  // Recalculate the averages based on the new qualities.
+  makeBogeyAverages(candidates, bogeyScale);
+  PeakMinima::printPeakQuality(bogeyScale[0], "Left-wheel average");
+  PeakMinima::printPeakQuality(bogeyScale[1], "Right-wheel average");
+
+  // Redo the distances using the new qualities (left and right peaks).
+  PeakMinima::guessNeighborDistance(candidates,
+    &PeakMinima::bothSelected, wheelGap);
+
+  PeakMinima::printRange(wheelGap.lower, wheelGap.upper,
+    "Guessing newwheel distance");
+
+  // Mark more bogeys with the refined peak qualities.
+  PeakMinima::markBogeysOfSelects(candidates, wheelGap);
+}
+
+
 void PeakMinima::markShortGaps(
   list<Peak *>& candidates,
   Gap& shortGap)
@@ -524,8 +507,8 @@ void PeakMinima::markShortGaps(
   PeakMinima::guessNeighborDistance(candidates,
     &PeakMinima::formBogeyGap, shortGap);
 
-  cout << "Guessing short gap " << shortGap.lower << "-" <<
-    shortGap.upper << "\n\n";
+  PeakMinima::printRange(shortGap.lower, shortGap.upper,
+    "Guessing short gap");
 
 
   // Tentatively mark short gaps (between cars).
@@ -541,7 +524,6 @@ void PeakMinima::markShortGaps(
     if (dist >= shortGap.lower && dist <= shortGap.upper)
       PeakMinima::markBogeyShortGap(* cand, * nextCand, "");
   }
-
 
   // Look for unpaired short gaps.  If there is a spurious peak
   // in between, we will fail.
@@ -654,16 +636,6 @@ void PeakMinima::markLongGaps(
 }
 
 
-void PeakMinima::printPeak(
-  const Peak& peak,
-  const string& text) const
-{
-  cout << text << "\n";
-  cout << peak.strHeader();
-  cout << peak.str(0) << endl;
-}
-
-
 void PeakMinima::printPeakQuality(
   const Peak& peak,
   const string& text) const
@@ -683,20 +655,6 @@ void PeakMinima::printRange(
 }
 
 
-void PeakMinima::printWheelCount(
-  const list<Peak *>& candidates,
-  const string& text) const
-{
-  unsigned count = 0;
-  for (auto cand: candidates)
-  {
-    if (cand->isWheel())
-      count++;
-  }
-  cout << text << " " << count << " peaks" << endl;
-}
-
-
 void PeakMinima::printAllCandidates(
   const list<Peak *>& candidates,
   const string& text) const
@@ -713,7 +671,7 @@ void PeakMinima::printAllCandidates(
 }
 
 
-void PeakMinima::printSeedCandidates(
+void PeakMinima::printSelected(
   const list<Peak *>& candidates,
   const string& text) const
 {

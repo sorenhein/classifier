@@ -71,7 +71,11 @@ class PeakMinima
       Peak& p2,
       const string& text) const;
 
-    void reseedUsingQuality(list<Peak *>& candidates) const;
+    void reseedWheelUsingQuality(list<Peak *>& candidates) const;
+
+    void reseedBogeysUsingQuality(
+      list<Peak *>& candidates,
+      const vector<Peak>& bogeyScale) const;
 
     void makeWheelAverage(
       list<Peak *>& candidates,
@@ -91,12 +95,17 @@ class PeakMinima
 
     void markSinglePeaks(list<Peak *>& candidates) const;
 
-    void markBogeyOfSelects(
+    void markBogeysOfSelects(
       list<Peak *>& candidates,
       const Gap& wheelGap) const;
 
+    void markBogeysOfUnpaired(
+      list<Peak *>& candidates,
+      const Gap& wheelGap) const;
 
     void markBogeys(list<Peak *>& candidates) const;
+
+
 
     void markShortGaps(
       list<Peak *>& candidates,
@@ -106,9 +115,7 @@ class PeakMinima
       list<Peak *>& candidates,
       const unsigned shortGapCount);
 
-    void printPeak(
-      const Peak& peak,
-      const string& text) const;
+
 
     void printPeakQuality(
       const Peak& peak,
@@ -119,15 +126,11 @@ class PeakMinima
       const unsigned end,
       const string& text) const;
 
-    void printWheelCount(
-      const list<Peak *>& candidates,
-      const string& text) const;
-
     void printAllCandidates(
       const list<Peak *>& candidates,
       const string& text) const;
 
-    void printSeedCandidates(
+    void printSelected(
       const list<Peak *>& candidates,
       const string& text) const;
 
