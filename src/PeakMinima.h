@@ -23,14 +23,6 @@ class PeakMinima
       unsigned count;
     };
 
-    enum PrintQuality
-    {
-      PRINT_SEED = 0,
-      PRINT_WHEEL = 1,
-      PRINT_BOGEY = 2,
-      PRINT_SIZE = 3
-    };
-
     typedef bool (PeakMinima::*CandFncPtr)(
       const Peak * p1, 
       const Peak * p2) const;

@@ -213,4 +213,11 @@ enum PeakTrueType
   PEAK_TRUE_SIZE = 3
 };
 
+enum PeakParam
+{
+  PEAK_PARAM_AREA = 0,
+  PEAK_PARAM_RANGE = 1,
+  PEAK_PARAM_SIZE = 2
+};
+
 #endif

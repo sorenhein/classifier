@@ -228,20 +228,27 @@ const list<Peak>::iterator PeakDetect::collapsePeaks(
 }
 
 
-void PeakDetect::reduceSmallRanges(
-  const float rangeLimit,
+void PeakDetect::reduceSmallPeaks(
+  const PeakParam param,
+  const float paramLimit,
   const bool preserveFlag)
 {
+  // We use this method for two reductions:
+  // 1. Small areas (first, as a rough reduction).
+  // 2. Small ranges (second, as a more precise reduction).
+  // preserveFlag regulates whether we may reduce away certain
+  // positive peaks.  As this changes the perceived slope of 
+  // negative minimum peaks, we only do it for the first reduction.
+
   if (peaks.empty())
     THROW(ERR_NO_PEAKS, "Peak list is empty");
 
-  const auto peakLast = prev(peaks.end());
   auto peak = next(peaks.begin());
 
   while (peak != peaks.end())
   {
-    const float range = peak->getRange();
-    if (range >= rangeLimit)
+    const float paramCurrent = peak->getParameter(param);
+    if (paramCurrent >= paramLimit)
     {
       peak++;
       continue;
@@ -249,7 +256,7 @@ void PeakDetect::reduceSmallRanges(
 
     auto peakCurrent = peak, peakMax = peak;
     const bool maxFlag = peak->getMaxFlag();
-    float sumRange = 0.f, lastRange = 0.f;
+    float sumParam = 0.f, lastParam = 0.f;
     float valueMax = numeric_limits<float>::lowest();
 
     do
@@ -258,9 +265,8 @@ void PeakDetect::reduceSmallRanges(
       if (peak == peaks.end())
         break;
 
-      // sumRange = peak->getArea(* peakCurrent);
-      sumRange = abs(peak->getValue() - peakCurrent->getValue());
-      lastRange = peak->getRange();
+      sumParam = peak->getParameter(* peakCurrent, param);
+      lastParam = peak->getParameter(param);
       const float value = peak->getValue();
       if (! maxFlag && value > valueMax)
       {
@@ -273,9 +279,9 @@ void PeakDetect::reduceSmallRanges(
         peakMax = peak;
       }
     }
-    while (abs(sumRange) < rangeLimit || abs(lastRange) < rangeLimit);
+    while (abs(sumParam) < paramLimit || abs(lastParam) < paramLimit);
 
-    if (abs(sumRange) < rangeLimit || abs(lastRange) < rangeLimit)
+    if (abs(sumParam) < paramLimit || abs(lastParam) < paramLimit)
     {
       // It's the last set of peaks.  We could keep the largest peak
       // of the same polarity as peakCurrent (instead of peakCurrent).
@@ -285,7 +291,6 @@ void PeakDetect::reduceSmallRanges(
         peaks.erase(peakCurrent, peaks.end());
       break;
     }
-/* */
     else if (preserveFlag &&
         peakCurrent->getValue() > 0.f &&
         ! peakCurrent->getMaxFlag())
@@ -294,7 +299,6 @@ void PeakDetect::reduceSmallRanges(
       // the gradient calculation which influences peak perception.
       peak++;
     }
-/* */
     else if (peak->getMaxFlag() != maxFlag)
     {
       // Keep from peakCurrent to peak which is also often peakMax.
@@ -305,95 +309,6 @@ void PeakDetect::reduceSmallRanges(
     {
       // Keep the start, the most extreme peak of opposite polarity,
       // and the end.
-/*
-cout << "peakCurrent " << peakCurrent->getIndex() + offset << endl;
-cout << "peakMax " << peakMax->getIndex() + offset << endl;
-cout << "peak " << peak->getIndex() + offset << endl;
-cout << peakCurrent->str(offset);
-cout << peakMax->str(offset);
-cout << peak->str(offset);
-*/
-
-      peakMax = PeakDetect::collapsePeaks(--peakCurrent, peakMax);
-      peak = PeakDetect::collapsePeaks(++peakMax, peak);
-      peak++;
-    }
-  }
-}
-
-
-void PeakDetect::reduceSmallAreas(const float areaLimit)
-{
-  if (peaks.empty())
-    THROW(ERR_NO_PEAKS, "Peak list is empty");
-
-  auto peak = next(peaks.begin());
-
-  while (peak != peaks.end())
-  {
-    const float area = peak->getArea();
-    if (area >= areaLimit)
-    {
-      peak++;
-      continue;
-    }
-
-    auto peakCurrent = peak, peakMax = peak;
-    const bool maxFlag = peak->getMaxFlag();
-    float sumArea = 0.f, lastArea = 0.f;
-    float valueMax = numeric_limits<float>::lowest();
-
-    do
-    {
-      peak++;
-      if (peak == peaks.end())
-        break;
-
-      sumArea = peak->getArea(* peakCurrent);
-      lastArea = peak->getArea();
-      const float value = peak->getValue();
-      if (! maxFlag && value > valueMax)
-      {
-        valueMax = value;
-        peakMax = peak;
-      }
-      else if (maxFlag && -value > valueMax)
-      {
-        valueMax = -value;
-        peakMax = peak;
-      }
-    }
-    while (abs(sumArea) < areaLimit || abs(lastArea) < areaLimit);
-
-    if (abs(sumArea) < areaLimit || abs(lastArea) < areaLimit)
-    {
-      // It's the last set of peaks.  We could keep the largest peak
-      // of the same polarity as peakCurrent (instead of peakCurrent).
-      // It's a bit random whether or not this would be a "real" peak,
-      // and we also don't keep track of this above.  So we just stop.
-      if (peakCurrent != peaks.end())
-        peaks.erase(peakCurrent, peaks.end());
-      break;
-    }
-    else if (peak->getMaxFlag() != maxFlag)
-    {
-      // Keep from peakCurrent to peak which is also often peakMax.
-      peak = PeakDetect::collapsePeaks(--peakCurrent, peak);
-      peak++;
-    }
-    else
-    {
-      // Keep the start, the most extreme peak of opposite polarity,
-      // and the end.
-/*
-cout << "peakCurrent " << peakCurrent->getIndex() + offset << endl;
-cout << "peakMax " << peakMax->getIndex() + offset << endl;
-cout << "peak " << peak->getIndex() + offset << endl;
-cout << peakCurrent->str(offset);
-cout << peakMax->str(offset);
-cout << peak->str(offset);
-*/
-
       peakMax = PeakDetect::collapsePeaks(--peakCurrent, peakMax);
       peak = PeakDetect::collapsePeaks(++peakMax, peak);
       peak++;
@@ -1333,7 +1248,7 @@ void PeakDetect::reduce()
   if (debugDetails)
     PeakDetect::printAllPeaks("Original peaks");
 
-  PeakDetect::reduceSmallAreas(0.1f);
+  PeakDetect::reduceSmallPeaks(PEAK_PARAM_AREA, 0.1f, false);
 
   if (debugDetails)
     PeakDetect::printAllPeaks("Non-tiny peaks");
@@ -1347,7 +1262,8 @@ void PeakDetect::reduce()
   if (debug)
     PeakDetect::printPeak(scale, "Scale");
 
-  PeakDetect::reduceSmallRanges(scale.getRange() / 10.f, true);
+  PeakDetect::reduceSmallPeaks(PEAK_PARAM_RANGE, 
+    scale.getRange() / 10.f, true);
 
   // Mark some tall peaks as seeds.
   PeakSeeds seeds;

@@ -145,6 +145,11 @@ class Peak
     float getArea() const;
     float getArea(const Peak& p2) const;
 
+    float getParameter(const PeakParam param) const;
+    float getParameter(
+      const Peak& p2,
+      const PeakParam param) const;
+
     float getQualityPeak() const;
     float getQualityShape() const;
 

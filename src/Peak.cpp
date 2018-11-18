@@ -297,6 +297,30 @@ float Peak::getQualityShape() const
 }
 
 
+float Peak::getParameter(const PeakParam param) const
+{
+  if (param == PEAK_PARAM_AREA)
+    return Peak::getArea();
+  else if (param == PEAK_PARAM_RANGE)
+    return Peak::getRange();
+  else
+    THROW(ERR_ALGO_PEAK_PARAMETER, "Bad parameter");
+}
+
+
+float Peak::getParameter(
+  const Peak& p2,
+  const PeakParam param) const
+{
+  if (param == PEAK_PARAM_AREA)
+    return Peak::getArea(p2);
+  else if (param == PEAK_PARAM_RANGE)
+    return abs(Peak::getValue() - p2.getValue());
+  else
+    THROW(ERR_ALGO_PEAK_PARAMETER, "Bad parameter");
+}
+
+
 bool Peak::isCandidate() const
 {
   return (! maxFlag && value < 0.f);

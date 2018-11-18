@@ -21,31 +21,11 @@ class PeakDetect
 {
   private:
 
-  CarModels models;
-
-  struct Gap
-  {
-    unsigned lower;
-    unsigned upper;
-    unsigned count;
-  };
-
-  enum PrintQuality
-  {
-    PRINT_SEED = 0,
-    PRINT_WHEEL = 1,
-    PRINT_BOGEY = 2,
-    PRINT_SIZE = 3
-  };
-
-  typedef bool (PeakDetect::*CandFncPtr)(
-    const Peak * p1, const Peak * p2) const;
-
-
     unsigned len;
     unsigned offset;
     list<Peak> peaks;
     list<Peak *> candidates;
+    CarModels models;
 
 
     float integrate(
@@ -64,10 +44,10 @@ class PeakDetect
       const list<Peak>::iterator peak1,
       const list<Peak>::iterator peak2);
 
-    void reduceSmallRanges(
-      const float rangeLimit,
+    void reduceSmallPeaks(
+      const PeakParam param,
+      const float paramLimit,
       const bool preserveFlag);
-    void reduceSmallAreas(const float areaLimit);
 
     void eliminateKinks();
 
