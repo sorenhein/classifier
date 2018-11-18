@@ -48,6 +48,8 @@ class PeakDetect
     PeakData scales;
     Peak scalesList;
 
+    list<Peak *> candidates;
+
 
     float integrate(
       const vector<float>& samples,
@@ -149,7 +151,7 @@ class PeakDetect
       const unsigned end,
       const bool leftGapPresent,
       const bool rightGapPresent,
-      list<Peak *>& candidates,
+      // list<Peak *>& candidates,
       vector<CarDetect>& cars);
 
     bool bothSeed(
@@ -160,12 +162,12 @@ class PeakDetect
       const Peak * p1,
       const Peak * p2) const;
 
-    void guessDistance(
-      const list<Peak *>& candidates,
+    void guessNeighborDistance(
+      // const list<Peak *>& candidates,
       const CandFncPtr fptr,
       Gap& gap) const;
 
-    unsigned countWheels(const list<Peak *>& candidates) const;
+    unsigned countWheels() const;
 
     void markWheelPair(
       Peak& p1,
@@ -182,40 +184,26 @@ class PeakDetect
       Peak& p2,
       const string& text) const;
 
-    void markSinglePeaks(list<Peak *>& candidates);
+    void markSinglePeaks();
 
-    void markBogeys(list<Peak *>& candidates);
+    void markBogeys();
 
-    void markShortGaps(
-      list<Peak *>& candidates,
-      Gap& shortGap);
+    void markShortGaps(Gap& shortGap);
 
-    void markLongGaps(
-      list<Peak *>& candidates,
-      const unsigned shortGapCount);
+    void markLongGaps(const unsigned shortGapCount);
 
-    void findInitialWholeCars(
-      list<Peak *>& candidates,
-      vector<CarDetect>& cars);
+    void findInitialWholeCars(vector<CarDetect>& cars);
 
-    void makeSeedAverage(
-      const list<Peak *>& candidates,
-      Peak& seed) const;
+    void makeSeedAverage(Peak& seed) const;
 
-    void makeWheelAverages(
-      const list<Peak *>& candidates,
-      vector<Peak>& wheels) const;
+    void makeWheelAverages(vector<Peak>& wheels) const;
 
-    void makeBogeyAverages(
-      const list<Peak *>& candidates,
-      vector<Peak>& wheels) const;
+    void makeBogeyAverages(vector<Peak>& wheels) const;
+
+    void reseedUsingQuality();
 
     void printPeak(
       const Peak& peak,
-      const string& text) const;
-
-    void printScale(
-      const Peak& scale,
       const string& text) const;
 
     void printCarStats(const string& text) const;
@@ -224,7 +212,7 @@ class PeakDetect
       const vector<CarDetect>& cars,
       const string& text) const;
 
-    void printPeaks(const vector<PeakTime>& timesTrue) const;
+    void printPeaksCSV(const vector<PeakTime>& timesTrue) const;
 
   public:
 
@@ -253,7 +241,9 @@ class PeakDetect
 
     void getPeakTimes(vector<PeakTime>& times) const;
 
-    void print() const;
+    void printAllPeaks(const string& text = "") const;
+    void printAllCandidates(const string& text = "") const;
+    void printSeedCandidates(const string& text = "") const;
 };
 
 #endif

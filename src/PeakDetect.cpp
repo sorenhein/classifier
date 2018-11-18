@@ -40,6 +40,7 @@ void PeakDetect::reset()
   models.reset();
   scales.reset();
   scalesList.reset();
+  candidates.clear();
 }
 
 
@@ -801,7 +802,7 @@ bool PeakDetect::findCars(
   const unsigned end,
   const bool leftGapPresent,
   const bool rightGapPresent,
-  list<Peak *>& candidates,
+  // list<Peak *>& candidates,
   vector<CarDetect>& cars)
 {
   vector<unsigned> peakNos;
@@ -1255,7 +1256,7 @@ if (peakPtrs.size() != 3)
 }
 
 
-unsigned PeakDetect::countWheels(const list<Peak *>& candidates) const
+unsigned PeakDetect::countWheels() const
 {
   unsigned count = 0;
   for (auto& cand: candidates)
@@ -1302,8 +1303,8 @@ bool PeakDetect::formBogeyGap(
 }
 
 
-void PeakDetect::guessDistance(
-  const list<Peak *>& candidates,
+void PeakDetect::guessNeighborDistance(
+  // const list<Peak *>& candidates,
   const CandFncPtr fptr,
   Gap& gap) const
 {
@@ -1370,18 +1371,19 @@ void PeakDetect::markBogeyLongGap(
 }
 
 
-void PeakDetect::printScale(
-  const Peak& scale,
-  const string& text) const
+void PeakDetect::reseedUsingQuality()
 {
-  cout << text << "\n";
-  cout << scale.strHeaderSum();
-  cout << scale.strSum(offset);
-  cout << endl;
+  for (auto candidate: candidates)
+  {
+    if (candidate->greatQuality())
+      candidate->setSeed();
+    else
+      candidate->unsetSeed();
+  }
 }
 
 
-void PeakDetect::markSinglePeaks(list<Peak *>& candidates)
+void PeakDetect::markSinglePeaks()
 {
   // Note which peaks are tall.
   for (auto pit = peaks.begin(); pit != peaks.end(); pit++)
@@ -1409,57 +1411,32 @@ void PeakDetect::markSinglePeaks(list<Peak *>& candidates)
 
   // Will need one later on for each wheel/bogey combination.
   Peak candidateSize;
-  PeakDetect::makeSeedAverage(candidates, candidateSize);
+  PeakDetect::makeSeedAverage(candidateSize);
 
   // Use this as a first yardstick.
   for (auto candidate: candidates)
     candidate->calcQualities(candidateSize);
 
-  cout << "All negative minima\n";
-  cout << candidateSize.strHeaderQuality();
-  for (auto candidate: candidates)
-    cout << candidate->strQuality(offset);
-  cout << endl;
+  PeakDetect::printAllCandidates("All negative minima");
+  PeakDetect::printSeedCandidates("Seeds");
 
-  cout << "Seeds\n";
-  cout << candidateSize.strHeaderQuality();
-  for (auto candidate: candidates)
-  {
-    if (candidate->isSeed())
-      cout << candidate->strQuality(offset);
-  }
-  cout << endl;
-
-  PeakDetect::makeSeedAverage(candidates, candidateSize);
+  PeakDetect::makeSeedAverage(candidateSize);
   PeakDetect::printPeak(candidateSize, "Seed average");
 
   // Modify selection based on quality.
-  for (auto candidate: candidates)
-  {
-    if (candidate->greatQuality())
-      candidate->setSeed();
-    else
-      candidate->unsetSeed();
-  }
+  PeakDetect::reseedUsingQuality();
 
-  cout << "Great-quality seeds\n";
-  cout << candidateSize.strHeaderQuality();
-  for (auto candidate: candidates)
-  {
-    if (candidate->isSeed())
-      cout << candidate->strQuality(offset);
-  }
-  cout << endl;
+  PeakDetect::printSeedCandidates("Great-quality seeds");
 
-  PeakDetect::makeSeedAverage(candidates, candidateSize);
+  PeakDetect::makeSeedAverage( candidateSize);
   PeakDetect::printPeak(candidateSize, "Great-quality average");
 }
 
 
-void PeakDetect::markBogeys(list<Peak *>& candidates)
+void PeakDetect::markBogeys()
 {
   Gap wheelGap;
-  PeakDetect::guessDistance(candidates, &PeakDetect::bothSeed, wheelGap);
+  PeakDetect::guessNeighborDistance(&PeakDetect::bothSeed, wheelGap);
 
   cout << "Guessing wheel distance " << wheelGap.lower << "-" <<
     wheelGap.upper << "\n\n";
@@ -1503,7 +1480,7 @@ void PeakDetect::markBogeys(list<Peak *>& candidates)
   }
 
   vector<Peak> candidateSize;
-  makeWheelAverages(candidates, candidateSize);
+  makeWheelAverages(candidateSize);
 
   // Recalculate the peak qualities using both left and right peaks.
   for (auto cand: candidates)
@@ -1521,18 +1498,14 @@ void PeakDetect::markBogeys(list<Peak *>& candidates)
       cand->unsetSeed();
   }
 
-  cout << "All peak qualities using left and right scales:\n";
-  cout << candidateSize[0].strHeaderQuality();
-  for (auto cand: candidates)
-    cout << cand->strQuality(offset);
-  cout << endl;
+  PeakDetect::printAllCandidates("All peaks using left/right scales");
 
-  makeWheelAverages(candidates, candidateSize);
+  makeWheelAverages(candidateSize);
   PeakDetect::printPeak(candidateSize[0], "Left-wheel average");
   PeakDetect::printPeak(candidateSize[1], "Right-wheel average");
 
   // Redo the distances using the new qualities (left and right peaks).
-  PeakDetect::guessDistance(candidates, &PeakDetect::bothSeed, wheelGap);
+  PeakDetect::guessNeighborDistance(&PeakDetect::bothSeed, wheelGap);
   cout << "Guessing new wheel distance " << wheelGap.lower << "-" <<
     wheelGap.upper << "\n\n";
 
@@ -1560,13 +1533,10 @@ void PeakDetect::markBogeys(list<Peak *>& candidates)
 }
 
 
-void PeakDetect::markShortGaps(
-  list<Peak *>& candidates,
-  Gap& shortGap)
+void PeakDetect::markShortGaps(Gap& shortGap)
 {
   // Look for inter-car short gaps.
-  PeakDetect::guessDistance(candidates, &PeakDetect::formBogeyGap, 
-    shortGap);
+  PeakDetect::guessNeighborDistance(&PeakDetect::formBogeyGap, shortGap);
 
   cout << "Guessing short gap " << shortGap.lower << "-" <<
     shortGap.upper << "\n\n";
@@ -1609,9 +1579,7 @@ void PeakDetect::markShortGaps(
 }
 
 
-void PeakDetect::markLongGaps(
-  list<Peak *>& candidates,
-  const unsigned shortGapCount)
+void PeakDetect::markLongGaps(const unsigned shortGapCount)
 {
   // Look for intra-car (long) gaps.
   vector<unsigned> dists;
@@ -1686,14 +1654,10 @@ void PeakDetect::markLongGaps(
     }
   }
 
-  cout << "All peaks using bogeys:\n";
-  cout << candidates.front()->strHeaderQuality();
-  for (auto cand: candidates)
-    cout << cand->strQuality(offset);
-  cout << endl;
+  PeakDetect::printAllCandidates("All peaks using bogeys");
 
   vector<Peak> bogeys;
-  PeakDetect::makeBogeyAverages(candidates, bogeys);
+  PeakDetect::makeBogeyAverages(bogeys);
 
   PeakDetect::printPeak(bogeys[0], "Left bogey, left wheel average");
   PeakDetect::printPeak(bogeys[1], "Left bogey, right wheel average");
@@ -1702,9 +1666,7 @@ void PeakDetect::markLongGaps(
 }
 
 
-void PeakDetect::findInitialWholeCars(
-  list<Peak *>& candidates,
-  vector<CarDetect>& cars)
+void PeakDetect::findInitialWholeCars(vector<CarDetect>& cars)
 {
   // Set up a sliding vector of running peaks.
   vector<list<Peak *>::iterator> runIter;
@@ -1800,9 +1762,7 @@ void PeakDetect::findInitialWholeCars(
 }
 
 
-void PeakDetect::makeSeedAverage(
-  const list<Peak *>& candidates,
-  Peak& seed) const
+void PeakDetect::makeSeedAverage(Peak& seed) const
 {
   seed.reset();
 
@@ -1821,9 +1781,7 @@ void PeakDetect::makeSeedAverage(
 }
 
 
-void PeakDetect::makeWheelAverages(
-  const list<Peak *>& candidates,
-  vector<Peak>& wheels) const
+void PeakDetect::makeWheelAverages(vector<Peak>& wheels) const
 {
   wheels.clear();
   wheels.resize(2);
@@ -1850,9 +1808,7 @@ void PeakDetect::makeWheelAverages(
 }
 
 
-void PeakDetect::makeBogeyAverages(
-  const list<Peak *>& candidates,
-  vector<Peak>& wheels) const
+void PeakDetect::makeBogeyAverages(vector<Peak>& wheels) const
 {
   wheels.clear();
   wheels.resize(4);
@@ -1898,16 +1854,6 @@ void PeakDetect::makeBogeyAverages(
 }
 
 
-void PeakDetect::printPeak(
-  const Peak& peak,
-  const string& text) const
-{
-  cout << text << "\n";
-  cout << peak.strHeaderQuality();
-  cout << peak.strQuality(offset) << "\n";
-}
-
-
 void PeakDetect::reduceNewer()
 {
   // Mark some tall peaks as seeds.
@@ -1915,24 +1861,24 @@ void PeakDetect::reduceNewer()
   seeds.mark(peaks, offset, scalesList.getRange());
   cout << seeds.str(offset, "after pruning");
 
-  list<Peak *> candidates;
+  candidates.clear();
 
-  PeakDetect::markSinglePeaks(candidates);
+  PeakDetect::markSinglePeaks();
 
-  PeakDetect::markBogeys(candidates);
+  PeakDetect::markBogeys();
 
   Gap shortGap;
-  PeakDetect::markShortGaps(candidates, shortGap);
+  PeakDetect::markShortGaps(shortGap);
 
-  PeakDetect::markLongGaps(candidates, shortGap.count);
+  PeakDetect::markLongGaps(shortGap.count);
 
   vector<CarDetect> cars;
   models.append(); // Make room for initial model
-  PeakDetect::findInitialWholeCars(candidates, cars);
+  PeakDetect::findInitialWholeCars(cars);
 
 
 
-  cout << "Counting " << PeakDetect::countWheels(candidates) << 
+  cout << "Counting " << PeakDetect::countWheels() << 
     " peaks" << endl << endl;
 
   // Fill out interval ends.
@@ -1968,8 +1914,7 @@ if (cars.size() == 0)
     if (cars[ii].endValue() != cars[ii+1].startValue())
     {
       if (! PeakDetect::findCars(
-        cars[ii].endValue(), cars[ii+1].startValue(), 
-        true, true, candidates, cars))
+        cars[ii].endValue(), cars[ii+1].startValue(), true, true, cars))
       {
         cout << "Couldn't understand intra-gap " <<
           cars[ii].endValue()+offset << "-" << 
@@ -1983,7 +1928,7 @@ cout << "Did intra-gap " << cars[ii].endValue()+offset << "-" <<
     }
   }
 
-  cout << "Counting " << PeakDetect::countWheels(candidates) << 
+  cout << "Counting " << PeakDetect::countWheels() << 
     " peaks" << endl << endl;
 
   PeakDetect::printCars(cars, "after inner gaps");
@@ -1991,8 +1936,7 @@ cout << "Did intra-gap " << cars[ii].endValue()+offset << "-" <<
 
   if (u2 > u1)
   {
-    if (! PeakDetect::findCars(u1, u2,
-      true, false, candidates, cars))
+    if (! PeakDetect::findCars(u1, u2, true, false, cars))
     {
       cout << "Couldn't understand trailing gap " <<
         u1+offset << "-" << u2+offset << endl;
@@ -2004,7 +1948,7 @@ cout << "Did intra-gap " << cars[ii].endValue()+offset << "-" <<
     }
   }
 
-  cout << "Counting " << PeakDetect::countWheels(candidates) << 
+  cout << "Counting " << PeakDetect::countWheels() << 
     " peaks" << endl << endl;
 
   PeakDetect::printCarStats("after trailing gap");
@@ -2015,8 +1959,7 @@ cout << "Did intra-gap " << cars[ii].endValue()+offset << "-" <<
 
   if (u3 < u4)
   {
-    if (! PeakDetect::findCars(u3, u4,
-      false, true, candidates, cars))
+    if (! PeakDetect::findCars(u3, u4, false, true, cars))
     {
       cout << "Couldn't understand leading gap " <<
         u3+offset << "-" << u4+offset << endl;
@@ -2044,7 +1987,7 @@ cout << "Did intra-gap " << cars[ii].endValue()+offset << "-" <<
       cand->select();
   }
 
-  cout << "Returning " << PeakDetect::countWheels(candidates) << 
+  cout << "Returning " << PeakDetect::countWheels() << 
     " peaks" << endl << endl;
 
 }
@@ -2061,7 +2004,7 @@ if (peaks.size() == 0)
   if (debugDetails)
   {
     cout << "Original peaks: " << peaks.size() << "\n";
-    PeakDetect::print();
+    PeakDetect::printAllPeaks();
   }
 
 
@@ -2095,7 +2038,7 @@ cout << "RANGE: " << fixed <<
   if (debugDetails)
   {
     cout << "Non-tiny list peaks: " << peaks.size() << "\n";
-    PeakDetect::print();
+    PeakDetect::printAllPeaks();
   }
 
 
@@ -2103,7 +2046,7 @@ cout << "RANGE: " << fixed <<
   if (debugDetails)
   {
     cout << "Non-kinky list peaks: " << peaks.size() << "\n";
-    PeakDetect::print();
+    PeakDetect::printAllPeaks();
   }
 
   PeakDetect::estimateScales();
@@ -2191,34 +2134,77 @@ void PeakDetect::getPeakTimes(vector<PeakTime>& times) const
 }
 
 
-void PeakDetect::print() const
+void PeakDetect::printPeak(
+  const Peak& peak,
+  const string& text) const
 {
+  cout << text << "\n";
+  cout << peak.strHeaderQuality();
+  cout << peak.strQuality(offset) << "\n";
+}
+
+
+void PeakDetect::printPeaksCSV(const vector<PeakTime>& timesTrue) const
+{
+  cout << "true\n";
+  unsigned i = 0;
+  for (auto tt: timesTrue)
+    cout << i++ << ";" << fixed << setprecision(6) << tt.time << "\n";
+
+  cout << "\nseen\n";
+  i = 0;
+  for (auto& peak: peaks)
+  {
+    if (peak.isSelected())
+      cout << i++ << ";" << 
+        fixed << setprecision(6) << peak.getTime() << "\n";
+  }
+  cout << endl;
+}
+
+
+void PeakDetect::printAllPeaks(const string& text) const
+{
+  if (peaks.empty())
+    return;
+
+  if (text != "")
+    cout << text << "\n";
   cout << peaks.front().strHeader();
 
   for (auto& peak: peaks)
     cout << peak.str(offset);
-  cout << "\n";
+  cout << endl;
 }
 
 
-void PeakDetect::printPeaks(const vector<PeakTime>& timesTrue) const
+void PeakDetect::printAllCandidates(const string& text) const
 {
-  cout << "true\n";
-  for (unsigned i = 0; i < timesTrue.size(); i++)
-    cout << i << ";" << 
-      fixed << setprecision(6) << timesTrue[i].time << "\n";
+  if (candidates.empty())
+    return;
 
-  cout << "\nseen\n";
-  unsigned pp = 0;
-  for (auto& peak: peaks)
+  if (text != "")
+    cout << text << "\n";
+  cout << candidates.front()->strHeaderQuality();
+  for (auto cand: candidates)
+    cout << cand->strQuality(offset);
+  cout << endl;
+}
+
+
+void PeakDetect::printSeedCandidates(const string& text) const
+{
+  if (candidates.empty())
+    return;
+
+  if (text != "")
+    cout << text << "\n";
+  cout << candidates.front()->strHeaderQuality();
+  for (auto candidate: candidates)
   {
-    if (peak.isSelected())
-    {
-      cout << pp << ";" << 
-        fixed << setprecision(6) << peak.getTime() << endl;
-      pp++;
-    }
+    if (candidate->isSeed())
+      cout << candidate->strQuality(offset);
   }
-  cout << "\n";
+  cout << endl;
 }
 
