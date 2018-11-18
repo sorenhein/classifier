@@ -727,6 +727,7 @@ void PeakDetect::fixThreeWheels(
   Peak& p3) const
 {
   // Assume the two rightmost wheels, as the front one was lost.
+  p1.setSeed();
   p1.markWheel(WHEEL_RIGHT);
   PeakDetect::markWheelPair(p2, p3, "");
 
@@ -889,7 +890,10 @@ cout << "Range is " << startLocal+offset << "-" <<
           * peakPtrsNew[0], * peakPtrsNew[1], 
           * peakPtrsNew[2], * peakPtrsNew[3]);
         for (unsigned k = 4; k < peakPtrsNew.size(); k++)
+        {
           peakPtrsNew[k]->markNoWheel();
+          peakPtrsNew[k]->unsetSeed();
+        }
         
         PeakDetect::updateCars(cars, car);
         // Then go on
@@ -986,6 +990,7 @@ cout << "4-5 leading wheels: Attempting to drop down to 3: " << np << "\n";
     {
       PeakDetect::fixTwoWheels(* peakPtrs[1], * peakPtrs[2]);
       peakPtrs[0]->markNoWheel();
+      peakPtrs[0]->unsetSeed();
 if (peakPtrs.size() != 3)
   cout << "ERRORW " << peakPtrs.size() << endl;
     }
@@ -1054,7 +1059,10 @@ if (peakPtrs.size() != 4)
       for (i = 0; i < peakPtrs.size(); i++)
       {
         if (! peakPtrs[i]->acceptableQuality())
+        {
           peakPtrs[i]->markNoWheel();
+          peakPtrs[i]->unsetSeed();
+        }
       }
 
       PeakDetect::updateCars(cars, car);
@@ -1065,6 +1073,7 @@ if (peakPtrs.size() != 4)
 
     // Try again without the first peak.
 cout << "Trying again without the very first peak of first car\n";
+    Peak * peakErased = peakPtrs.front();
     peakNos.erase(peakNos.begin());
     peakPtrs.erase(peakPtrs.begin());
 
@@ -1077,14 +1086,19 @@ cout << "Trying again without the very first peak of first car\n";
     {
       PeakDetect::fixTwoWheels(* peakPtrs[1], * peakPtrs[2]);
       peakPtrs[0]->markNoWheel();
+      peakPtrs[0]->unsetSeed();
 if (peakPtrs.size() != 3)
   cout << "ERRORX " << peakPtrs.size() << endl;
     }
     else 
       PeakDetect::fixThreeWheels(
         * peakPtrs[0], * peakPtrs[1], * peakPtrs[2]);
+
 if (peakPtrs.size() != 3)
   cout << "ERRORb " << peakPtrs.size() << endl;
+
+      peakErased->markNoWheel();
+      peakErased->unsetSeed();
 
     PeakDetect::updateCars(cars, car);
 
@@ -1171,7 +1185,10 @@ cout << "Failed the car: " << np << "\n";
       * peakPtrsNew[0], * peakPtrsNew[1], 
       * peakPtrsNew[2], * peakPtrsNew[3]);
     for (unsigned k = 4; k < peakPtrsNew.size(); k++)
+    {
       peakPtrsNew[k]->markNoWheel();
+      peakPtrsNew[k]->unsetSeed();
+    }
 
     PeakDetect::updateCars(cars, car);
     return true;
@@ -1188,6 +1205,9 @@ cout << "Two talls\n";
       // Skip the first peak.
       peakNos.erase(peakNos.begin() + notTallNos[0]);
       peakPtrs.erase(peakPtrs.begin() + notTallNos[0]);
+
+      // TODO In all these erase's, need to unsetSeed and markNoWheel.
+      // There should be a more elegant, central way of doing this.
 
       CarDetect car;
       if (! PeakDetect::findLastTwoOfFourWheeler(startLocal, endLocal,
@@ -1222,6 +1242,7 @@ cout << "Failed\n";
 
       PeakDetect::fixTwoWheels(* peakPtrs[0], * peakPtrs[1]);
       peakPtrs[2]->markNoWheel();
+      peakPtrs[2]->unsetSeed();
 if (peakPtrs.size() != 3)
   cout << "ERRORZ " << peakPtrs.size() << endl;
 
@@ -1918,7 +1939,7 @@ void PeakDetect::reduceNewer()
   // Put peaks in the global list.
   for (auto& cand: candidates)
   {
-    if (cand->isWheel())
+    if (cand->isSeed())
       cand->select();
   }
 
