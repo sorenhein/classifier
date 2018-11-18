@@ -71,11 +71,11 @@ class PeakMinima
       Peak& p2,
       const string& text) const;
 
-    void reseedUsingQuality(list<Peak *>& candidates);
+    void reseedUsingQuality(list<Peak *>& candidates) const;
 
     void makeWheelAverage(
       list<Peak *>& candidates,
-      Peak& seed) const;
+      Peak& wheel) const;
 
     void makeBogeyAverages(
       list<Peak *>& candidates,
@@ -87,12 +87,16 @@ class PeakMinima
 
     void setCandidates(
       list<Peak>& peaks,
-      list<Peak *>& candidates);
+      list<Peak *>& candidates) const;
+
+    void markSinglePeaks(list<Peak *>& candidates) const;
+
+    void markBogeyOfSelects(
+      list<Peak *>& candidates,
+      const Gap& wheelGap) const;
 
 
-    void markSinglePeaks(list<Peak *>& candidates);
-
-    void markBogeys(list<Peak *>& candidates);
+    void markBogeys(list<Peak *>& candidates) const;
 
     void markShortGaps(
       list<Peak *>& candidates,
