@@ -81,8 +81,9 @@ class CarGaps
     bool rightBogeyConvincing(const CarGaps& cgref) const;
     bool gapsPlausible(const CarGaps& cgref) const;
 
-    string strHeader() const;
+    string strHeader(const bool numberFlag) const;
 
+    string str() const;
     string str(const unsigned no) const;
 };
 

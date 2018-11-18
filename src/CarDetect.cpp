@@ -216,7 +216,7 @@ bool CarDetect::rightBogeyPlausible(const CarDetect& cref) const
 
 string CarDetect::strHeaderGaps() const
 {
-  return gaps.strHeader() + "\n";
+  return gaps.strHeader(true) + "\n";
 };
 
 
@@ -228,7 +228,7 @@ string CarDetect::strHeaderFull() const
     setw(6) << "start" <<
     setw(6) << "end" <<
     setw(6) << "len" <<
-    gaps.strHeader() << 
+    gaps.strHeader(false) << 
     setw(6) << "#cs" << 
     setw(6) << "peaks" << 
     setw(6) << "dist" << 
@@ -252,8 +252,8 @@ string CarDetect::strFull(
     setw(2) << right << carNo <<
     setw(6) << start + offset <<
     setw(6) << end + offset <<
-    setw(6) << end-start <<
-    gaps.str(carNo) << 
+    setw(6) << (end > start ? end-start : 0) <<
+    gaps.str() << 
     setw(6) << statIndex << 
     setw(6) << CarDetect::starsQuality() << 
     setw(6) << CarDetect::starsDistance() << 

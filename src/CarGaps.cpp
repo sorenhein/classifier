@@ -312,11 +312,13 @@ bool CarGaps::gapsPlausible(const CarGaps& cgref) const
 }
 
 
-string CarGaps::strHeader() const
+string CarGaps::strHeader(const bool numberFlag) const
 {
   stringstream ss;
-  ss << right <<
-    setw(2) << "no" <<
+  if (numberFlag)
+    ss << right << setw(2) << "no";
+
+  ss <<
     setw(6) << "leftg" <<
     setw(6) << "leftb" <<
     setw(6) << "mid" <<
@@ -326,16 +328,23 @@ string CarGaps::strHeader() const
 }
 
 
-string CarGaps::str(const unsigned no) const
+string CarGaps::str() const
 {
   stringstream ss;
   ss << right << 
-    setw(2) << right << no <<
     setw(6) << leftGap <<
     setw(6) << leftBogeyGap <<
     setw(6) << midGap <<
     setw(6) << rightBogeyGap <<
     setw(6) << rightGap;
+  return ss.str();
+}
+
+
+string CarGaps::str(const unsigned no) const
+{
+  stringstream ss;
+  ss << right << setw(2) << right << no << CarGaps::str();
   return ss.str();
 }
 
