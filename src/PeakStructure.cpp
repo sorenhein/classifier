@@ -1,7 +1,6 @@
 #include <list>
 #include <iostream>
 #include <iomanip>
-#include <functional>
 #include <algorithm>
 #include <fstream>
 #include <sstream>
@@ -10,10 +9,6 @@
 #include "CarModels.h"
 #include "Except.h"
 
-
-#define SAMPLE_RATE 2000.
-
-#define KINK_RATIO 100.f
 
 #define UNUSED(x) ((void)(true ? 0 : ((x), void(), 0)))
 

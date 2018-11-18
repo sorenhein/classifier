@@ -1,7 +1,6 @@
 #include <list>
 #include <iostream>
 #include <iomanip>
-#include <functional>
 #include <algorithm>
 #include <fstream>
 #include <sstream>
@@ -18,9 +17,6 @@
 #define SAMPLE_RATE 2000.
 
 #define KINK_RATIO 100.f
-
-#define UNUSED(x) ((void)(true ? 0 : ((x), void(), 0)))
-
 
 
 PeakDetect::PeakDetect()
@@ -483,55 +479,6 @@ void PeakDetect::printPeak(
   cout << text << "\n";
   cout << peak.strHeader();
   cout << peak.str(0) << endl;
-}
-
-
-void PeakDetect::printRange(
-  const unsigned start,
-  const unsigned end,
-  const string& text) const
-{
-  cout << text << " " << start + offset << "-" << end + offset << endl;
-}
-
-
-void PeakDetect::printWheelCount(const string& text) const
-{
-  unsigned count = 0;
-  for (auto cand: candidates)
-  {
-    if (cand->isWheel())
-      count++;
-  }
-  cout << text << " " << count << " peaks" << endl;
-}
-
-
-void PeakDetect::printCars(
-  const vector<CarDetect>& cars,
-  const string& text) const
-{
-  if (cars.empty())
-    return;
-
-  cout << "Cars " << text << "\n";
-  cout << cars.front().strHeaderFull();
-
-  for (unsigned cno = 0; cno < cars.size(); cno++)
-  {
-    cout << cars[cno].strFull(cno, offset);
-    if (cno+1 < cars.size() &&
-        cars[cno].endValue() != cars[cno+1].startValue())
-      cout << string(56, '.') << "\n";
-  }
-  cout << endl;
-}
-
-
-void PeakDetect::printCarStats(const string& text) const
-{
-  cout << "Car stats " << text << "\n";
-  cout << models.str();
 }
 
 

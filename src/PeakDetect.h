@@ -8,8 +8,6 @@
 
 #include "Peak.h"
 #include "CarModels.h"
-#include "CarDetect.h"
-#include "CarPeaks.h"
 #include "struct.h"
 
 using namespace std;
@@ -58,19 +56,6 @@ class PeakDetect
     void printPeak(
       const Peak& peak,
       const string& text) const;
-
-    void printRange(
-      const unsigned start,
-      const unsigned end,
-      const string& text) const;
-
-    void printWheelCount(const string& text) const;
-
-    void printCars(
-      const vector<CarDetect>& cars,
-      const string& text) const;
-
-    void printCarStats(const string& text) const;
 
     void printPeaksCSV(const vector<PeakTime>& timesTrue) const;
 
