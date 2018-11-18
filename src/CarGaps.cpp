@@ -53,7 +53,7 @@ void CarGaps::logAll(
 }
 
 
-bool CarGaps::logLeftGap(const unsigned leftGapIn)
+unsigned CarGaps::logLeftGap(const unsigned leftGapIn)
 {
   if (leftGapSet)
   {
@@ -64,12 +64,12 @@ bool CarGaps::logLeftGap(const unsigned leftGapIn)
       cout << "Left gap attempted reset from " + to_string(leftGap) + 
         " to " + to_string(leftGapIn) << endl;
     }
-    return true;
+    return leftGap;
   }
 
   leftGapSet = true;
   leftGap = leftGapIn;
-  return true;
+  return leftGap;
 }
 
 
@@ -84,7 +84,7 @@ void CarGaps::logCore(
 }
 
 
-bool CarGaps::logRightGap(const unsigned rightGapIn)
+unsigned CarGaps::logRightGap(const unsigned rightGapIn)
 {
   if (rightGapSet)
   {
@@ -95,12 +95,12 @@ bool CarGaps::logRightGap(const unsigned rightGapIn)
       cout << "Right gap attempted reset from " + to_string(rightGap) + 
         " to " + to_string(rightGapIn) << endl;
     }
-    return true;
+    return rightGap;
   }
 
   rightGapSet = true;
   rightGap = rightGapIn;
-  return true;
+  return rightGap;
 }
 
 

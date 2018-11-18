@@ -1797,13 +1797,9 @@ void PeakDetect::findWholeCars(vector<CarDetect>& cars)
       }
 
 
-      if (car.fillSides(leftGap, rightGap))
+      if (! car.fillSides(leftGap, rightGap))
       {
-        cout << car.strLimits(offset, "Filled out complete car");
-        cout << "limits: " << leftGap << ", " << rightGap << endl;
-      }
-      else
-      {
+        cout << car.strLimits(offset, "Incomplete car");
         cout << "Could not fill out any limits: " <<
           leftGap << ", " << rightGap << endl;
       }
@@ -1857,6 +1853,7 @@ void PeakDetect::findWholeFirstCar(vector<CarDetect>& cars)
       PeakDetect::printRange(u1, u2, "Did first whole-car gap");
     else
       PeakDetect::printRange(u1, u2, "Didn't do first whole-car gap");
+    cout << endl;
   }
 }
 
@@ -1871,6 +1868,7 @@ void PeakDetect::findWholeLastCar(vector<CarDetect>& cars)
       PeakDetect::printRange(u1, u2, "Did last whole-car gap");
     else
       PeakDetect::printRange(u1, u2, "Didn't do last whole-car gap");
+    cout << endl;
   }
 }
 
@@ -1923,10 +1921,7 @@ void PeakDetect::reduceNewer()
   PeakDetect::printCars(cars, "after inner gaps");
 
   for (auto& car: cars)
-  {
-    if (models.fillSides(car))
-      cout << car.strLimits(offset, "Filled out complete car");
-  }
+    models.fillSides(car);
 
   // TODO Could actually be multiple cars in vector, e.g. same wheel gaps
   // but different spacing between cars, ICET_DEU_56_N.
@@ -2132,9 +2127,14 @@ void PeakDetect::printCars(
 
   cout << "Cars " << text << "\n";
   cout << cars.front().strHeaderFull();
-  unsigned cno = 0;
-  for (auto& car: cars)
-    cout << car.strFull(cno++, offset);
+
+  for (unsigned cno = 0; cno < cars.size(); cno++)
+  {
+    cout << cars[cno].strFull(cno, offset);
+    if (cno+1 < cars.size() &&
+        cars[cno].endValue() != cars[cno+1].startValue())
+      cout << string(56, '.') << "\n";
+  }
   cout << endl;
 }
 
@@ -2142,7 +2142,7 @@ void PeakDetect::printCars(
 void PeakDetect::printCarStats(const string& text) const
 {
   cout << "Car stats " << text << "\n";
-  cout << models.str() << endl;
+  cout << models.str();
 }
 
 

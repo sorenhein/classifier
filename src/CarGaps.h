@@ -56,8 +56,8 @@ class CarGaps
       const unsigned midGapIn,
       const unsigned rightBogeyGap); // Zero if single wheel
 
-    bool logLeftGap(const unsigned leftGapIn);
-    bool logRightGap(const unsigned rightGapIn);
+    unsigned logLeftGap(const unsigned leftGapIn);
+    unsigned logRightGap(const unsigned rightGapIn);
 
     void operator += (const CarGaps& cg2);
 

@@ -1,12 +1,9 @@
-* Tiny gaps between cars due to some kind of rounding?
 * Clean up Peak some more?
 * Eliminate function pointers for reduceSmall*
 
 * When car models complete?
   - recombine
   - mark cars accordingly (new indices)
-
-Maybe try simple thresholding instead of PeakSeeds
 
 
 Gap distance:
