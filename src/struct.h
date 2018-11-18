@@ -195,69 +195,6 @@ struct Interval
   double mean;
 };
 
-struct FlankData
-{
-  float len;
-  float range;
-  float area;
-
-  void reset() {len = 0; range = 0.f; area = 0.f;}
-
-  void operator += (const FlankData& fd2)
-  {
-    len += fd2.len; range += fd2.range; area += fd2.area;
-  }
-
-  void operator -= (const FlankData& fd2)
-  {
-    len += fd2.len; range -= fd2.range; area -= fd2.area;
-  }
-
-  void operator /= (const unsigned no)
-  {
-    len /= no;
-    range /= no;
-    area /= no;
-  }
-};
-
-struct PeakData
-{
-  unsigned index;
-  float value;
-  bool maxFlag;
-  FlankData left;
-  FlankData right;
-  bool activeFlag;
-
-  void reset()
-  {
-    index = 0;
-    value = 0.f;
-    maxFlag = false;
-    left.reset();
-    right.reset();
-    activeFlag = false;
-  };
-
-  void operator += (const PeakData& pd2)
-  {
-    value += pd2.value;
-    left += pd2.left;
-    right += pd2.right;
-  }
-
-  void operator /= (const unsigned no)
-  {
-    if (no > 0)
-    {
-      value /= no;
-      left /= no;
-      right /= no;
-    }
-  }
-};
-
 enum PeakSeenType
 {
   PEAK_SEEN_TOO_EARLY = 0,

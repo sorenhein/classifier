@@ -38,7 +38,6 @@ void PeakDetect::reset()
   offset = 0;
   peaks.clear();
   models.reset();
-  scales.reset();
   scalesList.reset();
   candidates.clear();
 }
@@ -576,23 +575,6 @@ void PeakDetect::findFirstSize(
   lower = bestLowerValue;
   upper = bestUpperValue;
   counted = bestCount;
-}
-
-
-bool PeakDetect::checkQuantity(
-  const unsigned actual,
-  const unsigned reference,
-  const float factor,
-  const string& text) const
-{
-  if (actual > factor * reference || actual * factor < reference)
-  {
-    cout << "Suspect " << text << ": " << actual << " vs. " <<
-      reference << endl;
-    return false;
-  }
-  else
-    return true;
 }
 
 
@@ -1265,25 +1247,6 @@ unsigned PeakDetect::countWheels() const
       count++;
   }
   return count;
-}
-
-
-void PeakDetect::printCarStats(const string& text) const
-{
-  cout << "Car stats " << text << "\n";
-  cout << models.str() << endl;
-}
-
-
-void PeakDetect::printCars(
-  const vector<CarDetect>& cars,
-  const string& text) const
-{
-  cout << "Cars " << text << "\n";
-  cout << cars[0].strHeaderFull();
-  for (auto& car: cars)
-    cout << car.strFull(offset);
-  cout << endl;
 }
 
 
@@ -2112,7 +2075,7 @@ float PeakDetect::getFirstPeakTime() const
       return peak.getIndex() / static_cast<float>(SAMPLE_RATE);
   }
 
-  THROW(ERR_NO_PEAKS, "No output peaks");
+  THROW(ERR_NO_PEAKS, "No peaks selected");
 }
 
 
@@ -2134,13 +2097,35 @@ void PeakDetect::getPeakTimes(vector<PeakTime>& times) const
 }
 
 
+void PeakDetect::printCars(
+  const vector<CarDetect>& cars,
+  const string& text) const
+{
+  if (cars.empty())
+    return;
+
+  cout << "Cars " << text << "\n";
+  cout << cars.front().strHeaderFull();
+  for (auto& car: cars)
+    cout << car.strFull(offset);
+  cout << endl;
+}
+
+
+void PeakDetect::printCarStats(const string& text) const
+{
+  cout << "Car stats " << text << "\n";
+  cout << models.str() << endl;
+}
+
+
 void PeakDetect::printPeak(
   const Peak& peak,
   const string& text) const
 {
   cout << text << "\n";
   cout << peak.strHeaderQuality();
-  cout << peak.strQuality(offset) << "\n";
+  cout << peak.strQuality(offset) << endl;
 }
 
 

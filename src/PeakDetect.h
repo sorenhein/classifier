@@ -45,7 +45,6 @@ class PeakDetect
     unsigned len;
     unsigned offset;
     list<Peak> peaks;
-    PeakData scales;
     Peak scalesList;
 
     list<Peak *> candidates;
@@ -89,14 +88,6 @@ class PeakDetect
       const vector<unsigned>& dists,
       Gap& gap,
       const unsigned lowerCount = 0) const;
-
-    float getFirstPeakTime() const;
-
-    bool checkQuantity(
-      const unsigned actual,
-      const unsigned reference,
-      const float factor,
-      const string& text) const;
 
     bool matchesModel(
       const CarDetect& car,
@@ -202,14 +193,18 @@ class PeakDetect
 
     void reseedUsingQuality();
 
-    void printPeak(
-      const Peak& peak,
+
+
+    void printCars(
+      const vector<CarDetect>& cars,
       const string& text) const;
 
     void printCarStats(const string& text) const;
 
-    void printCars(
-      const vector<CarDetect>& cars,
+    float getFirstPeakTime() const;
+
+    void printPeak(
+      const Peak& peak,
       const string& text) const;
 
     void printPeaksCSV(const vector<PeakTime>& timesTrue) const;
@@ -231,6 +226,8 @@ class PeakDetect
     void reduceNew();
     void reduceNewer();
 
+
+
     void logPeakStats(
       const vector<PeakPos>& posTrue,
       const string& trainTrue,
@@ -238,7 +235,6 @@ class PeakDetect
       PeakStats& peakStats);
 
     void makeSynthPeaks(vector<float>& synthPeaks) const;
-
     void getPeakTimes(vector<PeakTime>& times) const;
 
     void printAllPeaks(const string& text = "") const;
