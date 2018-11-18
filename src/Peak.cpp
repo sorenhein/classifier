@@ -43,7 +43,6 @@ void Peak::reset()
   qualityPeak = 0.f;
   qualityShape = 0.f;
 
-  selectFlag = false;
   seedFlag = false;
 
   wheelFlag = false;
@@ -301,18 +300,6 @@ float Peak::getQualityShape() const
 bool Peak::isCandidate() const
 {
   return (! maxFlag && value < 0.f);
-}
-
-
-void Peak::select()
-{
-  selectFlag = true;
-}
-
-
-bool Peak::isSelected() const
-{
-  return selectFlag;
 }
 
 

@@ -1937,11 +1937,11 @@ void PeakDetect::reduceNewer()
   // Ends come later.
 
   // Put peaks in the global list.
-  for (auto& cand: candidates)
-  {
-    if (cand->isSeed())
-      cand->select();
-  }
+  // for (auto& cand: candidates)
+  // {
+    // if (cand->isSeed())
+      // cand->select();
+  // }
 
   PeakDetect::printWheelCount("Returning");
 }
@@ -2022,7 +2022,7 @@ void PeakDetect::makeSynthPeaks(vector<float>& synthPeaks) const
 
   for (auto& peak: peaks)
   {
-    if (peak.isSelected())
+    if (peak.isSeed())
       synthPeaks[peak.getIndex()] = peak.getValue();
   }
 }
@@ -2032,7 +2032,7 @@ float PeakDetect::getFirstPeakTime() const
 {
   for (auto& peak: peaks)
   {
-    if (peak.isSelected())
+    if (peak.isSeed())
       return peak.getIndex() / static_cast<float>(SAMPLE_RATE);
   }
 
@@ -2047,7 +2047,7 @@ void PeakDetect::getPeakTimes(vector<PeakTime>& times) const
 
   for (auto& peak: peaks)
   {
-    if (peak.isSelected())
+    if (peak.isSeed())
     {
       times.emplace_back(PeakTime());
       PeakTime& p = times.back();
@@ -2132,7 +2132,7 @@ void PeakDetect::printPeaksCSV(const vector<PeakTime>& timesTrue) const
   i = 0;
   for (auto& peak: peaks)
   {
-    if (peak.isSelected())
+    if (peak.isSeed())
       cout << i++ << ";" << 
         fixed << setprecision(6) << peak.getTime() << "\n";
   }
