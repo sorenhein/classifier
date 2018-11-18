@@ -24,6 +24,7 @@ void CarDetect::reset()
   peaksPtr.firstBogeyRightPtr = nullptr;
   peaksPtr.secondBogeyLeftPtr = nullptr;
   peaksPtr.secondBogeyRightPtr = nullptr;
+  distanceValue = 0.f;
 }
 
 
@@ -73,6 +74,12 @@ void CarDetect::logPeakPointers(
 void CarDetect::logStatIndex(const unsigned index)
 {
   statIndex = index;
+}
+
+
+void CarDetect::logDistance(const float d)
+{
+  distanceValue = d;
 }
 
 
@@ -217,30 +224,40 @@ string CarDetect::strHeaderFull() const
 {
   stringstream ss;
   ss << 
-    setw(6) << right << "start" <<
+    setw(2) << right << "no" <<
+    setw(6) << "start" <<
     setw(6) << "end" <<
     setw(6) << "len" <<
     gaps.strHeader() << 
-    setw(6) << "#cs" << endl;
+    setw(6) << "#cs" << 
+    setw(6) << "peaks" << 
+    setw(6) << "dist" << 
+    endl;
   return ss.str();
 };
 
 
-string CarDetect::strGaps() const
+string CarDetect::strGaps(const unsigned no) const
 {
-  return gaps.str() + "\n";
+  return gaps.str(no) + "\n";
 }
 
 
-string CarDetect::strFull(const unsigned offset) const
+string CarDetect::strFull(
+  const unsigned carNo,
+  const unsigned offset) const
 {
   stringstream ss;
   ss << 
+    setw(2) << right << carNo <<
     setw(6) << start + offset <<
     setw(6) << end + offset <<
     setw(6) << end-start <<
-    gaps.str() << 
-    setw(6) << statIndex << endl;
+    gaps.str(carNo) << 
+    setw(6) << statIndex << 
+    setw(6) << CarDetect::starsQuality() << 
+    setw(6) << CarDetect::starsDistance() << 
+    endl;
   return ss.str();
 }
 
@@ -251,5 +268,42 @@ string CarDetect::strLimits(
 {
   return text + ": " +
     to_string(start + offset) + "-" + to_string(end + offset) + "\n";
+}
+
+
+void CarDetect::updateStars(
+  const Peak * peakPtr,
+  string& best) const
+{
+  if (peakPtr == nullptr)
+    return;
+
+  const string nstar = peakPtr->stars();
+  if (nstar.size() < best.size())
+    best = nstar;
+}
+
+
+string CarDetect::starsQuality() const
+{
+  string best(3, '*');
+  CarDetect::updateStars(peaksPtr.firstBogeyLeftPtr, best);
+  CarDetect::updateStars(peaksPtr.firstBogeyRightPtr, best);
+  CarDetect::updateStars(peaksPtr.secondBogeyLeftPtr, best);
+  CarDetect::updateStars(peaksPtr.secondBogeyRightPtr, best);
+  return best;
+}
+
+
+string CarDetect::starsDistance() const
+{
+  if (distanceValue <= 1.f)
+    return "***";
+  else if (distanceValue <= 3.f)
+    return "**";
+  else if (distanceValue <= 5.f)
+    return "*";
+  else
+    return "";
 }
 

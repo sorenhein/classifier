@@ -83,7 +83,7 @@ class CarGaps
 
     string strHeader() const;
 
-    string str() const;
+    string str(const unsigned no) const;
 };
 
 #endif

@@ -91,7 +91,10 @@ class PeakDetect
 
     bool matchesModel(
       const CarDetect& car,
-      unsigned& index) const;
+      unsigned& index,
+      float& distance) const;
+
+    void updateCarDistances(vector<CarDetect>& cars) const;
 
     bool findFourWheeler(
       const unsigned start,

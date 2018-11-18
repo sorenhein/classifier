@@ -183,9 +183,12 @@ float CarGaps::relativeComponent(
     static_cast<float>(a) / static_cast<float>(b) :
     static_cast<float>(b) / static_cast<float>(a));
 
+  // TODO Decide
+  /*
   if (ratio <= 1.1f)
     return 0.f;
   else
+  */
     return (ratio - 1.f) * (ratio - 1.f);
 }
 
@@ -313,6 +316,7 @@ string CarGaps::strHeader() const
 {
   stringstream ss;
   ss << right <<
+    setw(2) << "no" <<
     setw(6) << "leftg" <<
     setw(6) << "leftb" <<
     setw(6) << "mid" <<
@@ -322,10 +326,11 @@ string CarGaps::strHeader() const
 }
 
 
-string CarGaps::str() const
+string CarGaps::str(const unsigned no) const
 {
   stringstream ss;
   ss << right << 
+    setw(2) << right << no <<
     setw(6) << leftGap <<
     setw(6) << leftBogeyGap <<
     setw(6) << midGap <<

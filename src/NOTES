@@ -1,10 +1,7 @@
-* Make candidates etc. global in PeakDetect
 * Tiny gaps between cars due to some kind of rounding?
-* When printing peaks, at T (tall) as well as L, R, L1, R1, L2, R2
 * Clean up Peak some more?
 * Eliminate function pointers for reduceSmall*
 
-* Keep cars sorted?
 * When car models complete?
   - recombine
   - mark cars accordingly (new indices)

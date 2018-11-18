@@ -152,8 +152,9 @@ string CarModels::str() const
   stringstream ss;
   ss << models.front().carAvg.strHeaderGaps();
 
+  unsigned mno = 0;
   for (auto& m: models)
-    ss << m.carAvg.strGaps();
+    ss << m.carAvg.strGaps(mno++);
 
   return ss.str() + "\n";
 }

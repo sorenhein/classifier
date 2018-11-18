@@ -633,14 +633,7 @@ string Peak::strQuality(const unsigned offset) const
 
   string str = "  ";
   if (! selectFlag || ! wheelFlag)
-  {
-    if (Peak::greatQuality())
-      str += "***";
-    else if (Peak::goodQuality())
-      str += "**";
-    else if (Peak::acceptableQuality())
-      str += "*";
-  }
+    str += Peak::stars();
   else if (bogeySide != BOGEY_SIZE)
   {
     if (bogeySide == BOGEY_LEFT)
@@ -659,5 +652,18 @@ string Peak::strQuality(const unsigned offset) const
     str += string(62, '-') + "\n";
 
   return ss.str() + str;
+}
+
+
+string Peak::stars() const
+{
+  if (Peak::greatQuality())
+    return "***";
+  else if (Peak::goodQuality())
+    return "**";
+  else if (Peak::acceptableQuality())
+    return "*";
+  else
+    return "";
 }
 

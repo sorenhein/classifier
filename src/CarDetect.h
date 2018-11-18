@@ -27,10 +27,18 @@ class CarDetect
 
     CarGaps gaps;
 
-    // The peaks aren't used at the moment.
+    // The peaks aren't used much at the moment.
     CarPeaksPtr peaksPtr;
 
     unsigned statIndex;
+    float distanceValue;
+
+    void updateStars(
+      const Peak * peakPtr,
+      string& best) const;
+
+    string starsQuality() const;
+    string starsDistance() const;
 
   public:
 
@@ -59,6 +67,8 @@ class CarDetect
       Peak * secondBogeyRightPtr);
 
     void logStatIndex(const unsigned index);
+
+    void logDistance(const float d);
 
     void operator += (const CarDetect& c2);
 
@@ -91,12 +101,14 @@ class CarDetect
     bool midGapPlausible() const;
     bool rightBogeyPlausible(const CarDetect& cref) const;
 
-
     string strHeaderGaps() const;
     string strHeaderFull() const;
 
-    string strGaps() const;
-    string strFull(const unsigned offset) const;
+    string strGaps(const unsigned no) const;
+
+    string strFull(
+      const unsigned no,
+      const unsigned offset) const;
 
     string strLimits(
       const unsigned offset,

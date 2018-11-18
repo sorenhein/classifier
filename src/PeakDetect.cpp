@@ -580,9 +580,9 @@ void PeakDetect::findFirstSize(
 
 bool PeakDetect::matchesModel(
   const CarDetect& car, 
-  unsigned& index) const
+  unsigned& index,
+  float& distance) const
 {
-  float distance;
   if (! models.findClosest(car, distance, index))
     return false;
   else
@@ -648,7 +648,7 @@ bool PeakDetect::findLastTwoOfFourWheeler(
   else
   {
     cout << "Error: Suspect right bogey gap: ";
-    cout << car.strGaps() << endl;
+    cout << car.strGaps(0) << endl;
     cout << "Checked against " << models.size() << " ref cars\n";
     return false;
   }
@@ -684,7 +684,7 @@ bool PeakDetect::findLastThreeOfFourWheeler(
   if (! models.rightBogeyPlausible(car))
   {
     cout << "Error: Suspect right bogey gap: ";
-    cout << car.strGaps() << endl;
+    cout << car.strGaps(0) << endl;
     cout << "Checked against " << models.size() << " ref cars\n";
     return false;
   }
@@ -758,11 +758,13 @@ void PeakDetect::updateCars(
   CarDetect& car)
 {
   unsigned index;
+  float distance;
 
   if (! car.isPartial() &&
-      PeakDetect::matchesModel(car, index))
+      PeakDetect::matchesModel(car, index, distance))
   {
     car.logStatIndex(index);
+    car.logDistance(distance);
 
     models.add(car, index);
 cout << "Recognized car " << index << endl;
@@ -1794,6 +1796,7 @@ void PeakDetect::findWholeCars(vector<CarDetect>& cars)
           rightGap = (nextPtr->getIndex() - runPtr[3]->getIndex()) / 2;
       }
 
+
       if (car.fillSides(leftGap, rightGap))
       {
         cout << car.strLimits(offset, "Filled out complete car");
@@ -1806,6 +1809,7 @@ void PeakDetect::findWholeCars(vector<CarDetect>& cars)
       }
 
       models += car;
+
     }
 
     for (unsigned i = 0; i < 3; i++)
@@ -1871,6 +1875,26 @@ void PeakDetect::findWholeLastCar(vector<CarDetect>& cars)
 }
 
 
+void PeakDetect::updateCarDistances(vector<CarDetect>& cars) const
+{
+  for (auto& car: cars)
+  {
+    unsigned index;
+    float distance;
+    if (! PeakDetect::matchesModel(car, index, distance))
+    {
+      cout << "WARNING: Car doesn't match any model.\n";
+      index = 0;
+      distance = 0.f;
+    }
+
+    car.logStatIndex(index);
+    car.logDistance(distance);
+  }
+}
+
+
+
 void PeakDetect::reduceNewer()
 {
   // Mark some tall peaks as seeds.
@@ -1898,7 +1922,6 @@ void PeakDetect::reduceNewer()
 
   PeakDetect::printCars(cars, "after inner gaps");
 
-  // Fill out interval ends.
   for (auto& car: cars)
   {
     if (models.fillSides(car))
@@ -1908,11 +1931,14 @@ void PeakDetect::reduceNewer()
   // TODO Could actually be multiple cars in vector, e.g. same wheel gaps
   // but different spacing between cars, ICET_DEU_56_N.
 
+  PeakDetect::updateCarDistances(cars);
+
   PeakDetect::printCars(cars, "before intra gaps");
 
   // Check open intervals.  Start with inner ones as they are complete.
 
   PeakDetect::findWholeInnerCars(cars);
+  PeakDetect::updateCarDistances(cars);
   sort(cars.begin(), cars.end());
 
   PeakDetect::printWheelCount("Counting");
@@ -1920,13 +1946,18 @@ void PeakDetect::reduceNewer()
   PeakDetect::printCarStats("after whole-car inner gaps");
 
   PeakDetect::findWholeLastCar(cars);
+  PeakDetect::updateCarDistances(cars);
 
   PeakDetect::printWheelCount("Counting");
+  PeakDetect::printCars(cars, "after trailing whole car");
   PeakDetect::printCarStats("after trailing whole car");
 
   PeakDetect::findWholeFirstCar(cars);
+  PeakDetect::updateCarDistances(cars);
   sort(cars.begin(), cars.end());
 
+  PeakDetect::printWheelCount("Counting");
+  PeakDetect::printCars(cars, "after leading whole car");
   PeakDetect::printCarStats("after leading whole car");
 
 
@@ -1935,13 +1966,6 @@ void PeakDetect::reduceNewer()
   // Could be carStats[0] with the right length etc, but missing peaks.
   // Or could be a new type of car (or multiple cars).
   // Ends come later.
-
-  // Put peaks in the global list.
-  // for (auto& cand: candidates)
-  // {
-    // if (cand->isSeed())
-      // cand->select();
-  // }
 
   PeakDetect::printWheelCount("Returning");
 }
@@ -2108,8 +2132,9 @@ void PeakDetect::printCars(
 
   cout << "Cars " << text << "\n";
   cout << cars.front().strHeaderFull();
+  unsigned cno = 0;
   for (auto& car: cars)
-    cout << car.strFull(offset);
+    cout << car.strFull(cno++, offset);
   cout << endl;
 }
 
