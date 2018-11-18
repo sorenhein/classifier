@@ -4,12 +4,12 @@
 #include <vector>
 #include <list>
 #include <string>
-#include <sstream>
 
-#include "Peak.h"
 #include "struct.h"
 
 using namespace std;
+
+class Peak;
 
 
 class PeakMinima
@@ -32,17 +32,18 @@ class PeakMinima
     };
 
     typedef bool (PeakMinima::*CandFncPtr)(
-      const Peak * p1, const Peak * p2) const;
+      const Peak * p1, 
+      const Peak * p2) const;
 
     unsigned offset;
 
 
-    void findFirstSize(
+    void findFirstLargeRange(
       const vector<unsigned>& dists,
       Gap& gap,
       const unsigned lowerCount = 0) const;
 
-    bool bothSeed(
+    bool bothSelected(
       const Peak * p1,
       const Peak * p2) const;
 
@@ -70,9 +71,26 @@ class PeakMinima
       Peak& p2,
       const string& text) const;
 
-    void markSinglePeaks(
+    void reseedUsingQuality(list<Peak *>& candidates);
+
+    void makeWheelAverage(
+      list<Peak *>& candidates,
+      Peak& seed) const;
+
+    void makeBogeyAverages(
+      list<Peak *>& candidates,
+      vector<Peak>& wheels) const;
+
+    void makeCarAverages(
+      list<Peak *>& candidates,
+      vector<Peak>& wheels) const;
+
+    void setCandidates(
       list<Peak>& peaks,
       list<Peak *>& candidates);
+
+
+    void markSinglePeaks(list<Peak *>& candidates);
 
     void markBogeys(list<Peak *>& candidates);
 
@@ -83,20 +101,6 @@ class PeakMinima
     void markLongGaps(
       list<Peak *>& candidates,
       const unsigned shortGapCount);
-
-    void makeSeedAverage(
-      list<Peak *>& candidates,
-      Peak& seed) const;
-
-    void makeWheelAverages(
-      list<Peak *>& candidates,
-      vector<Peak>& wheels) const;
-
-    void makeBogeyAverages(
-      list<Peak *>& candidates,
-      vector<Peak>& wheels) const;
-
-    void reseedUsingQuality(list<Peak *>& candidates);
 
     void printPeak(
       const Peak& peak,

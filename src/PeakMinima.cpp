@@ -1,17 +1,17 @@
 #include <list>
 #include <iostream>
 #include <iomanip>
-#include <functional>
 #include <algorithm>
 #include <fstream>
 #include <sstream>
 
+#include "Peak.h"
 #include "PeakMinima.h"
 #include "Except.h"
 
 
-#define UNUSED(x) ((void)(true ? 0 : ((x), void(), 0)))
-
+#define SLIDING_LOWER 0.9f
+#define SLIDING_UPPER 1.1f
 
 
 PeakMinima::PeakMinima()
@@ -27,14 +27,24 @@ PeakMinima::~PeakMinima()
 
 void PeakMinima::reset()
 {
+  offset = 0;
 }
 
 
-void PeakMinima::findFirstSize(
+void PeakMinima::findFirstLargeRange(
   const vector<unsigned>& dists,
   Gap& gap,
   const unsigned lowerCount) const
 {
+  // We consider a sliding window with range +/- 10% relative to its
+  // center.  We want to find the first maximum (i.e. the value at which
+  // the count of distances in dists within the range reaches a local
+  // maximum).  This is a somewhat rough way to find the lowest
+  // "cluster" of values.
+
+  // If an entry in dists is d, then it creates two DistEntry values.
+  // One is at 0.9 * d and is a +1, and one is a -1 at 1.1 * d.
+
   struct DistEntry
   {
     unsigned index;
@@ -48,24 +58,20 @@ void PeakMinima::findFirstSize(
   };
 
   vector<DistEntry> steps;
-// cout << "\nRaw steps\n";
   for (auto d: dists)
   {
     steps.emplace_back(DistEntry());
     DistEntry& de1 = steps.back();
-    de1.index = static_cast<unsigned>(0.9f * d);
+    de1.index = static_cast<unsigned>(SLIDING_LOWER * d);
     de1.direction = 1;
     de1.origin = d;
-// cout << steps.size()-1 << ";" << de1.index << ";" << de1.direction << "\n";
 
     steps.emplace_back(DistEntry());
     DistEntry& de2 = steps.back();
-    de2.index = static_cast<unsigned>(1.1f * d);
+    de2.index = static_cast<unsigned>(SLIDING_UPPER * d);
     de2.direction = -1;
     de2.origin = d;
-// cout << steps.size()-1 << ";" << de2.index << ";" << de2.direction << "\n";
   }
-// cout << "\n";
 
   sort(steps.begin(), steps.end());
 
@@ -76,21 +82,20 @@ void PeakMinima::findFirstSize(
   int count = 0;
   unsigned dindex = steps.size();
 
-// cout << "\nSteps\n";
   unsigned i = 0;
   while (i < dindex)
   {
+    // There could be several entries at the same index.
     const unsigned step = steps[i].index;
     unsigned upperValue = 0;
     while (i < dindex && steps[i].index == step)
     {
       count += steps[i].direction;
+      // Note one origin (the +1 ones all have the same origin).
       if (steps[i].direction == 1)
         upperValue = steps[i].origin;
       i++;
     }
-
-// cout << step << ";" << count << ";" << i << endl;
 
     if (count > bestCount)
     {
@@ -101,6 +106,8 @@ void PeakMinima::findFirstSize(
       if (i == dindex)
         THROW(ERR_NO_PEAKS, "Does not come back to zero");
 
+      // Locate the first of the following -1's and use its origin
+      // (which will be lower than upperValue).
       unsigned j = i;
       while (j < dindex && steps[j].direction == 1)
         j++;
@@ -112,10 +119,11 @@ void PeakMinima::findFirstSize(
     }
     else if (bestCount > 0 && count == 0)
     {
-      // Don't take a "small" maximum.
-      // TODO Should really be more discerning.
       if (bestCount < static_cast<int>(lowerCount))
       {
+        // Don't take a "small" maximum - start over instead.  
+        // The caller decides the minimum size of the local maximum.  
+        // We should probably be more discerning.
         bestCount = 0;
         bestUpperValue = 0;
         bestLowerValue = 0;
@@ -124,9 +132,6 @@ void PeakMinima::findFirstSize(
         break;
     }
   }
-// cout << "\n";
-// cout << "best count " << bestCount << ", " << bestValue << endl;
-// cout << "range " << bestLowerValue << "-" << bestUpperValue << endl;
 
   gap.lower = bestLowerValue;
   gap.upper = bestUpperValue;
@@ -134,7 +139,7 @@ void PeakMinima::findFirstSize(
 }
 
 
-bool PeakMinima::bothSeed(
+bool PeakMinima::bothSelected(
   const Peak * p1,
   const Peak * p2) const
 {
@@ -157,7 +162,6 @@ void PeakMinima::guessNeighborDistance(
 {
   // Make list of distances between neighbors for which fptr
   // evaluates to true.
-
   vector<unsigned> dists;
   for (auto pit = candidates.begin(); pit != prev(candidates.end()); pit++)
   {
@@ -167,8 +171,9 @@ void PeakMinima::guessNeighborDistance(
         (*npit)->getIndex() - (*pit)->getIndex());
   }
 
+  // Guess their distance range.
   sort(dists.begin(), dists.end());
-  PeakMinima::findFirstSize(dists, gap);
+  PeakMinima::findFirstLargeRange(dists, gap);
 }
 
 
@@ -178,8 +183,8 @@ void PeakMinima::markWheelPair(
   const string& text) const
 {
   if (text != "")
-    cout << text << " wheel pair at " << p1.getIndex() + offset <<
-      "-" << p2.getIndex() + offset << "\n";
+    PeakMinima::printRange(p1.getIndex(), p2.getIndex(),
+      text + " wheel pair at");
     
   p1.select();
   p2.select();
@@ -196,8 +201,8 @@ void PeakMinima::markBogeyShortGap(
   const string& text) const
 {
   if (text != "")
-    cout << text << " short car gap at " << p1.getIndex() + offset <<
-      "-" << p2.getIndex() + offset << "\n";
+    PeakMinima::printRange(p1.getIndex(), p2.getIndex(),
+      text + " short car gap at");
   
   p1.markBogey(BOGEY_RIGHT);
   p2.markBogey(BOGEY_LEFT);
@@ -210,8 +215,8 @@ void PeakMinima::markBogeyLongGap(
   const string& text) const
 {
   if (text != "")
-    cout << text << " long car gap at " << p1.getIndex() + offset <<
-      "-" << p2.getIndex() + offset << "\n";
+    PeakMinima::printRange(p1.getIndex(), p2.getIndex(),
+      text + " long car gap at");
   
   p1.markBogey(BOGEY_LEFT);
   p2.markBogey(BOGEY_RIGHT);
@@ -230,11 +235,108 @@ void PeakMinima::reseedUsingQuality(list<Peak *>& candidates)
 }
 
 
-void PeakMinima::markSinglePeaks(
+void PeakMinima::makeWheelAverage(
+  list<Peak *>& candidates,
+  Peak& seed) const
+{
+  seed.reset();
+
+  unsigned count = 0;
+  for (auto& cand: candidates)
+  {
+    if (cand->isSelected())
+    {
+      seed += * cand;
+      count++;
+    }
+  }
+
+  if (count)
+    seed /= count;
+}
+
+
+void PeakMinima::makeBogeyAverages(
+  list<Peak *>& candidates,
+  vector<Peak>& wheels) const
+{
+  wheels.clear();
+  wheels.resize(2);
+
+  unsigned cleft = 0, cright = 0;
+  for (auto& cand: candidates)
+  {
+    if (cand->isLeftWheel())
+    {
+      wheels[0] += * cand;
+      cleft++;
+    }
+    else if (cand->isRightWheel())
+    {
+      wheels[1] += * cand;
+      cright++;
+    }
+  }
+
+  if (cleft)
+    wheels[0] /= cleft;
+  if (cright)
+    wheels[1] /= cright;
+}
+
+
+void PeakMinima::makeCarAverages(
+  list<Peak *>& candidates,
+  vector<Peak>& wheels) const
+{
+  wheels.clear();
+  wheels.resize(4);
+
+  vector<unsigned> count;
+  count.resize(4);
+
+  for (auto& cand: candidates)
+  {
+    if (cand->isLeftBogey())
+    {
+      if (cand->isLeftWheel())
+      {
+        wheels[0] += * cand;
+        count[0]++;
+      }
+      else if (cand->isRightWheel())
+      {
+        wheels[1] += * cand;
+        count[1]++;
+      }
+    }
+    else if (cand->isRightBogey())
+    {
+      if (cand->isLeftWheel())
+      {
+        wheels[2] += * cand;
+        count[2]++;
+      }
+      else if (cand->isRightWheel())
+      {
+        wheels[3] += * cand;
+        count[3]++;
+      }
+    }
+  }
+
+  for (unsigned i = 0; i < 4; i++)
+  {
+    if (count[i])
+      wheels[i] /= count[i];
+  }
+}
+
+
+void PeakMinima::setCandidates(
   list<Peak>& peaks,
   list<Peak *>& candidates)
 {
-  // Note which peaks are tall.
   for (auto pit = peaks.begin(); pit != peaks.end(); pit++)
   {
     if (! pit->isCandidate())
@@ -251,34 +353,35 @@ void PeakMinima::markSinglePeaks(
     if (peak.isCandidate())
       candidates.push_back(&peak);
   }
+}
 
-  // Find typical sizes of "tall" peaks.
 
-  const unsigned np = candidates.size();
-  if (np == 0)
+void PeakMinima::markSinglePeaks(list<Peak *>& candidates)
+{
+  if (candidates.empty())
     THROW(ERR_NO_PEAKS, "No tall peaks");
 
-  // Will need one later on for each wheel/bogey combination.
-  Peak candidateSize;
-  PeakMinima::makeSeedAverage(candidates, candidateSize);
+  // Find the average candidate peak.
+  Peak wheelPeak;
+  PeakMinima::makeWheelAverage(candidates, wheelPeak);
 
-  // Use this as a first yardstick.
+  // Use this as a first yardstick for calculating qualities.
   for (auto candidate: candidates)
-    candidate->calcQualities(candidateSize);
+    candidate->calcQualities(wheelPeak);
 
   PeakMinima::printAllCandidates(candidates, "All negative minima");
   PeakMinima::printSeedCandidates(candidates, "Seeds");
 
-  PeakMinima::makeSeedAverage(candidates, candidateSize);
-  PeakMinima::printPeakQuality(candidateSize, "Seed average");
+  PeakMinima::makeWheelAverage(candidates, wheelPeak);
+  PeakMinima::printPeakQuality(wheelPeak, "Seed average");
 
   // Modify selection based on quality.
   PeakMinima::reseedUsingQuality(candidates);
 
   PeakMinima::printSeedCandidates(candidates, "Great-quality seeds");
 
-  PeakMinima::makeSeedAverage(candidates, candidateSize);
-  PeakMinima::printPeakQuality(candidateSize, "Great-quality average");
+  PeakMinima::makeWheelAverage(candidates, wheelPeak);
+  PeakMinima::printPeakQuality(wheelPeak, "Great-quality average");
 }
 
 
@@ -286,7 +389,7 @@ void PeakMinima::markBogeys(list<Peak *>& candidates)
 {
   Gap wheelGap;
   PeakMinima::guessNeighborDistance(candidates, 
-    &PeakMinima::bothSeed, wheelGap);
+    &PeakMinima::bothSelected, wheelGap);
 
   cout << "Guessing wheel distance " << wheelGap.lower << "-" <<
     wheelGap.upper << "\n\n";
@@ -297,7 +400,7 @@ void PeakMinima::markBogeys(list<Peak *>& candidates)
   {
     Peak * cand = * cit;
     Peak * nextCand = * next(cit);
-    if (PeakMinima::bothSeed(cand, nextCand))
+    if (PeakMinima::bothSelected(cand, nextCand))
     {
       const unsigned dist = nextCand->getIndex() - cand->getIndex();
       if (dist >= wheelGap.lower && dist <= wheelGap.upper)
@@ -330,7 +433,7 @@ void PeakMinima::markBogeys(list<Peak *>& candidates)
   }
 
   vector<Peak> candidateSize;
-  makeWheelAverages(candidates, candidateSize);
+  makeBogeyAverages(candidates, candidateSize);
 
   // Recalculate the peak qualities using both left and right peaks.
   for (auto cand: candidates)
@@ -351,13 +454,13 @@ void PeakMinima::markBogeys(list<Peak *>& candidates)
   PeakMinima::printAllCandidates(candidates,
     "All peaks using left/right scales");
 
-  makeWheelAverages(candidates, candidateSize);
+  makeBogeyAverages(candidates, candidateSize);
   PeakMinima::printPeakQuality(candidateSize[0], "Left-wheel average");
   PeakMinima::printPeakQuality(candidateSize[1], "Right-wheel average");
 
   // Redo the distances using the new qualities (left and right peaks).
   PeakMinima::guessNeighborDistance(candidates,
-    &PeakMinima::bothSeed, wheelGap);
+    &PeakMinima::bothSelected, wheelGap);
   cout << "Guessing new wheel distance " << wheelGap.lower << "-" <<
     wheelGap.upper << "\n\n";
 
@@ -370,7 +473,7 @@ void PeakMinima::markBogeys(list<Peak *>& candidates)
       continue;
 
     Peak * nextCand = * next(cit);
-    if (PeakMinima::bothSeed(cand, nextCand))
+    if (PeakMinima::bothSelected(cand, nextCand))
     {
       const unsigned dist = nextCand->getIndex() - cand->getIndex();
       if (dist >= wheelGap.lower && dist <= wheelGap.upper)
@@ -464,7 +567,7 @@ void PeakMinima::markLongGaps(
 
   // Guess the intra-car gap.
   Gap longGap;
-  PeakMinima::findFirstSize(dists, longGap, shortGapCount / 2);
+  PeakMinima::findFirstLargeRange(dists, longGap, shortGapCount / 2);
   cout << "Guessing long gap " << longGap.lower << "-" <<
     longGap.upper << "\n\n";
 
@@ -514,110 +617,12 @@ void PeakMinima::markLongGaps(
   PeakMinima::printAllCandidates(candidates, "All peaks using bogeys");
 
   vector<Peak> bogeys;
-  PeakMinima::makeBogeyAverages(candidates, bogeys);
+  PeakMinima::makeCarAverages(candidates, bogeys);
 
   PeakMinima::printPeakQuality(bogeys[0], "Left bogey, left wheel average");
   PeakMinima::printPeakQuality(bogeys[1], "Left bogey, right wheel average");
   PeakMinima::printPeakQuality(bogeys[2], "Right bogey, left wheel average");
   PeakMinima::printPeakQuality(bogeys[3], "Right bogey, right wheel average");
-}
-
-
-void PeakMinima::makeSeedAverage(
-  list<Peak *>& candidates,
-  Peak& seed) const
-{
-  seed.reset();
-
-  unsigned count = 0;
-  for (auto& cand: candidates)
-  {
-    if (cand->isSelected())
-    {
-      seed += * cand;
-      count++;
-    }
-  }
-
-  if (count)
-    seed /= count;
-}
-
-
-void PeakMinima::makeWheelAverages(
-  list<Peak *>& candidates,
-  vector<Peak>& wheels) const
-{
-  wheels.clear();
-  wheels.resize(2);
-
-  unsigned cleft = 0, cright = 0;
-  for (auto& cand: candidates)
-  {
-    if (cand->isLeftWheel())
-    {
-      wheels[0] += * cand;
-      cleft++;
-    }
-    else if (cand->isRightWheel())
-    {
-      wheels[1] += * cand;
-      cright++;
-    }
-  }
-
-  if (cleft)
-    wheels[0] /= cleft;
-  if (cright)
-    wheels[1] /= cright;
-}
-
-
-void PeakMinima::makeBogeyAverages(
-  list<Peak *>& candidates,
-  vector<Peak>& wheels) const
-{
-  wheels.clear();
-  wheels.resize(4);
-
-  vector<unsigned> count;
-  count.resize(4);
-
-  for (auto& cand: candidates)
-  {
-    if (cand->isLeftBogey())
-    {
-      if (cand->isLeftWheel())
-      {
-        wheels[0] += * cand;
-        count[0]++;
-      }
-      else if (cand->isRightWheel())
-      {
-        wheels[1] += * cand;
-        count[1]++;
-      }
-    }
-    else if (cand->isRightBogey())
-    {
-      if (cand->isLeftWheel())
-      {
-        wheels[2] += * cand;
-        count[2]++;
-      }
-      else if (cand->isRightWheel())
-      {
-        wheels[3] += * cand;
-        count[3]++;
-      }
-    }
-  }
-
-  for (unsigned i = 0; i < 4; i++)
-  {
-    if (count[i])
-      wheels[i] /= count[i];
-  }
 }
 
 
@@ -707,7 +712,9 @@ void PeakMinima::mark(
   candidates.clear();
   offset = offsetIn;
 
-  PeakMinima::markSinglePeaks(peaks, candidates);
+  PeakMinima::setCandidates(peaks, candidates);
+
+  PeakMinima::markSinglePeaks(candidates);
   PeakMinima::markBogeys(candidates);
 
   Gap shortGap;
