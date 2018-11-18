@@ -45,8 +45,6 @@ class PeakDetect
     unsigned len;
     unsigned offset;
     list<Peak> peaks;
-    Peak scalesList;
-
     list<Peak *> candidates;
 
 
@@ -73,21 +71,7 @@ class PeakDetect
 
     void eliminateKinks();
 
-    void estimateScales();
-
-    void setOrigPointers();
-
-    void findFirstSize(
-      const vector<unsigned>& dists,
-      unsigned& lower,
-      unsigned& upper,
-      unsigned& counted,
-      const unsigned lowerCount = 0) const;
-
-    void findFirstSize(
-      const vector<unsigned>& dists,
-      Gap& gap,
-      const unsigned lowerCount = 0) const;
+    void estimateScale(Peak& scale);
 
     bool matchesModel(
       const CarDetect& car,
@@ -121,6 +105,11 @@ class PeakDetect
       CarDetect& car,
       unsigned& numWheels) const;
 
+    void markWheelPair(
+      Peak& p1,
+      Peak& p2,
+      const string& text) const;
+
     void fixTwoWheels(
       Peak& p1,
       Peak& p2) const;
@@ -145,67 +134,17 @@ class PeakDetect
       const unsigned end,
       const bool leftGapPresent,
       const bool rightGapPresent,
-      // list<Peak *>& candidates,
       vector<CarDetect>& cars);
-
-    bool bothSeed(
-      const Peak * p1,
-      const Peak * p2) const;
-
-    bool formBogeyGap(
-      const Peak * p1,
-      const Peak * p2) const;
-
-    void guessNeighborDistance(
-      // const list<Peak *>& candidates,
-      const CandFncPtr fptr,
-      Gap& gap) const;
-
-    void markWheelPair(
-      Peak& p1,
-      Peak& p2,
-      const string& text) const;
-
-    void markBogeyShortGap(
-      Peak& p1,
-      Peak& p2,
-      const string& text) const;
-
-    void markBogeyLongGap(
-      Peak& p1,
-      Peak& p2,
-      const string& text) const;
-
-    void markSinglePeaks();
-
-    void markBogeys();
-
-    void markShortGaps(Gap& shortGap);
-
-    void markLongGaps(const unsigned shortGapCount);
 
     void findWholeCars(vector<CarDetect>& cars);
     void findWholeInnerCars(vector<CarDetect>& cars);
     void findWholeFirstCar(vector<CarDetect>& cars);
     void findWholeLastCar(vector<CarDetect>& cars);
 
-    void makeSeedAverage(Peak& seed) const;
-
-    void makeWheelAverages(vector<Peak>& wheels) const;
-
-    void makeBogeyAverages(vector<Peak>& wheels) const;
-
-    void reseedUsingQuality();
-
-
 
     float getFirstPeakTime() const;
 
     void printPeak(
-      const Peak& peak,
-      const string& text) const;
-
-    void printPeakQuality(
       const Peak& peak,
       const string& text) const;
 
@@ -238,9 +177,6 @@ class PeakDetect
 
     void reduce();
 
-    void reduceNew();
-    void reduceNewer();
-
 
 
     void logPeakStats(
@@ -253,8 +189,6 @@ class PeakDetect
     void getPeakTimes(vector<PeakTime>& times) const;
 
     void printAllPeaks(const string& text = "") const;
-    void printAllCandidates(const string& text = "") const;
-    void printSeedCandidates(const string& text = "") const;
 };
 
 #endif
