@@ -1384,7 +1384,7 @@ void PeakDetect::markSinglePeaks()
   PeakDetect::printSeedCandidates("Seeds");
 
   PeakDetect::makeSeedAverage(candidateSize);
-  PeakDetect::printPeak(candidateSize, "Seed average");
+  PeakDetect::printPeakQuality(candidateSize, "Seed average");
 
   // Modify selection based on quality.
   PeakDetect::reseedUsingQuality();
@@ -1392,7 +1392,7 @@ void PeakDetect::markSinglePeaks()
   PeakDetect::printSeedCandidates("Great-quality seeds");
 
   PeakDetect::makeSeedAverage( candidateSize);
-  PeakDetect::printPeak(candidateSize, "Great-quality average");
+  PeakDetect::printPeakQuality(candidateSize, "Great-quality average");
 }
 
 
@@ -1464,8 +1464,8 @@ void PeakDetect::markBogeys()
   PeakDetect::printAllCandidates("All peaks using left/right scales");
 
   makeWheelAverages(candidateSize);
-  PeakDetect::printPeak(candidateSize[0], "Left-wheel average");
-  PeakDetect::printPeak(candidateSize[1], "Right-wheel average");
+  PeakDetect::printPeakQuality(candidateSize[0], "Left-wheel average");
+  PeakDetect::printPeakQuality(candidateSize[1], "Right-wheel average");
 
   // Redo the distances using the new qualities (left and right peaks).
   PeakDetect::guessNeighborDistance(&PeakDetect::bothSeed, wheelGap);
@@ -1622,10 +1622,10 @@ void PeakDetect::markLongGaps(const unsigned shortGapCount)
   vector<Peak> bogeys;
   PeakDetect::makeBogeyAverages(bogeys);
 
-  PeakDetect::printPeak(bogeys[0], "Left bogey, left wheel average");
-  PeakDetect::printPeak(bogeys[1], "Left bogey, right wheel average");
-  PeakDetect::printPeak(bogeys[2], "Right bogey, left wheel average");
-  PeakDetect::printPeak(bogeys[3], "Right bogey, right wheel average");
+  PeakDetect::printPeakQuality(bogeys[0], "Left bogey, left wheel average");
+  PeakDetect::printPeakQuality(bogeys[1], "Left bogey, right wheel average");
+  PeakDetect::printPeakQuality(bogeys[2], "Right bogey, left wheel average");
+  PeakDetect::printPeakQuality(bogeys[3], "Right bogey, right wheel average");
 }
 
 
@@ -1965,10 +1965,7 @@ if (peaks.size() == 0)
   const bool debugDetails = false;
 
   if (debugDetails)
-  {
-    cout << "Original peaks: " << peaks.size() << "\n";
-    PeakDetect::printAllPeaks();
-  }
+    PeakDetect::printAllPeaks("Original peaks");
 
 
 /*
@@ -2007,23 +2004,17 @@ cout << "RANGE: " << fixed <<
 
   PeakDetect::eliminateKinks();
   if (debugDetails)
-  {
-    cout << "Non-kinky list peaks: " << peaks.size() << "\n";
-    PeakDetect::printAllPeaks();
-  }
+    PeakDetect::printAllPeaks("Non-kinky list peaks");
 
   PeakDetect::estimateScales();
   if (debug)
-  {
-    cout << "Scale list\n";
-    cout << scalesList.strHeader();
-    cout << scalesList.str(0) << endl;
-  }
+    PeakDetect::printPeak(scalesList, "Scale");
 
   PeakDetect::reduceSmallRanges(scalesList.getRange() / 10.f, true);
 
 PeakDetect::reduceNewer();
 
+  /*
   bool firstSeen = false;
   unsigned firstTentativeIndex = peaks.front().getIndex();
   unsigned lastTentativeIndex = peaks.back().getIndex();
@@ -2040,6 +2031,7 @@ PeakDetect::reduceNewer();
       lastTentativeIndex = peak.getIndex();
     }
   }
+  */
 }
 
 
@@ -2124,6 +2116,16 @@ void PeakDetect::printPeak(
   const string& text) const
 {
   cout << text << "\n";
+  cout << peak.strHeader();
+  cout << peak.str(0) << endl;
+}
+
+
+void PeakDetect::printPeakQuality(
+  const Peak& peak,
+  const string& text) const
+{
+  cout << text << "\n";
   cout << peak.strHeaderQuality();
   cout << peak.strQuality(offset) << endl;
 }
@@ -2154,7 +2156,7 @@ void PeakDetect::printAllPeaks(const string& text) const
     return;
 
   if (text != "")
-    cout << text << "\n";
+    cout << text << ": " << peaks.size() << "\n";
   cout << peaks.front().strHeader();
 
   for (auto& peak: peaks)

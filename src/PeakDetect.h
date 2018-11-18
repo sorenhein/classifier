@@ -207,6 +207,10 @@ class PeakDetect
       const Peak& peak,
       const string& text) const;
 
+    void printPeakQuality(
+      const Peak& peak,
+      const string& text) const;
+
     void printPeaksCSV(const vector<PeakTime>& timesTrue) const;
 
   public:
