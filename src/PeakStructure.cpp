@@ -436,6 +436,25 @@ void PeakStructure::updateThreePeaks(
 }
 
 
+void PeakStructure::updateTwoPeaks(
+  vector<Peak *>& peakPtrsNew,
+  vector<Peak *>& peakPtrsUnused) const
+{
+  // The assumption is that we missed the first two peaks.
+  peakPtrsNew[0]->markBogey(BOGEY_RIGHT);
+  peakPtrsNew[0]->markWheel(WHEEL_LEFT);
+
+  peakPtrsNew[1]->markBogey(BOGEY_RIGHT);
+  peakPtrsNew[1]->markWheel(WHEEL_RIGHT);
+
+  for (auto& pp: peakPtrsNew)
+    pp->select();
+
+  for (auto& pp: peakPtrsUnused)
+    pp->unselect();
+}
+
+
 void PeakStructure::downgradeAllPeaks(vector<Peak *>& peakPtrs) const
 {
   for (auto& pp: peakPtrs)
@@ -575,11 +594,11 @@ bool PeakStructure::findCarsNew(
       profile.stars[1] == 0)
   {
     // Try to match three wheels, dropping the first one.
-    PeakStructure::getGoodWheels(peakPtrs, peakNos,
+    PeakStructure::getGreatWheels(peakPtrs, peakNos,
       peakPtrsNew, peakNosNew, peakPtrsUnused);
 
     if (peakPtrsNew.size() != 3)
-      THROW(ERR_ALGO_PEAK_STRUCTURE, "Not 4 good peaks (3+1)");
+      THROW(ERR_ALGO_PEAK_STRUCTURE, "Not 3 good peaks");
 
     CarDetect car;
     if (PeakStructure::findLastThreeOfFourWheelerNew(models, start, end, 
@@ -587,6 +606,32 @@ bool PeakStructure::findCarsNew(
     {
       PeakStructure::updateCars(models, cars, car);
       PeakStructure::updateThreePeaks(peakPtrsNew, peakPtrsUnused);
+      return true;
+    }
+    else
+    {
+      cout << "Failed to find first car among 3 great peaks\n";
+      cout << PeakStructure::strProfile(source);
+      return false;
+    }
+  }
+  else if (source == 1 && // first
+      profile.sumGreat == 2 && 
+      profile.stars[1] == 0)
+  {
+    // Try to match two wheels, dropping the first two.
+    PeakStructure::getGreatWheels(peakPtrs, peakNos,
+      peakPtrsNew, peakNosNew, peakPtrsUnused);
+
+    if (peakPtrsNew.size() != 2)
+      THROW(ERR_ALGO_PEAK_STRUCTURE, "Not 2 good peaks");
+
+    CarDetect car;
+    if (PeakStructure::findLastTwoOfFourWheeler(models, start, end, 
+      rightGapPresent, peakNosNew, peakPtrsNew, car))
+    {
+      PeakStructure::updateCars(models, cars, car);
+      PeakStructure::updateTwoPeaks(peakPtrsNew, peakPtrsUnused);
       return true;
     }
     else
@@ -950,44 +995,15 @@ matrix[source][3]++;
 
     if (peakNosNew.size() != 4)
     {
-      // If there are five and the middle one stands out, try that.
-      if (np == 5 && qindex == 2)
-      {
-cout << "General try with " << np << " didn't fit -- drop the middle?" <<
- endl;
-        peakNos.erase(peakNos.begin() + 2);
-        peakPtrs.erase(peakPtrs.begin() + 2);
-      
-        CarDetect car;
-    cout << "Trying the car anyway\n";
-        if (! PeakStructure::findFourWheeler(models, startLocal, endLocal,
-            leftFlagLocal, rightFlagLocal, peakNos, peakPtrs, car))
-        {
-          // Doesn't happen.
-          return false;
-        }
-
-matrix[source][4]++;
-        PeakStructure::fixFourWheels(
-          * peakPtrs[0], * peakPtrs[1], * peakPtrs[2], * peakPtrs[3]);
-if (peakPtrs.size() != 4)
-  cout << "ERROR2 " << peakPtrs.size() << endl;
-
-        PeakStructure::updateCars(models, cars, car);
-        return true;
-      }
-      else
-      {
 matrix[source][10]++;
-        cout << "I don't yet see one car here: " << np << ", " <<
-          peakNosNew.size() << endl;
+      cout << "I don't yet see one car here: " << np << ", " <<
+        peakNosNew.size() << endl;
 
 for (auto peakPtr: peakPtrs)
   cout << "index " << peakPtr->getIndex() << ", qs " <<
     peakPtr->getQualityShape() << endl;
 
-        return false;
-      }
+      return false;
     }
 
     CarDetect car;
@@ -1009,7 +1025,7 @@ cout << "Trying the car\n";
       peakPtrsNew[k]->unselect();
     }
 
-matrix[source][5]++;
+matrix[source][4]++;
     PeakStructure::updateCars(models, cars, car);
     return true;
   }
@@ -1037,7 +1053,7 @@ cout << "Two talls\n";
         return false;
       }
 
-matrix[source][6]++;
+matrix[source][5]++;
       PeakStructure::fixTwoWheels(* peakPtrs[0], * peakPtrs[1]);
 
       PeakStructure::updateCars(models, cars, car);
@@ -1046,9 +1062,7 @@ matrix[source][6]++;
     }
   }
 
-matrix[source][11]++;
-  cout << "Don't know how to do this yet: " << np << ", notTallCount " <<
-    notTallCount << "\n";
+  // Doesn't happen.
   return false;
 }
 

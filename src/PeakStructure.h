@@ -110,6 +110,10 @@ class PeakStructure
       vector<Peak *>& peakPtrsNew,
       vector<Peak *>& peakPtrsUnused) const;
 
+    void updateTwoPeaks(
+      vector<Peak *>& peakPtrsNew,
+      vector<Peak *>& peakPtrsUnused) const;
+
     void downgradeAllPeaks(vector<Peak *>& peakPtrsNew) const;
 
     void getGreatWheels(
