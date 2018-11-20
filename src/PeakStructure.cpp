@@ -360,7 +360,7 @@ void PeakStructure::makeProfile(const vector<Peak *>& peakPtrs)
       }
       else if (stars == "**")
         profile.stars[1]++;
-      else if (stars == "**")
+      else if (stars == "*")
         profile.stars[2]++;
       else
         profile.stars[3]++;

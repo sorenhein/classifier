@@ -1,3 +1,15 @@
+* Can combine findWhole*Car
+* Can make PeakProfile calss incl. print
+* roll up into PeakCondition struct:
+  source, start, end, leftGapPresent, rightGapPresent
+* Minimum parameters for a branch: PEAKS_GREAT, GOOD, ACCEPTABLE
+  and the number (2, 3, 4) of peaks
+* Splitting a 7 or 8 (good/great)
+  count off to middle
+  nothing between, so make new PeakConditions (2)
+  2 calls needing 4 great/good peaks, can predict which it will be
+* Delete the old Find3
+
 
 * For sensor00 there should be 3516 peaks?  Why only 3396?
   - 101129, 122841: Got peaks but "no good match".
