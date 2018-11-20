@@ -74,6 +74,14 @@ class PeakStructure
       CarDetect& car,
       unsigned& numWheels) const;
 
+    bool findLastThreeOfFourWheelerNew(
+      const CarModels& models,
+      const unsigned start,
+      const unsigned end,
+      const vector<unsigned>& peakNos,
+      const vector<Peak *>& peakPtrs,
+      CarDetect& car) const;
+
     void markWheelPair(
       Peak& p1,
       Peak& p2,
@@ -95,6 +103,10 @@ class PeakStructure
       Peak& p4) const;
 
     void updateFourPeaks(
+      vector<Peak *>& peakPtrsNew,
+      vector<Peak *>& peakPtrsUnused) const;
+
+    void updateThreePeaks(
       vector<Peak *>& peakPtrsNew,
       vector<Peak *>& peakPtrsUnused) const;
 
