@@ -18,11 +18,27 @@ class PeakStructure
 {
   private:
 
+    struct Profile
+    {
+      // Peaks that are labeled both w.r.t. bogeys and wheels
+      // (left bogey left/right wheel, right bogey left/right wheel).
+      vector<unsigned> bogeyWheels;
+      // Peaks that are only labeled as wheels (left/right).
+      vector<unsigned> wheels;
+      // Unlabeled peaks by quality: ***, **, *, poor quality.
+      vector<unsigned> stars;
+      unsigned sumGreat;
+      unsigned sum;
+    };
+
     unsigned offset;
+    Profile profile;
 
     unsigned source;
     unsigned matrix[3][18];
 
+
+    void resetProfile();
 
     bool matchesModel(
       const CarModels& models,
@@ -93,6 +109,10 @@ class PeakStructure
       list<Peak *>& candidates); // const;
 
     string x(const unsigned v) const;
+
+    void makeProfile(const vector<Peak *>& peakPtrs);
+
+    string strProfile(const unsigned origin) const;
 
     bool findCarsNew(
       const unsigned start,

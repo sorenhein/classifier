@@ -35,6 +35,20 @@ void PeakStructure::reset()
 }
 
 
+void PeakStructure::resetProfile()
+{
+  profile.bogeyWheels.clear();
+  profile.wheels.clear();
+  profile.stars.clear();
+
+  profile.bogeyWheels.resize(4);
+  profile.wheels.resize(2);
+  profile.stars.resize(4);
+  profile.sumGreat = 0;
+  profile.sum = 0;
+}
+
+
 bool PeakStructure::matchesModel(
   const CarModels& models,
   const CarDetect& car, 
@@ -261,6 +275,83 @@ void PeakStructure::updateCars(
 }
 
 
+void PeakStructure::makeProfile(const vector<Peak *>& peakPtrs)
+{
+  PeakStructure::resetProfile();
+  for (auto& peakPtr: peakPtrs)
+  {
+    if (peakPtr->isLeftBogey())
+    {
+      if (peakPtr->isLeftWheel())
+        profile.bogeyWheels[0]++;
+      else if (peakPtr->isRightWheel())
+        profile.bogeyWheels[1]++;
+      else
+        THROW(ERR_ALGO_PEAK_STRUCTURE, "Left bogey has no wheel mark");
+
+      profile.sumGreat++;
+    }
+    else if (peakPtr->isRightBogey())
+    {
+      if (peakPtr->isLeftWheel())
+        profile.bogeyWheels[2]++;
+      else if (peakPtr->isRightWheel())
+        profile.bogeyWheels[3]++;
+      else
+        THROW(ERR_ALGO_PEAK_STRUCTURE, "Right bogey has no wheel mark");
+
+      profile.sumGreat++;
+    }
+    else if (peakPtr->isLeftWheel())
+    {
+      profile.wheels[0]++;
+      profile.sumGreat++;
+    }
+    else if (peakPtr->isRightWheel())
+    {
+      profile.wheels[1]++;
+      profile.sumGreat++;
+    }
+    else
+    {
+      const string stars = peakPtr->stars();
+      if (stars == "***")
+      {
+        profile.stars[0]++;
+        profile.sumGreat++;
+      }
+      else if (stars == "**")
+        profile.stars[1]++;
+      else if (stars == "**")
+        profile.stars[2]++;
+      else
+        profile.stars[3]++;
+    }
+    profile.sum++;
+  }
+}
+
+
+string PeakStructure::strProfile(unsigned origin) const
+{
+  stringstream ss;
+  ss << "PROFILE " << origin << ": " <<
+    PeakStructure::x(profile.bogeyWheels[0]) << " " <<
+    PeakStructure::x(profile.bogeyWheels[1]) << " " <<
+    PeakStructure::x(profile.bogeyWheels[2]) << " " <<
+    PeakStructure::x(profile.bogeyWheels[3]) << ", wh " <<
+    PeakStructure::x(profile.wheels[0]) << " " <<
+    PeakStructure::x(profile.wheels[1]) << ", q " <<
+    PeakStructure::x(profile.stars[0]) << " " <<
+    PeakStructure::x(profile.stars[1]) << " " <<
+    PeakStructure::x(profile.stars[2]) << " " <<
+    PeakStructure::x(profile.stars[3]) << " (" <<
+    profile.sumGreat << " of " <<
+    profile.sum << ")\n";
+  return ss.str();
+}
+
+
 bool PeakStructure::findCarsNew(
   const unsigned start,
   const unsigned end,
@@ -270,19 +361,8 @@ bool PeakStructure::findCarsNew(
   vector<CarDetect>& cars,
   list<Peak *>& candidates) // const
 {
-  UNUSED(cars);
-  UNUSED(models);
-  UNUSED(leftGapPresent);
-  UNUSED(rightGapPresent);
-
   vector<Peak *> peakPtrs;
-  vector<unsigned> typeCounts(18); 
-  // 0..3 for the four wheels in a car
-  // 4..5 for wheels that are not left/right bogeys
-  // 6..8 for ***, **, *
-  // 9    for a poor quality.
-  // 10..13 for left-bogey errors by quality,
-  // 14..17 for left-bogey errors by quality,
+  vector<unsigned> peakNos;
 
   for (auto& cand: candidates)
   {
@@ -293,106 +373,58 @@ bool PeakStructure::findCarsNew(
       continue;
 
     peakPtrs.push_back(cand);
-    // TODO There are consistency issues here as well.
-    if (cand->isLeftBogey())
-    {
-      if (cand->isLeftWheel())
-        typeCounts[0]++;
-      else if (cand->isRightWheel())
-        typeCounts[1]++;
-      else
-      {
-        const string stars = cand->stars();
-        if (stars == "***")
-          typeCounts[10]++;
-        else if (stars == "**")
-          typeCounts[11]++;
-        else if (stars == "**")
-          typeCounts[12]++;
-        else
-          typeCounts[13]++;
-      }
-    }
-    else if (cand->isRightBogey())
-    {
-      if (cand->isLeftWheel())
-        typeCounts[2]++;
-      else if (cand->isRightWheel())
-        typeCounts[3]++;
-      else
-      {
-        const string stars = cand->stars();
-        if (stars == "***")
-          typeCounts[14]++;
-        else if (stars == "**")
-          typeCounts[15]++;
-        else if (stars == "**")
-          typeCounts[16]++;
-        else
-          typeCounts[17]++;
-      }
-    }
-    else if (cand->isLeftWheel())
-      typeCounts[4]++;
-    else if (cand->isRightWheel())
-      typeCounts[5]++;
-    else
-    {
-      const string stars = cand->stars();
-      if (stars == "***")
-        typeCounts[6]++;
-      else if (stars == "**")
-        typeCounts[7]++;
-      else if (stars == "**")
-        typeCounts[8]++;
-      else
-        typeCounts[9]++;
-    }
+    peakNos.push_back(index);
   }
 
-  unsigned typeMaxCount = 0; 
-  unsigned typeMinCount = numeric_limits<unsigned>::max();
-  for (unsigned i = 0; i < 4; i++)
+  PeakStructure::makeProfile(peakPtrs);
+
+  cout << PeakStructure::strProfile(source);
+
+  if (profile.sumGreat == 4)
   {
-    if (typeCounts[i] > typeMaxCount)
-      typeMaxCount = typeCounts[i];
-    if (typeCounts[i] < typeMinCount)
-      typeMinCount = typeCounts[i];
+    if (source == 0) // Inner
+    {
+      CarDetect car;
+
+      vector<Peak *> peakPtrsNew;
+      vector<unsigned> peakNosNew;
+
+      for (unsigned i = 0; i < peakPtrs.size(); i++)
+      {
+        Peak * pp = peakPtrs[i];
+        if (pp->isLeftWheel() || 
+            pp->isRightWheel() ||
+            pp->greatQuality())
+        {
+          peakPtrsNew.push_back(pp);
+          peakNosNew.push_back(peakNos[i]);
+        }
+      }
+
+      if (PeakStructure::findFourWheeler(models, start, end,
+          leftGapPresent, rightGapPresent, peakNosNew, peakPtrsNew, car))
+      {
+        PeakStructure::updateCars(models, cars, car);
+
+        for (unsigned i = 0; i < peakPtrs.size(); i++)
+        {
+          Peak * pp = peakPtrs[i];
+          if (! pp->isLeftWheel() && 
+              ! pp->isRightWheel() &&
+              ! pp->greatQuality())
+          {
+            peakPtrs[i]->unselect();
+          }
+        }
+cout << "HIT\n";
+        return true;
+      }
+      else
+        return false;
+    }
   }
 
-  unsigned sum = 0;
-  for (auto t: typeCounts)
-    sum += t;
-
-  // 0..3 for the four wheels in a car
-  // 4..5 for wheels that are not left/right bogeys
-  // 6..8 for ***, **, *
-  // 9    for a poor quality.
-  // 10..11 for errors
-  cout << "PROFILE " << source << ": " <<
-    PeakStructure::x(typeCounts[0]) << " " <<
-    PeakStructure::x(typeCounts[1]) << " " <<
-    PeakStructure::x(typeCounts[2]) << " " <<
-    PeakStructure::x(typeCounts[3]) << " (" <<
-    typeMinCount << "-" <<
-    typeMaxCount << "), wh " <<
-    PeakStructure::x(typeCounts[4]) << " " <<
-    PeakStructure::x(typeCounts[5]) << ", q " <<
-    PeakStructure::x(typeCounts[6]) << " " <<
-    PeakStructure::x(typeCounts[7]) << " " <<
-    PeakStructure::x(typeCounts[8]) << " " <<
-    PeakStructure::x(typeCounts[9]) << ", errL " <<
-    PeakStructure::x(typeCounts[10]) << " " <<
-    PeakStructure::x(typeCounts[11]) << " " <<
-    PeakStructure::x(typeCounts[12]) << " " <<
-    PeakStructure::x(typeCounts[13]) << ", errR " <<
-    PeakStructure::x(typeCounts[14]) << " " <<
-    PeakStructure::x(typeCounts[15]) << " " <<
-    PeakStructure::x(typeCounts[16]) << " " <<
-    PeakStructure::x(typeCounts[17]) << ", s " <<
-    sum <<
-  endl;
-  return true;
+  return false;
 }
 
 
@@ -414,8 +446,9 @@ bool PeakStructure::findCars(
   vector<CarDetect>& cars,
   list<Peak *>& candidates) // const
 {
-  findCarsNew(start, end, leftGapPresent, rightGapPresent,
-    models, cars, candidates);
+  if (findCarsNew(start, end, leftGapPresent, rightGapPresent,
+      models, cars, candidates))
+    return true;
 
 
   vector<unsigned> peakNos;
