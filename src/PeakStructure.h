@@ -35,7 +35,7 @@ class PeakStructure
     Profile profile;
 
     unsigned source;
-    unsigned matrix[3][8];
+    unsigned matrix[3][24];
 
 
     void resetProfile();

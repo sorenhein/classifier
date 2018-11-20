@@ -20,7 +20,7 @@ PeakStructure::PeakStructure()
 
   // This is a temporary tracker.
   for (unsigned i = 0; i < 3; i++)
-    for (unsigned j = 0; j < 8; j++)
+    for (unsigned j = 0; j < 24; j++)
       matrix[i][j] = 0;
 }
 
@@ -583,6 +583,7 @@ matrix[source][0]++;
       }
       else
       {
+matrix[source][10]++;
 cout << "Failed multi-peak split " << start+offset << "-" << end+offset << endl;
         return false;
       }
@@ -643,6 +644,7 @@ cout << "Fell through to " << startLocal+offset << "-" << endLocal+offset << end
 
   if (np <= 2)
   {
+matrix[source][11]++;
     cout << "Don't know how to do this yet: " << np << "\n";
     return false;
   }
@@ -667,7 +669,10 @@ cout << "4-5 leading wheels: Attempting to drop down to 3: " << np << "\n";
     unsigned numWheels;
     if (! PeakStructure::findLastThreeOfFourWheeler(models,
         startLocal, endLocal, peakNos, peakPtrs, car, numWheels))
+    {
+matrix[source][12]++;
       return false;
+    }
 
     if (numWheels == 3)
     {
@@ -678,6 +683,7 @@ matrix[source][1]++;
     else
     {
       // Doesn't happen.
+matrix[source][13]++;
       return false;
     }
 
@@ -705,7 +711,10 @@ if (peakPtrs.size() != 4)
     
     // Give up unless this is the first car.
     if (leftFlagLocal)
+    {
+matrix[source][14]++;
       return false;
+    }
 
     // Try with only the acceptable-quality peaks.
     vector<unsigned> peakNosNew;
@@ -723,6 +732,7 @@ if (peakPtrs.size() != 4)
     {
       cout << "Failed first cars: Only " << peakPtrsNew.size() <<
         " peaks\n";
+matrix[source][15]++;
       return false;
     }
     else if (peakPtrsNew.size() == 2)
@@ -733,6 +743,7 @@ if (peakPtrs.size() != 4)
       {
         cout << "Failed first cars: " << peakPtrsNew.size() <<
           " peaks\n";
+matrix[source][16]++;
         return false;
       }
 
@@ -764,7 +775,10 @@ cout << "Trying again without the very first peak of first car\n";
     unsigned numWheels;
     if (! PeakStructure::findLastThreeOfFourWheeler(models,
         startLocal, endLocal, peakNos, peakPtrs, car, numWheels))
+    {
+matrix[source][17]++;
       return false;
+    }
 
     if (numWheels == 3)
     {
@@ -775,6 +789,7 @@ matrix[source][4]++;
     else
     {
       // Doesn't happen.
+matrix[source][18]++;
       return false;
     }
 
@@ -831,6 +846,7 @@ cout << "General try with " << np << " didn't fit -- drop the middle?" <<
             leftFlagLocal, rightFlagLocal, peakNos, peakPtrs, car))
         {
     cout << "Failed the car: " << np << "\n";
+matrix[source][19]++;
           return false;
         }
 
@@ -845,6 +861,7 @@ if (peakPtrs.size() != 4)
       }
       else
       {
+matrix[source][20]++;
         cout << "I don't yet see one car here: " << np << ", " <<
           peakNosNew.size() << endl;
 
@@ -862,6 +879,7 @@ cout << "Trying the car\n";
     if (! PeakStructure::findFourWheeler(models, startLocal, endLocal,
         leftFlagLocal, rightFlagLocal, peakNosNew, peakPtrsNew, car))
     {
+matrix[source][21]++;
 cout << "Failed the car: " << np << "\n";
       return false;
     }
@@ -899,6 +917,7 @@ cout << "Two talls\n";
       if (! PeakStructure::findLastTwoOfFourWheeler(models,
           startLocal, endLocal, rightFlagLocal, peakNos, peakPtrs, car))
       {
+matrix[source][22]++;
 cout << "Failed\n";
         return false;
       }
@@ -912,6 +931,7 @@ matrix[source][7]++;
     }
   }
 
+matrix[source][23]++;
   cout << "Don't know how to do this yet: " << np << ", notTallCount " <<
     notTallCount << "\n";
   return false;
@@ -1235,8 +1255,11 @@ void PeakStructure::printPaths() const
   vector<unsigned> sumSource(3);
   vector<unsigned> sumPlace(12);
 
-  for (unsigned j = 0; j < 8; j++)
+  for (unsigned j = 0; j < 24; j++)
   {
+    if (matrix[0][j] + matrix[1][j] + matrix[2][j] == 0)
+      continue;
+
     cout << setw(8) << left << j <<
       setw(8) << right << matrix[0][j] <<
       setw(8) << right << matrix[1][j] <<
