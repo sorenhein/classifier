@@ -17,6 +17,11 @@
 PeakStructure::PeakStructure()
 {
   PeakStructure::reset();
+
+  // This is a temporary tracker.
+  for (unsigned i = 0; i < 3; i++)
+    for (unsigned j = 0; j < 18; j++)
+      matrix[i][j] = 0;
 }
 
 
@@ -256,6 +261,150 @@ void PeakStructure::updateCars(
 }
 
 
+bool PeakStructure::findCarsNew(
+  const unsigned start,
+  const unsigned end,
+  const bool leftGapPresent,
+  const bool rightGapPresent,
+  CarModels& models,
+  vector<CarDetect>& cars,
+  list<Peak *>& candidates) // const
+{
+  UNUSED(cars);
+  UNUSED(models);
+  UNUSED(leftGapPresent);
+  UNUSED(rightGapPresent);
+
+  vector<Peak *> peakPtrs;
+  vector<unsigned> typeCounts(18); 
+  // 0..3 for the four wheels in a car
+  // 4..5 for wheels that are not left/right bogeys
+  // 6..8 for ***, **, *
+  // 9    for a poor quality.
+  // 10..13 for left-bogey errors by quality,
+  // 14..17 for left-bogey errors by quality,
+
+  for (auto& cand: candidates)
+  {
+    const unsigned index = cand->getIndex();
+    if (index > end)
+      break;
+    if (index < start)
+      continue;
+
+    peakPtrs.push_back(cand);
+    // TODO There are consistency issues here as well.
+    if (cand->isLeftBogey())
+    {
+      if (cand->isLeftWheel())
+        typeCounts[0]++;
+      else if (cand->isRightWheel())
+        typeCounts[1]++;
+      else
+      {
+        const string stars = cand->stars();
+        if (stars == "***")
+          typeCounts[10]++;
+        else if (stars == "**")
+          typeCounts[11]++;
+        else if (stars == "**")
+          typeCounts[12]++;
+        else
+          typeCounts[13]++;
+      }
+    }
+    else if (cand->isRightBogey())
+    {
+      if (cand->isLeftWheel())
+        typeCounts[2]++;
+      else if (cand->isRightWheel())
+        typeCounts[3]++;
+      else
+      {
+        const string stars = cand->stars();
+        if (stars == "***")
+          typeCounts[14]++;
+        else if (stars == "**")
+          typeCounts[15]++;
+        else if (stars == "**")
+          typeCounts[16]++;
+        else
+          typeCounts[17]++;
+      }
+    }
+    else if (cand->isLeftWheel())
+      typeCounts[4]++;
+    else if (cand->isRightWheel())
+      typeCounts[5]++;
+    else
+    {
+      const string stars = cand->stars();
+      if (stars == "***")
+        typeCounts[6]++;
+      else if (stars == "**")
+        typeCounts[7]++;
+      else if (stars == "**")
+        typeCounts[8]++;
+      else
+        typeCounts[9]++;
+    }
+  }
+
+  unsigned typeMaxCount = 0; 
+  unsigned typeMinCount = numeric_limits<unsigned>::max();
+  for (unsigned i = 0; i < 4; i++)
+  {
+    if (typeCounts[i] > typeMaxCount)
+      typeMaxCount = typeCounts[i];
+    if (typeCounts[i] < typeMinCount)
+      typeMinCount = typeCounts[i];
+  }
+
+  unsigned sum = 0;
+  for (auto t: typeCounts)
+    sum += t;
+
+  // 0..3 for the four wheels in a car
+  // 4..5 for wheels that are not left/right bogeys
+  // 6..8 for ***, **, *
+  // 9    for a poor quality.
+  // 10..11 for errors
+  cout << "PROFILE " << source << ": " <<
+    PeakStructure::x(typeCounts[0]) << " " <<
+    PeakStructure::x(typeCounts[1]) << " " <<
+    PeakStructure::x(typeCounts[2]) << " " <<
+    PeakStructure::x(typeCounts[3]) << " (" <<
+    typeMinCount << "-" <<
+    typeMaxCount << "), wh " <<
+    PeakStructure::x(typeCounts[4]) << " " <<
+    PeakStructure::x(typeCounts[5]) << ", q " <<
+    PeakStructure::x(typeCounts[6]) << " " <<
+    PeakStructure::x(typeCounts[7]) << " " <<
+    PeakStructure::x(typeCounts[8]) << " " <<
+    PeakStructure::x(typeCounts[9]) << ", errL " <<
+    PeakStructure::x(typeCounts[10]) << " " <<
+    PeakStructure::x(typeCounts[11]) << " " <<
+    PeakStructure::x(typeCounts[12]) << " " <<
+    PeakStructure::x(typeCounts[13]) << ", errR " <<
+    PeakStructure::x(typeCounts[14]) << " " <<
+    PeakStructure::x(typeCounts[15]) << " " <<
+    PeakStructure::x(typeCounts[16]) << " " <<
+    PeakStructure::x(typeCounts[17]) << ", s " <<
+    sum <<
+  endl;
+  return true;
+}
+
+
+string PeakStructure::x(const unsigned v) const
+{
+  if (v == 0)
+    return "-";
+  else
+    return to_string(v);
+}
+
+
 bool PeakStructure::findCars(
   const unsigned start,
   const unsigned end,
@@ -263,8 +412,12 @@ bool PeakStructure::findCars(
   const bool rightGapPresent,
   CarModels& models,
   vector<CarDetect>& cars,
-  list<Peak *>& candidates) const
+  list<Peak *>& candidates) // const
 {
+  findCarsNew(start, end, leftGapPresent, rightGapPresent,
+    models, cars, candidates);
+
+
   vector<unsigned> peakNos;
   vector<Peak *> peakPtrs;
   unsigned notTallCount = 0;
@@ -363,6 +516,7 @@ cout << "Range is " << startLocal+offset << "-" <<
       if (PeakStructure::findFourWheeler(models, startLocal, endLocal,
         leftFlagLocal, rightFlagLocal, peakNosNew, peakPtrsNew, car))
       {
+matrix[source][0]++;
         PeakStructure::fixFourWheels(
           * peakPtrsNew[0], * peakPtrsNew[1], 
           * peakPtrsNew[2], * peakPtrsNew[3]);
@@ -465,6 +619,7 @@ cout << "4-5 leading wheels: Attempting to drop down to 3: " << np << "\n";
 
     if (numWheels == 2)
     {
+matrix[source][1]++;
       PeakStructure::fixTwoWheels(* peakPtrs[1], * peakPtrs[2]);
       peakPtrs[0]->markNoWheel();
       peakPtrs[0]->unselect();
@@ -472,8 +627,11 @@ if (peakPtrs.size() != 3)
   cout << "ERRORW " << peakPtrs.size() << endl;
     }
     else 
+    {
+matrix[source][2]++;
       PeakStructure::fixThreeWheels(
         * peakPtrs[0], * peakPtrs[1], * peakPtrs[2]);
+    }
 if (peakPtrs.size() != 3)
   cout << "ERRORa " << peakPtrs.size() << endl;
 
@@ -488,6 +646,7 @@ if (peakPtrs.size() != 3)
     if (PeakStructure::findFourWheeler(models, startLocal, endLocal,
         leftFlagLocal, rightFlagLocal, peakNos, peakPtrs, car))
     {
+matrix[source][3]++;
         PeakStructure::fixFourWheels(
           * peakPtrs[0], * peakPtrs[1], * peakPtrs[2], * peakPtrs[3]);
 if (peakPtrs.size() != 4)
@@ -531,6 +690,7 @@ if (peakPtrs.size() != 4)
         return false;
       }
 
+matrix[source][4]++;
       cout << "Hit first car with 2 peaks\n";
       PeakStructure::fixTwoWheels(* peakPtrsNew[0], * peakPtrsNew[1]);
 
@@ -562,6 +722,7 @@ cout << "Trying again without the very first peak of first car\n";
 
     if (numWheels == 2)
     {
+matrix[source][5]++;
       PeakStructure::fixTwoWheels(* peakPtrs[1], * peakPtrs[2]);
       peakPtrs[0]->markNoWheel();
       peakPtrs[0]->unselect();
@@ -569,8 +730,11 @@ if (peakPtrs.size() != 3)
   cout << "ERRORX " << peakPtrs.size() << endl;
     }
     else 
+    {
+matrix[source][6]++;
       PeakStructure::fixThreeWheels(
         * peakPtrs[0], * peakPtrs[1], * peakPtrs[2]);
+    }
 
 if (peakPtrs.size() != 3)
   cout << "ERRORb " << peakPtrs.size() << endl;
@@ -628,6 +792,7 @@ cout << "General try with " << np << " didn't fit -- drop the middle?" <<
           return false;
         }
 
+matrix[source][7]++;
         PeakStructure::fixFourWheels(
           * peakPtrs[0], * peakPtrs[1], * peakPtrs[2], * peakPtrs[3]);
 if (peakPtrs.size() != 4)
@@ -668,6 +833,7 @@ cout << "Failed the car: " << np << "\n";
       peakPtrsNew[k]->unselect();
     }
 
+matrix[source][8]++;
     PeakStructure::updateCars(models, cars, car);
     return true;
   }
@@ -695,6 +861,7 @@ cout << "Failed\n";
         return false;
       }
 
+matrix[source][9]++;
       PeakStructure::fixTwoWheels(* peakPtrs[0], * peakPtrs[1]);
 
       PeakStructure::updateCars(models, cars, car);
@@ -718,6 +885,7 @@ cout << "Failed\n";
         return false;
       }
 
+matrix[source][10]++;
       PeakStructure::fixTwoWheels(* peakPtrs[0], * peakPtrs[1]);
       peakPtrs[2]->markNoWheel();
       peakPtrs[2]->unselect();
@@ -835,7 +1003,7 @@ void PeakStructure::findWholeCars(
 void PeakStructure::findWholeInnerCars(
   CarModels& models,
   vector<CarDetect>& cars,
-  list<Peak *>& candidates) const
+  list<Peak *>& candidates) // const
 {
   const unsigned csize = cars.size(); // As cars grows in the loop
   for (unsigned cno = 0; cno+1 < csize; cno++)
@@ -845,6 +1013,7 @@ void PeakStructure::findWholeInnerCars(
     if (end == start)
       continue;
 
+source = 0;
     if (PeakStructure::findCars(end, start, true, true, 
       models, cars, candidates))
       PeakStructure::printRange(end, start, "Did intra-gap");
@@ -857,12 +1026,13 @@ void PeakStructure::findWholeInnerCars(
 void PeakStructure::findWholeFirstCar(
   CarModels& models,
   vector<CarDetect>& cars,
-  list<Peak *>& candidates) const
+  list<Peak *>& candidates) // const
 {
   const unsigned u1 = candidates.front()->getIndex();
   const unsigned u2 = cars.front().startValue();
   if (u1 < u2)
   {
+source = 1;
     if (PeakStructure::findCars(u1, u2, false, true, 
         models, cars, candidates))
       PeakStructure::printRange(u1, u2, "Did first whole-car gap");
@@ -876,12 +1046,13 @@ void PeakStructure::findWholeFirstCar(
 void PeakStructure::findWholeLastCar(
   CarModels& models,
   vector<CarDetect>& cars,
-  list<Peak *>& candidates) const
+  list<Peak *>& candidates) // const
 {
   const unsigned u1 = cars.back().endValue();
   const unsigned u2 = candidates.back()->getIndex();
   if (u2 > u1)
   {
+source = 2;
     if (PeakStructure::findCars(u1, u2, true, false, 
         models, cars, candidates))
       PeakStructure::printRange(u1, u2, "Did last whole-car gap");
@@ -1035,5 +1206,39 @@ void PeakStructure::printCarStats(
 {
   cout << "Car stats " << text << "\n";
   cout << models.str();
+}
+
+
+void PeakStructure::printPaths() const
+{
+  cout << setw(8) << left << "Place" <<
+    setw(8) << right << "Inner" <<
+    setw(8) << right << "First" <<
+    setw(8) << right << "Last" <<
+    setw(8) << right << "Sum" <<
+    "\n";
+
+  vector<unsigned> sumSource(3);
+  vector<unsigned> sumPlace(12);
+
+  for (unsigned j = 0; j < 12; j++)
+  {
+    cout << setw(8) << left << j <<
+      setw(8) << right << matrix[0][j] <<
+      setw(8) << right << matrix[1][j] <<
+      setw(8) << right << matrix[2][j] <<
+      setw(8) << right << matrix[0][j] + matrix[1][j] + matrix[2][j] <<
+      "\n";
+    sumPlace[0] += matrix[0][j];
+    sumPlace[1] += matrix[1][j];
+    sumPlace[2] += matrix[2][j];
+  }
+  cout << string(40, '-') << endl;
+
+  cout << setw(8) << left << "Sum" <<
+    setw(8) << right << sumPlace[0] <<
+    setw(8) << right << sumPlace[1] <<
+    setw(8) << right << sumPlace[2] <<
+    "\n";
 }
 

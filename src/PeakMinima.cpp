@@ -204,6 +204,12 @@ void PeakMinima::markBogeyShortGap(
     PeakMinima::printRange(p1.getIndex(), p2.getIndex(),
       text + " short car gap at");
   
+  p1.select();
+  p2.select();
+
+  p1.markWheel(WHEEL_RIGHT);
+  p2.markWheel(WHEEL_LEFT);
+
   p1.markBogey(BOGEY_RIGHT);
   p2.markBogey(BOGEY_LEFT);
 }

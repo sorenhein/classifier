@@ -7,6 +7,7 @@
 #include <sstream>
 
 #include "Peak.h"
+#include "PeakStructure.h"
 #include "CarModels.h"
 #include "struct.h"
 
@@ -24,6 +25,7 @@ class PeakDetect
     list<Peak> peaks;
     list<Peak *> candidates;
     CarModels models;
+    PeakStructure pstruct;
 
 
     float integrate(

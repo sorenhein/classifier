@@ -37,6 +37,7 @@ void PeakDetect::reset()
   peaks.clear();
   models.reset();
   candidates.clear();
+  pstruct.reset();
 }
 
 
@@ -412,7 +413,6 @@ void PeakDetect::reduce()
   minima.mark(peaks, candidates, offset);
 
   // Use the labels to extract the car structure from the peaks.
-  PeakStructure pstruct;
   vector<CarDetect> cars;
   pstruct.markCars(models, cars, candidates, offset);
 }
@@ -426,6 +426,8 @@ void PeakDetect::logPeakStats(
 {
   PeakMatch matches;
   matches.logPeakStats(peaks, posTrue, trainTrue, speedTrue, peakStats);
+
+pstruct.printPaths();
 }
 
 

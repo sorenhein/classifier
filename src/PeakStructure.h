@@ -20,6 +20,9 @@ class PeakStructure
 
     unsigned offset;
 
+    unsigned source;
+    unsigned matrix[3][18];
+
 
     bool matchesModel(
       const CarModels& models,
@@ -87,7 +90,18 @@ class PeakStructure
       const bool rightGapPresent,
       CarModels& models,
       vector<CarDetect>& cars,
-      list<Peak *>& candidates) const;
+      list<Peak *>& candidates); // const;
+
+    string x(const unsigned v) const;
+
+    bool findCarsNew(
+      const unsigned start,
+      const unsigned end,
+      const bool leftGapPresent,
+      const bool rightGapPresent,
+      CarModels& models,
+      vector<CarDetect>& cars,
+      list<Peak *>& candidates); // const;
 
     void findWholeCars(
       CarModels& models,
@@ -97,17 +111,17 @@ class PeakStructure
     void findWholeInnerCars(
       CarModels& models,
       vector<CarDetect>& cars,
-      list<Peak *>& candidates) const;
+      list<Peak *>& candidates); // const;
 
     void findWholeFirstCar(
       CarModels& models,
       vector<CarDetect>& cars,
-      list<Peak *>& candidates) const;
+      list<Peak *>& candidates); // const;
 
     void findWholeLastCar(
       CarModels& models,
       vector<CarDetect>& cars,
-      list<Peak *>& candidates) const;
+      list<Peak *>& candidates); // const;
 
 
     void updateCarDistances(
@@ -152,6 +166,8 @@ class PeakStructure
       vector<CarDetect>& cars,
       list<Peak *>& candidates,
       const unsigned offsetIn);
+
+  void printPaths() const;
 };
 
 #endif
