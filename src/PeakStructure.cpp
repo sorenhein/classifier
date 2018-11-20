@@ -378,11 +378,10 @@ bool PeakStructure::findCarsNew(
 
   PeakStructure::makeProfile(peakPtrs);
 
-  cout << PeakStructure::strProfile(source);
 
   if (profile.sumGreat == 4)
   {
-    if (source == 0) // Inner
+    if (source == 0 || source == 2) // Inner or last
     {
       CarDetect car;
 
@@ -430,10 +429,15 @@ bool PeakStructure::findCarsNew(
         return true;
       }
       else
+      {
+        cout << "Failed to find car among 4 great peaks\n";
+        cout << PeakStructure::strProfile(source);
         return false;
+      }
     }
   }
 
+  cout << PeakStructure::strProfile(source);
   return false;
 }
 
