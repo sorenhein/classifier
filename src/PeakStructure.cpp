@@ -352,6 +352,30 @@ string PeakStructure::strProfile(unsigned origin) const
 }
 
 
+void PeakStructure::updateFourPeaks(
+  vector<Peak *>& peakPtrsNew,
+  vector<Peak *>& peakPtrsUnused) const
+{
+  peakPtrsNew[0]->markBogey(BOGEY_LEFT);
+  peakPtrsNew[0]->markWheel(WHEEL_LEFT);
+
+  peakPtrsNew[1]->markBogey(BOGEY_LEFT);
+  peakPtrsNew[1]->markWheel(WHEEL_RIGHT);
+
+  peakPtrsNew[2]->markBogey(BOGEY_RIGHT);
+  peakPtrsNew[2]->markWheel(WHEEL_LEFT);
+
+  peakPtrsNew[3]->markBogey(BOGEY_RIGHT);
+  peakPtrsNew[3]->markWheel(WHEEL_RIGHT);
+
+  for (auto& pp: peakPtrsNew)
+    pp->select();
+
+  for (auto& pp: peakPtrsUnused)
+    pp->unselect();
+}
+
+
 bool PeakStructure::findCarsNew(
   const unsigned start,
   const unsigned end,
@@ -381,59 +405,40 @@ bool PeakStructure::findCarsNew(
 
   if (profile.sumGreat == 4)
   {
-    if (source == 0 || source == 2) // Inner or last
+    vector<Peak *> peakPtrsNew;
+    vector<Peak *> peakPtrsUnused;
+    vector<unsigned> peakNosNew;
+
+    for (unsigned i = 0; i < peakPtrs.size(); i++)
     {
-      CarDetect car;
-
-      vector<Peak *> peakPtrsNew;
-      vector<unsigned> peakNosNew;
-
-      for (unsigned i = 0; i < peakPtrs.size(); i++)
+      Peak * pp = peakPtrs[i];
+      if (pp->isLeftWheel() || 
+          pp->isRightWheel() ||
+          pp->greatQuality())
       {
-        Peak * pp = peakPtrs[i];
-        if (pp->isLeftWheel() || 
-            pp->isRightWheel() ||
-            pp->greatQuality())
-        {
-          peakPtrsNew.push_back(pp);
-          peakNosNew.push_back(peakNos[i]);
-        }
-      }
-
-      if (peakPtrsNew.size() != 4)
-        THROW(ERR_ALGO_PEAK_STRUCTURE, "Not 4 great peaks");
-
-      if (PeakStructure::findFourWheeler(models, start, end,
-          leftGapPresent, rightGapPresent, peakNosNew, peakPtrsNew, car))
-      {
-        PeakStructure::updateCars(models, cars, car);
-
-        peakPtrsNew[0]->markBogey(BOGEY_LEFT);
-        peakPtrsNew[0]->markWheel(WHEEL_LEFT);
-        peakPtrsNew[1]->markBogey(BOGEY_LEFT);
-        peakPtrsNew[1]->markWheel(WHEEL_RIGHT);
-        peakPtrsNew[2]->markBogey(BOGEY_RIGHT);
-        peakPtrsNew[2]->markWheel(WHEEL_LEFT);
-        peakPtrsNew[3]->markBogey(BOGEY_RIGHT);
-        peakPtrsNew[3]->markWheel(WHEEL_RIGHT);
-        for (auto& pp: peakPtrsNew)
-          pp->select();
-
-        for (auto& pp: peakPtrs)
-        {
-          if (! pp->isLeftWheel() && 
-              ! pp->isRightWheel() &&
-              ! pp->greatQuality())
-            pp->unselect();
-        }
-        return true;
+        peakPtrsNew.push_back(pp);
+        peakNosNew.push_back(peakNos[i]);
       }
       else
-      {
-        cout << "Failed to find car among 4 great peaks\n";
-        cout << PeakStructure::strProfile(source);
-        return false;
-      }
+        peakPtrsUnused.push_back(pp);
+    }
+
+    if (peakPtrsNew.size() != 4)
+      THROW(ERR_ALGO_PEAK_STRUCTURE, "Not 4 great peaks");
+
+    CarDetect car;
+    if (PeakStructure::findFourWheeler(models, start, end,
+        leftGapPresent, rightGapPresent, peakNosNew, peakPtrsNew, car))
+    {
+      PeakStructure::updateCars(models, cars, car);
+      PeakStructure::updateFourPeaks(peakPtrsNew, peakPtrsUnused);
+      return true;
+    }
+    else
+    {
+      cout << "Failed to find car among 4 great peaks\n";
+      cout << PeakStructure::strProfile(source);
+      return false;
     }
   }
 

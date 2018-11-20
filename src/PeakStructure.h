@@ -94,6 +94,10 @@ class PeakStructure
       Peak& p3,
       Peak& p4) const;
 
+    void updateFourPeaks(
+      vector<Peak *>& peakPtrsNew,
+      vector<Peak *>& peakPtrsUnused) const;
+
     void updateCars(
       CarModels& models,
       vector<CarDetect>& cars,
