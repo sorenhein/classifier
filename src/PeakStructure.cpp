@@ -890,54 +890,7 @@ matrix[source][1]++;
     return true;
   }
 
-  if (np == 4)
-  {
-    CarDetect car;
-    
-    // Give up unless this is the first car.
-    // leftFlagLocal will not be set.
-
-    // Try with only the acceptable-quality peaks.
-    vector<unsigned> peakNosNew;
-    vector<Peak *> peakPtrsNew;
-    for (i = 0; i < peakPtrs.size(); i++)
-    {
-      if (peakPtrs[i]->acceptableQuality())
-      {
-        peakNosNew.push_back(peakNos[i]);
-        peakPtrsNew.push_back(peakPtrs[i]);
-      }
-    }
-
-
-    // peakPtrsNew.size() >= 3 here 
-
-    // Try again without the first peak.
-cout << "Trying again without the very first peak of first car\n";
-    Peak * peakErased = peakPtrs.front();
-    peakNos.erase(peakNos.begin());
-    peakPtrs.erase(peakPtrs.begin());
-
-    unsigned numWheels;
-    if (! PeakStructure::findLastThreeOfFourWheeler(models,
-        startLocal, endLocal, peakNos, peakPtrs, car, numWheels))
-    {
-      // Doesn't happen.
-      return false;
-    }
-
-    // numWheels will be 3.
-matrix[source][3]++;
-    PeakStructure::fixThreeWheels(
-      * peakPtrs[0], * peakPtrs[1], * peakPtrs[2]);
-
-    peakErased->markNoWheel();
-    peakErased->unselect();
-
-    PeakStructure::updateCars(models, cars, car);
-
-    return true;
-  }
+  // np != 4 here
 
   if (np >= 5)
   {

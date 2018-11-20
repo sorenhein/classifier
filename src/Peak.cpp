@@ -177,11 +177,19 @@ float Peak::calcQualityShape(const Peak& scale) const
     (right.range - scale.right.range) / scale.right.range : 0.f);
 
   // Gradients are always positive.
-  const float vgrad1 = (left.gradient < scale.left.gradient ?
-    (left.gradient - scale.left.gradient) / scale.left.gradient : 0.f);
+  float vgrad1;
+  if (left.gradient < scale.left.gradient ||
+      left.gradient > 3.0f * scale.left.gradient)
+    vgrad1 = (left.gradient - scale.left.gradient) / scale.left.gradient;
+  else
+    vgrad1 = 0.f;
 
-  const float vgrad2 = (right.gradient < scale.right.gradient ?
-    (right.gradient - scale.right.gradient) / scale.right.gradient : 0.f);
+  float vgrad2;
+  if (right.gradient < scale.right.gradient ||
+      right.gradient > 3.0f * scale.right.gradient)
+    vgrad2 = (right.gradient - scale.right.gradient) / scale.right.gradient;
+  else
+    vgrad2 = 0.f;
 
   return
     vrange1 * vrange1 +
