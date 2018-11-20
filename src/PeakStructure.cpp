@@ -401,22 +401,32 @@ bool PeakStructure::findCarsNew(
         }
       }
 
+      if (peakPtrsNew.size() != 4)
+        THROW(ERR_ALGO_PEAK_STRUCTURE, "Not 4 great peaks");
+
       if (PeakStructure::findFourWheeler(models, start, end,
           leftGapPresent, rightGapPresent, peakNosNew, peakPtrsNew, car))
       {
         PeakStructure::updateCars(models, cars, car);
 
-        for (unsigned i = 0; i < peakPtrs.size(); i++)
+        peakPtrsNew[0]->markBogey(BOGEY_LEFT);
+        peakPtrsNew[0]->markWheel(WHEEL_LEFT);
+        peakPtrsNew[1]->markBogey(BOGEY_LEFT);
+        peakPtrsNew[1]->markWheel(WHEEL_RIGHT);
+        peakPtrsNew[2]->markBogey(BOGEY_RIGHT);
+        peakPtrsNew[2]->markWheel(WHEEL_LEFT);
+        peakPtrsNew[3]->markBogey(BOGEY_RIGHT);
+        peakPtrsNew[3]->markWheel(WHEEL_RIGHT);
+        for (auto& pp: peakPtrsNew)
+          pp->select();
+
+        for (auto& pp: peakPtrs)
         {
-          Peak * pp = peakPtrs[i];
           if (! pp->isLeftWheel() && 
               ! pp->isRightWheel() &&
               ! pp->greatQuality())
-          {
-            peakPtrs[i]->unselect();
-          }
+            pp->unselect();
         }
-cout << "HIT\n";
         return true;
       }
       else
