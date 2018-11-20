@@ -910,35 +910,7 @@ matrix[source][1]++;
     }
 
 
-    // peakPtrsNew.size() >= 2 here 
-    if (peakPtrsNew.size() == 2)
-    {
-      if (! PeakStructure::findLastTwoOfFourWheeler(models,
-          startLocal, endLocal, rightFlagLocal, peakNosNew, peakPtrsNew, 
-          car))
-      {
-        // Doesn't happen.
-        return false;
-      }
-
-matrix[source][2]++;
-      cout << "Hit first car with 2 peaks\n";
-      PeakStructure::fixTwoWheels(* peakPtrsNew[0], * peakPtrsNew[1]);
-
-      for (i = 0; i < peakPtrs.size(); i++)
-      {
-        if (! peakPtrs[i]->acceptableQuality())
-        {
-          peakPtrs[i]->markNoWheel();
-          peakPtrs[i]->unselect();
-        }
-      }
-
-      PeakStructure::updateCars(models, cars, car);
-
-      return true;
-    }
-
+    // peakPtrsNew.size() >= 3 here 
 
     // Try again without the first peak.
 cout << "Trying again without the very first peak of first car\n";
