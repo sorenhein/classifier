@@ -161,6 +161,7 @@ class Peak
     bool isWheel() const;
 
     void markBogey(const BogeyType bogeyType);
+    void markNoBogey();
     bool isLeftBogey() const;
     bool isRightBogey() const;
     bool isBogey() const;

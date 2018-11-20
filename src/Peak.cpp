@@ -364,6 +364,12 @@ void Peak::markBogey(const BogeyType bogeyType)
 }
 
 
+void Peak::markNoBogey()
+{
+  bogeySide = BOGEY_SIZE;
+}
+
+
 bool Peak::isLeftBogey() const
 {
   return (bogeySide == BOGEY_LEFT);

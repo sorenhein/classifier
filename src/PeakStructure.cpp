@@ -376,6 +376,63 @@ void PeakStructure::updateFourPeaks(
 }
 
 
+void PeakStructure::downgradeAllPeaks(vector<Peak *>& peakPtrs) const
+{
+  for (auto& pp: peakPtrs)
+  {
+    pp->markNoBogey();
+    pp->markNoWheel();
+    pp->unselect();
+  }
+}
+
+
+void PeakStructure::getGreatWheels(
+  const vector<Peak *>& peakPtrs,
+  const vector<unsigned>& peakNos,
+  vector<Peak *>& peakPtrsNew,
+  vector<unsigned>& peakNosNew,
+  vector<Peak *>& peakPtrsUnused) const
+{
+  for (unsigned i = 0; i < peakPtrs.size(); i++)
+  {
+    Peak * pp = peakPtrs[i];
+    if (pp->isLeftWheel() || 
+        pp->isRightWheel() ||
+        pp->greatQuality())
+    {
+      peakPtrsNew.push_back(pp);
+      peakNosNew.push_back(peakNos[i]);
+    }
+    else
+      peakPtrsUnused.push_back(pp);
+  }
+}
+
+
+void PeakStructure::getGoodWheels(
+  const vector<Peak *>& peakPtrs,
+  const vector<unsigned>& peakNos,
+  vector<Peak *>& peakPtrsNew,
+  vector<unsigned>& peakNosNew,
+  vector<Peak *>& peakPtrsUnused) const
+{
+  for (unsigned i = 0; i < peakPtrs.size(); i++)
+  {
+    Peak * pp = peakPtrs[i];
+    if (pp->isLeftWheel() || 
+        pp->isRightWheel() ||
+        pp->goodQuality())
+    {
+      peakPtrsNew.push_back(pp);
+      peakNosNew.push_back(peakNos[i]);
+    }
+    else
+      peakPtrsUnused.push_back(pp);
+  }
+}
+
+
 bool PeakStructure::findCarsNew(
   const unsigned start,
   const unsigned end,
@@ -402,26 +459,14 @@ bool PeakStructure::findCarsNew(
 
   PeakStructure::makeProfile(peakPtrs);
 
+  vector<Peak *> peakPtrsNew;
+  vector<Peak *> peakPtrsUnused;
+  vector<unsigned> peakNosNew;
 
   if (profile.sumGreat == 4)
   {
-    vector<Peak *> peakPtrsNew;
-    vector<Peak *> peakPtrsUnused;
-    vector<unsigned> peakNosNew;
-
-    for (unsigned i = 0; i < peakPtrs.size(); i++)
-    {
-      Peak * pp = peakPtrs[i];
-      if (pp->isLeftWheel() || 
-          pp->isRightWheel() ||
-          pp->greatQuality())
-      {
-        peakPtrsNew.push_back(pp);
-        peakNosNew.push_back(peakNos[i]);
-      }
-      else
-        peakPtrsUnused.push_back(pp);
-    }
+    PeakStructure::getGreatWheels(peakPtrs, peakNos,
+      peakPtrsNew, peakNosNew, peakPtrsUnused);
 
     if (peakPtrsNew.size() != 4)
       THROW(ERR_ALGO_PEAK_STRUCTURE, "Not 4 great peaks");
@@ -440,6 +485,35 @@ bool PeakStructure::findCarsNew(
       cout << PeakStructure::strProfile(source);
       return false;
     }
+  }
+  else if (profile.sumGreat == 3 && profile.stars[1] == 1)
+  {
+    // Try to upgrade the two-star to a three-star peak.
+    PeakStructure::getGoodWheels(peakPtrs, peakNos,
+      peakPtrsNew, peakNosNew, peakPtrsUnused);
+
+    if (peakPtrsNew.size() != 4)
+      THROW(ERR_ALGO_PEAK_STRUCTURE, "Not 4 good peaks (3+1)");
+
+    CarDetect car;
+    if (PeakStructure::findFourWheeler(models, start, end,
+        leftGapPresent, rightGapPresent, peakNosNew, peakPtrsNew, car))
+    {
+      PeakStructure::updateCars(models, cars, car);
+      PeakStructure::updateFourPeaks(peakPtrsNew, peakPtrsUnused);
+      return true;
+    }
+    else
+    {
+      cout << "Failed to find car among 4 good peaks (3+1)\n";
+      cout << PeakStructure::strProfile(source);
+      return false;
+    }
+  }
+  else if (profile.sumGreat == 0 && profile.stars[1] == 0)
+  {
+    PeakStructure::downgradeAllPeaks(peakPtrs);
+    return true;
   }
 
   cout << PeakStructure::strProfile(source);
@@ -695,26 +769,9 @@ matrix[source][13]++;
   if (np == 4)
   {
     CarDetect car;
-    if (PeakStructure::findFourWheeler(models, startLocal, endLocal,
-        leftFlagLocal, rightFlagLocal, peakNos, peakPtrs, car))
-    {
-matrix[source][2]++;
-        PeakStructure::fixFourWheels(
-          * peakPtrs[0], * peakPtrs[1], * peakPtrs[2], * peakPtrs[3]);
-if (peakPtrs.size() != 4)
-  cout << "ERROR1 " << peakPtrs.size() << endl;
-
-      PeakStructure::updateCars(models, cars, car);
-
-      return true;
-    }
     
     // Give up unless this is the first car.
-    if (leftFlagLocal)
-    {
-matrix[source][14]++;
-      return false;
-    }
+    // leftFlagLocal will not be set.
 
     // Try with only the acceptable-quality peaks.
     vector<unsigned> peakNosNew;
@@ -780,24 +837,13 @@ matrix[source][17]++;
       return false;
     }
 
-    if (numWheels == 3)
-    {
+    // numWheels will be 3.
 matrix[source][4]++;
-      PeakStructure::fixThreeWheels(
-        * peakPtrs[0], * peakPtrs[1], * peakPtrs[2]);
-    }
-    else
-    {
-      // Doesn't happen.
-matrix[source][18]++;
-      return false;
-    }
+    PeakStructure::fixThreeWheels(
+      * peakPtrs[0], * peakPtrs[1], * peakPtrs[2]);
 
-if (peakPtrs.size() != 3)
-  cout << "ERRORb " << peakPtrs.size() << endl;
-
-      peakErased->markNoWheel();
-      peakErased->unselect();
+    peakErased->markNoWheel();
+    peakErased->unselect();
 
     PeakStructure::updateCars(models, cars, car);
 

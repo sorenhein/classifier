@@ -98,6 +98,22 @@ class PeakStructure
       vector<Peak *>& peakPtrsNew,
       vector<Peak *>& peakPtrsUnused) const;
 
+    void downgradeAllPeaks(vector<Peak *>& peakPtrsNew) const;
+
+    void getGreatWheels(
+      const vector<Peak *>& peakPtrs,
+      const vector<unsigned>& peakNos,
+      vector<Peak *>& peakPtrsNew,
+      vector<unsigned>& peakNosNew,
+      vector<Peak *>& peakPtrsUnused) const;
+
+    void getGoodWheels(
+      const vector<Peak *>& peakPtrs,
+      const vector<unsigned>& peakNos,
+      vector<Peak *>& peakPtrsNew,
+      vector<unsigned>& peakNosNew,
+      vector<Peak *>& peakPtrsUnused) const;
+
     void updateCars(
       CarModels& models,
       vector<CarDetect>& cars,
