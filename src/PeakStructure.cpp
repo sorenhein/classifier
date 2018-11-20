@@ -20,7 +20,7 @@ PeakStructure::PeakStructure()
 
   // This is a temporary tracker.
   for (unsigned i = 0; i < 3; i++)
-    for (unsigned j = 0; j < 18; j++)
+    for (unsigned j = 0; j < 8; j++)
       matrix[i][j] = 0;
 }
 
@@ -664,23 +664,17 @@ cout << "4-5 leading wheels: Attempting to drop down to 3: " << np << "\n";
         startLocal, endLocal, peakNos, peakPtrs, car, numWheels))
       return false;
 
-    if (numWheels == 2)
+    if (numWheels == 3)
     {
 matrix[source][1]++;
-      PeakStructure::fixTwoWheels(* peakPtrs[1], * peakPtrs[2]);
-      peakPtrs[0]->markNoWheel();
-      peakPtrs[0]->unselect();
-if (peakPtrs.size() != 3)
-  cout << "ERRORW " << peakPtrs.size() << endl;
-    }
-    else 
-    {
-matrix[source][2]++;
       PeakStructure::fixThreeWheels(
         * peakPtrs[0], * peakPtrs[1], * peakPtrs[2]);
     }
-if (peakPtrs.size() != 3)
-  cout << "ERRORa " << peakPtrs.size() << endl;
+    else
+    {
+      // Doesn't happen.
+      return false;
+    }
 
     PeakStructure::updateCars(models, cars, car);
 
@@ -693,7 +687,7 @@ if (peakPtrs.size() != 3)
     if (PeakStructure::findFourWheeler(models, startLocal, endLocal,
         leftFlagLocal, rightFlagLocal, peakNos, peakPtrs, car))
     {
-matrix[source][3]++;
+matrix[source][2]++;
         PeakStructure::fixFourWheels(
           * peakPtrs[0], * peakPtrs[1], * peakPtrs[2], * peakPtrs[3]);
 if (peakPtrs.size() != 4)
@@ -737,7 +731,7 @@ if (peakPtrs.size() != 4)
         return false;
       }
 
-matrix[source][4]++;
+matrix[source][3]++;
       cout << "Hit first car with 2 peaks\n";
       PeakStructure::fixTwoWheels(* peakPtrsNew[0], * peakPtrsNew[1]);
 
@@ -767,20 +761,16 @@ cout << "Trying again without the very first peak of first car\n";
         startLocal, endLocal, peakNos, peakPtrs, car, numWheels))
       return false;
 
-    if (numWheels == 2)
+    if (numWheels == 3)
     {
-matrix[source][5]++;
-      PeakStructure::fixTwoWheels(* peakPtrs[1], * peakPtrs[2]);
-      peakPtrs[0]->markNoWheel();
-      peakPtrs[0]->unselect();
-if (peakPtrs.size() != 3)
-  cout << "ERRORX " << peakPtrs.size() << endl;
-    }
-    else 
-    {
-matrix[source][6]++;
+matrix[source][4]++;
       PeakStructure::fixThreeWheels(
         * peakPtrs[0], * peakPtrs[1], * peakPtrs[2]);
+    }
+    else
+    {
+      // Doesn't happen.
+      return false;
     }
 
 if (peakPtrs.size() != 3)
@@ -839,7 +829,7 @@ cout << "General try with " << np << " didn't fit -- drop the middle?" <<
           return false;
         }
 
-matrix[source][7]++;
+matrix[source][5]++;
         PeakStructure::fixFourWheels(
           * peakPtrs[0], * peakPtrs[1], * peakPtrs[2], * peakPtrs[3]);
 if (peakPtrs.size() != 4)
@@ -880,7 +870,7 @@ cout << "Failed the car: " << np << "\n";
       peakPtrsNew[k]->unselect();
     }
 
-matrix[source][8]++;
+matrix[source][6]++;
     PeakStructure::updateCars(models, cars, car);
     return true;
   }
@@ -908,36 +898,8 @@ cout << "Failed\n";
         return false;
       }
 
-matrix[source][9]++;
+matrix[source][7]++;
       PeakStructure::fixTwoWheels(* peakPtrs[0], * peakPtrs[1]);
-
-      PeakStructure::updateCars(models, cars, car);
-
-      return true;
-    }
-    else if (! peakPtrs[0]->goodQuality() &&
-        peakPtrs[1]->goodQuality() &&
-        peakPtrs[2]->goodQuality())
-    {
-cout << "Two good shapes\n";
-      // Skip the first peak.
-      peakNos.erase(peakNos.begin() + notTallNos[0]);
-      peakPtrs.erase(peakPtrs.begin() + notTallNos[0]);
-
-      CarDetect car;
-      if (! PeakStructure::findLastTwoOfFourWheeler(models,
-          startLocal, endLocal, rightFlagLocal, peakNos, peakPtrs, car))
-      {
-cout << "Failed\n";
-        return false;
-      }
-
-matrix[source][10]++;
-      PeakStructure::fixTwoWheels(* peakPtrs[0], * peakPtrs[1]);
-      peakPtrs[2]->markNoWheel();
-      peakPtrs[2]->unselect();
-if (peakPtrs.size() != 3)
-  cout << "ERRORZ " << peakPtrs.size() << endl;
 
       PeakStructure::updateCars(models, cars, car);
 
@@ -1268,7 +1230,7 @@ void PeakStructure::printPaths() const
   vector<unsigned> sumSource(3);
   vector<unsigned> sumPlace(12);
 
-  for (unsigned j = 0; j < 12; j++)
+  for (unsigned j = 0; j < 8; j++)
   {
     cout << setw(8) << left << j <<
       setw(8) << right << matrix[0][j] <<
