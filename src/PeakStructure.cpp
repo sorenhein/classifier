@@ -17,6 +17,7 @@
 PeakStructure::PeakStructure()
 {
   PeakStructure::reset();
+  PeakStructure::setCarRecognizers();
 
   // This is a temporary tracker.
   for (unsigned i = 0; i < 3; i++)
@@ -46,6 +47,50 @@ void PeakStructure::resetProfile()
   profile.stars.resize(4);
   profile.sumGreat = 0;
   profile.sum = 0;
+}
+
+
+void PeakStructure::setCarRecognizers()
+{
+  recognizers.clear();
+
+  Recognizer recog;
+
+  // The simple four-wheel car with great peaks.
+  recog.params.source = {false, 0};
+  recog.params.sumGreat = {true, 4};
+  recog.params.starsGood = {false, 0};
+  recog.numWheels = 4;
+  recog.quality = PEAK_QUALITY_GREAT;
+  recog.text = "4 great peaks";
+  recognizers.push_back(recog);
+
+  // The simple four-wheel car with 3 great + 1 good peak.
+  recog.params.source = {false, 0};
+  recog.params.sumGreat = {true, 3};
+  recog.params.starsGood = {true, 1};
+  recog.numWheels = 4;
+  recog.quality = PEAK_QUALITY_GOOD;
+  recog.text = "4 (3+1) good peaks";
+  recognizers.push_back(recog);
+
+  // The front car with 3 great peaks, missing the very first one.
+  recog.params.source = {true, static_cast<unsigned>(PEAK_SOURCE_FIRST)};
+  recog.params.sumGreat = {true, 3};
+  recog.params.starsGood = {true, 0};
+  recog.numWheels = 3;
+  recog.quality = PEAK_QUALITY_GREAT;
+  recog.text = "3 great peaks (front)";
+  recognizers.push_back(recog);
+
+  // The front car with 2 great peaks, missing the first bogey.
+  recog.params.source = {true, PEAK_SOURCE_FIRST};
+  recog.params.sumGreat = {true, 2};
+  recog.params.starsGood = {true, 0};
+  recog.numWheels = 2;
+  recog.quality = PEAK_QUALITY_GREAT;
+  recog.text = "2 great peaks (front)";
+  recognizers.push_back(recog);
 }
 
 
@@ -513,8 +558,42 @@ bool PeakStructure::findCarsNew(
   vector<Peak *> peakPtrsUnused;
   vector<unsigned> peakNosNew;
 
+  for (auto& recog: recognizers)
+  {
+    if (recog.params.source.match(source) &&
+        recog.params.sumGreat.match(profile.sumGreat) &&
+        recog.params.starsGood.match(profile.stars[1]))
+    {
+      PeakStructure::getWheelsByQuality(peakPtrs, peakNos,
+        recog.quality, peakPtrsNew, peakNosNew, peakPtrsUnused);
+
+      if (peakPtrsNew.size() != recog.numWheels)
+        THROW(ERR_ALGO_PEAK_STRUCTURE, "Not " + recog.text);
+
+      CarDetect car;
+
+      if (PeakStructure::findNumberedWheeler(models, condition,
+          peakNosNew, peakPtrsNew, recog.numWheels, car))
+      {
+        PeakStructure::updateCars(models, cars, car);
+        PeakStructure::updatePeaks(peakPtrsNew, peakPtrsUnused, 
+          recog.numWheels);
+        return true;
+      }
+      else
+      {
+        cout << "Failed to find car among " << recog.text << "\n";
+        cout << PeakStructure::strProfile(source);
+        return false;
+      }
+    }
+    break; // For now
+  }
+
+  /*
   if (profile.sumGreat == 4)
   {
+cout << "HIT??\n";
     PeakStructure::getWheelsByQuality(peakPtrs, peakNos,
       PEAK_QUALITY_GREAT, peakPtrsNew, peakNosNew, peakPtrsUnused);
 
@@ -537,7 +616,9 @@ bool PeakStructure::findCarsNew(
       return false;
     }
   }
-  else if (profile.sumGreat == 3 && profile.stars[1] == 1)
+  else 
+  */
+  if (profile.sumGreat == 3 && profile.stars[1] == 1)
   {
     // Try to upgrade the two-star to a three-star peak.
     PeakStructure::getWheelsByQuality(peakPtrs, peakNos,
