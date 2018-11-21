@@ -71,30 +71,6 @@ class PeakStructure
       const unsigned numWheels,
       CarDetect& car) const;
 
-
-
-
-    void markBogey(
-      const BogeyType bogeyType,
-      const string& text,
-      Peak& p1,
-      Peak& p2) const;
-
-    void fixTwoWheels(
-      Peak& p1,
-      Peak& p2) const;
-
-    void fixThreeWheels(
-      Peak& p1,
-      Peak& p2,
-      Peak& p3) const;
-
-    void fixFourWheels(
-      Peak& p1,
-      Peak& p2,
-      Peak& p3,
-      Peak& p4) const;
-
     void updatePeaks(
       vector<Peak *>& peakPtrsNew,
       vector<Peak *>& peakPtrsUnused,
@@ -110,24 +86,23 @@ class PeakStructure
       vector<unsigned>& peakNosNew,
       vector<Peak *>& peakPtrsUnused) const;
 
-    void updateCars(
-      CarModels& models,
-      vector<CarDetect>& cars,
-      CarDetect& car) const;
-
     void splitPeaks(
       const vector<Peak *>& peakPtrs,
       const PeakCondition& condition,
       PeakCondition& condition1,
       PeakCondition& condition2) const;
 
-    bool findCars(
-      const PeakCondition& condition,
+    void updateCarDistances(
+      const CarModels& models,
+      vector<CarDetect>& cars) const;
+
+    void updateCars(
       CarModels& models,
       vector<CarDetect>& cars,
-      list<Peak *>& candidates); // const;
+      CarDetect& car) const;
 
-    void findWholeCars(
+    bool findCarsInInterval(
+      const PeakCondition& condition,
       CarModels& models,
       vector<CarDetect>& cars,
       list<Peak *>& candidates) const;
@@ -136,21 +111,18 @@ class PeakStructure
       const PeakCondition& condition,
       CarModels& models,
       vector<CarDetect>& cars,
-      list<Peak *>& candidates); // const;
+      list<Peak *>& candidates) const;
 
     void findMissingCars(
       PeakCondition& condition,
       CarModels& models,
       vector<CarDetect>& cars,
-      list<Peak *>& candidates); // const;
+      list<Peak *>& candidates) const;
 
-    void updateCarDistances(
-      const CarModels& models,
-      vector<CarDetect>& cars) const;
-
-    float getFirstPeakTime() const;
-
-
+    void findWholeCars(
+      CarModels& models,
+      vector<CarDetect>& cars,
+      list<Peak *>& candidates) const;
 
     void printRange(
       const PeakCondition& condition,

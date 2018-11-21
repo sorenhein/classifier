@@ -207,92 +207,6 @@ bool PeakStructure::findFourWheeler(
 }
 
 
-void PeakStructure::markBogey(
-  const BogeyType bogeyType,
-  const string& text,
-  Peak& p1,
-  Peak& p2) const
-{
-  if (text != "")
-    cout << text << " wheel pair at " << p1.getIndex() + offset <<
-      "-" << p2.getIndex() + offset << "\n";
-
-  p1.select();
-  p2.select();
-
-  p1.markWheel(WHEEL_LEFT);
-  p2.markWheel(WHEEL_RIGHT);
-
-  p1.markBogey(bogeyType);
-  p2.markBogey(bogeyType);
-}
-
-
-void PeakStructure::fixTwoWheels(
-  Peak& p1,
-  Peak& p2) const
-{
-  // Assume the two rightmost wheels, as the front ones were lost.
-  PeakStructure::markBogey(BOGEY_RIGHT, "", p1, p2);
-}
-
-
-void PeakStructure::fixThreeWheels(
-  Peak& p1,
-  Peak& p2,
-  Peak& p3) const
-{
-  // Assume the two rightmost wheels, as the front one was lost.
-  p1.select();
-  p1.markWheel(WHEEL_RIGHT);
-  p1.markBogey(BOGEY_LEFT);
-
-  PeakStructure::markBogey(BOGEY_RIGHT, "", p2, p3);
-
-}
-
-
-void PeakStructure::fixFourWheels(
-  Peak& p1,
-  Peak& p2,
-  Peak& p3,
-  Peak& p4) const
-{
-  PeakStructure::markBogey(BOGEY_LEFT, "", p1, p2);
-  PeakStructure::markBogey(BOGEY_RIGHT, "", p3, p4);
-}
-
-
-void PeakStructure::updateCars(
-  CarModels& models,
-  vector<CarDetect>& cars,
-  CarDetect& car) const
-{
-  unsigned index;
-  float distance;
-
-  if (! car.isPartial() &&
-      PeakStructure::matchesModel(models, car, index, distance))
-  {
-    car.logStatIndex(index);
-    car.logDistance(distance);
-
-    models.add(car, index);
-    cout << "Recognized car " << index << endl;
-  }
-  else
-  {
-    car.logStatIndex(models.size());
-
-    models.append();
-    models += car;
-    cout << "Created new car\n";
-  }
-
-  cars.push_back(car);
-}
-
-
 void PeakStructure::updatePeaks(
   vector<Peak *>& peakPtrsNew,
   vector<Peak *>& peakPtrsUnused,
@@ -412,11 +326,62 @@ void PeakStructure::splitPeaks(
 }
 
 
-bool PeakStructure::findCars(
+void PeakStructure::updateCarDistances(
+  const CarModels& models,
+  vector<CarDetect>& cars) const
+{
+  for (auto& car: cars)
+  {
+    unsigned index;
+    float distance;
+    if (! PeakStructure::matchesModel(models, car, index, distance))
+    {
+      cout << "WARNING: Car doesn't match any model.\n";
+      index = 0;
+      distance = 0.f;
+    }
+
+    car.logStatIndex(index);
+    car.logDistance(distance);
+  }
+}
+
+
+void PeakStructure::updateCars(
+  CarModels& models,
+  vector<CarDetect>& cars,
+  CarDetect& car) const
+{
+  unsigned index;
+  float distance;
+
+  if (! car.isPartial() &&
+      PeakStructure::matchesModel(models, car, index, distance))
+  {
+    car.logStatIndex(index);
+    car.logDistance(distance);
+
+    models.add(car, index);
+    cout << "Recognized car " << index << endl;
+  }
+  else
+  {
+    car.logStatIndex(models.size());
+
+    models.append();
+    models += car;
+    cout << "Created new car\n";
+  }
+
+  cars.push_back(car);
+}
+
+
+bool PeakStructure::findCarsInInterval(
   const PeakCondition& condition,
   CarModels& models,
   vector<CarDetect>& cars,
-  list<Peak *>& candidates)
+  list<Peak *>& candidates) const
 {
   vector<Peak *> peakPtrs;
   vector<unsigned> peakNos;
@@ -440,12 +405,15 @@ bool PeakStructure::findCars(
   {
     // This might become more general in the future.
     PeakCondition condition1, condition2;
-    PeakStructure::splitPeaks(peakPtrs, condition, condition1, condition2);
+    PeakStructure::splitPeaks(peakPtrs, condition, 
+      condition1, condition2);
 
-    if (! PeakStructure::findCars(condition1, models, cars, candidates))
+    if (! PeakStructure::findCarsInInterval(condition1, models, 
+        cars, candidates))
       return false;
 
-    if (! PeakStructure::findCars(condition2, models, cars, candidates))
+    if (! PeakStructure::findCarsInInterval(condition2, models, 
+        cars, candidates))
       return false;
 
     return true;
@@ -492,6 +460,68 @@ bool PeakStructure::findCars(
 
   cout << profile.str();
   return false;
+}
+
+
+void PeakStructure::findMissingCar(
+  const PeakCondition& condition,
+  CarModels& models,
+  vector<CarDetect>& cars,
+  list<Peak *>& candidates) const
+{
+  if (condition.start >= condition.end)
+    return;
+
+  if (PeakStructure::findCarsInInterval(condition, models, 
+      cars, candidates))
+    PeakStructure::printRange(condition, "Did " + condition.text);
+  else
+    PeakStructure::printRange(condition, "Didn't do " + condition.text);
+}
+
+
+void PeakStructure::findMissingCars(
+  PeakCondition& condition,
+  CarModels& models,
+  vector<CarDetect>& cars,
+  list<Peak *>& candidates) const
+{
+  if (condition.source == PEAK_SOURCE_FIRST)
+  {
+    condition.start = candidates.front()->getIndex();
+    condition.end = cars.front().startValue();
+    condition.leftGapPresent = false;
+    condition.rightGapPresent = true;
+    condition.text = "first whole-car";
+
+    PeakStructure::findMissingCar(condition, models, cars, candidates);
+  }
+  else if (condition.source == PEAK_SOURCE_INNER)
+  {
+    condition.leftGapPresent = true;
+    condition.rightGapPresent = true;
+    condition.text = "intra-gap";
+
+    const unsigned csize = cars.size(); // As cars grows in the loop
+    for (unsigned cno = 0; cno+1 < csize; cno++)
+    {
+      condition.start = cars[cno].endValue();
+      condition.end = cars[cno+1].startValue();
+
+      PeakStructure::findMissingCar(condition, models, cars, 
+        candidates);
+    }
+  }
+  else if (condition.source == PEAK_SOURCE_LAST)
+  {
+    condition.start = cars.back().endValue();
+    condition.end = candidates.back()->getIndex();
+    condition.leftGapPresent = true;
+    condition.rightGapPresent = false;
+    condition.text = "last whole-car";
+
+    PeakStructure::findMissingCar(condition, models, cars, candidates);
+  }
 }
 
 
@@ -587,88 +617,6 @@ void PeakStructure::findWholeCars(
     while (cit != candidates.end() && ! (* cit)->isSelected());
     runIter[3] = cit;
     runPtr[3] = * cit;
-  }
-}
-
-
-void PeakStructure::findMissingCar(
-  const PeakCondition& condition,
-  CarModels& models,
-  vector<CarDetect>& cars,
-  list<Peak *>& candidates) // const
-{
-  if (condition.start >= condition.end)
-    return;
-
-  if (PeakStructure::findCars(condition, models, cars, candidates))
-    PeakStructure::printRange(condition, "Did " + condition.text);
-  else
-    PeakStructure::printRange(condition, "Didn't do " + condition.text);
-}
-
-
-void PeakStructure::findMissingCars(
-  PeakCondition& condition,
-  CarModels& models,
-  vector<CarDetect>& cars,
-  list<Peak *>& candidates) // const
-{
-  if (condition.source == PEAK_SOURCE_FIRST)
-  {
-    condition.start = candidates.front()->getIndex();
-    condition.end = cars.front().startValue();
-    condition.leftGapPresent = false;
-    condition.rightGapPresent = true;
-    condition.text = "first whole-car";
-
-    PeakStructure::findMissingCar(condition, models, cars, candidates);
-  }
-  else if (condition.source == PEAK_SOURCE_INNER)
-  {
-    condition.leftGapPresent = true;
-    condition.rightGapPresent = true;
-    condition.text = "intra-gap";
-
-    const unsigned csize = cars.size(); // As cars grows in the loop
-    for (unsigned cno = 0; cno+1 < csize; cno++)
-    {
-      condition.start = cars[cno].endValue();
-      condition.end = cars[cno+1].startValue();
-
-      PeakStructure::findMissingCar(condition, models, cars, 
-        candidates);
-    }
-  }
-  else if (condition.source == PEAK_SOURCE_LAST)
-  {
-    condition.start = cars.back().endValue();
-    condition.end = candidates.back()->getIndex();
-    condition.leftGapPresent = true;
-    condition.rightGapPresent = false;
-    condition.text = "last whole-car";
-
-    PeakStructure::findMissingCar(condition, models, cars, candidates);
-  }
-}
-
-
-void PeakStructure::updateCarDistances(
-  const CarModels& models,
-  vector<CarDetect>& cars) const
-{
-  for (auto& car: cars)
-  {
-    unsigned index;
-    float distance;
-    if (! PeakStructure::matchesModel(models, car, index, distance))
-    {
-      cout << "WARNING: Car doesn't match any model.\n";
-      index = 0;
-      distance = 0.f;
-    }
-
-    car.logStatIndex(index);
-    car.logDistance(distance);
   }
 }
 
