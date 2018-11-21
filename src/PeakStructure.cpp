@@ -126,20 +126,19 @@ bool PeakStructure::findLastTwoOfFourWheeler(
 
 bool PeakStructure::findLastThreeOfFourWheelerNew(
   const CarModels& models,
-  const unsigned start, 
-  const unsigned end,
+  const PeakCondition& condition,
   const vector<unsigned>& peakNos, 
   const vector<Peak *>& peakPtrs,
   CarDetect& car) const
 {
-  car.setLimits(start, end);
+  car.setLimits(condition.start, condition.end);
 
   car.logCore(
     0, 
     peakNos[1] - peakNos[0],
     peakNos[2] - peakNos[1]);
 
-  car.logRightGap(end - peakNos[2]);
+  car.logRightGap(condition.end - peakNos[2]);
 
   car.logPeakPointers(
     nullptr, peakPtrs[0], peakPtrs[1], peakPtrs[2]);
@@ -508,10 +507,7 @@ void PeakStructure::getGoodWheels(
 
 
 bool PeakStructure::findCarsNew(
-  const unsigned start,
-  const unsigned end,
-  const bool leftGapPresent,
-  const bool rightGapPresent,
+  const PeakCondition& condition,
   CarModels& models,
   vector<CarDetect>& cars,
   list<Peak *>& candidates) // const
@@ -522,9 +518,9 @@ bool PeakStructure::findCarsNew(
   for (auto& cand: candidates)
   {
     const unsigned index = cand->getIndex();
-    if (index > end)
+    if (index > condition.end)
       break;
-    if (index < start)
+    if (index < condition.start)
       continue;
 
     peakPtrs.push_back(cand);
@@ -536,16 +532,6 @@ bool PeakStructure::findCarsNew(
   vector<Peak *> peakPtrsNew;
   vector<Peak *> peakPtrsUnused;
   vector<unsigned> peakNosNew;
-
-  PeakCondition condition;
-  if (source == 0)
-    condition.source = PEAK_SOURCE_INNER;
-  else
-    condition.source = (source == 1 ? PEAK_SOURCE_FIRST : PEAK_SOURCE_LAST);
-  condition.start = start;
-  condition.end = end;
-  condition.leftGapPresent = leftGapPresent;
-  condition.rightGapPresent = rightGapPresent;
 
   if (profile.sumGreat == 4)
   {
@@ -607,7 +593,7 @@ bool PeakStructure::findCarsNew(
       THROW(ERR_ALGO_PEAK_STRUCTURE, "Not 3 good peaks");
 
     CarDetect car;
-    if (PeakStructure::findLastThreeOfFourWheelerNew(models, start, end, 
+    if (PeakStructure::findLastThreeOfFourWheelerNew(models, condition,
       peakNosNew, peakPtrsNew, car))
     {
       PeakStructure::updateCars(models, cars, car);
@@ -676,8 +662,17 @@ bool PeakStructure::findCars(
   vector<CarDetect>& cars,
   list<Peak *>& candidates) // const
 {
-  if (findCarsNew(start, end, leftGapPresent, rightGapPresent,
-      models, cars, candidates))
+  PeakCondition condition0;
+  if (source == 0)
+    condition0.source = PEAK_SOURCE_INNER;
+  else
+    condition0.source = (source == 1 ? PEAK_SOURCE_FIRST : PEAK_SOURCE_LAST);
+  condition0.start = start;
+  condition0.end = end;
+  condition0.leftGapPresent = leftGapPresent;
+  condition0.rightGapPresent = rightGapPresent;
+
+  if (findCarsNew(condition0, models, cars, candidates))
     return true;
 
 

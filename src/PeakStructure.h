@@ -98,8 +98,7 @@ class PeakStructure
 
     bool findLastThreeOfFourWheelerNew(
       const CarModels& models,
-      const unsigned start,
-      const unsigned end,
+      const PeakCondition& condition,
       const vector<unsigned>& peakNos,
       const vector<Peak *>& peakPtrs,
       CarDetect& car) const;
@@ -173,10 +172,7 @@ class PeakStructure
     string strProfile(const unsigned origin) const;
 
     bool findCarsNew(
-      const unsigned start,
-      const unsigned end,
-      const bool leftGapPresent,
-      const bool rightGapPresent,
+      const PeakCondition& condition,
       CarModels& models,
       vector<CarDetect>& cars,
       list<Peak *>& candidates); // const;
