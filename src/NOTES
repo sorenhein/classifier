@@ -1,6 +1,11 @@
-* For sensor00 there should be 3516 peaks?  Why only 3396?
-  - 101129, 122841: Got peaks but "no good match".
-  - Why don't we log the peaks anyway?
+s02
+* odd left gradient occasionally
+* Avoid spurious peaks between bogey-pair peaks
+* Kink causes bad range and gradient
+* Maybe 2+2 as well
+* When we have a reliable new wheel gap, mark some more gaps?
+
+
 
 * PeakMinima:
   - Some TODO's (algorithmic errors, actually)
@@ -16,9 +21,6 @@ actual = 0, ref != 0: dist = 0
 actual != 0, ref = 0: dist = inf
 Both = 0: dist = 0
 Neither = 0: actual
-
-Remaining sensor00 errors:
-#68, 074731: The first car bogey is very odd (too long)
 
 
 Cleaning up clusters

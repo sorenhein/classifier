@@ -112,10 +112,9 @@ bool PeakProfile::looksEmpty() const
 }
 
 
-bool PeakProfile::looksLikeTwoBackCars() const
+bool PeakProfile::looksLikeTwoCars() const
 {
-  return (source == PEAK_SOURCE_LAST &&
-     sumGreat >= 7 && 
+  return (sumGreat >= 7 && 
      sumGreat + stars[1] == 8);
 }
 
@@ -131,8 +130,16 @@ string PeakProfile::strEntry(const unsigned value) const
 
 string PeakProfile::str() const
 {
+  string src = "";
+  if (source == PEAK_SOURCE_FIRST)
+    src = "first";
+  else if (source == PEAK_SOURCE_INNER)
+    src = "inner";
+  else if (source == PEAK_SOURCE_LAST)
+    src = "last ";
+
   stringstream ss;
-  ss << "PROFILE " << source << ": " <<
+  ss << "PROFILE " << src << ": " <<
     PeakProfile::strEntry(bogeyWheels[0]) << " " <<
     PeakProfile::strEntry(bogeyWheels[1]) << " " <<
     PeakProfile::strEntry(bogeyWheels[2]) << " " <<

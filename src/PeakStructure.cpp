@@ -396,7 +396,7 @@ bool PeakStructure::findCarsInInterval(
   PeakProfile profile;
   profile.make(peakPtrs, condition.source);
 
-  if (profile.looksLikeTwoBackCars())
+  if (profile.looksLikeTwoCars())
   {
     // This might become more general in the future.
     PeakCondition condition1, condition2;
