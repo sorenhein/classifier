@@ -13,6 +13,14 @@ class CarDetect;
 class CarModels;
 class Peak;
 
+enum PeakSource
+{
+  PEAK_SOURCE_FIRST = 1,
+  PEAK_SOURCE_INNER = 2,
+  PEAK_SOURCE_LAST = 4,
+  PEAK_SOURCE_SIZE = 8
+};
+
 
 class PeakStructure
 {
@@ -31,6 +39,25 @@ class PeakStructure
       unsigned sum;
     };
 
+    enum PeakQuality
+    {
+      PEAK_QUALITY_GREAT = 0,
+      PEAK_QUALITY_GOOD = 1,
+      PEAK_QUALITY_ACCEPTABLE = 2,
+      PEAK_QUALITY_POOR = 3,
+      PEAK_QUALITY_SIZE = 4
+    };
+
+    struct PeakCondition
+    {
+      PeakSource source;
+      unsigned start;
+      unsigned end;
+      bool leftGapPresent;
+      bool rightGapPresent;
+    };
+
+
     unsigned offset;
     Profile profile;
 
@@ -48,10 +75,7 @@ class PeakStructure
 
     bool findFourWheeler(
       const CarModels& models,
-      const unsigned start,
-      const unsigned end,
-      const bool leftGapPresent,
-      const bool rightGapPresent,
+      const PeakCondition& condition,
       const vector<unsigned>& peakNos,
       const vector<Peak *>& peakPtrs,
       CarDetect& car) const;

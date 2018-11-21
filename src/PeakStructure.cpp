@@ -64,21 +64,18 @@ bool PeakStructure::matchesModel(
 
 bool PeakStructure::findFourWheeler(
   const CarModels& models,
-  const unsigned start,
-  const unsigned end,
-  const bool leftGapPresent,
-  const bool rightGapPresent,
+  const PeakCondition& condition,
   const vector<unsigned>& peakNos, 
   const vector<Peak *>& peakPtrs,
   CarDetect& car) const
 {
-  car.setLimits(start, end);
+  car.setLimits(condition.start, condition.end);
 
-  if (leftGapPresent)
-    car.logLeftGap(peakNos[0] - start);
+  if (condition.leftGapPresent)
+    car.logLeftGap(peakNos[0] - condition.start);
 
-  if (rightGapPresent)
-    car.logRightGap(end - peakNos[3]);
+  if (condition.rightGapPresent)
+    car.logRightGap(condition.end - peakNos[3]);
 
   car.logCore(
     peakNos[1] - peakNos[0],
@@ -542,6 +539,16 @@ bool PeakStructure::findCarsNew(
   vector<Peak *> peakPtrsUnused;
   vector<unsigned> peakNosNew;
 
+  PeakCondition condition;
+  if (source == 0)
+    condition.source = PEAK_SOURCE_INNER;
+  else
+    condition.source = (source == 1 ? PEAK_SOURCE_FIRST : PEAK_SOURCE_LAST);
+  condition.start = start;
+  condition.end = end;
+  condition.leftGapPresent = leftGapPresent;
+  condition.rightGapPresent = rightGapPresent;
+
   if (profile.sumGreat == 4)
   {
     PeakStructure::getGreatWheels(peakPtrs, peakNos,
@@ -551,8 +558,9 @@ bool PeakStructure::findCarsNew(
       THROW(ERR_ALGO_PEAK_STRUCTURE, "Not 4 great peaks");
 
     CarDetect car;
-    if (PeakStructure::findFourWheeler(models, start, end,
-        leftGapPresent, rightGapPresent, peakNosNew, peakPtrsNew, car))
+
+    if (PeakStructure::findFourWheeler(models, condition,
+        peakNosNew, peakPtrsNew, car))
     {
       PeakStructure::updateCars(models, cars, car);
       PeakStructure::updateFourPeaks(peakPtrsNew, peakPtrsUnused);
@@ -575,8 +583,8 @@ bool PeakStructure::findCarsNew(
       THROW(ERR_ALGO_PEAK_STRUCTURE, "Not 4 good peaks (3+1)");
 
     CarDetect car;
-    if (PeakStructure::findFourWheeler(models, start, end,
-        leftGapPresent, rightGapPresent, peakNosNew, peakPtrsNew, car))
+    if (PeakStructure::findFourWheeler(models, condition,
+        peakNosNew, peakPtrsNew, car))
     {
       PeakStructure::updateCars(models, cars, car);
       PeakStructure::updateFourPeaks(peakPtrsNew, peakPtrsUnused);
@@ -769,9 +777,20 @@ cout << "sizes " << peakNosNew.size() << ", " << peakPtrsNew.size() <<
 cout << "Range is " << startLocal+offset << "-" << 
   endLocal+offset << endl;
 
+
+  PeakCondition condition;
+  if (source == 0)
+    condition.source = PEAK_SOURCE_INNER;
+  else
+    condition.source = (source == 1 ? PEAK_SOURCE_FIRST : PEAK_SOURCE_LAST);
+  condition.start = startLocal;
+  condition.end = endLocal;
+  condition.leftGapPresent = leftFlagLocal;
+  condition.rightGapPresent = rightFlagLocal;
+
       CarDetect car;
-      if (PeakStructure::findFourWheeler(models, startLocal, endLocal,
-        leftFlagLocal, rightFlagLocal, peakNosNew, peakPtrsNew, car))
+      if (PeakStructure::findFourWheeler(models, condition,
+        peakNosNew, peakPtrsNew, car))
       {
 matrix[source][0]++;
         PeakStructure::fixFourWheels(
@@ -932,10 +951,21 @@ for (auto peakPtr: peakPtrs)
     }
 
     CarDetect car;
+
+  PeakCondition condition;
+  if (source == 0)
+    condition.source = PEAK_SOURCE_INNER;
+  else
+    condition.source = (source == 1 ? PEAK_SOURCE_FIRST : PEAK_SOURCE_LAST);
+  condition.start = startLocal;
+  condition.end = endLocal;
+  condition.leftGapPresent = leftFlagLocal;
+  condition.rightGapPresent = rightFlagLocal;
+
     // Try the car.
 cout << "Trying the car\n";
-    if (! PeakStructure::findFourWheeler(models, startLocal, endLocal,
-        leftFlagLocal, rightFlagLocal, peakNosNew, peakPtrsNew, car))
+    if (! PeakStructure::findFourWheeler(models, condition,
+        peakNosNew, peakPtrsNew, car))
     {
       // Doesn't happen.
       return false;
