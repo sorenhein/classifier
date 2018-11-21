@@ -408,14 +408,15 @@ bool Peak::isBogey() const
 bool Peak::greatQuality() const
 {
   // TODO #define
-  return (qualityPeak <= 0.3f || qualityShape <= 0.2f);
+  return (qualityPeak <= 0.3f || 
+    (qualityShape <= 0.2f && qualityPeak <= 2.0f));
 }
 
 
 bool Peak::goodQuality() const
 {
   // TODO #define
-  return (qualityShape <= 0.5f);
+  return (qualityShape <= 0.5f && qualityPeak <= 2.0f);
 }
 
 

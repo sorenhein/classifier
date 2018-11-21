@@ -84,9 +84,10 @@ void PeakStructure::setCarRecognizers()
   recognizers.push_back(recog);
 
   // The front car with 2 great peaks, missing the first whole bogey.
+  // Don't try to salvage the first 1-2 peaks if it looks too hard.
   recog.params.source = {true, PEAK_SOURCE_FIRST};
   recog.params.sumGreat = {true, 2};
-  recog.params.starsGood = {true, 0};
+  recog.params.starsGood = {false, 0};
   recog.numWheels = 2;
   recog.quality = PEAK_QUALITY_GREAT;
   recog.text = "2 great peaks (front)";
@@ -816,48 +817,6 @@ cout << "Fell through to " << startLocal+offset << "-" << endLocal+offset << end
 
   // np >= 3 here.
 
-  if (! leftFlagLocal &&
-      (np == 4 || np == 5) && 
-      notTallFlag && 
-      notTallCount == np-3)
-  {
-cout << "4-5 leading wheels: Attempting to drop down to 3: " << np << "\n";
-
-    if (np == 5)
-    {
-      peakNos.erase(peakNos.begin() + notTallNos[1]);
-      peakPtrs.erase(peakPtrs.begin() + notTallNos[1]);
-    }
-
-    peakNos.erase(peakNos.begin() + notTallNos[0]);
-    peakPtrs.erase(peakPtrs.begin() + notTallNos[0]);
-
-    CarDetect car;
-    unsigned numWheels;
-    if (! PeakStructure::findLastThreeOfFourWheeler(models,
-        startLocal, endLocal, peakNos, peakPtrs, car, numWheels))
-    {
-      // Doesn't happen.
-      return false;
-    }
-
-    if (numWheels == 3)
-    {
-matrix[source][1]++;
-      PeakStructure::fixThreeWheels(
-        * peakPtrs[0], * peakPtrs[1], * peakPtrs[2]);
-    }
-    else
-    {
-      // Doesn't happen.
-      return false;
-    }
-
-    PeakStructure::updateCars(models, cars, car);
-
-    return true;
-  }
-
   // np != 4 here
 
   if (np >= 5)
@@ -888,14 +847,7 @@ matrix[source][1]++;
 
     if (peakNosNew.size() != 4)
     {
-matrix[source][10]++;
-      cout << "I don't yet see one car here: " << np << ", " <<
-        peakNosNew.size() << endl;
-
-for (auto peakPtr: peakPtrs)
-  cout << "index " << peakPtr->getIndex() << ", qs " <<
-    peakPtr->getQualityShape() << endl;
-
+      // Doesn't happen
       return false;
     }
 
@@ -932,47 +884,6 @@ cout << "Trying the car\n";
 matrix[source][4]++;
     PeakStructure::updateCars(models, cars, car);
     return true;
-  }
-
-  if (! leftFlagLocal && np == 3)
-  {
-cout << "Trying 3-peak leading car\n";
-    // The first car, only three peaks.
-    if (notTallCount == 1 && 
-      ! peakPtrs[0]->isSelected())
-    {
-cout << "Two talls\n";
-      // Skip the first peak.
-      peakNos.erase(peakNos.begin() + notTallNos[0]);
-      peakPtrs.erase(peakPtrs.begin() + notTallNos[0]);
-
-      // TODO In all these erase's, need to unsetSeed and markNoWheel.
-      // There should be a more elegant, central way of doing this.
-
-  PeakCondition condition;
-  if (source == 0)
-    condition.source = PEAK_SOURCE_INNER;
-  else
-    condition.source = (source == 1 ? PEAK_SOURCE_FIRST : PEAK_SOURCE_LAST);
-  condition.start = startLocal;
-  condition.end = endLocal;
-  condition.leftGapPresent = leftFlagLocal;
-  condition.rightGapPresent = rightFlagLocal;
-      CarDetect car;
-      if (! PeakStructure::findLastTwoOfFourWheeler(models,
-          condition, peakNos, peakPtrs, car))
-      {
-        // Doesn't happen.
-        return false;
-      }
-
-matrix[source][5]++;
-      PeakStructure::fixTwoWheels(* peakPtrs[0], * peakPtrs[1]);
-
-      PeakStructure::updateCars(models, cars, car);
-
-      return true;
-    }
   }
 
   // Doesn't happen.
