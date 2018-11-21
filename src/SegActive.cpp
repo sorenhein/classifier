@@ -219,6 +219,18 @@ void SegActive::logPeakStats(
   const double speedTrue,
   PeakStats& peakStats)
 {
+  // TMP/TODO
+  /*
+  vector<PeakTime> timesTrue;
+  timesTrue.resize(posTrue.size());
+  for (unsigned i = 0; i < posTrue.size(); i++)
+  {
+    timesTrue[i].time = posTrue[i].pos / speedTrue;
+    timesTrue[i].value = posTrue[i].value;
+  }
+  peakDetect.printPeaksCSV(timesTrue);
+  */
+
   peakDetect.logPeakStats(posTrue, trainTrue, speedTrue, peakStats);
 }
 

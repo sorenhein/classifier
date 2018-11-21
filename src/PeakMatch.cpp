@@ -229,6 +229,7 @@ bool PeakMatch::findMatch(
     double scoreNew = 
       PeakMatch::simpleScore(timesTrue, offsetList[i], false, shiftNew);
 
+cout << "SCORE i " << i << " " << shiftNew << " " << scoreNew << endl;
     if (scoreNew > score)
     {
       score = scoreNew;
@@ -244,6 +245,45 @@ bool PeakMatch::findMatch(
   score = PeakMatch::simpleScore(timesTrue, shift, true, tmp);
 
   return (score >= SCORE_CUTOFF * timesTrue.size());
+}
+
+
+void PeakMatch::correctTimesTrue(vector<PeakTime>& timesTrue) const
+{
+  const unsigned lt = timesTrue.size();
+
+  bool firstSeen = false;
+  unsigned lp = 0;
+  Peak const * peakFirst = nullptr, * peakLast = nullptr;
+
+  for (auto& pw: peaksWrapped)
+  {
+    if (pw.peakPtr->isSelected())
+    {
+      lp++;
+      if (! firstSeen)
+      {
+        firstSeen = true;
+        peakFirst = pw.peakPtr;
+      }
+
+      peakLast = pw.peakPtr;
+    }
+  }
+
+  if (lp > lt)
+    return;
+
+  // Line up the ending peaks, assuming that any missing peaks
+  // are at the beginning.
+
+  const double factor = 
+    (peakLast->getTime() - peakFirst->getTime()) /
+    (timesTrue[lt-1].time - timesTrue[lt-lp].time);
+
+  const double base = timesTrue[0].time;
+  for (auto& t: timesTrue)
+    t.time = (t.time - base) * factor + base;
 }
   
 
@@ -285,13 +325,32 @@ void PeakMatch::logPeakStats(
   double shift = 0.;
   if (! PeakMatch::findMatch(peaks, timesTrue, shift))
   {
-    if (debug)
+    // Could be that the "true" speed is off enough to cause a
+    // wrong line-up.  Try a different speed.
+
+    trueMatches.clear();
+    trueMatches.resize(lt);
+
+    for (auto& pw: peaksWrapped)
     {
-      cout << "No good match to real " << posTrue.size() << " peaks.\n";
-      cout << "\nTrue train " << trainTrue << " at " << 
-        fixed << setprecision(2) << speedTrue << " m/s" << endl << endl;
+      pw.match = -1;
+      pw.bestDistance = numeric_limits<float>::max();
     }
-    return;
+
+    PeakMatch::correctTimesTrue(timesTrue);
+
+    if (! PeakMatch::findMatch(peaks, timesTrue, shift))
+    {
+      if (debug)
+      {
+        cout << "Warning: No good match to real " << 
+          posTrue.size() << " peaks.\n";
+        cout << "\nTrue train " << trainTrue << " at " << 
+          fixed << setprecision(2) << speedTrue << " m/s" << 
+          endl << endl;
+      }
+      // Falling through to statistics anyway.
+    }
   }
 
   // Go through the candidates we've seen (negative minima).  They were 

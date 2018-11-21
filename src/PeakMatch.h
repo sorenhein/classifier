@@ -56,6 +56,8 @@ class PeakMatch
       const vector<PeakTime>& timesTrue,
       double& shift);
 
+    void correctTimesTrue(vector<PeakTime>& timesTrue) const;
+
     void printPeaks(
       const list<Peak>& peaks,
       const vector<PeakTime>& timesTrue) const;

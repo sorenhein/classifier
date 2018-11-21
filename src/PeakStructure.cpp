@@ -700,7 +700,7 @@ void PeakStructure::printWheelCount(
   unsigned count = 0;
   for (auto cand: candidates)
   {
-    if (cand->isWheel())
+    if (cand->isSelected())
       count++;
   }
   cout << text << " " << count << " peaks" << endl;

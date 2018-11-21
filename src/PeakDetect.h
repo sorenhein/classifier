@@ -59,7 +59,6 @@ class PeakDetect
       const Peak& peak,
       const string& text) const;
 
-    void printPeaksCSV(const vector<PeakTime>& timesTrue) const;
 
   public:
 
@@ -84,7 +83,10 @@ class PeakDetect
     void makeSynthPeaks(vector<float>& synthPeaks) const;
     void getPeakTimes(vector<PeakTime>& times) const;
 
+    void printPeaksCSV(const vector<PeakTime>& timesTrue) const;
+
     void printAllPeaks(const string& text = "") const;
+
 };
 
 #endif
