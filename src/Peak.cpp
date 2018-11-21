@@ -376,6 +376,7 @@ void Peak::markBogeyAndWheel(
   const BogeyType bogeyType,
   const WheelType wheelType)
 {
+  selectFlag = true;
   bogeySide = bogeyType;
   wheelSide = wheelType;
 }

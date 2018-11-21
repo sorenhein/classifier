@@ -74,10 +74,11 @@ class PeakStructure
 
 
 
-    void markWheelPair(
+    void markBogey(
+      const BogeyType bogeyType,
+      const string& text,
       Peak& p1,
-      Peak& p2,
-      const string& text) const;
+      Peak& p2) const;
 
     void fixTwoWheels(
       Peak& p1,

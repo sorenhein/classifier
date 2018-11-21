@@ -9,22 +9,6 @@
 using namespace std;
 
 
-enum WheelType
-{
-  WHEEL_LEFT = 0,
-  WHEEL_RIGHT = 1,
-  WHEEL_ONLY = 2,
-  WHEEL_SIZE = 3
-};
-
-enum BogeyType
-{
-  BOGEY_LEFT = 0,
-  BOGEY_RIGHT = 1,
-  BOGEY_SIZE = 2
-};
-
-
 class Peak
 {
   private:

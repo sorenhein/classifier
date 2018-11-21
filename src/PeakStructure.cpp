@@ -207,10 +207,11 @@ bool PeakStructure::findFourWheeler(
 }
 
 
-void PeakStructure::markWheelPair(
+void PeakStructure::markBogey(
+  const BogeyType bogeyType,
+  const string& text,
   Peak& p1,
-  Peak& p2,
-  const string& text) const
+  Peak& p2) const
 {
   if (text != "")
     cout << text << " wheel pair at " << p1.getIndex() + offset <<
@@ -221,6 +222,9 @@ void PeakStructure::markWheelPair(
 
   p1.markWheel(WHEEL_LEFT);
   p2.markWheel(WHEEL_RIGHT);
+
+  p1.markBogey(bogeyType);
+  p2.markBogey(bogeyType);
 }
 
 
@@ -229,10 +233,7 @@ void PeakStructure::fixTwoWheels(
   Peak& p2) const
 {
   // Assume the two rightmost wheels, as the front ones were lost.
-  PeakStructure::markWheelPair(p1, p2, "");
-
-  p1.markBogey(BOGEY_RIGHT);
-  p2.markBogey(BOGEY_RIGHT);
+  PeakStructure::markBogey(BOGEY_RIGHT, "", p1, p2);
 }
 
 
@@ -244,11 +245,10 @@ void PeakStructure::fixThreeWheels(
   // Assume the two rightmost wheels, as the front one was lost.
   p1.select();
   p1.markWheel(WHEEL_RIGHT);
-  PeakStructure::markWheelPair(p2, p3, "");
-
   p1.markBogey(BOGEY_LEFT);
-  p2.markBogey(BOGEY_RIGHT);
-  p3.markBogey(BOGEY_RIGHT);
+
+  PeakStructure::markBogey(BOGEY_RIGHT, "", p2, p3);
+
 }
 
 
@@ -258,13 +258,8 @@ void PeakStructure::fixFourWheels(
   Peak& p3,
   Peak& p4) const
 {
-  PeakStructure::markWheelPair(p1, p2, "");
-  PeakStructure::markWheelPair(p3, p4, "");
-
-  p1.markBogey(BOGEY_LEFT);
-  p2.markBogey(BOGEY_LEFT);
-  p3.markBogey(BOGEY_RIGHT);
-  p4.markBogey(BOGEY_RIGHT);
+  PeakStructure::markBogey(BOGEY_LEFT, "", p1, p2);
+  PeakStructure::markBogey(BOGEY_RIGHT, "", p3, p4);
 }
 
 
