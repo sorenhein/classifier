@@ -220,4 +220,40 @@ enum PeakParam
   PEAK_PARAM_SIZE = 2
 };
 
+struct RecogEntry
+{
+  bool flag;
+  unsigned value;
+
+  bool match(const unsigned actual) const
+  {
+    return (! flag || value == actual);
+  };
+};
+
+struct RecogParams
+{
+  RecogEntry source;
+  RecogEntry sumGreat;
+  RecogEntry starsGood;
+};
+
+enum PeakQuality
+{
+  PEAK_QUALITY_GREAT = 0,
+  PEAK_QUALITY_GOOD = 1,
+  PEAK_QUALITY_ACCEPTABLE = 2,
+  PEAK_QUALITY_POOR = 3,
+  PEAK_QUALITY_SIZE = 4
+};
+
+
+struct Recognizer
+{
+  RecogParams params;
+  unsigned numWheels;
+  PeakQuality quality;
+  string text;
+};
+
 #endif

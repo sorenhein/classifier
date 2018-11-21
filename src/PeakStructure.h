@@ -39,15 +39,6 @@ class PeakStructure
       unsigned sum;
     };
 
-    enum PeakQuality
-    {
-      PEAK_QUALITY_GREAT = 0,
-      PEAK_QUALITY_GOOD = 1,
-      PEAK_QUALITY_ACCEPTABLE = 2,
-      PEAK_QUALITY_POOR = 3,
-      PEAK_QUALITY_SIZE = 4
-    };
-
     struct PeakCondition
     {
       PeakSource source;
@@ -57,42 +48,13 @@ class PeakStructure
       bool rightGapPresent;
     };
 
-    struct RecogEntry
-    {
-      bool flag;
-      unsigned value;
-
-      bool match(unsigned actual)
-      {
-        return (! flag || value == actual);
-      };
-    };
-
-    struct RecogParams
-    {
-      RecogEntry source;
-      RecogEntry sumGreat;
-      RecogEntry starsGood;
-    };
-
-    struct Recognizer
-    {
-      RecogParams params;
-      unsigned numWheels;
-      PeakQuality quality;
-      string text;
-    };
-
 
     unsigned offset;
-    Profile profile;
     list<Recognizer> recognizers;
 
     unsigned source;
     unsigned matrix[3][24];
 
-
-    void resetProfile();
 
     void setCarRecognizers();
 

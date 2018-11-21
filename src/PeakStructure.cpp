@@ -6,6 +6,7 @@
 #include <sstream>
 
 #include "PeakStructure.h"
+#include "PeakProfile.h"
 #include "CarModels.h"
 #include "Except.h"
 
@@ -33,20 +34,6 @@ PeakStructure::~PeakStructure()
 
 void PeakStructure::reset()
 {
-}
-
-
-void PeakStructure::resetProfile()
-{
-  profile.bogeyWheels.clear();
-  profile.wheels.clear();
-  profile.stars.clear();
-
-  profile.bogeyWheels.resize(4);
-  profile.wheels.resize(2);
-  profile.stars.resize(4);
-  profile.sumGreat = 0;
-  profile.sum = 0;
 }
 
 
@@ -375,83 +362,6 @@ void PeakStructure::updateCars(
 }
 
 
-void PeakStructure::makeProfile(const vector<Peak *>& peakPtrs)
-{
-  PeakStructure::resetProfile();
-  for (auto& peakPtr: peakPtrs)
-  {
-    if (peakPtr->isLeftBogey())
-    {
-      if (peakPtr->isLeftWheel())
-        profile.bogeyWheels[0]++;
-      else if (peakPtr->isRightWheel())
-        profile.bogeyWheels[1]++;
-      else
-        THROW(ERR_ALGO_PEAK_STRUCTURE, "Left bogey has no wheel mark");
-
-      profile.sumGreat++;
-    }
-    else if (peakPtr->isRightBogey())
-    {
-      if (peakPtr->isLeftWheel())
-        profile.bogeyWheels[2]++;
-      else if (peakPtr->isRightWheel())
-        profile.bogeyWheels[3]++;
-      else
-        THROW(ERR_ALGO_PEAK_STRUCTURE, "Right bogey has no wheel mark");
-
-      profile.sumGreat++;
-    }
-    else if (peakPtr->isLeftWheel())
-    {
-      profile.wheels[0]++;
-      profile.sumGreat++;
-    }
-    else if (peakPtr->isRightWheel())
-    {
-      profile.wheels[1]++;
-      profile.sumGreat++;
-    }
-    else
-    {
-      const string stars = peakPtr->stars();
-      if (stars == "***")
-      {
-        profile.stars[0]++;
-        profile.sumGreat++;
-      }
-      else if (stars == "**")
-        profile.stars[1]++;
-      else if (stars == "*")
-        profile.stars[2]++;
-      else
-        profile.stars[3]++;
-    }
-    profile.sum++;
-  }
-}
-
-
-string PeakStructure::strProfile(unsigned origin) const
-{
-  stringstream ss;
-  ss << "PROFILE " << origin << ": " <<
-    PeakStructure::x(profile.bogeyWheels[0]) << " " <<
-    PeakStructure::x(profile.bogeyWheels[1]) << " " <<
-    PeakStructure::x(profile.bogeyWheels[2]) << " " <<
-    PeakStructure::x(profile.bogeyWheels[3]) << ", wh " <<
-    PeakStructure::x(profile.wheels[0]) << " " <<
-    PeakStructure::x(profile.wheels[1]) << ", q " <<
-    PeakStructure::x(profile.stars[0]) << " " <<
-    PeakStructure::x(profile.stars[1]) << " " <<
-    PeakStructure::x(profile.stars[2]) << " " <<
-    PeakStructure::x(profile.stars[3]) << " (" <<
-    profile.sumGreat << " of " <<
-    profile.sum << ")\n";
-  return ss.str();
-}
-
-
 void PeakStructure::updatePeaks(
   vector<Peak *>& peakPtrsNew,
   vector<Peak *>& peakPtrsUnused,
@@ -553,7 +463,8 @@ bool PeakStructure::findCarsNew(
     peakNos.push_back(index);
   }
 
-  PeakStructure::makeProfile(peakPtrs);
+  PeakProfile profile;
+  profile.make(peakPtrs, condition.source);
 
   vector<Peak *> peakPtrsNew;
   vector<Peak *> peakPtrsUnused;
@@ -561,9 +472,7 @@ bool PeakStructure::findCarsNew(
 
   for (auto& recog: recognizers)
   {
-    if (recog.params.source.match(source) &&
-        recog.params.sumGreat.match(profile.sumGreat) &&
-        recog.params.starsGood.match(profile.stars[1]))
+    if (profile.match(recog))
     {
       PeakStructure::getWheelsByQuality(peakPtrs, peakNos,
         recog.quality, peakPtrsNew, peakNosNew, peakPtrsUnused);
@@ -584,19 +493,19 @@ bool PeakStructure::findCarsNew(
       else
       {
         cout << "Failed to find car among " << recog.text << "\n";
-        cout << PeakStructure::strProfile(source);
+        cout << profile.str();
         return false;
       }
     }
   }
 
-  if (profile.sumGreat == 0 && profile.stars[1] == 0)
+  if (profile.looksEmpty())
   {
     PeakStructure::downgradeAllPeaks(peakPtrs);
     return true;
   }
 
-  cout << PeakStructure::strProfile(source);
+  cout << profile.str();
   return false;
 }
 
