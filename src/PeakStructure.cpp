@@ -91,17 +91,15 @@ bool PeakStructure::findFourWheeler(
 
 bool PeakStructure::findLastTwoOfFourWheeler(
   const CarModels& models,
-  const unsigned start, 
-  const unsigned end,
-  const bool rightGapPresent,
+  const PeakCondition& condition,
   const vector<unsigned>& peakNos, 
   const vector<Peak *>& peakPtrs,
   CarDetect& car) const
 {
-  car.setLimits(start, end);
+  car.setLimits(condition.start, condition.end);
 
-  if (rightGapPresent)
-    car.logRightGap(end - peakNos[1]);
+  if (condition.rightGapPresent)
+    car.logRightGap(condition.end - peakNos[1]);
 
   car.logCore(0, 0, peakNos[1] - peakNos[0]);
 
@@ -635,8 +633,8 @@ bool PeakStructure::findCarsNew(
       THROW(ERR_ALGO_PEAK_STRUCTURE, "Not 2 good peaks");
 
     CarDetect car;
-    if (PeakStructure::findLastTwoOfFourWheeler(models, start, end, 
-      rightGapPresent, peakNosNew, peakPtrsNew, car))
+    if (PeakStructure::findLastTwoOfFourWheeler(models, condition,
+      peakNosNew, peakPtrsNew, car))
     {
       PeakStructure::updateCars(models, cars, car);
       PeakStructure::updateTwoPeaks(peakPtrsNew, peakPtrsUnused);
@@ -1000,9 +998,18 @@ cout << "Two talls\n";
       // TODO In all these erase's, need to unsetSeed and markNoWheel.
       // There should be a more elegant, central way of doing this.
 
+  PeakCondition condition;
+  if (source == 0)
+    condition.source = PEAK_SOURCE_INNER;
+  else
+    condition.source = (source == 1 ? PEAK_SOURCE_FIRST : PEAK_SOURCE_LAST);
+  condition.start = startLocal;
+  condition.end = endLocal;
+  condition.leftGapPresent = leftFlagLocal;
+  condition.rightGapPresent = rightFlagLocal;
       CarDetect car;
       if (! PeakStructure::findLastTwoOfFourWheeler(models,
-          startLocal, endLocal, rightFlagLocal, peakNos, peakPtrs, car))
+          condition, peakNos, peakPtrs, car))
       {
         // Doesn't happen.
         return false;
