@@ -73,6 +73,14 @@ class PeakStructure
       unsigned& index,
       float& distance) const;
 
+    bool findNumberedWheeler(
+      const CarModels& models,
+      const PeakCondition& condition,
+      const vector<unsigned>& peakNos,
+      const vector<Peak *>& peakPtrs,
+      const unsigned numWheels,
+      CarDetect& car) const;
+
     bool findFourWheeler(
       const CarModels& models,
       const PeakCondition& condition,
@@ -127,20 +135,6 @@ class PeakStructure
       vector<Peak *>& peakPtrsNew,
       vector<Peak *>& peakPtrsUnused,
       const unsigned numPeaks) const;
-
-    /*
-    void updateFourPeaks(
-      vector<Peak *>& peakPtrsNew,
-      vector<Peak *>& peakPtrsUnused) const;
-
-    void updateThreePeaks(
-      vector<Peak *>& peakPtrsNew,
-      vector<Peak *>& peakPtrsUnused) const;
-
-    void updateTwoPeaks(
-      vector<Peak *>& peakPtrsNew,
-      vector<Peak *>& peakPtrsUnused) const;
-      */
 
     void downgradeAllPeaks(vector<Peak *>& peakPtrsNew) const;
 

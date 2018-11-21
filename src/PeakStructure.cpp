@@ -62,6 +62,28 @@ bool PeakStructure::matchesModel(
 }
 
 
+bool PeakStructure::findNumberedWheeler(
+  const CarModels& models,
+  const PeakCondition& condition,
+  const vector<unsigned>& peakNos, 
+  const vector<Peak *>& peakPtrs,
+  const unsigned numWheels,
+  CarDetect& car) const
+{
+  if (numWheels == 2)
+    return PeakStructure::findLastTwoOfFourWheeler(models, 
+      condition, peakNos, peakPtrs, car);
+  else if (numWheels == 3)
+    return PeakStructure::findLastThreeOfFourWheelerNew(models, 
+      condition, peakNos, peakPtrs, car);
+  else if (numWheels == 4)
+    return PeakStructure::findFourWheeler(models, 
+      condition, peakNos, peakPtrs, car);
+  else
+    return false;
+}
+
+
 bool PeakStructure::findFourWheeler(
   const CarModels& models,
   const PeakCondition& condition,
@@ -418,58 +440,6 @@ void PeakStructure::updatePeaks(
 }
 
 
-/*
-void PeakStructure::updateFourPeaks(
-  vector<Peak *>& peakPtrsNew,
-  vector<Peak *>& peakPtrsUnused) const
-{
-  peakPtrsNew[0]->markBogeyAndWheel(BOGEY_LEFT, WHEEL_LEFT);
-  peakPtrsNew[1]->markBogeyAndWheel(BOGEY_LEFT, WHEEL_RIGHT);
-  peakPtrsNew[2]->markBogeyAndWheel(BOGEY_RIGHT, WHEEL_LEFT);
-  peakPtrsNew[3]->markBogeyAndWheel(BOGEY_RIGHT, WHEEL_RIGHT);
-
-  for (auto& pp: peakPtrsNew)
-    pp->select();
-
-  for (auto& pp: peakPtrsUnused)
-    pp->unselect();
-}
-
-
-void PeakStructure::updateThreePeaks(
-  vector<Peak *>& peakPtrsNew,
-  vector<Peak *>& peakPtrsUnused) const
-{
-  // The assumption is that we missed the very first peak.
-  peakPtrsNew[0]->markBogeyAndWheel(BOGEY_LEFT, WHEEL_RIGHT);
-  peakPtrsNew[1]->markBogeyAndWheel(BOGEY_RIGHT, WHEEL_LEFT);
-  peakPtrsNew[2]->markBogeyAndWheel(BOGEY_RIGHT, WHEEL_RIGHT);
-
-  for (auto& pp: peakPtrsNew)
-    pp->select();
-
-  for (auto& pp: peakPtrsUnused)
-    pp->unselect();
-}
-
-
-void PeakStructure::updateTwoPeaks(
-  vector<Peak *>& peakPtrsNew,
-  vector<Peak *>& peakPtrsUnused) const
-{
-  // The assumption is that we missed the first two peaks.
-  peakPtrsNew[0]->markBogeyAndWheel(BOGEY_RIGHT, WHEEL_LEFT);
-  peakPtrsNew[1]->markBogey(BOGEY_RIGHT, WHEEL_RIGHT);
-
-  for (auto& pp: peakPtrsNew)
-    pp->select();
-
-  for (auto& pp: peakPtrsUnused)
-    pp->unselect();
-}
-*/
-
-
 void PeakStructure::downgradeAllPeaks(vector<Peak *>& peakPtrs) const
 {
   for (auto& pp: peakPtrs)
@@ -564,8 +534,8 @@ bool PeakStructure::findCarsNew(
 
     CarDetect car;
 
-    if (PeakStructure::findFourWheeler(models, condition,
-        peakNosNew, peakPtrsNew, car))
+    if (PeakStructure::findNumberedWheeler(models, condition,
+        peakNosNew, peakPtrsNew, 4, car))
     {
       PeakStructure::updateCars(models, cars, car);
       PeakStructure::updatePeaks(peakPtrsNew, peakPtrsUnused, 4);
@@ -588,8 +558,8 @@ bool PeakStructure::findCarsNew(
       THROW(ERR_ALGO_PEAK_STRUCTURE, "Not 4 good peaks (3+1)");
 
     CarDetect car;
-    if (PeakStructure::findFourWheeler(models, condition,
-        peakNosNew, peakPtrsNew, car))
+    if (PeakStructure::findNumberedWheeler(models, condition,
+        peakNosNew, peakPtrsNew, 4, car))
     {
       PeakStructure::updateCars(models, cars, car);
       PeakStructure::updatePeaks(peakPtrsNew, peakPtrsUnused, 4);
@@ -614,8 +584,8 @@ bool PeakStructure::findCarsNew(
       THROW(ERR_ALGO_PEAK_STRUCTURE, "Not 3 good peaks");
 
     CarDetect car;
-    if (PeakStructure::findLastThreeOfFourWheelerNew(models, condition,
-      peakNosNew, peakPtrsNew, car))
+    if (PeakStructure::findNumberedWheeler(models, condition,
+      peakNosNew, peakPtrsNew, 3, car))
     {
       PeakStructure::updateCars(models, cars, car);
       PeakStructure::updatePeaks(peakPtrsNew, peakPtrsUnused, 3);
@@ -640,8 +610,8 @@ bool PeakStructure::findCarsNew(
       THROW(ERR_ALGO_PEAK_STRUCTURE, "Not 2 good peaks");
 
     CarDetect car;
-    if (PeakStructure::findLastTwoOfFourWheeler(models, condition,
-      peakNosNew, peakPtrsNew, car))
+    if (PeakStructure::findNumberedWheeler(models, condition,
+      peakNosNew, peakPtrsNew, 2, car))
     {
       PeakStructure::updateCars(models, cars, car);
       PeakStructure::updatePeaks(peakPtrsNew, peakPtrsUnused, 2);
