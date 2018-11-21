@@ -372,6 +372,15 @@ void Peak::markBogey(const BogeyType bogeyType)
 }
 
 
+void Peak::markBogeyAndWheel(
+  const BogeyType bogeyType,
+  const WheelType wheelType)
+{
+  bogeySide = bogeyType;
+  wheelSide = wheelType;
+}
+
+
 void Peak::markNoBogey()
 {
   bogeySide = BOGEY_SIZE;

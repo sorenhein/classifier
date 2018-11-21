@@ -123,6 +123,12 @@ class PeakStructure
       Peak& p3,
       Peak& p4) const;
 
+    void updatePeaks(
+      vector<Peak *>& peakPtrsNew,
+      vector<Peak *>& peakPtrsUnused,
+      const unsigned numPeaks) const;
+
+    /*
     void updateFourPeaks(
       vector<Peak *>& peakPtrsNew,
       vector<Peak *>& peakPtrsUnused) const;
@@ -134,6 +140,7 @@ class PeakStructure
     void updateTwoPeaks(
       vector<Peak *>& peakPtrsNew,
       vector<Peak *>& peakPtrsUnused) const;
+      */
 
     void downgradeAllPeaks(vector<Peak *>& peakPtrsNew) const;
 
