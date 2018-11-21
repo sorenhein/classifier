@@ -45,28 +45,24 @@ class PeakStructure
     bool findLastTwoOfFourWheeler(
       const CarModels& models,
       const PeakCondition& condition,
-      const vector<unsigned>& peakNos,
       const vector<Peak *>& peakPtrs,
       CarDetect& car) const;
 
     bool findLastThreeOfFourWheeler(
       const CarModels& models,
       const PeakCondition& condition,
-      const vector<unsigned>& peakNos,
       const vector<Peak *>& peakPtrs,
       CarDetect& car) const;
 
     bool findFourWheeler(
       const CarModels& models,
       const PeakCondition& condition,
-      const vector<unsigned>& peakNos,
       const vector<Peak *>& peakPtrs,
       CarDetect& car) const;
 
     bool findNumberedWheeler(
       const CarModels& models,
       const PeakCondition& condition,
-      const vector<unsigned>& peakNos,
       const vector<Peak *>& peakPtrs,
       const unsigned numWheels,
       CarDetect& car) const;

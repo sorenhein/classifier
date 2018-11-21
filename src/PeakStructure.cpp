@@ -89,16 +89,18 @@ bool PeakStructure::matchesModel(
 bool PeakStructure::findLastTwoOfFourWheeler(
   const CarModels& models,
   const PeakCondition& condition,
-  const vector<unsigned>& peakNos, 
   const vector<Peak *>& peakPtrs,
   CarDetect& car) const
 {
   car.setLimits(condition.start, condition.end);
 
-  if (condition.rightGapPresent)
-    car.logRightGap(condition.end - peakNos[1]);
+  const unsigned peakNo0 = peakPtrs[0]->getIndex();
+  const unsigned peakNo1 = peakPtrs[1]->getIndex();
 
-  car.logCore(0, 0, peakNos[1] - peakNos[0]);
+  if (condition.rightGapPresent)
+    car.logRightGap(condition.end - peakNo1);
+
+  car.logCore(0, 0, peakNo1 - peakNo0);
 
   car.logPeakPointers(
     nullptr, nullptr, peakPtrs[0], peakPtrs[1]);
@@ -124,18 +126,17 @@ bool PeakStructure::findLastTwoOfFourWheeler(
 bool PeakStructure::findLastThreeOfFourWheeler(
   const CarModels& models,
   const PeakCondition& condition,
-  const vector<unsigned>& peakNos, 
   const vector<Peak *>& peakPtrs,
   CarDetect& car) const
 {
   car.setLimits(condition.start, condition.end);
 
-  car.logCore(
-    0, 
-    peakNos[1] - peakNos[0],
-    peakNos[2] - peakNos[1]);
+  const unsigned peakNo0 = peakPtrs[0]->getIndex();
+  const unsigned peakNo1 = peakPtrs[1]->getIndex();
+  const unsigned peakNo2 = peakPtrs[2]->getIndex();
 
-  car.logRightGap(condition.end - peakNos[2]);
+  car.logCore(0, peakNo1 - peakNo0, peakNo2 - peakNo1);
+  car.logRightGap(condition.end - peakNo2);
 
   car.logPeakPointers(
     nullptr, peakPtrs[0], peakPtrs[1], peakPtrs[2]);
@@ -158,52 +159,52 @@ bool PeakStructure::findLastThreeOfFourWheeler(
 }
 
 
+bool PeakStructure::findFourWheeler(
+  const CarModels& models,
+  const PeakCondition& condition,
+  const vector<Peak *>& peakPtrs,
+  CarDetect& car) const
+{
+  car.setLimits(condition.start, condition.end);
+
+  const unsigned peakNo0 = peakPtrs[0]->getIndex();
+  const unsigned peakNo1 = peakPtrs[1]->getIndex();
+  const unsigned peakNo2 = peakPtrs[2]->getIndex();
+  const unsigned peakNo3 = peakPtrs[3]->getIndex();
+
+  if (condition.leftGapPresent)
+    car.logLeftGap(peakNo0 - condition.start);
+
+  if (condition.rightGapPresent)
+    car.logRightGap(condition.end - peakNo3);
+
+  car.logCore(peakNo1 - peakNo0, peakNo2 - peakNo1, peakNo3 - peakNo2);
+
+  car.logPeakPointers(
+    peakPtrs[0], peakPtrs[1], peakPtrs[2], peakPtrs[3]);
+
+  return models.gapsPlausible(car);
+}
+
+
 bool PeakStructure::findNumberedWheeler(
   const CarModels& models,
   const PeakCondition& condition,
-  const vector<unsigned>& peakNos, 
   const vector<Peak *>& peakPtrs,
   const unsigned numWheels,
   CarDetect& car) const
 {
   if (numWheels == 2)
     return PeakStructure::findLastTwoOfFourWheeler(models, 
-      condition, peakNos, peakPtrs, car);
+      condition, peakPtrs, car);
   else if (numWheels == 3)
     return PeakStructure::findLastThreeOfFourWheeler(models, 
-      condition, peakNos, peakPtrs, car);
+      condition, peakPtrs, car);
   else if (numWheels == 4)
     return PeakStructure::findFourWheeler(models, 
-      condition, peakNos, peakPtrs, car);
+      condition, peakPtrs, car);
   else
     return false;
-}
-
-
-bool PeakStructure::findFourWheeler(
-  const CarModels& models,
-  const PeakCondition& condition,
-  const vector<unsigned>& peakNos, 
-  const vector<Peak *>& peakPtrs,
-  CarDetect& car) const
-{
-  car.setLimits(condition.start, condition.end);
-
-  if (condition.leftGapPresent)
-    car.logLeftGap(peakNos[0] - condition.start);
-
-  if (condition.rightGapPresent)
-    car.logRightGap(condition.end - peakNos[3]);
-
-  car.logCore(
-    peakNos[1] - peakNos[0],
-    peakNos[2] - peakNos[1],
-    peakNos[3] - peakNos[2]);
-
-  car.logPeakPointers(
-    peakPtrs[0], peakPtrs[1], peakPtrs[2], peakPtrs[3]);
-
-  return models.gapsPlausible(car);
 }
 
 
@@ -436,7 +437,7 @@ bool PeakStructure::findCarsInInterval(
       CarDetect car;
 
       if (PeakStructure::findNumberedWheeler(models, condition,
-          peakNosNew, peakPtrsNew, recog.numWheels, car))
+          peakPtrsNew, recog.numWheels, car))
       {
         PeakStructure::updateCars(models, cars, car);
         PeakStructure::updatePeaks(peakPtrsNew, peakPtrsUnused, 
