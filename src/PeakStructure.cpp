@@ -83,7 +83,7 @@ void PeakStructure::setCarRecognizers()
   recog.text = "3 great peaks (front)";
   recognizers.push_back(recog);
 
-  // The front car with 2 great peaks, missing the first bogey.
+  // The front car with 2 great peaks, missing the first whole bogey.
   recog.params.source = {true, PEAK_SOURCE_FIRST};
   recog.params.sumGreat = {true, 2};
   recog.params.starsGood = {true, 0};
@@ -535,7 +535,7 @@ bool PeakStructure::findCarsNew(
   const PeakCondition& condition,
   CarModels& models,
   vector<CarDetect>& cars,
-  list<Peak *>& candidates) // const
+  list<Peak *>& candidates)
 {
   vector<Peak *> peakPtrs;
   vector<unsigned> peakNos;
@@ -587,114 +587,9 @@ bool PeakStructure::findCarsNew(
         return false;
       }
     }
-    break; // For now
   }
 
-  /*
-  if (profile.sumGreat == 4)
-  {
-cout << "HIT??\n";
-    PeakStructure::getWheelsByQuality(peakPtrs, peakNos,
-      PEAK_QUALITY_GREAT, peakPtrsNew, peakNosNew, peakPtrsUnused);
-
-    if (peakPtrsNew.size() != 4)
-      THROW(ERR_ALGO_PEAK_STRUCTURE, "Not 4 great peaks");
-
-    CarDetect car;
-
-    if (PeakStructure::findNumberedWheeler(models, condition,
-        peakNosNew, peakPtrsNew, 4, car))
-    {
-      PeakStructure::updateCars(models, cars, car);
-      PeakStructure::updatePeaks(peakPtrsNew, peakPtrsUnused, 4);
-      return true;
-    }
-    else
-    {
-      cout << "Failed to find car among 4 great peaks\n";
-      cout << PeakStructure::strProfile(source);
-      return false;
-    }
-  }
-  else 
-  */
-  if (profile.sumGreat == 3 && profile.stars[1] == 1)
-  {
-    // Try to upgrade the two-star to a three-star peak.
-    PeakStructure::getWheelsByQuality(peakPtrs, peakNos,
-      PEAK_QUALITY_GOOD, peakPtrsNew, peakNosNew, peakPtrsUnused);
-
-    if (peakPtrsNew.size() != 4)
-      THROW(ERR_ALGO_PEAK_STRUCTURE, "Not 4 good peaks (3+1)");
-
-    CarDetect car;
-    if (PeakStructure::findNumberedWheeler(models, condition,
-        peakNosNew, peakPtrsNew, 4, car))
-    {
-      PeakStructure::updateCars(models, cars, car);
-      PeakStructure::updatePeaks(peakPtrsNew, peakPtrsUnused, 4);
-      return true;
-    }
-    else
-    {
-      cout << "Failed to find car among 4 good peaks (3+1)\n";
-      cout << PeakStructure::strProfile(source);
-      return false;
-    }
-  }
-  else if (source == 1 && // first
-      profile.sumGreat == 3 && 
-      profile.stars[1] == 0)
-  {
-    // Try to match three wheels, dropping the first one.
-    PeakStructure::getWheelsByQuality(peakPtrs, peakNos,
-      PEAK_QUALITY_GREAT, peakPtrsNew, peakNosNew, peakPtrsUnused);
-
-    if (peakPtrsNew.size() != 3)
-      THROW(ERR_ALGO_PEAK_STRUCTURE, "Not 3 good peaks");
-
-    CarDetect car;
-    if (PeakStructure::findNumberedWheeler(models, condition,
-      peakNosNew, peakPtrsNew, 3, car))
-    {
-      PeakStructure::updateCars(models, cars, car);
-      PeakStructure::updatePeaks(peakPtrsNew, peakPtrsUnused, 3);
-      return true;
-    }
-    else
-    {
-      cout << "Failed to find first car among 3 great peaks\n";
-      cout << PeakStructure::strProfile(source);
-      return false;
-    }
-  }
-  else if (source == 1 && // first
-      profile.sumGreat == 2 && 
-      profile.stars[1] == 0)
-  {
-    // Try to match two wheels, dropping the first two.
-    PeakStructure::getWheelsByQuality(peakPtrs, peakNos,
-      PEAK_QUALITY_GREAT, peakPtrsNew, peakNosNew, peakPtrsUnused);
-
-    if (peakPtrsNew.size() != 2)
-      THROW(ERR_ALGO_PEAK_STRUCTURE, "Not 2 good peaks");
-
-    CarDetect car;
-    if (PeakStructure::findNumberedWheeler(models, condition,
-      peakNosNew, peakPtrsNew, 2, car))
-    {
-      PeakStructure::updateCars(models, cars, car);
-      PeakStructure::updatePeaks(peakPtrsNew, peakPtrsUnused, 2);
-      return true;
-    }
-    else
-    {
-      cout << "Failed to find first car among 3 great peaks\n";
-      cout << PeakStructure::strProfile(source);
-      return false;
-    }
-  }
-  else if (profile.sumGreat == 0 && profile.stars[1] == 0)
+  if (profile.sumGreat == 0 && profile.stars[1] == 0)
   {
     PeakStructure::downgradeAllPeaks(peakPtrs);
     return true;
