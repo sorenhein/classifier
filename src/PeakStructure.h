@@ -138,16 +138,10 @@ class PeakStructure
 
     void downgradeAllPeaks(vector<Peak *>& peakPtrsNew) const;
 
-    void getGreatWheels(
+    void getWheelsByQuality(
       const vector<Peak *>& peakPtrs,
       const vector<unsigned>& peakNos,
-      vector<Peak *>& peakPtrsNew,
-      vector<unsigned>& peakNosNew,
-      vector<Peak *>& peakPtrsUnused) const;
-
-    void getGoodWheels(
-      const vector<Peak *>& peakPtrs,
-      const vector<unsigned>& peakNos,
+      const PeakQuality quality,
       vector<Peak *>& peakPtrsNew,
       vector<unsigned>& peakNosNew,
       vector<Peak *>& peakPtrsUnused) const;

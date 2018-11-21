@@ -9,6 +9,7 @@
   nothing between, so make new PeakConditions (2)
   2 calls needing 4 great/good peaks, can predict which it will be
 * Delete the old Find3
+* Group peakPtrs and peakNos in a struct
 
 
 * For sensor00 there should be 3516 peaks?  Why only 3396?

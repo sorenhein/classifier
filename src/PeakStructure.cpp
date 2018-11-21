@@ -451,42 +451,31 @@ void PeakStructure::downgradeAllPeaks(vector<Peak *>& peakPtrs) const
 }
 
 
-void PeakStructure::getGreatWheels(
+void PeakStructure::getWheelsByQuality(
   const vector<Peak *>& peakPtrs,
   const vector<unsigned>& peakNos,
+  const PeakQuality quality,
   vector<Peak *>& peakPtrsNew,
   vector<unsigned>& peakNosNew,
   vector<Peak *>& peakPtrsUnused) const
 {
+  typedef bool (Peak::*QualFncPtr)() const;
+  QualFncPtr qptr;
+
+  if (quality == PEAK_QUALITY_GREAT)
+    qptr = &Peak::greatQuality;
+  else if (quality == PEAK_QUALITY_GOOD)
+    qptr = &Peak::goodQuality;
+  else
+    // TODO Could have more qualities here.
+    return;
+
   for (unsigned i = 0; i < peakPtrs.size(); i++)
   {
     Peak * pp = peakPtrs[i];
     if (pp->isLeftWheel() || 
         pp->isRightWheel() ||
-        pp->greatQuality())
-    {
-      peakPtrsNew.push_back(pp);
-      peakNosNew.push_back(peakNos[i]);
-    }
-    else
-      peakPtrsUnused.push_back(pp);
-  }
-}
-
-
-void PeakStructure::getGoodWheels(
-  const vector<Peak *>& peakPtrs,
-  const vector<unsigned>& peakNos,
-  vector<Peak *>& peakPtrsNew,
-  vector<unsigned>& peakNosNew,
-  vector<Peak *>& peakPtrsUnused) const
-{
-  for (unsigned i = 0; i < peakPtrs.size(); i++)
-  {
-    Peak * pp = peakPtrs[i];
-    if (pp->isLeftWheel() || 
-        pp->isRightWheel() ||
-        pp->goodQuality())
+        (pp->* qptr)())
     {
       peakPtrsNew.push_back(pp);
       peakNosNew.push_back(peakNos[i]);
@@ -526,8 +515,8 @@ bool PeakStructure::findCarsNew(
 
   if (profile.sumGreat == 4)
   {
-    PeakStructure::getGreatWheels(peakPtrs, peakNos,
-      peakPtrsNew, peakNosNew, peakPtrsUnused);
+    PeakStructure::getWheelsByQuality(peakPtrs, peakNos,
+      PEAK_QUALITY_GREAT, peakPtrsNew, peakNosNew, peakPtrsUnused);
 
     if (peakPtrsNew.size() != 4)
       THROW(ERR_ALGO_PEAK_STRUCTURE, "Not 4 great peaks");
@@ -551,8 +540,8 @@ bool PeakStructure::findCarsNew(
   else if (profile.sumGreat == 3 && profile.stars[1] == 1)
   {
     // Try to upgrade the two-star to a three-star peak.
-    PeakStructure::getGoodWheels(peakPtrs, peakNos,
-      peakPtrsNew, peakNosNew, peakPtrsUnused);
+    PeakStructure::getWheelsByQuality(peakPtrs, peakNos,
+      PEAK_QUALITY_GOOD, peakPtrsNew, peakNosNew, peakPtrsUnused);
 
     if (peakPtrsNew.size() != 4)
       THROW(ERR_ALGO_PEAK_STRUCTURE, "Not 4 good peaks (3+1)");
@@ -577,8 +566,8 @@ bool PeakStructure::findCarsNew(
       profile.stars[1] == 0)
   {
     // Try to match three wheels, dropping the first one.
-    PeakStructure::getGreatWheels(peakPtrs, peakNos,
-      peakPtrsNew, peakNosNew, peakPtrsUnused);
+    PeakStructure::getWheelsByQuality(peakPtrs, peakNos,
+      PEAK_QUALITY_GREAT, peakPtrsNew, peakNosNew, peakPtrsUnused);
 
     if (peakPtrsNew.size() != 3)
       THROW(ERR_ALGO_PEAK_STRUCTURE, "Not 3 good peaks");
@@ -603,8 +592,8 @@ bool PeakStructure::findCarsNew(
       profile.stars[1] == 0)
   {
     // Try to match two wheels, dropping the first two.
-    PeakStructure::getGreatWheels(peakPtrs, peakNos,
-      peakPtrsNew, peakNosNew, peakPtrsUnused);
+    PeakStructure::getWheelsByQuality(peakPtrs, peakNos,
+      PEAK_QUALITY_GREAT, peakPtrsNew, peakNosNew, peakPtrsUnused);
 
     if (peakPtrsNew.size() != 2)
       THROW(ERR_ALGO_PEAK_STRUCTURE, "Not 2 good peaks");
