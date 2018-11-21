@@ -18,19 +18,6 @@ class PeakStructure
 {
   private:
 
-    struct Profile
-    {
-      // Peaks that are labeled both w.r.t. bogeys and wheels
-      // (left bogey left/right wheel, right bogey left/right wheel).
-      vector<unsigned> bogeyWheels;
-      // Peaks that are only labeled as wheels (left/right).
-      vector<unsigned> wheels;
-      // Unlabeled peaks by quality: ***, **, *, poor quality.
-      vector<unsigned> stars;
-      unsigned sumGreat;
-      unsigned sum;
-    };
-
     struct PeakCondition
     {
       PeakSource source;
@@ -38,13 +25,13 @@ class PeakStructure
       unsigned end;
       bool leftGapPresent;
       bool rightGapPresent;
+      string text;
     };
 
 
-    unsigned offset;
     list<Recognizer> recognizers;
 
-    unsigned source;
+    unsigned offset;
 
 
     void setCarRecognizers();
@@ -55,12 +42,18 @@ class PeakStructure
       unsigned& index,
       float& distance) const;
 
-    bool findNumberedWheeler(
+    bool findLastTwoOfFourWheeler(
       const CarModels& models,
       const PeakCondition& condition,
       const vector<unsigned>& peakNos,
       const vector<Peak *>& peakPtrs,
-      const unsigned numWheels,
+      CarDetect& car) const;
+
+    bool findLastThreeOfFourWheeler(
+      const CarModels& models,
+      const PeakCondition& condition,
+      const vector<unsigned>& peakNos,
+      const vector<Peak *>& peakPtrs,
       CarDetect& car) const;
 
     bool findFourWheeler(
@@ -70,19 +63,16 @@ class PeakStructure
       const vector<Peak *>& peakPtrs,
       CarDetect& car) const;
 
-    bool findLastTwoOfFourWheeler(
+    bool findNumberedWheeler(
       const CarModels& models,
       const PeakCondition& condition,
       const vector<unsigned>& peakNos,
       const vector<Peak *>& peakPtrs,
+      const unsigned numWheels,
       CarDetect& car) const;
 
-    bool findLastThreeOfFourWheelerNew(
-      const CarModels& models,
-      const PeakCondition& condition,
-      const vector<unsigned>& peakNos,
-      const vector<Peak *>& peakPtrs,
-      CarDetect& car) const;
+
+
 
     void markWheelPair(
       Peak& p1,
@@ -124,22 +114,13 @@ class PeakStructure
       vector<CarDetect>& cars,
       CarDetect& car) const;
 
-    bool findCars(
-      const unsigned start,
-      const unsigned end,
-      const bool leftGapPresent,
-      const bool rightGapPresent,
-      CarModels& models,
-      vector<CarDetect>& cars,
-      list<Peak *>& candidates); // const;
-
     void splitPeaks(
       const vector<Peak *>& peakPtrs,
       const PeakCondition& condition,
       PeakCondition& condition1,
       PeakCondition& condition2) const;
 
-    bool findCarsNew(
+    bool findCars(
       const PeakCondition& condition,
       CarModels& models,
       vector<CarDetect>& cars,
@@ -150,9 +131,8 @@ class PeakStructure
       vector<CarDetect>& cars,
       list<Peak *>& candidates) const;
 
-    void findWholeCar(
+    void findMissingCar(
       const PeakCondition& condition,
-      const string& text,
       CarModels& models,
       vector<CarDetect>& cars,
       list<Peak *>& candidates); // const;
@@ -169,13 +149,10 @@ class PeakStructure
 
     float getFirstPeakTime() const;
 
-    void printPeak(
-      const Peak& peak,
-      const string& text) const;
+
 
     void printRange(
-      const unsigned start,
-      const unsigned end,
+      const PeakCondition& condition,
       const string& text) const;
 
     void printWheelCount(
@@ -190,8 +167,6 @@ class PeakStructure
       const CarModels& models,
       const string& text) const;
 
-    void printPeaksCSV(const vector<PeakTime>& timesTrue) const;
-
   public:
 
     PeakStructure();
@@ -205,8 +180,6 @@ class PeakStructure
       vector<CarDetect>& cars,
       list<Peak *>& candidates,
       const unsigned offsetIn);
-
-  void printPaths() const;
 };
 
 #endif

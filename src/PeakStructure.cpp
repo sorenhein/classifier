@@ -86,55 +86,6 @@ bool PeakStructure::matchesModel(
 }
 
 
-bool PeakStructure::findNumberedWheeler(
-  const CarModels& models,
-  const PeakCondition& condition,
-  const vector<unsigned>& peakNos, 
-  const vector<Peak *>& peakPtrs,
-  const unsigned numWheels,
-  CarDetect& car) const
-{
-  if (numWheels == 2)
-    return PeakStructure::findLastTwoOfFourWheeler(models, 
-      condition, peakNos, peakPtrs, car);
-  else if (numWheels == 3)
-    return PeakStructure::findLastThreeOfFourWheelerNew(models, 
-      condition, peakNos, peakPtrs, car);
-  else if (numWheels == 4)
-    return PeakStructure::findFourWheeler(models, 
-      condition, peakNos, peakPtrs, car);
-  else
-    return false;
-}
-
-
-bool PeakStructure::findFourWheeler(
-  const CarModels& models,
-  const PeakCondition& condition,
-  const vector<unsigned>& peakNos, 
-  const vector<Peak *>& peakPtrs,
-  CarDetect& car) const
-{
-  car.setLimits(condition.start, condition.end);
-
-  if (condition.leftGapPresent)
-    car.logLeftGap(peakNos[0] - condition.start);
-
-  if (condition.rightGapPresent)
-    car.logRightGap(condition.end - peakNos[3]);
-
-  car.logCore(
-    peakNos[1] - peakNos[0],
-    peakNos[2] - peakNos[1],
-    peakNos[3] - peakNos[2]);
-
-  car.logPeakPointers(
-    peakPtrs[0], peakPtrs[1], peakPtrs[2], peakPtrs[3]);
-
-  return models.gapsPlausible(car);
-}
-
-
 bool PeakStructure::findLastTwoOfFourWheeler(
   const CarModels& models,
   const PeakCondition& condition,
@@ -170,7 +121,7 @@ bool PeakStructure::findLastTwoOfFourWheeler(
 }
 
 
-bool PeakStructure::findLastThreeOfFourWheelerNew(
+bool PeakStructure::findLastThreeOfFourWheeler(
   const CarModels& models,
   const PeakCondition& condition,
   const vector<unsigned>& peakNos, 
@@ -204,6 +155,55 @@ bool PeakStructure::findLastThreeOfFourWheelerNew(
   }
 
   return car.midGapPlausible();
+}
+
+
+bool PeakStructure::findNumberedWheeler(
+  const CarModels& models,
+  const PeakCondition& condition,
+  const vector<unsigned>& peakNos, 
+  const vector<Peak *>& peakPtrs,
+  const unsigned numWheels,
+  CarDetect& car) const
+{
+  if (numWheels == 2)
+    return PeakStructure::findLastTwoOfFourWheeler(models, 
+      condition, peakNos, peakPtrs, car);
+  else if (numWheels == 3)
+    return PeakStructure::findLastThreeOfFourWheeler(models, 
+      condition, peakNos, peakPtrs, car);
+  else if (numWheels == 4)
+    return PeakStructure::findFourWheeler(models, 
+      condition, peakNos, peakPtrs, car);
+  else
+    return false;
+}
+
+
+bool PeakStructure::findFourWheeler(
+  const CarModels& models,
+  const PeakCondition& condition,
+  const vector<unsigned>& peakNos, 
+  const vector<Peak *>& peakPtrs,
+  CarDetect& car) const
+{
+  car.setLimits(condition.start, condition.end);
+
+  if (condition.leftGapPresent)
+    car.logLeftGap(peakNos[0] - condition.start);
+
+  if (condition.rightGapPresent)
+    car.logRightGap(condition.end - peakNos[3]);
+
+  car.logCore(
+    peakNos[1] - peakNos[0],
+    peakNos[2] - peakNos[1],
+    peakNos[3] - peakNos[2]);
+
+  car.logPeakPointers(
+    peakPtrs[0], peakPtrs[1], peakPtrs[2], peakPtrs[3]);
+
+  return models.gapsPlausible(car);
 }
 
 
@@ -417,7 +417,7 @@ void PeakStructure::splitPeaks(
 }
 
 
-bool PeakStructure::findCarsNew(
+bool PeakStructure::findCars(
   const PeakCondition& condition,
   CarModels& models,
   vector<CarDetect>& cars,
@@ -447,10 +447,10 @@ bool PeakStructure::findCarsNew(
     PeakCondition condition1, condition2;
     PeakStructure::splitPeaks(peakPtrs, condition, condition1, condition2);
 
-    if (! PeakStructure::findCarsNew(condition1, models, cars, candidates))
+    if (! PeakStructure::findCars(condition1, models, cars, candidates))
       return false;
 
-    if (! PeakStructure::findCarsNew(condition2, models, cars, candidates))
+    if (! PeakStructure::findCars(condition2, models, cars, candidates))
       return false;
 
     return true;
@@ -497,29 +497,6 @@ bool PeakStructure::findCarsNew(
 
   cout << profile.str();
   return false;
-}
-
-
-bool PeakStructure::findCars(
-  const unsigned start,
-  const unsigned end,
-  const bool leftGapPresent,
-  const bool rightGapPresent,
-  CarModels& models,
-  vector<CarDetect>& cars,
-  list<Peak *>& candidates) // const
-{
-  PeakCondition condition0;
-  if (source == 0)
-    condition0.source = PEAK_SOURCE_INNER;
-  else
-    condition0.source = (source == 1 ? PEAK_SOURCE_FIRST : PEAK_SOURCE_LAST);
-  condition0.start = start;
-  condition0.end = end;
-  condition0.leftGapPresent = leftGapPresent;
-  condition0.rightGapPresent = rightGapPresent;
-
-  return (findCarsNew(condition0, models, cars, candidates));
 }
 
 
@@ -619,9 +596,8 @@ void PeakStructure::findWholeCars(
 }
 
 
-void PeakStructure::findWholeCar(
+void PeakStructure::findMissingCar(
   const PeakCondition& condition,
-  const string& text,
   CarModels& models,
   vector<CarDetect>& cars,
   list<Peak *>& candidates) // const
@@ -629,12 +605,10 @@ void PeakStructure::findWholeCar(
   if (condition.start >= condition.end)
     return;
 
-  if (PeakStructure::findCarsNew(condition, models, cars, candidates))
-    PeakStructure::printRange(condition.start, condition.end, 
-      "Did " + text);
+  if (PeakStructure::findCars(condition, models, cars, candidates))
+    PeakStructure::printRange(condition, "Did " + condition.text);
   else
-    PeakStructure::printRange(condition.start, condition.end, 
-      "Didn't do " + text);
+    PeakStructure::printRange(condition, "Didn't do " + condition.text);
 }
 
 
@@ -650,14 +624,15 @@ void PeakStructure::findMissingCars(
     condition.end = cars.front().startValue();
     condition.leftGapPresent = false;
     condition.rightGapPresent = true;
+    condition.text = "first whole-car";
 
-    PeakStructure::findWholeCar(condition, "first whole-car",
-      models, cars, candidates);
+    PeakStructure::findMissingCar(condition, models, cars, candidates);
   }
   else if (condition.source == PEAK_SOURCE_INNER)
   {
     condition.leftGapPresent = true;
     condition.rightGapPresent = true;
+    condition.text = "intra-gap";
 
     const unsigned csize = cars.size(); // As cars grows in the loop
     for (unsigned cno = 0; cno+1 < csize; cno++)
@@ -665,8 +640,8 @@ void PeakStructure::findMissingCars(
       condition.start = cars[cno].endValue();
       condition.end = cars[cno+1].startValue();
 
-      PeakStructure::findWholeCar(condition, "intra-gap",
-        models, cars, candidates);
+      PeakStructure::findMissingCar(condition, models, cars, 
+        candidates);
     }
   }
   else if (condition.source == PEAK_SOURCE_LAST)
@@ -675,9 +650,9 @@ void PeakStructure::findMissingCars(
     condition.end = candidates.back()->getIndex();
     condition.leftGapPresent = true;
     condition.rightGapPresent = false;
+    condition.text = "last whole-car";
 
-    PeakStructure::findWholeCar(condition, "last whole-car",
-      models, cars, candidates);
+    PeakStructure::findMissingCar(condition, models, cars, candidates);
   }
 }
 
@@ -771,22 +746,13 @@ void PeakStructure::markCars(
 }
 
 
-void PeakStructure::printPeak(
-  const Peak& peak,
-  const string& text) const
-{
-  cout << text << "\n";
-  cout << peak.strHeader();
-  cout << peak.str(0) << endl;
-}
-
-
 void PeakStructure::printRange(
-  const unsigned start,
-  const unsigned end,
+  const PeakCondition& condition,
   const string& text) const
 {
-  cout << text << " " << start + offset << "-" << end + offset << endl;
+  cout << text << " " << 
+    condition.start + offset << "-" << 
+    condition.end + offset << endl;
 }
 
 
