@@ -11,10 +11,6 @@
 #include "Except.h"
 
 
-#define UNUSED(x) ((void)(true ? 0 : ((x), void(), 0)))
-
-
-
 PeakStructure::PeakStructure()
 {
   PeakStructure::reset();
@@ -623,65 +619,65 @@ void PeakStructure::findWholeCars(
 }
 
 
-void PeakStructure::findWholeInnerCars(
+void PeakStructure::findWholeCar(
+  const PeakCondition& condition,
+  const string& text,
   CarModels& models,
   vector<CarDetect>& cars,
   list<Peak *>& candidates) // const
 {
-  const unsigned csize = cars.size(); // As cars grows in the loop
-  for (unsigned cno = 0; cno+1 < csize; cno++)
-  {
-    const unsigned end = cars[cno].endValue();
-    const unsigned start = cars[cno+1].startValue();
-    if (end == start)
-      continue;
+  if (condition.start >= condition.end)
+    return;
 
-source = 0;
-    if (PeakStructure::findCars(end, start, true, true, 
-      models, cars, candidates))
-      PeakStructure::printRange(end, start, "Did intra-gap");
-    else
-      PeakStructure::printRange(end, start, "Didn't do intra-gap");
-  }
+  if (PeakStructure::findCarsNew(condition, models, cars, candidates))
+    PeakStructure::printRange(condition.start, condition.end, 
+      "Did " + text);
+  else
+    PeakStructure::printRange(condition.start, condition.end, 
+      "Didn't do " + text);
 }
 
 
-void PeakStructure::findWholeFirstCar(
+void PeakStructure::findMissingCars(
+  PeakCondition& condition,
   CarModels& models,
   vector<CarDetect>& cars,
   list<Peak *>& candidates) // const
 {
-  const unsigned u1 = candidates.front()->getIndex();
-  const unsigned u2 = cars.front().startValue();
-  if (u1 < u2)
+  if (condition.source == PEAK_SOURCE_FIRST)
   {
-source = 1;
-    if (PeakStructure::findCars(u1, u2, false, true, 
-        models, cars, candidates))
-      PeakStructure::printRange(u1, u2, "Did first whole-car gap");
-    else
-      PeakStructure::printRange(u1, u2, "Didn't do first whole-car gap");
-    cout << endl;
+    condition.start = candidates.front()->getIndex();
+    condition.end = cars.front().startValue();
+    condition.leftGapPresent = false;
+    condition.rightGapPresent = true;
+
+    PeakStructure::findWholeCar(condition, "first whole-car",
+      models, cars, candidates);
   }
-}
-
-
-void PeakStructure::findWholeLastCar(
-  CarModels& models,
-  vector<CarDetect>& cars,
-  list<Peak *>& candidates) // const
-{
-  const unsigned u1 = cars.back().endValue();
-  const unsigned u2 = candidates.back()->getIndex();
-  if (u2 > u1)
+  else if (condition.source == PEAK_SOURCE_INNER)
   {
-source = 2;
-    if (PeakStructure::findCars(u1, u2, true, false, 
-        models, cars, candidates))
-      PeakStructure::printRange(u1, u2, "Did last whole-car gap");
-    else
-      PeakStructure::printRange(u1, u2, "Didn't do last whole-car gap");
-    cout << endl;
+    condition.leftGapPresent = true;
+    condition.rightGapPresent = true;
+
+    const unsigned csize = cars.size(); // As cars grows in the loop
+    for (unsigned cno = 0; cno+1 < csize; cno++)
+    {
+      condition.start = cars[cno].endValue();
+      condition.end = cars[cno+1].startValue();
+
+      PeakStructure::findWholeCar(condition, "intra-gap",
+        models, cars, candidates);
+    }
+  }
+  else if (condition.source == PEAK_SOURCE_LAST)
+  {
+    condition.start = cars.back().endValue();
+    condition.end = candidates.back()->getIndex();
+    condition.leftGapPresent = true;
+    condition.rightGapPresent = false;
+
+    PeakStructure::findWholeCar(condition, "last whole-car",
+      models, cars, candidates);
   }
 }
 
@@ -726,8 +722,9 @@ void PeakStructure::markCars(
   for (auto& car: cars)
     models.fillSides(car);
 
-  // TODO Could actually be multiple cars in vector, e.g. same wheel gaps
-  // but different spacing between cars, ICET_DEU_56_N.
+  // TODO Could actually be multiple cars in vector, e.g. 
+  // same wheel gaps but different spacing between cars, 
+  // ICET_DEU_56_N.
 
   PeakStructure::updateCarDistances(models, cars);
 
@@ -735,7 +732,10 @@ void PeakStructure::markCars(
 
   // Check open intervals.  Start with inner ones as they are complete.
 
-  PeakStructure::findWholeInnerCars(models, cars, candidates);
+  PeakCondition condition;
+
+  condition.source = PEAK_SOURCE_INNER;
+  PeakStructure::findMissingCars(condition, models, cars, candidates);
   PeakStructure::updateCarDistances(models, cars);
   sort(cars.begin(), cars.end());
 
@@ -743,14 +743,16 @@ void PeakStructure::markCars(
   PeakStructure::printCars(cars, "after whole-car gaps");
   PeakStructure::printCarStats(models, "after whole-car inner gaps");
 
-  PeakStructure::findWholeLastCar(models, cars, candidates);
+  condition.source = PEAK_SOURCE_LAST;
+  PeakStructure::findMissingCars(condition, models, cars, candidates);
   PeakStructure::updateCarDistances(models, cars);
 
   PeakStructure::printWheelCount(candidates, "Counting");
   PeakStructure::printCars(cars, "after trailing whole car");
   PeakStructure::printCarStats(models, "after trailing whole car");
 
-  PeakStructure::findWholeFirstCar(models, cars, candidates);
+  condition.source = PEAK_SOURCE_FIRST;
+  PeakStructure::findMissingCars(condition, models, cars, candidates);
   PeakStructure::updateCarDistances(models, cars);
   sort(cars.begin(), cars.end());
 

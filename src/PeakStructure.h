@@ -150,21 +150,18 @@ class PeakStructure
       vector<CarDetect>& cars,
       list<Peak *>& candidates) const;
 
-    void findWholeInnerCars(
+    void findWholeCar(
+      const PeakCondition& condition,
+      const string& text,
       CarModels& models,
       vector<CarDetect>& cars,
       list<Peak *>& candidates); // const;
 
-    void findWholeFirstCar(
+    void findMissingCars(
+      PeakCondition& condition,
       CarModels& models,
       vector<CarDetect>& cars,
       list<Peak *>& candidates); // const;
-
-    void findWholeLastCar(
-      CarModels& models,
-      vector<CarDetect>& cars,
-      list<Peak *>& candidates); // const;
-
 
     void updateCarDistances(
       const CarModels& models,
