@@ -19,11 +19,6 @@ PeakStructure::PeakStructure()
 {
   PeakStructure::reset();
   PeakStructure::setCarRecognizers();
-
-  // This is a temporary tracker.
-  for (unsigned i = 0; i < 3; i++)
-    for (unsigned j = 0; j < 24; j++)
-      matrix[i][j] = 0;
 }
 
 
@@ -216,61 +211,6 @@ bool PeakStructure::findLastThreeOfFourWheelerNew(
 }
 
 
-bool PeakStructure::findLastThreeOfFourWheeler(
-  const CarModels& models,
-  const unsigned start, 
-  const unsigned end,
-  const vector<unsigned>& peakNos, 
-  const vector<Peak *>& peakPtrs,
-  CarDetect& car,
-  unsigned& numWheels) const
-{
-  car.setLimits(start, end);
-
-  car.logCore(
-    0, 
-    peakNos[1] - peakNos[0],
-    peakNos[2] - peakNos[1]);
-
-  car.logRightGap(end - peakNos[2]);
-
-  car.logPeakPointers(
-    nullptr, peakPtrs[0], peakPtrs[1], peakPtrs[2]);
-
-  if (! models.sideGapsPlausible(car))
-    return false;
-
-  // As we don't have a complete car, we'll at least require the
-  // right bogey gap to be similar to something we've seen.
-
-  if (! models.rightBogeyPlausible(car))
-  {
-    cout << "Error: Suspect right bogey gap: ";
-    cout << car.strGaps(0) << endl;
-    cout << "Checked against " << models.size() << " ref cars\n";
-    return false;
-  }
-
-  if (! car.midGapPlausible())
-  {
-    // Drop the first peak.
-    numWheels = 2;
-    car.logPeakPointers(
-      nullptr, nullptr, peakPtrs[1], peakPtrs[2]);
-
-    cout << "Dropping very first peak as too close\n";
-    return true;
-  }
-  else
-  {
-    numWheels = 3;
-    return true;
-  }
-
-  return true;
-}
-
-
 void PeakStructure::markWheelPair(
   Peak& p1,
   Peak& p2,
@@ -442,6 +382,45 @@ void PeakStructure::getWheelsByQuality(
 }
 
 
+void PeakStructure::splitPeaks(
+  const vector<Peak *>& peakPtrs,
+  const PeakCondition& condition,
+  PeakCondition& condition1,
+  PeakCondition& condition2) const
+{
+  vector<unsigned> indices;
+  for (unsigned i = 0; i < peakPtrs.size(); i++)
+  {
+    Peak * pp = peakPtrs[i];
+    if (pp->isLeftWheel() || 
+        pp->isRightWheel() ||
+        pp->goodQuality())
+    {
+      indices.push_back(i);
+    }
+  }
+
+  if (indices.size() != 8)
+    THROW(ERR_ALGO_PEAK_STRUCTURE, "Expected 8 peaks in two cars");
+
+  const unsigned middle = 
+    (peakPtrs[indices[3]]->getIndex() + 
+     peakPtrs[indices[4]]->getIndex()) / 2;
+
+  condition1.source = PEAK_SOURCE_INNER;
+  condition1.start = condition.start;
+  condition1.end = middle;
+  condition1.leftGapPresent  = condition.leftGapPresent;
+  condition1.rightGapPresent  = true;
+
+  condition2.source = PEAK_SOURCE_LAST;
+  condition2.start = middle;
+  condition2.end = condition.end;
+  condition2.leftGapPresent  = true;
+  condition2.rightGapPresent  = condition.rightGapPresent;
+}
+
+
 bool PeakStructure::findCarsNew(
   const PeakCondition& condition,
   CarModels& models,
@@ -465,6 +444,21 @@ bool PeakStructure::findCarsNew(
 
   PeakProfile profile;
   profile.make(peakPtrs, condition.source);
+
+  if (profile.looksLikeTwoBackCars())
+  {
+    // This might become more general in the future.
+    PeakCondition condition1, condition2;
+    PeakStructure::splitPeaks(peakPtrs, condition, condition1, condition2);
+
+    if (! PeakStructure::findCarsNew(condition1, models, cars, candidates))
+      return false;
+
+    if (! PeakStructure::findCarsNew(condition2, models, cars, candidates))
+      return false;
+
+    return true;
+  }
 
   vector<Peak *> peakPtrsNew;
   vector<Peak *> peakPtrsUnused;
@@ -510,15 +504,6 @@ bool PeakStructure::findCarsNew(
 }
 
 
-string PeakStructure::x(const unsigned v) const
-{
-  if (v == 0)
-    return "-";
-  else
-    return to_string(v);
-}
-
-
 bool PeakStructure::findCars(
   const unsigned start,
   const unsigned end,
@@ -538,265 +523,7 @@ bool PeakStructure::findCars(
   condition0.leftGapPresent = leftGapPresent;
   condition0.rightGapPresent = rightGapPresent;
 
-  if (findCarsNew(condition0, models, cars, candidates))
-    return true;
-
-
-  vector<unsigned> peakNos;
-  vector<Peak *> peakPtrs;
-  unsigned notTallCount = 0;
-  vector<unsigned> notTallNos;
-  bool notTallFlag = false;
-
-  unsigned i = 0;
-  for (auto& cand: candidates)
-  {
-    const unsigned index = cand->getIndex();
-    if (index >= start && index <= end)
-    {
-      if (! cand->isSelected())
-      {
-        notTallFlag = true;
-        notTallNos.push_back(peakNos.size());
-        notTallCount++;
-      }
-
-      peakNos.push_back(index);
-      peakPtrs.push_back(cand);
-      
-    }
-    i++;
-  }
-
-  unsigned startLocal = start;
-  unsigned endLocal = end;
-  bool leftFlagLocal = leftGapPresent;
-  bool rightFlagLocal = rightGapPresent;
-
-  unsigned np = peakNos.size();
-  bool firstRightFlag = true;
-  const unsigned npOrig = np;
-cout << "Starting out with " << np << " peaks\n";
-
-  while (np >= 8)
-  {
-    // Might be multiple cars.  Work backwards, as this works best
-    // for the leading cars.  Use groups of four good peaks.
-    i = np;
-    unsigned seen = 0;
-    while (i > 0 && seen < 4)
-    {
-      i--;
-      if (peakPtrs[i]->goodQuality())
-        seen++;
-    }
-
-    if (seen == 4)
-    {
-      vector<unsigned> peakNosNew;
-      vector<Peak *> peakPtrsNew;
-      for (unsigned j = i; j < np; j++)
-      {
-        if (peakPtrs[j]->goodQuality())
-        {
-          peakNosNew.push_back(peakNos[j]);
-          peakPtrsNew.push_back(peakPtrs[j]);
-        }
-
-        peakNos.pop_back();
-        peakPtrs.pop_back();
-      }
-cout << "Trying a multi-peak split, np was " << np << ", is " << i << endl;
-cout << "sizes " << peakNosNew.size() << ", " << peakPtrsNew.size() <<
-  ", " << peakNos.size() << ", " << peakPtrs.size() << endl;
-      np = i;
-
-      if (peakPtrsNew.front() == peakPtrs.front())
-      {
-        startLocal = start;
-        leftFlagLocal = leftGapPresent;
-      }
-      else
-      {
-        startLocal = peakPtrsNew[0]->getIndex();
-        leftFlagLocal = false;
-      }
-
-      if (firstRightFlag)
-      {
-        endLocal = end;
-        rightFlagLocal = rightGapPresent;
-        firstRightFlag = false;
-      }
-      else
-      {
-        endLocal = peakPtrsNew[3]->getIndex();
-        rightFlagLocal = false;
-      }
-cout << "Range is " << startLocal+offset << "-" << 
-  endLocal+offset << endl;
-
-
-  PeakCondition condition;
-  if (source == 0)
-    condition.source = PEAK_SOURCE_INNER;
-  else
-    condition.source = (source == 1 ? PEAK_SOURCE_FIRST : PEAK_SOURCE_LAST);
-  condition.start = startLocal;
-  condition.end = endLocal;
-  condition.leftGapPresent = leftFlagLocal;
-  condition.rightGapPresent = rightFlagLocal;
-
-      CarDetect car;
-      if (PeakStructure::findFourWheeler(models, condition,
-        peakNosNew, peakPtrsNew, car))
-      {
-matrix[source][0]++;
-        PeakStructure::fixFourWheels(
-          * peakPtrsNew[0], * peakPtrsNew[1], 
-          * peakPtrsNew[2], * peakPtrsNew[3]);
-        for (unsigned k = 4; k < peakPtrsNew.size(); k++)
-        {
-          peakPtrsNew[k]->markNoWheel();
-          peakPtrsNew[k]->unselect();
-        }
-        
-        PeakStructure::updateCars(models, cars, car);
-        // Then go on
-      }
-      else
-      {
-        // Doesn't happen.
-        return false;
-      }
-    }
-    else
-    {
-      // Fall through to the other chances.
-cout << "Falling through with remaining peaks, np " << np << endl;
-      break;
-    }
-  }
-
-  if (npOrig > np)
-  {
-    // Kludge
-    if (peakPtrs.size() == 0)
-      THROW(ERR_NO_PEAKS, "No residual peaks?");
-
-        startLocal = start;
-        leftFlagLocal = leftGapPresent;
-
-        endLocal = peakPtrs.back()->getIndex();
-        rightFlagLocal = false;
-
-cout << "Fell through to " << startLocal+offset << "-" << endLocal+offset << endl;
-
-  notTallCount = 0;
-  notTallNos.clear();
-  notTallFlag = false;
-  peakNos.clear();
-  peakPtrs.clear();
-
-  i = 0;
-  for (auto& cand: candidates)
-  {
-    const unsigned index = cand->getIndex();
-    if (index >= startLocal && index <= endLocal)
-    {
-      if (! cand->isSelected())
-      {
-        notTallFlag = true;
-        notTallNos.push_back(peakNos.size());
-        notTallCount++;
-      }
-
-      peakNos.push_back(index);
-      peakPtrs.push_back(cand);
-      
-    }
-    i++;
-  }
-
-  np = peakNos.size();
-
-
-  }
-
-
-  // np >= 3 here.
-
-  // np != 4 here
-
-  if (np >= 5)
-  {
-    // Might be several extra peaks (1-2).
-    vector<unsigned> peakNosNew;
-    vector<Peak *> peakPtrsNew;
-
-    float qmax = 0.f;
-    unsigned qindex = 0;
-
-    unsigned j = 0;
-    for (auto& peakPtr: peakPtrs)
-    {
-      if (peakPtr->getQualityShape() > qmax)
-      {
-        qmax = peakPtr->getQualityShape();
-        qindex = j;
-      }
-
-      if (peakPtr->goodQuality())
-      {
-        peakNosNew.push_back(peakPtr->getIndex());
-        peakPtrsNew.push_back(peakPtr);
-      }
-      j++;
-    }
-
-    if (peakNosNew.size() != 4)
-    {
-      // Doesn't happen
-      return false;
-    }
-
-    CarDetect car;
-
-  PeakCondition condition;
-  if (source == 0)
-    condition.source = PEAK_SOURCE_INNER;
-  else
-    condition.source = (source == 1 ? PEAK_SOURCE_FIRST : PEAK_SOURCE_LAST);
-  condition.start = startLocal;
-  condition.end = endLocal;
-  condition.leftGapPresent = leftFlagLocal;
-  condition.rightGapPresent = rightFlagLocal;
-
-    // Try the car.
-cout << "Trying the car\n";
-    if (! PeakStructure::findFourWheeler(models, condition,
-        peakNosNew, peakPtrsNew, car))
-    {
-      // Doesn't happen.
-      return false;
-    }
-
-    PeakStructure::fixFourWheels(
-      * peakPtrsNew[0], * peakPtrsNew[1], 
-      * peakPtrsNew[2], * peakPtrsNew[3]);
-    for (unsigned k = 4; k < peakPtrsNew.size(); k++)
-    {
-      peakPtrsNew[k]->markNoWheel();
-      peakPtrsNew[k]->unselect();
-    }
-
-matrix[source][4]++;
-    PeakStructure::updateCars(models, cars, car);
-    return true;
-  }
-
-  // Doesn't happen.
-  return false;
+  return (findCarsNew(condition0, models, cars, candidates));
 }
 
 
@@ -1102,42 +829,5 @@ void PeakStructure::printCarStats(
 {
   cout << "Car stats " << text << "\n";
   cout << models.str();
-}
-
-
-void PeakStructure::printPaths() const
-{
-  cout << setw(8) << left << "Place" <<
-    setw(8) << right << "Inner" <<
-    setw(8) << right << "First" <<
-    setw(8) << right << "Last" <<
-    setw(8) << right << "Sum" <<
-    "\n";
-
-  vector<unsigned> sumSource(3);
-  vector<unsigned> sumPlace(12);
-
-  for (unsigned j = 0; j < 24; j++)
-  {
-    if (matrix[0][j] + matrix[1][j] + matrix[2][j] == 0)
-      continue;
-
-    cout << setw(8) << left << j <<
-      setw(8) << right << matrix[0][j] <<
-      setw(8) << right << matrix[1][j] <<
-      setw(8) << right << matrix[2][j] <<
-      setw(8) << right << matrix[0][j] + matrix[1][j] + matrix[2][j] <<
-      "\n";
-    sumPlace[0] += matrix[0][j];
-    sumPlace[1] += matrix[1][j];
-    sumPlace[2] += matrix[2][j];
-  }
-  cout << string(40, '-') << endl;
-
-  cout << setw(8) << left << "Sum" <<
-    setw(8) << right << sumPlace[0] <<
-    setw(8) << right << sumPlace[1] <<
-    setw(8) << right << sumPlace[2] <<
-    "\n";
 }
 

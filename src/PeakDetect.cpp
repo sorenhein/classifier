@@ -426,8 +426,6 @@ void PeakDetect::logPeakStats(
 {
   PeakMatch matches;
   matches.logPeakStats(peaks, posTrue, trainTrue, speedTrue, peakStats);
-
-pstruct.printPaths();
 }
 
 

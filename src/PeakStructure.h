@@ -13,14 +13,6 @@ class CarDetect;
 class CarModels;
 class Peak;
 
-enum PeakSource
-{
-  PEAK_SOURCE_FIRST = 1,
-  PEAK_SOURCE_INNER = 2,
-  PEAK_SOURCE_LAST = 4,
-  PEAK_SOURCE_SIZE = 8
-};
-
 
 class PeakStructure
 {
@@ -53,7 +45,6 @@ class PeakStructure
     list<Recognizer> recognizers;
 
     unsigned source;
-    unsigned matrix[3][24];
 
 
     void setCarRecognizers();
@@ -85,15 +76,6 @@ class PeakStructure
       const vector<unsigned>& peakNos,
       const vector<Peak *>& peakPtrs,
       CarDetect& car) const;
-
-    bool findLastThreeOfFourWheeler(
-      const CarModels& models,
-      const unsigned start,
-      const unsigned end,
-      const vector<unsigned>& peakNos,
-      const vector<Peak *>& peakPtrs,
-      CarDetect& car,
-      unsigned& numWheels) const;
 
     bool findLastThreeOfFourWheelerNew(
       const CarModels& models,
@@ -151,11 +133,11 @@ class PeakStructure
       vector<CarDetect>& cars,
       list<Peak *>& candidates); // const;
 
-    string x(const unsigned v) const;
-
-    void makeProfile(const vector<Peak *>& peakPtrs);
-
-    string strProfile(const unsigned origin) const;
+    void splitPeaks(
+      const vector<Peak *>& peakPtrs,
+      const PeakCondition& condition,
+      PeakCondition& condition1,
+      PeakCondition& condition2) const;
 
     bool findCarsNew(
       const PeakCondition& condition,

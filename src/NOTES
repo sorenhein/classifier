@@ -1,9 +1,4 @@
 * Can combine findWhole*Car
-* Splitting a 7 or 8 (good/great)
-  count off to middle
-  nothing between, so make new PeakConditions (2)
-  2 calls needing 4 great/good peaks, can predict which it will be
-* Delete the old Find3
 * Group peakPtrs and peakNos in a struct.
   Or actually, peakNos = peakPtrs->getIndex...
 
