@@ -1,7 +1,3 @@
-* Group peakPtrs and peakNos in a struct.
-  Or actually, peakNos = peakPtrs->getIndex...
-
-
 * For sensor00 there should be 3516 peaks?  Why only 3396?
   - 101129, 122841: Got peaks but "no good match".
   - Why don't we log the peaks anyway?

@@ -255,10 +255,8 @@ void PeakStructure::downgradeAllPeaks(vector<Peak *>& peakPtrs) const
 
 void PeakStructure::getWheelsByQuality(
   const vector<Peak *>& peakPtrs,
-  const vector<unsigned>& peakNos,
   const PeakQuality quality,
   vector<Peak *>& peakPtrsNew,
-  vector<unsigned>& peakNosNew,
   vector<Peak *>& peakPtrsUnused) const
 {
   typedef bool (Peak::*QualFncPtr)() const;
@@ -280,7 +278,6 @@ void PeakStructure::getWheelsByQuality(
         (pp->* qptr)())
     {
       peakPtrsNew.push_back(pp);
-      peakNosNew.push_back(peakNos[i]);
     }
     else
       peakPtrsUnused.push_back(pp);
@@ -385,8 +382,6 @@ bool PeakStructure::findCarsInInterval(
   list<Peak *>& candidates) const
 {
   vector<Peak *> peakPtrs;
-  vector<unsigned> peakNos;
-
   for (auto& cand: candidates)
   {
     const unsigned index = cand->getIndex();
@@ -396,7 +391,6 @@ bool PeakStructure::findCarsInInterval(
       continue;
 
     peakPtrs.push_back(cand);
-    peakNos.push_back(index);
   }
 
   PeakProfile profile;
@@ -422,14 +416,13 @@ bool PeakStructure::findCarsInInterval(
 
   vector<Peak *> peakPtrsNew;
   vector<Peak *> peakPtrsUnused;
-  vector<unsigned> peakNosNew;
 
   for (auto& recog: recognizers)
   {
     if (profile.match(recog))
     {
-      PeakStructure::getWheelsByQuality(peakPtrs, peakNos,
-        recog.quality, peakPtrsNew, peakNosNew, peakPtrsUnused);
+      PeakStructure::getWheelsByQuality(peakPtrs, 
+        recog.quality, peakPtrsNew, peakPtrsUnused);
 
       if (peakPtrsNew.size() != recog.numWheels)
         THROW(ERR_ALGO_PEAK_STRUCTURE, "Not " + recog.text);

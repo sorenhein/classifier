@@ -76,10 +76,8 @@ class PeakStructure
 
     void getWheelsByQuality(
       const vector<Peak *>& peakPtrs,
-      const vector<unsigned>& peakNos,
       const PeakQuality quality,
       vector<Peak *>& peakPtrsNew,
-      vector<unsigned>& peakNosNew,
       vector<Peak *>& peakPtrsUnused) const;
 
     void splitPeaks(
