@@ -279,8 +279,26 @@ void PeakDetect::reduceSmallPeaks(
     }
     while (abs(sumParam) < paramLimit || abs(lastParam) < paramLimit);
 
+if (preserveFlag && peak->getIndex() > 11500)
+{
+  cout << 
+    "PEAK curr " << 
+    setw(7) << fixed << setprecision(4) << peakCurrent->getValue() <<
+    " " << peakCurrent->getIndex() + offset <<
+    (peakCurrent->getMaxFlag() ? " max" : " min") <<
+    ", max " << peakMax->getIndex() + offset <<
+    (peakMax->getMaxFlag() ? " max" : " min") <<
+    (peakMax->getValue() >= 0.f ? " pos" : " neg") <<
+    ", peak " << peak->getIndex() + offset <<
+    (peak->getMaxFlag() ? " max" : " min") <<
+    (peak->getValue() >= 0.f ? " pos" : " neg") <<
+    " mf " << (maxFlag ? "true" : "false") <<
+    "\n";
+}
     if (abs(sumParam) < paramLimit || abs(lastParam) < paramLimit)
     {
+if (preserveFlag && peak->getIndex() > 11500)
+  cout << "PATH1\n";
       // It's the last set of peaks.  We could keep the largest peak
       // of the same polarity as peakCurrent (instead of peakCurrent).
       // It's a bit random whether or not this would be a "real" peak,
@@ -292,19 +310,27 @@ void PeakDetect::reduceSmallPeaks(
     else if (preserveFlag &&
         peakCurrent->getValue() > 0.f &&
         ! peakCurrent->getMaxFlag())
+        // THOUGHT: maxFlag true, pcurr true, next false,
+        // values pos pos any, don't do
     {
+if (preserveFlag && peak->getIndex() > 11500)
+  cout << "PATH2\n";
       // Don't connect two positive maxima.  This can mess up
       // the gradient calculation which influences peak perception.
       peak++;
     }
     else if (peak->getMaxFlag() != maxFlag)
     {
+if (preserveFlag && peak->getIndex() > 11500)
+  cout << "PATH3\n";
       // Keep from peakCurrent to peak which is also often peakMax.
       peak = PeakDetect::collapsePeaks(--peakCurrent, peak);
       peak++;
     }
     else
     {
+if (preserveFlag && peak->getIndex() > 11500)
+  cout << "PATH4\n";
       // Keep the start, the most extreme peak of opposite polarity,
       // and the end.
       peakMax = PeakDetect::collapsePeaks(--peakCurrent, peakMax);
