@@ -282,8 +282,10 @@ float Peak::getArea(const Peak& p2) const
 {
   // Calculate differential area to some other peak, not necessarily
   // the immediate predecessor (but a predecessor).
+  // return abs((areaCum + value) - (p2.areaCum + p2.value) -
   return abs(areaCum - p2.areaCum -
     (index - p2.index) * min(value, p2.value));
+  // TODO The integral only goes up to index-1.
 }
 
 
@@ -443,13 +445,19 @@ bool Peak::similarGradientOne(const Peak& p1) const
   //
   // TODO When we delete a peak, we also change the right flank
   // of a peak?!
-   const float lenNew = left.len + p1.left.len;
+   // const float lenNew = left.len + p1.left.len;
   // Should be left.len + (p1.index - index)?
-  // const float lenNew = left.len + (p1.index - index);
+  const float lenNew = left.len + (p1.index - index);
 
   const float val0 = (maxFlag ? value - left.range : value + left.range);
   const float rangeNew = abs(p1.value - val0);
   const float gradNew = rangeNew / lenNew;
+// cout << "old grad " << left.gradient << ", new " << gradNew << endl;
+// cout << "range new " << rangeNew << " lenNew " << lenNew << endl;
+
+  // Old gradient ends in value.  If we're a minimum, then the old
+  // gradient is negative.  So p1.value should be less than val0
+  // as well.
 
   // TODO #define
   return (gradNew >= 0.9f * left.gradient && 
@@ -462,13 +470,13 @@ bool Peak::similarGradientTwo(
   const Peak& p2) const
 {
   // The peaks are in the order "this", p1, p2.
-  const float lenNew = left.len + p1.left.len + p2.left.len;
-  const float rangeNew = abs(p2.value - value) + left.range;
+  // const float lenNew = left.len + p1.left.len + p2.left.len;
+  // const float rangeNew = abs(p2.value - value) + left.range;
   // const float gradNew = rangeNew / lenNew;
 
-  // const float lenNew = left.len + (p2.index - index);
-  // const float val0 = (maxFlag ? value - left.range : value + left.range);
-  // const float rangeNew = abs(p2.value - val0);
+  const float lenNew = left.len + (p2.index - index);
+  const float val0 = (maxFlag ? value - left.range : value + left.range);
+  const float rangeNew = abs(p2.value - val0);
   const float gradNew = rangeNew / lenNew;
   UNUSED(p1);
 

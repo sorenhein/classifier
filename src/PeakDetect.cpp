@@ -47,9 +47,12 @@ float PeakDetect::integrate(
   const unsigned i1) const
 {
   float sum = 0.f;
-  // for (unsigned i = i0; i < i1; i++)
-  for (unsigned i = i0; i <= i1; i++)
+  for (unsigned i = i0; i < i1; i++)
+  // for (unsigned i = i0; i <= i1; i++)
+  // for (unsigned i = i0+1; i <= i1; i++)
     sum += samples[i];
+
+  sum += 0.5f * (samples[i1] - samples[i0]);
 
   return sum;
 }
@@ -316,6 +319,45 @@ PeakDetect::printTMP(peakCurrent, peakMax, peak, "P1");
       break;
     }
 
+    // Depending on gradients, we might delete everything in
+    // [peakPrev, peak) or keep support peaks along the way.
+    // Of the possibilities from left and from right (separately),
+    // note the lowest one.  If they are the same, keep that.
+    auto peakFirst = prev(peakCurrent);
+    auto peakLeft = peakFirst;
+    auto peakRight = prev(peak);
+
+    for (auto p = peakFirst; p != peak; p++)
+    {
+      if (peakFirst->similarGradientOne(* p) &&
+          p->getValue() < peakLeft->getValue())
+        peakLeft = p;
+
+      if (p->similarGradientOne(* peak) &&
+          p->getValue() < peakRight->getValue())
+        peakRight = p;
+    }
+
+    if (peakLeft == peakRight)
+    {
+      PeakDetect::collapsePeaks(peakFirst, peakLeft);
+      PeakDetect::collapsePeaks(++peakRight, peak);
+    }
+    else
+    {
+      PeakDetect::collapsePeaks(peakFirst, peakLeft);
+      PeakDetect::collapsePeaks(++peakLeft, peakRight);
+      PeakDetect::collapsePeaks(++peakRight, peak);
+    }
+
+
+    // TODO: similarGradient for both peakPrev-1 to peak forwards,
+    // and from peak to peakPrev-1 backwards.
+
+
+/*
+if (peak->getIndex()+offset > 4500)
+  cout << "HERE " << peak->getIndex() + offset << endl;
 PeakDetect::printTMP(peakCurrent, peakMax, peak, "P2");
 cout << peakCurrent->getIndex() + offset<< " " <<
   peakMax->getIndex() + offset << " " << 
@@ -341,6 +383,7 @@ cout << "  max " << peakMax->getIndex() + offset << " " <<
   peak->getIndex() + offset << endl;
       PeakDetect::collapsePeaks(++peakMax, peak);
     }
+    */
     
     peak++;
   }
@@ -556,8 +599,8 @@ void PeakDetect::reduce()
   if (debugDetails)
     PeakDetect::printAllPeaks("Original peaks");
 
-  // PeakDetect::reduceSmallPeaks(PEAK_PARAM_AREA, 0.1f, false);
-  PeakDetect::reduceSmallPeaksNew(PEAK_PARAM_AREA, 0.1f);
+  PeakDetect::reduceSmallPeaks(PEAK_PARAM_AREA, 0.1f, false);
+  // PeakDetect::reduceSmallPeaksNew(PEAK_PARAM_AREA, 0.1f);
 
   if (debugDetails)
     PeakDetect::printAllPeaks("Non-tiny peaks");
