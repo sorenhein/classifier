@@ -44,6 +44,10 @@ class PeakDetect
       const list<Peak>::iterator peak1,
       const list<Peak>::iterator peak2);
 
+    void reduceSmallPeaksNew(
+      const PeakParam param,
+      const float paramLimit);
+
     void reduceSmallPeaks(
       const PeakParam param,
       const float paramLimit,
@@ -58,6 +62,12 @@ class PeakDetect
     void printPeak(
       const Peak& peak,
       const string& text) const;
+
+    void printTMP(
+      list<Peak>::iterator peakCurrent,
+      list<Peak>::iterator peakMax,
+      list<Peak>::iterator peak,
+      const string& place) const;
 
 
   public:

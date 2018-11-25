@@ -11,6 +11,8 @@
 
 #define RELATIVE_LIMIT 1.e-4
 #define SAMPLE_RATE 2000.
+  
+#define UNUSED(x) ((void)(true ? 0 : ((x), void(), 0)))
 
 
 Peak::Peak()
@@ -98,7 +100,6 @@ void Peak::update(const Peak * peakPrev)
 {
   // This is used before we delete all peaks from peakFirst (included)
   // up to the present peak (excluded).  
-  // peakPrev is the predecessor of peakFirst if this exists.
 
   if (peakPrev == nullptr)
     return;
@@ -242,6 +243,12 @@ double Peak::getTime() const
 bool Peak::getMaxFlag() const
 {
   return maxFlag;
+}
+
+
+bool Peak::isMinimum() const
+{
+  return ! maxFlag;
 }
 
 
@@ -428,18 +435,54 @@ bool Peak::acceptableQuality() const
 }
 
 
-bool Peak::similarGradient(
-  const Peak& p1,
-  const Peak& p2) const
+bool Peak::similarGradientOne(const Peak& p1) const
 {
-  // We are the peak preceding p1, which precedes p2.
-  const float lenNew = left.len + p1.left.len + p2.left.len;
-  const float rangeNew = abs(p2.value - value) + left.range;
+  // The peaks are in the order "this", p1.
+  // We are considering deleting "this", leaving p1.
+  // We want to check the left gradient of p1 in both cases.
+  //
+  // TODO When we delete a peak, we also change the right flank
+  // of a peak?!
+   const float lenNew = left.len + p1.left.len;
+  // Should be left.len + (p1.index - index)?
+  // const float lenNew = left.len + (p1.index - index);
+
+  const float val0 = (maxFlag ? value - left.range : value + left.range);
+  const float rangeNew = abs(p1.value - val0);
   const float gradNew = rangeNew / lenNew;
 
   // TODO #define
   return (gradNew >= 0.9f * left.gradient && 
     gradNew <= 1.1f * left.gradient);
+}
+
+
+bool Peak::similarGradientTwo(
+  const Peak& p1,
+  const Peak& p2) const
+{
+  // The peaks are in the order "this", p1, p2.
+  const float lenNew = left.len + p1.left.len + p2.left.len;
+  const float rangeNew = abs(p2.value - value) + left.range;
+  // const float gradNew = rangeNew / lenNew;
+
+  // const float lenNew = left.len + (p2.index - index);
+  // const float val0 = (maxFlag ? value - left.range : value + left.range);
+  // const float rangeNew = abs(p2.value - val0);
+  const float gradNew = rangeNew / lenNew;
+  UNUSED(p1);
+
+  // TODO #define
+  // "this" and p2, as above.
+  return (gradNew >= 0.9f * left.gradient && 
+    gradNew <= 1.1f * left.gradient);
+
+  // TODO Are the peaks guaranteed to be alternating?  I don't think so.
+  // lenNew is OK.
+  // So actually p1 doesn't matter, and we can always use GradientOne?
+  // const float lenNew = left.len + (p2.index - index);
+  // const float val0 = (maxFlag ? value - left.range : value + left.range);
+  // const float rangeNew = abs(p2.value - val0);
 }
 
 

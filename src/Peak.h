@@ -119,6 +119,7 @@ class Peak
     unsigned getIndex() const;
     double getTime() const;
     bool getMaxFlag() const;
+    bool isMinimum() const;
     float getValue() const;
     float getAreaCum() const;
     float getRange() const;
@@ -158,7 +159,9 @@ class Peak
     bool goodQuality() const;
     bool acceptableQuality() const;
 
-    bool similarGradient(
+    bool similarGradientOne(const Peak& p1) const;
+
+    bool similarGradientTwo(
       const Peak& p1,
       const Peak& p2) const;
 

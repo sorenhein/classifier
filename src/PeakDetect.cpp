@@ -47,7 +47,8 @@ float PeakDetect::integrate(
   const unsigned i1) const
 {
   float sum = 0.f;
-  for (unsigned i = i0; i < i1; i++)
+  // for (unsigned i = i0; i < i1; i++)
+  for (unsigned i = i0; i <= i1; i++)
     sum += samples[i];
 
   return sum;
@@ -222,7 +223,127 @@ const list<Peak>::iterator PeakDetect::collapsePeaks(
 
   peak2->update(peak0);
 
+  // TODO Do it here, or in Minima?
+  // peak0->logNextPeak(&*peak2);
+
   return peaks.erase(peak1, peak2);
+}
+
+
+void PeakDetect::printTMP(
+  list<Peak>::iterator peakCurrent,
+  list<Peak>::iterator peakMax,
+  list<Peak>::iterator peak,
+  const string& place) const
+{
+  // setw(7) << fixed << setprecision(4) << 
+  // peakCurrent->getValue() << " " << 
+  // peakCurrent->getIndex() + offset <<
+
+  cout << "PEAK " << place << ", " <<
+    (peakCurrent->getMaxFlag() ? "max" : "min") <<
+    (peakCurrent->getValue() >= 0. ? " + " : " - ") <<
+    (peakMax->getMaxFlag() ? "max" : "min") <<
+    (peakMax->getValue() >= 0. ? " + " : " - ") <<
+    (peak->getMaxFlag() ? "max" : "min") <<
+    (peak->getValue() >= 0. ? " + " : " - ") <<
+    (peak == peakMax ? "  =" : " !=") <<
+    endl;
+}
+
+
+void PeakDetect::reduceSmallPeaksNew(
+  const PeakParam param,
+  const float paramLimit)
+{
+  // We use this method for two reductions:
+  // 1. Small areas (first, as a rough reduction).
+  // 2. Small ranges (second, as a more precise reduction).
+  // In either case, we only allow reductions that don't drastically
+  // change the slope of remaining peaks.
+
+  if (peaks.empty())
+    THROW(ERR_NO_PEAKS, "Peak list is empty");
+
+  auto peak = next(peaks.begin());
+
+  while (peak != peaks.end())
+  {
+    const float paramCurrent = peak->getParameter(param);
+    if (paramCurrent >= paramLimit)
+    {
+      peak++;
+      continue;
+    }
+
+    auto peakCurrent = peak, peakMax = peak;
+    const bool maxFlag = peak->getMaxFlag();
+    float sumParam = 0.f, lastParam = 0.f;
+    float valueMax = numeric_limits<float>::lowest();
+
+    do
+    {
+      peak++;
+      if (peak == peaks.end())
+        break;
+
+      sumParam = peak->getParameter(* peakCurrent, param);
+      lastParam = peak->getParameter(param);
+      const float value = peak->getValue();
+      if (! maxFlag && value > valueMax)
+      {
+        valueMax = value;
+        peakMax = peak;
+      }
+      else if (maxFlag && -value > valueMax)
+      {
+        valueMax = -value;
+        peakMax = peak;
+      }
+    }
+    while (abs(sumParam) < paramLimit || abs(lastParam) < paramLimit);
+
+
+    if (abs(sumParam) < paramLimit || abs(lastParam) < paramLimit)
+    {
+      // It's the last set of peaks.  We could keep the largest peak
+      // of the same polarity as peakCurrent (instead of peakCurrent).
+      // It's a bit random whether or not this would be a "real" peak,
+      // and we also don't keep track of this above.  So we just stop.
+PeakDetect::printTMP(peakCurrent, peakMax, peak, "P1");
+      if (peakCurrent != peaks.end())
+        peaks.erase(peakCurrent, peaks.end());
+      break;
+    }
+
+PeakDetect::printTMP(peakCurrent, peakMax, peak, "P2");
+cout << peakCurrent->getIndex() + offset<< " " <<
+  peakMax->getIndex() + offset << " " << 
+  peak->getIndex() + offset << endl;
+
+    // Preserve negative minima, otherwise erase all the way to peak.
+    list<Peak>::iterator
+      peakAfterCurr = (peakMax->isCandidate() ? peakMax : peak);
+
+    // Leave peakCurrent if it would change the gradient too much.
+    if (! peakCurrent->similarGradientOne(* peakAfterCurr))
+      peakCurrent++;
+
+cout << 
+  "  curr " << peakCurrent->getIndex() + offset << 
+  " afterCurr " << peakAfterCurr->getIndex() + offset << endl;
+
+    peakAfterCurr = PeakDetect::collapsePeaks(peakCurrent, peakAfterCurr);
+
+    if (peakMax != peak && peakMax->isCandidate())
+    {
+cout << "  max " << peakMax->getIndex() + offset << " " << 
+  peak->getIndex() + offset << endl;
+      PeakDetect::collapsePeaks(++peakMax, peak);
+    }
+    
+    peak++;
+  }
 }
 
 
@@ -279,6 +400,11 @@ void PeakDetect::reduceSmallPeaks(
     }
     while (abs(sumParam) < paramLimit || abs(lastParam) < paramLimit);
 
+if (preserveFlag && peak->getIndex() > 1500)
+  cout << peakCurrent->getIndex() + offset << " " <<
+    peakMax->getIndex() + offset << " " <<
+    peak->getIndex() + offset << endl;
+/*
 if (preserveFlag && peak->getIndex() > 11500)
 {
   cout << 
@@ -295,44 +421,55 @@ if (preserveFlag && peak->getIndex() > 11500)
     " mf " << (maxFlag ? "true" : "false") <<
     "\n";
 }
+*/
     if (abs(sumParam) < paramLimit || abs(lastParam) < paramLimit)
     {
-if (preserveFlag && peak->getIndex() > 11500)
-  cout << "PATH1\n";
+//if (preserveFlag && peak->getIndex() > 11500)
+  //cout << "PATH1\n";
       // It's the last set of peaks.  We could keep the largest peak
       // of the same polarity as peakCurrent (instead of peakCurrent).
       // It's a bit random whether or not this would be a "real" peak,
       // and we also don't keep track of this above.  So we just stop.
+if (preserveFlag)
+  PeakDetect::printTMP(peakCurrent, peakMax, peak, "P1");
       if (peakCurrent != peaks.end())
         peaks.erase(peakCurrent, peaks.end());
       break;
     }
     else if (preserveFlag &&
-        peakCurrent->getValue() > 0.f &&
+        peakCurrent->getValue() > 0.f && 
         ! peakCurrent->getMaxFlag())
         // THOUGHT: maxFlag true, pcurr true, next false,
         // values pos pos any, don't do
     {
-if (preserveFlag && peak->getIndex() > 11500)
-  cout << "PATH2\n";
+//if (preserveFlag && peak->getIndex() > 11500)
+  //cout << "PATH2\n";
+if (preserveFlag)
+  PeakDetect::printTMP(peakCurrent, peakMax, peak, "P2");
       // Don't connect two positive maxima.  This can mess up
       // the gradient calculation which influences peak perception.
       peak++;
     }
-    else if (peak->getMaxFlag() != maxFlag)
+    // else if (peak->getMaxFlag() != maxFlag)
+    else if (peak->getMaxFlag() != maxFlag ||
+        peak == peakMax)
     {
-if (preserveFlag && peak->getIndex() > 11500)
-  cout << "PATH3\n";
+//if (preserveFlag && peak->getIndex() > 11500)
+  //cout << "PATH3\n";
+if (preserveFlag)
+  PeakDetect::printTMP(peakCurrent, peakMax, peak, "P3");
       // Keep from peakCurrent to peak which is also often peakMax.
       peak = PeakDetect::collapsePeaks(--peakCurrent, peak);
       peak++;
     }
     else
     {
-if (preserveFlag && peak->getIndex() > 11500)
-  cout << "PATH4\n";
+//if (preserveFlag && peak->getIndex() > 11500)
+  //cout << "PATH4\n";
       // Keep the start, the most extreme peak of opposite polarity,
       // and the end.
+if (preserveFlag)
+  PeakDetect::printTMP(peakCurrent, peakMax, peak, "P4");
       peakMax = PeakDetect::collapsePeaks(--peakCurrent, peakMax);
       peak = PeakDetect::collapsePeaks(++peakMax, peak);
       peak++;
@@ -346,14 +483,21 @@ void PeakDetect::eliminateKinks()
   if (peaks.size() < 4)
     THROW(ERR_NO_PEAKS, "Peak list is short");
 
-  for (auto peak = next(peaks.begin(), 2); 
-      peak != prev(peaks.end()); )
+  for (auto peak = next(peaks.begin(), 2); peak != prev(peaks.end()); )
   {
-// cout << "peak " << peak->getIndex() << " count " << peaks.size() <<
-  // endl;
     const auto peakPrev = prev(peak);
     const auto peakPrevPrev = prev(peakPrev);
     const auto peakNext = next(peak);
+
+if (peak->getIndex()+offset > 12000)
+  cout << peak->getIndex() + offset << endl;
+    if (peak->isMinimum() != peakPrevPrev->isMinimum() ||
+        peakNext->isMinimum() != peakPrev->isMinimum())
+    {
+      // We may have destroyed the alternation while reducing.
+      peak++;
+      continue;
+    }
 
     const float areaPrev = peak->getArea(* peakPrev);
     if (areaPrev == 0.f)
@@ -370,7 +514,7 @@ void PeakDetect::eliminateKinks()
       // Candidate for removal.  But if it changes the gradient
       // too much, don't do it.
 
-      if (peakPrev->similarGradient(* peak, * peakNext))
+      if (peakPrev->similarGradientTwo(* peak, * peakNext))
         peak = PeakDetect::collapsePeaks(peakPrev, peakNext);
       else
         peak++;
@@ -407,12 +551,13 @@ void PeakDetect::reduce()
     return;
 
   const bool debug = true;
-  const bool debugDetails = false;
+  const bool debugDetails = true;
 
   if (debugDetails)
     PeakDetect::printAllPeaks("Original peaks");
 
-  PeakDetect::reduceSmallPeaks(PEAK_PARAM_AREA, 0.1f, false);
+  // PeakDetect::reduceSmallPeaks(PEAK_PARAM_AREA, 0.1f, false);
+  PeakDetect::reduceSmallPeaksNew(PEAK_PARAM_AREA, 0.1f);
 
   if (debugDetails)
     PeakDetect::printAllPeaks("Non-tiny peaks");
@@ -428,6 +573,10 @@ void PeakDetect::reduce()
 
   PeakDetect::reduceSmallPeaks(PEAK_PARAM_RANGE, 
     scale.getRange() / 10.f, true);
+  // PeakDetect::reduceSmallPeaksNew(PEAK_PARAM_RANGE, scale.getRange() / 10.f);
+
+  if (debugDetails)
+    PeakDetect::printAllPeaks("Range-reduced peaks");
 
   // Mark some tall peaks as seeds.
   PeakSeeds seeds;
