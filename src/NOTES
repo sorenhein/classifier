@@ -1,3 +1,7 @@
+Rewriting reduceSmallPeaks:
+Look at a couple of reductions manually, old vs new.
+Should be possible to run new, then old, and see if anything else happens.
+
 s02
 * odd left gradient occasionally
 * Avoid spurious peaks between bogey-pair peaks

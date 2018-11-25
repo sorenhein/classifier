@@ -460,8 +460,11 @@ bool Peak::similarGradientOne(const Peak& p1) const
   // as well.
 
   // TODO #define
-  return (gradNew >= 0.9f * left.gradient && 
-    gradNew <= 1.1f * left.gradient);
+  return (
+    gradNew >= 0.9f * left.gradient && 
+    gradNew <= 1.1f * left.gradient); // &&
+    // gradNew >= 0.9f * p1.left.gradient &&
+    // gradNew <= 1.1f * p1.left.gradient);
 }
 
 
