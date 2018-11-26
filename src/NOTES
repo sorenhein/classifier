@@ -1,5 +1,14 @@
 Rewriting reduceSmallPeaks:
-Look at a couple of reductions manually, old vs new.
+The main problem may be when left != right.  
+Then we get a broad optimum.
+Perhaps we should register the peak as a deepest point and a range
+(could be left and right).
+Then we calculate gradients etc. off of the leftmost and rightmost
+points.
+Have to check where all getIndex is used.
+Over time the difference between two peaks is a fuzzier concept (range)
+as well.
+
 Should be possible to run new, then old, and see if anything else happens.
 
 s02

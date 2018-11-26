@@ -97,6 +97,9 @@ class PeakDetect
 
     void printAllPeaks(const string& text = "") const;
 
+    // TMP
+    string deleteStr(Peak const * p1, Peak const * p2) const;
+
 };
 
 #endif

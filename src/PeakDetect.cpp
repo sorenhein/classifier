@@ -255,6 +255,21 @@ void PeakDetect::printTMP(
 }
 
 
+string PeakDetect::deleteStr(
+  Peak const * p1,
+  Peak const * p2) const
+{
+  stringstream ss;
+  if (p1 == p2)
+    ss << "DELETE " << p1->getIndex() + offset << endl;
+  else
+    ss << "DELETE [" << p1->getIndex() + offset << ", " <<
+      p2->getIndex() + offset << "]\n";
+  
+  return ss.str();
+}
+
+
 void PeakDetect::reduceSmallPeaksNew(
   const PeakParam param,
   const float paramLimit)
@@ -329,26 +344,73 @@ PeakDetect::printTMP(peakCurrent, peakMax, peak, "P1");
 
     for (auto p = peakFirst; p != peak; p++)
     {
-      if (peakFirst->similarGradientOne(* p) &&
-          p->getValue() < peakLeft->getValue())
+      if (p->getValue() < peakLeft->getValue() &&
+          peakFirst->similarGradientForward(* p))
         peakLeft = p;
 
-      if (p->similarGradientOne(* peak) &&
-          p->getValue() < peakRight->getValue())
-        peakRight = p;
-    }
+      if (p == peaks.begin())
+        continue;
 
-    if (peakLeft == peakRight)
+      auto prevp = prev(p);
+      if (prevp->getValue() < peakRight->getValue() &&
+          p->similarGradientBackward(* peak))
+        peakRight = prevp;
+    }
+    
+cout << "REDUCE\n";
+cout << peakLeft->strHeader();
+for (auto p = peakFirst; p != peak; p++)
+  cout << p->str(offset);
+cout << peak->str(offset);
+cout << "LEFT/RIGHT " << peakLeft->getIndex() + offset << ", " <<
+  peakRight->getIndex() + offset << endl << endl;
+
+    // It can happen that we can delete everything, seen from the
+    // right.
+    if (peakRight->getIndex() < peakFirst->getIndex())
     {
-      PeakDetect::collapsePeaks(peakFirst, peakLeft);
-      PeakDetect::collapsePeaks(++peakRight, peak);
+      auto peakEarly = prev(peakFirst);
+      cout << PeakDetect::deleteStr(&*peakEarly, &*prev(peak));
+      PeakDetect::collapsePeaks(peakEarly, peak);
+    }
+    else if (peakLeft == peakRight)
+    {
+      if (peakFirst != peakLeft)
+      {
+        cout << PeakDetect::deleteStr(&*peakFirst, &*prev(peakLeft));
+        PeakDetect::collapsePeaks(peakFirst, peakLeft);
+      }
+
+      peakRight++;
+      if (peakRight != peak)
+      {
+        cout << PeakDetect::deleteStr(&*peakRight, &*prev(peak));
+        PeakDetect::collapsePeaks(peakRight, peak);
+      }
     }
     else
     {
-      PeakDetect::collapsePeaks(peakFirst, peakLeft);
-      PeakDetect::collapsePeaks(++peakLeft, peakRight);
-      PeakDetect::collapsePeaks(++peakRight, peak);
+      if (peakFirst != peakLeft)
+      {
+        cout << PeakDetect::deleteStr(&*peakFirst, &*prev(peakLeft));
+        PeakDetect::collapsePeaks(peakFirst, peakLeft);
+      }
+
+      peakLeft++;
+      if (peakLeft != peakRight)
+      {
+        cout << PeakDetect::deleteStr(&*peakLeft, &*prev(peakRight));
+        PeakDetect::collapsePeaks(peakLeft, peakRight);
+      }
+
+      peakRight++;
+      if (peakRight != peak)
+      {
+        cout << PeakDetect::deleteStr(&*peakRight, &*peak);
+        PeakDetect::collapsePeaks(peakRight, peak);
+      }
     }
+    cout << endl;
 
 
     // TODO: similarGradient for both peakPrev-1 to peak forwards,
@@ -599,8 +661,8 @@ void PeakDetect::reduce()
   if (debugDetails)
     PeakDetect::printAllPeaks("Original peaks");
 
-  PeakDetect::reduceSmallPeaks(PEAK_PARAM_AREA, 0.1f, false);
-  // PeakDetect::reduceSmallPeaksNew(PEAK_PARAM_AREA, 0.1f);
+  // PeakDetect::reduceSmallPeaks(PEAK_PARAM_AREA, 0.1f, false);
+  PeakDetect::reduceSmallPeaksNew(PEAK_PARAM_AREA, 0.1f);
 
   if (debugDetails)
     PeakDetect::printAllPeaks("Non-tiny peaks");
@@ -614,9 +676,9 @@ void PeakDetect::reduce()
   if (debug)
     PeakDetect::printPeak(scale, "Scale");
 
-  PeakDetect::reduceSmallPeaks(PEAK_PARAM_RANGE, 
-    scale.getRange() / 10.f, true);
-  // PeakDetect::reduceSmallPeaksNew(PEAK_PARAM_RANGE, scale.getRange() / 10.f);
+  // PeakDetect::reduceSmallPeaks(PEAK_PARAM_RANGE, 
+    // scale.getRange() / 10.f, true);
+  PeakDetect::reduceSmallPeaksNew(PEAK_PARAM_RANGE, scale.getRange() / 10.f);
 
   if (debugDetails)
     PeakDetect::printAllPeaks("Range-reduced peaks");

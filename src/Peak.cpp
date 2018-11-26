@@ -437,11 +437,11 @@ bool Peak::acceptableQuality() const
 }
 
 
-bool Peak::similarGradientOne(const Peak& p1) const
+bool Peak::similarGradientForward(const Peak& p1) const
 {
   // The peaks are in the order "this", p1.
   // We are considering deleting "this", leaving p1.
-  // We want to check the left gradient of p1 in both cases.
+  // We want to check the new left gradient of p1 relative to "this".
   //
   // TODO When we delete a peak, we also change the right flank
   // of a peak?!
@@ -465,6 +465,32 @@ bool Peak::similarGradientOne(const Peak& p1) const
     gradNew <= 1.1f * left.gradient); // &&
     // gradNew >= 0.9f * p1.left.gradient &&
     // gradNew <= 1.1f * p1.left.gradient);
+}
+
+
+bool Peak::similarGradientBackward(const Peak& p1) const
+{
+  // The peaks are in the order "this", p1.
+  // We are considering deleting "this", leaving p1.
+  // We want to check the left gradient of p1 in both cases,
+  // relative to p1.
+  const float lenNew = left.len + (p1.index - index);
+
+  const float val0 = (maxFlag ? value - left.range : value + left.range);
+  const float rangeNew = abs(p1.value - val0);
+  const float gradNew = rangeNew / lenNew;
+
+  // Old gradient ends in value.  If we're a minimum, then the old
+  // gradient is negative.  So p1.value should be less than val0
+  // as well.
+
+// cout << "peak " << index << ", p1 " << p1.index << ": gradNew " << 
+  // gradNew << " vs " << p1.left.gradient << endl;
+
+  // TODO #define
+  return (
+    gradNew >= 0.9f * p1.left.gradient &&
+    gradNew <= 1.1f * p1.left.gradient);
 }
 
 
