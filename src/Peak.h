@@ -1,7 +1,6 @@
 #ifndef TRAIN_PEAK_H
 #define TRAIN_PEAK_H
 
-#include <list>
 #include <string>
 
 #include "struct.h"
@@ -15,7 +14,7 @@ class Peak
 
     struct Flank
     {
-      // These quantities are non-negative
+      // These quantities are non-negative:
       float len; // In samples
       float range;
       float area; // From the lowest of the peaks
@@ -48,6 +47,15 @@ class Peak
     float value; // Signed
     float areaCum; // Integral from beginning of trace, signed
     bool maxFlag;
+
+    // It can happen that a peak is quite shallow.  In that case we
+    // note also the "extent" of the peak, as this influences the
+    // gradients.
+
+    unsigned indexLeft;
+    unsigned indexRight;
+    float valueLeft;
+    float valueRight;
 
     // We start with the left flank and later copy in the right flank.
     // Sometimes we need the data here, so it's not enough to store

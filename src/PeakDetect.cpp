@@ -373,19 +373,25 @@ cout << "LEFT/RIGHT " << peakLeft->getIndex() + offset << ", " <<
       cout << PeakDetect::deleteStr(&*peakEarly, &*prev(peak));
       PeakDetect::collapsePeaks(peakEarly, peak);
     }
-    else if (peakLeft == peakRight)
+    else if (peakLeft->getIndex() >= peakRight->getIndex())
+    // else if (peakLeft == peakRight)
     {
+      // Several solutions unless the two are the same, but we use peakLeft.
       if (peakFirst != peakLeft)
       {
         cout << PeakDetect::deleteStr(&*peakFirst, &*prev(peakLeft));
         PeakDetect::collapsePeaks(peakFirst, peakLeft);
       }
 
-      peakRight++;
-      if (peakRight != peak)
+      // peakRight++;
+      peakLeft++;
+      // if (peakRight != peak)
+      if (peakLeft != peak)
       {
-        cout << PeakDetect::deleteStr(&*peakRight, &*prev(peak));
-        PeakDetect::collapsePeaks(peakRight, peak);
+        cout << PeakDetect::deleteStr(&*peakLeft, &*prev(peak));
+        PeakDetect::collapsePeaks(peakLeft, peak);
+        // cout << PeakDetect::deleteStr(&*peakRight, &*prev(peak));
+        // PeakDetect::collapsePeaks(peakRight, peak);
       }
     }
     else
@@ -661,8 +667,8 @@ void PeakDetect::reduce()
   if (debugDetails)
     PeakDetect::printAllPeaks("Original peaks");
 
-  // PeakDetect::reduceSmallPeaks(PEAK_PARAM_AREA, 0.1f, false);
-  PeakDetect::reduceSmallPeaksNew(PEAK_PARAM_AREA, 0.1f);
+  PeakDetect::reduceSmallPeaks(PEAK_PARAM_AREA, 0.1f, false);
+  // PeakDetect::reduceSmallPeaksNew(PEAK_PARAM_AREA, 0.1f);
 
   if (debugDetails)
     PeakDetect::printAllPeaks("Non-tiny peaks");
@@ -676,9 +682,9 @@ void PeakDetect::reduce()
   if (debug)
     PeakDetect::printPeak(scale, "Scale");
 
-  // PeakDetect::reduceSmallPeaks(PEAK_PARAM_RANGE, 
-    // scale.getRange() / 10.f, true);
-  PeakDetect::reduceSmallPeaksNew(PEAK_PARAM_RANGE, scale.getRange() / 10.f);
+  PeakDetect::reduceSmallPeaks(PEAK_PARAM_RANGE, 
+    scale.getRange() / 10.f, true);
+  // PeakDetect::reduceSmallPeaksNew(PEAK_PARAM_RANGE, scale.getRange() / 10.f);
 
   if (debugDetails)
     PeakDetect::printAllPeaks("Range-reduced peaks");

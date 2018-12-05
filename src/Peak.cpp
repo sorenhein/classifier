@@ -35,6 +35,11 @@ void Peak::reset()
   areaCum = 0.f;
   maxFlag = false;
 
+  indexLeft = 0;
+  indexRight = 0;
+  valueLeft = 0.f;
+  valueRight = 0.f;
+
   // Derived quantities
   left.reset();
   right.reset();
@@ -59,6 +64,8 @@ void Peak::logSentinel(
   const bool maxFlagIn)
 {
   value = valueIn;
+  valueLeft = value;
+  valueRight = value;
   maxFlag = maxFlagIn;
 }
 
@@ -79,6 +86,11 @@ void Peak::log(
   value = valueIn;
   areaCum = areaCumIn;
   maxFlag = maxFlagIn;
+
+  indexLeft = index;
+  indexRight = index;
+  valueLeft = value;
+  valueRight = value;
 }
 
 
@@ -98,14 +110,14 @@ void Peak::logNextPeak(Peak const * nextPtrIn)
 
 void Peak::update(const Peak * peakPrev)
 {
-  // This is used before we delete all peaks from peakFirst (included)
+  // This is used before we delete all peaks from peakPrev (included)
   // up to the present peak (excluded).  
 
   if (peakPrev == nullptr)
     return;
 
-  left.len = static_cast<float>(index - peakPrev->index);
-  left.range = abs(value - peakPrev->value);
+  left.len = static_cast<float>(indexLeft - peakPrev->indexRight);
+  left.range = abs(valueLeft - peakPrev->valueRight);
   left.area = abs(areaCum - peakPrev->areaCum - 
     (index - peakPrev->index) * min(value, peakPrev->value));
 
@@ -120,14 +132,14 @@ void Peak::annotate(const Peak * peakPrev)
 
   if (peakPrev == nullptr)
   {
-    left.len = static_cast<float>(index);
+    left.len = static_cast<float>(indexLeft);
     left.range = 0.f;
     left.area = 0.f;
   }
   else
   {
-    left.len = static_cast<float>(index - peakPrev->index);
-    left.range = abs(value - peakPrev->value);
+    left.len = static_cast<float>(indexLeft - peakPrev->indexRight);
+    left.range = abs(valueLeft - peakPrev->valueRight);
     left.area = abs(areaCum - peakPrev->areaCum - 
       (index - peakPrev->index) * min(value, peakPrev->value));
   }
@@ -447,10 +459,11 @@ bool Peak::similarGradientForward(const Peak& p1) const
   // of a peak?!
    // const float lenNew = left.len + p1.left.len;
   // Should be left.len + (p1.index - index)?
-  const float lenNew = left.len + (p1.index - index);
+  const float lenNew = left.len + (p1.indexLeft - indexLeft);
 
-  const float val0 = (maxFlag ? value - left.range : value + left.range);
-  const float rangeNew = abs(p1.value - val0);
+  const float val0 = (maxFlag ? 
+    valueLeft - left.range : valueLeft + left.range);
+  const float rangeNew = abs(p1.valueLeft - val0);
   const float gradNew = rangeNew / lenNew;
 // cout << "old grad " << left.gradient << ", new " << gradNew << endl;
 // cout << "range new " << rangeNew << " lenNew " << lenNew << endl;
@@ -474,9 +487,10 @@ bool Peak::similarGradientBackward(const Peak& p1) const
   // We are considering deleting "this", leaving p1.
   // We want to check the left gradient of p1 in both cases,
   // relative to p1.
-  const float lenNew = left.len + (p1.index - index);
+  const float lenNew = left.len + (p1.indexLeft - indexLeft);
 
-  const float val0 = (maxFlag ? value - left.range : value + left.range);
+  const float val0 = (maxFlag ? 
+    valueLeft - left.range : valueLeft + left.range);
   const float rangeNew = abs(p1.value - val0);
   const float gradNew = rangeNew / lenNew;
 
@@ -503,8 +517,9 @@ bool Peak::similarGradientTwo(
   // const float rangeNew = abs(p2.value - value) + left.range;
   // const float gradNew = rangeNew / lenNew;
 
-  const float lenNew = left.len + (p2.index - index);
-  const float val0 = (maxFlag ? value - left.range : value + left.range);
+  const float lenNew = left.len + (p2.indexLeft - indexLeft);
+  const float val0 = (maxFlag ? 
+    valueLeft - left.range : valueLeft + left.range);
   const float rangeNew = abs(p2.value - val0);
   const float gradNew = rangeNew / lenNew;
   UNUSED(p1);
