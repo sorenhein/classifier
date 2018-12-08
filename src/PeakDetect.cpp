@@ -224,9 +224,18 @@ const list<Peak>::iterator PeakDetect::collapsePeaks(
   Peak * peak0 = 
     (peak1 == peaks.begin() ? nullptr : &*prev(peak1));
 
+cout << "UPDATING peak2\n";
+cout << peak2->strQuality() << endl;
+cout << "with" << endl;
+if (peak0 != nullptr)
+{
+cout << peak0->strQuality() << endl;
   peak2->update(peak0);
+}
+cout << peak2->strQuality() << endl;
 
   // TODO Do it here, or in Minima?
+// if (peak0 != nullptr)
   // peak0->logNextPeak(&*peak2);
 
   return peaks.erase(peak1, peak2);
@@ -338,6 +347,7 @@ PeakDetect::printTMP(peakCurrent, peakMax, peak, "P1");
     // [peakPrev, peak) or keep support peaks along the way.
     // Of the possibilities from left and from right (separately),
     // note the lowest one.  If they are the same, keep that.
+
     auto peakFirst = prev(peakCurrent);
     auto peakLeft = peakFirst;
     auto peakRight = prev(peak);
@@ -367,13 +377,14 @@ cout << "LEFT/RIGHT " << peakLeft->getIndex() + offset << ", " <<
 
     // It can happen that we can delete everything, seen from the
     // right.
-    if (peakRight->getIndex() < peakFirst->getIndex())
-    {
-      auto peakEarly = prev(peakFirst);
-      cout << PeakDetect::deleteStr(&*peakEarly, &*prev(peak));
-      PeakDetect::collapsePeaks(peakEarly, peak);
-    }
-    else if (peakLeft->getIndex() >= peakRight->getIndex())
+    // if (peakRight->getIndex() < peakFirst->getIndex())
+    // {
+      // auto peakEarly = prev(peakFirst);
+      // cout << PeakDetect::deleteStr(&*peakEarly, &*prev(peak));
+      // PeakDetect::collapsePeaks(peakEarly, peak);
+    // }
+    // else 
+    if (peakLeft->getIndex() >= peakRight->getIndex())
     // else if (peakLeft == peakRight)
     {
       // Several solutions unless the two are the same, but we use peakLeft.
@@ -396,6 +407,29 @@ cout << "LEFT/RIGHT " << peakLeft->getIndex() + offset << ", " <<
     }
     else
     {
+      peakMax = (peakLeft->getValue() < peakRight->getValue() ?
+        peakLeft : peakRight);
+      
+      cout << "MAX " << peakMax->getIndex() + offset << ": " <<
+        peakLeft->getIndex() + offset << "-" <<
+        peakRight->getIndex() + offset << "\n";
+
+      peakMax->logExtent(* peakFirst, * peakRight);
+
+      if (peakFirst != peakMax)
+      {
+        cout << PeakDetect::deleteStr(&*peakFirst, &*prev(peakMax));
+        PeakDetect::collapsePeaks(peakFirst, peakMax);
+      }
+
+      peakMax++;
+      if (peakMax != peak)
+      {
+        cout << PeakDetect::deleteStr(&*peakMax, &*prev(peak));
+        PeakDetect::collapsePeaks(peakMax, peak);
+      }
+
+      /*
       if (peakFirst != peakLeft)
       {
         cout << PeakDetect::deleteStr(&*peakFirst, &*prev(peakLeft));
@@ -415,6 +449,7 @@ cout << "LEFT/RIGHT " << peakLeft->getIndex() + offset << ", " <<
         cout << PeakDetect::deleteStr(&*peakRight, &*peak);
         PeakDetect::collapsePeaks(peakRight, peak);
       }
+      */
     }
     cout << endl;
 
@@ -453,7 +488,9 @@ cout << "  max " << peakMax->getIndex() + offset << " " <<
     }
     */
     
+cout << "peak was " << peak->getIndex() + offset << ", is ";
     peak++;
+cout << peak->getIndex() + offset << endl;
   }
 }
 
@@ -600,8 +637,29 @@ void PeakDetect::eliminateKinks()
     const auto peakPrevPrev = prev(peakPrev);
     const auto peakNext = next(peak);
 
-if (peak->getIndex()+offset > 12000)
-  cout << peak->getIndex() + offset << endl;
+
+    if (peakNext->isMinimum() != peakPrev->isMinimum() &&
+        ((peakNext->getValue() > peak->getValue() &&
+         peak->getValue() > peakPrev->getValue()) ||
+         (peakNext->getValue() < peak->getValue() &&
+         peak->getValue() < peakPrev->getValue())))
+    {
+if (peak->getIndex() + offset == 2025)
+  cout << "HERE" << endl;
+      // Three in order, with first and last having different polarity.
+      if (peak->similarGradientBest(* peakNext))
+      {
+cout << "Best\n";
+        peak = PeakDetect::collapsePeaks(peak, peakNext);
+      }
+      else
+      {
+cout << "Not best\n";
+        peak++;
+      }
+      continue;
+    }
+
     if (peak->isMinimum() != peakPrevPrev->isMinimum() ||
         peakNext->isMinimum() != peakPrev->isMinimum())
     {
@@ -667,8 +725,8 @@ void PeakDetect::reduce()
   if (debugDetails)
     PeakDetect::printAllPeaks("Original peaks");
 
-  PeakDetect::reduceSmallPeaks(PEAK_PARAM_AREA, 0.1f, false);
-  // PeakDetect::reduceSmallPeaksNew(PEAK_PARAM_AREA, 0.1f);
+  // PeakDetect::reduceSmallPeaks(PEAK_PARAM_AREA, 0.1f, false);
+  PeakDetect::reduceSmallPeaksNew(PEAK_PARAM_AREA, 0.1f);
 
   if (debugDetails)
     PeakDetect::printAllPeaks("Non-tiny peaks");
@@ -682,9 +740,9 @@ void PeakDetect::reduce()
   if (debug)
     PeakDetect::printPeak(scale, "Scale");
 
-  PeakDetect::reduceSmallPeaks(PEAK_PARAM_RANGE, 
-    scale.getRange() / 10.f, true);
-  // PeakDetect::reduceSmallPeaksNew(PEAK_PARAM_RANGE, scale.getRange() / 10.f);
+  // PeakDetect::reduceSmallPeaks(PEAK_PARAM_RANGE, 
+    // scale.getRange() / 10.f, true);
+  PeakDetect::reduceSmallPeaksNew(PEAK_PARAM_RANGE, scale.getRange() / 10.f);
 
   if (debugDetails)
     PeakDetect::printAllPeaks("Range-reduced peaks");

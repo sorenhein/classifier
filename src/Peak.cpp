@@ -108,6 +108,24 @@ void Peak::logNextPeak(Peak const * nextPtrIn)
 }
 
 
+void Peak::logExtent(
+  const Peak& prevPeak,
+  const Peak& nextPeak)
+{
+  if (prevPeak.index != index)
+  {
+    indexLeft = prevPeak.index;
+    valueLeft = prevPeak.value;
+  }
+
+  if (nextPeak.index != index)
+  {
+    indexRight = nextPeak.index;
+    valueRight = nextPeak.value;
+  }
+}
+
+
 void Peak::update(const Peak * peakPrev)
 {
   // This is used before we delete all peaks from peakPrev (included)
@@ -449,8 +467,11 @@ bool Peak::acceptableQuality() const
 }
 
 
-bool Peak::similarGradientForward(const Peak& p1) const
+bool Peak::similarGradientBest(const Peak& p1) const
 {
+  if (index == p1.index)
+    return true;
+
   // The peaks are in the order "this", p1.
   // We are considering deleting "this", leaving p1.
   // We want to check the new left gradient of p1 relative to "this".
@@ -465,7 +486,50 @@ bool Peak::similarGradientForward(const Peak& p1) const
     valueLeft - left.range : valueLeft + left.range);
   const float rangeNew = abs(p1.valueLeft - val0);
   const float gradNew = rangeNew / lenNew;
-// cout << "old grad " << left.gradient << ", new " << gradNew << endl;
+ cout << "old grad " << left.gradient << ", new " << gradNew << endl;
+ cout << Peak::str() << endl;
+ cout << p1.str() << endl;
+// cout << "range new " << rangeNew << " lenNew " << lenNew << endl;
+
+  // Old gradient ends in value.  If we're a minimum, then the old
+  // gradient is negative.  So p1.value should be less than val0
+  // as well.
+
+  // TODO #define
+
+  if (p1.left.len > left.len)
+    return (
+      gradNew >= 0.9f * p1.left.gradient &&
+      gradNew <= 1.1f * p1.left.gradient);
+  else
+    return (
+      gradNew >= 0.9f * left.gradient && 
+      gradNew <= 1.1f * left.gradient); // &&
+}
+
+
+bool Peak::similarGradientForward(const Peak& p1) const
+{
+  if (index == p1.index)
+    return true;
+
+  // The peaks are in the order "this", p1.
+  // We are considering deleting "this", leaving p1.
+  // We want to check the new left gradient of p1 relative to "this".
+  //
+  // TODO When we delete a peak, we also change the right flank
+  // of a peak?!
+   // const float lenNew = left.len + p1.left.len;
+  // Should be left.len + (p1.index - index)?
+  const float lenNew = left.len + (p1.indexLeft - indexLeft);
+
+  const float val0 = (maxFlag ? 
+    valueLeft - left.range : valueLeft + left.range);
+  const float rangeNew = abs(p1.valueLeft - val0);
+  const float gradNew = rangeNew / lenNew;
+ cout << "old grad " << left.gradient << ", new " << gradNew << endl;
+ cout << Peak::str() << endl;
+ cout << p1.str() << endl;
 // cout << "range new " << rangeNew << " lenNew " << lenNew << endl;
 
   // Old gradient ends in value.  If we're a minimum, then the old
@@ -483,6 +547,9 @@ bool Peak::similarGradientForward(const Peak& p1) const
 
 bool Peak::similarGradientBackward(const Peak& p1) const
 {
+  if (index == p1.index)
+    return true;
+
   // The peaks are in the order "this", p1.
   // We are considering deleting "this", leaving p1.
   // We want to check the left gradient of p1 in both cases,

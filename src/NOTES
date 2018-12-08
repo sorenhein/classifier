@@ -1,10 +1,16 @@
 Rewriting reduceSmallPeaks:
-In the general case, find the lowest value among First, Left,
-Right, peak.  
-Make it the anchor peak.  
-Register the left and right interval ends,
-  peak->logExtent(pleft, pright)
-Then collapse from start to anchor, from anchor+1 to end
+start end
+max   max   Like a kink upwards
+max   min   A local maximum
+min   max   A local minimum
+min   min   Like a kink downwards
+
+If a local extremum, choose only among this kind.
+Can get an extent for this reason.
+
+If a kink:
+Maybe the kink can go away completely.
+If not, exactly two peaks, possibly with extents.
 
 Peak print-out should have extent shown somehow.
 Steal some whitespace from other columns.

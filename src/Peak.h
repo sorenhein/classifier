@@ -117,6 +117,10 @@ class Peak
 
     void logNextPeak(Peak const * nextPtrIn);
 
+    void logExtent(
+      const Peak& prevPeak,
+      const Peak& nextPeak);
+
     void update(const Peak * peakPrev);
 
     void annotate(const Peak * peakPrev);
@@ -167,6 +171,7 @@ class Peak
     bool goodQuality() const;
     bool acceptableQuality() const;
 
+    bool similarGradientBest(const Peak& p1) const;
     bool similarGradientForward(const Peak& p1) const;
     bool similarGradientBackward(const Peak& p1) const;
 
