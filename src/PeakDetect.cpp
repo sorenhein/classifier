@@ -303,10 +303,8 @@ void PeakDetect::reduceSmallPeaksNew(
       continue;
     }
 
-    auto peakCurrent = peak, peakMax = peak;
-    const bool maxFlag = peak->getMaxFlag();
+    auto peakCurrent = peak;
     float sumParam = 0.f, lastParam = 0.f;
-    float valueMax = numeric_limits<float>::lowest();
 
     do
     {
@@ -316,17 +314,6 @@ void PeakDetect::reduceSmallPeaksNew(
 
       sumParam = peak->getParameter(* peakCurrent, param);
       lastParam = peak->getParameter(param);
-      const float value = peak->getValue();
-      if (! maxFlag && value > valueMax)
-      {
-        valueMax = value;
-        peakMax = peak;
-      }
-      else if (maxFlag && -value > valueMax)
-      {
-        valueMax = -value;
-        peakMax = peak;
-      }
     }
     while (abs(sumParam) < paramLimit || abs(lastParam) < paramLimit);
 
@@ -337,7 +324,6 @@ void PeakDetect::reduceSmallPeaksNew(
       // of the same polarity as peakCurrent (instead of peakCurrent).
       // It's a bit random whether or not this would be a "real" peak,
       // and we also don't keep track of this above.  So we just stop.
-PeakDetect::printTMP(peakCurrent, peakMax, peak, "P1");
       if (peakCurrent != peaks.end())
         peaks.erase(peakCurrent, peaks.end());
       break;
@@ -448,155 +434,6 @@ cout << peak->str(offset);
       peak++;
       continue;
     }
-
-
-
-    auto peakLeft = peakFirst;
-    auto peakRight = prev(peak);
-
-    for (auto p = peakFirst; p != peak; p++)
-    {
-      if (p->getValue() < peakLeft->getValue() &&
-          peakFirst->similarGradientForward(* p))
-        peakLeft = p;
-
-      if (p == peaks.begin())
-        continue;
-
-      auto prevp = prev(p);
-      if (prevp->getValue() < peakRight->getValue() &&
-          p->similarGradientBackward(* peak))
-        peakRight = prevp;
-    }
-    
-
-cout << "REDUCE\n";
-cout << peakLeft->strHeader();
-for (auto p = peakFirst; p != peak; p++)
-  cout << p->str(offset);
-cout << peak->str(offset);
-cout << "LEFT/RIGHT " << peakLeft->getIndex() + offset << ", " <<
-  peakRight->getIndex() + offset << ", MAX " <<
-  peakMax->getIndex() + offset << endl << endl;
-
-
-
-    // It can happen that we can delete everything, seen from the
-    // right.
-    // if (peakRight->getIndex() < peakFirst->getIndex())
-    // {
-      // auto peakEarly = prev(peakFirst);
-      // cout << PeakDetect::deleteStr(&*peakEarly, &*prev(peak));
-      // PeakDetect::collapsePeaks(peakEarly, peak);
-    // }
-    // else 
-    if (peakLeft->getIndex() >= peakRight->getIndex())
-    // else if (peakLeft == peakRight)
-    {
-      // Several solutions unless the two are the same, but we use peakLeft.
-      if (peakFirst != peakLeft)
-      {
-        cout << PeakDetect::deleteStr(&*peakFirst, &*prev(peakLeft));
-        PeakDetect::collapsePeaks(peakFirst, peakLeft);
-      }
-
-      // peakRight++;
-      peakLeft++;
-      // if (peakRight != peak)
-      if (peakLeft != peak)
-      {
-        cout << PeakDetect::deleteStr(&*peakLeft, &*prev(peak));
-        PeakDetect::collapsePeaks(peakLeft, peak);
-        // cout << PeakDetect::deleteStr(&*peakRight, &*prev(peak));
-        // PeakDetect::collapsePeaks(peakRight, peak);
-      }
-    }
-    else
-    {
-      peakMax = (peakLeft->getValue() < peakRight->getValue() ?
-        peakLeft : peakRight);
-      
-      cout << "MAX " << peakMax->getIndex() + offset << ": " <<
-        peakLeft->getIndex() + offset << "-" <<
-        peakRight->getIndex() + offset << "\n";
-
-      peakMax->logExtent(* peakFirst, * peakRight);
-
-      if (peakFirst != peakMax)
-      {
-        cout << PeakDetect::deleteStr(&*peakFirst, &*prev(peakMax));
-        PeakDetect::collapsePeaks(peakFirst, peakMax);
-      }
-
-      peakMax++;
-      if (peakMax != peak)
-      {
-        cout << PeakDetect::deleteStr(&*peakMax, &*prev(peak));
-        PeakDetect::collapsePeaks(peakMax, peak);
-      }
-
-      /*
-      if (peakFirst != peakLeft)
-      {
-        cout << PeakDetect::deleteStr(&*peakFirst, &*prev(peakLeft));
-        PeakDetect::collapsePeaks(peakFirst, peakLeft);
-      }
-
-      peakLeft++;
-      if (peakLeft != peakRight)
-      {
-        cout << PeakDetect::deleteStr(&*peakLeft, &*prev(peakRight));
-        PeakDetect::collapsePeaks(peakLeft, peakRight);
-      }
-
-      peakRight++;
-      if (peakRight != peak)
-      {
-        cout << PeakDetect::deleteStr(&*peakRight, &*peak);
-        PeakDetect::collapsePeaks(peakRight, peak);
-      }
-      */
-    }
-    cout << endl;
-
-
-    // TODO: similarGradient for both peakPrev-1 to peak forwards,
-    // and from peak to peakPrev-1 backwards.
-
-
-/*
-if (peak->getIndex()+offset > 4500)
-  cout << "HERE " << peak->getIndex() + offset << endl;
-PeakDetect::printTMP(peakCurrent, peakMax, peak, "P2");
-cout << peakCurrent->getIndex() + offset<< " " <<
-  peakMax->getIndex() + offset << " " << 
-  peak->getIndex() + offset << endl;
-
-    // Preserve negative minima, otherwise erase all the way to peak.
-    list<Peak>::iterator
-      peakAfterCurr = (peakMax->isCandidate() ? peakMax : peak);
-
-    // Leave peakCurrent if it would change the gradient too much.
-    if (! peakCurrent->similarGradientOne(* peakAfterCurr))
-      peakCurrent++;
-
-cout << 
-  "  curr " << peakCurrent->getIndex() + offset << 
-  " afterCurr " << peakAfterCurr->getIndex() + offset << endl;
-
-    peakAfterCurr = PeakDetect::collapsePeaks(peakCurrent, peakAfterCurr);
-
-    if (peakMax != peak && peakMax->isCandidate())
-    {
-cout << "  max " << peakMax->getIndex() + offset << " " << 
-  peak->getIndex() + offset << endl;
-      PeakDetect::collapsePeaks(++peakMax, peak);
-    }
-    */
-    
-cout << "peak was " << peak->getIndex() + offset << ", is ";
-    peak++;
-cout << peak->getIndex() + offset << endl;
   }
 }
 
