@@ -349,6 +349,91 @@ PeakDetect::printTMP(peakCurrent, peakMax, peak, "P1");
     // note the lowest one.  If they are the same, keep that.
 
     auto peakFirst = prev(peakCurrent);
+    const bool flagExtreme = peakFirst->getMaxFlag();
+
+
+    if (flagExtreme != peak->getMaxFlag())
+    {
+      // We have a broad extremum.  If peakFirst is a minimum, then
+      // the overall extremum is a minimum.  Find the most extreme
+      // peak of the same polarity.
+      
+      auto peakExtreme = peakFirst;
+      for (auto p = peakCurrent; p != peak; p++)
+      {
+        if (p->getMaxFlag() == flagExtreme)
+        {
+          if (flagExtreme && p->getValue() > peakExtreme->getValue())
+            peakExtreme = p;
+          else if (! flagExtreme && p->getValue() < peakExtreme->getValue())
+            peakExtreme = p;
+        }
+      }
+
+
+cout << "REDUCE " << (flagExtreme ? "MAX" : "MIN") << "\n";
+cout << peak->strHeader();
+for (auto p = peakFirst; p != peak; p++)
+  cout << p->str(offset);
+cout << peak->str(offset);
+cout << "EXTREME " << peakExtreme->getIndex() + offset << endl << endl;
+
+
+      // Determine whether the peak has an extent.
+      Peak const * peakL;
+      if (peakFirst->similarGradientForward(* peakExtreme))
+        peakL = &*peakExtreme;
+      else
+      {
+        // peakExtreme and peakFirst have the same polarity.
+        peakL = &*peakFirst;
+        cout << "Left extent " << 
+          peakExtreme->getIndex() - peakL->getIndex() << endl;
+      }
+
+      list<Peak>::iterator peakR;
+      if (peakExtreme->similarGradientBackward(* peak))
+        peakR = peakExtreme;
+      else
+      {
+        // peakExtreme and peak have different polarities.
+        // Find the last previous one before peak to have the same
+        // polarity as peakExtreme.
+        peakR = peak;
+        while (peakR != peakExtreme)
+        {
+          if (peakR->getMaxFlag() == flagExtreme)
+            break;
+          else
+            peakR = prev(peakR);
+        }
+
+        cout << "Right extent " << 
+          peakR->getIndex() - peakExtreme->getIndex() << endl;
+      }
+      
+      peakExtreme->logExtent(* peakL, * peakR);
+
+      // Do the deletions.
+      if (peakFirst != peakExtreme)
+      {
+        cout << PeakDetect::deleteStr(&*peakFirst, &*prev(peakExtreme));
+        PeakDetect::collapsePeaks(peakFirst, peakExtreme);
+      }
+
+      peakExtreme++;
+      if (peakExtreme != peak)
+      {
+        cout << PeakDetect::deleteStr(&*peakExtreme, &*prev(peak));
+        PeakDetect::collapsePeaks(peakExtreme, peak);
+      }
+
+      peak++;
+      continue;
+    }
+
+
+
     auto peakLeft = peakFirst;
     auto peakRight = prev(peak);
 
@@ -367,13 +452,17 @@ PeakDetect::printTMP(peakCurrent, peakMax, peak, "P1");
         peakRight = prevp;
     }
     
+
 cout << "REDUCE\n";
 cout << peakLeft->strHeader();
 for (auto p = peakFirst; p != peak; p++)
   cout << p->str(offset);
 cout << peak->str(offset);
 cout << "LEFT/RIGHT " << peakLeft->getIndex() + offset << ", " <<
-  peakRight->getIndex() + offset << endl << endl;
+  peakRight->getIndex() + offset << ", MAX " <<
+  peakMax->getIndex() + offset << endl << endl;
+
+
 
     // It can happen that we can delete everything, seen from the
     // right.
