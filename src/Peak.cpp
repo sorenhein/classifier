@@ -744,14 +744,15 @@ string Peak::strHeaderQuality() const
   stringstream ss;
   
   ss <<
-    setw(6) << "Index" <<
-    setw(8) << "Value" <<
-    setw(8) << "Range1" <<
-    setw(8) << "Range2" <<
-    setw(8) << "Grad1" <<
-    setw(8) << "Grad2" <<
-    setw(8) << "Squal" <<
-    setw(8) << "Quality" <<
+    setw(5) << "Index" <<
+    setw(8) << "Extent" <<
+    setw(7) << "Value" <<
+    setw(7) << "Range1" <<
+    setw(7) << "Range2" <<
+    setw(6) << "Grad1" <<
+    setw(6) << "Grad2" <<
+    setw(7) << "Squal" <<
+    setw(7) << "Qual" <<
     "\n";
   return ss.str();
 }
@@ -780,14 +781,15 @@ string Peak::strQuality(const unsigned offset) const
   stringstream ss;
 
   ss <<
-    setw(6) << std::right << index + offset <<
-    setw(8) << fixed << setprecision(2) << value <<
-    setw(8) << fixed << setprecision(2) << left.range <<
-    setw(8) << fixed << setprecision(2) << right.range <<
-    setw(8) << fixed << setprecision(2) << 100. * left.gradient <<
-    setw(8) << fixed << setprecision(2) << 100. * right.gradient <<
-    setw(8) << fixed << setprecision(2) << qualityShape <<
-    setw(8) << fixed << setprecision(2) << qualityPeak << "";
+    setw(5) << std::right << index + offset <<
+    setw(8) << Peak::strExtent() << 
+    setw(7) << fixed << setprecision(2) << value <<
+    setw(7) << fixed << setprecision(2) << left.range <<
+    setw(7) << fixed << setprecision(2) << right.range <<
+    setw(6) << fixed << setprecision(2) << 100. * left.gradient <<
+    setw(6) << fixed << setprecision(2) << 100. * right.gradient <<
+    setw(7) << fixed << setprecision(2) << qualityShape <<
+    setw(7) << fixed << setprecision(2) << qualityPeak << "";
 
   string str = "  ";
   if (! selectFlag || ! wheelFlag)
@@ -810,6 +812,23 @@ string Peak::strQuality(const unsigned offset) const
     str += string(62, '-') + "\n";
 
   return ss.str() + str;
+}
+
+
+string Peak::strExtent() const
+{
+  stringstream ss;
+  if (indexLeft != index)
+    ss << "-" << index - indexLeft;
+
+  if (index != indexRight)
+  {
+    if (ss.str() != "")
+      ss << "/";
+
+    ss << "+" << indexRight - index;
+  }
+  return ss.str();
 }
 
 

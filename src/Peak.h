@@ -97,6 +97,8 @@ class Peak
     float calcQualityPeak(const Peak& scale) const;
     float calcQualityShape(const Peak& scale) const;
 
+    string strExtent() const;
+
   public:
 
     Peak();

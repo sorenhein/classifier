@@ -1,21 +1,8 @@
-Rewriting reduceSmallPeaks:
-start end
-max   max   Like a kink upwards
-max   min   A local maximum
-min   max   A local minimum
-min   min   Like a kink downwards
+sensor00:
+* 074731: Supposed to be 2_32_N, but first wagon has odd gaps.
+  Can probably help by penalizing early deletions more than is
+  currently the case, but might still come out as 3_32_N.
 
-If a local extremum, choose only among this kind.
-Can get an extent for this reason.
-
-If a kink:
-Maybe the kink can go away completely.
-If not, exactly two peaks, possibly with extents.
-
-Peak print-out should have extent shown somehow.
-Steal some whitespace from other columns.
-
-12842 -30/+27 ...
 
 Should be possible to run new, then old, and see if anything else happens.
 

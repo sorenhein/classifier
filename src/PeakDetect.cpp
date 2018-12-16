@@ -225,14 +225,14 @@ const list<Peak>::iterator PeakDetect::collapsePeaks(
     (peak1 == peaks.begin() ? nullptr : &*prev(peak1));
 
 cout << "UPDATING peak2\n";
-cout << peak2->strQuality() << endl;
+cout << peak2->strQuality(offset) << endl;
 cout << "with" << endl;
 if (peak0 != nullptr)
 {
-cout << peak0->strQuality() << endl;
+cout << peak0->strQuality(offset) << endl;
   peak2->update(peak0);
 }
-cout << peak2->strQuality() << endl;
+cout << peak2->strQuality(offset) << endl;
 
   // TODO Do it here, or in Minima?
 // if (peak0 != nullptr)
@@ -427,6 +427,23 @@ cout << "EXTREME " << peakExtreme->getIndex() + offset << endl << endl;
         cout << PeakDetect::deleteStr(&*peakExtreme, &*prev(peak));
         PeakDetect::collapsePeaks(peakExtreme, peak);
       }
+
+      peak++;
+      continue;
+    }
+    else
+    {
+      // We have a kink.  It's debatable if this should lead to
+      // an extent.  Here we just delete everything.
+      
+cout << "REDUCE " << (flagExtreme ? "MAXKINK" : "MINKINK") << "\n";
+cout << peak->strHeader();
+for (auto p = peakFirst; p != peak; p++)
+  cout << p->str(offset);
+cout << peak->str(offset);
+
+        cout << PeakDetect::deleteStr(&*peakFirst, &*prev(peak));
+        PeakDetect::collapsePeaks(peakFirst, peak);
 
       peak++;
       continue;
@@ -829,9 +846,9 @@ void PeakDetect::reduce()
   if (debug)
     PeakDetect::printPeak(scale, "Scale");
 
-  // PeakDetect::reduceSmallPeaks(PEAK_PARAM_RANGE, 
-    // scale.getRange() / 10.f, true);
-  PeakDetect::reduceSmallPeaksNew(PEAK_PARAM_RANGE, scale.getRange() / 10.f);
+  PeakDetect::reduceSmallPeaks(PEAK_PARAM_RANGE, 
+    scale.getRange() / 10.f, true);
+  // PeakDetect::reduceSmallPeaksNew(PEAK_PARAM_RANGE, scale.getRange() / 10.f);
 
   if (debugDetails)
     PeakDetect::printAllPeaks("Range-reduced peaks");
