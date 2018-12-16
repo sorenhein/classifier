@@ -393,8 +393,32 @@ cout << "EXTREME " << peakExtreme->getIndex() + offset << endl << endl;
       peak++;
       continue;
     }
+    else if (peakFirst->getValue() < 0.f && peak->getValue() < 0.f)
+    {
+      // Any kink on the negative side of the axis.
+
+cout << "EXP " << (flagExtreme ? "MAXKINK" : "MINKINK") << "\n";
+cout << peak->strHeader();
+for (auto p = peakFirst; p != peak; p++)
+  cout << p->str(offset);
+cout << peak->str(offset);
+
+        cout << PeakDetect::deleteStr(&*peakFirst, &*prev(peak));
+        PeakDetect::collapsePeaks(peakFirst, peak);
+
+      peak++;
+      continue;
+    }
     else if (preserveKinksFlag)
     {
+/*
+cout << "DONTTOUCH " << (flagExtreme ? "MAXKINK" : "MINKINK") << "\n";
+cout << peak->strHeader();
+for (auto p = peakFirst; p != peak; p++)
+  cout << p->str(offset);
+cout << peak->str(offset);
+*/
+
       peak++;
       continue;
     }

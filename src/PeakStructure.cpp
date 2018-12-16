@@ -52,6 +52,15 @@ void PeakStructure::setCarRecognizers()
   recog.text = "4 (3+1) good peaks";
   recognizers.push_back(recog);
 
+  // The simple four-wheel car with 2 great + 2 good peaks.
+  recog.params.source = {false, 0};
+  recog.params.sumGreat = {true, 2};
+  recog.params.starsGood = {true, 2};
+  recog.numWheels = 4;
+  recog.quality = PEAK_QUALITY_GOOD;
+  recog.text = "4 (2+2) good peaks";
+  recognizers.push_back(recog);
+
   // The front car with 3 great peaks, missing the very first one.
   recog.params.source = {true, static_cast<unsigned>(PEAK_SOURCE_FIRST)};
   recog.params.sumGreat = {true, 3};
