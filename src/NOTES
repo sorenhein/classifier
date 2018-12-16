@@ -4,8 +4,6 @@ sensor00:
   currently the case, but might still come out as 3_32_N.
 
 
-Should be possible to run new, then old, and see if anything else happens.
-
 s02
 * odd left gradient occasionally
 * Avoid spurious peaks between bogey-pair peaks

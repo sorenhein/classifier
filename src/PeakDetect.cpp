@@ -234,33 +234,8 @@ cout << peak0->strQuality(offset) << endl;
 }
 cout << peak2->strQuality(offset) << endl;
 
-  // TODO Do it here, or in Minima?
-// if (peak0 != nullptr)
-  // peak0->logNextPeak(&*peak2);
 
   return peaks.erase(peak1, peak2);
-}
-
-
-void PeakDetect::printTMP(
-  list<Peak>::iterator peakCurrent,
-  list<Peak>::iterator peakMax,
-  list<Peak>::iterator peak,
-  const string& place) const
-{
-  // setw(7) << fixed << setprecision(4) << 
-  // peakCurrent->getValue() << " " << 
-  // peakCurrent->getIndex() + offset <<
-
-  cout << "PEAK " << place << ", " <<
-    (peakCurrent->getMaxFlag() ? "max" : "min") <<
-    (peakCurrent->getValue() >= 0. ? " + " : " - ") <<
-    (peakMax->getMaxFlag() ? "max" : "min") <<
-    (peakMax->getValue() >= 0. ? " + " : " - ") <<
-    (peak->getMaxFlag() ? "max" : "min") <<
-    (peak->getValue() >= 0. ? " + " : " - ") <<
-    (peak == peakMax ? "  =" : " !=") <<
-    endl;
 }
 
 
@@ -279,9 +254,10 @@ string PeakDetect::deleteStr(
 }
 
 
-void PeakDetect::reduceSmallPeaksNew(
+void PeakDetect::reduceSmallPeaks(
   const PeakParam param,
-  const float paramLimit)
+  const float paramLimit,
+  const bool preserveKinksFlag)
 {
   // We use this method for two reductions:
   // 1. Small areas (first, as a rough reduction).
@@ -417,6 +393,11 @@ cout << "EXTREME " << peakExtreme->getIndex() + offset << endl << endl;
       peak++;
       continue;
     }
+    else if (preserveKinksFlag)
+    {
+      peak++;
+      continue;
+    }
     else
     {
       // We have a kink.  It's debatable if this should lead to
@@ -428,142 +409,13 @@ for (auto p = peakFirst; p != peak; p++)
   cout << p->str(offset);
 cout << peak->str(offset);
 
+      // peak->logExtent(* peakFirst, * peak);
+
         cout << PeakDetect::deleteStr(&*peakFirst, &*prev(peak));
         PeakDetect::collapsePeaks(peakFirst, peak);
 
       peak++;
       continue;
-    }
-  }
-}
-
-
-void PeakDetect::reduceSmallPeaks(
-  const PeakParam param,
-  const float paramLimit,
-  const bool preserveFlag)
-{
-  // We use this method for two reductions:
-  // 1. Small areas (first, as a rough reduction).
-  // 2. Small ranges (second, as a more precise reduction).
-  // preserveFlag regulates whether we may reduce away certain
-  // positive peaks.  As this changes the perceived slope of 
-  // negative minimum peaks, we only do it for the first reduction.
-
-  if (peaks.empty())
-    THROW(ERR_NO_PEAKS, "Peak list is empty");
-
-  auto peak = next(peaks.begin());
-
-  while (peak != peaks.end())
-  {
-    const float paramCurrent = peak->getParameter(param);
-    if (paramCurrent >= paramLimit)
-    {
-      peak++;
-      continue;
-    }
-
-    auto peakCurrent = peak, peakMax = peak;
-    const bool maxFlag = peak->getMaxFlag();
-    float sumParam = 0.f, lastParam = 0.f;
-    float valueMax = numeric_limits<float>::lowest();
-
-    do
-    {
-      peak++;
-      if (peak == peaks.end())
-        break;
-
-      sumParam = peak->getParameter(* peakCurrent, param);
-      lastParam = peak->getParameter(param);
-      const float value = peak->getValue();
-      if (! maxFlag && value > valueMax)
-      {
-        valueMax = value;
-        peakMax = peak;
-      }
-      else if (maxFlag && -value > valueMax)
-      {
-        valueMax = -value;
-        peakMax = peak;
-      }
-    }
-    while (abs(sumParam) < paramLimit || abs(lastParam) < paramLimit);
-
-if (preserveFlag && peak->getIndex() > 1500)
-  cout << peakCurrent->getIndex() + offset << " " <<
-    peakMax->getIndex() + offset << " " <<
-    peak->getIndex() + offset << endl;
-/*
-if (preserveFlag && peak->getIndex() > 11500)
-{
-  cout << 
-    "PEAK curr " << 
-    setw(7) << fixed << setprecision(4) << peakCurrent->getValue() <<
-    " " << peakCurrent->getIndex() + offset <<
-    (peakCurrent->getMaxFlag() ? " max" : " min") <<
-    ", max " << peakMax->getIndex() + offset <<
-    (peakMax->getMaxFlag() ? " max" : " min") <<
-    (peakMax->getValue() >= 0.f ? " pos" : " neg") <<
-    ", peak " << peak->getIndex() + offset <<
-    (peak->getMaxFlag() ? " max" : " min") <<
-    (peak->getValue() >= 0.f ? " pos" : " neg") <<
-    " mf " << (maxFlag ? "true" : "false") <<
-    "\n";
-}
-*/
-    if (abs(sumParam) < paramLimit || abs(lastParam) < paramLimit)
-    {
-//if (preserveFlag && peak->getIndex() > 11500)
-  //cout << "PATH1\n";
-      // It's the last set of peaks.  We could keep the largest peak
-      // of the same polarity as peakCurrent (instead of peakCurrent).
-      // It's a bit random whether or not this would be a "real" peak,
-      // and we also don't keep track of this above.  So we just stop.
-if (preserveFlag)
-  PeakDetect::printTMP(peakCurrent, peakMax, peak, "P1");
-      if (peakCurrent != peaks.end())
-        peaks.erase(peakCurrent, peaks.end());
-      break;
-    }
-    else if (preserveFlag &&
-        peakCurrent->getValue() > 0.f && 
-        ! peakCurrent->getMaxFlag())
-        // THOUGHT: maxFlag true, pcurr true, next false,
-        // values pos pos any, don't do
-    {
-//if (preserveFlag && peak->getIndex() > 11500)
-  //cout << "PATH2\n";
-if (preserveFlag)
-  PeakDetect::printTMP(peakCurrent, peakMax, peak, "P2");
-      // Don't connect two positive maxima.  This can mess up
-      // the gradient calculation which influences peak perception.
-      peak++;
-    }
-    // else if (peak->getMaxFlag() != maxFlag)
-    else if (peak->getMaxFlag() != maxFlag ||
-        peak == peakMax)
-    {
-//if (preserveFlag && peak->getIndex() > 11500)
-  //cout << "PATH3\n";
-if (preserveFlag)
-  PeakDetect::printTMP(peakCurrent, peakMax, peak, "P3");
-      // Keep from peakCurrent to peak which is also often peakMax.
-      peak = PeakDetect::collapsePeaks(--peakCurrent, peak);
-      peak++;
-    }
-    else
-    {
-//if (preserveFlag && peak->getIndex() > 11500)
-  //cout << "PATH4\n";
-      // Keep the start, the most extreme peak of opposite polarity,
-      // and the end.
-if (preserveFlag)
-  PeakDetect::printTMP(peakCurrent, peakMax, peak, "P4");
-      peakMax = PeakDetect::collapsePeaks(--peakCurrent, peakMax);
-      peak = PeakDetect::collapsePeaks(++peakMax, peak);
-      peak++;
     }
   }
 }
@@ -579,7 +431,6 @@ void PeakDetect::eliminateKinks()
     const auto peakPrev = prev(peak);
     const auto peakPrevPrev = prev(peakPrev);
     const auto peakNext = next(peak);
-
 
     if (peakNext->isMinimum() != peakPrev->isMinimum() &&
         ((peakNext->getValue() > peak->getValue() &&
@@ -626,8 +477,31 @@ cout << "Not best\n";
       // Candidate for removal.  But if it changes the gradient
       // too much, don't do it.
 
+/*
+if (peak->getIndex() == 7067)
+{
+  cout << "HERE kink" << endl;
+  cout << peakPrevPrev->strQuality(offset) << endl;
+  cout << peakPrev->strQuality(offset) << endl;
+  cout << peak->strQuality(offset) << endl;
+  cout << peakNext->strQuality(offset) << endl;
+}
+*/
+
       if (peakPrev->similarGradientTwo(* peak, * peakNext))
+      {
+        // Gradients match roughly.
         peak = PeakDetect::collapsePeaks(peakPrev, peakNext);
+      }
+      else
+      if (! peak->getMaxFlag() &&
+          peakPrev->getValue() < 0.f &&
+          5 * (peak->getIndex() - peakPrev->getIndex()) <
+          peakNext->getIndex() - peakPrevPrev->getIndex())
+      {
+        // Upward kink, short in time, below the zero line.
+        peak = PeakDetect::collapsePeaks(peakPrev, peakNext);
+      }
       else
         peak++;
     }
@@ -668,8 +542,7 @@ void PeakDetect::reduce()
   if (debugDetails)
     PeakDetect::printAllPeaks("Original peaks");
 
-  // PeakDetect::reduceSmallPeaks(PEAK_PARAM_AREA, 0.1f, false);
-  PeakDetect::reduceSmallPeaksNew(PEAK_PARAM_AREA, 0.1f);
+  PeakDetect::reduceSmallPeaks(PEAK_PARAM_AREA, 0.1f, false);
 
   if (debugDetails)
     PeakDetect::printAllPeaks("Non-tiny peaks");
@@ -685,7 +558,6 @@ void PeakDetect::reduce()
 
   PeakDetect::reduceSmallPeaks(PEAK_PARAM_RANGE, 
     scale.getRange() / 10.f, true);
-  // PeakDetect::reduceSmallPeaksNew(PEAK_PARAM_RANGE, scale.getRange() / 10.f);
 
   if (debugDetails)
     PeakDetect::printAllPeaks("Range-reduced peaks");

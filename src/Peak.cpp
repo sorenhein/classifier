@@ -593,8 +593,8 @@ bool Peak::similarGradientTwo(
 
   // TODO #define
   // "this" and p2, as above.
-  return (gradNew >= 0.9f * left.gradient && 
-    gradNew <= 1.1f * left.gradient);
+  return (gradNew >= 0.67f * left.gradient && 
+    gradNew <= 1.5f * left.gradient);
 
   // TODO Are the peaks guaranteed to be alternating?  I don't think so.
   // lenNew is OK.
