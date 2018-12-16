@@ -167,6 +167,9 @@ int main(int argc, char * argv[])
 
         sensorStats.log(sensor, rank, bestAlign.distMatch);
         trainStats.log(trainTrue, rank, bestAlign.distMatch);
+
+if (trainDetected != trainTrue)
+  cout << "DRIVER MISMATCH\n";
       }
       catch (Except& ex)
       {

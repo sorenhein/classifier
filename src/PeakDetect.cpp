@@ -477,29 +477,31 @@ cout << "Not best\n";
       // Candidate for removal.  But if it changes the gradient
       // too much, don't do it.
 
-/*
-if (peak->getIndex() == 7067)
-{
-  cout << "HERE kink" << endl;
-  cout << peakPrevPrev->strQuality(offset) << endl;
-  cout << peakPrev->strQuality(offset) << endl;
-  cout << peak->strQuality(offset) << endl;
-  cout << peakNext->strQuality(offset) << endl;
-}
-*/
 
       if (peakPrev->similarGradientTwo(* peak, * peakNext))
       {
+  cout << "Kink match on gradient" << endl;
+  cout << peakPrevPrev->strQuality(offset);
+  cout << peakPrev->strQuality(offset);
+  cout << peak->strQuality(offset);
+  cout << peakNext->strQuality(offset) << endl;
+
         // Gradients match roughly.
         peak = PeakDetect::collapsePeaks(peakPrev, peakNext);
       }
       else
-      if (! peak->getMaxFlag() &&
+      if (// ! peak->getMaxFlag() &&
           peakPrev->getValue() < 0.f &&
           5 * (peak->getIndex() - peakPrev->getIndex()) <
           peakNext->getIndex() - peakPrevPrev->getIndex())
       {
-        // Upward kink, short in time, below the zero line.
+  cout << "Kink match on look" << endl;
+  cout << peakPrevPrev->strQuality(offset);
+  cout << peakPrev->strQuality(offset);
+  cout << peak->strQuality(offset);
+  cout << peakNext->strQuality(offset) << endl;
+
+        // Kink, short in time, below the zero line.
         peak = PeakDetect::collapsePeaks(peakPrev, peakNext);
       }
       else
