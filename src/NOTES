@@ -3,12 +3,35 @@ sensor00:
   Can probably help by penalizing early deletions more than is
   currently the case, but might still come out as 3_32_N.
 
+sensor02:
+* 183336, #19:
+  - We get the right peaks, almost, but the one at 205 is > 0.f,
+    so we're missing not ref peak #0 but #1
+  - This goes in Needleman-Wunsch somehow.
+
+* 185610, #20:
+  - As above, 210 (maybe)
+
+* 072015, #34:
+  - Here wheel distance seems OK
+  - We should also look for bogeys with small negative peaks
+    in between, e.g. 2360-2449.  Unmark in-between very poor peaks?
+  - Why doesn't 9246-9336 get marked?
+
+* 162222, #41:
+  - Why is wheel distance shown as 132-146?  Why does it work anyway?
+  - Spurious peak (kink) at 1506 between 1449 and 1536
+
+* 194406, #42:
+  - Why is wheel distance shown as 182-188?  Why does it work anyway?
+  - PeakMinima::markBogeysOfUnpaired:
+    At the moment, one *** and one **
+    If the distance is right and both are **, that's good enough?
 
 s02
 * odd left gradient occasionally
 * Avoid spurious peaks between bogey-pair peaks
 * Kink causes bad range and gradient
-* Maybe 2+2 as well
 * When we have a reliable new wheel gap, mark some more gaps?
 
 
