@@ -12,18 +12,12 @@ sensor02:
 * 185610, #20:
   - As above, 210 (maybe)
 
-* 072015, #34:
-  - Here wheel distance seems OK
-  - We should also look for bogeys with small negative peaks
-    in between, e.g. 2360-2449.  Unmark in-between very poor peaks?
-  - Why doesn't 9246-9336 get marked?
-
 * 162222, #41:
-  - Why is wheel distance shown as 132-146?  Why does it work anyway?
   - Spurious peak (kink) at 1506 between 1449 and 1536
+  - Gradient test: -0,101 vs -0,080, close but not 10%
+  - Range test: 8 vs whole range of 51, would (just) be short enough
 
 * 194406, #42:
-  - Why is wheel distance shown as 182-188?  Why does it work anyway?
   - PeakMinima::markBogeysOfUnpaired:
     At the moment, one *** and one **
     If the distance is right and both are **, that's good enough?

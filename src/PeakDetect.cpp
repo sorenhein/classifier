@@ -17,6 +17,7 @@
 #define SAMPLE_RATE 2000.
 
 #define KINK_RATIO 100.f
+#define KINK_RATIO_CONSIDER 20.f
 
 
 PeakDetect::PeakDetect()
@@ -494,9 +495,19 @@ cout << "Not best\n";
       peakPrev->getArea(* peakPrevPrev) / areaPrev;
     const float ratioNext = peakNext->getArea(* peak) / areaPrev;
 
+if (peak->getIndex() + offset == 1514)
+{
+  cout << "HERE: " << areaPrev << ", " << ratioPrev << ", " <<
+    ratioNext << endl;
+  if (peakPrev->similarGradientTwo(* peak, * peakNext))
+    cout << "Would fit gradient\n";
+  else
+    cout << "Would fail gradient\n";
+}
+
     if (ratioPrev > 1.f && 
         ratioNext > 1.f &&
-        ratioPrev * ratioNext > KINK_RATIO)
+        ratioPrev * ratioNext > KINK_RATIO_CONSIDER)
     {
       // Candidate for removal.  But if it changes the gradient
       // too much, don't do it.
@@ -513,9 +524,7 @@ cout << "Not best\n";
         // Gradients match roughly.
         peak = PeakDetect::collapsePeaks(peakPrev, peakNext);
       }
-      else
-      if (// ! peak->getMaxFlag() &&
-          peakPrev->getValue() < 0.f &&
+      else if (peakPrev->getValue() < 0.f &&
           5 * (peak->getIndex() - peakPrev->getIndex()) <
           peakNext->getIndex() - peakPrevPrev->getIndex())
       {
@@ -526,6 +535,18 @@ cout << "Not best\n";
   cout << peakNext->strQuality(offset) << endl;
 
         // Kink, short in time, below the zero line.
+        peak = PeakDetect::collapsePeaks(peakPrev, peakNext);
+      }
+      else if (peakPrev->getValue() < 0.f &&
+          ratioPrev * ratioNext > KINK_RATIO)
+      {
+  cout << "Kink match on ratios" << endl;
+  cout << peakPrevPrev->strQuality(offset);
+  cout << peakPrev->strQuality(offset);
+  cout << peak->strQuality(offset);
+  cout << peakNext->strQuality(offset) << endl;
+
+        // Comparably small-area kink, first kink below the line.
         peak = PeakDetect::collapsePeaks(peakPrev, peakNext);
       }
       else
