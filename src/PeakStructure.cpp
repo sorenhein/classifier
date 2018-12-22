@@ -70,6 +70,15 @@ void PeakStructure::setCarRecognizers()
   recog.text = "3 great peaks (front)";
   recognizers.push_back(recog);
 
+  // The front car with 2 great +1 good peaks, missing the very first one.
+  recog.params.source = {true, static_cast<unsigned>(PEAK_SOURCE_FIRST)};
+  recog.params.sumGreat = {true, 2};
+  recog.params.starsGood = {true, 1};
+  recog.numWheels = 3;
+  recog.quality = PEAK_QUALITY_GOOD;
+  recog.text = "3 (2+1) peaks (front)";
+  recognizers.push_back(recog);
+
   // The front car with 2 great peaks, missing the first whole bogey.
   // Don't try to salvage the first 1-2 peaks if it looks too hard.
   recog.params.source = {true, PEAK_SOURCE_FIRST};

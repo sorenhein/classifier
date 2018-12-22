@@ -13,9 +13,9 @@ sensor02:
   - As above, 210 (maybe)
 
 * 162222, #41:
-  - Spurious peak (kink) at 1506 between 1449 and 1536
-  - Gradient test: -0,101 vs -0,080, close but not 10%
-  - Range test: 8 vs whole range of 51, would (just) be short enough
+  - In Needleman-Wunsch, initial deletion of true peak should be much
+    less expensive than insertions of true peaks (too many observed
+    high-quality peaks)
 
 * 194406, #42:
   - PeakMinima::markBogeysOfUnpaired:
