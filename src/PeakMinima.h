@@ -134,6 +134,11 @@ class PeakMinima
       const Peak& peak,
       const string& text) const;
 
+    void printDists(
+      const unsigned start,
+      const unsigned end,
+      const string& text) const;
+
     void printRange(
       const unsigned start,
       const unsigned end,

@@ -511,7 +511,7 @@ void PeakMinima::markBogeys(list<Peak *>& candidates) const
   PeakMinima::guessNeighborDistance(candidates, 
     &PeakMinima::bothSelected, wheelGap);
 
-  PeakMinima::printRange(wheelGap.lower, wheelGap.upper,
+  PeakMinima::printDists(wheelGap.lower, wheelGap.upper,
     "Guessing wheel distance");
 
   PeakMinima::markBogeysOfSelects(candidates, wheelGap);
@@ -538,7 +538,7 @@ void PeakMinima::markBogeys(list<Peak *>& candidates) const
   PeakMinima::guessNeighborDistance(candidates,
     &PeakMinima::bothSelected, wheelGap);
 
-  PeakMinima::printRange(wheelGap.lower, wheelGap.upper,
+  PeakMinima::printDists(wheelGap.lower, wheelGap.upper,
     "Guessing new wheel distance");
 
   // Mark more bogeys with the refined peak qualities.
@@ -598,7 +598,7 @@ void PeakMinima::markShortGaps(
   PeakMinima::guessNeighborDistance(candidates,
     &PeakMinima::formBogeyGap, shortGap);
 
-  PeakMinima::printRange(shortGap.lower, shortGap.upper,
+  PeakMinima::printDists(shortGap.lower, shortGap.upper,
     "Guessing short gap");
 
   // Mark short gaps (between cars).
@@ -702,7 +702,7 @@ void PeakMinima::markLongGaps(
   Gap longGap;
   PeakMinima::guessLongGapDistance(candidates, shortGapCount, longGap);
 
-  PeakMinima::printRange(longGap.lower, longGap.upper, "Guessing long gap");
+  PeakMinima::printDists(longGap.lower, longGap.upper, "Guessing long gap");
 
   // Label intra-car gaps (within cars).
   PeakMinima::markLongGapsOfSelects(candidates, longGap);
@@ -733,7 +733,7 @@ void PeakMinima::markLongGaps(
   // Redo the distances using the new qualities (all four peaks).
   PeakMinima::guessLongGapDistance(candidates, shortGapCount, longGap);
 
-  PeakMinima::printRange(longGap.lower, longGap.upper, 
+  PeakMinima::printDists(longGap.lower, longGap.upper, 
     "Guessing new long gap");
 
   // Mark more bogeys with the refined peak qualities.
@@ -748,6 +748,15 @@ void PeakMinima::printPeakQuality(
   cout << text << "\n";
   cout << peak.strHeaderQuality();
   cout << peak.strQuality(offset) << endl;
+}
+
+
+void PeakMinima::printDists(
+  const unsigned start,
+  const unsigned end,
+  const string& text) const
+{
+  cout << text << " " << start << "-" << end << endl;
 }
 
 
