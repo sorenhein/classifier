@@ -256,6 +256,8 @@ void PeakMinima::reseedBogeysUsingQuality(
 
     if (cand->greatQuality())
       cand->select();
+    else if (cand->isWheel() && cand->acceptableQuality())
+      cand->select();
     else
       cand->unselect();
   }
@@ -301,6 +303,8 @@ void PeakMinima::reseedLongGapsUsingQuality(
     }
 
     if (cand->greatQuality())
+      cand->select();
+    else if (cand->isWheel() && cand->acceptableQuality())
       cand->select();
     else
       cand->unselect();
@@ -495,7 +499,11 @@ void PeakMinima::markBogeysOfUnpaired(
     Peak * cand = * cit;
     Peak * nextCand = * next(cit);
     // If neither is set, or both are set, there is nothing to work on.
-    if (cand->isSelected() == nextCand->isSelected())
+    // if (cand->isSelected() == nextCand->isSelected())
+      // continue;
+
+    // If they are both set, move on.
+    if (cand->isSelected() && nextCand->isSelected())
       continue;
 
     const unsigned dist = nextCand->getIndex() - cand->getIndex();
@@ -503,8 +511,9 @@ void PeakMinima::markBogeysOfUnpaired(
       continue;
 
     // If the distance is right, we can relax our quality requirements.
-    if ((cand->isSelected() && nextCand->acceptableQuality()) ||
-        (nextCand->isSelected() && cand->acceptableQuality()))
+    // if ((cand->isSelected() && nextCand->acceptableQuality()) ||
+        // (nextCand->isSelected() && cand->acceptableQuality()))
+    if (cand->acceptableQuality() && nextCand->acceptableQuality())
       PeakMinima::markWheelPair(* cand, * nextCand, "Adding");
   }
 }
