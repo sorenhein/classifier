@@ -100,7 +100,9 @@ class PeakMinima
       list<Peak *>& candidates,
       const Gap& wheelGap) const;
 
-    void markBogeys(list<Peak *>& candidates) const;
+    void markBogeys(
+      list<Peak *>& candidates,
+      Gap& wheelGap) const;
 
 
     void markShortGapsOfSelects(
@@ -127,6 +129,7 @@ class PeakMinima
 
     void markLongGaps(
       list<Peak *>& candidates,
+      const Gap& wheelGap,
       const unsigned shortGapCount);
 
 

@@ -299,6 +299,11 @@ void PeakMinima::reseedLongGapsUsingQuality(
       // TODO
       // THROW(ERR_ALGO_PEAK_CONSISTENCY, "No bogey for wheel?");
     }
+
+    if (cand->greatQuality())
+      cand->select();
+    else
+      cand->unselect();
   }
 }
 
@@ -505,9 +510,10 @@ void PeakMinima::markBogeysOfUnpaired(
 }
 
 
-void PeakMinima::markBogeys(list<Peak *>& candidates) const
+void PeakMinima::markBogeys(
+  list<Peak *>& candidates,
+  Gap& wheelGap) const
 {
-  Gap wheelGap;
   PeakMinima::guessNeighborDistance(candidates, 
     &PeakMinima::bothSelected, wheelGap);
 
@@ -696,6 +702,7 @@ void PeakMinima::markLongGapsOfSelects(
 
 void PeakMinima::markLongGaps(
   list<Peak *>& candidates,
+  const Gap& wheelGap,
   const unsigned shortGapCount)
 {
   // Look for intra-car (long) gaps.
@@ -719,6 +726,11 @@ void PeakMinima::markLongGaps(
 
   // Recalculate the peak qualities using both left and right peaks.
   PeakMinima::reseedLongGapsUsingQuality(candidates, bogeys);
+
+  // Some peaks might have become good enough to lead to cars,
+  // so we re-label.  First we look again for bogeys.
+  PeakMinima::markBogeysOfSelects(candidates, wheelGap);
+  PeakMinima::markLongGapsOfSelects(candidates, longGap);
 
   PeakMinima::printAllCandidates(candidates, "peaks with all four wheels");
 
@@ -815,10 +827,12 @@ void PeakMinima::mark(
   PeakMinima::setCandidates(peaks, candidates);
 
   PeakMinima::markSinglePeaks(candidates);
-  PeakMinima::markBogeys(candidates);
+
+  Gap wheelGap;
+  PeakMinima::markBogeys(candidates, wheelGap);
 
   Gap shortGap;
   PeakMinima::markShortGaps(candidates, shortGap);
-  PeakMinima::markLongGaps(candidates, shortGap.count);
+  PeakMinima::markLongGaps(candidates, wheelGap, shortGap.count);
 }
 

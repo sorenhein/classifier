@@ -495,16 +495,6 @@ cout << "Not best\n";
       peakPrev->getArea(* peakPrevPrev) / areaPrev;
     const float ratioNext = peakNext->getArea(* peak) / areaPrev;
 
-if (peak->getIndex() + offset == 1514)
-{
-  cout << "HERE: " << areaPrev << ", " << ratioPrev << ", " <<
-    ratioNext << endl;
-  if (peakPrev->similarGradientTwo(* peak, * peakNext))
-    cout << "Would fit gradient\n";
-  else
-    cout << "Would fail gradient\n";
-}
-
     if (ratioPrev > 1.f && 
         ratioNext > 1.f &&
         ratioPrev * ratioNext > KINK_RATIO_CONSIDER)
