@@ -147,6 +147,17 @@ bool PeakMinima::bothSelected(
 }
 
 
+bool PeakMinima::bothPlausible(
+  const Peak * p1,
+  const Peak * p2) const
+{
+  if (! p1->isSelected() && ! p2->isSelected())
+    return false;
+
+  return (p1->acceptableQuality() && p2->acceptableQuality());
+}
+
+
 bool PeakMinima::formBogeyGap(
   const Peak * p1,
   const Peak * p2) const
@@ -155,7 +166,7 @@ bool PeakMinima::formBogeyGap(
 }
 
 
-void PeakMinima::guessNeighborDistance(
+bool PeakMinima::guessNeighborDistance(
   const list<Peak *>& candidates,
   const CandFncPtr fptr,
   Gap& gap) const
@@ -171,9 +182,13 @@ void PeakMinima::guessNeighborDistance(
         (*npit)->getIndex() - (*pit)->getIndex());
   }
 
+  if (dists.empty())
+    return false;
+
   // Guess their distance range.
   sort(dists.begin(), dists.end());
   PeakMinima::findFirstLargeRange(dists, gap);
+  return true;
 }
 
 
@@ -467,7 +482,7 @@ void PeakMinima::markBogeysOfSelects(
   list<Peak *>& candidates,
   const Gap& wheelGap) const
 {
-  // Here we mark bogeys where both gaps are already selected.
+  // Here we mark bogeys where both peaks are already selected.
   for (auto cit = candidates.begin(); cit != prev(candidates.end()); cit++)
   {
     Peak * cand = * cit;
@@ -523,8 +538,19 @@ void PeakMinima::markBogeys(
   list<Peak *>& candidates,
   Gap& wheelGap) const
 {
-  PeakMinima::guessNeighborDistance(candidates, 
-    &PeakMinima::bothSelected, wheelGap);
+  if (! PeakMinima::guessNeighborDistance(candidates, 
+      &PeakMinima::bothSelected, wheelGap))
+  {
+    // This may happen when one side of the peak pair is so strong
+    // and different that the other side never gets picked up.
+    // Try again, and lower our standards to acceptable peak quality.
+    cout << "First attempt at wheel distance failed.\n";
+    if (! PeakMinima::guessNeighborDistance(candidates, 
+        &PeakMinima::bothPlausible, wheelGap))
+    {
+      THROW(ERR_ALGO_NO_WHEEL_GAP, "Couldn't find wheel gap");
+    }
+  }
 
   PeakMinima::printDists(wheelGap.lower, wheelGap.upper,
     "Guessing wheel distance");

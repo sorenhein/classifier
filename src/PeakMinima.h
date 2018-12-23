@@ -21,6 +21,13 @@ class PeakMinima
       unsigned lower;
       unsigned upper;
       unsigned count;
+
+      Gap()
+      {
+        lower = 0;
+        upper = 0;
+        count = 0;
+      };
     };
 
     typedef bool (PeakMinima::*CandFncPtr)(
@@ -39,11 +46,15 @@ class PeakMinima
       const Peak * p1,
       const Peak * p2) const;
 
+    bool bothPlausible(
+      const Peak * p1,
+      const Peak * p2) const;
+
     bool formBogeyGap(
       const Peak * p1,
       const Peak * p2) const;
 
-    void guessNeighborDistance(
+    bool guessNeighborDistance(
       const list<Peak *>& candidates,
       const CandFncPtr fptr,
       Gap& gap) const;
