@@ -1,7 +1,7 @@
 sensor00:
 * 061030 #47: Now we get a 2+1 front car which is somehow very expensive
   in Needleman-Wunsch
-* 074731: Supposed to be 2_32_N, but first wagon has odd gaps.
+* 074731 #68: Supposed to be 2_32_N, but first wagon has odd gaps.
   Can probably help by penalizing early deletions more than is
   currently the case, but might still come out as 3_32_N.
 

@@ -75,6 +75,14 @@ class Align
       const Shift& shift,
       Alignment& alignment) const;
 
+    void NeedlemanWunschNewer(
+      const vector<PeakPos>& refPeaks,
+      const vector<PeakPos>& scaledPeaks,
+      const double peakScale,
+      const Imperfections& imperf,
+      const Shift& shift,
+      Alignment& alignment) const;
+
     void printAlignPeaks(
       const string& refTrain,
       const vector<PeakTime>& times,

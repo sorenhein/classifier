@@ -16,7 +16,10 @@
 #define INSERT_PENALTY 1000.
 #define DELETE_PENALTY 1000.
 #define EARLY_MISS_PENALTY 10.
+#define EARLY_DELETE_PENALTY 1.
 #define MAX_EARLY_MISSES 3
+
+#define EARLY_SHIFTS_PENALTY 2.
 
 #define MAX_AXLE_DIFFERENCE_OK 4
 
@@ -338,6 +341,165 @@ void Align::NeedlemanWunschNew(
   // If it's more than "average", go with (3, 1), otherwise (2, 0).
   alignment.dist += shift.firstRefNo * 1 +
     shift.firstTimeNo * 1;
+  
+  UNUSED(imperf);
+}
+
+
+void Align::NeedlemanWunschNewer(
+  const vector<PeakPos>& refPeaks,
+  const vector<PeakPos>& scaledPeaks,
+  const double peakScale,
+  const Imperfections& imperf,
+  const Shift& shift,
+  Alignment& alignment) const
+{
+  // https://en.wikipedia.org/wiki/Needleman%E2%80%93Wunsch_algorithm
+  // This is an adaptation of the sequence-matching algorithm.
+  //
+  // 1. The "letters" are peak positions in meters, so the metric
+  //    between letters is the square of the physical distance.
+  //
+  // 2. There is a custom penalty function for early deletions (from
+  //    the synthetic trace, scaledPeaks, i.e. an early insertion in
+  //    refPeaks) and for early insertions (in scalePeaks, i.e. an
+  //    early deletion in refPeaks).
+  //
+  // The penalty for additions and deletions could actually become
+  // more integrated with the nature of the peaks:  We could measure
+  // the quantity of position (or of acceleration) that it would take
+  // to shape or remove a peak in a certain location.
+  //
+  // The first dimension is refPeaks, the second is the synthetic one.
+  
+  const unsigned lr = refPeaks.size() - shift.firstRefNo;
+  const unsigned lt = scaledPeaks.size() - shift.firstTimeNo;
+
+  // Set up the matrix.
+  enum Origin
+  {
+    NW_MATCH = 0,
+    NW_DELETE = 1,
+    NW_INSERT = 2
+  };
+
+  struct Mentry
+  {
+    double dist;
+    Origin origin;
+  };
+
+  vector<vector<Mentry>> matrix;
+  matrix.resize(lr+1);
+  for (unsigned i = 0; i < lr+1; i++)
+    matrix[i].resize(lt+1);
+
+  matrix[0][0].dist = 0.;
+  for (unsigned i = 1; i < lr+1; i++)
+  {
+    matrix[i][0].dist = i * DELETE_PENALTY;
+    matrix[i][0].origin = NW_DELETE;
+  }
+
+  for (unsigned j = 1; j < lt+1; j++)
+  {
+    matrix[0][j].dist = j * INSERT_PENALTY;
+    matrix[0][j].origin = NW_INSERT;
+  }
+
+  // Run the dynamic programming.
+  for (unsigned i = 1; i < lr+1; i++)
+  {
+    for (unsigned j = 1; j < lt+1; j++)
+    {
+      const double d = refPeaks[i + shift.firstRefNo - 1].pos - 
+        scaledPeaks[j + shift.firstTimeNo - 1].pos;
+      const double match = matrix[i-1][j-1].dist + peakScale * d * d;
+
+      // During the first few peaks we don't penalize a missed real peak
+      // as heavily, as it could be due to transients etc.
+      // If all real peaks are there (firstRefNo == 0), we are lenient on
+      // [3, 2] (miss the third real peak),
+      // [3, 1] (miss the third and then surely also the second),
+      // [2, 1] (miss the second real peak).
+      // If firstRefNo == 1, we are only lenient on
+      // [2, 1] (miss the second real peak by number here, which is
+      // really the third peak).
+
+      const double del = matrix[i-1][j].dist + 
+        (shift.firstRefNo <= 1 && 
+         i > 1 && i <= 3 - shift.firstRefNo &&
+         j < i ? EARLY_DELETE_PENALTY : DELETE_PENALTY); // Ref
+
+      const double ins = matrix[i][j-1].dist + INSERT_PENALTY; // Time
+
+      if (match <= del)
+      {
+        if (match <= ins)
+        {
+          matrix[i][j].origin = NW_MATCH;
+          matrix[i][j].dist = match;
+        }
+        else
+        {
+          matrix[i][j].origin = NW_INSERT;
+          matrix[i][j].dist = ins;
+        }
+      }
+      else if (del <= ins)
+      {
+        matrix[i][j].origin = NW_DELETE;
+        matrix[i][j].dist = del;
+      }
+      else
+      {
+        matrix[i][j].origin = NW_INSERT;
+        matrix[i][j].dist = ins;
+      }
+    }
+  }
+
+  // Walk back through the matrix.
+  alignment.dist = matrix[lr][lt].dist;
+  alignment.distMatch = 0.;
+  alignment.numAdd = shift.firstTimeNo; // Spare peaks in scaledPeaks
+  alignment.numDelete = shift.firstRefNo; // Unused peaks in refPeaks
+  alignment.actualToRef.resize(lt + shift.firstTimeNo);
+  for (unsigned k = 0; k < shift.firstTimeNo; k++)
+   alignment.actualToRef[k] = -1;
+  
+  unsigned i = lr;
+  unsigned j = lt;
+  while (i > 0 || j > 0)
+  {
+    const Origin o = matrix[i][j].origin;
+    if (i > 0 && j > 0 && o == NW_MATCH)
+    {
+      alignment.actualToRef[j + shift.firstTimeNo - 1] = 
+        static_cast<int>(i + shift.firstRefNo - 1);
+      alignment.distMatch += matrix[i][j].dist - matrix[i-1][j-1].dist;
+      i--;
+      j--;
+    }
+    else if (j > 0 && o == NW_INSERT)
+    {
+      alignment.actualToRef[j + shift.firstTimeNo - 1] = -1;
+      alignment.numAdd++;
+      j--;
+    }
+    else
+    {
+      alignment.numDelete++;
+      i--;
+    }
+  }
+
+  // Add fixed penalties for early issues.
+  // TODO Good penalty for this?  More dynamic?
+  // How much dist does it lose to do (2, 0) rather than (3, 1)?
+  // If it's more than "average", go with (3, 1), otherwise (2, 0).
+  alignment.dist += shift.firstRefNo * EARLY_SHIFTS_PENALTY +
+    shift.firstTimeNo * EARLY_SHIFTS_PENALTY;
   
   UNUSED(imperf);
 }
@@ -779,8 +941,18 @@ void Align::bestMatches(
     matches.back().trainNo = refTrainNo;
     // Align::NeedlemanWunsch(refPeaks, scaledPeaks, peakScale, 
       // matches.back());
-    Align::NeedlemanWunschNew(refPeaks, scaledPeaks, peakScale, 
+// cout << "ALIGN train " << refTrain << " scale " << 
+  // shift.firstRefNo << "-" << 
+  // shift.firstTimeNo << ", " << 
+  // shift.firstHalfNetInsert << "/" << 
+  // shift.secondHalfNetInsert << endl;
+    // Align::NeedlemanWunschNew(refPeaks, scaledPeaks, peakScale, 
+    Align::NeedlemanWunschNewer(refPeaks, scaledPeaks, peakScale, 
       imperf, shift, matches.back());
+// Alignment al = matches.back();
+// cout << "ALIGN after NW: " << al.trainNo << " " <<
+  // al.dist << " " << al.distMatch << ", " <<
+  // al.numAdd << " " << al.numDelete << endl;
 // for (unsigned i = 0; i < matches.back().actualToRef.size(); i++)
 // {
   // cout << "i " << i << " " << matches.back().actualToRef[i] << endl;
