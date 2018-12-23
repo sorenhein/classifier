@@ -24,6 +24,8 @@
 
 #define PROXIMITY_PARAMETER 1.5
 
+#define UNUSED(x) ((void)(true ? 0 : ((x), void(), 0)))
+
 extern Timers timers;
 
 
@@ -191,6 +193,7 @@ void Align::NeedlemanWunschNew(
   const vector<PeakPos>& refPeaks,
   const vector<PeakPos>& scaledPeaks,
   const double peakScale,
+  const Imperfections& imperf,
   const Shift& shift,
   Alignment& alignment) const
 {
@@ -335,6 +338,8 @@ void Align::NeedlemanWunschNew(
   // If it's more than "average", go with (3, 1), otherwise (2, 0).
   alignment.dist += shift.firstRefNo * 1 +
     shift.firstTimeNo * 1;
+  
+  UNUSED(imperf);
 }
 
 
@@ -732,6 +737,7 @@ bool Align::countTooDifferent(
 
 void Align::bestMatches(
   const vector<PeakTime>& times,
+  const Imperfections& imperf,
   const Database& db,
   const string& country,
   const unsigned tops,
@@ -774,7 +780,7 @@ void Align::bestMatches(
     // Align::NeedlemanWunsch(refPeaks, scaledPeaks, peakScale, 
       // matches.back());
     Align::NeedlemanWunschNew(refPeaks, scaledPeaks, peakScale, 
-      shift, matches.back());
+      imperf, shift, matches.back());
 // for (unsigned i = 0; i < matches.back().actualToRef.size(); i++)
 // {
   // cout << "i " << i << " " << matches.back().actualToRef[i] << endl;

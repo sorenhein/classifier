@@ -71,6 +71,7 @@ class Align
       const vector<PeakPos>& refPeaks,
       const vector<PeakPos>& scaledPeaks,
       const double peakScale,
+      const Imperfections& imperf,
       const Shift& shift,
       Alignment& alignment) const;
 
@@ -89,6 +90,7 @@ class Align
 
     void bestMatches(
       const vector<PeakTime>& times,
+      const Imperfections& imperf,
       const Database& db,
       const string& country,
       const unsigned tops,

@@ -45,6 +45,7 @@ int main(int argc, char * argv[])
   setup(argc, argv, control, db, disturb);
 
   SynthTrain synth;
+  Imperfections imperf;
   Align align;
   Regress regress;
 
@@ -74,7 +75,7 @@ int main(int argc, char * argv[])
 
     for (auto& actualEntry: actualList)
     {
-      align.bestMatches(actualEntry.actual, db, "DEU", 10, 
+      align.bestMatches(actualEntry.actual, imperf, db, "DEU", 10, 
         control, matchesAlign);
 
       if (matchesAlign.size() == 0)
@@ -119,7 +120,6 @@ int main(int argc, char * argv[])
     getFilenames(control.traceDir, datfiles, control.pickFileString);
 
     Trace trace;
-    Imperfections imperf;
     vector<PeakTime> times;
 
     CompStats sensorStats, trainStats;
@@ -146,7 +146,8 @@ int main(int argc, char * argv[])
         trace.write(control);
 
         trace.getTrace(times);
-        align.bestMatches(times, db, country, 10, control, matchesAlign);
+        align.bestMatches(times, imperf,
+          db, country, 10, control, matchesAlign);
 
 
         if (matchesAlign.size() == 0)
@@ -235,7 +236,7 @@ if (trainDetected != trainTrue)
               continue;
             }
 
-            align.bestMatches(synthTimes, db, country, 10, 
+            align.bestMatches(synthTimes, imperf, db, country, 10, 
               control, matchesAlign);
 
             if (matchesAlign.size() == 0)

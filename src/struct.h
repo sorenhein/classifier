@@ -290,6 +290,21 @@ struct Imperfections
 
   unsigned numSpuriousLater;
   unsigned numMissingLater;
+
+  void reset()
+  {
+    numSkipsOfReal = 0;
+    numSkipsOfSeen = 0;
+    numSpuriousFirst = 0;
+    numMissingFirst = 0;
+    numSpuriousLater = 0;
+    numMissingLater = 0;
+  };
+
+  Imperfections()
+  {
+    Imperfections::reset();
+  };
 };
 
 #endif

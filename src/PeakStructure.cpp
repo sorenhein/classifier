@@ -750,13 +750,7 @@ void PeakStructure::markImperfections(
   
   // For now we assume cars of exactly 4 peaks each.
 
-  imperf.numSkipsOfReal = 0;
-  imperf.numSkipsOfSeen = 0;
-  imperf.numSpuriousFirst = 0;
-  imperf.numMissingFirst = 0;
-  imperf.numSpuriousLater = 0;
-  imperf.numMissingLater = 0;
-
+  imperf.reset();
   auto car = cars.begin();
   auto cand = candidates.begin();
 
