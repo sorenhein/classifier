@@ -718,7 +718,8 @@ void PeakStructure::updateImperfections(
       imperf.numSkipsOfSeen = 4 - num;
     }
     else
-      THROW(ERR_ALGO_CAR_STRUCTURE, "Too many leading peaks");
+      THROW(ERR_ALGO_CAR_STRUCTURE, "Too many leading peaks: " +
+        to_string(num));
   }
   else
   {
@@ -733,7 +734,7 @@ void PeakStructure::updateImperfections(
       imperf.numSpuriousLater++;
     }
     else
-      THROW(ERR_ALGO_CAR_STRUCTURE, "Too many peaks in middle" + 
+      THROW(ERR_ALGO_CAR_STRUCTURE, "Too many peaks in middle: " + 
         to_string(num));
   }
 }

@@ -457,6 +457,7 @@ void PeakDetect::eliminateKinks()
     const auto peakPrevPrev = prev(peakPrev);
     const auto peakNext = next(peak);
 
+    /*
     if (peakNext->isMinimum() != peakPrev->isMinimum() &&
         ((peakNext->getValue() > peak->getValue() &&
          peak->getValue() > peakPrev->getValue()) ||
@@ -478,6 +479,7 @@ cout << "Not best\n";
       }
       continue;
     }
+    */
 
     if (peak->isMinimum() != peakPrevPrev->isMinimum() ||
         peakNext->isMinimum() != peakPrev->isMinimum())

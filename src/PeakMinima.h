@@ -34,6 +34,8 @@ class PeakMinima
       const Peak * p1, 
       const Peak * p2) const;
 
+    typedef bool (Peak::*PeakFncPtr)() const;
+
     unsigned offset;
 
 
@@ -54,10 +56,15 @@ class PeakMinima
       const Peak * p1,
       const Peak * p2) const;
 
+    unsigned countPeaks(
+      const list<Peak *>& candidates,
+      const PeakFncPtr fptr) const;
+
     bool guessNeighborDistance(
       const list<Peak *>& candidates,
       const CandFncPtr fptr,
-      Gap& gap) const;
+      Gap& gap,
+      const unsigned minCount = 0) const;
 
     void markWheelPair(
       Peak& p1,

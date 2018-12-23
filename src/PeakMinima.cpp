@@ -166,10 +166,25 @@ bool PeakMinima::formBogeyGap(
 }
 
 
+unsigned PeakMinima::countPeaks(
+  const list<Peak *>& candidates,
+  const PeakFncPtr fptr) const
+{
+  unsigned c = 0;
+  for (auto cand: candidates)
+  {
+    if ((cand->* fptr)())
+      c++;
+  }
+  return c;
+}
+
+
 bool PeakMinima::guessNeighborDistance(
   const list<Peak *>& candidates,
   const CandFncPtr fptr,
-  Gap& gap) const
+  Gap& gap,
+  const unsigned minCount) const
 {
   // Make list of distances between neighbors for which fptr
   // evaluates to true.
@@ -182,7 +197,7 @@ bool PeakMinima::guessNeighborDistance(
         (*npit)->getIndex() - (*pit)->getIndex());
   }
 
-  if (dists.empty())
+  if (dists.size() < minCount)
     return false;
 
   // Guess their distance range.
@@ -538,15 +553,19 @@ void PeakMinima::markBogeys(
   list<Peak *>& candidates,
   Gap& wheelGap) const
 {
+  // The wheel gap is only plausible if it hits a certain number of peaks.
+  const unsigned numGreat = PeakMinima::countPeaks(candidates, 
+    &Peak::greatQuality);
+
   if (! PeakMinima::guessNeighborDistance(candidates, 
-      &PeakMinima::bothSelected, wheelGap))
+      &PeakMinima::bothSelected, wheelGap, numGreat/4))
   {
     // This may happen when one side of the peak pair is so strong
     // and different that the other side never gets picked up.
     // Try again, and lower our standards to acceptable peak quality.
-    cout << "First attempt at wheel distance failed.\n";
+    cout << "First attempt at wheel distance failed: " << numGreat << ".\n";
     if (! PeakMinima::guessNeighborDistance(candidates, 
-        &PeakMinima::bothPlausible, wheelGap))
+        &PeakMinima::bothPlausible, wheelGap, numGreat/4))
     {
       THROW(ERR_ALGO_NO_WHEEL_GAP, "Couldn't find wheel gap");
     }
