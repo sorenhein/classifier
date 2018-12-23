@@ -119,6 +119,7 @@ int main(int argc, char * argv[])
     getFilenames(control.traceDir, datfiles, control.pickFileString);
 
     Trace trace;
+    Imperfections imperf;
     vector<PeakTime> times;
 
     CompStats sensorStats, trainStats;
@@ -140,7 +141,7 @@ int main(int argc, char * argv[])
       try
       {
         trace.read(fname, true);
-        trace.detect(control);
+        trace.detect(control, imperf);
         trace.logPeakStats(posTrue, trainTrue, speedTrue, peakStats);
         trace.write(control);
 

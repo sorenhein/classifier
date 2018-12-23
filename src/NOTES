@@ -1,4 +1,6 @@
 sensor00:
+* 061030 #47: Now we get a 2+1 front car which is somehow very expensive
+  in Needleman-Wunsch
 * 074731: Supposed to be 2_32_N, but first wagon has odd gaps.
   Can probably help by penalizing early deletions more than is
   currently the case, but might still come out as 3_32_N.
@@ -16,11 +18,6 @@ sensor02:
   - In Needleman-Wunsch, initial deletion of true peak should be much
     less expensive than insertions of true peaks (too many observed
     high-quality peaks)
-
-* 194406, #42:
-  - PeakMinima::markBogeysOfUnpaired:
-    At the moment, one *** and one **
-    If the distance is right and both are **, that's good enough?
 
 s02
 * odd left gradient occasionally

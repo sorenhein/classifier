@@ -49,7 +49,9 @@ class Trace
       const string& fname,
       const bool binaryFlag);
 
-    void detect(const Control& control);
+    void detect(
+      const Control& control,
+      Imperfections& imperf);
 
     void logPeakStats(
       const vector<PeakPos>& posTrue,

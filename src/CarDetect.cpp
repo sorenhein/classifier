@@ -217,6 +217,18 @@ bool CarDetect::rightBogeyPlausible(const CarDetect& cref) const
 }
 
 
+bool CarDetect::peakPrecedesCar(const Peak& peak) const
+{
+  return (peak.getIndex() < start);
+}
+
+
+bool CarDetect::carPrecedesPeak(const Peak& peak) const
+{
+  return (end < peak.getIndex());
+}
+
+
 string CarDetect::strHeaderGaps() const
 {
   return gaps.strHeader(true) + "\n";

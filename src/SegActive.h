@@ -45,7 +45,8 @@ class SegActive
 
     bool detect(
       const vector<double>& samples, // TODO: Should use times[]
-      const Interval& active);
+      const Interval& active,
+      Imperfections& imperf);
 
     void logPeakStats(
       const vector<PeakPos>& posTrue,

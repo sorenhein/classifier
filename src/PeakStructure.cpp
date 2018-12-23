@@ -701,6 +701,116 @@ void PeakStructure::markCars(
 }
 
 
+void PeakStructure::updateImperfections(
+  const unsigned num,
+  const bool firstCarFlag,
+  Imperfections& imperf) const
+{
+  if (firstCarFlag)
+  {
+    // Special case: There are selected peaks preceding the first
+    // recognized car.  Probably we missed the entire car.
+    if (num <= 4)
+    {
+      // It doesn't have to be skips, but we can't sort out here
+      // whether we missed the first or in-between peaks.
+      imperf.numSkipsOfReal = 0;
+      imperf.numSkipsOfSeen = 4 - num;
+    }
+    else
+      THROW(ERR_ALGO_CAR_STRUCTURE, "Too many leading peaks");
+  }
+  else
+  {
+    if (num <= 4)
+    {
+      // Probably we missed the car.
+      imperf.numMissingLater += 4 - num;
+    }
+    else if (num == 5)
+    {
+      // Probably a single, spurious peak.
+      imperf.numSpuriousLater++;
+    }
+    else
+      THROW(ERR_ALGO_CAR_STRUCTURE, "Too many peaks in middle" + 
+        to_string(num));
+  }
+}
+
+
+void PeakStructure::markImperfections(
+  const vector<CarDetect>& cars,
+  const list<Peak *>& candidates,
+  Imperfections& imperf) const
+{
+  // Based on the cars we recognized, make an educated guess of the
+  // number of peaks of different types that we may not have got
+  // exactly right.
+  
+  // For now we assume cars of exactly 4 peaks each.
+
+  imperf.numSkipsOfReal = 0;
+  imperf.numSkipsOfSeen = 0;
+  imperf.numSpuriousFirst = 0;
+  imperf.numMissingFirst = 0;
+  imperf.numSpuriousLater = 0;
+  imperf.numMissingLater = 0;
+
+  auto car = cars.begin();
+  auto cand = candidates.begin();
+
+  while (cand != candidates.end() && car != cars.end())
+  {
+    if (! (*cand)->isSelected())
+    {
+      cand++;
+      continue;
+    }
+
+    // First look for unmatched, leading detected peaks.
+    unsigned numPreceding = 0;
+    while (cand != candidates.end() && car->peakPrecedesCar(** cand))
+    {
+      if ((*cand)->isSelected())
+        numPreceding++;
+      cand++;
+    }
+
+    if (numPreceding)
+      PeakStructure::updateImperfections(numPreceding,
+        car == cars.begin(), imperf);
+
+    if (cand == candidates.end())
+      break;
+
+    // Then look for matched, detected peaks.
+    unsigned numMatches = 0;
+    while (cand != candidates.end() && ! car->carPrecedesPeak(** cand))
+    {
+      if ((*cand)->isSelected())
+        numMatches++;
+      cand++;
+    }
+
+    if (numMatches)
+      PeakStructure::updateImperfections(numMatches,
+        car == cars.begin(), imperf);
+
+    if (cand == candidates.end())
+      break;
+
+    // Finally, advance the car.
+    while (car != cars.end() && car->carPrecedesPeak(** cand))
+      car++;
+  }
+
+  cout << "IMPERF " <<
+    imperf.numSkipsOfReal << "-" << imperf.numSkipsOfSeen << ", " <<
+    imperf.numSpuriousLater << "-" << imperf.numMissingLater << endl;
+}
+
+
 void PeakStructure::printRange(
   const PeakCondition& condition,
   const string& text) const

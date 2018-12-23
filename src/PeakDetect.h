@@ -72,7 +72,7 @@ class PeakDetect
       const vector<float>& samples,
       const unsigned offsetSamples);
 
-    void reduce();
+    void reduce(Imperfections& imperf);
 
     void logPeakStats(
       const vector<PeakPos>& posTrue,

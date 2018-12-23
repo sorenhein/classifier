@@ -568,7 +568,7 @@ void PeakDetect::estimateScale(Peak& scale)
 }
 
 
-void PeakDetect::reduce()
+void PeakDetect::reduce(Imperfections& imperf)
 {
   if (peaks.empty())
     return;
@@ -611,6 +611,8 @@ void PeakDetect::reduce()
   // Use the labels to extract the car structure from the peaks.
   vector<CarDetect> cars;
   pstruct.markCars(models, cars, candidates, offset);
+
+  pstruct.markImperfections(cars, candidates, imperf);
 }
 
 

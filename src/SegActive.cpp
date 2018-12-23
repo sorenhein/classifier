@@ -180,7 +180,8 @@ void SegActive::highpass(vector<float>& integrand)
 
 bool SegActive::detect(
   const vector<double>& samples,
-  const Interval& active)
+  const Interval& active,
+  Imperfections& imperf)
 {
   timers.start(TIMER_CONDITION);
 
@@ -202,7 +203,7 @@ bool SegActive::detect(
   timers.start(TIMER_DETECT_PEAKS);
   peakDetect.reset();
   peakDetect.log(synthPos, writeInterval.first);
-  peakDetect.reduce();
+  peakDetect.reduce(imperf);
   timers.stop(TIMER_DETECT_PEAKS);
 
 

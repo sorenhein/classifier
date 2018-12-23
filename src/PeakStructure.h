@@ -118,6 +118,11 @@ class PeakStructure
       vector<CarDetect>& cars,
       list<Peak *>& candidates) const;
 
+    void updateImperfections(
+      const unsigned num,
+      const bool firstCarFlag,
+      Imperfections& imperf) const;
+
     void printRange(
       const PeakCondition& condition,
       const string& text) const;
@@ -147,6 +152,11 @@ class PeakStructure
       vector<CarDetect>& cars,
       list<Peak *>& candidates,
       const unsigned offsetIn);
+    
+    void markImperfections(
+      const vector<CarDetect>& cars,
+      const list<Peak *>& candidates,
+      Imperfections& imperf) const;
 };
 
 #endif

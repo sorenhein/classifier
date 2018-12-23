@@ -101,6 +101,9 @@ class CarDetect
     bool midGapPlausible() const;
     bool rightBogeyPlausible(const CarDetect& cref) const;
 
+    bool peakPrecedesCar(const Peak& peak) const;
+    bool carPrecedesPeak(const Peak& peak) const;
+
     string strHeaderGaps() const;
     string strHeaderFull() const;
 

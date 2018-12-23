@@ -279,4 +279,17 @@ enum PeakSource
   PEAK_SOURCE_SIZE = 8
 };
 
+struct Imperfections
+{
+  // These are estimates and do not make use of the "known" true peaks.
+  unsigned numSkipsOfReal;
+  unsigned numSkipsOfSeen;
+
+  unsigned numSpuriousFirst;
+  unsigned numMissingFirst;
+
+  unsigned numSpuriousLater;
+  unsigned numMissingLater;
+};
+
 #endif
