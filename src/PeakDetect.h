@@ -50,6 +50,7 @@ class PeakDetect
       const bool preserveKinksFlag);
 
     void eliminateKinks();
+    void eliminateKinksNew();
 
     void estimateScale(Peak& scale);
 

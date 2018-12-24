@@ -18,6 +18,7 @@
 
 #define KINK_RATIO 100.f
 #define KINK_RATIO_CONSIDER 20.f
+#define KINK_RATIO_ONE_DIM 5.f
 
 
 PeakDetect::PeakDetect()
@@ -457,29 +458,90 @@ void PeakDetect::eliminateKinks()
     const auto peakPrevPrev = prev(peakPrev);
     const auto peakNext = next(peak);
 
-    /*
-    if (peakNext->isMinimum() != peakPrev->isMinimum() &&
-        ((peakNext->getValue() > peak->getValue() &&
-         peak->getValue() > peakPrev->getValue()) ||
-         (peakNext->getValue() < peak->getValue() &&
-         peak->getValue() < peakPrev->getValue())))
+    if (peakPrev->getValue() >= 0.f)
     {
-if (peak->getIndex() + offset == 2025)
-  cout << "HERE" << endl;
-      // Three in order, with first and last having different polarity.
-      if (peak->similarGradientBest(* peakNext))
-      {
-cout << "Best\n";
-        peak = PeakDetect::collapsePeaks(peak, peakNext);
-      }
-      else
-      {
-cout << "Not best\n";
-        peak++;
-      }
+      // No kinks fixed on the positive side of the line.
+      peak++;
       continue;
     }
-    */
+
+    if (peak->isMinimum() != peakPrevPrev->isMinimum() ||
+        peakNext->isMinimum() != peakPrev->isMinimum())
+    {
+      // We may have destroyed the alternation while reducing.
+      peak++;
+      continue;
+    }
+
+    bool violFlag = false;
+    if (peak->getMaxFlag())
+    {
+      if (peak->getValue() > peakPrevPrev->getValue() ||
+         peakPrev->getValue() < peakNext->getValue())
+        violFlag = true;
+    }
+    else
+    {
+      if (peak->getValue() < peakPrevPrev->getValue() ||
+         peakPrev->getValue() > peakNext->getValue())
+        violFlag = true;
+    }
+
+    if (violFlag)
+    {
+      // A kink should satisfy basic monotonicity.
+      peak++;
+      continue;
+    }
+
+    const float areaPrev = peak->getArea(* peakPrev);
+    if (areaPrev == 0.f)
+      THROW(ERR_ALGO_PEAK_COLLAPSE, "Zero area");
+
+    const float ratioPrev = peakPrev->getArea(* peakPrevPrev) / areaPrev;
+    const float ratioNext = peakNext->getArea(* peak) / areaPrev;
+
+    if (ratioPrev <= 1.f || ratioNext <= 1.f)
+    {
+      // Should look like a kink.
+      peak++;
+      continue;
+    }
+
+    if (ratioPrev * ratioNext > KINK_RATIO)
+    {
+      peak = PeakDetect::collapsePeaks(peakPrev, peakNext);
+      continue;
+    }
+
+    const unsigned lenWhole = peakNext->getIndex() - peakPrevPrev->getIndex();
+    const unsigned lenMid = peak->getIndex() - peakPrev->getIndex();
+
+    const float vWhole = abs(peakNext->getValue() - peakPrevPrev->getValue());
+    const float vMid = abs(peak->getValue() - peakPrev->getValue());
+
+    if (KINK_RATIO_ONE_DIM * lenMid < lenWhole &&
+        KINK_RATIO_ONE_DIM * vMid < vWhole)
+    {
+      // Another way of looking like a kink.
+      peak = PeakDetect::collapsePeaks(peakPrev, peakNext);
+    }
+    else
+      peak++;
+  }
+}
+
+
+void PeakDetect::eliminateKinksNew()
+{
+  if (peaks.size() < 4)
+    THROW(ERR_NO_PEAKS, "Peak list is short");
+
+  for (auto peak = next(peaks.begin(), 2); peak != prev(peaks.end()); )
+  {
+    const auto peakPrev = prev(peak);
+    const auto peakPrevPrev = prev(peakPrev);
+    const auto peakNext = next(peak);
 
     if (peak->isMinimum() != peakPrevPrev->isMinimum() ||
         peakNext->isMinimum() != peakPrev->isMinimum())
@@ -501,35 +563,8 @@ cout << "Not best\n";
         ratioNext > 1.f &&
         ratioPrev * ratioNext > KINK_RATIO_CONSIDER)
     {
-      // Candidate for removal.  But if it changes the gradient
-      // too much, don't do it.
-
-
-      if (peakPrev->similarGradientTwo(* peak, * peakNext))
-      {
-  cout << "Kink match on gradient" << endl;
-  cout << peakPrevPrev->strQuality(offset);
-  cout << peakPrev->strQuality(offset);
-  cout << peak->strQuality(offset);
-  cout << peakNext->strQuality(offset) << endl;
-
-        // Gradients match roughly.
-        peak = PeakDetect::collapsePeaks(peakPrev, peakNext);
-      }
-      else if (peakPrev->getValue() < 0.f &&
-          5 * (peak->getIndex() - peakPrev->getIndex()) <
-          peakNext->getIndex() - peakPrevPrev->getIndex())
-      {
-  cout << "Kink match on look" << endl;
-  cout << peakPrevPrev->strQuality(offset);
-  cout << peakPrev->strQuality(offset);
-  cout << peak->strQuality(offset);
-  cout << peakNext->strQuality(offset) << endl;
-
-        // Kink, short in time, below the zero line.
-        peak = PeakDetect::collapsePeaks(peakPrev, peakNext);
-      }
-      else if (peakPrev->getValue() < 0.f &&
+      /*
+      if (peakPrev->getValue() < 0.f &&
           ratioPrev * ratioNext > KINK_RATIO)
       {
   cout << "Kink match on ratios" << endl;
@@ -541,6 +576,62 @@ cout << "Not best\n";
         // Comparably small-area kink, first kink below the line.
         peak = PeakDetect::collapsePeaks(peakPrev, peakNext);
       }
+      else 
+      */
+      if (peakPrev->similarGradientTwo(* peak, * peakNext))
+      {
+        // Candidate for removal.  But if it changes the gradient
+        // too much, don't do it.
+  cout << "Kink match on gradient" << endl;
+  cout << peakPrevPrev->strQuality(offset);
+  cout << peakPrev->strQuality(offset);
+  cout << peak->strQuality(offset);
+  cout << peakNext->strQuality(offset) << endl;
+
+        // Gradients match roughly.
+        peak = PeakDetect::collapsePeaks(peakPrev, peakNext);
+      }
+      /*
+      else if (peakPrev->getValue() < 0.f &&
+          5 * (peak->getIndex() - peakPrev->getIndex()) <
+          peakNext->getIndex() - peakPrevPrev->getIndex())
+      {
+  cout << "Kink match on look" << endl;
+  cout << peakPrevPrev->strQuality(offset);
+  cout << peakPrev->strQuality(offset);
+  cout << peak->strQuality(offset);
+  cout << peakNext->strQuality(offset) << endl;
+
+  const unsigned lenWhole = peakNext->getIndex() - peakPrevPrev->getIndex();
+  const unsigned lenMid = peak->getIndex() - peakPrev->getIndex();
+
+  const float vWhole = abs(peakNext->getValue() - peakPrevPrev->getValue());
+  const float vMid = abs(peak->getValue() - peakPrev->getValue());
+
+  bool viol = false;
+  if (peak->getMaxFlag())
+  {
+    if (peak->getValue() > peakPrevPrev->getValue() ||
+       peakPrev->getValue() < peakNext->getValue())
+      viol = true;
+  }
+  else
+  {
+    if (peak->getValue() < peakPrevPrev->getValue() ||
+       peakPrev->getValue() > peakNext->getValue())
+      viol = true;
+  }
+
+  cout << "KINK " << setw(8) << setprecision(2) << ratioPrev << " * " << 
+    setw(8) << ratioNext << " = " <<
+    setw(8) << ratioPrev * ratioNext << ", " <<
+    setw(8) << lenWhole / static_cast<float>(lenMid) << " and " <<
+    setw(8) << vWhole / vMid << (viol ? " ***" : "") << endl;
+
+        // Kink, short in time, below the zero line.
+        peak = PeakDetect::collapsePeaks(peakPrev, peakNext);
+      }
+      */
       else
         peak++;
     }
@@ -586,9 +677,11 @@ void PeakDetect::reduce(Imperfections& imperf)
   if (debugDetails)
     PeakDetect::printAllPeaks("Non-tiny peaks");
 
+  /* */
   PeakDetect::eliminateKinks();
   if (debugDetails)
-    PeakDetect::printAllPeaks("Non-kinky list peaks");
+    PeakDetect::printAllPeaks("Non-kinky list peaks (first)");
+  /* */
 
   Peak scale;
   PeakDetect::estimateScale(scale);
@@ -600,6 +693,13 @@ void PeakDetect::reduce(Imperfections& imperf)
 
   if (debugDetails)
     PeakDetect::printAllPeaks("Range-reduced peaks");
+
+  /* */
+  // PeakDetect::eliminateKinksNew();
+  PeakDetect::eliminateKinks();
+  if (debugDetails)
+    PeakDetect::printAllPeaks("Non-kinky list peaks (second)");
+  /* */
 
   // Mark some tall peaks as seeds.
   PeakSeeds seeds;
