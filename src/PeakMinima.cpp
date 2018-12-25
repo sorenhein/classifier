@@ -202,7 +202,9 @@ bool PeakMinima::guessNeighborDistance(
 
   // Guess their distance range.
   sort(dists.begin(), dists.end());
-  PeakMinima::findFirstLargeRange(dists, gap);
+
+  const unsigned revisedMinCount = min(minCount, dists.size() / 4);
+  PeakMinima::findFirstLargeRange(dists, gap, revisedMinCount);
   return true;
 }
 
@@ -559,7 +561,7 @@ void PeakMinima::markBogeys(
   Gap& wheelGap) const
 {
   // The wheel gap is only plausible if it hits a certain number of peaks.
-  const unsigned numGreat = PeakMinima::countPeaks(candidates, 
+  unsigned numGreat = PeakMinima::countPeaks(candidates, 
     &Peak::greatQuality);
 
   if (! PeakMinima::guessNeighborDistance(candidates, 
@@ -600,8 +602,10 @@ void PeakMinima::markBogeys(
   PeakMinima::printPeakQuality(bogeyScale[1], "Right-wheel average");
 
   // Redo the distances using the new qualities (left and right peaks).
+  numGreat = PeakMinima::countPeaks(candidates, &Peak::greatQuality);
+
   PeakMinima::guessNeighborDistance(candidates,
-    &PeakMinima::bothSelected, wheelGap);
+    &PeakMinima::bothSelected, wheelGap, numGreat/4);
 
   PeakMinima::printDists(wheelGap.lower, wheelGap.upper,
     "Guessing new wheel distance");
