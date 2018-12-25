@@ -1,3 +1,5 @@
+rm overview.txt
+
 foreach i (../data/control/sensors/sensor*.txt)
   set bn = `basename $i`
   echo $bn >> overview.txt

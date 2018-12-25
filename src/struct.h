@@ -45,6 +45,7 @@ struct Control
   bool verboseAlignPeaks;
   bool verboseRegressMatch;
   bool verboseRegressMotion;
+  bool verbosePeakReduce;
 
   bool writingTransient;
   bool writingBack;

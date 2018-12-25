@@ -66,9 +66,12 @@ void usage(
     "                   0x40: outline\n" <<
     "\n" <<
     "-v, -verbose n     Verbosity (default: 0x0).  Bits:\n" <<
-    "                   0x01: (tbd)\n" <<
-    "                   0x02: (tbd)\n" <<
-    "                   0x04: (tbd)\n" <<
+    "                   0x01: Transient match\n" <<
+    "                   0x02: Align matches\n" <<
+    "                   0x04: Align peaks\n" <<
+    "                   0x08: Regress match\n" <<
+    "                   0x10: Regress motion\n" <<
+    "                   0x20: Reduce peaks\n" <<
     endl;
 }
 
@@ -143,6 +146,7 @@ static void setDefaults(Control& options)
   options.verboseAlignPeaks = false;
   options.verboseRegressMatch = true;
   options.verboseRegressMotion = true;
+  options.verbosePeakReduce = false;
 }
 
 
@@ -240,6 +244,7 @@ void readArgs(
         options.verboseAlignPeaks = ((m & 0x04) != 0);
         options.verboseRegressMatch = ((m & 0x08) != 0);
         options.verboseRegressMotion = ((m & 0x10) != 0);
+        options.verbosePeakReduce = ((m & 0x20) != 0);
         break;
 
       default:

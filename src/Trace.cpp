@@ -148,7 +148,7 @@ void Trace::detect(
   if (control.verboseTransientMatch)
     cout << transient.str() << "\n";
 
-  (void) segActive.detect(samples, intAfterFront, imperf);
+  (void) segActive.detect(samples, intAfterFront, control, imperf);
 }
 
 

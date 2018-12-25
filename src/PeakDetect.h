@@ -47,7 +47,8 @@ class PeakDetect
     void reduceSmallPeaks(
       const PeakParam param,
       const float paramLimit,
-      const bool preserveKinksFlag);
+      const bool preserveKinksFlag,
+      const Control& control);
 
     void eliminateKinks();
     void eliminateKinksNew();
@@ -73,7 +74,9 @@ class PeakDetect
       const vector<float>& samples,
       const unsigned offsetSamples);
 
-    void reduce(Imperfections& imperf);
+    void reduce(
+      const Control& control,
+      Imperfections& imperf);
 
     void logPeakStats(
       const vector<PeakPos>& posTrue,
