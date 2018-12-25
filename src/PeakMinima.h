@@ -11,6 +11,7 @@ using namespace std;
 
 class Peak;
 typedef list<Peak *> PeakPtrList;
+typedef PeakPtrList::const_iterator PeakCit;
 
 
 class PeakMinima
@@ -61,6 +62,10 @@ class PeakMinima
     void markBogeyShortGap(
       Peak& p1,
       Peak& p2,
+      PeakCit& cit,
+      PeakCit& ncit,
+      PeakCit& cbegin,
+      PeakCit& cend,
       const string& text) const;
 
     void markBogeyLongGap(
@@ -96,9 +101,14 @@ class PeakMinima
 
     void markSinglePeaks(list<Peak *>& candidates) const;
 
-    PeakPtrList::const_iterator nextWithProperty(
-      PeakPtrList::const_iterator& it,
-      PeakPtrList::const_iterator& endList,
+    PeakCit nextWithProperty(
+      PeakCit& it,
+      PeakCit& endList,
+      const PeakFncPtr fptr) const;
+
+    PeakCit prevWithProperty(
+      PeakCit& it,
+      PeakCit& beginList,
       const PeakFncPtr fptr) const;
 
 

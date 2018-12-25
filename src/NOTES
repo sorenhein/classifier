@@ -1,11 +1,3 @@
-Clean-up (useful for sensor06)
---------
-markLongGapsOfSelects:
-  newCand: prevWithProperty(candidates, Peak::fptr)
-           nextWithProperty(ditto)
-markShortGapsOfSelects: similarly, but only if it was already a bogey.
-markShortGapsOfUnpaired: Ditto.
-
 PeakStructure::findCarsInInterval:
   Not looksLikeTwoCars().
   If it's an internal car, split off groups of 4 from some side.
