@@ -507,8 +507,7 @@ void PeakMinima::markBogeysOfSelects(
     Peak * nextCand = * next(cit);
     if (PeakMinima::bothSelected(cand, nextCand))
     {
-      const unsigned dist = nextCand->getIndex() - cand->getIndex();
-      if (dist >= wheelGap.lower && dist <= wheelGap.upper)
+      if (cand->matchesGap(* nextCand, wheelGap))
       {
         if (cand->isWheel())
           THROW(ERR_NO_PEAKS, "Triple bogey?!");
@@ -549,8 +548,7 @@ void PeakMinima::markBogeysOfUnpaired(
       break;
 
     // If the distance is right, we lower our quality requirements.
-    const unsigned dist = (* ncit)->getIndex() - cand->getIndex();
-    if (dist >= wheelGap.lower && dist <= wheelGap.upper)
+    if (cand->matchesGap(** ncit, wheelGap))
       PeakMinima::markWheelPair(* cand, ** ncit, "Adding");
   }
 }
@@ -610,6 +608,12 @@ void PeakMinima::markBogeys(
 
   // Mark more bogeys with the refined peak qualities.
   PeakMinima::markBogeysOfSelects(candidates, wheelGap);
+
+  PeakMinima::markBogeysOfUnpaired(candidates, wheelGap);
+
+  PeakMinima::printAllCandidates(candidates,
+    "All peaks again using left/right scales");
+
 }
 
 
@@ -625,8 +629,7 @@ void PeakMinima::markShortGapsOfSelects(
     if (! cand->isRightWheel() || ! nextCand->isLeftWheel())
       continue;
 
-    const unsigned dist = nextCand->getIndex() - cand->getIndex();
-    if (dist >= shortGap.lower && dist <= shortGap.upper)
+    if (cand->matchesGap(* nextCand, shortGap))
       PeakMinima::markBogeyShortGap(* cand, * nextCand, "");
   }
 }
@@ -645,8 +648,7 @@ void PeakMinima::markShortGapsOfUnpaired(
     if (cand->isRightWheel() == nextCand->isLeftWheel())
       continue;
 
-    const unsigned dist = nextCand->getIndex() - cand->getIndex();
-    if (dist < shortGap.lower || dist > shortGap.upper)
+    if (! cand->matchesGap(* nextCand, shortGap))
       continue;
 
     // If the distance is right, we can relax our quality requirements.
@@ -737,8 +739,7 @@ void PeakMinima::markLongGapsOfSelects(
     if (! nextCand->isLeftWheel())
       continue;
 
-    const unsigned dist = nextCand->getIndex() - cand->getIndex();
-    if (dist >= longGap.lower && dist <= longGap.upper)
+    if (cand->matchesGap(* nextCand, longGap))
     {
       PeakMinima::markBogeyLongGap(* cand, * nextCand, "");
 

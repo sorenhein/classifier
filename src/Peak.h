@@ -181,6 +181,10 @@ class Peak
       const Peak& p1,
       const Peak& p2) const;
 
+    bool matchesGap(
+      const Peak& peakNext,
+      const Gap& gap) const;
+
     bool check(
       const Peak& p2,
       const unsigned offset) const;

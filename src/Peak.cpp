@@ -647,6 +647,22 @@ void Peak::deviation(
 }
 
 
+bool Peak::matchesGap(
+  const Peak& peakNext,
+  const Gap& gap) const
+{
+  // Is smallest conceivable gap still too large?
+  if (peakNext.indexLeft - indexRight > gap.upper)
+    return false;
+
+  // Is largest conceivable gap still too small?
+  if (peakNext.indexRight - indexLeft < gap.lower)
+    return false;
+
+  return true;
+}
+
+
 bool Peak::check(
   const Peak& p2,
   const unsigned offset) const

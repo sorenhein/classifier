@@ -307,4 +307,18 @@ struct Imperfections
   };
 };
 
+struct Gap
+{
+  unsigned lower;
+  unsigned upper;
+  unsigned count;
+
+  Gap()
+  {
+    lower = 0;
+    upper = 0;
+    count = 0;
+  };
+};
+
 #endif

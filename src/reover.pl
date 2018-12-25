@@ -5,9 +5,20 @@ use warnings;
 
 # Extract data from overview.txt
 
-if ($#ARGV != 0)
+my ($file, $format);
+if ($#ARGV == 0)
 {
-  print "Usage: reover.pl overview.txt > out.txt";
+  $file = $ARGV[0];
+  $format = "text";
+}
+elsif ($#ARGV == 1 && $ARGV[1] eq "CSV")
+{
+  $file = $ARGV[0];
+  $format = "CSV";
+}
+else
+{
+  print "Usage: reover.pl overview.txt [CSV] > out.txt";
   exit;
 }
 
@@ -17,7 +28,7 @@ my ($sum_excepts, $sum_series, $sum_peaks);
 
 my $state = 0;
 
-open my $fh, "<", $ARGV[0] or die "Cannot open $ARGV[0]: $!";
+open my $fh, "<", $file or die "Cannot open $: $!";
 while (my $line = <$fh>)
 {
   chomp $line;
@@ -72,14 +83,27 @@ exit;
 
 sub print_line
 {
-  printf "%-12s%8d%8d%8d\n", $sensor, $excepts, $series, $peaks;
-  $sum_excepts += $excepts;
-  $sum_series += $series;
-  $sum_peaks += $peaks;
+  if ($format eq "text")
+  {
+    printf "%-12s%8d%8d%8d\n", $sensor, $excepts, $series, $peaks;
+    $sum_excepts += $excepts;
+    $sum_series += $series;
+    $sum_peaks += $peaks;
+  }
+  else
+  {
+    print "$sensor;$excepts;$series;$peaks\n";
+    $sum_excepts += $excepts;
+    $sum_series += $series;
+    $sum_peaks += $peaks;
+  }
 }
 
 sub print_sum
 {
-  print "-" x 36, "\n";
-  printf "%-12s%8d%8d%8d\n", "", $sum_excepts, $sum_series, $sum_peaks;
+  if ($format eq "text")
+  {
+    print "-" x 36, "\n";
+    printf "%-12s%8d%8d%8d\n", "", $sum_excepts, $sum_series, $sum_peaks;
+  }
 }
