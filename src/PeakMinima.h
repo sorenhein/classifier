@@ -10,6 +10,7 @@
 using namespace std;
 
 class Peak;
+typedef list<Peak *> PeakPtrList;
 
 
 class PeakMinima
@@ -43,11 +44,11 @@ class PeakMinima
       const Peak * p2) const;
 
     unsigned countPeaks(
-      const list<Peak *>& candidates,
+      const PeakPtrList& candidates,
       const PeakFncPtr fptr) const;
 
     bool guessNeighborDistance(
-      const list<Peak *>& candidates,
+      const PeakPtrList& candidates,
       const CandFncPtr fptr,
       Gap& gap,
       const unsigned minCount = 0) const;
@@ -67,72 +68,77 @@ class PeakMinima
       Peak& p2,
       const string& text) const;
 
-    void reseedWheelUsingQuality(list<Peak *>& candidates) const;
+    void reseedWheelUsingQuality(PeakPtrList& candidates) const;
 
     void reseedBogeysUsingQuality(
-      list<Peak *>& candidates,
+      PeakPtrList& candidates,
       const vector<Peak>& bogeyScale) const;
 
     void reseedLongGapsUsingQuality(
-      list<Peak *>& candidates,
+      PeakPtrList& candidates,
       const vector<Peak>& longGapScale) const;
 
     void makeWheelAverage(
-      list<Peak *>& candidates,
+      PeakPtrList& candidates,
       Peak& wheel) const;
 
     void makeBogeyAverages(
-      list<Peak *>& candidates,
+      PeakPtrList& candidates,
       vector<Peak>& wheels) const;
 
     void makeCarAverages(
-      list<Peak *>& candidates,
+      PeakPtrList& candidates,
       vector<Peak>& wheels) const;
 
     void setCandidates(
       list<Peak>& peaks,
-      list<Peak *>& candidates) const;
+      PeakPtrList& candidates) const;
 
     void markSinglePeaks(list<Peak *>& candidates) const;
 
+    PeakPtrList::const_iterator nextWithProperty(
+      PeakPtrList::const_iterator& it,
+      PeakPtrList::const_iterator& endList,
+      const PeakFncPtr fptr) const;
+
 
     void markBogeysOfSelects(
-      list<Peak *>& candidates,
+      PeakPtrList& candidates,
       const Gap& wheelGap) const;
 
     void markBogeysOfUnpaired(
-      list<Peak *>& candidates,
+      PeakPtrList& candidates,
       const Gap& wheelGap) const;
 
     void markBogeys(
-      list<Peak *>& candidates,
+      PeakPtrList& candidates,
       Gap& wheelGap) const;
 
 
     void markShortGapsOfSelects(
-      list<Peak *>& candidates,
+      PeakPtrList& candidates,
       const Gap& wheelGap) const;
 
     void markShortGapsOfUnpaired(
-      list<Peak *>& candidates,
+      PeakPtrList& candidates,
       const Gap& wheelGap) const;
 
     void markLongGapsOfSelects(
-      list<Peak *>& candidates,
+      PeakPtrList& candidates,
       const Gap& wheelGap) const;
 
     void markShortGaps(
-      list<Peak *>& candidates,
+      PeakPtrList& candidates,
       Gap& shortGap);
 
 
     void guessLongGapDistance(
-      const list<Peak *>& candidates,
+      const PeakPtrList& candidates,
       const unsigned shortGapCount,
       Gap& gap) const;
 
     void markLongGaps(
-      list<Peak *>& candidates,
+      PeakPtrList& candidates,
       const Gap& wheelGap,
       const unsigned shortGapCount);
 
@@ -152,11 +158,11 @@ class PeakMinima
       const string& text) const;
 
     void printAllCandidates(
-      const list<Peak *>& candidates,
+      const PeakPtrList& candidates,
       const string& text) const;
 
     void printSelected(
-      const list<Peak *>& candidates,
+      const PeakPtrList& candidates,
       const string& text) const;
 
 
@@ -170,7 +176,7 @@ class PeakMinima
 
     void mark(
       list<Peak>& peaks,
-      list<Peak *>& candidates,
+      PeakPtrList& candidates,
       const unsigned offsetIn);
 
 };

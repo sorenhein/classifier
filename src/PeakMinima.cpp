@@ -167,7 +167,7 @@ bool PeakMinima::formBogeyGap(
 
 
 unsigned PeakMinima::countPeaks(
-  const list<Peak *>& candidates,
+  const PeakPtrList& candidates,
   const PeakFncPtr fptr) const
 {
   unsigned c = 0;
@@ -181,7 +181,7 @@ unsigned PeakMinima::countPeaks(
 
 
 bool PeakMinima::guessNeighborDistance(
-  const list<Peak *>& candidates,
+  const PeakPtrList& candidates,
   const CandFncPtr fptr,
   Gap& gap,
   const unsigned minCount) const
@@ -274,7 +274,7 @@ void PeakMinima::reseedWheelUsingQuality(list<Peak *>& candidates) const
 
 
 void PeakMinima::reseedBogeysUsingQuality(
-  list<Peak *>& candidates,
+  PeakPtrList& candidates,
   const vector<Peak>& bogeyScale) const
 {
   for (auto cand: candidates)
@@ -297,7 +297,7 @@ void PeakMinima::reseedBogeysUsingQuality(
 
 
 void PeakMinima::reseedLongGapsUsingQuality(
-  list<Peak *>& candidates,
+  PeakPtrList& candidates,
   const vector<Peak>& longGapScale) const
 {
   for (auto cand: candidates)
@@ -345,7 +345,7 @@ void PeakMinima::reseedLongGapsUsingQuality(
 
 
 void PeakMinima::makeWheelAverage(
-  list<Peak *>& candidates,
+  PeakPtrList& candidates,
   Peak& wheel) const
 {
   wheel.reset();
@@ -366,7 +366,7 @@ void PeakMinima::makeWheelAverage(
 
 
 void PeakMinima::makeBogeyAverages(
-  list<Peak *>& candidates,
+  PeakPtrList& candidates,
   vector<Peak>& wheels) const
 {
   wheels.clear();
@@ -395,7 +395,7 @@ void PeakMinima::makeBogeyAverages(
 
 
 void PeakMinima::makeCarAverages(
-  list<Peak *>& candidates,
+  PeakPtrList& candidates,
   vector<Peak>& wheels) const
 {
   wheels.clear();
@@ -444,7 +444,7 @@ void PeakMinima::makeCarAverages(
 
 void PeakMinima::setCandidates(
   list<Peak>& peaks,
-  list<Peak *>& candidates) const
+  PeakPtrList& candidates) const
 {
   for (auto pit = peaks.begin(); pit != peaks.end(); pit++)
   {
@@ -465,7 +465,7 @@ void PeakMinima::setCandidates(
 }
 
 
-void PeakMinima::markSinglePeaks(list<Peak *>& candidates) const
+void PeakMinima::markSinglePeaks(PeakPtrList& candidates) const
 {
   if (candidates.empty())
     THROW(ERR_NO_PEAKS, "No tall peaks");
@@ -495,8 +495,24 @@ void PeakMinima::markSinglePeaks(list<Peak *>& candidates) const
 }
 
 
+PeakPtrList::const_iterator PeakMinima::nextWithProperty(
+  PeakPtrList::const_iterator& it,
+  PeakPtrList::const_iterator& endList,
+  const PeakFncPtr fptr) const
+{
+  auto itNext = it;
+  do
+  {
+    itNext++;
+  }
+  while (itNext != endList && ! ((* itNext)->* fptr)());
+
+  return itNext;
+}
+
+
 void PeakMinima::markBogeysOfSelects(
-  list<Peak *>& candidates,
+  PeakPtrList& candidates,
   const Gap& wheelGap) const
 {
   // Here we mark bogeys where both peaks are already selected.
@@ -522,10 +538,12 @@ void PeakMinima::markBogeysOfSelects(
 
 
 void PeakMinima::markBogeysOfUnpaired(
-  list<Peak *>& candidates,
+  PeakPtrList& candidates,
   const Gap& wheelGap) const
 {
-  for (auto cit = candidates.begin(); cit != prev(candidates.end()); cit++)
+  PeakPtrList::const_iterator cend = candidates.cend();
+
+  for (auto cit = candidates.begin(); cit != prev(cend); cit++)
   {
     Peak * cand = * cit;
     Peak * nextCand = * next(cit);
@@ -539,14 +557,10 @@ void PeakMinima::markBogeysOfUnpaired(
 
     // If the first one is of acceptable quality, find the first
     // such successor.  There could be poorer peaks in between.
-    auto ncit = cit;
-    do
-    {
-      ncit = next(ncit);
-    }
-    while (ncit != candidates.end() && ! (* ncit)->acceptableQuality());
+    auto ncit = PeakMinima::nextWithProperty(cit, cend,
+      &Peak::acceptableQuality);
 
-    if (ncit == candidates.end())
+    if (ncit == cend)
       break;
 
     // If the distance is right, we lower our quality requirements.
@@ -557,7 +571,7 @@ void PeakMinima::markBogeysOfUnpaired(
 
 
 void PeakMinima::markBogeys(
-  list<Peak *>& candidates,
+  PeakPtrList& candidates,
   Gap& wheelGap) const
 {
   // The wheel gap is only plausible if it hits a certain number of peaks.
@@ -622,7 +636,7 @@ void PeakMinima::markBogeys(
 
 
 void PeakMinima::markShortGapsOfSelects(
-  list<Peak *>& candidates,
+  PeakPtrList& candidates,
   const Gap& shortGap) const
 {
   for (auto cit = candidates.begin(); cit != prev(candidates.end()); cit++)
@@ -640,7 +654,7 @@ void PeakMinima::markShortGapsOfSelects(
 
 
 void PeakMinima::markShortGapsOfUnpaired(
-  list<Peak *>& candidates,
+  PeakPtrList& candidates,
   const Gap& shortGap) const
 {
   for (auto cit = candidates.begin(); cit != prev(candidates.end()); cit++)
@@ -664,7 +678,7 @@ void PeakMinima::markShortGapsOfUnpaired(
 
 
 void PeakMinima::markShortGaps(
-  list<Peak *>& candidates,
+  PeakPtrList& candidates,
   Gap& shortGap)
 {
   // Look for inter-car short gaps.
@@ -687,25 +701,21 @@ void PeakMinima::markShortGaps(
 
 
 void PeakMinima::guessLongGapDistance(
-  const list<Peak *>& candidates,
+  const PeakPtrList& candidates,
   const unsigned shortGapCount,
   Gap& longGap) const
 {
   vector<unsigned> dists;
-  for (auto cit = candidates.begin(); cit != prev(candidates.end()); cit++)
+  PeakPtrList::const_iterator cend = candidates.cend();
+
+  for (auto cit = candidates.begin(); cit != prev(cend); cit++)
   {
     Peak * cand = * cit;
     if (! cand->isRightWheel() || cand->isBogey())
       continue;
 
-    auto ncit = cit;
-    do
-    {
-      ncit = next(ncit);
-    }
-    while (ncit != candidates.end() && ! (* ncit)->isSelected());
-
-    if (ncit == candidates.end())
+    auto ncit = PeakMinima::nextWithProperty(cit, cend, &Peak::isSelected);
+    if (ncit == cend)
       break;
 
     Peak * nextCand = * ncit;
@@ -720,23 +730,18 @@ void PeakMinima::guessLongGapDistance(
 
 
 void PeakMinima::markLongGapsOfSelects(
-  list<Peak *>& candidates,
+  PeakPtrList& candidates,
   const Gap& longGap) const
 {
-  for (auto cit = candidates.begin(); cit != prev(candidates.end()); cit++)
+  PeakPtrList::const_iterator cend = candidates.cend();
+  for (auto cit = candidates.begin(); cit != prev(cend); cit++)
   {
     Peak * cand = * cit;
     if (! cand->isRightWheel() || cand->isBogey())
       continue;
 
-    auto ncit = cit;
-    do
-    {
-      ncit = next(ncit);
-    }
-    while (ncit != candidates.end() && ! (* ncit)->isSelected());
-
-    if (ncit == candidates.end())
+    auto ncit = PeakMinima::nextWithProperty(cit, cend, &Peak::isSelected);
+    if (ncit == cend)
       break;
 
     Peak * nextCand = * ncit;
@@ -755,7 +760,7 @@ void PeakMinima::markLongGapsOfSelects(
           prevCand->markBogey(BOGEY_LEFT);
       }
 
-      if (next(ncit) != candidates.end())
+      if (next(ncit) != cend)
       {
         Peak * nextNextCand = * next(ncit);
         if (nextNextCand->isRightWheel())
@@ -767,7 +772,7 @@ void PeakMinima::markLongGapsOfSelects(
 
 
 void PeakMinima::markLongGaps(
-  list<Peak *>& candidates,
+  PeakPtrList& candidates,
   const Gap& wheelGap,
   const unsigned shortGapCount)
 {
@@ -848,7 +853,7 @@ void PeakMinima::printRange(
 
 
 void PeakMinima::printAllCandidates(
-  const list<Peak *>& candidates,
+  const PeakPtrList& candidates,
   const string& text) const
 {
   if (candidates.empty())
@@ -864,7 +869,7 @@ void PeakMinima::printAllCandidates(
 
 
 void PeakMinima::printSelected(
-  const list<Peak *>& candidates,
+  const PeakPtrList& candidates,
   const string& text) const
 {
   if (candidates.empty())
@@ -884,7 +889,7 @@ void PeakMinima::printSelected(
 
 void PeakMinima::mark(
   list<Peak>& peaks,
-  list<Peak *>& candidates,
+  PeakPtrList& candidates,
   const unsigned offsetIn)
 {
   candidates.clear();

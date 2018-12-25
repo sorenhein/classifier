@@ -1,10 +1,19 @@
-Thoughts on kinks
------------------
-* Fine area removal
-* Fine kink removal (100x only)
-* Rough range removal
-* Possibly some other kinks
-  - But then gradient should only match if the dip is "small"
+Clean-up (useful for sensor06)
+--------
+markLongGapsOfSelects:
+  newCand: prevWithProperty(candidates, Peak::fptr)
+           nextWithProperty(ditto)
+markShortGapsOfSelects: similarly, but only if it was already a bogey.
+markShortGapsOfUnpaired: Ditto.
+
+PeakStructure::findCarsInInterval:
+  Not looksLikeTwoCars().
+  If it's an internal car, split off groups of 4 from some side.
+  - Consistent with 1-2-3-4
+
+  If it's a front car, split off from the back.
+  If it's a back car, split off fron the front.
+  The front/back car goes to a general recognizer.
 
 
 sensor00:

@@ -355,8 +355,9 @@ cout << "EXTREME " << peakExtreme->getIndex() + offset << endl << endl;
       {
         // peakExtreme and peakFirst have the same polarity.
         peakL = &*peakFirst;
-        cout << "Left extent " << 
-          peakExtreme->getIndex() - peakL->getIndex() << endl;
+        if (control.verbosePeakReduce)
+          cout << "Left extent " << 
+            peakExtreme->getIndex() - peakL->getIndex() << endl;
       }
 
       list<Peak>::iterator peakR;
@@ -376,8 +377,9 @@ cout << "EXTREME " << peakExtreme->getIndex() + offset << endl << endl;
             peakR = prev(peakR);
         }
 
-        cout << "Right extent " << 
-          peakR->getIndex() - peakExtreme->getIndex() << endl;
+        if (control.verbosePeakReduce)
+          cout << "Right extent " << 
+            peakR->getIndex() - peakExtreme->getIndex() << endl;
       }
       
       peakExtreme->logExtent(* peakL, * peakR);
@@ -385,14 +387,16 @@ cout << "EXTREME " << peakExtreme->getIndex() + offset << endl << endl;
       // Do the deletions.
       if (peakFirst != peakExtreme)
       {
-        cout << PeakDetect::deleteStr(&*peakFirst, &*prev(peakExtreme));
+        if (control.verbosePeakReduce)
+          cout << PeakDetect::deleteStr(&*peakFirst, &*prev(peakExtreme));
         PeakDetect::collapsePeaks(peakFirst, peakExtreme);
       }
 
       peakExtreme++;
       if (peakExtreme != peak)
       {
-        cout << PeakDetect::deleteStr(&*peakExtreme, &*prev(peak));
+        if (control.verbosePeakReduce)
+          cout << PeakDetect::deleteStr(&*peakExtreme, &*prev(peak));
         PeakDetect::collapsePeaks(peakExtreme, peak);
       }
 
@@ -410,9 +414,9 @@ cout << peak->strHeader();
 for (auto p = peakFirst; p != peak; p++)
   cout << p->str(offset);
 cout << peak->str(offset);
+cout << PeakDetect::deleteStr(&*peakFirst, &*prev(peak));
 }
 
-        cout << PeakDetect::deleteStr(&*peakFirst, &*prev(peak));
         PeakDetect::collapsePeaks(peakFirst, peak);
 
       peak++;
@@ -435,11 +439,9 @@ cout << peak->strHeader();
 for (auto p = peakFirst; p != peak; p++)
   cout << p->str(offset);
 cout << peak->str(offset);
+cout << PeakDetect::deleteStr(&*peakFirst, &*prev(peak));
 }
 
-      // peak->logExtent(* peakFirst, * peak);
-
-        cout << PeakDetect::deleteStr(&*peakFirst, &*prev(peak));
         PeakDetect::collapsePeaks(peakFirst, peak);
 
       peak++;

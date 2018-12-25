@@ -486,10 +486,6 @@ bool Peak::similarGradientBest(const Peak& p1) const
     valueLeft - left.range : valueLeft + left.range);
   const float rangeNew = abs(p1.valueLeft - val0);
   const float gradNew = rangeNew / lenNew;
- cout << "old grad " << left.gradient << ", new " << gradNew << endl;
- cout << Peak::str() << endl;
- cout << p1.str() << endl;
-// cout << "range new " << rangeNew << " lenNew " << lenNew << endl;
 
   // Old gradient ends in value.  If we're a minimum, then the old
   // gradient is negative.  So p1.value should be less than val0
@@ -527,10 +523,6 @@ bool Peak::similarGradientForward(const Peak& p1) const
     valueLeft - left.range : valueLeft + left.range);
   const float rangeNew = abs(p1.valueLeft - val0);
   const float gradNew = rangeNew / lenNew;
- cout << "old grad " << left.gradient << ", new " << gradNew << endl;
- cout << Peak::str() << endl;
- cout << p1.str() << endl;
-// cout << "range new " << rangeNew << " lenNew " << lenNew << endl;
 
   // Old gradient ends in value.  If we're a minimum, then the old
   // gradient is negative.  So p1.value should be less than val0
