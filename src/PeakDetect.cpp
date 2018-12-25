@@ -18,7 +18,7 @@
 
 #define KINK_RATIO 100.f
 #define KINK_RATIO_CONSIDER 20.f
-#define KINK_RATIO_ONE_DIM 5.f
+#define KINK_RATIO_ONE_DIM 8.f
 
 
 PeakDetect::PeakDetect()

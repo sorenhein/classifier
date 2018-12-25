@@ -528,23 +528,30 @@ void PeakMinima::markBogeysOfUnpaired(
   {
     Peak * cand = * cit;
     Peak * nextCand = * next(cit);
-    // If neither is set, or both are set, there is nothing to work on.
-    // if (cand->isSelected() == nextCand->isSelected())
-      // continue;
 
     // If they are both set, move on.
     if (cand->isSelected() && nextCand->isSelected())
       continue;
 
-    const unsigned dist = nextCand->getIndex() - cand->getIndex();
-    if (dist < wheelGap.lower || dist > wheelGap.upper)
+    if (! cand->acceptableQuality())
       continue;
 
-    // If the distance is right, we can relax our quality requirements.
-    // if ((cand->isSelected() && nextCand->acceptableQuality()) ||
-        // (nextCand->isSelected() && cand->acceptableQuality()))
-    if (cand->acceptableQuality() && nextCand->acceptableQuality())
-      PeakMinima::markWheelPair(* cand, * nextCand, "Adding");
+    // If the first one is of acceptable quality, find the first
+    // such successor.  There could be poorer peaks in between.
+    auto ncit = cit;
+    do
+    {
+      ncit = next(ncit);
+    }
+    while (ncit != candidates.end() && ! (* ncit)->acceptableQuality());
+
+    if (ncit == candidates.end())
+      break;
+
+    // If the distance is right, we lower our quality requirements.
+    const unsigned dist = (* ncit)->getIndex() - cand->getIndex();
+    if (dist >= wheelGap.lower && dist <= wheelGap.upper)
+      PeakMinima::markWheelPair(* cand, ** ncit, "Adding");
   }
 }
 

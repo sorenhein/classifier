@@ -1,3 +1,12 @@
+Thoughts on kinks
+-----------------
+* Fine area removal
+* Fine kink removal (100x only)
+* Rough range removal
+* Possibly some other kinks
+  - But then gradient should only match if the dip is "small"
+
+
 sensor00:
 * 061030 #47: Now we get a 2+1 front car which is somehow very expensive
   in Needleman-Wunsch
