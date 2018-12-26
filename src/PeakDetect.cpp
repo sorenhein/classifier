@@ -37,6 +37,7 @@ void PeakDetect::reset()
   len = 0;
   offset = 0;
   peaks.clear();
+  peakPool.clear();
   models.reset();
   candidates.clear();
   pstruct.reset();
@@ -50,8 +51,6 @@ float PeakDetect::integrate(
 {
   float sum = 0.f;
   for (unsigned i = i0; i < i1; i++)
-  // for (unsigned i = i0; i <= i1; i++)
-  // for (unsigned i = i0+1; i <= i1; i++)
     sum += samples[i];
 
   sum += 0.5f * (samples[i1] - samples[i0]);

@@ -1,5 +1,5 @@
 #ifndef TRAIN_PEAKMINIMA_H
-#define TRAIN_PEAKDMINIMAH
+#define TRAIN_PEAKMINIMA_H
 
 #include <vector>
 #include <list>

@@ -7,6 +7,7 @@
 #include <sstream>
 
 #include "Peak.h"
+#include "PeakPool.h"
 #include "PeakStructure.h"
 #include "CarModels.h"
 #include "struct.h"
@@ -22,7 +23,10 @@ class PeakDetect
 
     unsigned len;
     unsigned offset;
+
     list<Peak> peaks;
+    PeakPool peakPool;
+
     list<Peak *> candidates;
     CarModels models;
     PeakStructure pstruct;
