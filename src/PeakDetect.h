@@ -53,17 +53,10 @@ class PeakDetect
       const float paramLimit,
       const bool preserveKinksFlag,
       const Control& control);
-    void reduceSmallPeaksNew(
-      const PeakParam param,
-      const float paramLimit,
-      const bool preserveKinksFlag,
-      const Control& control);
 
     void eliminateKinks();
-    void eliminateKinksNew();
 
-    void estimateScale(Peak& scale);
-    void estimateScaleNew(Peak& scale) const;
+    void estimateScale(Peak& scale) const;
 
     float getFirstPeakTime() const;
 
