@@ -10,6 +10,7 @@
 using namespace std;
 
 class Peak;
+class PeakPool;
 typedef list<Peak *> PeakPtrList;
 typedef PeakPtrList::const_iterator PeakCit;
 
@@ -96,7 +97,7 @@ class PeakMinima
       vector<Peak>& wheels) const;
 
     void setCandidates(
-      list<Peak>& peaks,
+      PeakPool& peaks,
       PeakPtrList& candidates) const;
 
     void markSinglePeaks(list<Peak *>& candidates) const;
@@ -185,7 +186,7 @@ class PeakMinima
     void reset();
 
     void mark(
-      list<Peak>& peaks,
+      PeakPool& peaks,
       PeakPtrList& candidates,
       const unsigned offsetIn);
 

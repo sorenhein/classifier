@@ -459,7 +459,7 @@ void PeakMinima::makeCarAverages(
 
 
 void PeakMinima::setCandidates(
-  list<Peak>& peaks,
+  PeakPool& peaks,
   PeakPtrList& candidates) const
 {
   for (auto pit = peaks.begin(); pit != peaks.end(); pit++)
@@ -933,7 +933,7 @@ void PeakMinima::printSelected(
 
 
 void PeakMinima::mark(
-  list<Peak>& peaks,
+  PeakPool& peaks,
   PeakPtrList& candidates,
   const unsigned offsetIn)
 {

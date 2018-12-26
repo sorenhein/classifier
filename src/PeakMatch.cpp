@@ -172,7 +172,7 @@ double PeakMatch::simpleScore(
 
 
 void PeakMatch::setOffsets(
-  const list<Peak>& peaks,
+  const PeakPool& peaks,
   const vector<PeakTime>& timesTrue,
   vector<double>& offsetList) const
 {
@@ -213,7 +213,7 @@ void PeakMatch::setOffsets(
 
 
 bool PeakMatch::findMatch(
-  const list<Peak>& peaks,
+  const PeakPool& peaks,
   const vector<PeakTime>& timesTrue,
   double& shift)
 {
@@ -288,7 +288,7 @@ void PeakMatch::correctTimesTrue(vector<PeakTime>& timesTrue) const
   
 
 void PeakMatch::logPeakStats(
-  const list<Peak>& peaks,
+  const PeakPool& peaks,
   const vector<PeakPos>& posTrue,
   const string& trainTrue,
   const double speedTrue,
@@ -443,7 +443,7 @@ void PeakMatch::logPeakStats(
 
 
 void PeakMatch::printPeaks(
-  const list<Peak>& peaks,
+  const PeakPool& peaks,
   const vector<PeakTime>& timesTrue) const
 {
   cout << "true\n";

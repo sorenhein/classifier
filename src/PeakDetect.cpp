@@ -14,8 +14,6 @@
 #include "Except.h"
 
 
-#define SAMPLE_RATE 2000.
-
 #define KINK_RATIO 100.f
 #define KINK_RATIO_CONSIDER 20.f
 #define KINK_RATIO_ONE_DIM 8.f
@@ -36,7 +34,7 @@ void PeakDetect::reset()
 {
   len = 0;
   offset = 0;
-  peaks.clear();
+  // peaks.clear();
   peakPool.clear();
   models.reset();
   candidates.clear();
@@ -222,7 +220,7 @@ const list<Peak>::iterator PeakDetect::collapsePeaks(
     return peak1;
 
   Peak * peak0 = 
-    (peak1 == peaks.begin() ? nullptr : &*prev(peak1));
+    (peak1 == peakPool.begin() ? nullptr : &*prev(peak1));
 
 // cout << "UPDATING peak2\n";
 // cout << peak2->strQuality(offset) << endl;
@@ -235,7 +233,7 @@ if (peak0 != nullptr)
 // cout << peak2->strQuality(offset) << endl;
 
 
-  return peaks.erase(peak1, peak2);
+  return peakPool.erase(peak1, peak2);
 }
 
 
@@ -540,7 +538,8 @@ void PeakDetect::estimateScale(Peak& scale) const
   unsigned no = 0;
   for (auto peak = next(peakPool.begin()); peak != peakPool.end(); peak++)
   {
-    if (! peak->getMaxFlag() && peak->getValue() < 0.f)
+    if (peak->isCandidate())
+    // if (! peak->getMaxFlag() && peak->getValue() < 0.f)
     {
       scale += * peak;
       no++;
@@ -565,16 +564,16 @@ void PeakDetect::reduce(
   const bool debugDetails = true;
 
   if (debugDetails)
-    cout << peakPool.str("Original peaks", offset);
+    cout << peakPool.strAll("Original peaks", offset);
 
   PeakDetect::reduceSmallPeaks(PEAK_PARAM_AREA, 0.1f, false, control);
 
   if (debugDetails)
-    cout << peakPool.str("Non-tiny peaks", offset);
+    cout << peakPool.strAll("Non-tiny peaks", offset);
 
   PeakDetect::eliminateKinks();
   if (debugDetails)
-    cout << peakPool.str("Non-kinky list peaks (first)", offset);
+    cout << peakPool.strAll("Non-kinky list peaks (first)", offset);
 
   Peak scale;
   PeakDetect::estimateScale(scale);
@@ -585,24 +584,26 @@ void PeakDetect::reduce(
     scale.getRange() / 10.f, true, control);
 
   if (debugDetails)
-    cout << peakPool.str("Range-reduced peaks", offset);
+    cout << peakPool.strAll("Range-reduced peaks", offset);
 
   PeakDetect::eliminateKinks();
   if (debugDetails)
-    cout << peakPool.str("Non-kinky list peaks (second)", offset);
+    cout << peakPool.strAll("Non-kinky list peaks (second)", offset);
 
+/*
 peaks.clear();
 for (auto& peak: peakPool)
   peaks.push_back(peak);
+  */
 
   // Mark some tall peaks as seeds.
   PeakSeeds seeds;
-  seeds.mark(peaks, offset, scale.getRange());
+  seeds.mark(peakPool, offset, scale.getRange());
   cout << seeds.str(offset, "after pruning");
 
   // Label the negative minima as wheels, bogeys etc.
   PeakMinima minima;
-  minima.mark(peaks, candidates, offset);
+  minima.mark(peakPool, candidates, offset);
 
   // Use the labels to extract the car structure from the peaks.
   vector<CarDetect> cars;
@@ -619,23 +620,18 @@ void PeakDetect::logPeakStats(
   PeakStats& peakStats)
 {
   PeakMatch matches;
-  matches.logPeakStats(peaks, posTrue, trainTrue, speedTrue, peakStats);
+  matches.logPeakStats(peakPool, posTrue, trainTrue, speedTrue, peakStats);
 }
 
 
 void PeakDetect::makeSynthPeaks(vector<float>& synthPeaks) const
 {
-  for (unsigned i = 0; i < synthPeaks.size(); i++)
-    synthPeaks[i] = 0;
-
-  for (auto& peak: peaks)
-  {
-    if (peak.isSelected())
-      synthPeaks[peak.getIndex()] = peak.getValue();
-  }
+  peakPool.getSelectedSamples(synthPeaks);
 }
 
 
+/*
+#define SAMPLE_RATE 2000.
 float PeakDetect::getFirstPeakTime() const
 {
   for (auto& peak: peaks)
@@ -646,10 +642,13 @@ float PeakDetect::getFirstPeakTime() const
 
   THROW(ERR_NO_PEAKS, "No peaks selected");
 }
+*/
 
 
 void PeakDetect::getPeakTimes(vector<PeakTime>& times) const
 {
+  peakPool.getSelectedTimes(times);
+  /*
   times.clear();
   const float t0 = PeakDetect::getFirstPeakTime();
 
@@ -663,6 +662,7 @@ void PeakDetect::getPeakTimes(vector<PeakTime>& times) const
       p.value = peak.getValue();
     }
   }
+  */
 }
 
 
@@ -682,30 +682,8 @@ void PeakDetect::printPeaksCSV(const vector<PeakTime>& timesTrue) const
   unsigned i = 0;
   for (auto tt: timesTrue)
     cout << i++ << ";" << fixed << setprecision(6) << tt.time << "\n";
+  cout << "\n";
 
-  cout << "\nseen\n";
-  i = 0;
-  for (auto& peak: peaks)
-  {
-    if (peak.isSelected())
-      cout << i++ << ";" << 
-        fixed << setprecision(6) << peak.getTime() << "\n";
-  }
-  cout << endl;
-}
-
-
-void PeakDetect::printAllPeaks(const string& text) const
-{
-  if (peaks.empty())
-    return;
-
-  if (text != "")
-    cout << text << ": " << peaks.size() << "\n";
-  cout << peaks.front().strHeader();
-
-  for (auto& peak: peaks)
-    cout << peak.str(offset);
-  cout << endl;
+  cout << peakPool.strSelectedTimesCSV("seen");
 }
 

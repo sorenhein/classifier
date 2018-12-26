@@ -46,7 +46,7 @@ void PeakSeeds::logInterval(
 
 
 void PeakSeeds::makeIntervals(
-  list<Peak>& peaks,
+  PeakPool& peaks,
   const float scale)
 {
   // Here we make a list of all intervals where there is no other
@@ -342,7 +342,7 @@ void PeakSeeds::pruneListEnds()
 }
 
 
-void PeakSeeds::markSeeds(list<Peak>& peaks)
+void PeakSeeds::markSeeds(PeakPool& peaks)
 {
   unsigned nindex = 0;
   unsigned ni1 = nestedIntervals[nindex].back()->start;
@@ -378,7 +378,7 @@ void PeakSeeds::markSeeds(list<Peak>& peaks)
 
 
 void PeakSeeds::mark(
-  list<Peak>& peaks,
+  PeakPool& peaks,
   const unsigned offset,
   const float scale)
 {

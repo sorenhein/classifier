@@ -5,6 +5,9 @@
 #include "PeakPool.h"
 
 
+#define SAMPLE_RATE 2000.
+
+
 PeakPool::PeakPool()
 {
   PeakPool::clear();
@@ -94,7 +97,48 @@ Piterator PeakPool::erase(
 }
 
 
-string PeakPool::str(
+void PeakPool::getSelectedSamples(vector<float>& selected) const
+{
+  for (unsigned i = 0; i < selected.size(); i++)
+    selected[i] = 0;
+
+  for (auto& peak: * peaks)
+  {
+    if (peak.isSelected())
+      selected[peak.getIndex()] = peak.getValue();
+  }
+}
+
+
+float PeakPool::getFirstPeakTime() const
+{
+  for (auto& peak: * peaks)
+  {
+    if (peak.isSelected())
+      return peak.getIndex() / static_cast<float>(SAMPLE_RATE);
+  }
+  return 0.f;
+}
+
+
+void PeakPool::getSelectedTimes(vector<PeakTime>& times) const
+{
+  times.clear();
+  const float t0 = PeakPool::getFirstPeakTime();
+
+  for (auto& peak: * peaks)
+  {
+    if (peak.isSelected())
+    {
+      times.emplace_back(PeakTime());
+      PeakTime& p = times.back();
+      p.time = peak.getIndex() / SAMPLE_RATE - t0;
+      p.value = peak.getValue();
+    }
+  }
+}
+
+string PeakPool::strAll(
   const string& text,
   const unsigned& offset) const
 {
@@ -108,6 +152,25 @@ string PeakPool::str(
 
   for (auto& peak: * peaks)
     ss << peak.str(offset);
+  ss << endl;
+  return ss.str();
+}
+
+
+string PeakPool::strSelectedTimesCSV(const string& text) const
+{
+  if (peaks->empty())
+    return "";
+
+  stringstream ss;
+  ss << text << "n";
+  unsigned i = 0;
+  for (auto& peak: * peaks)
+  {
+    if (peak.isSelected())
+      ss << i++ << ";" <<
+        fixed << setprecision(6) << peak.getTime() << "\n";
+  }
   ss << endl;
   return ss.str();
 }

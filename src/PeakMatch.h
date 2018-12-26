@@ -6,6 +6,7 @@
 #include <string>
 
 #include "Peak.h"
+#include "PeakPool.h"
 #include "PeakStats.h"
 
 #include "struct.h"
@@ -47,19 +48,19 @@ class PeakMatch
       double& shift);
 
     void setOffsets(
-      const list<Peak>& peaks,
+      const PeakPool& peaks,
       const vector<PeakTime>& timesTrue,
       vector<double>& offsetList) const;
 
     bool findMatch(
-      const list<Peak>& peaks,
+      const PeakPool& peaks,
       const vector<PeakTime>& timesTrue,
       double& shift);
 
     void correctTimesTrue(vector<PeakTime>& timesTrue) const;
 
     void printPeaks(
-      const list<Peak>& peaks,
+      const PeakPool& peaks,
       const vector<PeakTime>& timesTrue) const;
 
   public:
@@ -71,7 +72,7 @@ class PeakMatch
     void reset();
 
     void logPeakStats(
-      const list<Peak>& peaks,
+      const PeakPool& peaks,
       const vector<PeakPos>& posTrue,
       const string& trainTrue,
       const double speedTrue,

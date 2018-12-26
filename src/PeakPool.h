@@ -46,6 +46,8 @@ class PeakPool
     PeakList * peaks;
 
 
+    float getFirstPeakTime() const;
+
 
   public:
 
@@ -76,9 +78,15 @@ class PeakPool
       Piterator pit1,
       Piterator pit2);
 
-    string str(
+    void getSelectedSamples(vector<float>& selected) const;
+
+    void getSelectedTimes(vector<PeakTime>& times) const;
+
+    string strAll(
       const string& text,
       const unsigned& offset) const;
+
+    string strSelectedTimesCSV(const string& text) const;
 
     string strCounts() const;
 };

@@ -5,6 +5,7 @@
 #include <string>
 
 #include "Peak.h"
+#include "PeakPool.h"
 
 // Here we mark some peaks that look highly likely to be actual
 // wheel peaks.  The algorithm is possible over the top, but simple
@@ -82,7 +83,7 @@ class PeakSeeds
       const float scale);
 
     void makeIntervals(
-      list<Peak>& peaks,
+      PeakPool& peaks,
       const float scale);
 
     void setupReferences(
@@ -101,7 +102,7 @@ class PeakSeeds
 
     void pruneListEnds();
 
-    void markSeeds(list<Peak>& peaks);
+    void markSeeds(PeakPool& peaks);
 
 
   public:
@@ -113,7 +114,7 @@ class PeakSeeds
     void reset();
 
     void mark(
-      list<Peak>& peaks,
+      PeakPool& peaks,
       const unsigned offset,
       const float scale);
 
