@@ -61,12 +61,12 @@ float PeakDetect::integrate(
 
 void PeakDetect::annotate()
 {
-  if (peaks.size() < 2)
+  if (peakPool.size() < 2)
     THROW(ERR_NO_PEAKS, "Too few peaks: " + to_string(peaks.size()));
 
-  const auto peakFirst = peaks.begin();
+  const auto peakFirst = peakPool.begin();
 
-  for (auto it = peakFirst; it != peaks.end(); it++)
+  for (auto it = peakFirst; it != peakPool.end(); it++)
   {
     const Peak * peakPrev = (it == peakFirst ? nullptr : &*prev(it));
 
@@ -113,7 +113,7 @@ bool PeakDetect::check(const vector<float>& samples) const
 
 void PeakDetect::logFirst(const vector<float>& samples)
 {
-  peaks.emplace_back(Peak());
+  peakPool.extend();
 
   // Find the initial peak polarity.
   bool maxFlag = false;
@@ -130,19 +130,19 @@ void PeakDetect::logFirst(const vector<float>& samples)
       break;
     }
   }
-  peaks.back().logSentinel(samples[0], maxFlag);
+  peakPool.back().logSentinel(samples[0], maxFlag);
 }
 
 
 void PeakDetect::logLast(const vector<float>& samples)
 {
-  const auto& peakPrev = peaks.back();
+  const auto& peakPrev = peakPool.back();
   const float areaFull = 
     PeakDetect::integrate(samples, peakPrev.getIndex(), len-1);
   const float areaCumPrev = peakPrev.getAreaCum();
 
-  peaks.emplace_back(Peak());
-  peaks.back().log(
+  peakPool.extend();
+  peakPool.back().log(
     samples.size()-1, 
     samples[samples.size()-1], 
     areaCumPrev + areaFull, 
@@ -160,6 +160,7 @@ void PeakDetect::log(
 
   offset = offsetSamples;
   peaks.clear();
+  peakPool.clear();
 
   // The first peak is a dummy extremum at the first sample.
   PeakDetect::logFirst(samples);
@@ -195,20 +196,23 @@ void PeakDetect::log(
         maxFlag = false;
     }
 
-    const auto& peakPrev = peaks.back();
+    const auto& peakPrev = peakPool.back();
     const float areaFull = PeakDetect::integrate(samples, 
       peakPrev.getIndex(), i);
     const float areaCumPrev = peakPrev.getAreaCum();
 
     // The peak contains data for the interval preceding it.
-    peaks.emplace_back(Peak());
-    peaks.back().log(i, samples[i], areaCumPrev + areaFull, maxFlag);
+    peakPool.extend();
+    peakPool.back().log(i, samples[i], areaCumPrev + areaFull, maxFlag);
   }
 
   // The last peak is a dummy extremum at the last sample.
   PeakDetect::logLast(samples);
 
   PeakDetect::annotate();
+
+  for (auto& peak: peakPool)
+    peaks.push_back(peak);
 
   PeakDetect::check(samples);
 }
