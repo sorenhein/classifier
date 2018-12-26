@@ -80,6 +80,7 @@ class PeakPool
       const string& text,
       const unsigned& offset) const;
 
+    string strCounts() const;
 };
 
 #endif

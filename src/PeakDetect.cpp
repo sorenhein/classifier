@@ -834,6 +834,26 @@ void PeakDetect::estimateScale(Peak& scale)
 }
 
 
+void PeakDetect::estimateScaleNew(Peak& scale) const
+{
+  scale.reset();
+  unsigned no = 0;
+  for (auto peak = next(peakPool.begin()); peak != peakPool.end(); peak++)
+  {
+    if (! peak->getMaxFlag() && peak->getValue() < 0.f)
+    {
+      scale += * peak;
+      no++;
+    }
+  }
+
+  if (no == 0)
+    THROW(ERR_NO_PEAKS, "No negative minima");
+
+  scale/= no;
+}
+
+
 void PeakDetect::reduce(
   const Control& control,
   Imperfections& imperf)
@@ -856,24 +876,24 @@ void PeakDetect::reduce(
   if (debugDetails)
     cout << peakPool.str("Non-kinky list peaks (first)", offset);
 
-peaks.clear();
-for (auto& peak: peakPool)
-  peaks.push_back(peak);
-
   Peak scale;
-  PeakDetect::estimateScale(scale);
+  PeakDetect::estimateScaleNew(scale);
   if (debug)
     PeakDetect::printPeak(scale, "Scale");
 
-  PeakDetect::reduceSmallPeaks(PEAK_PARAM_RANGE, 
+  PeakDetect::reduceSmallPeaksNew(PEAK_PARAM_RANGE, 
     scale.getRange() / 10.f, true, control);
 
   if (debugDetails)
-    PeakDetect::printAllPeaks("Range-reduced peaks");
+    cout << peakPool.str("Range-reduced peaks", offset);
 
-  PeakDetect::eliminateKinks();
+  PeakDetect::eliminateKinksNew();
   if (debugDetails)
-    PeakDetect::printAllPeaks("Non-kinky list peaks (second)");
+    cout << peakPool.str("Non-kinky list peaks (second)", offset);
+
+peaks.clear();
+for (auto& peak: peakPool)
+  peaks.push_back(peak);
 
   // Mark some tall peaks as seeds.
   PeakSeeds seeds;

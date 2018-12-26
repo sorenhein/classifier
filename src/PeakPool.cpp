@@ -112,3 +112,21 @@ string PeakPool::str(
   return ss.str();
 }
 
+
+string PeakPool::strCounts() const
+{
+  stringstream ss;
+  ss << 
+    setw(8) << left << "Level" << 
+    setw(6) << right << "Count" << endl;
+
+  unsigned i = 0;
+  for (auto& pl: peakLists)
+  {
+    ss << setw(8) << left << i++ <<
+      setw(6) << right << pl.size() << endl;
+  }
+  ss << endl;
+  return ss.str();
+}
+

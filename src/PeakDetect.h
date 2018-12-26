@@ -63,6 +63,7 @@ class PeakDetect
     void eliminateKinksNew();
 
     void estimateScale(Peak& scale);
+    void estimateScaleNew(Peak& scale) const;
 
     float getFirstPeakTime() const;
 
