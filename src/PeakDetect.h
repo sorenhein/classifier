@@ -24,8 +24,7 @@ class PeakDetect
     unsigned len;
     unsigned offset;
 
-    list<Peak> peaks;
-    PeakPool peakPool;
+    PeakPool peaks;
 
     list<Peak *> candidates;
     CarModels models;
@@ -57,8 +56,6 @@ class PeakDetect
     void eliminateKinks();
 
     void estimateScale(Peak& scale) const;
-
-    float getFirstPeakTime() const;
 
     void printPeak(
       const Peak& peak,

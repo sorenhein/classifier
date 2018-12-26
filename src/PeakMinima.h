@@ -5,6 +5,8 @@
 #include <list>
 #include <string>
 
+#include "PeakPool.h"
+
 #include "struct.h"
 
 using namespace std;
