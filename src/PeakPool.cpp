@@ -97,6 +97,25 @@ Piterator PeakPool::erase(
 }
 
 
+Piterator PeakPool::collapse(
+  Piterator pit1,
+  Piterator pit2)
+{
+  // Analogous to erase(): peak1 does not survive, while peak2 does.
+  // But pit2 gets updated first.
+  if (pit1 == pit2)
+    return pit1;
+
+  Peak * peak0 =
+    (pit1 == peaks->begin() ? nullptr : &*prev(pit1));
+
+  if (peak0 != nullptr)
+    pit2->update(peak0);
+
+  return peaks->erase(pit1, pit2);
+}
+
+
 void PeakPool::getSelectedSamples(vector<float>& selected) const
 {
   for (unsigned i = 0; i < selected.size(); i++)

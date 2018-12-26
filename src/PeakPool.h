@@ -78,6 +78,10 @@ class PeakPool
       Piterator pit1,
       Piterator pit2);
 
+    Piterator collapse(
+      Piterator pit1,
+      Piterator pit2);
+
     void getSelectedSamples(vector<float>& selected) const;
 
     void getSelectedTimes(vector<PeakTime>& times) const;

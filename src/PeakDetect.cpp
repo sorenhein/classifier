@@ -205,34 +205,6 @@ void PeakDetect::log(
   PeakDetect::logLast(samples);
 
   PeakDetect::annotate();
-
-  PeakDetect::check(samples);
-}
-
-
-const list<Peak>::iterator PeakDetect::collapsePeaks(
-  const list<Peak>::iterator peak1,
-  const list<Peak>::iterator peak2)
-{
-  // Analogous to list.erase(), peak1 does not survive, while peak2 does.
-  if (peak1 == peak2)
-    return peak1;
-
-  Peak * peak0 = 
-    (peak1 == peaks.begin() ? nullptr : &*prev(peak1));
-
-// cout << "UPDATING peak2\n";
-// cout << peak2->strQuality(offset) << endl;
-// cout << "with" << endl;
-if (peak0 != nullptr)
-{
-// cout << peak0->strQuality(offset) << endl;
-  peak2->update(peak0);
-}
-// cout << peak2->strQuality(offset) << endl;
-
-
-  return peaks.erase(peak1, peak2);
 }
 
 
@@ -384,7 +356,7 @@ cout << "EXTREME " << peakExtreme->getIndex() + offset << endl << endl;
       {
         if (control.verbosePeakReduce)
           cout << PeakDetect::deleteStr(&*peakFirst, &*prev(peakExtreme));
-        PeakDetect::collapsePeaks(peakFirst, peakExtreme);
+        peaks.collapse(peakFirst, peakExtreme);
       }
 
       peakExtreme++;
@@ -392,7 +364,7 @@ cout << "EXTREME " << peakExtreme->getIndex() + offset << endl << endl;
       {
         if (control.verbosePeakReduce)
           cout << PeakDetect::deleteStr(&*peakExtreme, &*prev(peak));
-        PeakDetect::collapsePeaks(peakExtreme, peak);
+        peaks.collapse(peakExtreme, peak);
       }
 
       peak++;
@@ -412,7 +384,7 @@ cout << peak->str(offset);
 cout << PeakDetect::deleteStr(&*peakFirst, &*prev(peak));
 }
 
-        PeakDetect::collapsePeaks(peakFirst, peak);
+        peaks.collapse(peakFirst, peak);
 
       peak++;
       continue;
@@ -437,7 +409,7 @@ cout << peak->str(offset);
 cout << PeakDetect::deleteStr(&*peakFirst, &*prev(peak));
 }
 
-        PeakDetect::collapsePeaks(peakFirst, peak);
+        peaks.collapse(peakFirst, peak);
 
       peak++;
       continue;
@@ -509,7 +481,7 @@ void PeakDetect::eliminateKinks()
 
     if (ratioPrev * ratioNext > KINK_RATIO)
     {
-      peak = PeakDetect::collapsePeaks(peakPrev, peakNext);
+      peaks.collapse(peakPrev, peakNext);
       continue;
     }
 
@@ -523,7 +495,7 @@ void PeakDetect::eliminateKinks()
         KINK_RATIO_ONE_DIM * vMid < vWhole)
     {
       // Another way of looking like a kink.
-      peak = PeakDetect::collapsePeaks(peakPrev, peakNext);
+      peaks.collapse(peakPrev, peakNext);
     }
     else
       peak++;
