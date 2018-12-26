@@ -119,6 +119,12 @@ bool PeakProfile::looksLikeTwoCars() const
 }
 
 
+bool PeakProfile::looksLong() const
+{
+  return (sumGreat >= 5);
+}
+
+
 string PeakProfile::strEntry(const unsigned value) const
 {
   if (value == 0)

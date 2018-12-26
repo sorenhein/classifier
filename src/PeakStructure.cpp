@@ -414,6 +414,16 @@ bool PeakStructure::findCarsInInterval(
   PeakProfile profile;
   profile.make(peakPtrs, condition.source);
 
+/*
+if (! profile.looksLikeTwoCars() && profile.looksLong())
+{
+  cout << "findCarsInterval: LONG " << peakPtrs.size() << "\n";
+  for (auto pp: peakPtrs)
+    cout << pp->strQuality(offset);
+  cout << "---\n\n";
+}
+*/
+
   if (profile.looksLikeTwoCars())
   {
     // This might become more general in the future.

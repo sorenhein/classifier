@@ -1,3 +1,6 @@
+PeakMinima::markLongGapsOfSelects:
+Don't just take neighbor, take next left/right wheel
+
 PeakStructure::findCarsInInterval:
   Not looksLikeTwoCars().
   If it's an internal car, split off groups of 4 from some side.

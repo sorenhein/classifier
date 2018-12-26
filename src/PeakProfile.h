@@ -51,6 +51,7 @@ class PeakProfile
 
     bool looksEmpty() const;
     bool looksLikeTwoCars() const;
+    bool looksLong() const;
 
     string str() const;
 };
