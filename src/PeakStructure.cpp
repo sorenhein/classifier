@@ -414,7 +414,7 @@ bool PeakStructure::findCarsInInterval(
   PeakProfile profile;
   profile.make(peakPtrs, condition.source);
 
-/*
+/* */
 if (! profile.looksLikeTwoCars() && profile.looksLong())
 {
   cout << "findCarsInterval: LONG " << peakPtrs.size() << "\n";
@@ -422,7 +422,7 @@ if (! profile.looksLikeTwoCars() && profile.looksLong())
     cout << pp->strQuality(offset);
   cout << "---\n\n";
 }
-*/
+/* */
 
   if (profile.looksLikeTwoCars())
   {
@@ -572,11 +572,32 @@ void PeakStructure::findWholeCars(
 
   while (cit != candidates.end())
   {
-    if (runPtr[0]->isLeftWheel() && runPtr[0]->isLeftBogey() &&
-        runPtr[1]->isRightWheel() && runPtr[1]->isLeftBogey() &&
-        runPtr[2]->isLeftWheel() && runPtr[2]->isRightBogey() &&
-        runPtr[3]->isRightWheel() && runPtr[3]->isRightBogey())
+    const bool isLeftPair = 
+      (runPtr[0]->isLeftWheel() && runPtr[1]->isRightWheel());
+    const bool isRightPair = 
+      (runPtr[2]->isLeftWheel() && runPtr[3]->isRightWheel());
+    const bool isLeftBogey =
+        (runPtr[0]->isLeftBogey() && runPtr[1]->isLeftBogey());
+    const bool isRightBogey =
+        (runPtr[2]->isRightBogey() && runPtr[3]->isRightBogey());
+
+    // At least one of the bogeys must be fixed.
+    if (isLeftPair && isRightPair &&
+       (isLeftBogey || isRightBogey))
     {
+      // Fill out bogey.
+      if (! isLeftBogey)
+      {
+        runPtr[0]->markBogey(BOGEY_LEFT);
+        runPtr[1]->markBogey(BOGEY_LEFT);
+      }
+
+      if (! isRightBogey)
+      {
+        runPtr[2]->markBogey(BOGEY_RIGHT);
+        runPtr[3]->markBogey(BOGEY_RIGHT);
+      }
+
       // Fill out cars.
       cars.emplace_back(CarDetect());
       CarDetect& car = cars.back();

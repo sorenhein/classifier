@@ -1,5 +1,4 @@
-PeakMinima::markLongGapsOfSelects:
-Don't just take neighbor, take next left/right wheel
+Python: Allow 082401 as input?
 
 PeakStructure::findCarsInInterval:
   Not looksLikeTwoCars().

@@ -778,8 +778,9 @@ void PeakMinima::markLongGapsOfSelects(
   PeakPtrList& candidates,
   const Gap& longGap) const
 {
+  PeakCit cbegin = candidates.cbegin();
   PeakCit cend = candidates.cend();
-  for (auto cit = candidates.begin(); cit != prev(cend); cit++)
+  for (auto cit = cbegin; cit != prev(cend); cit++)
   {
     Peak * cand = * cit;
     if (! cand->isRightWheel() || cand->isRightBogey())
@@ -798,19 +799,15 @@ void PeakMinima::markLongGapsOfSelects(
       PeakMinima::markBogeyLongGap(* cand, * nextCand, "");
 
       // Neighboring wheels may not have bogeys yet, so we mark them.
-      if (cit != candidates.begin())
-      {
-        Peak * prevCand = * prev(cit);
-        if (prevCand->isLeftWheel())
-          prevCand->markBogey(BOGEY_LEFT);
-      }
+      auto ppcit = PeakMinima::prevWithProperty(cit, cbegin,
+        &Peak::isLeftWheel);
+      if (! (* ppcit)->isBogey())
+        (* ppcit)->markBogey(BOGEY_LEFT);
 
-      if (next(ncit) != cend)
-      {
-        Peak * nextNextCand = * next(ncit);
-        if (nextNextCand->isRightWheel())
-          nextNextCand->markBogey(BOGEY_RIGHT);
-      }
+      auto nncit = PeakMinima::nextWithProperty(ncit, cend,
+        &Peak::isRightWheel);
+      if (nncit != cend && ! (* nncit)->isBogey())
+        (* nncit)->markBogey(BOGEY_RIGHT);
     }
   }
 }
