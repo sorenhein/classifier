@@ -537,11 +537,14 @@ void PeakDetect::reduce(
     cout << peaks.strAll("Original peaks", offset);
 
   PeakDetect::reduceSmallPeaks(PEAK_PARAM_AREA, 0.1f, false, control);
+  peaks.copy();
 
   if (debugDetails)
     cout << peaks.strAll("Non-tiny peaks", offset);
 
   PeakDetect::eliminateKinks();
+  peaks.copy();
+
   if (debugDetails)
     cout << peaks.strAll("Non-kinky list peaks (first)", offset);
 
@@ -552,11 +555,13 @@ void PeakDetect::reduce(
 
   PeakDetect::reduceSmallPeaks(PEAK_PARAM_RANGE, 
     scale.getRange() / 10.f, true, control);
+  peaks.copy();
 
   if (debugDetails)
     cout << peaks.strAll("Range-reduced peaks", offset);
 
   PeakDetect::eliminateKinks();
+
   if (debugDetails)
     cout << peaks.strAll("Non-kinky list peaks (second)", offset);
 
@@ -574,6 +579,9 @@ void PeakDetect::reduce(
   pstruct.markCars(models, cars, candidates, offset);
 
   pstruct.markImperfections(cars, candidates, imperf);
+
+cout << "PEAKPOOL\n";
+cout << peaks.strCounts();
 }
 
 
