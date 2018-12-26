@@ -53,6 +53,11 @@ class PeakDetect
       const float paramLimit,
       const bool preserveKinksFlag,
       const Control& control);
+    void reduceSmallPeaksNew(
+      const PeakParam param,
+      const float paramLimit,
+      const bool preserveKinksFlag,
+      const Control& control);
 
     void eliminateKinks();
     void eliminateKinksNew();

@@ -62,7 +62,7 @@ float PeakDetect::integrate(
 void PeakDetect::annotate()
 {
   if (peakPool.size() < 2)
-    THROW(ERR_NO_PEAKS, "Too few peaks: " + to_string(peaks.size()));
+    THROW(ERR_NO_PEAKS, "Too few peaks: " + to_string(peakPool.size()));
 
   const auto peakFirst = peakPool.begin();
 
@@ -80,14 +80,13 @@ bool PeakDetect::check(const vector<float>& samples) const
   if (samples.size() == 0)
     THROW(ERR_SHORT_ACCEL_TRACE, "Accel trace length: " + to_string(len));
 
-  if (peaks.size() < 2)
-    THROW(ERR_NO_PEAKS, "Too few peaks: " + to_string(peaks.size()));
+  if (peakPool.size() < 2)
+    THROW(ERR_NO_PEAKS, "Too few peaks: " + to_string(peakPool.size()));
 
-  const auto peakFirst = peaks.begin();
-  const auto peakLast = prev(peaks.end());
+  const Pciterator& peakFirst = peakPool.cbegin();
   bool flag = true;
 
-  for (auto it = peakFirst; it != peaks.end(); it++)
+  for (Pciterator it = peakFirst; it != peakPool.cend(); it++)
   {
     Peak peakSynth;
     Peak const * peakPrev = nullptr;
@@ -159,7 +158,6 @@ void PeakDetect::log(
     THROW(ERR_SHORT_ACCEL_TRACE, "Accel trace length: " + to_string(len));
 
   offset = offsetSamples;
-  peaks.clear();
   peakPool.clear();
 
   // The first peak is a dummy extremum at the first sample.
@@ -210,9 +208,6 @@ void PeakDetect::log(
   PeakDetect::logLast(samples);
 
   PeakDetect::annotate();
-
-  for (auto& peak: peakPool)
-    peaks.push_back(peak);
 
   PeakDetect::check(samples);
 }
@@ -539,6 +534,286 @@ void PeakDetect::eliminateKinks()
 }
 
 
+void PeakDetect::reduceSmallPeaksNew(
+  const PeakParam param,
+  const float paramLimit,
+  const bool preserveKinksFlag,
+  const Control& control)
+{
+  // We use this method for two reductions:
+  // 1. Small areas (first, as a rough reduction).
+  // 2. Small ranges (second, as a more precise reduction).
+  // In either case, we only allow reductions that don't drastically
+  // change the slope of remaining peaks.
+
+  if (peakPool.empty())
+    THROW(ERR_NO_PEAKS, "Peak list is empty");
+
+  auto peak = next(peakPool.begin());
+
+  while (peak != peakPool.end())
+  {
+    const float paramCurrent = peak->getParameter(param);
+    if (paramCurrent >= paramLimit)
+    {
+      peak++;
+      continue;
+    }
+
+    auto peakCurrent = peak;
+    float sumParam = 0.f, lastParam = 0.f;
+
+    do
+    {
+      peak++;
+      if (peak == peakPool.end())
+        break;
+
+      sumParam = peak->getParameter(* peakCurrent, param);
+      lastParam = peak->getParameter(param);
+    }
+    while (abs(sumParam) < paramLimit || abs(lastParam) < paramLimit);
+
+
+    if (abs(sumParam) < paramLimit || abs(lastParam) < paramLimit)
+    {
+      // It's the last set of peaks.  We could keep the largest peak
+      // of the same polarity as peakCurrent (instead of peakCurrent).
+      // It's a bit random whether or not this would be a "real" peak,
+      // and we also don't keep track of this above.  So we just stop.
+      if (peakCurrent != peakPool.end())
+        peakPool.erase(peakCurrent, peakPool.end());
+      break;
+    }
+
+    // Depending on gradients, we might delete everything in
+    // [peakPrev, peak) or keep support peaks along the way.
+    // Of the possibilities from left and from right (separately),
+    // note the lowest one.  If they are the same, keep that.
+
+    auto peakFirst = prev(peakCurrent);
+    const bool flagExtreme = peakFirst->getMaxFlag();
+
+
+    if (flagExtreme != peak->getMaxFlag())
+    {
+      // We have a broad extremum.  If peakFirst is a minimum, then
+      // the overall extremum is a minimum.  Find the most extreme
+      // peak of the same polarity.
+      
+      auto peakExtreme = peakFirst;
+      for (auto p = peakCurrent; p != peak; p++)
+      {
+        if (p->getMaxFlag() == flagExtreme)
+        {
+          if (flagExtreme && p->getValue() > peakExtreme->getValue())
+            peakExtreme = p;
+          else if (! flagExtreme && p->getValue() < peakExtreme->getValue())
+            peakExtreme = p;
+        }
+      }
+
+
+if (control.verbosePeakReduce)
+{
+cout << "REDUCE " << (flagExtreme ? "MAX" : "MIN") << "\n";
+cout << peak->strHeader();
+for (auto p = peakFirst; p != peak; p++)
+  cout << p->str(offset);
+cout << peak->str(offset);
+cout << "EXTREME " << peakExtreme->getIndex() + offset << endl << endl;
+}
+
+
+      // Determine whether the peak has an extent.
+      Peak const * peakL;
+      if (peakFirst->similarGradientForward(* peakExtreme))
+        peakL = &*peakExtreme;
+      else
+      {
+        // peakExtreme and peakFirst have the same polarity.
+        peakL = &*peakFirst;
+        if (control.verbosePeakReduce)
+          cout << "Left extent " << 
+            peakExtreme->getIndex() - peakL->getIndex() << endl;
+      }
+
+      list<Peak>::iterator peakR;
+      if (peakExtreme->similarGradientBackward(* peak))
+        peakR = peakExtreme;
+      else
+      {
+        // peakExtreme and peak have different polarities.
+        // Find the last previous one before peak to have the same
+        // polarity as peakExtreme.
+        peakR = peak;
+        while (peakR != peakExtreme)
+        {
+          if (peakR->getMaxFlag() == flagExtreme)
+            break;
+          else
+            peakR = prev(peakR);
+        }
+
+        if (control.verbosePeakReduce)
+          cout << "Right extent " << 
+            peakR->getIndex() - peakExtreme->getIndex() << endl;
+      }
+      
+      peakExtreme->logExtent(* peakL, * peakR);
+
+      // Do the deletions.
+      if (peakFirst != peakExtreme)
+      {
+        if (control.verbosePeakReduce)
+          cout << PeakDetect::deleteStr(&*peakFirst, &*prev(peakExtreme));
+        PeakDetect::collapsePeaks(peakFirst, peakExtreme);
+      }
+
+      peakExtreme++;
+      if (peakExtreme != peak)
+      {
+        if (control.verbosePeakReduce)
+          cout << PeakDetect::deleteStr(&*peakExtreme, &*prev(peak));
+        PeakDetect::collapsePeaks(peakExtreme, peak);
+      }
+
+      peak++;
+      continue;
+    }
+    else if (peakFirst->getValue() < 0.f && peak->getValue() < 0.f)
+    {
+      // Any kink on the negative side of the axis.
+
+if (control.verbosePeakReduce)
+{
+cout << "EXP " << (flagExtreme ? "MAXKINK" : "MINKINK") << "\n";
+cout << peak->strHeader();
+for (auto p = peakFirst; p != peak; p++)
+  cout << p->str(offset);
+cout << peak->str(offset);
+cout << PeakDetect::deleteStr(&*peakFirst, &*prev(peak));
+}
+
+        PeakDetect::collapsePeaks(peakFirst, peak);
+
+      peak++;
+      continue;
+    }
+    else if (preserveKinksFlag)
+    {
+      peak++;
+      continue;
+    }
+    else
+    {
+      // We have a kink.  It's debatable if this should lead to
+      // an extent.  Here we just delete everything.
+      
+if (control.verbosePeakReduce)
+{
+cout << "REDUCE " << (flagExtreme ? "MAXKINK" : "MINKINK") << "\n";
+cout << peak->strHeader();
+for (auto p = peakFirst; p != peak; p++)
+  cout << p->str(offset);
+cout << peak->str(offset);
+cout << PeakDetect::deleteStr(&*peakFirst, &*prev(peak));
+}
+
+        PeakDetect::collapsePeaks(peakFirst, peak);
+
+      peak++;
+      continue;
+    }
+  }
+}
+
+
+void PeakDetect::eliminateKinksNew()
+{
+  if (peakPool.size() < 4)
+    THROW(ERR_NO_PEAKS, "Peak list is short");
+
+  for (auto peak = next(peakPool.begin(), 2); peak != prev(peakPool.end()); )
+  {
+    const auto peakPrev = prev(peak);
+    const auto peakPrevPrev = prev(peakPrev);
+    const auto peakNext = next(peak);
+
+    if (peakPrev->getValue() >= 0.f)
+    {
+      // No kinks fixed on the positive side of the line.
+      peak++;
+      continue;
+    }
+
+    if (peak->isMinimum() != peakPrevPrev->isMinimum() ||
+        peakNext->isMinimum() != peakPrev->isMinimum())
+    {
+      // We may have destroyed the alternation while reducing.
+      peak++;
+      continue;
+    }
+
+    bool violFlag = false;
+    if (peak->getMaxFlag())
+    {
+      if (peak->getValue() > peakPrevPrev->getValue() ||
+         peakPrev->getValue() < peakNext->getValue())
+        violFlag = true;
+    }
+    else
+    {
+      if (peak->getValue() < peakPrevPrev->getValue() ||
+         peakPrev->getValue() > peakNext->getValue())
+        violFlag = true;
+    }
+
+    if (violFlag)
+    {
+      // A kink should satisfy basic monotonicity.
+      peak++;
+      continue;
+    }
+
+    const float areaPrev = peak->getArea(* peakPrev);
+    if (areaPrev == 0.f)
+      THROW(ERR_ALGO_PEAK_COLLAPSE, "Zero area");
+
+    const float ratioPrev = peakPrev->getArea(* peakPrevPrev) / areaPrev;
+    const float ratioNext = peakNext->getArea(* peak) / areaPrev;
+
+    if (ratioPrev <= 1.f || ratioNext <= 1.f)
+    {
+      // Should look like a kink.
+      peak++;
+      continue;
+    }
+
+    if (ratioPrev * ratioNext > KINK_RATIO)
+    {
+      peak = PeakDetect::collapsePeaks(peakPrev, peakNext);
+      continue;
+    }
+
+    const unsigned lenWhole = peakNext->getIndex() - peakPrevPrev->getIndex();
+    const unsigned lenMid = peak->getIndex() - peakPrev->getIndex();
+
+    const float vWhole = abs(peakNext->getValue() - peakPrevPrev->getValue());
+    const float vMid = abs(peak->getValue() - peakPrev->getValue());
+
+    if (KINK_RATIO_ONE_DIM * lenMid < lenWhole &&
+        KINK_RATIO_ONE_DIM * vMid < vWhole)
+    {
+      // Another way of looking like a kink.
+      peak = PeakDetect::collapsePeaks(peakPrev, peakNext);
+    }
+    else
+      peak++;
+  }
+}
+
+
 void PeakDetect::estimateScale(Peak& scale)
 {
   scale.reset();
@@ -563,23 +838,27 @@ void PeakDetect::reduce(
   const Control& control,
   Imperfections& imperf)
 {
-  if (peaks.empty())
+  if (peakPool.empty())
     return;
 
   const bool debug = true;
   const bool debugDetails = true;
 
   if (debugDetails)
-    PeakDetect::printAllPeaks("Original peaks");
+    cout << peakPool.str("Original peaks", offset);
 
-  PeakDetect::reduceSmallPeaks(PEAK_PARAM_AREA, 0.1f, false, control);
+  PeakDetect::reduceSmallPeaksNew(PEAK_PARAM_AREA, 0.1f, false, control);
 
   if (debugDetails)
-    PeakDetect::printAllPeaks("Non-tiny peaks");
+    cout << peakPool.str("Non-tiny peaks", offset);
 
-  PeakDetect::eliminateKinks();
+  PeakDetect::eliminateKinksNew();
   if (debugDetails)
-    PeakDetect::printAllPeaks("Non-kinky list peaks (first)");
+    cout << peakPool.str("Non-kinky list peaks (first)", offset);
+
+peaks.clear();
+for (auto& peak: peakPool)
+  peaks.push_back(peak);
 
   Peak scale;
   PeakDetect::estimateScale(scale);

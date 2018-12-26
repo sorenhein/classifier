@@ -1,10 +1,8 @@
 #include <iostream>
 #include <iomanip>
-#include <algorithm>
 #include <sstream>
 
 #include "PeakPool.h"
-#include "Except.h"
 
 
 PeakPool::PeakPool()
@@ -38,15 +36,27 @@ unsigned PeakPool::size() const
 }
 
 
-Piterator PeakPool::begin()
+Piterator PeakPool::begin() const
 {
   return peaks->begin();
 }
 
 
-Piterator PeakPool::end()
+Pciterator PeakPool::cbegin() const
+{
+  return peaks->cbegin();
+}
+
+
+Piterator PeakPool::end() const
 {
   return peaks->end();
+}
+
+
+Pciterator PeakPool::cend() const
+{
+  return peaks->cend();
 }
 
 
@@ -75,4 +85,30 @@ void PeakPool::copy()
   peaks = &peakLists.back();
 }
 
+
+Piterator PeakPool::erase(
+  Piterator pit1,
+  Piterator pit2)
+{
+  return peaks->erase(pit1, pit2);
+}
+
+
+string PeakPool::str(
+  const string& text,
+  const unsigned& offset) const
+{
+  if (peaks->empty())
+    return "";
+
+  stringstream ss;
+  if (text != "")
+    ss << text << ": " << peaks->size() << "\n";
+  ss << peaks->front().strHeader();
+
+  for (auto& peak: * peaks)
+    ss << peak.str(offset);
+  ss << endl;
+  return ss.str();
+}
 

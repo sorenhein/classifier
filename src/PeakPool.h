@@ -59,8 +59,11 @@ class PeakPool
 
     unsigned size() const;
 
-    Piterator begin();
-    Piterator end();
+    Piterator begin() const;
+    Pciterator cbegin() const;
+
+    Piterator end() const;
+    Pciterator cend() const;
 
     Peak& front();
     Peak& back();
@@ -69,6 +72,13 @@ class PeakPool
 
     void copy();
 
+    Piterator erase(
+      Piterator pit1,
+      Piterator pit2);
+
+    string str(
+      const string& text,
+      const unsigned& offset) const;
 
 };
 
