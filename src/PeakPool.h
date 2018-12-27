@@ -94,6 +94,8 @@ class PeakPool
 
     void makeCandidates();
 
+    unsigned countCandidates(const PeakFncPtr& fptr) const;
+
     void getCandPtrs(
       const unsigned start,
       const unsigned end,
@@ -131,6 +133,14 @@ class PeakPool
 
 
     string strAll(
+      const string& text,
+      const unsigned& offset) const;
+
+    string strAllCandsQuality(
+      const string& text,
+      const unsigned& offset) const;
+
+    string strSelectedCandsQuality(
       const string& text,
       const unsigned& offset) const;
 

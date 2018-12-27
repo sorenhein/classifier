@@ -129,6 +129,18 @@ void PeakPool::makeCandidates()
 }
 
 
+unsigned PeakPool::countCandidates(const PeakFncPtr& fptr) const
+{
+  unsigned c = 0;
+  for (auto cand: candidates)
+  {
+    if ((cand->* fptr)())
+      c++;
+  }
+  return c;
+}
+
+
 void PeakPool::getCandPtrs(
   const unsigned start,
   const unsigned end,
@@ -296,6 +308,48 @@ string PeakPool::strAll(
     ss << peak.str(offset);
   ss << endl;
   return ss.str();
+}
+
+
+string PeakPool::strAllCandsQuality(
+  const string& text,
+  const unsigned& offset) const
+{
+  if (candidates.empty())
+    return "";
+
+  stringstream ss;
+  if (text != "")
+    ss << text << ": " << candidates.size() << "\n";
+  ss << candidates.front()->strHeaderQuality();
+
+  for (auto cand: candidates)
+    ss << cand->strQuality(offset);
+  ss << endl;
+  return ss.str();
+}
+
+
+string PeakPool::strSelectedCandsQuality(
+  const string& text,
+  const unsigned& offset) const
+{
+  if (candidates.empty())
+    return "";
+
+  stringstream ss;
+  if (text != "")
+    ss << text << "\n";
+  ss << candidates.front()->strHeaderQuality();
+
+  for (auto cand: candidates)
+  {
+    if (cand->isSelected())
+      ss << cand->strQuality(offset);
+  }
+  ss << endl;
+  return ss.str();
+
 }
 
 

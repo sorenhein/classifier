@@ -188,16 +188,6 @@ class PeakMinima
       const unsigned end,
       const string& text) const;
 
-    void printAllCandidates(
-      const PeakPool& peaks,
-      const PeakPtrList& candidates,
-      const string& text) const;
-
-    void printSelected(
-      const PeakPool& peaks,
-      const PeakPtrList& candidates,
-      const string& text) const;
-
 
   public:
 

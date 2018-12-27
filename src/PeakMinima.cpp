@@ -180,6 +180,8 @@ UNUSED(peaks);
     if ((cand->* fptr)())
       c++;
   }
+if (c != peaks.countCandidates(fptr))
+  cout << "PERROR\n";
   return c;
 }
 
@@ -506,8 +508,8 @@ UNUSED(peaks);
   for (auto candidate: candidates)
     candidate->calcQualities(wheelPeak);
 
-  PeakMinima::printAllCandidates(peaks, candidates, "All negative minima");
-  PeakMinima::printSelected(peaks, candidates, "Seeds");
+  cout << peaks.strAllCandsQuality("All negative minima", offset);
+  cout << peaks.strSelectedCandsQuality("Seeds", offset);
 
   PeakMinima::makeWheelAverage(peaks, candidates, wheelPeak);
   PeakMinima::printPeakQuality(wheelPeak, "Seed average");
@@ -515,7 +517,7 @@ UNUSED(peaks);
   // Modify selection based on quality.
   PeakMinima::reseedWheelUsingQuality(peaks, candidates);
 
-  PeakMinima::printSelected(peaks, candidates, "Great-quality seeds");
+  cout << peaks.strSelectedCandsQuality("Great-quality seeds", offset);
 
   // Remake the average.
   PeakMinima::makeWheelAverage(peaks, candidates, wheelPeak);
@@ -655,8 +657,8 @@ void PeakMinima::markBogeys(
   // Recalculate the peak qualities using both left and right peaks.
   PeakMinima::reseedBogeysUsingQuality(peaks, candidates, bogeyScale);
 
-  PeakMinima::printAllCandidates(peaks, candidates,
-    "All peaks using left/right scales");
+  cout << peaks.strAllCandsQuality("All peaks using left/right scales",
+    offset);
 
   // Recalculate the averages based on the new qualities.
   makeBogeyAverages(peaks, candidates, bogeyScale);
@@ -677,8 +679,8 @@ void PeakMinima::markBogeys(
 
   PeakMinima::markBogeysOfUnpaired(peaks, candidates, wheelGap);
 
-  PeakMinima::printAllCandidates(peaks, candidates,
-    "All peaks again using left/right scales");
+  cout << peaks.strAllCandsQuality(
+    "All peaks again using left/right scales", offset);
 
 }
 
@@ -872,7 +874,7 @@ void PeakMinima::markLongGaps(
   PeakMinima::markBogeysOfSelects(peaks, candidates, wheelGap);
   PeakMinima::markLongGapsOfSelects(peaks, candidates, longGap);
 
-  PeakMinima::printAllCandidates(peaks, candidates, "peaks with all four wheels");
+  cout << peaks.strAllCandsQuality("peaks with all four wheels", offset);
 
   // Recalculate the averages based on the new qualities.
   PeakMinima::makeCarAverages(peaks, candidates, bogeys);
@@ -918,45 +920,6 @@ void PeakMinima::printRange(
   const string& text) const
 {
   cout << text << " " << start + offset << "-" << end + offset << endl;
-}
-
-
-void PeakMinima::printAllCandidates(
-  const PeakPool& peaks,
-  const PeakPtrList& candidates,
-  const string& text) const
-{
-UNUSED(peaks);
-  if (candidates.empty())
-    return;
-
-  if (text != "")
-    cout << text << "\n";
-  cout << candidates.front()->strHeaderQuality();
-  for (auto cand: candidates)
-    cout << cand->strQuality(offset);
-  cout << endl;
-}
-
-
-void PeakMinima::printSelected(
-  const PeakPool& peaks,
-  const PeakPtrList& candidates,
-  const string& text) const
-{
-UNUSED(peaks);
-  if (candidates.empty())
-    return;
-
-  if (text != "")
-    cout << text << "\n";
-  cout << candidates.front()->strHeaderQuality();
-  for (auto candidate: candidates)
-  {
-    if (candidate->isSelected())
-      cout << candidate->strQuality(offset);
-  }
-  cout << endl;
 }
 
 
