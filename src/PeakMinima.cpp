@@ -695,14 +695,12 @@ UNUSED(peaks);
 
 void PeakMinima::markShortGapsOfUnpaired(
   PeakPool& peaks,
-  PeakPtrList& candidates,
   const Gap& shortGap) const
 {
-UNUSED(peaks);
-  PeakCit cbegin = candidates.cbegin();
-  PeakCit cend = candidates.cend();
+  PPiterator cbegin = peaks.candbegin();
+  PPiterator cend = peaks.candend();
 
-  for (auto cit = cbegin; cit != prev(cend); cit++)
+  for (PPiterator cit = cbegin; cit != prev(cend); cit++)
   {
     Peak * cand = * cit;
     auto ncit = next(cit);
@@ -743,7 +741,7 @@ void PeakMinima::markShortGaps(
 
   // Look for unpaired short gaps.  If there is a spurious peak
   // in between, we will fail.
-  PeakMinima::markShortGapsOfUnpaired(peaks, candidates, shortGap);
+  PeakMinima::markShortGapsOfUnpaired(peaks, shortGap);
 
   // We will only recalculate qualities once we have done the long gaps
   // as well and marked up the bogeys more thoroughly.
@@ -752,21 +750,20 @@ void PeakMinima::markShortGaps(
 
 void PeakMinima::guessLongGapDistance(
   const PeakPool& peaks,
-  const PeakPtrList& candidates,
   const unsigned shortGapCount,
   Gap& longGap) const
 {
-UNUSED(peaks);
   vector<unsigned> dists;
-  PeakCit cend = candidates.cend();
+  PPciterator cbegin = peaks.candcbegin();
+  PPciterator cend = peaks.candcend();
 
-  for (auto cit = candidates.begin(); cit != prev(cend); cit++)
+  for (PPciterator cit = cbegin; cit != prev(cend); cit++)
   {
     Peak * cand = * cit;
     if (! cand->isRightWheel() || cand->isRightBogey())
       continue;
 
-    auto ncit = PeakMinima::nextWithProperty(cit, cend, &Peak::isSelected);
+    PPciterator ncit = peaks.nextCandExcl(cit, &Peak::isSelected);
     if (ncit == cend)
       break;
 
@@ -826,7 +823,7 @@ void PeakMinima::markLongGaps(
 {
   // Look for intra-car (long) gaps.
   Gap longGap;
-  PeakMinima::guessLongGapDistance(peaks, candidates, shortGapCount, longGap);
+  PeakMinima::guessLongGapDistance(peaks, shortGapCount, longGap);
 
   PeakMinima::printDists(longGap.lower, longGap.upper, "Guessing long gap");
 
@@ -862,7 +859,7 @@ void PeakMinima::markLongGaps(
   PeakMinima::printPeakQuality(bogeys[3], "Right bogey, right wheel avg");
 
   // Redo the distances using the new qualities (all four peaks).
-  PeakMinima::guessLongGapDistance(peaks, candidates, shortGapCount, longGap);
+  PeakMinima::guessLongGapDistance(peaks, shortGapCount, longGap);
 
   PeakMinima::printDists(longGap.lower, longGap.upper, 
     "Guessing new long gap");

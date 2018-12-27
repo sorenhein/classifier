@@ -213,11 +213,35 @@ PPiterator PeakPool::nextCandExcl(
 }
 
 
+PPciterator PeakPool::nextCandExcl(
+  PPciterator& pit,
+  const PeakFncPtr& fptr) const
+{
+  if (pit == candidates.end())
+    THROW(ERR_ALGO_PEAK_CONSISTENCY, "Miss later matching peak");
+
+  PPciterator npit = next(pit);
+  return PeakPool::nextCandIncl(npit, fptr);
+}
+
+
 PPiterator PeakPool::nextCandIncl(
   PPiterator& pit,
   const PeakFncPtr& fptr) const
 {
   PPiterator pitNext = pit;
+  while (pitNext != candidates.end() && ! ((* pitNext)->* fptr)())
+    pitNext++;
+
+  return pitNext;
+}
+
+
+PPciterator PeakPool::nextCandIncl(
+  PPciterator& pit,
+  const PeakFncPtr& fptr) const
+{
+  PPciterator pitNext = pit;
   while (pitNext != candidates.end() && ! ((* pitNext)->* fptr)())
     pitNext++;
 
@@ -237,11 +261,37 @@ PPiterator PeakPool::prevCandExcl(
 }
 
 
+PPciterator PeakPool::prevCandExcl(
+  PPciterator& pit,
+  const PeakFncPtr& fptr) const
+{
+  if (pit == candidates.begin())
+    THROW(ERR_ALGO_PEAK_CONSISTENCY, "Miss earlier matching peak");
+
+  PPciterator ppit = prev(pit);
+  return PeakPool::prevCandIncl(ppit, fptr);
+}
+
+
 PPiterator PeakPool::prevCandIncl(
   PPiterator& pit,
   const PeakFncPtr& fptr) const
 {
   for (PPiterator pitPrev = pit; ; pitPrev = prev(pitPrev))
+  {
+    if (((* pitPrev)->* fptr)())
+      return pitPrev;
+    else if (pitPrev == candidates.begin())
+      THROW(ERR_ALGO_PEAK_CONSISTENCY, "Miss earlier matching peak");
+  }
+}
+
+
+PPciterator PeakPool::prevCandIncl(
+  PPciterator& pit,
+  const PeakFncPtr& fptr) const
+{
+  for (PPciterator pitPrev = pit; ; pitPrev = prev(pitPrev))
   {
     if (((* pitPrev)->* fptr)())
       return pitPrev;

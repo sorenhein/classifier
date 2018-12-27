@@ -142,7 +142,6 @@ class PeakMinima
 
     void markShortGapsOfUnpaired(
       PeakPool& peaks,
-      PeakPtrList& candidates,
       const Gap& wheelGap) const;
 
     void markLongGapsOfSelects(
@@ -157,7 +156,6 @@ class PeakMinima
 
     void guessLongGapDistance(
       const PeakPool& peaks,
-      const PeakPtrList& candidates,
       const unsigned shortGapCount,
       Gap& gap) const;
 

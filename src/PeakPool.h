@@ -104,6 +104,7 @@ class PeakPool
     unsigned firstCandIndex() const;
     unsigned lastCandIndex() const;
 
+    // No doubt there is a more elegant way to do this...
     PPiterator candbegin();
     PPciterator candcbegin() const;
 
@@ -114,16 +115,32 @@ class PeakPool
       PPiterator& pit,
       const PeakFncPtr& fptr) const;
 
+    PPciterator nextCandExcl(
+      PPciterator& pit,
+      const PeakFncPtr& fptr) const;
+
     PPiterator nextCandIncl(
       PPiterator& pit,
+      const PeakFncPtr& fptr) const;
+
+    PPciterator nextCandIncl(
+      PPciterator& pit,
       const PeakFncPtr& fptr) const;
 
     PPiterator prevCandExcl(
       PPiterator& pit,
       const PeakFncPtr& fptr) const;
 
+    PPciterator prevCandExcl(
+      PPciterator& pit,
+      const PeakFncPtr& fptr) const;
+
     PPiterator prevCandIncl(
       PPiterator& pit,
+      const PeakFncPtr& fptr) const;
+
+    PPciterator prevCandIncl(
+      PPciterator& pit,
       const PeakFncPtr& fptr) const;
 
 
