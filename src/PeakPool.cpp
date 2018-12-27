@@ -165,6 +165,18 @@ unsigned PeakPool::lastCandIndex() const
 }
 
 
+PPiterator PeakPool::candbegin()
+{
+  return candidates.begin();
+}
+
+
+PPiterator PeakPool::candend()
+{
+  return candidates.end();
+}
+
+
 PPiterator PeakPool::nextCandExcl(
   PPiterator& pit,
   const PeakFncPtr& fptr) const

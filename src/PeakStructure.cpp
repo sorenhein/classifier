@@ -415,18 +415,6 @@ bool PeakStructure::findCarsInInterval(
 {
   vector<Peak *> peakPtrs;
   peaks.getCandPtrs(condition.start, condition.end, peakPtrs);
-  /*
-  for (auto& cand: candidates)
-  {
-    const unsigned index = cand->getIndex();
-    if (index > condition.end)
-      break;
-    if (index < condition.start)
-      continue;
-
-    peakPtrs.push_back(cand);
-  }
-  */
 
   PeakProfile profile;
   profile.make(peakPtrs, condition.source);
@@ -529,7 +517,8 @@ void PeakStructure::findMissingCars(
 {
   if (condition.source == PEAK_SOURCE_FIRST)
   {
-    condition.start = candidates.front()->getIndex();
+    // condition.start = candidates.front()->getIndex();
+    condition.start = peaks.firstCandIndex();
     condition.end = cars.front().startValue();
     condition.leftGapPresent = false;
     condition.rightGapPresent = true;
@@ -556,7 +545,8 @@ void PeakStructure::findMissingCars(
   else if (condition.source == PEAK_SOURCE_LAST)
   {
     condition.start = cars.back().endValue();
-    condition.end = candidates.back()->getIndex();
+    condition.end = peaks.lastCandIndex();
+    // condition.end = candidates.back()->getIndex();
     condition.leftGapPresent = true;
     condition.rightGapPresent = false;
     condition.text = "last whole-car";
@@ -569,29 +559,23 @@ void PeakStructure::findMissingCars(
 void PeakStructure::findWholeCars(
   CarModels& models,
   vector<CarDetect>& cars,
-  PeakPool& peaks,
-  list<Peak *>& candidates) const
+  PeakPool& peaks) const
 {
-UNUSED(peaks);
   // Set up a sliding vector of running peaks.
   vector<list<Peak *>::iterator> runIter;
   vector<Peak *> runPtr;
-  auto cit = candidates.begin();
+
+  PPiterator candbegin = peaks.candbegin();
+  PPiterator candend = peaks.candend();
+
+  PPiterator cit = peaks.nextCandIncl(candbegin, &Peak::isSelected);
   for (unsigned i = 0; i < 4; i++)
   {
-    while (cit != candidates.end() && ! (* cit)->isSelected())
-      cit++;
-
-    if (cit == candidates.end())
-      THROW(ERR_NO_PEAKS, "Not enough peaks in train");
-    else
-    {
-      runIter.push_back(cit);
-      runPtr.push_back(* cit);
-    }
+    runIter.push_back(cit);
+    runPtr.push_back(* cit);
   }
 
-  while (cit != candidates.end())
+  while (cit != candend)
   {
     const bool isLeftPair = 
       (runPtr[0]->isLeftWheel() && runPtr[1]->isRightWheel());
@@ -635,7 +619,7 @@ UNUSED(peaks);
 
       // Check for gap in front of run[0].
       unsigned leftGap = 0;
-      if (runIter[0] != candidates.begin())
+      if (runIter[0] != candbegin)
       {
         Peak * prevPtr = * prev(runIter[0]);
         if (prevPtr->isBogey())
@@ -649,7 +633,7 @@ UNUSED(peaks);
       // Check for gap after run[3].
       unsigned rightGap = 0;
       auto postIter = next(runIter[3]);
-      if (postIter != candidates.end())
+      if (postIter != candend)
       {
         Peak * nextPtr = * postIter;
         if (nextPtr->isBogey())
@@ -674,11 +658,7 @@ UNUSED(peaks);
       runPtr[i] = runPtr[i+1];
     }
 
-    do
-    {
-      cit++;
-    } 
-    while (cit != candidates.end() && ! (* cit)->isSelected());
+    cit = peaks.nextCandExcl(cit, &Peak::isSelected);
     runIter[3] = cit;
     runPtr[3] = * cit;
   }
@@ -695,7 +675,7 @@ void PeakStructure::markCars(
   offset = offsetIn;
 
   models.append(); // Make room for initial model
-  PeakStructure::findWholeCars(models, cars, peaks, candidates);
+  PeakStructure::findWholeCars(models, cars, peaks);
 
   if (cars.size() == 0)
     THROW(ERR_NO_PEAKS, "No cars?");

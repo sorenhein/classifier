@@ -101,6 +101,9 @@ class PeakPool
     unsigned firstCandIndex() const;
     unsigned lastCandIndex() const;
 
+    PPiterator candbegin();
+    PPiterator candend();
+
     PPiterator nextCandExcl(
       PPiterator& pit,
       const PeakFncPtr& fptr) const;

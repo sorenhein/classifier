@@ -127,8 +127,7 @@ class PeakStructure
     void findWholeCars(
       CarModels& models,
       vector<CarDetect>& cars,
-      PeakPool& peaks,
-      list<Peak *>& candidates) const;
+      PeakPool& peaks) const;
 
     void updateImperfections(
       const unsigned num,
