@@ -45,11 +45,6 @@ class PeakMinima
       const Peak * p1,
       const Peak * p2) const;
 
-    unsigned countPeaks(
-      const PeakPool& peaks,
-      const PeakPtrList& candidates,
-      const PeakFncPtr fptr) const;
-
     bool guessNeighborDistance(
       const PeakPool& peaks,
       const PeakPtrList& candidates,
@@ -152,7 +147,6 @@ class PeakMinima
 
     void markLongGapsOfSelects(
       PeakPool& peaks,
-      PeakPtrList& candidates,
       const Gap& wheelGap) const;
 
     void markShortGaps(
