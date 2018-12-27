@@ -126,7 +126,6 @@ class PeakMinima
 
     void markBogeysOfUnpaired(
       PeakPool& peaks,
-      PeakPtrList& candidates,
       const Gap& wheelGap) const;
 
     void markBogeys(

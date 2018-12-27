@@ -568,13 +568,12 @@ UNUSED(peaks);
 
 void PeakMinima::markBogeysOfUnpaired(
   PeakPool& peaks,
-  PeakPtrList& candidates,
   const Gap& wheelGap) const
 {
-UNUSED(peaks);
-  PeakCit cend = candidates.cend();
+  PPiterator cbegin = peaks.candbegin();
+  PPiterator cend = peaks.candend();
 
-  for (auto cit = candidates.begin(); cit != prev(cend); cit++)
+  for (auto cit = cbegin; cit != prev(cend); cit++)
   {
     Peak * cand = * cit;
     Peak * nextCand = * next(cit);
@@ -588,8 +587,7 @@ UNUSED(peaks);
 
     // If the first one is of acceptable quality, find the first
     // such successor.  There could be poorer peaks in between.
-    auto ncit = PeakMinima::nextWithProperty(cit, cend,
-      &Peak::acceptableQuality);
+    PPiterator ncit = peaks.nextCandExcl(cit, &Peak::acceptableQuality);
 
     if (ncit == cend)
       break;
@@ -630,7 +628,7 @@ void PeakMinima::markBogeys(
 
   // Look for unpaired wheels where there is a nearby peak that is
   // not too bad.  If there is a spurious peak in between, we'll fail...
-  PeakMinima::markBogeysOfUnpaired(peaks, candidates, wheelGap);
+  PeakMinima::markBogeysOfUnpaired(peaks, wheelGap);
 
   vector<Peak> bogeyScale;
   makeBogeyAverages(peaks, candidates, bogeyScale);
@@ -658,7 +656,7 @@ void PeakMinima::markBogeys(
   // Mark more bogeys with the refined peak qualities.
   PeakMinima::markBogeysOfSelects(peaks, candidates, wheelGap);
 
-  PeakMinima::markBogeysOfUnpaired(peaks, candidates, wheelGap);
+  PeakMinima::markBogeysOfUnpaired(peaks, wheelGap);
 
   cout << peaks.strAllCandsQuality(
     "All peaks again using left/right scales", offset);
