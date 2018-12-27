@@ -381,17 +381,18 @@ UNUSED(peaks);
 
 
 void PeakMinima::makeBogeyAverages(
-  PeakPool& peaks,
-  PeakPtrList& candidates,
+  const PeakPool& peaks,
   vector<Peak>& wheels) const
 {
-UNUSED(peaks);
   wheels.clear();
   wheels.resize(2);
 
   unsigned cleft = 0, cright = 0;
-  for (auto& cand: candidates)
+  PPciterator cbegin = peaks.candcbegin();
+  PPciterator cend = peaks.candcend();
+  for (PPciterator cit = cbegin; cit != cend; cit++)
   {
+    Peak const * cand = * cit;
     if (cand->isLeftWheel())
     {
       wheels[0] += * cand;
@@ -412,19 +413,21 @@ UNUSED(peaks);
 
 
 void PeakMinima::makeCarAverages(
-  PeakPool& peaks,
-  PeakPtrList& candidates,
+  const PeakPool& peaks,
   vector<Peak>& wheels) const
 {
-UNUSED(peaks);
+
   wheels.clear();
   wheels.resize(4);
 
   vector<unsigned> count;
   count.resize(4);
 
-  for (auto& cand: candidates)
+  PPciterator cbegin = peaks.candcbegin();
+  PPciterator cend = peaks.candcend();
+  for (PPciterator cit = cbegin; cit != cend; cit++)
   {
+    Peak const * cand = * cit;
     if (cand->isLeftBogey())
     {
       if (cand->isLeftWheel())
@@ -632,7 +635,7 @@ void PeakMinima::markBogeys(
   PeakMinima::markBogeysOfUnpaired(peaks, wheelGap);
 
   vector<Peak> bogeyScale;
-  makeBogeyAverages(peaks, candidates, bogeyScale);
+  makeBogeyAverages(peaks, bogeyScale);
 
   // Recalculate the peak qualities using both left and right peaks.
   PeakMinima::reseedBogeysUsingQuality(peaks, candidates, bogeyScale);
@@ -641,7 +644,7 @@ void PeakMinima::markBogeys(
     offset);
 
   // Recalculate the averages based on the new qualities.
-  makeBogeyAverages(peaks, candidates, bogeyScale);
+  makeBogeyAverages(peaks, bogeyScale);
   PeakMinima::printPeakQuality(bogeyScale[0], "Left-wheel average");
   PeakMinima::printPeakQuality(bogeyScale[1], "Right-wheel average");
 
@@ -830,7 +833,7 @@ void PeakMinima::markLongGaps(
   // We are not currently looking for unpaired peaks in long gaps.
 
   vector<Peak> bogeys;
-  PeakMinima::makeCarAverages(peaks, candidates, bogeys);
+  PeakMinima::makeCarAverages(peaks, bogeys);
 
   PeakMinima::printPeakQuality(bogeys[0], "Left bogey, left wheel avg");
   PeakMinima::printPeakQuality(bogeys[1], "Left bogey, right wheel avg");
@@ -848,7 +851,7 @@ void PeakMinima::markLongGaps(
   cout << peaks.strAllCandsQuality("peaks with all four wheels", offset);
 
   // Recalculate the averages based on the new qualities.
-  PeakMinima::makeCarAverages(peaks, candidates, bogeys);
+  PeakMinima::makeCarAverages(peaks, bogeys);
 
   PeakMinima::printPeakQuality(bogeys[0], "Left bogey, left wheel avg");
   PeakMinima::printPeakQuality(bogeys[1], "Left bogey, right wheel avg");

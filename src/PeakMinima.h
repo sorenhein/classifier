@@ -91,13 +91,11 @@ class PeakMinima
       Peak& wheel) const;
 
     void makeBogeyAverages(
-      PeakPool& peaks,
-      PeakPtrList& candidates,
+      const PeakPool& peaks,
       vector<Peak>& wheels) const;
 
     void makeCarAverages(
-      PeakPool& peaks,
-      PeakPtrList& candidates,
+      const PeakPool& peaks,
       vector<Peak>& wheels) const;
 
     void setCandidates(
