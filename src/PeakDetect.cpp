@@ -588,9 +588,9 @@ void PeakDetect::reduce(
 
   // Use the labels to extract the car structure from the peaks.
   vector<CarDetect> cars;
-  pstruct.markCars(models, cars, candidates, offset);
+  pstruct.markCars(models, cars, peaks, candidates, offset);
 
-  pstruct.markImperfections(cars, candidates, imperf);
+  pstruct.markImperfections(cars, peaks, candidates, imperf);
 
 cout << "PEAKPOOL\n";
 cout << peaks.strCounts();

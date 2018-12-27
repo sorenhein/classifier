@@ -462,19 +462,6 @@ void PeakMinima::setCandidates(
   PeakPool& peaks,
   PeakPtrList& candidates) const
 {
-  /*
-  for (auto pit = peaks.begin(); pit != peaks.end(); pit++)
-  {
-    if (! pit->isCandidate())
-      continue;
-
-    // Exclude tall peaks without a right neighbor.
-    auto npit = next(pit);
-    if (npit != peaks.end())
-      pit->logNextPeak(&*npit);
-  }
-  */
-
   for (auto& peak: peaks)
   {
     if (peak.isCandidate())
@@ -940,6 +927,7 @@ void PeakMinima::mark(
   offset = offsetIn;
 
   PeakMinima::setCandidates(peaks, candidates);
+peaks.makeCandidates();
 
   PeakMinima::markSinglePeaks(candidates);
 

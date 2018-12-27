@@ -5,6 +5,8 @@
 #include <list>
 #include <string>
 
+#include "PeakPool.h"
+
 #include "struct.h"
 
 using namespace std;
@@ -105,23 +107,27 @@ class PeakStructure
       const PeakCondition& condition,
       CarModels& models,
       vector<CarDetect>& cars,
+      PeakPool& peaks,
       list<Peak *>& candidates) const;
 
     void findMissingCar(
       const PeakCondition& condition,
       CarModels& models,
       vector<CarDetect>& cars,
+      PeakPool& peaks,
       list<Peak *>& candidates) const;
 
     void findMissingCars(
       PeakCondition& condition,
       CarModels& models,
       vector<CarDetect>& cars,
+      PeakPool& peaks,
       list<Peak *>& candidates) const;
 
     void findWholeCars(
       CarModels& models,
       vector<CarDetect>& cars,
+      PeakPool& peaks,
       list<Peak *>& candidates) const;
 
     void updateImperfections(
@@ -134,6 +140,7 @@ class PeakStructure
       const string& text) const;
 
     void printWheelCount(
+      const PeakPool& peaks,
       const list<Peak *>& candidates,
       const string& text) const;
 
@@ -156,11 +163,13 @@ class PeakStructure
     void markCars(
       CarModels& models,
       vector<CarDetect>& cars,
+      PeakPool& peaks,
       list<Peak *>& candidates,
       const unsigned offsetIn);
     
     void markImperfections(
       const vector<CarDetect>& cars,
+      const PeakPool& peaks,
       const list<Peak *>& candidates,
       Imperfections& imperf) const;
 };

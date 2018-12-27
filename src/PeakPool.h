@@ -24,6 +24,7 @@
  */
 
 
+#include <vector>
 #include <list>
 #include <string>
 
@@ -38,6 +39,7 @@ typedef PeakList::const_iterator Pciterator;
 
 typedef list<Peak *> PeakPtrList;
 typedef PeakPtrList::iterator PPiterator;
+typedef vector<Peak *> PeakPtrVector;
 
 
 class PeakPool
@@ -94,7 +96,7 @@ class PeakPool
     void getCandPtrs(
       const unsigned start,
       const unsigned end,
-      PeakPtrList& peakPtrs) const;
+      PeakPtrVector& peakPtrs) const;
 
     unsigned firstCandIndex() const;
     unsigned lastCandIndex() const;

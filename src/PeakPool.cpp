@@ -132,7 +132,7 @@ void PeakPool::makeCandidates()
 void PeakPool::getCandPtrs(
   const unsigned start,
   const unsigned end,
-  PeakPtrList& peakPtrs) const
+  PeakPtrVector& peakPtrs) const
 {
   for (auto& cand: candidates)
   {
