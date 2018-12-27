@@ -46,10 +46,12 @@ class PeakMinima
       const Peak * p2) const;
 
     unsigned countPeaks(
+      const PeakPool& peaks,
       const PeakPtrList& candidates,
       const PeakFncPtr fptr) const;
 
     bool guessNeighborDistance(
+      const PeakPool& peaks,
       const PeakPtrList& candidates,
       const CandFncPtr fptr,
       Gap& gap,
@@ -74,25 +76,32 @@ class PeakMinima
       Peak& p2,
       const string& text) const;
 
-    void reseedWheelUsingQuality(PeakPtrList& candidates) const;
+    void reseedWheelUsingQuality(
+      PeakPool& peaks,
+      PeakPtrList& candidates) const;
 
     void reseedBogeysUsingQuality(
+      PeakPool& peaks,
       PeakPtrList& candidates,
       const vector<Peak>& bogeyScale) const;
 
     void reseedLongGapsUsingQuality(
+      PeakPool& peaks,
       PeakPtrList& candidates,
       const vector<Peak>& longGapScale) const;
 
     void makeWheelAverage(
+      PeakPool& peaks,
       PeakPtrList& candidates,
       Peak& wheel) const;
 
     void makeBogeyAverages(
+      PeakPool& peaks,
       PeakPtrList& candidates,
       vector<Peak>& wheels) const;
 
     void makeCarAverages(
+      PeakPool& peaks,
       PeakPtrList& candidates,
       vector<Peak>& wheels) const;
 
@@ -100,7 +109,9 @@ class PeakMinima
       PeakPool& peaks,
       PeakPtrList& candidates) const;
 
-    void markSinglePeaks(list<Peak *>& candidates) const;
+    void markSinglePeaks(
+      PeakPool& peaks,
+      list<Peak *>& candidates) const;
 
     PeakCit nextWithProperty(
       PeakCit& it,
@@ -114,41 +125,50 @@ class PeakMinima
 
 
     void markBogeysOfSelects(
+      PeakPool& peaks,
       PeakPtrList& candidates,
       const Gap& wheelGap) const;
 
     void markBogeysOfUnpaired(
+      PeakPool& peaks,
       PeakPtrList& candidates,
       const Gap& wheelGap) const;
 
     void markBogeys(
+      PeakPool& peaks,
       PeakPtrList& candidates,
       Gap& wheelGap) const;
 
 
     void markShortGapsOfSelects(
+      PeakPool& peaks,
       PeakPtrList& candidates,
       const Gap& wheelGap) const;
 
     void markShortGapsOfUnpaired(
+      PeakPool& peaks,
       PeakPtrList& candidates,
       const Gap& wheelGap) const;
 
     void markLongGapsOfSelects(
+      PeakPool& peaks,
       PeakPtrList& candidates,
       const Gap& wheelGap) const;
 
     void markShortGaps(
+      PeakPool& peaks,
       PeakPtrList& candidates,
       Gap& shortGap);
 
 
     void guessLongGapDistance(
+      const PeakPool& peaks,
       const PeakPtrList& candidates,
       const unsigned shortGapCount,
       Gap& gap) const;
 
     void markLongGaps(
+      PeakPool& peaks,
       PeakPtrList& candidates,
       const Gap& wheelGap,
       const unsigned shortGapCount);
@@ -169,10 +189,12 @@ class PeakMinima
       const string& text) const;
 
     void printAllCandidates(
+      const PeakPool& peaks,
       const PeakPtrList& candidates,
       const string& text) const;
 
     void printSelected(
+      const PeakPool& peaks,
       const PeakPtrList& candidates,
       const string& text) const;
 

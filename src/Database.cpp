@@ -7,8 +7,6 @@
 #include "read.h"
 #include "struct.h"
 
-#define UNUSED(x) ((void)(true ? 0 : ((x), void(), 0)))
-
 
 Database::Database()
 {

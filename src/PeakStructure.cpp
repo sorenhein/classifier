@@ -11,9 +11,6 @@
 #include "Except.h"
 
 
-#define UNUSED(x) ((void)(true ? 0 : ((x), void(), 0)))
-
-
 PeakStructure::PeakStructure()
 {
   PeakStructure::reset();
