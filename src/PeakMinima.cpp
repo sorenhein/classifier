@@ -13,8 +13,6 @@
 #define SLIDING_LOWER 0.9f
 #define SLIDING_UPPER 1.1f
 
-#define UNUSED(x) ((void)(true ? 0 : ((x), void(), 0)))
-
 
 PeakMinima::PeakMinima()
 {
@@ -220,10 +218,9 @@ void PeakMinima::markWheelPair(
 void PeakMinima::markBogeyShortGap(
   Peak& p1,
   Peak& p2,
-  PeakCit& cit, // Iterator to "prev(p1)"
-  PeakCit& ncit, // Iterator to "next(p2)"
-  PeakCit& cbegin,
-  PeakCit& cend,
+  PeakPool& peaks,
+  PPiterator& cit, // Iterator to "prev(p1)"
+  PPiterator& ncit, // Iterator to "next(p2)"
   const string& text) const
 {
   if (text != "")
@@ -233,8 +230,7 @@ void PeakMinima::markBogeyShortGap(
   if (p1.isRightWheel() && ! p1.isRightBogey())
   {
     // Paired previous wheel was not yet marked a bogey.
-    auto prevCand = PeakMinima::prevWithProperty(
-      cit, cbegin, &Peak::isLeftWheel);
+    PPiterator prevCand = peaks.prevCandExcl(cit, &Peak::isLeftWheel);
     
     (* prevCand)->markBogeyAndWheel(BOGEY_RIGHT, WHEEL_LEFT);
   }
@@ -242,8 +238,7 @@ void PeakMinima::markBogeyShortGap(
   if (p2.isLeftWheel() && ! p2.isLeftBogey())
   {
     // Paired next wheel was not yet marked a bogey.
-    auto nextCand =  PeakMinima::nextWithProperty(
-      ncit, cend, &Peak::isRightWheel);
+    PPiterator nextCand = peaks.nextCandExcl(ncit, &Peak::isRightWheel);
 
     (* nextCand)->markBogeyAndWheel(BOGEY_LEFT, WHEEL_RIGHT);
   }
@@ -499,37 +494,6 @@ void PeakMinima::markSinglePeaks(PeakPool& peaks) const
 }
 
 
-PeakCit PeakMinima::nextWithProperty(
-  PeakCit& it,
-  PeakCit& endList,
-  const PeakFncPtr fptr) const
-{
-  auto itNext = it;
-  do
-  {
-    itNext++;
-  }
-  while (itNext != endList && ! ((* itNext)->* fptr)());
-
-  return itNext;
-}
-
-
-PeakCit PeakMinima::prevWithProperty(
-  PeakCit& it,
-  PeakCit& beginList,
-  const PeakFncPtr fptr) const
-{
-  for (auto itPrev = it; ; itPrev = prev(itPrev))
-  {
-    if (((* itPrev)->* fptr)())
-      return itPrev;
-    else if (itPrev == beginList)
-      THROW(ERR_ALGO_PEAK_CONSISTENCY, "Miss earlier matching peak");
-  }
-}
-
-
 void PeakMinima::markBogeysOfSelects(
   PeakPool& peaks,
   const Gap& wheelGap) const
@@ -662,10 +626,10 @@ void PeakMinima::markShortGapsOfSelects(
   PPiterator cbegin = peaks.candbegin();
   PPiterator cend = peaks.candend();
 
-  for (auto cit = cbegin; cit != prev(cend); cit++)
+  for (PPiterator cit = cbegin; cit != prev(cend); cit++)
   {
     Peak * cand = * cit;
-    auto ncit = next(cit);
+    PPiterator ncit = next(cit);
     Peak * nextCand = * ncit;
 
     if (! cand->isRightWheel() || ! nextCand->isLeftWheel())
@@ -674,8 +638,7 @@ void PeakMinima::markShortGapsOfSelects(
     if (! cand->matchesGap(* nextCand, shortGap))
       continue;
 
-    PeakMinima::markBogeyShortGap(* cand, * nextCand, 
-      cit, ncit, cbegin, cend, "");
+    PeakMinima::markBogeyShortGap(* cand, * nextCand, peaks, cit, ncit, "");
   }
 }
 
@@ -690,7 +653,7 @@ void PeakMinima::markShortGapsOfUnpaired(
   for (PPiterator cit = cbegin; cit != prev(cend); cit++)
   {
     Peak * cand = * cit;
-    auto ncit = next(cit);
+    PPiterator ncit = next(cit);
     Peak * nextCand = * ncit;
 
     // If neither is set, or both are set, there is nothing to repair.
@@ -704,8 +667,8 @@ void PeakMinima::markShortGapsOfUnpaired(
     if ((cand->isRightWheel() && nextCand->greatQuality()) ||
         (nextCand->isLeftWheel() && cand->greatQuality()))
     {
-      PeakMinima::markBogeyShortGap(* cand, * nextCand, 
-        cit, ncit, cbegin, cend, "");
+      PeakMinima::markBogeyShortGap(* cand, * nextCand, peaks,
+        cit, ncit, "");
     }
   }
 }

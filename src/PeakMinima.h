@@ -13,8 +13,6 @@ using namespace std;
 
 class Peak;
 class PeakPool;
-typedef list<Peak *> PeakPtrList;
-typedef PeakPtrList::const_iterator PeakCit;
 
 
 class PeakMinima
@@ -59,10 +57,9 @@ class PeakMinima
     void markBogeyShortGap(
       Peak& p1,
       Peak& p2,
-      PeakCit& cit,
-      PeakCit& ncit,
-      PeakCit& cbegin,
-      PeakCit& cend,
+      PeakPool& peaks,
+      PPiterator& cit,
+      PPiterator& ncit,
       const string& text) const;
 
     void markBogeyLongGap(
@@ -93,16 +90,6 @@ class PeakMinima
       vector<Peak>& wheels) const;
 
     void markSinglePeaks(PeakPool& peaks) const;
-
-    PeakCit nextWithProperty(
-      PeakCit& it,
-      PeakCit& endList,
-      const PeakFncPtr fptr) const;
-
-    PeakCit prevWithProperty(
-      PeakCit& it,
-      PeakCit& beginList,
-      const PeakFncPtr fptr) const;
 
 
     void markBogeysOfSelects(
