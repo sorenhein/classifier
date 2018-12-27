@@ -164,7 +164,6 @@ class PeakStructure
     void markImperfections(
       const vector<CarDetect>& cars,
       const PeakPool& peaks,
-      const list<Peak *>& candidates,
       Imperfections& imperf) const;
 };
 

@@ -768,10 +768,8 @@ void PeakStructure::updateImperfections(
 void PeakStructure::markImperfections(
   const vector<CarDetect>& cars,
   const PeakPool& peaks,
-  const list<Peak *>& candidates,
   Imperfections& imperf) const
 {
-UNUSED(peaks);
   // Based on the cars we recognized, make an educated guess of the
   // number of peaks of different types that we may not have got
   // exactly right.
@@ -780,9 +778,10 @@ UNUSED(peaks);
 
   imperf.reset();
   auto car = cars.begin();
-  auto cand = candidates.begin();
+  PPciterator cand = peaks.candcbegin();
+  PPciterator candcend = peaks.candcend();
 
-  while (cand != candidates.end() && car != cars.end())
+  while (cand != candcend && car != cars.end())
   {
     if (! (*cand)->isSelected())
     {
@@ -792,7 +791,7 @@ UNUSED(peaks);
 
     // First look for unmatched, leading detected peaks.
     unsigned numPreceding = 0;
-    while (cand != candidates.end() && car->peakPrecedesCar(** cand))
+    while (cand != candcend && car->peakPrecedesCar(** cand))
     {
       if ((*cand)->isSelected())
         numPreceding++;
@@ -803,12 +802,12 @@ UNUSED(peaks);
       PeakStructure::updateImperfections(numPreceding,
         car == cars.begin(), imperf);
 
-    if (cand == candidates.end())
+    if (cand == candcend)
       break;
 
     // Then look for matched, detected peaks.
     unsigned numMatches = 0;
-    while (cand != candidates.end() && ! car->carPrecedesPeak(** cand))
+    while (cand != candcend && ! car->carPrecedesPeak(** cand))
     {
       if ((*cand)->isSelected())
         numMatches++;
@@ -819,7 +818,7 @@ UNUSED(peaks);
       PeakStructure::updateImperfections(numMatches,
         car == cars.begin(), imperf);
 
-    if (cand == candidates.end())
+    if (cand == candcend)
       break;
 
     // Finally, advance the car.

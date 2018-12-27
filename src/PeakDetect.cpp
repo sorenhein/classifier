@@ -590,7 +590,7 @@ void PeakDetect::reduce(
   vector<CarDetect> cars;
   pstruct.markCars(models, cars, peaks, offset);
 
-  pstruct.markImperfections(cars, peaks, candidates, imperf);
+  pstruct.markImperfections(cars, peaks, imperf);
 
 cout << "PEAKPOOL\n";
 cout << peaks.strCounts();
