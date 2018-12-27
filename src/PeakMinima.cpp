@@ -170,18 +170,18 @@ bool PeakMinima::formBogeyGap(
 
 bool PeakMinima::guessNeighborDistance(
   const PeakPool& peaks,
-  const PeakPtrList& candidates,
   const CandFncPtr fptr,
   Gap& gap,
   const unsigned minCount) const
 {
-UNUSED(peaks);
   // Make list of distances between neighbors for which fptr
   // evaluates to true.
   vector<unsigned> dists;
-  for (auto pit = candidates.begin(); pit != prev(candidates.end()); pit++)
+  PPciterator cbegin = peaks.candcbegin();
+  PPciterator cend = peaks.candcend();
+  for (PPciterator pit = cbegin; pit != prev(cend); pit++)
   {
-    auto npit = next(pit);
+    PPciterator npit = next(pit);
     if ((this->* fptr)(* pit, * npit))
       dists.push_back(
         (*npit)->getIndex() - (*pit)->getIndex());
@@ -613,14 +613,14 @@ void PeakMinima::markBogeys(
   // The wheel gap is only plausible if it hits a certain number of peaks.
   unsigned numGreat = peaks.countCandidates(&Peak::greatQuality);
 
-  if (! PeakMinima::guessNeighborDistance(peaks, candidates, 
+  if (! PeakMinima::guessNeighborDistance(peaks,
       &PeakMinima::bothSelected, wheelGap, numGreat/4))
   {
     // This may happen when one side of the peak pair is so strong
     // and different that the other side never gets picked up.
     // Try again, and lower our standards to acceptable peak quality.
     cout << "First attempt at wheel distance failed: " << numGreat << ".\n";
-    if (! PeakMinima::guessNeighborDistance(peaks, candidates, 
+    if (! PeakMinima::guessNeighborDistance(peaks,
         &PeakMinima::bothPlausible, wheelGap, numGreat/4))
     {
       THROW(ERR_ALGO_NO_WHEEL_GAP, "Couldn't find wheel gap");
@@ -653,7 +653,7 @@ void PeakMinima::markBogeys(
   // Redo the distances using the new qualities (left and right peaks).
   numGreat = peaks.countCandidates(&Peak::greatQuality);
 
-  PeakMinima::guessNeighborDistance(peaks, candidates,
+  PeakMinima::guessNeighborDistance(peaks,
     &PeakMinima::bothSelected, wheelGap, numGreat/4);
 
   PeakMinima::printDists(wheelGap.lower, wheelGap.upper,
@@ -728,11 +728,10 @@ void PeakMinima::markShortGapsOfUnpaired(
 
 void PeakMinima::markShortGaps(
   PeakPool& peaks,
-  PeakPtrList& candidates,
   Gap& shortGap)
 {
   // Look for inter-car short gaps.
-  PeakMinima::guessNeighborDistance(peaks, candidates,
+  PeakMinima::guessNeighborDistance(peaks,
     &PeakMinima::formBogeyGap, shortGap);
 
   PeakMinima::printDists(shortGap.lower, shortGap.upper,
@@ -915,7 +914,7 @@ peaks.makeCandidates();
   PeakMinima::markBogeys(peaks, candidates, wheelGap);
 
   Gap shortGap;
-  PeakMinima::markShortGaps(peaks, candidates, shortGap);
+  PeakMinima::markShortGaps(peaks, shortGap);
   PeakMinima::markLongGaps(peaks, wheelGap, shortGap.count);
 }
 

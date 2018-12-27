@@ -47,7 +47,6 @@ class PeakMinima
 
     bool guessNeighborDistance(
       const PeakPool& peaks,
-      const PeakPtrList& candidates,
       const CandFncPtr fptr,
       Gap& gap,
       const unsigned minCount = 0) const;
@@ -143,7 +142,6 @@ class PeakMinima
 
     void markShortGaps(
       PeakPool& peaks,
-      PeakPtrList& candidates,
       Gap& shortGap);
 
 
