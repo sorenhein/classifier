@@ -26,7 +26,6 @@ class PeakDetect
 
     PeakPool peaks;
 
-    list<Peak *> candidates;
     CarModels models;
     PeakStructure pstruct;
 

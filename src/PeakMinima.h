@@ -92,13 +92,7 @@ class PeakMinima
       const PeakPool& peaks,
       vector<Peak>& wheels) const;
 
-    void setCandidates(
-      PeakPool& peaks,
-      PeakPtrList& candidates) const;
-
-    void markSinglePeaks(
-      PeakPool& peaks,
-      list<Peak *>& candidates) const;
+    void markSinglePeaks(PeakPool& peaks) const;
 
     PeakCit nextWithProperty(
       PeakCit& it,
@@ -177,7 +171,6 @@ class PeakMinima
 
     void mark(
       PeakPool& peaks,
-      PeakPtrList& candidates,
       const unsigned offsetIn);
 
 };

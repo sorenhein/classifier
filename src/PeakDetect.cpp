@@ -36,7 +36,6 @@ void PeakDetect::reset()
   offset = 0;
   peaks.clear();
   models.reset();
-  candidates.clear();
   pstruct.reset();
 }
 
@@ -582,9 +581,11 @@ void PeakDetect::reduce(
   seeds.mark(peaks, offset, scale.getRange());
   cout << seeds.str(offset, "after pruning");
 
+  peaks.makeCandidates();
+
   // Label the negative minima as wheels, bogeys etc.
   PeakMinima minima;
-  minima.mark(peaks, candidates, offset);
+  minima.mark(peaks, offset);
 
   // Use the labels to extract the car structure from the peaks.
   vector<CarDetect> cars;

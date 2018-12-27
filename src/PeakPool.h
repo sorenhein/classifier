@@ -96,6 +96,8 @@ class PeakPool
 
     unsigned countCandidates(const PeakFncPtr& fptr) const;
 
+    unsigned candsize() const;
+
     void getCandPtrs(
       const unsigned start,
       const unsigned end,

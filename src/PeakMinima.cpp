@@ -467,25 +467,9 @@ void PeakMinima::makeCarAverages(
 }
 
 
-void PeakMinima::setCandidates(
-  PeakPool& peaks,
-  PeakPtrList& candidates) const
+void PeakMinima::markSinglePeaks(PeakPool& peaks) const
 {
-UNUSED(peaks);
-  for (auto& peak: peaks)
-  {
-    if (peak.isCandidate())
-      candidates.push_back(&peak);
-  }
-}
-
-
-void PeakMinima::markSinglePeaks(
-  PeakPool& peaks,
-  PeakPtrList& candidates) const
-{
-UNUSED(peaks);
-  if (candidates.empty())
+  if (peaks.candsize() == 0)
     THROW(ERR_NO_PEAKS, "No tall peaks");
 
   // Find the average candidate peak.
@@ -493,8 +477,10 @@ UNUSED(peaks);
   PeakMinima::makeWheelAverage(peaks, wheelPeak);
 
   // Use this as a first yardstick for calculating qualities.
-  for (auto candidate: candidates)
-    candidate->calcQualities(wheelPeak);
+  PPiterator cbegin = peaks.candbegin();
+  PPiterator cend = peaks.candend();
+  for (PPiterator cit = cbegin; cit != cend; cit++)
+    (* cit)->calcQualities(wheelPeak);
 
   cout << peaks.strAllCandsQuality("All negative minima", offset);
   cout << peaks.strSelectedCandsQuality("Seeds", offset);
@@ -898,16 +884,11 @@ void PeakMinima::printRange(
 
 void PeakMinima::mark(
   PeakPool& peaks,
-  PeakPtrList& candidates,
   const unsigned offsetIn)
 {
-  candidates.clear();
   offset = offsetIn;
 
-  PeakMinima::setCandidates(peaks, candidates);
-peaks.makeCandidates();
-
-  PeakMinima::markSinglePeaks(peaks, candidates);
+  PeakMinima::markSinglePeaks(peaks);
 
   Gap wheelGap;
   PeakMinima::markBogeys(peaks, wheelGap);

@@ -141,6 +141,12 @@ unsigned PeakPool::countCandidates(const PeakFncPtr& fptr) const
 }
 
 
+unsigned PeakPool::candsize() const 
+{
+  return candidates.size();
+}
+
+
 void PeakPool::getCandPtrs(
   const unsigned start,
   const unsigned end,
