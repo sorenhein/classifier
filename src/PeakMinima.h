@@ -86,8 +86,7 @@ class PeakMinima
       const vector<Peak>& longGapScale) const;
 
     void makeWheelAverage(
-      PeakPool& peaks,
-      PeakPtrList& candidates,
+      const PeakPool& peaks,
       Peak& wheel) const;
 
     void makeBogeyAverages(

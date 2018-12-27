@@ -358,16 +358,17 @@ UNUSED(peaks);
 
 
 void PeakMinima::makeWheelAverage(
-  PeakPool& peaks,
-  PeakPtrList& candidates,
+  const PeakPool& peaks,
   Peak& wheel) const
 {
-UNUSED(peaks);
   wheel.reset();
 
   unsigned count = 0;
-  for (auto& cand: candidates)
+  PPciterator cbegin = peaks.candcbegin();
+  PPciterator cend = peaks.candcend();
+  for (PPciterator cit = cbegin; cit != cend; cit++)
   {
+    Peak const * cand = * cit;
     if (cand->isSelected())
     {
       wheel += * cand;
@@ -487,7 +488,7 @@ UNUSED(peaks);
 
   // Find the average candidate peak.
   Peak wheelPeak;
-  PeakMinima::makeWheelAverage(peaks, candidates, wheelPeak);
+  PeakMinima::makeWheelAverage(peaks, wheelPeak);
 
   // Use this as a first yardstick for calculating qualities.
   for (auto candidate: candidates)
@@ -496,7 +497,7 @@ UNUSED(peaks);
   cout << peaks.strAllCandsQuality("All negative minima", offset);
   cout << peaks.strSelectedCandsQuality("Seeds", offset);
 
-  PeakMinima::makeWheelAverage(peaks, candidates, wheelPeak);
+  PeakMinima::makeWheelAverage(peaks, wheelPeak);
   PeakMinima::printPeakQuality(wheelPeak, "Seed average");
 
   // Modify selection based on quality.
@@ -505,7 +506,7 @@ UNUSED(peaks);
   cout << peaks.strSelectedCandsQuality("Great-quality seeds", offset);
 
   // Remake the average.
-  PeakMinima::makeWheelAverage(peaks, candidates, wheelPeak);
+  PeakMinima::makeWheelAverage(peaks, wheelPeak);
   PeakMinima::printPeakQuality(wheelPeak, "Great-quality average");
 }
 
