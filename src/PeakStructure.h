@@ -107,22 +107,19 @@ class PeakStructure
       const PeakCondition& condition,
       CarModels& models,
       vector<CarDetect>& cars,
-      PeakPool& peaks,
-      list<Peak *>& candidates) const;
+      PeakPool& peaks) const;
 
     void findMissingCar(
       const PeakCondition& condition,
       CarModels& models,
       vector<CarDetect>& cars,
-      PeakPool& peaks,
-      list<Peak *>& candidates) const;
+      PeakPool& peaks) const;
 
     void findMissingCars(
       PeakCondition& condition,
       CarModels& models,
       vector<CarDetect>& cars,
-      PeakPool& peaks,
-      list<Peak *>& candidates) const;
+      PeakPool& peaks) const;
 
     void findWholeCars(
       CarModels& models,
@@ -140,7 +137,6 @@ class PeakStructure
 
     void printWheelCount(
       const PeakPool& peaks,
-      const list<Peak *>& candidates,
       const string& text) const;
 
     void printCars(
@@ -163,7 +159,6 @@ class PeakStructure
       CarModels& models,
       vector<CarDetect>& cars,
       PeakPool& peaks,
-      list<Peak *>& candidates,
       const unsigned offsetIn);
     
     void markImperfections(

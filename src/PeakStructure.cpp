@@ -410,8 +410,7 @@ bool PeakStructure::findCarsInInterval(
   const PeakCondition& condition,
   CarModels& models,
   vector<CarDetect>& cars,
-  PeakPool& peaks,
-  list<Peak *>& candidates) const
+  PeakPool& peaks) const
 {
   vector<Peak *> peakPtrs;
   peaks.getCandPtrs(condition.start, condition.end, peakPtrs);
@@ -437,11 +436,11 @@ if (! profile.looksLikeTwoCars() && profile.looksLong())
       condition1, condition2);
 
     if (! PeakStructure::findCarsInInterval(condition1, models, 
-        cars, peaks, candidates))
+        cars, peaks))
       return false;
 
     if (! PeakStructure::findCarsInInterval(condition2, models, 
-        cars, peaks, candidates))
+        cars, peaks))
       return false;
 
     return true;
@@ -494,14 +493,12 @@ void PeakStructure::findMissingCar(
   const PeakCondition& condition,
   CarModels& models,
   vector<CarDetect>& cars,
-  PeakPool& peaks,
-  list<Peak *>& candidates) const
+  PeakPool& peaks) const
 {
   if (condition.start >= condition.end)
     return;
 
-  if (PeakStructure::findCarsInInterval(condition, models, 
-      cars, peaks, candidates))
+  if (PeakStructure::findCarsInInterval(condition, models, cars, peaks))
     PeakStructure::printRange(condition, "Did " + condition.text);
   else
     PeakStructure::printRange(condition, "Didn't do " + condition.text);
@@ -512,19 +509,17 @@ void PeakStructure::findMissingCars(
   PeakCondition& condition,
   CarModels& models,
   vector<CarDetect>& cars,
-  PeakPool& peaks,
-  list<Peak *>& candidates) const
+  PeakPool& peaks) const
 {
   if (condition.source == PEAK_SOURCE_FIRST)
   {
-    // condition.start = candidates.front()->getIndex();
     condition.start = peaks.firstCandIndex();
     condition.end = cars.front().startValue();
     condition.leftGapPresent = false;
     condition.rightGapPresent = true;
     condition.text = "first whole-car";
 
-    PeakStructure::findMissingCar(condition, models, cars, peaks, candidates);
+    PeakStructure::findMissingCar(condition, models, cars, peaks);
   }
   else if (condition.source == PEAK_SOURCE_INNER)
   {
@@ -538,20 +533,18 @@ void PeakStructure::findMissingCars(
       condition.start = cars[cno].endValue();
       condition.end = cars[cno+1].startValue();
 
-      PeakStructure::findMissingCar(condition, models, cars, 
-        peaks, candidates);
+      PeakStructure::findMissingCar(condition, models, cars, peaks);
     }
   }
   else if (condition.source == PEAK_SOURCE_LAST)
   {
     condition.start = cars.back().endValue();
     condition.end = peaks.lastCandIndex();
-    // condition.end = candidates.back()->getIndex();
     condition.leftGapPresent = true;
     condition.rightGapPresent = false;
     condition.text = "last whole-car";
 
-    PeakStructure::findMissingCar(condition, models, cars, peaks, candidates);
+    PeakStructure::findMissingCar(condition, models, cars, peaks);
   }
 }
 
@@ -669,7 +662,6 @@ void PeakStructure::markCars(
   CarModels& models,
   vector<CarDetect>& cars,
   PeakPool& peaks,
-  list<Peak *>& candidates,
   const unsigned offsetIn)
 {
   offset = offsetIn;
@@ -698,28 +690,28 @@ void PeakStructure::markCars(
   PeakCondition condition;
 
   condition.source = PEAK_SOURCE_INNER;
-  PeakStructure::findMissingCars(condition, models, cars, peaks, candidates);
+  PeakStructure::findMissingCars(condition, models, cars, peaks);
   PeakStructure::updateCarDistances(models, cars);
   sort(cars.begin(), cars.end());
 
-  PeakStructure::printWheelCount(peaks, candidates, "Counting");
+  PeakStructure::printWheelCount(peaks, "Counting");
   PeakStructure::printCars(cars, "after whole-car gaps");
   PeakStructure::printCarStats(models, "after whole-car inner gaps");
 
   condition.source = PEAK_SOURCE_LAST;
-  PeakStructure::findMissingCars(condition, models, cars, peaks, candidates);
+  PeakStructure::findMissingCars(condition, models, cars, peaks);
   PeakStructure::updateCarDistances(models, cars);
 
-  PeakStructure::printWheelCount(peaks, candidates, "Counting");
+  PeakStructure::printWheelCount(peaks, "Counting");
   PeakStructure::printCars(cars, "after trailing whole car");
   PeakStructure::printCarStats(models, "after trailing whole car");
 
   condition.source = PEAK_SOURCE_FIRST;
-  PeakStructure::findMissingCars(condition, models, cars, peaks, candidates);
+  PeakStructure::findMissingCars(condition, models, cars, peaks);
   PeakStructure::updateCarDistances(models, cars);
   sort(cars.begin(), cars.end());
 
-  PeakStructure::printWheelCount(peaks, candidates, "Counting");
+  PeakStructure::printWheelCount(peaks, "Counting");
   PeakStructure::printCars(cars, "after leading whole car");
   PeakStructure::printCarStats(models, "after leading whole car");
 
@@ -730,7 +722,7 @@ void PeakStructure::markCars(
   // Or could be a new type of car (or multiple cars).
   // Ends come later.
 
-  PeakStructure::printWheelCount(peaks, candidates, "Returning");
+  PeakStructure::printWheelCount(peaks, "Returning");
 }
 
 
@@ -853,14 +845,15 @@ void PeakStructure::printRange(
 
 void PeakStructure::printWheelCount(
   const PeakPool& peaks,
-  const list<Peak *>& candidates,
   const string& text) const
 {
-UNUSED(peaks);
   unsigned count = 0;
-  for (auto cand: candidates)
+  PPciterator candcbegin = peaks.candcbegin();
+  PPciterator candcend = peaks.candcend();
+
+  for (PPciterator pit = candcbegin; pit != candcend; pit++)
   {
-    if (cand->isSelected())
+    if ((* pit)->isSelected())
       count++;
   }
   cout << text << " " << count << " peaks" << endl;

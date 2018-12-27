@@ -171,9 +171,21 @@ PPiterator PeakPool::candbegin()
 }
 
 
+PPciterator PeakPool::candcbegin() const
+{
+  return candidates.cbegin();
+}
+
+
 PPiterator PeakPool::candend()
 {
   return candidates.end();
+}
+
+
+PPciterator PeakPool::candcend() const
+{
+  return candidates.cend();
 }
 
 

@@ -39,6 +39,7 @@ typedef PeakList::const_iterator Pciterator;
 
 typedef list<Peak *> PeakPtrList;
 typedef PeakPtrList::iterator PPiterator;
+typedef PeakPtrList::const_iterator PPciterator;
 typedef vector<Peak *> PeakPtrVector;
 
 
@@ -102,7 +103,10 @@ class PeakPool
     unsigned lastCandIndex() const;
 
     PPiterator candbegin();
+    PPciterator candcbegin() const;
+
     PPiterator candend();
+    PPciterator candcend() const;
 
     PPiterator nextCandExcl(
       PPiterator& pit,
