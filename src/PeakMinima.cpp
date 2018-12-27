@@ -267,29 +267,30 @@ void PeakMinima::markBogeyLongGap(
 }
 
 
-void PeakMinima::reseedWheelUsingQuality(
-  PeakPool& peaks,
-  list<Peak *>& candidates) const
+void PeakMinima::reseedWheelUsingQuality(PeakPool& peaks) const
 {
-UNUSED(peaks);
-  for (auto candidate: candidates)
+  PPiterator cbegin = peaks.candbegin();
+  PPiterator cend = peaks.candend();
+  for (auto cit = cbegin; cit != cend; cit++)
   {
-    if (candidate->greatQuality())
-      candidate->select();
+    Peak * cand = * cit;
+    if (cand->greatQuality())
+      cand->select();
     else
-      candidate->unselect();
+      cand->unselect();
   }
 }
 
 
 void PeakMinima::reseedBogeysUsingQuality(
   PeakPool& peaks,
-  PeakPtrList& candidates,
   const vector<Peak>& bogeyScale) const
 {
-UNUSED(peaks);
-  for (auto cand: candidates)
+  PPiterator cbegin = peaks.candbegin();
+  PPiterator cend = peaks.candend();
+  for (auto cit = cbegin; cit != cend; cit++)
   {
+    Peak * cand = * cit;
     if (! cand->isWheel())
       cand->calcQualities(bogeyScale);
     else if (cand->isLeftWheel())
@@ -502,7 +503,7 @@ UNUSED(peaks);
   PeakMinima::printPeakQuality(wheelPeak, "Seed average");
 
   // Modify selection based on quality.
-  PeakMinima::reseedWheelUsingQuality(peaks, candidates);
+  PeakMinima::reseedWheelUsingQuality(peaks);
 
   cout << peaks.strSelectedCandsQuality("Great-quality seeds", offset);
 
@@ -607,7 +608,6 @@ void PeakMinima::markBogeysOfUnpaired(
 
 void PeakMinima::markBogeys(
   PeakPool& peaks,
-  PeakPtrList& candidates,
   Gap& wheelGap) const
 {
   // The wheel gap is only plausible if it hits a certain number of peaks.
@@ -640,7 +640,7 @@ void PeakMinima::markBogeys(
   makeBogeyAverages(peaks, bogeyScale);
 
   // Recalculate the peak qualities using both left and right peaks.
-  PeakMinima::reseedBogeysUsingQuality(peaks, candidates, bogeyScale);
+  PeakMinima::reseedBogeysUsingQuality(peaks, bogeyScale);
 
   cout << peaks.strAllCandsQuality("All peaks using left/right scales",
     offset);
@@ -666,7 +666,6 @@ void PeakMinima::markBogeys(
 
   cout << peaks.strAllCandsQuality(
     "All peaks again using left/right scales", offset);
-
 }
 
 
@@ -911,7 +910,7 @@ peaks.makeCandidates();
   PeakMinima::markSinglePeaks(peaks, candidates);
 
   Gap wheelGap;
-  PeakMinima::markBogeys(peaks, candidates, wheelGap);
+  PeakMinima::markBogeys(peaks, wheelGap);
 
   Gap shortGap;
   PeakMinima::markShortGaps(peaks, shortGap);

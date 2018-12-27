@@ -70,13 +70,10 @@ class PeakMinima
       Peak& p2,
       const string& text) const;
 
-    void reseedWheelUsingQuality(
-      PeakPool& peaks,
-      PeakPtrList& candidates) const;
+    void reseedWheelUsingQuality(PeakPool& peaks) const;
 
     void reseedBogeysUsingQuality(
       PeakPool& peaks,
-      PeakPtrList& candidates,
       const vector<Peak>& bogeyScale) const;
 
     void reseedLongGapsUsingQuality(
@@ -124,7 +121,6 @@ class PeakMinima
 
     void markBogeys(
       PeakPool& peaks,
-      PeakPtrList& candidates,
       Gap& wheelGap) const;
 
 
