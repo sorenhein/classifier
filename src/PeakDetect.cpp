@@ -523,6 +523,16 @@ void PeakDetect::estimateScale(Peak& scale) const
 }
 
 
+void PeakDetect::completePeaks()
+{
+  for (auto pit = peaks.begin(); pit != prev(peaks.end()); pit++)
+  {
+    auto npit = next(pit);
+    pit->logNextPeak(&*npit);
+  }
+}
+
+
 void PeakDetect::reduce(
   const Control& control,
   Imperfections& imperf)
@@ -564,6 +574,8 @@ void PeakDetect::reduce(
 
   if (debugDetails)
     cout << peaks.strAll("Non-kinky list peaks (second)", offset);
+
+  PeakDetect::completePeaks();
 
   // Mark some tall peaks as seeds.
   PeakSeeds seeds;

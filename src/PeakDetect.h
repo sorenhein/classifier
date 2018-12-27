@@ -57,6 +57,8 @@ class PeakDetect
 
     void estimateScale(Peak& scale) const;
 
+    void completePeaks();
+
     void printPeak(
       const Peak& peak,
       const string& text) const;

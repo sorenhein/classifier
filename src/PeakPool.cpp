@@ -4,6 +4,8 @@
 
 #include "PeakPool.h"
 
+#include "Except.h"
+
 
 #define SAMPLE_RATE 2000.
 
@@ -24,6 +26,7 @@ void PeakPool::clear()
   peakLists.clear();
   peakLists.resize(1);
   peaks = &peakLists.front();
+  candidates.clear();
 }
 
 
@@ -113,6 +116,102 @@ Piterator PeakPool::collapse(
     pit2->update(peak0);
 
   return peaks->erase(pit1, pit2);
+}
+
+
+void PeakPool::makeCandidates()
+{
+  for (auto& peak: * peaks)
+  {
+    if (peak.isCandidate())
+      candidates.push_back(&peak);
+  }
+}
+
+
+void PeakPool::getCandPtrs(
+  const unsigned start,
+  const unsigned end,
+  PeakPtrList& peakPtrs) const
+{
+  for (auto& cand: candidates)
+  {
+    const unsigned index = cand->getIndex();
+    if (index > end)
+      break;
+    if (index < start)
+      continue;
+
+    peakPtrs.push_back(cand);
+  }
+}
+
+
+unsigned PeakPool::firstCandIndex() const
+{
+  if (candidates.size() == 0)
+    return numeric_limits<unsigned>::max();
+  else
+    return candidates.front()->getIndex();
+}
+
+
+unsigned PeakPool::lastCandIndex() const
+{
+  if (candidates.size() == 0)
+    return numeric_limits<unsigned>::max();
+  else
+    return candidates.back()->getIndex();
+}
+
+
+PPiterator PeakPool::nextCandExcl(
+  PPiterator& pit,
+  const PeakFncPtr& fptr) const
+{
+  if (pit == candidates.end())
+    THROW(ERR_ALGO_PEAK_CONSISTENCY, "Miss later matching peak");
+
+  PPiterator npit = next(pit);
+  return PeakPool::nextCandIncl(npit, fptr);
+}
+
+
+PPiterator PeakPool::nextCandIncl(
+  PPiterator& pit,
+  const PeakFncPtr& fptr) const
+{
+  PPiterator pitNext = pit;
+  while (pitNext != candidates.end() && ! ((* pitNext)->* fptr)())
+    pitNext++;
+
+  return pitNext;
+}
+
+
+PPiterator PeakPool::prevCandExcl(
+  PPiterator& pit,
+  const PeakFncPtr& fptr) const
+{
+  if (pit == candidates.begin())
+    THROW(ERR_ALGO_PEAK_CONSISTENCY, "Miss earlier matching peak");
+
+  PPiterator ppit = prev(pit);
+  return PeakPool::prevCandIncl(ppit, fptr);
+}
+
+
+PPiterator PeakPool::prevCandIncl(
+  PPiterator& pit,
+  const PeakFncPtr& fptr) const
+{
+  for (PPiterator pitPrev = pit; ; pitPrev = prev(pitPrev))
+  {
+    if (((* pitPrev)->* fptr)())
+      return pitPrev;
+    else if (pitPrev == candidates.begin())
+      THROW(ERR_ALGO_PEAK_CONSISTENCY, "Miss earlier matching peak");
+  }
 }
 
 

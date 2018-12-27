@@ -25,8 +25,6 @@ class PeakMinima
       const Peak * p1, 
       const Peak * p2) const;
 
-    typedef bool (Peak::*PeakFncPtr)() const;
-
     unsigned offset;
 
 

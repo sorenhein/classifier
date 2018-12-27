@@ -8,6 +8,10 @@
 using namespace std;
 
 
+class Peak;
+typedef bool (Peak::*PeakFncPtr)() const;
+
+
 class Peak
 {
   private:

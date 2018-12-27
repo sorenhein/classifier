@@ -36,6 +36,9 @@ typedef list<Peak> PeakList;
 typedef PeakList::iterator Piterator;
 typedef PeakList::const_iterator Pciterator;
 
+typedef list<Peak *> PeakPtrList;
+typedef PeakPtrList::iterator PPiterator;
+
 
 class PeakPool
 {
@@ -44,6 +47,9 @@ class PeakPool
     list<PeakList> peakLists;
 
     PeakList * peaks;
+
+    // Could have one for each PeakList as well.
+    PeakPtrList candidates;
 
 
     float getFirstPeakTime() const;
@@ -82,9 +88,38 @@ class PeakPool
       Piterator pit1,
       Piterator pit2);
 
+
+    void makeCandidates();
+
+    void getCandPtrs(
+      const unsigned start,
+      const unsigned end,
+      PeakPtrList& peakPtrs) const;
+
+    unsigned firstCandIndex() const;
+    unsigned lastCandIndex() const;
+
+    PPiterator nextCandExcl(
+      PPiterator& pit,
+      const PeakFncPtr& fptr) const;
+
+    PPiterator nextCandIncl(
+      PPiterator& pit,
+      const PeakFncPtr& fptr) const;
+
+    PPiterator prevCandExcl(
+      PPiterator& pit,
+      const PeakFncPtr& fptr) const;
+
+    PPiterator prevCandIncl(
+      PPiterator& pit,
+      const PeakFncPtr& fptr) const;
+
+
     void getSelectedSamples(vector<float>& selected) const;
 
     void getSelectedTimes(vector<PeakTime>& times) const;
+
 
     string strAll(
       const string& text,

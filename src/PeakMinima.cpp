@@ -462,6 +462,7 @@ void PeakMinima::setCandidates(
   PeakPool& peaks,
   PeakPtrList& candidates) const
 {
+  /*
   for (auto pit = peaks.begin(); pit != peaks.end(); pit++)
   {
     if (! pit->isCandidate())
@@ -472,6 +473,7 @@ void PeakMinima::setCandidates(
     if (npit != peaks.end())
       pit->logNextPeak(&*npit);
   }
+  */
 
   for (auto& peak: peaks)
   {

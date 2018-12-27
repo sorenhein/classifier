@@ -267,34 +267,6 @@ void PeakStructure::updatePeaks(
 {
   PeakStructure::markUpPeaks(peakPtrsNew, numPeaks);
   PeakStructure::markDownPeaks(peakPtrsUnused);
-  /*
-  if (numPeaks == 2)
-  {
-    // The assumption is that we missed the first two peaks.
-    peakPtrsNew[0]->markBogeyAndWheel(BOGEY_RIGHT, WHEEL_LEFT);
-    peakPtrsNew[1]->markBogeyAndWheel(BOGEY_RIGHT, WHEEL_RIGHT);
-  }
-  else if (numPeaks == 3)
-  {
-    // The assumption is that we missed the very first peak.
-    peakPtrsNew[0]->markBogeyAndWheel(BOGEY_LEFT, WHEEL_RIGHT);
-    peakPtrsNew[1]->markBogeyAndWheel(BOGEY_RIGHT, WHEEL_LEFT);
-    peakPtrsNew[2]->markBogeyAndWheel(BOGEY_RIGHT, WHEEL_RIGHT);
-  }
-  else if (numPeaks == 4)
-  {
-    peakPtrsNew[0]->markBogeyAndWheel(BOGEY_LEFT, WHEEL_LEFT);
-    peakPtrsNew[1]->markBogeyAndWheel(BOGEY_LEFT, WHEEL_RIGHT);
-    peakPtrsNew[2]->markBogeyAndWheel(BOGEY_RIGHT, WHEEL_LEFT);
-    peakPtrsNew[3]->markBogeyAndWheel(BOGEY_RIGHT, WHEEL_RIGHT);
-  }
-
-  for (auto& pp: peakPtrsNew)
-    pp->select();
-
-  for (auto& pp: peakPtrsUnused)
-    pp->unselect();
-    */
 }
 
 
