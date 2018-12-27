@@ -67,6 +67,12 @@ class PeakStructure
       const unsigned numWheels,
       CarDetect& car) const;
 
+    void markUpPeaks(
+      vector<Peak *>& peakPtrsNew,
+      const unsigned numPeaks) const;
+
+    void markDownPeaks(vector<Peak *>& peakPtrsUnused) const;
+
     void updatePeaks(
       vector<Peak *>& peakPtrsNew,
       vector<Peak *>& peakPtrsUnused,
