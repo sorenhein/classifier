@@ -540,12 +540,13 @@ PeakCit PeakMinima::prevWithProperty(
 
 void PeakMinima::markBogeysOfSelects(
   PeakPool& peaks,
-  PeakPtrList& candidates,
   const Gap& wheelGap) const
 {
-UNUSED(peaks);
+  PPiterator cbegin = peaks.candbegin();
+  PPiterator cend = peaks.candend();
+
   // Here we mark bogeys where both peaks are already selected.
-  for (auto cit = candidates.begin(); cit != prev(candidates.end()); cit++)
+  for (auto cit = cbegin; cit != prev(cend); cit++)
   {
     Peak * cand = * cit;
     if (cand->isWheel())
@@ -624,7 +625,7 @@ void PeakMinima::markBogeys(
   PeakMinima::printDists(wheelGap.lower, wheelGap.upper,
     "Guessing wheel distance");
 
-  PeakMinima::markBogeysOfSelects(peaks, candidates, wheelGap);
+  PeakMinima::markBogeysOfSelects(peaks, wheelGap);
 
   // Look for unpaired wheels where there is a nearby peak that is
   // not too bad.  If there is a spurious peak in between, we'll fail...
@@ -654,7 +655,7 @@ void PeakMinima::markBogeys(
     "Guessing new wheel distance");
 
   // Mark more bogeys with the refined peak qualities.
-  PeakMinima::markBogeysOfSelects(peaks, candidates, wheelGap);
+  PeakMinima::markBogeysOfSelects(peaks, wheelGap);
 
   PeakMinima::markBogeysOfUnpaired(peaks, wheelGap);
 
@@ -841,7 +842,7 @@ void PeakMinima::markLongGaps(
 
   // Some peaks might have become good enough to lead to cars,
   // so we re-label.  First we look again for bogeys.
-  PeakMinima::markBogeysOfSelects(peaks, candidates, wheelGap);
+  PeakMinima::markBogeysOfSelects(peaks, wheelGap);
   PeakMinima::markLongGapsOfSelects(peaks, longGap);
 
   cout << peaks.strAllCandsQuality("peaks with all four wheels", offset);
