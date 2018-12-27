@@ -668,12 +668,10 @@ void PeakMinima::markBogeys(
 
 void PeakMinima::markShortGapsOfSelects(
   PeakPool& peaks,
-  PeakPtrList& candidates,
   const Gap& shortGap) const
 {
-UNUSED(peaks);
-  PeakCit cbegin = candidates.cbegin();
-  PeakCit cend = candidates.cend();
+  PPiterator cbegin = peaks.candbegin();
+  PPiterator cend = peaks.candend();
 
   for (auto cit = cbegin; cit != prev(cend); cit++)
   {
@@ -737,7 +735,7 @@ void PeakMinima::markShortGaps(
     "Guessing short gap");
 
   // Mark short gaps (between cars).
-  PeakMinima::markShortGapsOfSelects(peaks, candidates, shortGap);
+  PeakMinima::markShortGapsOfSelects(peaks, shortGap);
 
   // Look for unpaired short gaps.  If there is a spurious peak
   // in between, we will fail.

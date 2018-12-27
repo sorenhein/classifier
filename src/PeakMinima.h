@@ -137,7 +137,6 @@ class PeakMinima
 
     void markShortGapsOfSelects(
       PeakPool& peaks,
-      PeakPtrList& candidates,
       const Gap& wheelGap) const;
 
     void markShortGapsOfUnpaired(
