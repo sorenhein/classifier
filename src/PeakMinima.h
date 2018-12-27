@@ -82,7 +82,6 @@ class PeakMinima
 
     void reseedLongGapsUsingQuality(
       PeakPool& peaks,
-      PeakPtrList& candidates,
       const vector<Peak>& longGapScale) const;
 
     void makeWheelAverage(
@@ -155,7 +154,6 @@ class PeakMinima
 
     void markLongGaps(
       PeakPool& peaks,
-      PeakPtrList& candidates,
       const Gap& wheelGap,
       const unsigned shortGapCount);
 

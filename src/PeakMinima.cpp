@@ -309,12 +309,13 @@ UNUSED(peaks);
 
 void PeakMinima::reseedLongGapsUsingQuality(
   PeakPool& peaks,
-  PeakPtrList& candidates,
   const vector<Peak>& longGapScale) const
 {
-UNUSED(peaks);
-  for (auto cand: candidates)
+  PPciterator cbegin = peaks.candcbegin();
+  PPciterator cend = peaks.candcend();
+  for (PPciterator cit = cbegin; cit != cend; cit++)
   {
+    Peak * cand = * cit;
     if (! cand->isWheel())
       cand->calcQualities(longGapScale);
     else if (cand->isLeftBogey())
@@ -818,7 +819,6 @@ void PeakMinima::markLongGapsOfSelects(
 
 void PeakMinima::markLongGaps(
   PeakPool& peaks,
-  PeakPtrList& candidates,
   const Gap& wheelGap,
   const unsigned shortGapCount)
 {
@@ -842,7 +842,7 @@ void PeakMinima::markLongGaps(
   PeakMinima::printPeakQuality(bogeys[3], "Right bogey, right wheel avg");
 
   // Recalculate the peak qualities using both left and right peaks.
-  PeakMinima::reseedLongGapsUsingQuality(peaks, candidates, bogeys);
+  PeakMinima::reseedLongGapsUsingQuality(peaks, bogeys);
 
   // Some peaks might have become good enough to lead to cars,
   // so we re-label.  First we look again for bogeys.
@@ -916,6 +916,6 @@ peaks.makeCandidates();
 
   Gap shortGap;
   PeakMinima::markShortGaps(peaks, candidates, shortGap);
-  PeakMinima::markLongGaps(peaks, candidates, wheelGap, shortGap.count);
+  PeakMinima::markLongGaps(peaks, wheelGap, shortGap.count);
 }
 
