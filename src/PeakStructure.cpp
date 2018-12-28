@@ -406,6 +406,9 @@ bool PeakStructure::findCarByQuality(
   CarDetect& car,
   PeakPool& peaks) const
 {
+  if (condition.start >= condition.end)
+    return false;
+
   vector<Peak *> peakPtrs;
   peaks.getCandPtrs(condition.start, condition.end, peakPtrs);
 
@@ -414,6 +417,7 @@ bool PeakStructure::findCarByQuality(
   if (profile.looksEmpty())
   {
     PeakStructure::downgradeAllPeaks(peakPtrs);
+    PeakStructure::printRange(condition, "Downgraded " + condition.text);
     return false;
   }
 
@@ -421,54 +425,34 @@ bool PeakStructure::findCarByQuality(
   PeakPtrVector peakPtrsUnused;
   for (auto& recog: recognizers)
   {
-    if (profile.match(recog))
+    if (! profile.match(recog))
+      continue;
+
+    PeakStructure::getWheelsByQuality(peakPtrs, 
+      recog.quality, peakPtrsNew, peakPtrsUnused);
+
+    if (peakPtrsNew.size() != recog.numWheels)
+      THROW(ERR_ALGO_PEAK_STRUCTURE, "Not " + recog.text);
+
+    if (PeakStructure::findNumberedWheeler(models, condition,
+        peakPtrsNew, recog.numWheels, car))
     {
-      PeakStructure::getWheelsByQuality(peakPtrs, 
-        recog.quality, peakPtrsNew, peakPtrsUnused);
-
-      if (peakPtrsNew.size() != recog.numWheels)
-        THROW(ERR_ALGO_PEAK_STRUCTURE, "Not " + recog.text);
-
-      if (PeakStructure::findNumberedWheeler(models, condition,
-          peakPtrsNew, recog.numWheels, car))
-      {
-        PeakStructure::updatePeaks(peakPtrsNew, peakPtrsUnused, 
-          recog.numWheels);
-        return true;
-      }
-      else
-      {
-        cout << "Failed to find car among " << recog.text << "\n";
-        cout << profile.str();
-        return false;
-      }
+      PeakStructure::updatePeaks(peakPtrsNew, peakPtrsUnused, 
+        recog.numWheels);
+      return true;
+    }
+    else
+    {
+      cout << "Failed to find car among " << recog.text << "\n";
+      PeakStructure::printRange(condition, "Didn't do " + condition.text);
+      cout << profile.str();
+      return false;
     }
   }
 
+  PeakStructure::printRange(condition, "Didn't match " + condition.text);
   cout << profile.str();
   return false;
-}
-
-
-bool PeakStructure::findMissingCar(
-  const PeakCondition& condition,
-  CarModels& models,
-  CarDetect& car,
-  PeakPool& peaks) const
-{
-  if (condition.start >= condition.end)
-    return false;
-
-  if (PeakStructure::findCarByQuality(condition, models, car, peaks))
-  {
-    PeakStructure::printRange(condition, "Did " + condition.text);
-    return true;
-  }
-  else
-  {
-    PeakStructure::printRange(condition, "Didn't do " + condition.text);
-    return false;
-  }
 }
 
 
@@ -676,7 +660,7 @@ void PeakStructure::markCars(
   {
     cout << "Condition:\n" << condition.str(offset) << endl;
 
-    if (! PeakStructure::findMissingCar(condition, models, car, peaks))
+    if (! PeakStructure::findCarByQuality(condition, models, car, peaks))
       continue;
 
     // TODO TMP.  We should just keep cars sorted, and we should

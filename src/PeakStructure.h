@@ -117,12 +117,6 @@ class PeakStructure
       CarDetect& car,
       PeakPool& peaks) const;
 
-    bool findMissingCar(
-      const PeakCondition& condition,
-      CarModels& models,
-      CarDetect& car,
-      PeakPool& peaks) const;
-
     void makeConditions(
       const list<CarDetect>& cars,
       const PeakPool& peaks,
