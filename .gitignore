@@ -47,3 +47,7 @@ src/output/*.txt
 *.sln
 *.opendb
 src/.def
+*.sqlite
+*.json
+doc/~*.xlsx
+data/~*.xlsx

@@ -37,6 +37,38 @@ void CarDetect::setLimits(
 }
 
 
+void CarDetect::setStartAndGap(const unsigned startIn)
+{
+  start = startIn;
+  if (peaksPtr.firstBogeyLeftPtr == nullptr)
+    return;
+
+  const unsigned index = peaksPtr.firstBogeyLeftPtr->getIndex();
+  if (start >= index)
+  {
+    cout << "CarDetect::setStartAndGap WARNING: index too small\n";
+    return;
+  }
+  CarDetect::logLeftGap(index - start);
+}
+
+
+void CarDetect::setEndAndGap(const unsigned endIn)
+{
+  end = endIn;
+  if (peaksPtr.secondBogeyRightPtr == nullptr)
+    return;
+  
+  const unsigned index = peaksPtr.secondBogeyRightPtr->getIndex();
+  if (end <= index)
+  {
+    cout << "CarDetect::setEndAndGap WARNING: index too large\n";
+    return;
+  }
+  CarDetect::logRightGap(end - index);
+}
+
+
 void CarDetect::logCore(
   const unsigned leftBogeyGap,
   const unsigned midGap,
@@ -109,13 +141,39 @@ void CarDetect::increment(CarDetectNumbers& cdn) const
 
 const unsigned CarDetect::startValue() const
 {
-  return start;
+  if (start > 0)
+    return start;
+  else 
+    return CarDetect::firstPeakMinus1();
 }
 
 
 const unsigned CarDetect::endValue() const
 {
-  return end;
+  if( end > 0)
+    return end;
+  else 
+    return CarDetect::lastPeakPlus1();
+}
+
+
+const unsigned CarDetect::firstPeakMinus1() const
+{
+  if (peaksPtr.firstBogeyLeftPtr == nullptr)
+    return 0;
+  else
+    // So we miss the first peak of the car.
+    return peaksPtr.firstBogeyLeftPtr->getIndex() - 1;
+}
+
+
+const unsigned CarDetect::lastPeakPlus1() const
+{
+  if (peaksPtr.secondBogeyRightPtr == nullptr)
+    return 0;
+  else
+    // So we miss the last peak of the car.
+    return peaksPtr.secondBogeyRightPtr->getIndex() + 1;
 }
 
 

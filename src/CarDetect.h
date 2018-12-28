@@ -52,6 +52,9 @@ class CarDetect
       const unsigned startIn,
       const unsigned endIn);
 
+    void setStartAndGap(const unsigned startIn);
+    void setEndAndGap(const unsigned endIn);
+
     void logCore(
       const unsigned leftBogeyGap, // Zero if single wheel
       const unsigned midGap,
@@ -78,6 +81,9 @@ class CarDetect
 
     const unsigned startValue() const;
     const unsigned endValue() const;
+
+    const unsigned firstPeakMinus1() const;
+    const unsigned lastPeakPlus1() const;
 
     const CarPeaksPtr& getPeaksPtr() const;
 

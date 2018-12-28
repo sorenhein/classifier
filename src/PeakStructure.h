@@ -98,6 +98,10 @@ class PeakStructure
       const CarModels& models,
       vector<CarDetect>& cars) const;
 
+    void updateModels(
+      CarModels& models,
+      CarDetect& car) const;
+
     void updateCars(
       CarModels& models,
       vector<CarDetect>& cars,
@@ -120,6 +124,10 @@ class PeakStructure
       CarModels& models,
       vector<CarDetect>& cars,
       PeakPool& peaks) const;
+
+    void fillPartialSides(
+      CarModels& models,
+      vector<CarDetect>& cars);
 
     void seekGaps(
       PPciterator pitLeft,

@@ -80,8 +80,12 @@ bool CarModels::fillSides(CarDetect& car) const
   if (models.size() == 1)
     return car.fillSides(models[0].carAvg);
   else
-    THROW(ERR_MODELS_EMPTY, "Haven't learned 2+ models yet: " + 
-      to_string(models.size()));
+  {
+    cout << "CarModels::fillSides warning:  2+ models\n";
+    return false;
+    // THROW(ERR_MODELS_EMPTY, "Haven't learned 2+ models yet: " + 
+      // to_string(models.size()));
+  }
 
   // TODO: If this is ever needed, first loop over models to find
   // the closest model and then use this.

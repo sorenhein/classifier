@@ -373,22 +373,21 @@ void PeakStructure::updateCarDistances(
 }
 
 
-void PeakStructure::updateCars(
+void PeakStructure::updateModels(
   CarModels& models,
-  vector<CarDetect>& cars,
   CarDetect& car) const
 {
   unsigned index;
   float distance;
 
-  if (! car.isPartial() &&
+  if (// ! car.isPartial() &&
       PeakStructure::matchesModel(models, car, index, distance))
   {
     car.logStatIndex(index);
     car.logDistance(distance);
 
     models.add(car, index);
-    cout << "Recognized car " << index << endl;
+    cout << "Recognized model " << index << endl;
   }
   else
   {
@@ -396,9 +395,17 @@ void PeakStructure::updateCars(
 
     models.append();
     models += car;
-    cout << "Created new car\n";
+    cout << "Created new model\n";
   }
+}
 
+
+void PeakStructure::updateCars(
+  CarModels& models,
+  vector<CarDetect>& cars,
+  CarDetect& car) const
+{
+  PeakStructure::updateModels(models, car);
   cars.push_back(car);
 }
 
@@ -520,8 +527,8 @@ void PeakStructure::findMissingCars(
   }
   else if (condition.source == PEAK_SOURCE_INNER)
   {
-    condition.leftGapPresent = true;
-    condition.rightGapPresent = true;
+    // condition.leftGapPresent = true;
+    // condition.rightGapPresent = true;
     condition.text = "intra-gap";
 
     const unsigned csize = cars.size(); // As cars grows in the loop
@@ -529,6 +536,8 @@ void PeakStructure::findMissingCars(
     {
       condition.start = cars[cno].endValue();
       condition.end = cars[cno+1].startValue();
+      condition.leftGapPresent = cars[cno].hasRightGap();
+      condition.rightGapPresent = cars[cno+1].hasLeftGap();
 
       PeakStructure::findMissingCar(condition, models, cars, peaks);
     }
@@ -546,6 +555,35 @@ void PeakStructure::findMissingCars(
 }
 
 
+void PeakStructure::fillPartialSides(
+  CarModels& models,
+  vector<CarDetect>& cars)
+{
+  // Some cars from the initial findWholeCars() run may have been
+  // partial (i.e., missing a side gap) on either or both sides.
+  // Now that we have filled in the inner cars, we can guess those
+  // gaps and also check the partial car types.
+  
+  for (unsigned cno = 0; cno+1 < cars.size(); cno++)
+  {
+    CarDetect& car1 = cars[cno];
+    CarDetect& car2 = cars[cno+1];
+    if (car1.hasRightGap() || car2.hasLeftGap())
+      continue;
+
+    const unsigned mid = 
+      (car1.lastPeakPlus1() + car2.firstPeakMinus1()) / 2;
+cout << "FILLING " << car1.endValue() << ", " <<
+  car2.startValue() << ", " << mid << endl;
+    car1.setEndAndGap(mid);
+    car2.setStartAndGap(mid);
+
+    PeakStructure::updateModels(models, car1);
+    PeakStructure::updateModels(models, car2);
+  }
+}
+
+
 void PeakStructure::seekGaps(
   PPciterator pitLeft,
   PPciterator pitRight,
@@ -554,7 +592,7 @@ void PeakStructure::seekGaps(
 {
   // Check for gap in front of pitLeft.
   condition.leftGapPresent = false;
-  condition.start = 0;
+  condition.start = (* pitLeft)->getIndex() - 1;
   if (pitLeft != peaks.candcbegin())
   {
     Peak const * prevPtr = * prev(pitLeft);
@@ -569,7 +607,7 @@ void PeakStructure::seekGaps(
 
   // Check for gap after pitRight.
   condition.rightGapPresent = false;
-  condition.end = 0;
+  condition.end = (* pitRight)->getIndex() + 1;
   auto postIter = next(pitRight);
   if (postIter != peaks.candcend())
   {
@@ -633,22 +671,22 @@ void PeakStructure::findWholeCars(
       }
 
       // Fill out cars.
-      cars.emplace_back(CarDetect());
-      CarDetect& car = cars.back();
+      // cars.emplace_back(CarDetect());
+      // CarDetect& car = cars.back();
+      CarDetect car;
 
-      /* 
-      car.logPeakPointers(
-        runPtr[0], runPtr[1], runPtr[2], runPtr[3]);
 
-      car.logCore(
-        runPtr[1]->getIndex() - runPtr[0]->getIndex(),
-        runPtr[2]->getIndex() - runPtr[1]->getIndex(),
-        runPtr[3]->getIndex() - runPtr[2]->getIndex());
-      */
+
 
 
 PeakStructure::seekGaps(runIter[0], runIter[3], peaks, condition);
 
+PeakStructure::findFourWheeler(models, condition, runPtr, car);
+
+        PeakStructure::updateCars(models, cars, car);
+        PeakStructure::markUpPeaks(runPtr, 4);
+
+/*
 if (! PeakStructure::findFourWheeler(models, condition, runPtr, car))
 {
   cout << "ERROR: Initial car not plausible\n";
@@ -666,40 +704,8 @@ if (! PeakStructure::findFourWheeler(models, condition, runPtr, car))
 
       car.logStatIndex(0); 
 
-/*
-      // Check for gap in front of run[0].
-      unsigned leftGap = 0;
-      if (runIter[0] != candbegin)
-      {
-        Peak * prevPtr = * prev(runIter[0]);
-        if (prevPtr->isBogey())
-        {
-          // This rounds to make the cars abut.
-          const unsigned d = runPtr[0]->getIndex() - prevPtr->getIndex();
-          leftGap  = d - (d/2);
-        }
-      }
-
-      // Check for gap after run[3].
-      unsigned rightGap = 0;
-      auto postIter = next(runIter[3]);
-      if (postIter != candend)
-      {
-        Peak * nextPtr = * postIter;
-        if (nextPtr->isBogey())
-          rightGap = (nextPtr->getIndex() - runPtr[3]->getIndex()) / 2;
-      }
-
-
-      if (! car.fillSides(leftGap, rightGap))
-      {
-        cout << car.strLimits(offset, "Incomplete car");
-        cout << "Could not fill out any limits: " <<
-          leftGap << ", " << rightGap << endl;
-      }
-*/
-
       models += car;
+*/
 
     }
 
@@ -724,16 +730,19 @@ void PeakStructure::markCars(
 {
   offset = offsetIn;
 
-  models.append(); // Make room for initial model
+  // Make room for initial model
+//models.append(); 
   PeakStructure::findWholeCars(models, cars, peaks);
 
   if (cars.size() == 0)
     THROW(ERR_NO_PEAKS, "No cars?");
 
-  PeakStructure::printCars(cars, "after inner gaps");
+  PeakStructure::printCars(cars, "after whole cars");
 
-  for (auto& car: cars)
-    models.fillSides(car);
+  // Fill out the partial cars.
+  // Actually we can't really do this yet.
+  // for (auto& car: cars)
+    // models.fillSides(car);
 
   // TODO Could actually be multiple cars in vector, e.g. 
   // same wheel gaps but different spacing between cars, 
@@ -751,6 +760,8 @@ void PeakStructure::markCars(
   PeakStructure::findMissingCars(condition, models, cars, peaks);
   PeakStructure::updateCarDistances(models, cars);
   sort(cars.begin(), cars.end());
+
+  PeakStructure::fillPartialSides(models, cars);
 
   PeakStructure::printWheelCount(peaks, "Counting");
   PeakStructure::printCars(cars, "after whole-car gaps");
