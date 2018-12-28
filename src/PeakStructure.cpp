@@ -465,7 +465,7 @@ void PeakStructure::makeConditions(
   conditions.emplace_back(PeakCondition());
   PeakCondition * condition = &conditions.back();
 
-  condition->carAfter = &cars.front();
+  condition->carAfter = cars.begin();
   condition->start = peaks.firstCandIndex();
   condition->end = cars.front().startValue();
   condition->leftGapPresent = false;
@@ -479,7 +479,7 @@ void PeakStructure::makeConditions(
     conditions.emplace_back(PeakCondition());
     condition = &conditions.back();
 
-    condition->carAfter = &*ncit;
+    condition->carAfter = ncit;
     condition->start = cit->endValue();
     condition->end = ncit->startValue();
     condition->leftGapPresent = cit->hasRightGap();
@@ -491,7 +491,7 @@ void PeakStructure::makeConditions(
   conditions.emplace_back(PeakCondition());
   condition = &conditions.back();
 
-  condition->carAfter = &*cars.end();
+  condition->carAfter = cars.end();
   condition->start = cars.back().endValue();
   condition->end = peaks.lastCandIndex();
     // TODO leftGapPresent is not a given, either.
@@ -663,12 +663,11 @@ void PeakStructure::markCars(
     if (! PeakStructure::findCarByQuality(condition, models, car, peaks))
       continue;
 
-    // TODO TMP.  We should just keep cars sorted, and we should
-    // fill in partial sides as we go along.
+    // TODO TMP.  We should fill in partial sides as we go along.
     PeakStructure::updateModels(models, car);
     PeakStructure::updateCarDistances(models, cars);
-    cars.push_back(car);
-    cars.sort();
+    auto newcit = cars.insert(condition.carAfter, car);
+
     PeakStructure::fillPartialSides(models, cars);
 
     PeakStructure::printWheelCount(peaks, "Counting");

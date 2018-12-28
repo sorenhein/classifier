@@ -4,13 +4,13 @@
 #include <list>
 #include <string>
 
+#include "CarDetect.h"
 #include "PeakPool.h"
 
 #include "struct.h"
 
 using namespace std;
 
-class CarDetect;
 class CarModels;
 class Peak;
 
@@ -21,7 +21,8 @@ class PeakStructure
 
     struct PeakCondition
     {
-      CarDetect const * carAfter; // The car after the condition
+      // The car after the condition
+      list<CarDetect>::const_iterator carAfter; 
       PeakSource source;
       unsigned start;
       unsigned end;
