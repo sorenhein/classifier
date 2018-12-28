@@ -524,6 +524,7 @@ void PeakStructure::makeConditions(
   conditions.emplace_back(PeakCondition());
   PeakCondition * condition = &conditions.back();
 
+  condition->carAfter = &cars.front();
   condition->start = peaks.firstCandIndex();
   condition->end = cars.front().startValue();
   condition->leftGapPresent = false;
@@ -537,6 +538,7 @@ void PeakStructure::makeConditions(
     conditions.emplace_back(PeakCondition());
     condition = &conditions.back();
 
+    condition->carAfter = &*ncit;
     condition->start = cit->endValue();
     condition->end = ncit->startValue();
     condition->leftGapPresent = cit->hasRightGap();
@@ -548,6 +550,7 @@ void PeakStructure::makeConditions(
   conditions.emplace_back(PeakCondition());
   condition = &conditions.back();
 
+  condition->carAfter = &*cars.end();
   condition->start = cars.back().endValue();
   condition->end = peaks.lastCandIndex();
     // TODO leftGapPresent is not a given, either.
@@ -714,7 +717,8 @@ void PeakStructure::markCars(
   {
     cout << "Condition:\n" << condition.str(offset) << endl;
 
-    PeakStructure::findMissingCar(condition, models, cars, peaks);
+    if (! PeakStructure::findMissingCar(condition, models, cars, peaks))
+      continue;
 
     // TODO TMP.  We should just keep cars sorted, and we should
     // fill in partial sides as we go along.

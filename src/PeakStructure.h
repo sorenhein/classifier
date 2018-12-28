@@ -21,6 +21,7 @@ class PeakStructure
 
     struct PeakCondition
     {
+      CarDetect const * carAfter; // The car after the condition
       PeakSource source;
       unsigned start;
       unsigned end;
