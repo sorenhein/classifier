@@ -83,14 +83,7 @@ class PeakStructure
       PeakPtrVector& peakPtrsNew,
       const unsigned numPeaks) const;
 
-    void markDownPeaks(PeakPtrVector& peakPtrsUnused) const;
-
-    void updatePeaks(
-      PeakPtrVector& peakPtrsNew,
-      PeakPtrVector& peakPtrsUnused,
-      const unsigned numPeaks) const;
-
-    void downgradeAllPeaks(PeakPtrVector& peakPtrsNew) const;
+    void markDownPeaks(PeakPtrVector& peakPtrs) const;
 
     void getWheelsByQuality(
       const PeakPtrVector& peakPtrs,

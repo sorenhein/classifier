@@ -11,6 +11,9 @@
 #include "Except.h"
 
 
+#define GREAT_CAR_DISTANCE 1.5f
+
+
 PeakStructure::PeakStructure()
 {
   PeakStructure::reset();
@@ -100,7 +103,7 @@ bool PeakStructure::matchesModel(
   if (! models.findClosest(car, distance, index))
     return false;
   else
-    return (distance <= 1.5f);
+    return (distance <= GREAT_CAR_DISTANCE);
 }
 
 
@@ -254,24 +257,7 @@ void PeakStructure::markUpPeaks(
 }
 
 
-void PeakStructure::markDownPeaks(PeakPtrVector& peakPtrsUnused) const
-{
-  for (auto& pp: peakPtrsUnused)
-    pp->unselect();
-}
-
-
-void PeakStructure::updatePeaks(
-  PeakPtrVector& peakPtrsNew,
-  PeakPtrVector& peakPtrsUnused,
-  const unsigned numPeaks) const
-{
-  PeakStructure::markUpPeaks(peakPtrsNew, numPeaks);
-  PeakStructure::markDownPeaks(peakPtrsUnused);
-}
-
-
-void PeakStructure::downgradeAllPeaks(PeakPtrVector& peakPtrs) const
+void PeakStructure::markDownPeaks(PeakPtrVector& peakPtrs) const
 {
   for (auto& pp: peakPtrs)
   {
@@ -416,7 +402,7 @@ bool PeakStructure::findCarByQuality(
   profile.make(peakPtrs, condition.source);
   if (profile.looksEmpty())
   {
-    PeakStructure::downgradeAllPeaks(peakPtrs);
+    PeakStructure::markDownPeaks(peakPtrs);
     PeakStructure::printRange(condition, "Downgraded " + condition.text);
     return false;
   }
@@ -437,8 +423,8 @@ bool PeakStructure::findCarByQuality(
     if (PeakStructure::findNumberedWheeler(models, condition,
         peakPtrsNew, recog.numWheels, car))
     {
-      PeakStructure::updatePeaks(peakPtrsNew, peakPtrsUnused, 
-        recog.numWheels);
+      PeakStructure::markUpPeaks(peakPtrsNew, recog.numWheels);
+      PeakStructure::markDownPeaks(peakPtrsUnused);
       return true;
     }
     else
