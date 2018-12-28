@@ -355,7 +355,7 @@ void PeakStructure::splitPeaks(
 
 void PeakStructure::updateCarDistances(
   const CarModels& models,
-  vector<CarDetect>& cars) const
+  list<CarDetect>& cars) const
 {
   for (auto& car: cars)
   {
@@ -402,7 +402,7 @@ void PeakStructure::updateModels(
 
 void PeakStructure::updateCars(
   CarModels& models,
-  vector<CarDetect>& cars,
+  list<CarDetect>& cars,
   CarDetect& car) const
 {
   PeakStructure::updateModels(models, car);
@@ -413,7 +413,7 @@ void PeakStructure::updateCars(
 bool PeakStructure::findCarsInInterval(
   const PeakCondition& condition,
   CarModels& models,
-  vector<CarDetect>& cars,
+  list<CarDetect>& cars,
   PeakPool& peaks) const
 {
   vector<Peak *> peakPtrs;
@@ -496,7 +496,7 @@ if (! profile.looksLikeTwoCars() && profile.looksLong())
 void PeakStructure::findMissingCar(
   const PeakCondition& condition,
   CarModels& models,
-  vector<CarDetect>& cars,
+  list<CarDetect>& cars,
   PeakPool& peaks) const
 {
   if (condition.start >= condition.end)
@@ -512,7 +512,7 @@ void PeakStructure::findMissingCar(
 void PeakStructure::findMissingCars(
   PeakCondition& condition,
   CarModels& models,
-  vector<CarDetect>& cars,
+  list<CarDetect>& cars,
   PeakPool& peaks) const
 {
   if (condition.source == PEAK_SOURCE_FIRST)
@@ -530,13 +530,18 @@ void PeakStructure::findMissingCars(
   {
     condition.text = "intra-gap";
 
-    const unsigned csize = cars.size(); // As cars grows in the loop
-    for (unsigned cno = 0; cno+1 < csize; cno++)
+    if (cars.size() < 2)
+      return;
+
+    // As cars grows in the loop
+    auto citLast = prev(cars.end());
+    for (auto cit = cars.begin(); cit != citLast; cit++)
     {
-      condition.start = cars[cno].endValue();
-      condition.end = cars[cno+1].startValue();
-      condition.leftGapPresent = cars[cno].hasRightGap();
-      condition.rightGapPresent = cars[cno+1].hasLeftGap();
+      auto ncit = next(cit);
+      condition.start = cit->endValue();
+      condition.end = ncit->startValue();
+      condition.leftGapPresent = cit->hasRightGap();
+      condition.rightGapPresent = ncit->hasLeftGap();
 
       PeakStructure::findMissingCar(condition, models, cars, peaks);
     }
@@ -557,17 +562,17 @@ void PeakStructure::findMissingCars(
 
 void PeakStructure::fillPartialSides(
   CarModels& models,
-  vector<CarDetect>& cars)
+  list<CarDetect>& cars)
 {
   // Some cars from the initial findWholeCars() run may have been
   // partial (i.e., missing a side gap) on either or both sides.
   // Now that we have filled in the inner cars, we can guess those
   // gaps and also check the partial car types.
   
-  for (unsigned cno = 0; cno+1 < cars.size(); cno++)
+  for (auto cit = cars.begin(); cit != prev(cars.end()); cit++)
   {
-    CarDetect& car1 = cars[cno];
-    CarDetect& car2 = cars[cno+1];
+    CarDetect& car1 = * cit;
+    CarDetect& car2 = * next(cit);
     if (car1.hasRightGap() || car2.hasLeftGap())
       continue;
 
@@ -636,7 +641,7 @@ bool PeakStructure::isWholeCar(const PeakPtrVector& pv) const
 
 void PeakStructure::findWholeCars(
   CarModels& models,
-  vector<CarDetect>& cars,
+  list<CarDetect>& cars,
   PeakPool& peaks) const
 {
   // Set up a sliding vector of running peaks.
@@ -682,7 +687,7 @@ void PeakStructure::findWholeCars(
 
 void PeakStructure::markCars(
   CarModels& models,
-  vector<CarDetect>& cars,
+  list<CarDetect>& cars,
   PeakPool& peaks,
   const unsigned offsetIn)
 {
@@ -704,7 +709,7 @@ void PeakStructure::markCars(
   condition.source = PEAK_SOURCE_INNER;
   PeakStructure::findMissingCars(condition, models, cars, peaks);
   PeakStructure::updateCarDistances(models, cars);
-  sort(cars.begin(), cars.end());
+  cars.sort();
 
   PeakStructure::fillPartialSides(models, cars);
 
@@ -723,7 +728,7 @@ void PeakStructure::markCars(
   condition.source = PEAK_SOURCE_FIRST;
   PeakStructure::findMissingCars(condition, models, cars, peaks);
   PeakStructure::updateCarDistances(models, cars);
-  sort(cars.begin(), cars.end());
+  cars.sort();
 
   PeakStructure::fillPartialSides(models, cars);
 
@@ -782,7 +787,7 @@ void PeakStructure::updateImperfections(
 
 
 void PeakStructure::markImperfections(
-  const vector<CarDetect>& cars,
+  const list<CarDetect>& cars,
   const PeakPool& peaks,
   Imperfections& imperf) const
 {
@@ -876,7 +881,7 @@ void PeakStructure::printWheelCount(
 
 
 void PeakStructure::printCars(
-  const vector<CarDetect>& cars,
+  const list<CarDetect>& cars,
   const string& text) const
 {
   if (cars.empty())
@@ -885,11 +890,14 @@ void PeakStructure::printCars(
   cout << "Cars " << text << "\n";
   cout << cars.front().strHeaderFull();
 
-  for (unsigned cno = 0; cno < cars.size(); cno++)
+  unsigned cno = 0;
+  for (auto cit = cars.begin(); cit != cars.end(); cit++)
   {
-    cout << cars[cno].strFull(cno, offset);
-    if (cno+1 < cars.size() &&
-        cars[cno].endValue() != cars[cno+1].startValue())
+    cout << cit->strFull(cno++, offset);
+    auto ncit = next(cit);
+    if (ncit == cars.end())
+      break;
+    else if (cit->endValue() != ncit->startValue())
       cout << string(56, '.') << "\n";
   }
   cout << endl;

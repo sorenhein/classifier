@@ -588,7 +588,7 @@ void PeakDetect::reduce(
   minima.mark(peaks, offset);
 
   // Use the labels to extract the car structure from the peaks.
-  vector<CarDetect> cars;
+  list<CarDetect> cars;
   pstruct.markCars(models, cars, peaks, offset);
 
   pstruct.markImperfections(cars, peaks, imperf);

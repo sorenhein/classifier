@@ -1,7 +1,6 @@
 #ifndef TRAIN_PEAKSTRUCTURE_H
 #define TRAIN_PEAKSTRUCTURE_H
 
-#include <vector>
 #include <list>
 #include <string>
 
@@ -96,7 +95,7 @@ class PeakStructure
 
     void updateCarDistances(
       const CarModels& models,
-      vector<CarDetect>& cars) const;
+      list<CarDetect>& cars) const;
 
     void updateModels(
       CarModels& models,
@@ -104,30 +103,30 @@ class PeakStructure
 
     void updateCars(
       CarModels& models,
-      vector<CarDetect>& cars,
+      list<CarDetect>& cars,
       CarDetect& car) const;
 
     bool findCarsInInterval(
       const PeakCondition& condition,
       CarModels& models,
-      vector<CarDetect>& cars,
+      list<CarDetect>& cars,
       PeakPool& peaks) const;
 
     void findMissingCar(
       const PeakCondition& condition,
       CarModels& models,
-      vector<CarDetect>& cars,
+      list<CarDetect>& cars,
       PeakPool& peaks) const;
 
     void findMissingCars(
       PeakCondition& condition,
       CarModels& models,
-      vector<CarDetect>& cars,
+      list<CarDetect>& cars,
       PeakPool& peaks) const;
 
     void fillPartialSides(
       CarModels& models,
-      vector<CarDetect>& cars);
+      list<CarDetect>& cars);
 
     void seekGaps(
       PPciterator pitLeft,
@@ -139,7 +138,7 @@ class PeakStructure
 
     void findWholeCars(
       CarModels& models,
-      vector<CarDetect>& cars,
+      list<CarDetect>& cars,
       PeakPool& peaks) const;
 
     void updateImperfections(
@@ -156,7 +155,7 @@ class PeakStructure
       const string& text) const;
 
     void printCars(
-      const vector<CarDetect>& cars,
+      const list<CarDetect>& cars,
       const string& text) const;
 
     void printCarStats(
@@ -173,12 +172,12 @@ class PeakStructure
 
     void markCars(
       CarModels& models,
-      vector<CarDetect>& cars,
+      list<CarDetect>& cars,
       PeakPool& peaks,
       const unsigned offsetIn);
     
     void markImperfections(
-      const vector<CarDetect>& cars,
+      const list<CarDetect>& cars,
       const PeakPool& peaks,
       Imperfections& imperf) const;
 };
