@@ -413,7 +413,7 @@ void PeakStructure::updateCars(
 bool PeakStructure::findCarsInInterval(
   const PeakCondition& condition,
   CarModels& models,
-  list<CarDetect>& cars,
+  CarDetect& car,
   PeakPool& peaks) const
 {
   vector<Peak *> peakPtrs;
@@ -422,7 +422,7 @@ bool PeakStructure::findCarsInInterval(
   PeakProfile profile;
   profile.make(peakPtrs, condition.source);
 
-/* */
+/*
 if (! profile.looksLikeTwoCars() && profile.looksLong())
 {
   cout << "findCarsInterval: LONG " << peakPtrs.size() << "\n";
@@ -430,8 +430,9 @@ if (! profile.looksLikeTwoCars() && profile.looksLong())
     cout << pp->strQuality(offset);
   cout << "---\n\n";
 }
-/* */
+*/
 
+  /*
   if (profile.looksLikeTwoCars())
   {
     // This might become more general in the future.
@@ -449,6 +450,7 @@ if (! profile.looksLikeTwoCars() && profile.looksLong())
 
     return true;
   }
+  */
 
   PeakPtrVector peakPtrsNew;
   PeakPtrVector peakPtrsUnused;
@@ -463,12 +465,10 @@ if (! profile.looksLikeTwoCars() && profile.looksLong())
       if (peakPtrsNew.size() != recog.numWheels)
         THROW(ERR_ALGO_PEAK_STRUCTURE, "Not " + recog.text);
 
-      CarDetect car;
-
       if (PeakStructure::findNumberedWheeler(models, condition,
           peakPtrsNew, recog.numWheels, car))
       {
-        PeakStructure::updateCars(models, cars, car);
+        PeakStructure::updateModels(models, car);
         PeakStructure::updatePeaks(peakPtrsNew, peakPtrsUnused, 
           recog.numWheels);
         return true;
@@ -496,13 +496,13 @@ if (! profile.looksLikeTwoCars() && profile.looksLong())
 bool PeakStructure::findMissingCar(
   const PeakCondition& condition,
   CarModels& models,
-  list<CarDetect>& cars,
+  CarDetect& car,
   PeakPool& peaks) const
 {
   if (condition.start >= condition.end)
     return false;
 
-  if (PeakStructure::findCarsInInterval(condition, models, cars, peaks))
+  if (PeakStructure::findCarsInInterval(condition, models, car, peaks))
   {
     PeakStructure::printRange(condition, "Did " + condition.text);
     return true;
@@ -675,7 +675,8 @@ void PeakStructure::findWholeCars(
       CarDetect car;
       PeakStructure::findFourWheeler(models, condition, runPtr, car);
 
-      PeakStructure::updateCars(models, cars, car);
+      PeakStructure::updateModels(models, car);
+      cars.push_back(car);
       PeakStructure::markUpPeaks(runPtr, 4);
     }
 
@@ -713,16 +714,18 @@ void PeakStructure::markCars(
   list<PeakCondition> conditions;
   PeakStructure::makeConditions(cars, peaks, conditions);
 
+  CarDetect car;
   for (auto& condition: conditions)
   {
     cout << "Condition:\n" << condition.str(offset) << endl;
 
-    if (! PeakStructure::findMissingCar(condition, models, cars, peaks))
+    if (! PeakStructure::findMissingCar(condition, models, car, peaks))
       continue;
 
     // TODO TMP.  We should just keep cars sorted, and we should
     // fill in partial sides as we go along.
     PeakStructure::updateCarDistances(models, cars);
+    cars.push_back(car);
     cars.sort();
     PeakStructure::fillPartialSides(models, cars);
 

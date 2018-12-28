@@ -119,13 +119,13 @@ class PeakStructure
     bool findCarsInInterval(
       const PeakCondition& condition,
       CarModels& models,
-      list<CarDetect>& cars,
+      CarDetect& car,
       PeakPool& peaks) const;
 
     bool findMissingCar(
       const PeakCondition& condition,
       CarModels& models,
-      list<CarDetect>& cars,
+      CarDetect& car,
       PeakPool& peaks) const;
 
     void makeConditions(
