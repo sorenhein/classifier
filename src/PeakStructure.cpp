@@ -107,7 +107,7 @@ bool PeakStructure::matchesModel(
 bool PeakStructure::findLastTwoOfFourWheeler(
   const CarModels& models,
   const PeakCondition& condition,
-  const vector<Peak *>& peakPtrs,
+  const PeakPtrVector& peakPtrs,
   CarDetect& car) const
 {
   car.setLimits(condition.start, condition.end);
@@ -144,7 +144,7 @@ bool PeakStructure::findLastTwoOfFourWheeler(
 bool PeakStructure::findLastThreeOfFourWheeler(
   const CarModels& models,
   const PeakCondition& condition,
-  const vector<Peak *>& peakPtrs,
+  const PeakPtrVector& peakPtrs,
   CarDetect& car) const
 {
   car.setLimits(condition.start, condition.end);
@@ -180,7 +180,7 @@ bool PeakStructure::findLastThreeOfFourWheeler(
 bool PeakStructure::findFourWheeler(
   const CarModels& models,
   const PeakCondition& condition,
-  const vector<Peak *>& peakPtrs,
+  const PeakPtrVector& peakPtrs,
   CarDetect& car) const
 {
   car.setLimits(condition.start, condition.end);
@@ -208,7 +208,7 @@ bool PeakStructure::findFourWheeler(
 bool PeakStructure::findNumberedWheeler(
   const CarModels& models,
   const PeakCondition& condition,
-  const vector<Peak *>& peakPtrs,
+  const PeakPtrVector& peakPtrs,
   const unsigned numWheels,
   CarDetect& car) const
 {
@@ -227,7 +227,7 @@ bool PeakStructure::findNumberedWheeler(
 
 
 void PeakStructure::markUpPeaks(
-  vector<Peak *>& peakPtrsNew,
+  PeakPtrVector& peakPtrsNew,
   const unsigned numPeaks) const
 {
   if (numPeaks == 2)
@@ -253,7 +253,7 @@ void PeakStructure::markUpPeaks(
 }
 
 
-void PeakStructure::markDownPeaks(vector<Peak *>& peakPtrsUnused) const
+void PeakStructure::markDownPeaks(PeakPtrVector& peakPtrsUnused) const
 {
   for (auto& pp: peakPtrsUnused)
     pp->unselect();
@@ -261,8 +261,8 @@ void PeakStructure::markDownPeaks(vector<Peak *>& peakPtrsUnused) const
 
 
 void PeakStructure::updatePeaks(
-  vector<Peak *>& peakPtrsNew,
-  vector<Peak *>& peakPtrsUnused,
+  PeakPtrVector& peakPtrsNew,
+  PeakPtrVector& peakPtrsUnused,
   const unsigned numPeaks) const
 {
   PeakStructure::markUpPeaks(peakPtrsNew, numPeaks);
@@ -270,7 +270,7 @@ void PeakStructure::updatePeaks(
 }
 
 
-void PeakStructure::downgradeAllPeaks(vector<Peak *>& peakPtrs) const
+void PeakStructure::downgradeAllPeaks(PeakPtrVector& peakPtrs) const
 {
   for (auto& pp: peakPtrs)
   {
@@ -282,10 +282,10 @@ void PeakStructure::downgradeAllPeaks(vector<Peak *>& peakPtrs) const
 
 
 void PeakStructure::getWheelsByQuality(
-  const vector<Peak *>& peakPtrs,
+  const PeakPtrVector& peakPtrs,
   const PeakQuality quality,
-  vector<Peak *>& peakPtrsNew,
-  vector<Peak *>& peakPtrsUnused) const
+  PeakPtrVector& peakPtrsNew,
+  PeakPtrVector& peakPtrsUnused) const
 {
   typedef bool (Peak::*QualFncPtr)() const;
   QualFncPtr qptr;
@@ -314,7 +314,7 @@ void PeakStructure::getWheelsByQuality(
 
 
 void PeakStructure::splitPeaks(
-  const vector<Peak *>& peakPtrs,
+  const PeakPtrVector& peakPtrs,
   const PeakCondition& condition,
   PeakCondition& condition1,
   PeakCondition& condition2) const
@@ -380,8 +380,7 @@ void PeakStructure::updateModels(
   unsigned index;
   float distance;
 
-  if (// ! car.isPartial() &&
-      PeakStructure::matchesModel(models, car, index, distance))
+  if (PeakStructure::matchesModel(models, car, index, distance))
   {
     car.logStatIndex(index);
     car.logDistance(distance);
@@ -450,8 +449,8 @@ if (! profile.looksLikeTwoCars() && profile.looksLong())
     return true;
   }
 
-  vector<Peak *> peakPtrsNew;
-  vector<Peak *> peakPtrsUnused;
+  PeakPtrVector peakPtrsNew;
+  PeakPtrVector peakPtrsUnused;
 
   for (auto& recog: recognizers)
   {
@@ -573,8 +572,7 @@ void PeakStructure::fillPartialSides(
 
     const unsigned mid = 
       (car1.lastPeakPlus1() + car2.firstPeakMinus1()) / 2;
-cout << "FILLING " << car1.endValue() << ", " <<
-  car2.startValue() << ", " << mid << endl;
+
     car1.setEndAndGap(mid);
     car2.setStartAndGap(mid);
 
@@ -622,6 +620,19 @@ void PeakStructure::seekGaps(
 }
 
 
+bool PeakStructure::isWholeCar(const PeakPtrVector& pv) const
+{
+  bool isLeftPair = (pv[0]->isLeftWheel() && pv[1]->isRightWheel());
+  bool isRightPair = (pv[2]->isLeftWheel() && pv[3]->isRightWheel());
+  bool isLeftBogey = (pv[0]->isLeftBogey() && pv[1]->isLeftBogey());
+  bool isRightBogey = (pv[2]->isRightBogey() && pv[3]->isRightBogey());
+
+  // True if we have two pairs, and at least one of them is
+  // recognized as a sided bogey.
+  return (isLeftPair && isRightPair && (isLeftBogey || isRightBogey));
+}
+
+
 void PeakStructure::findWholeCars(
   CarModels& models,
   vector<CarDetect>& cars,
@@ -629,7 +640,7 @@ void PeakStructure::findWholeCars(
 {
   // Set up a sliding vector of running peaks.
   vector<PPiterator> runIter;
-  vector<Peak *> runPtr;
+  PeakPtrVector runPtr;
   PeakCondition condition;
 
   PPiterator candbegin = peaks.candbegin();
@@ -644,69 +655,15 @@ void PeakStructure::findWholeCars(
 
   while (cit != candend)
   {
-    const bool isLeftPair = 
-      (runPtr[0]->isLeftWheel() && runPtr[1]->isRightWheel());
-    const bool isRightPair = 
-      (runPtr[2]->isLeftWheel() && runPtr[3]->isRightWheel());
-    const bool isLeftBogey =
-        (runPtr[0]->isLeftBogey() && runPtr[1]->isLeftBogey());
-    const bool isRightBogey =
-        (runPtr[2]->isRightBogey() && runPtr[3]->isRightBogey());
-
-    // At least one of the bogeys must be fixed.
-    if (isLeftPair && isRightPair &&
-       (isLeftBogey || isRightBogey))
+    if (PeakStructure::isWholeCar(runPtr))
     {
-      // Fill out bogey.
-      if (! isLeftBogey)
-      {
-        runPtr[0]->markBogey(BOGEY_LEFT);
-        runPtr[1]->markBogey(BOGEY_LEFT);
-      }
+      PeakStructure::seekGaps(runIter[0], runIter[3], peaks, condition);
 
-      if (! isRightBogey)
-      {
-        runPtr[2]->markBogey(BOGEY_RIGHT);
-        runPtr[3]->markBogey(BOGEY_RIGHT);
-      }
-
-      // Fill out cars.
-      // cars.emplace_back(CarDetect());
-      // CarDetect& car = cars.back();
       CarDetect car;
+      PeakStructure::findFourWheeler(models, condition, runPtr, car);
 
-
-
-
-
-PeakStructure::seekGaps(runIter[0], runIter[3], peaks, condition);
-
-PeakStructure::findFourWheeler(models, condition, runPtr, car);
-
-        PeakStructure::updateCars(models, cars, car);
-        PeakStructure::markUpPeaks(runPtr, 4);
-
-/*
-if (! PeakStructure::findFourWheeler(models, condition, runPtr, car))
-{
-  cout << "ERROR: Initial car not plausible\n";
-  cout << "Car\n";
-  cout << car.strHeaderFull();
-  cout << car.strFull(0, offset);
-  cout << "Peaks " <<
-    runPtr[0]->getIndex() + offset << " - " <<
-    runPtr[1]->getIndex() + offset << " - " <<
-    runPtr[2]->getIndex() + offset << " - " <<
-    runPtr[3]->getIndex() + offset << "\n";
-  cout << "Model\n";
-  cout << models.str() << endl;
-}
-
-      car.logStatIndex(0); 
-
-      models += car;
-*/
-
+      PeakStructure::updateCars(models, cars, car);
+      PeakStructure::markUpPeaks(runPtr, 4);
     }
 
     for (unsigned i = 0; i < 3; i++)
@@ -730,26 +687,13 @@ void PeakStructure::markCars(
 {
   offset = offsetIn;
 
-  // Make room for initial model
-//models.append(); 
   PeakStructure::findWholeCars(models, cars, peaks);
+  PeakStructure::printCars(cars, "after whole cars");
 
   if (cars.size() == 0)
     THROW(ERR_NO_PEAKS, "No cars?");
 
-  PeakStructure::printCars(cars, "after whole cars");
-
-  // Fill out the partial cars.
-  // Actually we can't really do this yet.
-  // for (auto& car: cars)
-    // models.fillSides(car);
-
-  // TODO Could actually be multiple cars in vector, e.g. 
-  // same wheel gaps but different spacing between cars, 
-  // ICET_DEU_56_N.
-
   PeakStructure::updateCarDistances(models, cars);
-
   PeakStructure::printCars(cars, "before intra gaps");
 
   // Check open intervals.  Start with inner ones as they are complete.

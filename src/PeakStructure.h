@@ -47,49 +47,49 @@ class PeakStructure
     bool findLastTwoOfFourWheeler(
       const CarModels& models,
       const PeakCondition& condition,
-      const vector<Peak *>& peakPtrs,
+      const PeakPtrVector& peakPtrs,
       CarDetect& car) const;
 
     bool findLastThreeOfFourWheeler(
       const CarModels& models,
       const PeakCondition& condition,
-      const vector<Peak *>& peakPtrs,
+      const PeakPtrVector& peakPtrs,
       CarDetect& car) const;
 
     bool findFourWheeler(
       const CarModels& models,
       const PeakCondition& condition,
-      const vector<Peak *>& peakPtrs,
+      const PeakPtrVector& peakPtrs,
       CarDetect& car) const;
 
     bool findNumberedWheeler(
       const CarModels& models,
       const PeakCondition& condition,
-      const vector<Peak *>& peakPtrs,
+      const PeakPtrVector& peakPtrs,
       const unsigned numWheels,
       CarDetect& car) const;
 
     void markUpPeaks(
-      vector<Peak *>& peakPtrsNew,
+      PeakPtrVector& peakPtrsNew,
       const unsigned numPeaks) const;
 
-    void markDownPeaks(vector<Peak *>& peakPtrsUnused) const;
+    void markDownPeaks(PeakPtrVector& peakPtrsUnused) const;
 
     void updatePeaks(
-      vector<Peak *>& peakPtrsNew,
-      vector<Peak *>& peakPtrsUnused,
+      PeakPtrVector& peakPtrsNew,
+      PeakPtrVector& peakPtrsUnused,
       const unsigned numPeaks) const;
 
-    void downgradeAllPeaks(vector<Peak *>& peakPtrsNew) const;
+    void downgradeAllPeaks(PeakPtrVector& peakPtrsNew) const;
 
     void getWheelsByQuality(
-      const vector<Peak *>& peakPtrs,
+      const PeakPtrVector& peakPtrs,
       const PeakQuality quality,
-      vector<Peak *>& peakPtrsNew,
-      vector<Peak *>& peakPtrsUnused) const;
+      PeakPtrVector& peakPtrsNew,
+      PeakPtrVector& peakPtrsUnused) const;
 
     void splitPeaks(
-      const vector<Peak *>& peakPtrs,
+      const PeakPtrVector& peakPtrs,
       const PeakCondition& condition,
       PeakCondition& condition1,
       PeakCondition& condition2) const;
@@ -134,6 +134,8 @@ class PeakStructure
       PPciterator pitRight,
       const PeakPool& peaks,
       PeakCondition& condition) const;
+
+    bool isWholeCar(const PeakPtrVector& pv) const;
 
     void findWholeCars(
       CarModels& models,
