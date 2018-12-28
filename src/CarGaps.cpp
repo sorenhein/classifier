@@ -148,6 +148,12 @@ unsigned CarGaps::leftGapValue() const
 }
 
 
+unsigned CarGaps::midGapValue() const
+{
+  return midGap;
+}
+
+
 unsigned CarGaps::rightGapValue() const
 {
   return rightGap;

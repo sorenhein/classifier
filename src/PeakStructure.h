@@ -27,6 +27,15 @@ class PeakStructure
       bool leftGapPresent;
       bool rightGapPresent;
       string text;
+
+      string str(const unsigned off = 0)
+      {
+        return text + ": " +
+          (leftGapPresent ? "(gap)" : "(no gap)") + " " +
+          to_string(start + off) + "-" +
+          to_string(end + off) + " " +
+          (rightGapPresent ? "(gap)" : "(no gap)") + "\n";
+      };
     };
 
 
@@ -112,17 +121,16 @@ class PeakStructure
       list<CarDetect>& cars,
       PeakPool& peaks) const;
 
-    void findMissingCar(
+    bool findMissingCar(
       const PeakCondition& condition,
       CarModels& models,
       list<CarDetect>& cars,
       PeakPool& peaks) const;
 
-    void findMissingCars(
-      PeakCondition& condition,
-      CarModels& models,
-      list<CarDetect>& cars,
-      PeakPool& peaks) const;
+    void makeConditions(
+      const list<CarDetect>& cars,
+      const PeakPool& peaks,
+      list<PeakCondition>& conditions) const;
 
     void fillPartialSides(
       CarModels& models,

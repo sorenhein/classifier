@@ -67,6 +67,7 @@ class CarGaps
       const unsigned numRightGap);
 
     unsigned leftGapValue() const;
+    unsigned midGapValue() const;
     unsigned rightGapValue() const;
 
     bool hasLeftGap() const;

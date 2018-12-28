@@ -156,6 +156,13 @@ const unsigned CarDetect::endValue() const
     return CarDetect::lastPeakPlus1();
 }
 
+// TODO TMP
+
+const unsigned CarDetect::getMidGap() const
+{
+  return gaps.midGapValue();
+}
+
 
 const unsigned CarDetect::firstPeakMinus1() const
 {

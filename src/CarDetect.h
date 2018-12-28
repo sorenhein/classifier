@@ -84,6 +84,8 @@ class CarDetect
 
     const unsigned firstPeakMinus1() const;
     const unsigned lastPeakPlus1() const;
+    // TODO TMP
+    const unsigned getMidGap() const;
 
     const CarPeaksPtr& getPeaksPtr() const;
 

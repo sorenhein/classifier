@@ -493,70 +493,67 @@ if (! profile.looksLikeTwoCars() && profile.looksLong())
 }
 
 
-void PeakStructure::findMissingCar(
+bool PeakStructure::findMissingCar(
   const PeakCondition& condition,
   CarModels& models,
   list<CarDetect>& cars,
   PeakPool& peaks) const
 {
   if (condition.start >= condition.end)
-    return;
+    return false;
 
   if (PeakStructure::findCarsInInterval(condition, models, cars, peaks))
+  {
     PeakStructure::printRange(condition, "Did " + condition.text);
+    return true;
+  }
   else
+  {
     PeakStructure::printRange(condition, "Didn't do " + condition.text);
+    return false;
+  }
 }
 
 
-void PeakStructure::findMissingCars(
-  PeakCondition& condition,
-  CarModels& models,
-  list<CarDetect>& cars,
-  PeakPool& peaks) const
+void PeakStructure::makeConditions(
+  const list<CarDetect>& cars,
+  const PeakPool& peaks,
+  list<PeakCondition>& conditions) const
 {
-  if (condition.source == PEAK_SOURCE_FIRST)
-  {
-    condition.start = peaks.firstCandIndex();
-    condition.end = cars.front().startValue();
-    condition.leftGapPresent = false;
-    condition.rightGapPresent = cars.front().hasLeftGap();
-    // condition.rightGapPresent = true;
-    condition.text = "first whole-car";
+  // There may be a car in front.
+  conditions.emplace_back(PeakCondition());
+  PeakCondition * condition = &conditions.back();
 
-    PeakStructure::findMissingCar(condition, models, cars, peaks);
+  condition->start = peaks.firstCandIndex();
+  condition->end = cars.front().startValue();
+  condition->leftGapPresent = false;
+  condition->rightGapPresent = cars.front().hasLeftGap();
+  condition->text = "first whole-car";
+
+  // There may be inner cars missing.
+  for (auto cit = cars.begin(); cit != prev(cars.end()); cit++)
+  {
+    auto ncit = next(cit);
+    conditions.emplace_back(PeakCondition());
+    condition = &conditions.back();
+
+    condition->start = cit->endValue();
+    condition->end = ncit->startValue();
+    condition->leftGapPresent = cit->hasRightGap();
+    condition->rightGapPresent = ncit->hasLeftGap();
+    condition->text = "intra-gap";
   }
-  else if (condition.source == PEAK_SOURCE_INNER)
-  {
-    condition.text = "intra-gap";
 
-    if (cars.size() < 2)
-      return;
+  // There may be a car in back.
+  conditions.emplace_back(PeakCondition());
+  condition = &conditions.back();
 
-    // As cars grows in the loop
-    auto citLast = prev(cars.end());
-    for (auto cit = cars.begin(); cit != citLast; cit++)
-    {
-      auto ncit = next(cit);
-      condition.start = cit->endValue();
-      condition.end = ncit->startValue();
-      condition.leftGapPresent = cit->hasRightGap();
-      condition.rightGapPresent = ncit->hasLeftGap();
-
-      PeakStructure::findMissingCar(condition, models, cars, peaks);
-    }
-  }
-  else if (condition.source == PEAK_SOURCE_LAST)
-  {
+  condition->start = cars.back().endValue();
+  condition->end = peaks.lastCandIndex();
     // TODO leftGapPresent is not a given, either.
-    condition.start = cars.back().endValue();
-    condition.end = peaks.lastCandIndex();
-    condition.leftGapPresent = true;
-    condition.rightGapPresent = false;
-    condition.text = "last whole-car";
-
-    PeakStructure::findMissingCar(condition, models, cars, peaks);
-  }
+  condition->leftGapPresent = true;
+  condition->rightGapPresent = false;
+  condition->text = "last whole-car";
 }
 
 
@@ -576,8 +573,15 @@ void PeakStructure::fillPartialSides(
     if (car1.hasRightGap() || car2.hasLeftGap())
       continue;
 
-    const unsigned mid = 
-      (car1.lastPeakPlus1() + car2.firstPeakMinus1()) / 2;
+    // TODO For now.  But later on we will know which two cars were
+    // affected, and we don't have to look for them.
+
+    const unsigned lpp1 = car1.lastPeakPlus1();
+    const unsigned fpm1 = car2.firstPeakMinus1();
+    if (fpm1 - lpp1 > car1.getMidGap())
+      continue;
+
+    const unsigned mid = (lpp1 + fpm1) / 2;
 
     car1.setEndAndGap(mid);
     car2.setStartAndGap(mid);
@@ -702,48 +706,26 @@ void PeakStructure::markCars(
   PeakStructure::updateCarDistances(models, cars);
   PeakStructure::printCars(cars, "before intra gaps");
 
-  // Check open intervals.  Start with inner ones as they are complete.
+  // Check open intervals (conditions).
+  list<PeakCondition> conditions;
+  PeakStructure::makeConditions(cars, peaks, conditions);
 
-  PeakCondition condition;
+  for (auto& condition: conditions)
+  {
+    cout << "Condition:\n" << condition.str(offset) << endl;
 
-  condition.source = PEAK_SOURCE_INNER;
-  PeakStructure::findMissingCars(condition, models, cars, peaks);
-  PeakStructure::updateCarDistances(models, cars);
-  cars.sort();
+    PeakStructure::findMissingCar(condition, models, cars, peaks);
 
-  PeakStructure::fillPartialSides(models, cars);
+    // TODO TMP.  We should just keep cars sorted, and we should
+    // fill in partial sides as we go along.
+    PeakStructure::updateCarDistances(models, cars);
+    cars.sort();
+    PeakStructure::fillPartialSides(models, cars);
 
-  PeakStructure::printWheelCount(peaks, "Counting");
-  PeakStructure::printCars(cars, "after whole-car gaps");
-  PeakStructure::printCarStats(models, "after whole-car inner gaps");
-
-  condition.source = PEAK_SOURCE_LAST;
-  PeakStructure::findMissingCars(condition, models, cars, peaks);
-  PeakStructure::updateCarDistances(models, cars);
-
-  PeakStructure::printWheelCount(peaks, "Counting");
-  PeakStructure::printCars(cars, "after trailing whole car");
-  PeakStructure::printCarStats(models, "after trailing whole car");
-
-  condition.source = PEAK_SOURCE_FIRST;
-  PeakStructure::findMissingCars(condition, models, cars, peaks);
-  PeakStructure::updateCarDistances(models, cars);
-  cars.sort();
-
-  PeakStructure::fillPartialSides(models, cars);
-
-  PeakStructure::printWheelCount(peaks, "Counting");
-  PeakStructure::printCars(cars, "after leading whole car");
-  PeakStructure::printCarStats(models, "after leading whole car");
-
-
-  // TODO Check peak quality and deviations in carStats[0].
-  // Detect inner and open intervals that are not done.
-  // Could be carStats[0] with the right length etc, but missing peaks.
-  // Or could be a new type of car (or multiple cars).
-  // Ends come later.
-
-  PeakStructure::printWheelCount(peaks, "Returning");
+    PeakStructure::printWheelCount(peaks, "Counting");
+    PeakStructure::printCars(cars, "after condition");
+    PeakStructure::printCarStats(models, "after after condition");
+  }
 }
 
 
