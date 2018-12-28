@@ -503,36 +503,29 @@ void PeakStructure::makeConditions(
 
 void PeakStructure::fillPartialSides(
   CarModels& models,
-  list<CarDetect>& cars)
+  CarDetect& car1,
+  CarDetect& car2)
 {
   // Some cars from the initial findWholeCars() run may have been
   // partial (i.e., missing a side gap) on either or both sides.
   // Now that we have filled in the inner cars, we can guess those
   // gaps and also check the partial car types.
-  
-  for (auto cit = cars.begin(); cit != prev(cars.end()); cit++)
-  {
-    CarDetect& car1 = * cit;
-    CarDetect& car2 = * next(cit);
-    if (car1.hasRightGap() || car2.hasLeftGap())
-      continue;
 
-    // TODO For now.  But later on we will know which two cars were
-    // affected, and we don't have to look for them.
+  if (car1.hasRightGap() || car2.hasLeftGap())
+    return;
 
-    const unsigned lpp1 = car1.lastPeakPlus1();
-    const unsigned fpm1 = car2.firstPeakMinus1();
-    if (fpm1 - lpp1 > car1.getMidGap())
-      continue;
+  const unsigned lpp1 = car1.lastPeakPlus1();
+  const unsigned fpm1 = car2.firstPeakMinus1();
+  if (fpm1 - lpp1 > car1.getMidGap())
+    return;
 
-    const unsigned mid = (lpp1 + fpm1) / 2;
+  const unsigned mid = (lpp1 + fpm1) / 2;
 
-    car1.setEndAndGap(mid);
-    car2.setStartAndGap(mid);
+  car1.setEndAndGap(mid);
+  car2.setStartAndGap(mid);
 
-    PeakStructure::updateModels(models, car1);
-    PeakStructure::updateModels(models, car2);
-  }
+  PeakStructure::updateModels(models, car1);
+  PeakStructure::updateModels(models, car2);
 }
 
 
@@ -663,12 +656,16 @@ void PeakStructure::markCars(
     if (! PeakStructure::findCarByQuality(condition, models, car, peaks))
       continue;
 
-    // TODO TMP.  We should fill in partial sides as we go along.
     PeakStructure::updateModels(models, car);
     PeakStructure::updateCarDistances(models, cars);
-    auto newcit = cars.insert(condition.carAfter, car);
 
-    PeakStructure::fillPartialSides(models, cars);
+    auto newcit = cars.insert(condition.carAfter, car);
+    if (newcit != cars.begin())
+      PeakStructure::fillPartialSides(models, * prev(newcit), * newcit);
+
+    auto nextcit = next(newcit);
+    if (nextcit != cars.end())
+      PeakStructure::fillPartialSides(models, * newcit, * nextcit);
 
     PeakStructure::printWheelCount(peaks, "Counting");
     PeakStructure::printCars(cars, "after condition");

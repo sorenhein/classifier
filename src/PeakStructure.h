@@ -125,7 +125,8 @@ class PeakStructure
 
     void fillPartialSides(
       CarModels& models,
-      list<CarDetect>& cars);
+      CarDetect& car1,
+      CarDetect& car2);
 
     void seekGaps(
       PPciterator pitLeft,
