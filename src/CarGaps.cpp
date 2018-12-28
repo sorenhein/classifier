@@ -244,7 +244,7 @@ bool CarGaps::checkTooShort(
 
 bool CarGaps::sideGapsPlausible(const CarGaps& cgref) const
 {
-  if (leftGapSet)
+  if (leftGapSet && cgref.leftGapSet)
   {
     if (! CarGaps::checkTwoSided(leftGap, cgref.leftGap, 
         SIDE_GAP_FACTOR, "left gap"))
@@ -255,7 +255,7 @@ bool CarGaps::sideGapsPlausible(const CarGaps& cgref) const
       return false;
   }
 
-  if (rightGapSet)
+  if (rightGapSet && cgref.rightGapSet)
   {
     if (! CarGaps::checkTwoSided(rightGap, cgref.rightGap, 
         SIDE_GAP_FACTOR, "right gap"))

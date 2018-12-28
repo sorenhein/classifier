@@ -546,14 +546,53 @@ void PeakStructure::findMissingCars(
 }
 
 
+void PeakStructure::seekGaps(
+  PPciterator pitLeft,
+  PPciterator pitRight,
+  const PeakPool& peaks,
+  PeakCondition& condition) const
+{
+  // Check for gap in front of pitLeft.
+  condition.leftGapPresent = false;
+  condition.start = 0;
+  if (pitLeft != peaks.candcbegin())
+  {
+    Peak const * prevPtr = * prev(pitLeft);
+    if (prevPtr->isBogey())
+    {
+      // This rounds to make the cars abut.
+      const unsigned d = (* pitLeft)->getIndex() - prevPtr->getIndex();
+      condition.start = (* pitLeft)->getIndex() + (d/2) - d;
+      condition.leftGapPresent = true;
+    }
+  }
+
+  // Check for gap after pitRight.
+  condition.rightGapPresent = false;
+  condition.end = 0;
+  auto postIter = next(pitRight);
+  if (postIter != peaks.candcend())
+  {
+    Peak const * nextPtr = * postIter;
+    if (nextPtr->isBogey())
+    {
+      condition.end = (* pitRight)->getIndex() + 
+        (nextPtr->getIndex() - (* pitRight)->getIndex()) / 2;
+      condition.rightGapPresent = true;
+    }
+  }
+}
+
+
 void PeakStructure::findWholeCars(
   CarModels& models,
   vector<CarDetect>& cars,
   PeakPool& peaks) const
 {
   // Set up a sliding vector of running peaks.
-  vector<list<Peak *>::iterator> runIter;
+  vector<PPiterator> runIter;
   vector<Peak *> runPtr;
+  PeakCondition condition;
 
   PPiterator candbegin = peaks.candbegin();
   PPiterator candend = peaks.candend();
@@ -597,6 +636,7 @@ void PeakStructure::findWholeCars(
       cars.emplace_back(CarDetect());
       CarDetect& car = cars.back();
 
+      /* 
       car.logPeakPointers(
         runPtr[0], runPtr[1], runPtr[2], runPtr[3]);
 
@@ -604,9 +644,29 @@ void PeakStructure::findWholeCars(
         runPtr[1]->getIndex() - runPtr[0]->getIndex(),
         runPtr[2]->getIndex() - runPtr[1]->getIndex(),
         runPtr[3]->getIndex() - runPtr[2]->getIndex());
+      */
+
+
+PeakStructure::seekGaps(runIter[0], runIter[3], peaks, condition);
+
+if (! PeakStructure::findFourWheeler(models, condition, runPtr, car))
+{
+  cout << "ERROR: Initial car not plausible\n";
+  cout << "Car\n";
+  cout << car.strHeaderFull();
+  cout << car.strFull(0, offset);
+  cout << "Peaks " <<
+    runPtr[0]->getIndex() + offset << " - " <<
+    runPtr[1]->getIndex() + offset << " - " <<
+    runPtr[2]->getIndex() + offset << " - " <<
+    runPtr[3]->getIndex() + offset << "\n";
+  cout << "Model\n";
+  cout << models.str() << endl;
+}
 
       car.logStatIndex(0); 
 
+/*
       // Check for gap in front of run[0].
       unsigned leftGap = 0;
       if (runIter[0] != candbegin)
@@ -637,6 +697,7 @@ void PeakStructure::findWholeCars(
         cout << "Could not fill out any limits: " <<
           leftGap << ", " << rightGap << endl;
       }
+*/
 
       models += car;
 

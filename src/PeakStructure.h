@@ -121,6 +121,12 @@ class PeakStructure
       vector<CarDetect>& cars,
       PeakPool& peaks) const;
 
+    void seekGaps(
+      PPciterator pitLeft,
+      PPciterator pitRight,
+      const PeakPool& peaks,
+      PeakCondition& condition) const;
+
     void findWholeCars(
       CarModels& models,
       vector<CarDetect>& cars,
