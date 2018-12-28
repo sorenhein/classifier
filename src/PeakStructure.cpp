@@ -400,17 +400,7 @@ void PeakStructure::updateModels(
 }
 
 
-void PeakStructure::updateCars(
-  CarModels& models,
-  list<CarDetect>& cars,
-  CarDetect& car) const
-{
-  PeakStructure::updateModels(models, car);
-  cars.push_back(car);
-}
-
-
-bool PeakStructure::findCarsInInterval(
+bool PeakStructure::findCarByQuality(
   const PeakCondition& condition,
   CarModels& models,
   CarDetect& car,
@@ -421,40 +411,14 @@ bool PeakStructure::findCarsInInterval(
 
   PeakProfile profile;
   profile.make(peakPtrs, condition.source);
-
-/*
-if (! profile.looksLikeTwoCars() && profile.looksLong())
-{
-  cout << "findCarsInterval: LONG " << peakPtrs.size() << "\n";
-  for (auto pp: peakPtrs)
-    cout << pp->strQuality(offset);
-  cout << "---\n\n";
-}
-*/
-
-  /*
-  if (profile.looksLikeTwoCars())
+  if (profile.looksEmpty())
   {
-    // This might become more general in the future.
-    PeakCondition condition1, condition2;
-    PeakStructure::splitPeaks(peakPtrs, condition, 
-      condition1, condition2);
-
-    if (! PeakStructure::findCarsInInterval(condition1, models, 
-        cars, peaks))
-      return false;
-
-    if (! PeakStructure::findCarsInInterval(condition2, models, 
-        cars, peaks))
-      return false;
-
-    return true;
+    PeakStructure::downgradeAllPeaks(peakPtrs);
+    return false;
   }
-  */
 
   PeakPtrVector peakPtrsNew;
   PeakPtrVector peakPtrsUnused;
-
   for (auto& recog: recognizers)
   {
     if (profile.match(recog))
@@ -482,12 +446,6 @@ if (! profile.looksLikeTwoCars() && profile.looksLong())
     }
   }
 
-  if (profile.looksEmpty())
-  {
-    PeakStructure::downgradeAllPeaks(peakPtrs);
-    return true;
-  }
-
   cout << profile.str();
   return false;
 }
@@ -502,7 +460,7 @@ bool PeakStructure::findMissingCar(
   if (condition.start >= condition.end)
     return false;
 
-  if (PeakStructure::findCarsInInterval(condition, models, car, peaks))
+  if (PeakStructure::findCarByQuality(condition, models, car, peaks))
   {
     PeakStructure::printRange(condition, "Did " + condition.text);
     return true;

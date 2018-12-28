@@ -111,12 +111,7 @@ class PeakStructure
       CarModels& models,
       CarDetect& car) const;
 
-    void updateCars(
-      CarModels& models,
-      list<CarDetect>& cars,
-      CarDetect& car) const;
-
-    bool findCarsInInterval(
+    bool findCarByQuality(
       const PeakCondition& condition,
       CarModels& models,
       CarDetect& car,
