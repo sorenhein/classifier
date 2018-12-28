@@ -432,7 +432,6 @@ bool PeakStructure::findCarByQuality(
       if (PeakStructure::findNumberedWheeler(models, condition,
           peakPtrsNew, recog.numWheels, car))
       {
-        PeakStructure::updateModels(models, car);
         PeakStructure::updatePeaks(peakPtrsNew, peakPtrsUnused, 
           recog.numWheels);
         return true;
@@ -682,6 +681,7 @@ void PeakStructure::markCars(
 
     // TODO TMP.  We should just keep cars sorted, and we should
     // fill in partial sides as we go along.
+    PeakStructure::updateModels(models, car);
     PeakStructure::updateCarDistances(models, cars);
     cars.push_back(car);
     cars.sort();
