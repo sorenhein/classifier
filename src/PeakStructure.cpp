@@ -154,7 +154,8 @@ bool PeakStructure::findLastThreeOfFourWheeler(
   const unsigned peakNo2 = peakPtrs[2]->getIndex();
 
   car.logCore(0, peakNo1 - peakNo0, peakNo2 - peakNo1);
-  car.logRightGap(condition.end - peakNo2);
+  if (condition.rightGapPresent)
+    car.logRightGap(condition.end - peakNo2);
 
   car.logPeakPointers(
     nullptr, peakPtrs[0], peakPtrs[1], peakPtrs[2]);
@@ -519,15 +520,14 @@ void PeakStructure::findMissingCars(
     condition.start = peaks.firstCandIndex();
     condition.end = cars.front().startValue();
     condition.leftGapPresent = false;
-    condition.rightGapPresent = true;
+    condition.rightGapPresent = cars.front().hasLeftGap();
+    // condition.rightGapPresent = true;
     condition.text = "first whole-car";
 
     PeakStructure::findMissingCar(condition, models, cars, peaks);
   }
   else if (condition.source == PEAK_SOURCE_INNER)
   {
-    // condition.leftGapPresent = true;
-    // condition.rightGapPresent = true;
     condition.text = "intra-gap";
 
     const unsigned csize = cars.size(); // As cars grows in the loop
@@ -543,6 +543,7 @@ void PeakStructure::findMissingCars(
   }
   else if (condition.source == PEAK_SOURCE_LAST)
   {
+    // TODO leftGapPresent is not a given, either.
     condition.start = cars.back().endValue();
     condition.end = peaks.lastCandIndex();
     condition.leftGapPresent = true;
@@ -723,6 +724,8 @@ void PeakStructure::markCars(
   PeakStructure::findMissingCars(condition, models, cars, peaks);
   PeakStructure::updateCarDistances(models, cars);
   sort(cars.begin(), cars.end());
+
+  PeakStructure::fillPartialSides(models, cars);
 
   PeakStructure::printWheelCount(peaks, "Counting");
   PeakStructure::printCars(cars, "after leading whole car");
