@@ -129,7 +129,7 @@ class PeakStructure
     bool fillPartialSides(
       CarModels& models,
       CarDetect& car1,
-      CarDetect& car2);
+      CarDetect& car2) const;
 
     void seekGaps(
       PPciterator pitLeft,
@@ -143,6 +143,13 @@ class PeakStructure
       CarModels& models,
       list<CarDetect>& cars,
       PeakPool& peaks) const;
+
+    list<PeakCondition>::iterator updateConditions(
+      CarModels& models,
+      const list<CarDetect>& cars,
+      const list<CarDetect>::iterator& carIt,
+      list<PeakCondition>::iterator& cit,
+      list<PeakCondition>& conditions) const;
 
     void updateImperfections(
       const unsigned num,

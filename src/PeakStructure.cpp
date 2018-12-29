@@ -45,6 +45,7 @@ void PeakStructure::reset()
 {
 }
 
+// TODO Rename PeakCondition to PeakRange (range)
 
 void PeakStructure::setCarRecognizers()
 {
@@ -645,7 +646,7 @@ void PeakStructure::makeConditions(
 bool PeakStructure::fillPartialSides(
   CarModels& models,
   CarDetect& car1,
-  CarDetect& car2)
+  CarDetect& car2) const
 {
   // Some cars from the initial findWholeCars() run may have been
   // partial (i.e., missing a side gap) on either or both sides.
@@ -769,6 +770,51 @@ void PeakStructure::findWholeCars(
 }
 
 
+list<PeakStructure::PeakCondition>::iterator PeakStructure::updateConditions(
+  CarModels& models,
+  const list<CarDetect>& cars,
+  const list<CarDetect>::iterator& carIt,
+  list<PeakCondition>::iterator& cit,
+  list<PeakCondition>& conditions) const
+{
+  bool hasLeftGap = false;
+  if (carIt != cars.begin())
+    hasLeftGap = 
+      PeakStructure::fillPartialSides(models, * prev(carIt), * carIt);
+
+  bool hasRightGap = false;
+  auto nextCarIt = next(carIt);
+  if (nextCarIt != cars.end())
+    hasRightGap =
+      PeakStructure::fillPartialSides(models, * carIt, * nextCarIt);
+
+  PeakCondition& condition = * cit;
+
+  if (hasLeftGap)
+  {
+    if (hasRightGap)
+      return conditions.erase(cit);
+    else
+    {
+      condition.start = (* carIt).endValue();
+      return ++cit;
+    }
+  }
+  else if (hasRightGap)
+  {
+    condition.end = (* carIt).startValue();
+    return ++cit;
+  }
+  else
+  {
+    PeakCondition conditionNew = condition;
+    condition.start = (* carIt).endValue();
+    conditionNew.end = (* carIt).startValue();
+    return conditions.insert(cit, conditionNew);
+  }
+}
+
+
 void PeakStructure::markCars(
   CarModels& models,
   list<CarDetect>& cars,
@@ -790,32 +836,46 @@ void PeakStructure::markCars(
   list<PeakCondition> conditions;
   PeakStructure::makeConditions(cars, peaks, conditions);
 
+  // TODO Actually, keep track in condition of whether it has
+  // already failed.  No need to redo then.
+
   CarDetect car;
-  for (auto& condition: conditions)
+  bool changeFlag = true;
+  while (changeFlag && ! conditions.empty())
   {
-    cout << "Condition:\n" << condition.str(offset) << endl;
+    changeFlag = false;
+    auto cit = conditions.begin();
+    while (cit != conditions.end())
+    {
+      PeakCondition& condition = * cit;
+      cout << "Condition:\n" << condition.str(offset) << endl;
 
-    if (! PeakStructure::findCarByQuality(condition, models, car, peaks))
-      continue;
+      if (! PeakStructure::findCarByQuality(condition, models, car, peaks))
+      {
+        cit++;
+        continue;
+      }
 
-    PeakStructure::updateModels(models, car);
-    PeakStructure::updateCarDistances(models, cars);
+      PeakStructure::updateModels(models, car);
+      PeakStructure::updateCarDistances(models, cars);
+      changeFlag = true;
 
-    bool hasLeftGap = false;
-    auto newcit = cars.insert(condition.carAfter, car);
-    if (newcit != cars.begin())
-      hasLeftGap = 
-        PeakStructure::fillPartialSides(models, * prev(newcit), * newcit);
+      auto newcit = cars.insert(condition.carAfter, car);
+      cit = PeakStructure::updateConditions(models, cars, newcit, cit,
+        conditions);
 
-    bool hasRightGap = false;
-    auto nextcit = next(newcit);
-    if (nextcit != cars.end())
-      hasRightGap =
-        PeakStructure::fillPartialSides(models, * newcit, * nextcit);
+      PeakStructure::printWheelCount(peaks, "Counting");
+      PeakStructure::printCars(cars, "after condition");
+      PeakStructure::printCarStats(models, "after after condition");
+    }
+  }
 
-    PeakStructure::printWheelCount(peaks, "Counting");
-    PeakStructure::printCars(cars, "after condition");
-    PeakStructure::printCarStats(models, "after after condition");
+  if (! conditions.empty())
+  {
+    cout << "WARNING: " << conditions.size() << " conditions left\n";
+    for (auto& condition: conditions)
+      cout << condition.str(offset);
+    cout << endl;
   }
 }
 
