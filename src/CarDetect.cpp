@@ -190,6 +190,35 @@ const CarPeaksPtr& CarDetect::getPeaksPtr() const
 }
 
 
+void CarDetect::getCarPoints(list<unsigned>& carPoints) const
+{
+  carPoints.clear();
+
+  // Left edge of the car.
+  carPoints.push_back(0);
+
+  // Left bogey, left wheel.
+  unsigned v = gaps.leftGapValue();
+  carPoints.push_back(v);
+
+  // Left bogey, right wheel.
+  v += gaps.leftBogeyGapValue();
+  carPoints.push_back(v);
+
+  // Right bogey, left wheel.
+  v += gaps.midGapValue();
+  carPoints.push_back(v);
+
+  // Right bogey, right wheel.
+  v += gaps.rightBogeyGapValue();
+  carPoints.push_back(v);
+
+  // Right edge of the car.
+  v += gaps.rightGapValue();
+  carPoints.push_back(v);
+}
+
+
 bool CarDetect::hasLeftGap() const
 {
   return gaps.hasLeftGap();

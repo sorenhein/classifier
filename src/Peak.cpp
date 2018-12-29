@@ -446,6 +446,19 @@ bool Peak::isBogey() const
 }
 
 
+bool Peak::fitsType(
+  const BogeyType bogeyType,
+  const WheelType wheelType) const
+{
+  if (bogeySide != BOGEY_SIZE && bogeySide != bogeyType)
+    return false;
+  else if (wheelFlag && wheelSide != wheelType)
+    return false;
+  else
+    return true;
+}
+
+
 bool Peak::greatQuality() const
 {
   // TODO #define

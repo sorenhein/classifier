@@ -54,6 +54,10 @@ class CarModels
 
     bool fillSides(CarDetect& car) const;
 
+    void getCar(
+      CarDetect& car,
+      const unsigned index) const;
+
     bool findClosest(
       const CarDetect& car,
       float& distance,

@@ -14,6 +14,21 @@
 #define GREAT_CAR_DISTANCE 1.5f
 
 
+struct WheelSpec
+{
+  BogeyType bogey;
+  WheelType wheel;
+};
+
+static const vector<WheelSpec> wheelSpecs =
+{
+  {BOGEY_LEFT, WHEEL_LEFT},
+  {BOGEY_LEFT, WHEEL_RIGHT},
+  {BOGEY_RIGHT, WHEEL_LEFT},
+  {BOGEY_RIGHT, WHEEL_RIGHT}
+};
+
+
 PeakStructure::PeakStructure()
 {
   PeakStructure::reset();
@@ -105,6 +120,12 @@ bool PeakStructure::matchesModel(
   else
     return (distance <= GREAT_CAR_DISTANCE);
 }
+
+
+// TODO Combine these methods more closely
+// - Setting up peaks
+// - Checking them
+// Move some of it to CarDetect?
 
 
 bool PeakStructure::findLastTwoOfFourWheeler(
@@ -234,6 +255,7 @@ void PeakStructure::markUpPeaks(
   PeakPtrVector& peakPtrsNew,
   const unsigned numPeaks) const
 {
+  // TODO Use wheelSpecs
   if (numPeaks == 2)
   {
     // The assumption is that we missed the first two peaks.
@@ -300,45 +322,6 @@ void PeakStructure::getWheelsByQuality(
 }
 
 
-void PeakStructure::splitPeaks(
-  const PeakPtrVector& peakPtrs,
-  const PeakCondition& condition,
-  PeakCondition& condition1,
-  PeakCondition& condition2) const
-{
-  vector<unsigned> indices;
-  for (unsigned i = 0; i < peakPtrs.size(); i++)
-  {
-    Peak * pp = peakPtrs[i];
-    if (pp->isLeftWheel() || 
-        pp->isRightWheel() ||
-        pp->goodQuality())
-    {
-      indices.push_back(i);
-    }
-  }
-
-  if (indices.size() != 8)
-    THROW(ERR_ALGO_PEAK_STRUCTURE, "Expected 8 peaks in two cars");
-
-  const unsigned middle = 
-    (peakPtrs[indices[3]]->getIndex() + 
-     peakPtrs[indices[4]]->getIndex()) / 2;
-
-  condition1.source = PEAK_SOURCE_INNER;
-  condition1.start = condition.start;
-  condition1.end = middle;
-  condition1.leftGapPresent  = condition.leftGapPresent;
-  condition1.rightGapPresent  = true;
-
-  condition2.source = PEAK_SOURCE_LAST;
-  condition2.start = middle;
-  condition2.end = condition.end;
-  condition2.leftGapPresent  = true;
-  condition2.rightGapPresent  = condition.rightGapPresent;
-}
-
-
 void PeakStructure::updateCarDistances(
   const CarModels& models,
   list<CarDetect>& cars) const
@@ -386,12 +369,17 @@ void PeakStructure::updateModels(
 }
 
 
+// TODO Have a mode to get abutting car at front or back of condition,
+// or maybe even in the middle.
+
+
 bool PeakStructure::findCarByQuality(
   const PeakCondition& condition,
   CarModels& models,
   CarDetect& car,
   PeakPool& peaks) const
 {
+  // TODO IS this needed?
   if (condition.start >= condition.end)
     return false;
 
@@ -442,6 +430,173 @@ bool PeakStructure::findCarByQuality(
 }
 
 
+bool PeakStructure::getClosest(
+  const list<unsigned>& carPoints,
+  const PeakPool& peaks,
+  const PeakFncPtr& fptr,
+  PPciterator& pit,
+  PeakPtrVector& closestPeaks,
+  PeakPtrVector& skippedPeaks) const
+{
+  skippedPeaks.clear();
+  closestPeaks.clear();
+  closestPeaks.push_back(* pit);
+  const unsigned pstart = (* pit)->getIndex() + offset;
+  
+  auto cit = carPoints.begin();
+  cit++;
+  // pit is assumed to line up with carPoints[1], the first wheel.
+  const unsigned cstart = * cit;
+  cit++;
+  // Start from the second wheel.
+
+  // Do the three remaining wheels.
+  PPciterator pit0 = peaks.nextCandExcl(pit, fptr);
+  PPciterator pit1;
+  PPciterator pend = peaks.candcend();
+  for (unsigned i = 0; i < 3; i++)
+  {
+    const unsigned ptarget = (* cit) + pstart - cstart;
+    unsigned pval0 = (* pit0)->getIndex() + offset;
+
+    while (true)
+    {
+      pit1 = peaks.nextCandExcl(pit0, fptr);
+      if (pit1 == pend)
+      {
+        if (closestPeaks.size() != 3)
+          return false;
+
+        closestPeaks.push_back(* pit0);
+        return true;
+      }
+
+      const unsigned pval1 = (* pit1)->getIndex() + offset;
+      const unsigned mid = (pval0 + pval1) / 2;
+      if (ptarget <= mid)
+      {
+        closestPeaks.push_back(* pit0);
+        pit0 = pit1;
+        break;
+      }
+      else if (ptarget <= pval1)
+      {
+        skippedPeaks.push_back(* pit0);
+        closestPeaks.push_back(* pit1);
+        pit1 = peaks.nextCandExcl(pit1, fptr);
+        if (pit1 == pend && closestPeaks.size() != 4)
+          return false;
+
+        pit0 = pit1;
+        break;
+      }
+      else
+      {
+        skippedPeaks.push_back(* pit0);
+        pit0 = pit1;
+      }
+    }
+  }
+  return true;
+}
+
+
+bool PeakStructure::isConsistent(const PeakPtrVector& closestPeaks) const
+{
+  for (unsigned i = 0; i < 4; i++)
+  {
+    if (! closestPeaks[i]->fitsType(
+        wheelSpecs[i].bogey, wheelSpecs[i].wheel))
+      return false;
+  }
+  return true;
+}
+
+
+bool PeakStructure::findCarByGeometry(
+  const PeakCondition& condition,
+  CarModels& models,
+  CarDetect& car,
+  PeakPool& peaks) const
+{
+  // TODO IS this needed?
+  if (condition.start >= condition.end)
+    return false;
+
+  // TODO Could be list later on
+  vector<Peak *> peakPtrs;
+
+  vector<PPciterator> peakIters;
+  peaks.getCandIters(condition.start, condition.end, peakIters);
+
+  CarDetect carModel;
+  list<unsigned> carPoints;
+  PeakPtrVector closestPeaks, skippedPeaks;
+  unsigned matchIndex;
+  float distance;
+
+  PeakCondition conditionLocal;
+  conditionLocal.leftGapPresent = false;
+  conditionLocal.rightGapPresent = false;
+
+  for (unsigned mno = 0; mno < models.size(); mno++)
+  {
+    models.getCar(carModel, mno);
+
+    // 6 elements: Left edge, 4 wheels, right edge.
+    carModel.getCarPoints(carPoints);
+
+    for (PPciterator pit: peakIters)
+    {
+      if (! (* pit)->goodQuality())
+        continue;
+
+      // pit corresponds to the first wheel.
+      if (! PeakStructure::getClosest(carPoints, peaks, &Peak::goodQuality,
+          pit, closestPeaks, skippedPeaks))
+        continue;
+
+      // We deal with the edges later.
+      conditionLocal.start = closestPeaks.front()->getIndex() + offset - 1;
+      conditionLocal.end = closestPeaks.back()->getIndex() + offset + 1;
+
+      if (! PeakStructure::findFourWheeler(models, conditionLocal,
+          closestPeaks, car))
+        continue;
+      
+      if (! PeakStructure::matchesModel(models, car, matchIndex, distance))
+        continue;
+      
+      if (matchIndex != mno)
+        continue;
+
+      if (! PeakStructure::isConsistent(closestPeaks))
+      {
+        cout << "WARNING: Peaks inconsistent with car #" <<
+          matchIndex << " found (distance " << distance << ")\n";
+        cout << condition.str(offset) << endl;
+      }
+
+      if (! skippedPeaks.empty())
+      {
+        cout << "WARNING (inspect?): Some good peaks were skipped.\n";
+        cout << skippedPeaks.front()->strHeaderQuality();
+        for (Peak * skip: skippedPeaks)
+          cout << skip->strQuality(offset);
+        cout << "\n";
+      }
+
+      return true;
+    }
+  }
+  return false;
+}
+
+
+// TODO: 3 geometric peaks, look in peaks for the missed 4th one
+// Only if loop is stuck?
+
+
 void PeakStructure::makeConditions(
   const list<CarDetect>& cars,
   const PeakPool& peaks,
@@ -487,7 +642,7 @@ void PeakStructure::makeConditions(
 }
 
 
-void PeakStructure::fillPartialSides(
+bool PeakStructure::fillPartialSides(
   CarModels& models,
   CarDetect& car1,
   CarDetect& car2)
@@ -498,12 +653,12 @@ void PeakStructure::fillPartialSides(
   // gaps and also check the partial car types.
 
   if (car1.hasRightGap() || car2.hasLeftGap())
-    return;
+    return false;
 
   const unsigned lpp1 = car1.lastPeakPlus1();
   const unsigned fpm1 = car2.firstPeakMinus1();
   if (fpm1 - lpp1 > car1.getMidGap())
-    return;
+    return false;
 
   const unsigned mid = (lpp1 + fpm1) / 2;
 
@@ -512,6 +667,7 @@ void PeakStructure::fillPartialSides(
 
   PeakStructure::updateModels(models, car1);
   PeakStructure::updateModels(models, car2);
+  return true;
 }
 
 
@@ -645,13 +801,17 @@ void PeakStructure::markCars(
     PeakStructure::updateModels(models, car);
     PeakStructure::updateCarDistances(models, cars);
 
+    bool hasLeftGap = false;
     auto newcit = cars.insert(condition.carAfter, car);
     if (newcit != cars.begin())
-      PeakStructure::fillPartialSides(models, * prev(newcit), * newcit);
+      hasLeftGap = 
+        PeakStructure::fillPartialSides(models, * prev(newcit), * newcit);
 
+    bool hasRightGap = false;
     auto nextcit = next(newcit);
     if (nextcit != cars.end())
-      PeakStructure::fillPartialSides(models, * newcit, * nextcit);
+      hasRightGap =
+        PeakStructure::fillPartialSides(models, * newcit, * nextcit);
 
     PeakStructure::printWheelCount(peaks, "Counting");
     PeakStructure::printCars(cars, "after condition");
@@ -780,6 +940,7 @@ void PeakStructure::printWheelCount(
   const PeakPool& peaks,
   const string& text) const
 {
+  // TODO Is this the same as PeakPool::countCandidates(&Peak::isSelected)?
   unsigned count = 0;
   PPciterator candcbegin = peaks.candcbegin();
   PPciterator candcend = peaks.candcend();

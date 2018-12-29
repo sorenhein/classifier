@@ -30,7 +30,7 @@ class PeakStructure
       bool rightGapPresent;
       string text;
 
-      string str(const unsigned off = 0)
+      string str(const unsigned off = 0) const
       {
         return text + ": " +
           (leftGapPresent ? "(gap)" : "(no gap)") + " " +
@@ -91,12 +91,6 @@ class PeakStructure
       PeakPtrVector& peakPtrsNew,
       PeakPtrVector& peakPtrsUnused) const;
 
-    void splitPeaks(
-      const PeakPtrVector& peakPtrs,
-      const PeakCondition& condition,
-      PeakCondition& condition1,
-      PeakCondition& condition2) const;
-
     void updateCarDistances(
       const CarModels& models,
       list<CarDetect>& cars) const;
@@ -111,12 +105,28 @@ class PeakStructure
       CarDetect& car,
       PeakPool& peaks) const;
 
+    bool getClosest(
+      const list<unsigned>& carPoints,
+      const PeakPool& peaks,
+      const PeakFncPtr& fptr,
+      PPciterator& pit,
+      PeakPtrVector& closestPeaks,
+      PeakPtrVector& skippedPeaks) const;
+
+    bool isConsistent(const PeakPtrVector& closestPeaks) const;
+
+    bool findCarByGeometry(
+      const PeakCondition& condition,
+      CarModels& models,
+      CarDetect& car,
+      PeakPool& peaks) const;
+
     void makeConditions(
       const list<CarDetect>& cars,
       const PeakPool& peaks,
       list<PeakCondition>& conditions) const;
 
-    void fillPartialSides(
+    bool fillPartialSides(
       CarModels& models,
       CarDetect& car1,
       CarDetect& car2);

@@ -165,6 +165,45 @@ void PeakPool::getCandPtrs(
 }
 
 
+void PeakPool::getCandIters(
+  const unsigned start,
+  const unsigned end,
+  PeakIterVector& peakIters) const
+{
+  for (PPciterator pit = candidates.begin(); pit != candidates.end(); pit++)
+  {
+    Peak * cand = * pit;
+    const unsigned index = cand->getIndex();
+    if (index > end)
+      break;
+    if (index < start)
+      continue;
+
+    peakIters.push_back(pit);
+  }
+}
+
+
+void PeakPool::getCandPtrs(
+  const unsigned start,
+  const unsigned end,
+  const PeakFncPtr& fptr,
+  PeakPtrVector& peakPtrs) const
+{
+  for (auto& cand: candidates)
+  {
+    const unsigned index = cand->getIndex();
+    if (index > end)
+      break;
+    if (index < start)
+      continue;
+
+    if ((cand->* fptr)())
+      peakPtrs.push_back(cand);
+  }
+}
+
+
 unsigned PeakPool::firstCandIndex() const
 {
   if (candidates.size() == 0)

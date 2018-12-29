@@ -1,6 +1,7 @@
 #ifndef TRAIN_CARDETECT_H
 #define TRAIN_CARDETECT_H
 
+#include <list>
 #include <string>
 
 #include "CarGaps.h"
@@ -88,6 +89,8 @@ class CarDetect
     const unsigned getMidGap() const;
 
     const CarPeaksPtr& getPeaksPtr() const;
+
+    void getCarPoints(list<unsigned>& carPoints) const;
 
     bool hasLeftGap() const;
     bool hasRightGap() const;

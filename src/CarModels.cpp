@@ -92,6 +92,14 @@ bool CarModels::fillSides(CarDetect& car) const
 }
 
 
+void CarModels::getCar(
+  CarDetect& car,
+  const unsigned index) const
+{
+  car = models[index].carAvg;
+}
+
+
 bool CarModels::findClosest(
   const CarDetect& car,
   float& distance,
