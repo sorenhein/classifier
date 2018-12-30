@@ -115,6 +115,12 @@ class PeakPool
       const PeakFncPtr& fptr,
       PeakPtrVector& peakPtrs) const;
 
+    void getCands(
+      const unsigned start,
+      const unsigned end,
+      PeakPtrVector& peakPtrs,
+      PeakIterVector& peakIters) const;
+
     unsigned firstCandIndex() const;
     unsigned lastCandIndex() const;
 

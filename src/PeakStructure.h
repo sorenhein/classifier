@@ -12,6 +12,7 @@
 using namespace std;
 
 class CarModels;
+class PeakProfile;
 class Peak;
 
 
@@ -51,9 +52,12 @@ class PeakStructure
 
     typedef FindCarType (PeakStructure::*FindCarPtr)(
       const PeakRange& range,
-      CarModels& models,
-      CarDetect& car,
-      PeakPool& peaks) const;
+      const CarModels& models,
+      const PeakPool& peaks,
+      PeakPtrVector& peakPtrs,
+      const PeakIterVector& peakIters,
+      const PeakProfile& profile,
+      CarDetect& car) const;
 
 
     list<Recognizer> recognizers;
@@ -118,9 +122,12 @@ class PeakStructure
 
     FindCarType findCarByQuality(
       const PeakRange& range,
-      CarModels& models,
-      CarDetect& car,
-      PeakPool& peaks) const;
+      const CarModels& models,
+      const PeakPool& peaks,
+      PeakPtrVector& peakPtrs,
+      const PeakIterVector& peakIters,
+      const PeakProfile& profile,
+      CarDetect& car) const;
 
     bool getClosest(
       const list<unsigned>& carPoints,
@@ -134,9 +141,12 @@ class PeakStructure
 
     FindCarType findCarByGeometry(
       const PeakRange& range,
-      CarModels& models,
-      CarDetect& car,
-      PeakPool& peaks) const;
+      const CarModels& models,
+      const PeakPool& peaks,
+      PeakPtrVector& peakPtrs,
+      const PeakIterVector& peakIters,
+      const PeakProfile& profile,
+      CarDetect& car) const;
 
     void makeRanges(
       const list<CarDetect>& cars,

@@ -10,6 +10,7 @@
 #include "CarModels.h"
 #include "Except.h"
 
+#define UNUSED(x) ((void)(true ? 0 : ((x), void(), 0)))
 
 #define GREAT_CAR_DISTANCE 1.5f
 
@@ -374,15 +375,16 @@ void PeakStructure::updateModels(
 
 PeakStructure::FindCarType PeakStructure::findCarByQuality(
   const PeakRange& range,
-  CarModels& models,
-  CarDetect& car,
-  PeakPool& peaks) const
+  const CarModels& models,
+  const PeakPool& peaks,
+  PeakPtrVector& peakPtrs,
+  const PeakIterVector& peakIters,
+  const PeakProfile& profile,
+  CarDetect& car) const
 {
-  vector<Peak *> peakPtrs;
-  peaks.getCandPtrs(range.start, range.end, peakPtrs);
+  UNUSED(peaks);
+  UNUSED(peakIters);
 
-  PeakProfile profile;
-  profile.make(peakPtrs, range.source);
   if (profile.looksEmpty())
   {
     PeakStructure::markDownPeaks(peakPtrs);
@@ -513,15 +515,15 @@ bool PeakStructure::isConsistent(const PeakPtrVector& closestPeaks) const
 
 PeakStructure::FindCarType PeakStructure::findCarByGeometry(
   const PeakRange& range,
-  CarModels& models,
-  CarDetect& car,
-  PeakPool& peaks) const
+  const CarModels& models,
+  const PeakPool& peaks,
+  PeakPtrVector& peakPtrs,
+  const PeakIterVector& peakIters,
+  const PeakProfile& profile,
+  CarDetect& car) const
 {
-  // TODO Could be list later on
-  vector<Peak *> peakPtrs;
-
-  vector<PPciterator> peakIters;
-  peaks.getCandIters(range.start, range.end, peakIters);
+  UNUSED(peakPtrs);
+  UNUSED(profile);
 
   CarDetect carModel;
   list<unsigned> carPoints;
@@ -865,6 +867,11 @@ void PeakStructure::markCars(
   PeakStructure::makeRanges(cars, peaks, ranges);
 
   CarDetect car;
+  // TODO Could be vectors later on
+  PeakIterVector peakIters;
+  PeakPtrVector peakPtrs;
+  PeakProfile profile;
+
   bool changeFlag = true;
   while (changeFlag && ! ranges.empty())
   {
@@ -884,10 +891,15 @@ void PeakStructure::markCars(
       // is not needed in the recognizer itself (but still needed).
       cout << "Range: " << range.str(offset);
 
+      // Set up some useful stuff for all recognizers.
+      peaks.getCands(range.start, range.end, peakPtrs, peakIters);
+      profile.make(peakPtrs, range.source);
+
       FindCarType findFlag = FIND_CAR_SIZE;
       for (auto fptr: findCarFunctions)
       {
-        findFlag = (this->* fptr)(range, models, car, peaks);
+        findFlag = (this->* fptr)(range, models, peaks,
+          peakPtrs, peakIters, profile, car);
         if (findFlag != FIND_CAR_NO_MATCH)
           break;
       }
