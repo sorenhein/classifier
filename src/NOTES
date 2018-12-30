@@ -1,6 +1,4 @@
 PeakStructure:
-- Debug without new function
-- Debug new geometry function
 - The 1-2-3-4 recognizer could also move into the "event loop"
   - Split off any 4 peaks, new conditions
 - Downgrader could also be a simple recognizer
@@ -9,12 +7,12 @@ PeakStructure:
 Python: Allow 082401 as input?
 
 
-sensor00:
-* 061030 #47: Now we get a 2+1 front car which is somehow very expensive
-  in Needleman-Wunsch
-* 074731 #68: Supposed to be 2_32_N, but first wagon has odd gaps.
-  Can probably help by penalizing early deletions more than is
-  currently the case, but might still come out as 3_32_N.
+MISMATCH in "good" sensors:
+
+sensor
+sensor02        162222  #41     First car: Get 2 last peaks, not 1 last
+
+sensor06        115207  #34     ICE4_DEU_48_{N,R} extremely similar
 
 sensor02:
 * 183336, #19:

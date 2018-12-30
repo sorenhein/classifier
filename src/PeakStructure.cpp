@@ -922,7 +922,7 @@ void PeakStructure::markCars(
 
   if (! ranges.empty())
   {
-    cout << "WARNING: " << ranges.size() << " ranges left\n";
+    cout << "WARNFINAL: " << ranges.size() << " ranges left\n";
     for (auto& range: ranges)
       cout << range.str(offset);
     cout << endl;
@@ -930,7 +930,7 @@ void PeakStructure::markCars(
 }
 
 
-void PeakStructure::updateImperfections(
+bool PeakStructure::updateImperfections(
   const unsigned num,
   const bool firstCarFlag,
   Imperfections& imperf) const
@@ -947,8 +947,7 @@ void PeakStructure::updateImperfections(
       imperf.numSkipsOfSeen = 4 - num;
     }
     else
-      THROW(ERR_ALGO_CAR_STRUCTURE, "Too many leading peaks: " +
-        to_string(num));
+      return false;
   }
   else
   {
@@ -963,13 +962,13 @@ void PeakStructure::updateImperfections(
       imperf.numSpuriousLater++;
     }
     else
-      THROW(ERR_ALGO_CAR_STRUCTURE, "Too many peaks in middle: " + 
-        to_string(num));
+      return false;
   }
+  return true;
 }
 
 
-void PeakStructure::markImperfections(
+bool PeakStructure::markImperfections(
   const list<CarDetect>& cars,
   const PeakPool& peaks,
   Imperfections& imperf) const
@@ -1003,8 +1002,11 @@ void PeakStructure::markImperfections(
     }
 
     if (numPreceding)
-      PeakStructure::updateImperfections(numPreceding,
-        car == cars.begin(), imperf);
+    {
+      if (! PeakStructure::updateImperfections(numPreceding,
+          car == cars.begin(), imperf))
+        return false;
+    }
 
     if (cand == candcend)
       break;
@@ -1019,8 +1021,11 @@ void PeakStructure::markImperfections(
     }
 
     if (numMatches)
-      PeakStructure::updateImperfections(numMatches,
-        car == cars.begin(), imperf);
+    {
+      if (! PeakStructure::updateImperfections(numMatches,
+          car == cars.begin(), imperf))
+        return false;
+    }
 
     if (cand == candcend)
       break;
@@ -1033,6 +1038,7 @@ void PeakStructure::markImperfections(
   cout << "IMPERF " <<
     imperf.numSkipsOfReal << "-" << imperf.numSkipsOfSeen << ", " <<
     imperf.numSpuriousLater << "-" << imperf.numMissingLater << endl;
+  return true;
 }
 
 

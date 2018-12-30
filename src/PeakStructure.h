@@ -162,7 +162,7 @@ class PeakStructure
       list<PeakRange>& ranges,
       const FindCarType& findFlag) const;
 
-    void updateImperfections(
+    bool updateImperfections(
       const unsigned num,
       const bool firstCarFlag,
       Imperfections& imperf) const;
@@ -197,7 +197,7 @@ class PeakStructure
       PeakPool& peaks,
       const unsigned offsetIn);
     
-    void markImperfections(
+    bool markImperfections(
       const list<CarDetect>& cars,
       const PeakPool& peaks,
       Imperfections& imperf) const;

@@ -51,3 +51,4 @@ src/.def
 *.json
 doc/~*.xlsx
 data/~*.xlsx
+src/summary/*.txt

@@ -1,0 +1,3 @@
+foreach i (sensor??.txt)
+  perl summ.pl $i > summary/$i
+end
