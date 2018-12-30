@@ -432,6 +432,12 @@ bool PeakStructure::getClosest(
   PeakPtrVector& closestPeaks,
   PeakPtrVector& skippedPeaks) const
 {
+  // Do the three remaining wheels.
+  PPciterator pend = peaks.candcend();
+  PPciterator pit0 = peaks.nextCandExcl(pit, fptr);
+  if (pit0 == pend)
+    return false;
+
   skippedPeaks.clear();
   closestPeaks.clear();
   closestPeaks.push_back(* pit);
@@ -444,10 +450,7 @@ bool PeakStructure::getClosest(
   cit++;
   // Start from the second wheel.
 
-  // Do the three remaining wheels.
-  PPciterator pit0 = peaks.nextCandExcl(pit, fptr);
   PPciterator pit1;
-  PPciterator pend = peaks.candcend();
   for (unsigned i = 0; i < 3; i++)
   {
     const unsigned ptarget = (* cit) + pstart - cstart;
