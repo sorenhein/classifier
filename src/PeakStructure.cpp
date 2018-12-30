@@ -386,15 +386,6 @@ PeakStructure::FindCarType PeakStructure::findCarByQuality(
   UNUSED(peaks);
   UNUSED(peakIters);
 
-  /*
-  if (profile.looksEmpty())
-  {
-    PeakStructure::markDownPeaks(peakPtrs);
-    PeakStructure::printRange(range, "Downgraded " + range.text);
-    return FIND_CAR_DOWNGRADE;
-  }
-  */
-
   PeakPtrVector peakPtrsNew;
   PeakPtrVector peakPtrsUnused;
   for (auto& recog: recognizers)
@@ -803,6 +794,69 @@ void PeakStructure::findWholeCars(
     runIter[3] = cit;
     runPtr[3] = * cit;
   }
+}
+
+
+PeakStructure::FindCarType PeakStructure::findCarByOrder(
+  const PeakRange& range,
+  const CarModels& models,
+  const PeakPool& peaks,
+  PeakPtrVector& peakPtrs,
+  const PeakIterVector& peakIters,
+  const PeakProfile& profile,
+  CarDetect& car) const
+{
+  UNUSED(profile);
+  UNUSED(peakPtrs);
+  UNUSED(range);
+
+  // Set up a sliding vector of 4 running peaks.
+  PeakIterVector runIter;
+  PeakPtrVector runPtr;
+
+  PPciterator cit = peaks.nextCandIncl(peakIters.front(), 
+    &Peak::isSelected);
+
+  for (unsigned i = 0; i < 4; i++)
+  {
+    runIter.push_back(cit);
+    runPtr.push_back(* cit);
+  }
+
+  PeakRange rangeLocal;
+
+  for (PPciterator pit: peakIters)
+  {
+    if (! (* pit)->goodQuality())
+      continue;
+
+    if (PeakStructure::isWholeCar(runPtr))
+    {
+      // PeakStructure::seekGaps(runIter[0], runIter[3], peaks, range);
+
+      // We deal with the edges later.
+      rangeLocal.start = runPtr[0]->getIndex() - 1;
+      rangeLocal.end = runPtr[3]->getIndex() + 1;
+
+      PeakStructure::findFourWheeler(models, rangeLocal, runPtr, car);
+
+      // TODO Maybe something we should do in all recognizers?
+      PeakStructure::markUpPeaks(runPtr, 4);
+
+      return FIND_CAR_MATCH;
+    }
+
+    for (unsigned i = 0; i < 3; i++)
+    {
+      runIter[i] = runIter[i+1];
+      runPtr[i] = runPtr[i+1];
+    }
+
+    runIter[3] = pit;
+    runPtr[3] = * pit;
+  }
+
+  return FIND_CAR_NO_MATCH;
 }
 
 

@@ -180,6 +180,15 @@ class PeakStructure
       list<CarDetect>& cars,
       PeakPool& peaks) const;
 
+    FindCarType findCarByOrder(
+      const PeakRange& range,
+      const CarModels& models,
+      const PeakPool& peaks,
+      PeakPtrVector& peakPtrs,
+      const PeakIterVector& peakIters,
+      const PeakProfile& profile,
+      CarDetect& car) const;
+
     list<PeakRange>::iterator updateRanges(
       CarModels& models,
       const list<CarDetect>& cars,

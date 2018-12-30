@@ -144,7 +144,7 @@ class PeakPool
       const PeakFncPtr& fptr) const;
 
     PPciterator nextCandIncl(
-      PPciterator& pit,
+      const PPciterator& pit,
       const PeakFncPtr& fptr) const;
 
     PPiterator prevCandExcl(

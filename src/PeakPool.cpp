@@ -308,7 +308,7 @@ PPiterator PeakPool::nextCandIncl(
 
 
 PPciterator PeakPool::nextCandIncl(
-  PPciterator& pit,
+  const PPciterator& pit,
   const PeakFncPtr& fptr) const
 {
   PPciterator pitNext = pit;
