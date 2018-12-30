@@ -19,9 +19,9 @@ class PeakStructure
 {
   private:
 
-    struct PeakCondition
+    struct PeakRange
     {
-      // The car after the condition
+      // The car after the range
       list<CarDetect>::const_iterator carAfter; 
       PeakSource source;
       unsigned start;
@@ -64,25 +64,25 @@ class PeakStructure
 
     bool findLastTwoOfFourWheeler(
       const CarModels& models,
-      const PeakCondition& condition,
+      const PeakRange& range,
       const PeakPtrVector& peakPtrs,
       CarDetect& car) const;
 
     bool findLastThreeOfFourWheeler(
       const CarModels& models,
-      const PeakCondition& condition,
+      const PeakRange& range,
       const PeakPtrVector& peakPtrs,
       CarDetect& car) const;
 
     bool findFourWheeler(
       const CarModels& models,
-      const PeakCondition& condition,
+      const PeakRange& range,
       const PeakPtrVector& peakPtrs,
       CarDetect& car) const;
 
     bool findNumberedWheeler(
       const CarModels& models,
-      const PeakCondition& condition,
+      const PeakRange& range,
       const PeakPtrVector& peakPtrs,
       const unsigned numWheels,
       CarDetect& car) const;
@@ -108,7 +108,7 @@ class PeakStructure
       CarDetect& car) const;
 
     bool findCarByQuality(
-      const PeakCondition& condition,
+      const PeakRange& range,
       CarModels& models,
       CarDetect& car,
       PeakPool& peaks,
@@ -125,16 +125,16 @@ class PeakStructure
     bool isConsistent(const PeakPtrVector& closestPeaks) const;
 
     bool findCarByGeometry(
-      const PeakCondition& condition,
+      const PeakRange& range,
       CarModels& models,
       CarDetect& car,
       PeakPool& peaks,
       FindCarType& findFlag) const;
 
-    void makeConditions(
+    void makeRanges(
       const list<CarDetect>& cars,
       const PeakPool& peaks,
-      list<PeakCondition>& conditions) const;
+      list<PeakRange>& ranges) const;
 
     bool fillPartialSides(
       CarModels& models,
@@ -145,7 +145,7 @@ class PeakStructure
       PPciterator pitLeft,
       PPciterator pitRight,
       const PeakPool& peaks,
-      PeakCondition& condition) const;
+      PeakRange& range) const;
 
     bool isWholeCar(const PeakPtrVector& pv) const;
 
@@ -154,12 +154,12 @@ class PeakStructure
       list<CarDetect>& cars,
       PeakPool& peaks) const;
 
-    list<PeakCondition>::iterator updateConditions(
+    list<PeakRange>::iterator updateRanges(
       CarModels& models,
       const list<CarDetect>& cars,
       const list<CarDetect>::iterator& carIt,
-      list<PeakCondition>::iterator& cit,
-      list<PeakCondition>& conditions,
+      list<PeakRange>::iterator& rit,
+      list<PeakRange>& ranges,
       const FindCarType& findFlag) const;
 
     void updateImperfections(
@@ -168,7 +168,7 @@ class PeakStructure
       Imperfections& imperf) const;
 
     void printRange(
-      const PeakCondition& condition,
+      const PeakRange& range,
       const string& text) const;
 
     void printWheelCount(
