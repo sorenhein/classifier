@@ -548,8 +548,8 @@ bool PeakStructure::findCarByGeometry(
         continue;
 
       // We deal with the edges later.
-      rangeLocal.start = closestPeaks.front()->getIndex() + offset - 1;
-      rangeLocal.end = closestPeaks.back()->getIndex() + offset + 1;
+      rangeLocal.start = closestPeaks.front()->getIndex() - 1;
+      rangeLocal.end = closestPeaks.back()->getIndex() + 1;
 
       if (! PeakStructure::findFourWheeler(models, rangeLocal,
           closestPeaks, car))
@@ -657,7 +657,7 @@ bool PeakStructure::fillPartialSides(
   // Now that we have filled in the inner cars, we can guess those
   // gaps and also check the partial car types.
 
-  if (car1.hasRightGap() || car2.hasLeftGap())
+  if (car1.hasRightGap() && car2.hasLeftGap())
     return false;
 
   const unsigned lpp1 = car1.lastPeakPlus1();
@@ -804,7 +804,11 @@ list<PeakStructure::PeakRange>::iterator PeakStructure::updateRanges(
       return ranges.erase(rit);
     else
     {
+      // Shorten the range on the left to make room for the new
+      // car preceding it.
+      // This does not change any carAfter values.
       range.start = car.endValue();
+      range.leftGapPresent = car.hasRightGap();
       return ++rit;
     }
   }
@@ -814,15 +818,24 @@ list<PeakStructure::PeakRange>::iterator PeakStructure::updateRanges(
       return ranges.erase(rit);
     else
     {
+      // Shorten the range on the right to make room for the new
+      // car following it.
+      range.carAfter = carIt;
       range.end = car.startValue();
+      range.rightGapPresent = car.hasLeftGap();
       return ++rit;
     }
   }
   else
   {
+    // Recognized a car in the middle of the range.
+    // The new order is rangeNew - car - range.
     PeakRange rangeNew = range;
     range.start = car.endValue();
+    range.leftGapPresent = car.hasRightGap();
+    rangeNew.carAfter = carIt;
     rangeNew.end = car.startValue();
+    rangeNew.rightGapPresent = car.hasLeftGap();
     return ranges.insert(rit, rangeNew);
   }
 }
@@ -865,13 +878,24 @@ void PeakStructure::markCars(
         continue;
       }
 
+      // TODO This becomes a loop over detectors.
+      // Can also include downgrade, separately, then findFlag
+      // is not needed in the recognizer itself (but still needed).
       cout << "Range: " << range.str(offset);
       if (! PeakStructure::findCarByQuality(range, models, car, 
           peaks, findFlag))
       {
-        range.stuckFlag = true;
-        rit++;
-        continue;
+        if (! PeakStructure::findCarByGeometry(range, models, car,
+          peaks, findFlag))
+        {
+          range.stuckFlag = true;
+          rit++;
+          continue;
+        }
+        else
+        {
+          cout << "NEWHIT!\n";
+        }
       }
 
       changeFlag = true;
