@@ -372,12 +372,11 @@ void PeakStructure::updateModels(
 }
 
 
-bool PeakStructure::findCarByQuality(
+PeakStructure::FindCarType PeakStructure::findCarByQuality(
   const PeakRange& range,
   CarModels& models,
   CarDetect& car,
-  PeakPool& peaks,
-  FindCarType& findFlag) const
+  PeakPool& peaks) const
 {
   vector<Peak *> peakPtrs;
   peaks.getCandPtrs(range.start, range.end, peakPtrs);
@@ -388,8 +387,7 @@ bool PeakStructure::findCarByQuality(
   {
     PeakStructure::markDownPeaks(peakPtrs);
     PeakStructure::printRange(range, "Downgraded " + range.text);
-    findFlag = FIND_CAR_DOWNGRADE;
-    return true;
+    return FIND_CAR_DOWNGRADE;
   }
 
   PeakPtrVector peakPtrsNew;
@@ -410,21 +408,20 @@ bool PeakStructure::findCarByQuality(
     {
       PeakStructure::markUpPeaks(peakPtrsNew, recog.numWheels);
       PeakStructure::markDownPeaks(peakPtrsUnused);
-      findFlag = FIND_CAR_MATCH;
-      return true;
+      return FIND_CAR_MATCH;
     }
     else
     {
       cout << "Failed to find car among " << recog.text << "\n";
       PeakStructure::printRange(range, "Didn't do " + range.text);
       cout << profile.str();
-      return false;
+      return FIND_CAR_NO_MATCH;
     }
   }
 
   PeakStructure::printRange(range, "Didn't match " + range.text);
   cout << profile.str();
-  return false;
+  return FIND_CAR_NO_MATCH;
 }
 
 
@@ -514,12 +511,11 @@ bool PeakStructure::isConsistent(const PeakPtrVector& closestPeaks) const
 }
 
 
-bool PeakStructure::findCarByGeometry(
+PeakStructure::FindCarType PeakStructure::findCarByGeometry(
   const PeakRange& range,
   CarModels& models,
   CarDetect& car,
-  PeakPool& peaks,
-  FindCarType& findFlag) const
+  PeakPool& peaks) const
 {
   // TODO Could be list later on
   vector<Peak *> peakPtrs;
@@ -584,11 +580,10 @@ bool PeakStructure::findCarByGeometry(
         cout << "\n";
       }
 
-      findFlag = FIND_CAR_MATCH;
-      return true;
+      return FIND_CAR_MATCH;
     }
   }
-  return false;
+  return FIND_CAR_NO_MATCH;
 }
 
 
@@ -871,7 +866,6 @@ void PeakStructure::markCars(
 
   CarDetect car;
   bool changeFlag = true;
-  FindCarType findFlag;
   while (changeFlag && ! ranges.empty())
   {
     changeFlag = false;
@@ -890,18 +884,15 @@ void PeakStructure::markCars(
       // is not needed in the recognizer itself (but still needed).
       cout << "Range: " << range.str(offset);
 
-      bool hit = false;
-      findFlag = FIND_CAR_SIZE;
+      FindCarType findFlag = FIND_CAR_SIZE;
       for (auto fptr: findCarFunctions)
       {
-        if ((this->* fptr)(range, models, car, peaks, findFlag))
-        {
-          hit = true;
+        findFlag = (this->* fptr)(range, models, car, peaks);
+        if (findFlag != FIND_CAR_NO_MATCH)
           break;
-        }
       }
 
-      if (! hit)
+      if (findFlag == FIND_CAR_NO_MATCH)
       {
         range.stuckFlag = true;
         rit++;

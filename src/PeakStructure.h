@@ -49,13 +49,11 @@ class PeakStructure
       FIND_CAR_SIZE = 3
     };
 
-    typedef bool (PeakStructure::*FindCarPtr)(
+    typedef FindCarType (PeakStructure::*FindCarPtr)(
       const PeakRange& range,
       CarModels& models,
       CarDetect& car,
-      PeakPool& peaks,
-      FindCarType& findFlag
-      ) const;
+      PeakPool& peaks) const;
 
 
     list<Recognizer> recognizers;
@@ -118,12 +116,11 @@ class PeakStructure
       CarModels& models,
       CarDetect& car) const;
 
-    bool findCarByQuality(
+    FindCarType findCarByQuality(
       const PeakRange& range,
       CarModels& models,
       CarDetect& car,
-      PeakPool& peaks,
-      FindCarType& findFlag) const;
+      PeakPool& peaks) const;
 
     bool getClosest(
       const list<unsigned>& carPoints,
@@ -135,12 +132,11 @@ class PeakStructure
 
     bool isConsistent(const PeakPtrVector& closestPeaks) const;
 
-    bool findCarByGeometry(
+    FindCarType findCarByGeometry(
       const PeakRange& range,
       CarModels& models,
       CarDetect& car,
-      PeakPool& peaks,
-      FindCarType& findFlag) const;
+      PeakPool& peaks) const;
 
     void makeRanges(
       const list<CarDetect>& cars,
