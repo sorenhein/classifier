@@ -603,21 +603,30 @@ void PeakStructure::makeConditions(
   const PeakPool& peaks,
   list<PeakCondition>& conditions) const
 {
-  // There may be a car in front.
-  conditions.emplace_back(PeakCondition());
-  PeakCondition * condition = &conditions.back();
+  PeakCondition * condition;
+  conditions.clear();
 
-  condition->carAfter = cars.begin();
-  condition->start = peaks.firstCandIndex();
-  condition->end = cars.front().startValue();
-  condition->leftGapPresent = false;
-  condition->rightGapPresent = cars.front().hasLeftGap();
-  condition->text = "first whole-car";
+  // There may be a car in front.
+  if (cars.front().startValue() > peaks.firstCandIndex())
+  {
+    conditions.emplace_back(PeakCondition());
+    condition = &conditions.back();
+
+    condition->carAfter = cars.begin();
+    condition->start = peaks.firstCandIndex();
+    condition->end = cars.front().startValue();
+    condition->leftGapPresent = false;
+    condition->rightGapPresent = cars.front().hasLeftGap();
+    condition->text = "first whole-car";
+  }
 
   // There may be inner cars missing.
   for (auto cit = cars.begin(); cit != prev(cars.end()); cit++)
   {
     auto ncit = next(cit);
+    if (cit->endValue() >= ncit->startValue())
+      continue;
+
     conditions.emplace_back(PeakCondition());
     condition = &conditions.back();
 
@@ -630,9 +639,11 @@ void PeakStructure::makeConditions(
   }
 
   // There may be a car in back.
+  if (cars.back().endValue() >= peaks.lastCandIndex())
+    return;
+
   conditions.emplace_back(PeakCondition());
   condition = &conditions.back();
-
   condition->carAfter = cars.end();
   condition->start = cars.back().endValue();
   condition->end = peaks.lastCandIndex();
@@ -777,39 +788,39 @@ list<PeakStructure::PeakCondition>::iterator PeakStructure::updateConditions(
   list<PeakCondition>::iterator& cit,
   list<PeakCondition>& conditions) const
 {
-  bool hasLeftGap = false;
+  CarDetect& car = * carIt;
   if (carIt != cars.begin())
-    hasLeftGap = 
-      PeakStructure::fillPartialSides(models, * prev(carIt), * carIt);
+    PeakStructure::fillPartialSides(models, * prev(carIt), car);
 
-  bool hasRightGap = false;
   auto nextCarIt = next(carIt);
   if (nextCarIt != cars.end())
-    hasRightGap =
-      PeakStructure::fillPartialSides(models, * carIt, * nextCarIt);
+    PeakStructure::fillPartialSides(models, car, * nextCarIt);
 
   PeakCondition& condition = * cit;
 
-  if (hasLeftGap)
+  if (car.hasLeftGap())
   {
-    if (hasRightGap)
+    if (car.hasRightGap())
+      return conditions.erase(cit);
+    else if (car.endValue() == condition.end)
+      // Last car
       return conditions.erase(cit);
     else
     {
-      condition.start = (* carIt).endValue();
+      condition.start = car.endValue();
       return ++cit;
     }
   }
-  else if (hasRightGap)
+  else if (car.hasRightGap())
   {
-    condition.end = (* carIt).startValue();
+    condition.end = car.startValue();
     return ++cit;
   }
   else
   {
     PeakCondition conditionNew = condition;
-    condition.start = (* carIt).endValue();
-    conditionNew.end = (* carIt).startValue();
+    condition.start = car.endValue();
+    conditionNew.end = car.startValue();
     return conditions.insert(cit, conditionNew);
   }
 }
@@ -848,7 +859,7 @@ void PeakStructure::markCars(
     while (cit != conditions.end())
     {
       PeakCondition& condition = * cit;
-      cout << "Condition:\n" << condition.str(offset) << endl;
+      cout << "Condition: " << condition.str(offset);
 
       if (! PeakStructure::findCarByQuality(condition, models, car, peaks))
       {

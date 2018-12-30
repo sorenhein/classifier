@@ -1,13 +1,11 @@
+PeakStructure:
+- Debug without new function
+- Debug new geometry function
+- The 1-2-3-4 recognizer could also move into the "event loop"
+  - Split off any 4 peaks, new conditions
+- Much later on, the distance detection could also go there dynamically!
+
 Python: Allow 082401 as input?
-
-PeakStructure::findCarsInInterval:
-  Not looksLikeTwoCars().
-  If it's an internal car, split off groups of 4 from some side.
-  - Consistent with 1-2-3-4
-
-  If it's a front car, split off from the back.
-  If it's a back car, split off fron the front.
-  The front/back car goes to a general recognizer.
 
 
 sensor00:
