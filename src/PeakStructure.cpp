@@ -14,6 +14,7 @@
 #define GREAT_CAR_DISTANCE 1.5f
 
 
+
 struct WheelSpec
 {
   BogeyType bogey;
@@ -33,6 +34,9 @@ PeakStructure::PeakStructure()
 {
   PeakStructure::reset();
   PeakStructure::setCarRecognizers();
+
+  findCarFunctions.push_back(&PeakStructure::findCarByQuality);
+  findCarFunctions.push_back(&PeakStructure::findCarByGeometry);
 }
 
 
@@ -885,20 +889,23 @@ void PeakStructure::markCars(
       // Can also include downgrade, separately, then findFlag
       // is not needed in the recognizer itself (but still needed).
       cout << "Range: " << range.str(offset);
-      if (! PeakStructure::findCarByQuality(range, models, car, 
-          peaks, findFlag))
+
+      bool hit = false;
+      findFlag = FIND_CAR_SIZE;
+      for (auto fptr: findCarFunctions)
       {
-        if (! PeakStructure::findCarByGeometry(range, models, car,
-          peaks, findFlag))
+        if ((this->* fptr)(range, models, car, peaks, findFlag))
         {
-          range.stuckFlag = true;
-          rit++;
-          continue;
+          hit = true;
+          break;
         }
-        else
-        {
-          cout << "NEWHIT!\n";
-        }
+      }
+
+      if (! hit)
+      {
+        range.stuckFlag = true;
+        rit++;
+        continue;
       }
 
       changeFlag = true;

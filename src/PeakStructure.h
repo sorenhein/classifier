@@ -45,11 +45,22 @@ class PeakStructure
     {
       FIND_CAR_MATCH = 0,
       FIND_CAR_DOWNGRADE = 1,
-      FIND_CAR_SIZE = 2
+      FIND_CAR_NO_MATCH = 2,
+      FIND_CAR_SIZE = 3
     };
+
+    typedef bool (PeakStructure::*FindCarPtr)(
+      const PeakRange& range,
+      CarModels& models,
+      CarDetect& car,
+      PeakPool& peaks,
+      FindCarType& findFlag
+      ) const;
 
 
     list<Recognizer> recognizers;
+
+    list<FindCarPtr> findCarFunctions;
 
     unsigned offset;
 

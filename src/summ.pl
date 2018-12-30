@@ -32,8 +32,9 @@ while (my $line = <$fh>)
   chomp $line;
   $line =~ s///g;
 
-  if ($line =~ /^File.*\/([0-9_]*)_001_channel1.dat:/)
+  if ($line =~ /^File/)
   {
+    $line =~ /^File.*\/([0-9_]*)_001_channel1.dat:/;
     my @a = split /_/, $1;
     $date = $a[0];
     $time = $a[1];
@@ -64,8 +65,9 @@ while (my $line = <$fh>)
     push_misses(\@mismatches, \@outmiss);
     @mismatches = ();
   }
-  elsif ($line =~ /^Exception.*function (.*), line number (\d+)/)
+  elsif ($line =~ /^Exception/)
   {
+    $line =~ /^Exception.*function (.*), line number (\d+)/;
     my $fnc = $1;
     my $lno = $2;
     $line = <$fh>;
