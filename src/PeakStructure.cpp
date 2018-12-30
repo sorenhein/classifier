@@ -38,6 +38,7 @@ PeakStructure::PeakStructure()
 
   findCarFunctions.push_back(&PeakStructure::findCarByQuality);
   findCarFunctions.push_back(&PeakStructure::findCarByGeometry);
+  findCarFunctions.push_back(&PeakStructure::findEmptyRange);
 }
 
 
@@ -385,12 +386,14 @@ PeakStructure::FindCarType PeakStructure::findCarByQuality(
   UNUSED(peaks);
   UNUSED(peakIters);
 
+  /*
   if (profile.looksEmpty())
   {
     PeakStructure::markDownPeaks(peakPtrs);
     PeakStructure::printRange(range, "Downgraded " + range.text);
     return FIND_CAR_DOWNGRADE;
   }
+  */
 
   PeakPtrVector peakPtrsNew;
   PeakPtrVector peakPtrsUnused;
@@ -424,6 +427,31 @@ PeakStructure::FindCarType PeakStructure::findCarByQuality(
   PeakStructure::printRange(range, "Didn't match " + range.text);
   cout << profile.str();
   return FIND_CAR_NO_MATCH;
+}
+
+
+PeakStructure::FindCarType PeakStructure::findEmptyRange(
+  const PeakRange& range,
+  const CarModels& models,
+  const PeakPool& peaks,
+  PeakPtrVector& peakPtrs,
+  const PeakIterVector& peakIters,
+  const PeakProfile& profile,
+  CarDetect& car) const
+{
+  UNUSED(models);
+  UNUSED(peaks);
+  UNUSED(peakIters);
+  UNUSED(car);
+
+  if (profile.looksEmpty())
+  {
+    PeakStructure::markDownPeaks(peakPtrs);
+    PeakStructure::printRange(range, "Downgraded " + range.text);
+    return FIND_CAR_DOWNGRADE;
+  }
+  else
+    return FIND_CAR_NO_MATCH;
 }
 
 

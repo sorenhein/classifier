@@ -129,6 +129,15 @@ class PeakStructure
       const PeakProfile& profile,
       CarDetect& car) const;
 
+    FindCarType findEmptyRange(
+      const PeakRange& range,
+      const CarModels& models,
+      const PeakPool& peaks,
+      PeakPtrVector& peakPtrs,
+      const PeakIterVector& peakIters,
+      const PeakProfile& profile,
+      CarDetect& car) const;
+
     bool getClosest(
       const list<unsigned>& carPoints,
       const PeakPool& peaks,
