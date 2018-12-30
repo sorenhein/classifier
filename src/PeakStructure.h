@@ -28,6 +28,7 @@ class PeakStructure
       unsigned end;
       bool leftGapPresent;
       bool rightGapPresent;
+      bool stuckFlag;
       string text;
 
       string str(const unsigned off = 0) const

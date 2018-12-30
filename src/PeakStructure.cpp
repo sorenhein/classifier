@@ -617,6 +617,7 @@ void PeakStructure::makeConditions(
     condition->end = cars.front().startValue();
     condition->leftGapPresent = false;
     condition->rightGapPresent = cars.front().hasLeftGap();
+    condition->stuckFlag = false;
     condition->text = "first whole-car";
   }
 
@@ -635,6 +636,7 @@ void PeakStructure::makeConditions(
     condition->end = ncit->startValue();
     condition->leftGapPresent = cit->hasRightGap();
     condition->rightGapPresent = ncit->hasLeftGap();
+    condition->stuckFlag = false;
     condition->text = "intra-gap";
   }
 
@@ -650,6 +652,7 @@ void PeakStructure::makeConditions(
     // TODO leftGapPresent is not a given, either.
   condition->leftGapPresent = true;
   condition->rightGapPresent = false;
+  condition->stuckFlag = false;
   condition->text = "last whole-car";
 }
 
@@ -847,9 +850,6 @@ void PeakStructure::markCars(
   list<PeakCondition> conditions;
   PeakStructure::makeConditions(cars, peaks, conditions);
 
-  // TODO Actually, keep track in condition of whether it has
-  // already failed.  No need to redo then.
-
   CarDetect car;
   bool changeFlag = true;
   while (changeFlag && ! conditions.empty())
@@ -859,10 +859,16 @@ void PeakStructure::markCars(
     while (cit != conditions.end())
     {
       PeakCondition& condition = * cit;
-      cout << "Condition: " << condition.str(offset);
+      if (condition.stuckFlag)
+      {
+        cit++;
+        continue;
+      }
 
+      cout << "Condition: " << condition.str(offset);
       if (! PeakStructure::findCarByQuality(condition, models, car, peaks))
       {
+        condition.stuckFlag = true;
         cit++;
         continue;
       }
