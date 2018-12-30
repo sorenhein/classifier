@@ -370,20 +370,13 @@ void PeakStructure::updateModels(
 }
 
 
-// TODO Have a mode to get abutting car at front or back of condition,
-// or maybe even in the middle.
-
-
 bool PeakStructure::findCarByQuality(
   const PeakCondition& condition,
   CarModels& models,
   CarDetect& car,
-  PeakPool& peaks) const
+  PeakPool& peaks,
+  FindCarType& findFlag) const
 {
-  // TODO IS this needed?
-  if (condition.start >= condition.end)
-    return false;
-
   vector<Peak *> peakPtrs;
   peaks.getCandPtrs(condition.start, condition.end, peakPtrs);
 
@@ -393,7 +386,8 @@ bool PeakStructure::findCarByQuality(
   {
     PeakStructure::markDownPeaks(peakPtrs);
     PeakStructure::printRange(condition, "Downgraded " + condition.text);
-    return false;
+    findFlag = FIND_CAR_DOWNGRADE;
+    return true;
   }
 
   PeakPtrVector peakPtrsNew;
@@ -414,6 +408,7 @@ bool PeakStructure::findCarByQuality(
     {
       PeakStructure::markUpPeaks(peakPtrsNew, recog.numWheels);
       PeakStructure::markDownPeaks(peakPtrsUnused);
+      findFlag = FIND_CAR_MATCH;
       return true;
     }
     else
@@ -518,12 +513,9 @@ bool PeakStructure::findCarByGeometry(
   const PeakCondition& condition,
   CarModels& models,
   CarDetect& car,
-  PeakPool& peaks) const
+  PeakPool& peaks,
+  FindCarType& findFlag) const
 {
-  // TODO IS this needed?
-  if (condition.start >= condition.end)
-    return false;
-
   // TODO Could be list later on
   vector<Peak *> peakPtrs;
 
@@ -587,6 +579,7 @@ bool PeakStructure::findCarByGeometry(
         cout << "\n";
       }
 
+      findFlag = FIND_CAR_MATCH;
       return true;
     }
   }
@@ -649,8 +642,7 @@ void PeakStructure::makeConditions(
   condition->carAfter = cars.end();
   condition->start = cars.back().endValue();
   condition->end = peaks.lastCandIndex();
-    // TODO leftGapPresent is not a given, either.
-  condition->leftGapPresent = true;
+  condition->leftGapPresent = cars.back().hasRightGap();
   condition->rightGapPresent = false;
   condition->stuckFlag = false;
   condition->text = "last whole-car";
@@ -789,8 +781,12 @@ list<PeakStructure::PeakCondition>::iterator PeakStructure::updateConditions(
   const list<CarDetect>& cars,
   const list<CarDetect>::iterator& carIt,
   list<PeakCondition>::iterator& cit,
-  list<PeakCondition>& conditions) const
+  list<PeakCondition>& conditions,
+  const FindCarType& findFlag) const
 {
+  if (findFlag == FIND_CAR_DOWNGRADE)
+    return conditions.erase(cit);
+
   CarDetect& car = * carIt;
   if (carIt != cars.begin())
     PeakStructure::fillPartialSides(models, * prev(carIt), car);
@@ -816,8 +812,13 @@ list<PeakStructure::PeakCondition>::iterator PeakStructure::updateConditions(
   }
   else if (car.hasRightGap())
   {
-    condition.end = car.startValue();
-    return ++cit;
+    if (car.startValue() == condition.start)
+      return conditions.erase(cit);
+    else
+    {
+      condition.end = car.startValue();
+      return ++cit;
+    }
   }
   else
   {
@@ -852,34 +853,41 @@ void PeakStructure::markCars(
 
   CarDetect car;
   bool changeFlag = true;
+  FindCarType findFlag;
   while (changeFlag && ! conditions.empty())
   {
     changeFlag = false;
-    auto cit = conditions.begin();
-    while (cit != conditions.end())
+    auto condIt = conditions.begin();
+    while (condIt != conditions.end())
     {
-      PeakCondition& condition = * cit;
+      PeakCondition& condition = * condIt;
       if (condition.stuckFlag)
       {
-        cit++;
+        condIt++;
         continue;
       }
 
       cout << "Condition: " << condition.str(offset);
-      if (! PeakStructure::findCarByQuality(condition, models, car, peaks))
+      if (! PeakStructure::findCarByQuality(condition, models, car, 
+          peaks, findFlag))
       {
         condition.stuckFlag = true;
-        cit++;
+        condIt++;
         continue;
       }
 
-      PeakStructure::updateModels(models, car);
-      PeakStructure::updateCarDistances(models, cars);
       changeFlag = true;
 
-      auto newcit = cars.insert(condition.carAfter, car);
-      cit = PeakStructure::updateConditions(models, cars, newcit, cit,
-        conditions);
+      list<CarDetect>::iterator newcit;
+      if (findFlag == FIND_CAR_MATCH)
+      {
+        PeakStructure::updateModels(models, car);
+        newcit = cars.insert(condition.carAfter, car);
+        PeakStructure::updateCarDistances(models, cars);
+      }
+
+      condIt = PeakStructure::updateConditions(models, cars, newcit, 
+        condIt, conditions, findFlag);
 
       PeakStructure::printWheelCount(peaks, "Counting");
       PeakStructure::printCars(cars, "after condition");

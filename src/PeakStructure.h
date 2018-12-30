@@ -41,6 +41,13 @@ class PeakStructure
       };
     };
 
+    enum FindCarType
+    {
+      FIND_CAR_MATCH = 0,
+      FIND_CAR_DOWNGRADE = 1,
+      FIND_CAR_SIZE = 2
+    };
+
 
     list<Recognizer> recognizers;
 
@@ -104,7 +111,8 @@ class PeakStructure
       const PeakCondition& condition,
       CarModels& models,
       CarDetect& car,
-      PeakPool& peaks) const;
+      PeakPool& peaks,
+      FindCarType& findFlag) const;
 
     bool getClosest(
       const list<unsigned>& carPoints,
@@ -120,7 +128,8 @@ class PeakStructure
       const PeakCondition& condition,
       CarModels& models,
       CarDetect& car,
-      PeakPool& peaks) const;
+      PeakPool& peaks,
+      FindCarType& findFlag) const;
 
     void makeConditions(
       const list<CarDetect>& cars,
@@ -150,7 +159,8 @@ class PeakStructure
       const list<CarDetect>& cars,
       const list<CarDetect>::iterator& carIt,
       list<PeakCondition>::iterator& cit,
-      list<PeakCondition>& conditions) const;
+      list<PeakCondition>& conditions,
+      const FindCarType& findFlag) const;
 
     void updateImperfections(
       const unsigned num,
