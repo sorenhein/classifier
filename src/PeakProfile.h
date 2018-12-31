@@ -25,6 +25,8 @@ class PeakProfile
     // Unlabeled peaks by quality: ***, **, *, poor quality.
     vector<unsigned> stars;
 
+    unsigned sumSelected;
+
     unsigned sumGreat;
 
     unsigned sum;
@@ -46,6 +48,8 @@ class PeakProfile
     void make(
       const vector<Peak *>& peakPtrs,
       const unsigned source);
+
+    unsigned numSelected() const;
 
     bool match(const Recognizer& recog) const;
 

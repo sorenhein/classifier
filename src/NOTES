@@ -6,8 +6,6 @@ PeakStructure:
 
 Python: Allow 082401 as input?
 
-Maybe skipFlag not a good idea, as new car types arise
-
 carDetect endValue, startValue: Drop the +1, -1 stuff again, deal
 with in PeakStructure?
 

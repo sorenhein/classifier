@@ -6,6 +6,7 @@
 
 #include "CarDetect.h"
 #include "PeakPool.h"
+#include "PeakRange.h"
 
 #include "struct.h"
 
@@ -81,6 +82,7 @@ class PeakStructure
     list<FncGroup> findCarFunctions;
 
     list<PeakRange> ranges;
+    list<PeakRange2> ranges2;
 
     unsigned offset;
 

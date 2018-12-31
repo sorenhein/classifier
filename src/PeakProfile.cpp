@@ -33,6 +33,7 @@ void PeakProfile::reset()
   stars.resize(4);
 
   sumGreat = 0;
+  sumSelected = 0;
   sum = 0;
 }
 
@@ -46,6 +47,9 @@ void PeakProfile::make(
   PeakProfile::reset();
   for (auto& peakPtr: peakPtrs)
   {
+    if (peakPtr->isSelected())
+      sumSelected++;
+
     if (peakPtr->isLeftBogey())
     {
       if (peakPtr->isLeftWheel())
@@ -95,6 +99,12 @@ void PeakProfile::make(
     }
     sum++;
   }
+}
+
+
+unsigned PeakProfile::numSelected() const
+{
+  return sumSelected;
 }
 
 

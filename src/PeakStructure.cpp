@@ -1014,17 +1014,9 @@ void PeakStructure::printWheelCount(
   const PeakPool& peaks,
   const string& text) const
 {
-  // TODO Is this the same as PeakPool::countCandidates(&Peak::isSelected)?
-  unsigned count = 0;
-  PPciterator candcbegin = peaks.candcbegin();
-  PPciterator candcend = peaks.candcend();
-
-  for (PPciterator pit = candcbegin; pit != candcend; pit++)
-  {
-    if ((* pit)->isSelected())
-      count++;
-  }
-  cout << text << " " << count << " peaks" << endl;
+  cout << text << " " << 
+    peaks.countCandidates(&Peak::isSelected) << 
+    " peaks" << endl;
 }
 
 
