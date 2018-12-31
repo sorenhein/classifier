@@ -29,12 +29,22 @@ class PeakStructure
       unsigned end;
       bool leftGapPresent;
       bool rightGapPresent;
-      bool stuckFlag;
-      string text;
+      bool leftOriginal;
+      bool rightOriginal;
+
+      string order() const
+      {
+        if (leftOriginal)
+          return "first car";
+        else if (rightOriginal)
+          return "last car";
+        else
+          return "intra car";
+      };
 
       string str(const unsigned off = 0) const
       {
-        return text + ": " +
+        return PeakRange::order() + ": " +
           (leftGapPresent ? "(gap)" : "(no gap)") + " " +
           to_string(start + off) + "-" +
           to_string(end + off) + " " +
@@ -69,6 +79,8 @@ class PeakStructure
     list<Recognizer> recognizers;
 
     list<FncGroup> findCarFunctions;
+
+    list<PeakRange> ranges;
 
     unsigned offset;
 
@@ -165,8 +177,7 @@ class PeakStructure
 
     void makeRanges(
       const list<CarDetect>& cars,
-      const PeakPool& peaks,
-      list<PeakRange>& ranges) const;
+      const PeakPool& peaks);
 
     bool fillPartialSides(
       CarModels& models,
@@ -189,8 +200,7 @@ class PeakStructure
       const list<CarDetect>& cars,
       const list<CarDetect>::iterator& carIt,
       list<PeakRange>::iterator& rit,
-      list<PeakRange>& ranges,
-      const FindCarType& findFlag) const;
+      const FindCarType& findFlag);
 
     bool updateImperfections(
       const unsigned num,

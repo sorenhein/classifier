@@ -414,13 +414,13 @@ PeakStructure::FindCarType PeakStructure::findCarByQuality(
     else
     {
       cout << "Failed to find car among " << recog.text << "\n";
-      PeakStructure::printRange(range, "Didn't do " + range.text);
+      PeakStructure::printRange(range, "Didn't do " + range.order());
       cout << profile.str();
       return FIND_CAR_NO_MATCH;
     }
   }
 
-  PeakStructure::printRange(range, "Didn't match " + range.text);
+  PeakStructure::printRange(range, "Didn't match " + range.order());
   cout << profile.str();
   return FIND_CAR_NO_MATCH;
 }
@@ -443,7 +443,7 @@ PeakStructure::FindCarType PeakStructure::findEmptyRange(
   if (profile.looksEmpty())
   {
     PeakStructure::markDownPeaks(peakPtrs);
-    PeakStructure::printRange(range, "Downgraded " + range.text);
+    PeakStructure::printRange(range, "Downgraded " + range.order());
     return FIND_CAR_DOWNGRADE;
   }
   else
@@ -619,59 +619,19 @@ PeakStructure::FindCarType PeakStructure::findCarByGeometry(
 
 void PeakStructure::makeRanges(
   const list<CarDetect>& cars,
-  const PeakPool& peaks,
-  list<PeakRange>& ranges) const
+  const PeakPool& peaks)
 {
-  PeakRange * range;
   ranges.clear();
-
-  // There may be a car in front.
-  if (cars.front().startValue() > peaks.firstCandIndex())
-  {
-    ranges.emplace_back(PeakRange());
-    range = &ranges.back();
-
-    range->carAfter = cars.begin();
-    range->start = peaks.firstCandIndex();
-    range->end = cars.front().startValue();
-    range->leftGapPresent = false;
-    range->rightGapPresent = cars.front().hasLeftGap();
-    range->stuckFlag = false;
-    range->text = "first whole-car";
-  }
-
-  // There may be inner cars missing.
-  for (auto cit = cars.begin(); cit != prev(cars.end()); cit++)
-  {
-    auto ncit = next(cit);
-    if (cit->endValue() >= ncit->startValue())
-      continue;
-
-    ranges.emplace_back(PeakRange());
-    range = &ranges.back();
-
-    range->carAfter = ncit;
-    range->start = cit->endValue();
-    range->end = ncit->startValue();
-    range->leftGapPresent = cit->hasRightGap();
-    range->rightGapPresent = ncit->hasLeftGap();
-    range->stuckFlag = false;
-    range->text = "intra-gap";
-  }
-
-  // There may be a car in back.
-  if (cars.back().endValue() >= peaks.lastCandIndex())
-    return;
-
   ranges.emplace_back(PeakRange());
-  range = &ranges.back();
-  range->carAfter = cars.end();
-  range->start = cars.back().endValue();
-  range->end = peaks.lastCandIndex();
-  range->leftGapPresent = cars.back().hasRightGap();
-  range->rightGapPresent = false;
-  range->stuckFlag = false;
-  range->text = "last whole-car";
+  PeakRange& range = ranges.back();
+
+  range.carAfter = cars.begin();
+  range.start = peaks.firstCandIndex();
+  range.end = peaks.lastCandIndex();
+  range.leftGapPresent = false;
+  range.rightGapPresent = false;
+  range.leftOriginal = true;
+  range.rightOriginal = true;
 }
 
 
@@ -787,9 +747,10 @@ list<PeakStructure::PeakRange>::iterator PeakStructure::updateRanges(
   const list<CarDetect>& cars,
   const list<CarDetect>::iterator& carIt,
   list<PeakRange>::iterator& rit,
-  list<PeakRange>& ranges,
-  const FindCarType& findFlag) const
+  const FindCarType& findFlag)
 {
+  PeakRange& range = * rit;
+
   if (findFlag == FIND_CAR_DOWNGRADE)
     return ranges.erase(rit);
 
@@ -801,7 +762,6 @@ list<PeakStructure::PeakRange>::iterator PeakStructure::updateRanges(
   if (nextCarIt != cars.end())
     PeakStructure::fillPartialSides(models, car, * nextCarIt);
 
-  PeakRange& range = * rit;
 
   if (car.hasLeftGap() || car.startValue() == range.start)
   {
@@ -814,6 +774,7 @@ list<PeakStructure::PeakRange>::iterator PeakStructure::updateRanges(
       // This does not change any carAfter values.
       range.start = car.endValue() + 1;
       range.leftGapPresent = car.hasRightGap();
+      range.leftOriginal = false;
       return ++rit;
     }
   }
@@ -824,6 +785,7 @@ list<PeakStructure::PeakRange>::iterator PeakStructure::updateRanges(
     range.carAfter = carIt;
     range.end = car.startValue() - 1;
     range.rightGapPresent = car.hasLeftGap();
+    range.rightOriginal = false;
     return ++rit;
   }
   else
@@ -831,11 +793,15 @@ list<PeakStructure::PeakRange>::iterator PeakStructure::updateRanges(
     // Recognized a car in the middle of the range.
     // The new order is rangeNew - car - range.
     PeakRange rangeNew = range;
+
     range.start = car.endValue() + 1;
     range.leftGapPresent = car.hasRightGap();
+    range.leftOriginal = false;
+
     rangeNew.carAfter = carIt;
     rangeNew.end = car.startValue() - 1;
     rangeNew.rightGapPresent = car.hasLeftGap();
+    rangeNew.rightOriginal = false;
     return ranges.insert(rit, rangeNew);
   }
 }
@@ -849,18 +815,7 @@ void PeakStructure::markCars(
 {
   offset = offsetIn;
 
-  list<PeakRange> ranges;
-  ranges.emplace_back(PeakRange());
-  PeakRange& range0 = ranges.back();
-
-  range0.carAfter = cars.begin();
-  range0.start = peaks.firstCandIndex();
-  range0.end = peaks.lastCandIndex();
-  range0.leftGapPresent = false;
-  range0.rightGapPresent = false;
-  range0.stuckFlag = false;
-  range0.text = "whole range";
-
+  PeakStructure::makeRanges(cars, peaks);
 
   CarDetect car;
   // TODO Could be vectors later on
@@ -876,11 +831,6 @@ void PeakStructure::markCars(
     while (rit != ranges.end())
     {
       PeakRange& range = * rit;
-      if (range.stuckFlag)
-      {
-        rit++;
-        continue;
-      }
 
       // TODO This becomes a loop over detectors.
       // Can also include downgrade, separately, then findFlag
@@ -905,7 +855,6 @@ void PeakStructure::markCars(
 
       if (findFlag == FIND_CAR_NO_MATCH)
       {
-        range.stuckFlag = true;
         rit++;
         continue;
       }
@@ -921,7 +870,7 @@ void PeakStructure::markCars(
       }
 
       rit = PeakStructure::updateRanges(models, cars, newcit, 
-        rit, ranges, findFlag);
+        rit, findFlag);
 
       PeakStructure::printWheelCount(peaks, "Counting");
       PeakStructure::printCars(cars, "after range");
