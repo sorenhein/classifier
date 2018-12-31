@@ -8,6 +8,9 @@ Python: Allow 082401 as input?
 
 Maybe skipFlag not a good idea, as new car types arise
 
+carDetect endValue, startValue: Drop the +1, -1 stuff again, deal
+with in PeakStructure?
+
 MISMATCH in "good" sensors:
 
 sensor
@@ -29,6 +32,7 @@ sensor03        081132  #8      Inner: Only 3 peaks
 sensor04        073931  #7      Wrong short gap, in-between neg. minimum!
 sensor06        115207  #34     ICE4_DEU_48_{N,R} extremely similar
 
+Clean up the PPc/const nonsense in PeakPool and PeakStructure.
 
 * PeakMinima:
   - Some TODO's (algorithmic errors, actually)

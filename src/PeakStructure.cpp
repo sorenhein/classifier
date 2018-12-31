@@ -36,9 +36,14 @@ PeakStructure::PeakStructure()
   PeakStructure::reset();
   PeakStructure::setCarRecognizers();
 
-  findCarFunctions.push_back(&PeakStructure::findCarByQuality);
-  findCarFunctions.push_back(&PeakStructure::findCarByGeometry);
-  findCarFunctions.push_back(&PeakStructure::findEmptyRange);
+  findCarFunctions.push_back(
+    { &PeakStructure::findCarByOrder, "by 1234 order"});
+  findCarFunctions.push_back(
+    { &PeakStructure::findCarByQuality, "by quality"});
+  findCarFunctions.push_back(
+    { &PeakStructure::findCarByGeometry, "by geometry"});
+  findCarFunctions.push_back(
+    { &PeakStructure::findEmptyRange, "by emptiness"});
 }
 
 
@@ -816,6 +821,8 @@ PeakStructure::FindCarType PeakStructure::findCarByOrder(
 
   PPciterator cit = peaks.nextCandIncl(peakIters.front(), 
     &Peak::isSelected);
+  if (cit == peaks.candcend())
+    return FIND_CAR_NO_MATCH;
 
   for (unsigned i = 0; i < 4; i++)
   {
@@ -835,8 +842,10 @@ PeakStructure::FindCarType PeakStructure::findCarByOrder(
       // PeakStructure::seekGaps(runIter[0], runIter[3], peaks, range);
 
       // We deal with the edges later.
-      rangeLocal.start = runPtr[0]->getIndex() - 1;
-      rangeLocal.end = runPtr[3]->getIndex() + 1;
+      rangeLocal.start = runPtr[0]->getIndex();
+      rangeLocal.end = runPtr[3]->getIndex();
+      rangeLocal.leftGapPresent = false;
+      rangeLocal.rightGapPresent = false;
 
       PeakStructure::findFourWheeler(models, rangeLocal, runPtr, car);
 
@@ -881,46 +890,38 @@ list<PeakStructure::PeakRange>::iterator PeakStructure::updateRanges(
 
   PeakRange& range = * rit;
 
-  if (car.hasLeftGap())
+  if (car.hasLeftGap() || car.startValue() == range.start)
   {
-    if (car.hasRightGap())
-      return ranges.erase(rit);
-    else if (car.endValue() == range.end)
-      // Last car
+    if (car.hasRightGap() || car.endValue() == range.end)
       return ranges.erase(rit);
     else
     {
       // Shorten the range on the left to make room for the new
       // car preceding it.
       // This does not change any carAfter values.
-      range.start = car.endValue();
+      range.start = car.endValue() + 1;
       range.leftGapPresent = car.hasRightGap();
       return ++rit;
     }
   }
-  else if (car.hasRightGap())
+  else if (car.hasRightGap() || car.endValue() == range.end)
   {
-    if (car.startValue() == range.start)
-      return ranges.erase(rit);
-    else
-    {
-      // Shorten the range on the right to make room for the new
-      // car following it.
-      range.carAfter = carIt;
-      range.end = car.startValue();
-      range.rightGapPresent = car.hasLeftGap();
-      return ++rit;
-    }
+    // Shorten the range on the right to make room for the new
+    // car following it.
+    range.carAfter = carIt;
+    range.end = car.startValue() - 1;
+    range.rightGapPresent = car.hasLeftGap();
+    return ++rit;
   }
   else
   {
     // Recognized a car in the middle of the range.
     // The new order is rangeNew - car - range.
     PeakRange rangeNew = range;
-    range.start = car.endValue();
+    range.start = car.endValue() + 1;
     range.leftGapPresent = car.hasRightGap();
     rangeNew.carAfter = carIt;
-    rangeNew.end = car.startValue();
+    rangeNew.end = car.startValue() - 1;
     rangeNew.rightGapPresent = car.hasLeftGap();
     return ranges.insert(rit, rangeNew);
   }
@@ -935,6 +936,7 @@ void PeakStructure::markCars(
 {
   offset = offsetIn;
 
+  /*
   PeakStructure::findWholeCars(models, cars, peaks);
   PeakStructure::printCars(cars, "after whole cars");
 
@@ -947,6 +949,20 @@ void PeakStructure::markCars(
   // Check open ranges.
   list<PeakRange> ranges;
   PeakStructure::makeRanges(cars, peaks, ranges);
+  */
+
+  list<PeakRange> ranges;
+  ranges.emplace_back(PeakRange());
+  PeakRange& range0 = ranges.back();
+
+  range0.carAfter = cars.begin();
+  range0.start = peaks.firstCandIndex();
+  range0.end = peaks.lastCandIndex();
+  range0.leftGapPresent = false;
+  range0.rightGapPresent = false;
+  range0.stuckFlag = false;
+  range0.text = "whole range";
+
 
   CarDetect car;
   // TODO Could be vectors later on
@@ -978,12 +994,15 @@ void PeakStructure::markCars(
       profile.make(peakPtrs, range.source);
 
       FindCarType findFlag = FIND_CAR_SIZE;
-      for (auto fptr: findCarFunctions)
+      for (auto& fgroup: findCarFunctions)
       {
-        findFlag = (this->* fptr)(range, models, peaks,
+        findFlag = (this->* fgroup.fptr)(range, models, peaks,
           peakPtrs, peakIters, profile, car);
         if (findFlag != FIND_CAR_NO_MATCH)
+        {
+          cout << "Hit " << fgroup.name << "\n";
           break;
+        }
       }
 
       if (findFlag == FIND_CAR_NO_MATCH)

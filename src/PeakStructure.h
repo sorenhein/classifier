@@ -59,10 +59,16 @@ class PeakStructure
       const PeakProfile& profile,
       CarDetect& car) const;
 
+    struct FncGroup
+    {
+      FindCarPtr fptr;
+      string name;
+    };
+
 
     list<Recognizer> recognizers;
 
-    list<FindCarPtr> findCarFunctions;
+    list<FncGroup> findCarFunctions;
 
     unsigned offset;
 
