@@ -680,8 +680,8 @@ bool PeakStructure::fillPartialSides(
   CarDetect& car1,
   CarDetect& car2) const
 {
-  // Some cars from the initial findWholeCars() run may have been
-  // partial (i.e., missing a side gap) on either or both sides.
+  // Some cars may have been partial (i.e., missing a side gap) on 
+  // either or both sides.
   // Now that we have filled in the inner cars, we can guess those
   // gaps and also check the partial car types.
 
@@ -704,44 +704,6 @@ bool PeakStructure::fillPartialSides(
 }
 
 
-void PeakStructure::seekGaps(
-  PPciterator pitLeft,
-  PPciterator pitRight,
-  const PeakPool& peaks,
-  PeakRange& range) const
-{
-  // Check for gap in front of pitLeft.
-  range.leftGapPresent = false;
-  range.start = (* pitLeft)->getIndex() - 1;
-  if (pitLeft != peaks.candcbegin())
-  {
-    Peak const * prevPtr = * prev(pitLeft);
-    if (prevPtr->isBogey())
-    {
-      // This rounds to make the cars abut.
-      const unsigned d = (* pitLeft)->getIndex() - prevPtr->getIndex();
-      range.start = (* pitLeft)->getIndex() + (d/2) - d;
-      range.leftGapPresent = true;
-    }
-  }
-
-  // Check for gap after pitRight.
-  range.rightGapPresent = false;
-  range.end = (* pitRight)->getIndex() + 1;
-  auto postIter = next(pitRight);
-  if (postIter != peaks.candcend())
-  {
-    Peak const * nextPtr = * postIter;
-    if (nextPtr->isBogey())
-    {
-      range.end = (* pitRight)->getIndex() + 
-        (nextPtr->getIndex() - (* pitRight)->getIndex()) / 2;
-      range.rightGapPresent = true;
-    }
-  }
-}
-
-
 bool PeakStructure::isWholeCar(const PeakPtrVector& pv) const
 {
   bool isLeftPair = (pv[0]->isLeftWheel() && pv[1]->isRightWheel());
@@ -752,53 +714,6 @@ bool PeakStructure::isWholeCar(const PeakPtrVector& pv) const
   // True if we have two pairs, and at least one of them is
   // recognized as a sided bogey.
   return (isLeftPair && isRightPair && (isLeftBogey || isRightBogey));
-}
-
-
-void PeakStructure::findWholeCars(
-  CarModels& models,
-  list<CarDetect>& cars,
-  PeakPool& peaks) const
-{
-  // Set up a sliding vector of running peaks.
-  vector<PPiterator> runIter;
-  PeakPtrVector runPtr;
-  PeakRange range;
-
-  PPiterator candbegin = peaks.candbegin();
-  PPiterator candend = peaks.candend();
-
-  PPiterator cit = peaks.nextCandIncl(candbegin, &Peak::isSelected);
-  for (unsigned i = 0; i < 4; i++)
-  {
-    runIter.push_back(cit);
-    runPtr.push_back(* cit);
-  }
-
-  while (cit != candend)
-  {
-    if (PeakStructure::isWholeCar(runPtr))
-    {
-      PeakStructure::seekGaps(runIter[0], runIter[3], peaks, range);
-
-      CarDetect car;
-      PeakStructure::findFourWheeler(models, range, runPtr, car);
-
-      PeakStructure::updateModels(models, car);
-      cars.push_back(car);
-      PeakStructure::markUpPeaks(runPtr, 4);
-    }
-
-    for (unsigned i = 0; i < 3; i++)
-    {
-      runIter[i] = runIter[i+1];
-      runPtr[i] = runPtr[i+1];
-    }
-
-    cit = peaks.nextCandExcl(cit, &Peak::isSelected);
-    runIter[3] = cit;
-    runPtr[3] = * cit;
-  }
 }
 
 
@@ -839,8 +754,6 @@ PeakStructure::FindCarType PeakStructure::findCarByOrder(
 
     if (PeakStructure::isWholeCar(runPtr))
     {
-      // PeakStructure::seekGaps(runIter[0], runIter[3], peaks, range);
-
       // We deal with the edges later.
       rangeLocal.start = runPtr[0]->getIndex();
       rangeLocal.end = runPtr[3]->getIndex();
@@ -935,21 +848,6 @@ void PeakStructure::markCars(
   const unsigned offsetIn)
 {
   offset = offsetIn;
-
-  /*
-  PeakStructure::findWholeCars(models, cars, peaks);
-  PeakStructure::printCars(cars, "after whole cars");
-
-  if (cars.size() == 0)
-    THROW(ERR_NO_PEAKS, "No cars?");
-
-  PeakStructure::updateCarDistances(models, cars);
-  PeakStructure::printCars(cars, "before intra gaps");
-
-  // Check open ranges.
-  list<PeakRange> ranges;
-  PeakStructure::makeRanges(cars, peaks, ranges);
-  */
 
   list<PeakRange> ranges;
   ranges.emplace_back(PeakRange());

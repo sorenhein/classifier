@@ -173,18 +173,7 @@ class PeakStructure
       CarDetect& car1,
       CarDetect& car2) const;
 
-    void seekGaps(
-      PPciterator pitLeft,
-      PPciterator pitRight,
-      const PeakPool& peaks,
-      PeakRange& range) const;
-
     bool isWholeCar(const PeakPtrVector& pv) const;
-
-    void findWholeCars(
-      CarModels& models,
-      list<CarDetect>& cars,
-      PeakPool& peaks) const;
 
     FindCarType findCarByOrder(
       const PeakRange& range,
