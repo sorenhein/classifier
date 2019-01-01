@@ -49,6 +49,8 @@ class PeakProfile
       const vector<Peak *>& peakPtrs,
       const unsigned source);
 
+    unsigned numGood() const;
+    unsigned numGreat() const;
     unsigned numSelected() const;
 
     bool match(const Recognizer& recog) const;

@@ -63,8 +63,17 @@ class PeakRange2
     bool hasLeftGap() const;
     bool hasRightGap() const;
 
+    unsigned numGreat() const;
+    unsigned numGood() const;
+
     PeakPtrVector& getPeakPtrs();
 
+    void splitByQuality(
+      const PeakFncPtr& fptr,
+      PeakPtrVector& peakPtrsUsed,
+      PeakPtrVector& peakPtrsUnused) const;
+
+    bool match(const Recognizer& recog) const;
     bool looksEmpty() const;
 
     bool updateImperfections(

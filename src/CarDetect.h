@@ -72,6 +72,14 @@ class CarDetect
       Peak * secondBogeyLeftPtr,
       Peak * secondBogeyRightPtr);
 
+    void makeLastTwoOfFourWheeler(
+      const PeakRange2& range,
+      const vector<Peak *>& peakPtrs);
+
+    void makeLastThreeOfFourWheeler(
+      const PeakRange2& range,
+      const vector<Peak *>& peakPtrs);
+
     void makeFourWheeler(
       const PeakRange2& range,
       const vector<Peak *>& peakPtrs);

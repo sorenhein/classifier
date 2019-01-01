@@ -133,6 +133,13 @@ class PeakStructure
       const unsigned numWheels,
       CarDetect& car) const;
 
+    bool findNumberedWheeler2(
+      const CarModels& models,
+      const PeakRange2& range,
+      const PeakPtrVector& peakPtrs,
+      const unsigned numWheels,
+      CarDetect& car) const;
+
     void markUpPeaks(
       PeakPtrVector& peakPtrsNew,
       const unsigned numPeaks) const;
@@ -160,6 +167,24 @@ class PeakStructure
       PeakPtrVector& peakPtrs,
       const PeakIterVector& peakIters,
       const PeakProfile& profile,
+      CarDetect& car) const;
+
+    FindCarType findCarByQualityNew(
+      const CarModels& models,
+      const PeakFncPtr& fptr,
+      PeakRange2& range,
+      CarDetect& car) const;
+
+    FindCarType findCarByGreatQuality(
+      const CarModels& models,
+      const PeakPool& peaks,
+      PeakRange2& range,
+      CarDetect& car) const;
+
+    FindCarType findCarByGoodQuality(
+      const CarModels& models,
+      const PeakPool& peaks,
+      PeakRange2& range,
       CarDetect& car) const;
 
     FindCarType findEmptyRange(

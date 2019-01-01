@@ -97,9 +97,42 @@ bool PeakRange2::hasRightGap() const
 }
 
 
+unsigned PeakRange2::numGreat() const
+{
+  return profile.numGreat();
+}
+
+
+unsigned PeakRange2::numGood() const
+{
+  return profile.numGood();
+}
+
+
 PeakPtrVector& PeakRange2::getPeakPtrs()
 {
   return peakPtrs;
+}
+
+
+void PeakRange2::splitByQuality(
+  const PeakFncPtr& fptr,
+  PeakPtrVector& peakPtrsUsed,
+  PeakPtrVector& peakPtrsUnused) const
+{
+  for (auto pp: peakPtrs)
+  {
+    if (pp->isWheel() || (pp->* fptr)())
+      peakPtrsUsed.push_back(pp);
+    else
+      peakPtrsUnused.push_back(pp);
+  }
+}
+
+
+bool PeakRange2::match(const Recognizer& recog) const
+{
+  return profile.match(recog);
 }
 
 

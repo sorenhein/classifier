@@ -102,6 +102,18 @@ void PeakProfile::make(
 }
 
 
+unsigned PeakProfile::numGood() const
+{
+  return sumGreat + stars[1];
+}
+
+
+unsigned PeakProfile::numGreat() const
+{
+  return sumGreat;
+}
+
+
 unsigned PeakProfile::numSelected() const
 {
   return sumSelected;
