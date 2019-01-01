@@ -229,6 +229,29 @@ void PeakPool::getCands(
 }
 
 
+void PeakPool::getCands(
+  const unsigned start,
+  const unsigned end,
+  PeakPtrVector& peakPtrs,
+  PeakIterList& peakIters) const
+{
+  peakPtrs.clear();
+  peakIters.clear();
+  for (PPciterator pit = candidates.begin(); pit != candidates.end(); pit++)
+  {
+    Peak * cand = * pit;
+    const unsigned index = cand->getIndex();
+    if (index > end)
+      break;
+    if (index < start)
+      continue;
+
+    peakIters.push_back(pit);
+    peakPtrs.push_back(* pit);
+  }
+}
+
+
 unsigned PeakPool::firstCandIndex() const
 {
   if (candidates.size() == 0)

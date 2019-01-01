@@ -40,10 +40,15 @@ PeakStructure::PeakStructure()
     { &PeakStructure::findCarByOrder, "by 1234 order"});
   findCarFunctions.push_back(
     { &PeakStructure::findCarByQuality, "by quality"});
-  findCarFunctions.push_back(
-    { &PeakStructure::findCarByGeometry, "by geometry"});
-  findCarFunctions.push_back(
-    { &PeakStructure::findEmptyRange, "by emptiness"});
+  // findCarFunctions.push_back(
+    // { &PeakStructure::findCarByGeometry, "by geometry"});
+  // findCarFunctions.push_back(
+    // { &PeakStructure::findEmptyRange, "by emptiness"});
+
+   findCarFunctions2.push_back(
+     { &PeakStructure::findCarByGeometry2, "by geometry"});
+  findCarFunctions2.push_back(
+    { &PeakStructure::findEmptyRange2, "by emptiness"});
 }
 
 
@@ -451,6 +456,26 @@ PeakStructure::FindCarType PeakStructure::findEmptyRange(
 }
 
 
+PeakStructure::FindCarType PeakStructure::findEmptyRange2(
+  const CarModels& models,
+  const PeakPool& peaks,
+  PeakRange2& range,
+  CarDetect& car) const
+{
+  UNUSED(models);
+  UNUSED(peaks);
+  UNUSED(car);
+
+  if (range.looksEmpty())
+  {
+    PeakStructure::markDownPeaks(range.getPeakPtrs());
+    return FIND_CAR_DOWNGRADE;
+  }
+  else
+    return FIND_CAR_NO_MATCH;
+}
+
+
 bool PeakStructure::isConsistent(const PeakPtrVector& closestPeaks) const
 {
   for (unsigned i = 0; i < 4; i++)
@@ -521,6 +546,71 @@ PeakStructure::FindCarType PeakStructure::findCarByGeometry(
         cout << "WARNING: Peaks inconsistent with car #" <<
           matchIndex << " found (distance " << distance << ")\n";
         cout << range.str(offset) << endl;
+      }
+
+      if (! skippedPeaks.empty())
+      {
+        cout << "WARNING (inspect?): Some good peaks were skipped.\n";
+        cout << skippedPeaks.front()->strHeaderQuality();
+        for (Peak * skip: skippedPeaks)
+          cout << skip->strQuality(offset);
+        cout << "\n";
+      }
+
+      return FIND_CAR_MATCH;
+    }
+  }
+  return FIND_CAR_NO_MATCH;
+}
+
+
+PeakStructure::FindCarType PeakStructure::findCarByGeometry2(
+  const CarModels& models,
+  const PeakPool& peaks,
+  PeakRange2& range,
+  CarDetect& car) const
+{
+  CarDetect carModel;
+  list<unsigned> carPoints;
+  PeakPtrVector closestPeaks, skippedPeaks;
+  unsigned matchIndex;
+  float distance;
+  PeakRange2 rangeLocal;
+
+  for (unsigned mno = 0; mno < models.size(); mno++)
+  {
+    models.getCar(carModel, mno);
+
+    // 6 elements: Left edge, 4 wheels, right edge.
+    carModel.getCarPoints(carPoints);
+
+    for (auto pit: range)
+    {
+      if (! (* pit)->goodQuality())
+        continue;
+
+      // pit corresponds to the first wheel.
+      if (! peaks.getClosest(carPoints, &Peak::goodQuality, pit, 4,
+          closestPeaks, skippedPeaks))
+        continue;
+
+      // We deal with the edges later.
+      rangeLocal.init(closestPeaks);
+      car.makeFourWheeler(rangeLocal, closestPeaks);
+      if (! models.gapsPlausible(car))
+        continue;
+      
+      if (! PeakStructure::matchesModel(models, car, matchIndex, distance))
+        continue;
+      
+      if (matchIndex != mno)
+        continue;
+
+      if (! PeakStructure::isConsistent(closestPeaks))
+      {
+        cout << "WARNING: Peaks inconsistent with car #" <<
+          matchIndex << " found (distance " << distance << ")\n";
+        cout << range.strFull(offset) << endl;
       }
 
       if (! skippedPeaks.empty())
@@ -837,6 +927,21 @@ void PeakStructure::markCars(
           cout << "Hit " << fgroup.name << "\n";
           break;
         }
+      }
+
+      if (findFlag == FIND_CAR_NO_MATCH)
+      {
+      for (auto& fgroup: findCarFunctions2)
+      {
+        findFlag = (this->* fgroup.fptr)(models, peaks, range2, car);
+        if (findFlag != FIND_CAR_NO_MATCH)
+        {
+          cout << "NEWHIT " << fgroup.name << "\n";
+          cout << range.str(offset);
+          cout << range2.strFull(offset);
+          break;
+        }
+      }
       }
 
       if (findFlag == FIND_CAR_NO_MATCH)

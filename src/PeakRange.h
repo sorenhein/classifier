@@ -22,13 +22,13 @@ class PeakRange2
     list<CarDetect>::const_iterator carAfter; 
     PeakSource source;
     unsigned start;
-    unsigned end;
+    unsigned endVal;
     bool leftGapPresent;
     bool rightGapPresent;
     bool leftOriginal;
     bool rightOriginal;
 
-    PeakIterVector peakIters;
+    PeakIterList peakIters;
     PeakPtrVector peakPtrs;
     PeakProfile profile;
     
@@ -41,9 +41,14 @@ class PeakRange2
 
     void reset();
 
+    PIciterator begin() const { return peakIters.begin(); }
+    PIciterator end() const { return peakIters.end(); }
+
     void init(
       const list<CarDetect>& cars,
       const PeakPool& peaks);
+
+    void init(const PeakPtrVector& pv);
 
     void fill(const PeakPool& peaks);
 
@@ -55,6 +60,12 @@ class PeakRange2
 
     unsigned startValue() const;
     unsigned endValue() const;
+    bool hasLeftGap() const;
+    bool hasRightGap() const;
+
+    PeakPtrVector& getPeakPtrs();
+
+    bool looksEmpty() const;
 
     bool updateImperfections(
       const list<CarDetect>& cars,

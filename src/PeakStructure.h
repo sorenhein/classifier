@@ -76,10 +76,23 @@ class PeakStructure
       string name;
     };
 
+    typedef FindCarType (PeakStructure::*FindCarPtr2)(
+      const CarModels& models,
+      const PeakPool& peaks,
+      PeakRange2& range,
+      CarDetect& car) const;
+
+    struct FncGroup2
+    {
+      FindCarPtr2 fptr;
+      string name;
+    };
+
 
     list<Recognizer> recognizers;
 
     list<FncGroup> findCarFunctions;
+    list<FncGroup2> findCarFunctions2;
 
     list<PeakRange> ranges;
     list<PeakRange2> ranges2;
@@ -158,6 +171,12 @@ class PeakStructure
       const PeakProfile& profile,
       CarDetect& car) const;
 
+    FindCarType findEmptyRange2(
+      const CarModels& models,
+      const PeakPool& peaks,
+      PeakRange2& range,
+      CarDetect& car) const;
+
     bool isConsistent(const PeakPtrVector& closestPeaks) const;
 
     FindCarType findCarByGeometry(
@@ -167,6 +186,12 @@ class PeakStructure
       PeakPtrVector& peakPtrs,
       const PeakIterVector& peakIters,
       const PeakProfile& profile,
+      CarDetect& car) const;
+
+    FindCarType findCarByGeometry2(
+      const CarModels& models,
+      const PeakPool& peaks,
+      PeakRange2& range,
       CarDetect& car) const;
 
     void makeRanges(

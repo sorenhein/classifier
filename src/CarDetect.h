@@ -10,6 +10,8 @@
 
 using namespace std;
 
+class PeakRange2;
+
 struct CarDetectNumbers
 {
   unsigned numLeftGaps;
@@ -69,6 +71,10 @@ class CarDetect
       Peak * firstBogeyRightPtr,
       Peak * secondBogeyLeftPtr,
       Peak * secondBogeyRightPtr);
+
+    void makeFourWheeler(
+      const PeakRange2& range,
+      const vector<Peak *>& peakPtrs);
 
     void logStatIndex(const unsigned index);
 

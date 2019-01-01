@@ -3,6 +3,7 @@
 #include <sstream>
 
 #include "CarDetect.h"
+#include "PeakRange.h"
 
 
 CarDetect::CarDetect()
@@ -106,6 +107,31 @@ void CarDetect::logPeakPointers(
 void CarDetect::logStatIndex(const unsigned index)
 {
   statIndex = index;
+}
+
+
+void CarDetect::makeFourWheeler(
+  const PeakRange2& range,
+  const vector<Peak *>& peakPtrs)
+{
+  CarDetect::setLimits(range.startValue(), range.endValue());
+
+  const unsigned peakNo0 = peakPtrs[0]->getIndex();
+  const unsigned peakNo1 = peakPtrs[1]->getIndex();
+  const unsigned peakNo2 = peakPtrs[2]->getIndex();
+  const unsigned peakNo3 = peakPtrs[3]->getIndex();
+
+  if (range.hasLeftGap())
+    CarDetect::logLeftGap(peakNo0 - start);
+
+  if (range.hasRightGap())
+    CarDetect::logRightGap(end - peakNo3);
+
+  CarDetect::logCore(
+    peakNo1 - peakNo0, peakNo2 - peakNo1, peakNo3 - peakNo2);
+
+  CarDetect::logPeakPointers(
+    peakPtrs[0], peakPtrs[1], peakPtrs[2], peakPtrs[3]);
 }
 
 

@@ -23,7 +23,7 @@ PeakRange2::~PeakRange2()
 void PeakRange2::reset()
 {
   start = 0;
-  end = 0;
+  endVal = 0;
   leftGapPresent = false;
   rightGapPresent = false;
 
@@ -40,20 +40,25 @@ void PeakRange2::init(
   carAfter = cars.begin();
   source = PEAK_SOURCE_SIZE;
   start = peaks.firstCandIndex();
-  end = peaks.lastCandIndex();
+  endVal = peaks.lastCandIndex();
   leftGapPresent = false;
   rightGapPresent = false;
   leftOriginal = true;
   rightOriginal = true;
+}
 
-  PeakRange2::reset();
+
+void PeakRange2::init(const PeakPtrVector& pv)
+{
+  start = pv.front()->getIndex() - 1;
+  endVal = pv.back()->getIndex() + 1;
 }
 
 
 void PeakRange2::fill(const PeakPool& peaks)
 {
   // Set up some useful stuff for all recognizers.
-  peaks.getCands(start, end, peakPtrs, peakIters);
+  peaks.getCands(start, endVal, peakPtrs, peakIters);
   profile.make(peakPtrs, source);
 }
 
@@ -76,7 +81,31 @@ unsigned PeakRange2::startValue() const
 
 unsigned PeakRange2::endValue() const
 {
-  return end;
+  return endVal;
+}
+
+
+bool PeakRange2::hasLeftGap() const
+{
+  return leftGapPresent;
+}
+
+
+bool PeakRange2::hasRightGap() const
+{
+  return rightGapPresent;
+}
+
+
+PeakPtrVector& PeakRange2::getPeakPtrs()
+{
+  return peakPtrs;
+}
+
+
+bool PeakRange2::looksEmpty() const
+{
+  return profile.looksEmpty();
 }
 
 
@@ -87,7 +116,7 @@ void PeakRange2::shortenRight(
   // Shorten the range on the right to make room for the new
   // car following it.
   carAfter = carIt;
-  end = car.startValue() - 1;
+  endVal = car.startValue() - 1;
   rightGapPresent = car.hasLeftGap();
   rightOriginal = false;
 }
@@ -123,7 +152,7 @@ string PeakRange2::strInterval(
 {
   return text + " " +
     to_string(start + offset) + "-" +
-    to_string(end + offset) + "\n";
+    to_string(endVal + offset) + "\n";
 }
 
 
@@ -143,7 +172,7 @@ string PeakRange2::strFull(const unsigned offset) const
   return PeakRange2::strPos() + ": " +
     (leftGapPresent ? "(gap)" : "(no gap)") + " " +
     to_string(start + offset) + "-" +
-    to_string(end + offset) + " " +
+    to_string(endVal + offset) + " " +
     (rightGapPresent ? "(gap)" : "(no gap)") + " " +
     "\n";
 }
