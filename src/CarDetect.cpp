@@ -111,7 +111,7 @@ void CarDetect::logStatIndex(const unsigned index)
 
 
 void CarDetect::makeLastTwoOfFourWheeler(
-  const PeakRange2& range,
+  const PeakRange& range,
   const vector<Peak *>& peakPtrs)
 {
   CarDetect::setLimits(range.startValue(), range.endValue());
@@ -130,7 +130,7 @@ void CarDetect::makeLastTwoOfFourWheeler(
 
 
 void CarDetect::makeLastThreeOfFourWheeler(
-  const PeakRange2& range,
+  const PeakRange& range,
   const vector<Peak *>& peakPtrs)
 {
   CarDetect::setLimits(range.startValue(), range.endValue());
@@ -150,7 +150,7 @@ void CarDetect::makeLastThreeOfFourWheeler(
 
 
 void CarDetect::makeFourWheeler(
-  const PeakRange2& range,
+  const PeakRange& range,
   const vector<Peak *>& peakPtrs)
 {
   CarDetect::setLimits(range.startValue(), range.endValue());

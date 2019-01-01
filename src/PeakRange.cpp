@@ -9,18 +9,18 @@
 #include "CarDetect.h"
 
 
-PeakRange2::PeakRange2()
+PeakRange::PeakRange()
 {
-  PeakRange2::reset();
+  PeakRange::reset();
 }
 
 
-PeakRange2::~PeakRange2()
+PeakRange::~PeakRange()
 {
 }
 
 
-void PeakRange2::reset()
+void PeakRange::reset()
 {
   start = 0;
   endVal = 0;
@@ -33,7 +33,7 @@ void PeakRange2::reset()
 }
 
 
-void PeakRange2::init(
+void PeakRange::init(
   const list<CarDetect>& cars,
   const PeakPool& peaks)
 {
@@ -48,14 +48,14 @@ void PeakRange2::init(
 }
 
 
-void PeakRange2::init(const PeakPtrVector& pv)
+void PeakRange::init(const PeakPtrVector& pv)
 {
   start = pv.front()->getIndex() - 1;
   endVal = pv.back()->getIndex() + 1;
 }
 
 
-void PeakRange2::fill(const PeakPool& peaks)
+void PeakRange::fill(const PeakPool& peaks)
 {
   // Set up some useful stuff for all recognizers.
   peaks.getCands(start, endVal, peakPtrs, peakIters);
@@ -63,7 +63,7 @@ void PeakRange2::fill(const PeakPool& peaks)
 }
 
 
-void PeakRange2::shortenLeft(const CarDetect& car)
+void PeakRange::shortenLeft(const CarDetect& car)
 {
   // Shorten the range on the left to make room for the new
   // car preceding it.  This does not change any carAfter values.
@@ -74,7 +74,7 @@ void PeakRange2::shortenLeft(const CarDetect& car)
 }
 
 
-void PeakRange2::shortenRight(
+void PeakRange::shortenRight(
   const CarDetect& car,
   const list<CarDetect>::iterator& carIt)
 {
@@ -87,49 +87,55 @@ void PeakRange2::shortenRight(
 }
 
 
-unsigned PeakRange2::startValue() const
+const CarListIter& PeakRange::carAfterIter() const
+{
+  return carAfter;
+}
+
+
+unsigned PeakRange::startValue() const
 {
   return start;
 }
 
 
-unsigned PeakRange2::endValue() const
+unsigned PeakRange::endValue() const
 {
   return endVal;
 }
 
 
-bool PeakRange2::hasLeftGap() const
+bool PeakRange::hasLeftGap() const
 {
   return leftGapPresent;
 }
 
 
-bool PeakRange2::hasRightGap() const
+bool PeakRange::hasRightGap() const
 {
   return rightGapPresent;
 }
 
 
-unsigned PeakRange2::numGreat() const
+unsigned PeakRange::numGreat() const
 {
   return profile.numGreat();
 }
 
 
-unsigned PeakRange2::numGood() const
+unsigned PeakRange::numGood() const
 {
   return profile.numGood();
 }
 
 
-PeakPtrVector& PeakRange2::getPeakPtrs()
+PeakPtrVector& PeakRange::getPeakPtrs()
 {
   return peakPtrs;
 }
 
 
-void PeakRange2::splitByQuality(
+void PeakRange::splitByQuality(
   const PeakFncPtr& fptr,
   PeakPtrVector& peakPtrsUsed,
   PeakPtrVector& peakPtrsUnused) const
@@ -144,25 +150,25 @@ void PeakRange2::splitByQuality(
 }
 
 
-bool PeakRange2::isFirstCar() const
+bool PeakRange::isFirstCar() const
 {
   return (source == PEAK_SOURCE_FIRST);
 }
 
 
-bool PeakRange2::match(const Recognizer& recog) const
+bool PeakRange::match(const Recognizer& recog) const
 {
   return profile.match(recog);
 }
 
 
-bool PeakRange2::looksEmpty() const
+bool PeakRange::looksEmpty() const
 {
   return profile.looksEmpty();
 }
 
 
-bool PeakRange2::updateImperfections(
+bool PeakRange::updateImperfections(
   const list<CarDetect>& cars,
   Imperfections& imperf) const
 {
@@ -186,7 +192,7 @@ bool PeakRange2::updateImperfections(
 }
 
 
-string PeakRange2::strInterval(
+string PeakRange::strInterval(
   const unsigned offset,
   const string& text) const
 {
@@ -196,7 +202,7 @@ string PeakRange2::strInterval(
 }
 
 
-string PeakRange2::strPos() const
+string PeakRange::strPos() const
 {
   if (leftOriginal)
     return "first car";
@@ -207,9 +213,9 @@ string PeakRange2::strPos() const
 }
 
 
-string PeakRange2::strFull(const unsigned offset) const
+string PeakRange::strFull(const unsigned offset) const
 {
-  return PeakRange2::strPos() + ": " +
+  return PeakRange::strPos() + ": " +
     (leftGapPresent ? "(gap)" : "(no gap)") + " " +
     to_string(start + offset) + "-" +
     to_string(endVal + offset) + " " +
@@ -218,7 +224,7 @@ string PeakRange2::strFull(const unsigned offset) const
 }
 
 
-string PeakRange2::strProfile() const
+string PeakRange::strProfile() const
 {
   return profile.str();
 }

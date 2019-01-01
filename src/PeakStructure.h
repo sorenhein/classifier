@@ -21,38 +21,6 @@ class PeakStructure
 {
   private:
 
-    struct PeakRange
-    {
-      // The car after the range
-      list<CarDetect>::const_iterator carAfter; 
-      PeakSource source;
-      unsigned start;
-      unsigned end;
-      bool leftGapPresent;
-      bool rightGapPresent;
-      bool leftOriginal;
-      bool rightOriginal;
-
-      string order() const
-      {
-        if (leftOriginal)
-          return "first car";
-        else if (rightOriginal)
-          return "last car";
-        else
-          return "intra car";
-      };
-
-      string str(const unsigned off = 0) const
-      {
-        return PeakRange::order() + ": " +
-          (leftGapPresent ? "(gap)" : "(no gap)") + " " +
-          to_string(start + off) + "-" +
-          to_string(end + off) + " " +
-          (rightGapPresent ? "(gap)" : "(no gap)") + "\n";
-      };
-    };
-
     enum FindCarType
     {
       FIND_CAR_MATCH = 0,
@@ -62,12 +30,9 @@ class PeakStructure
     };
 
     typedef FindCarType (PeakStructure::*FindCarPtr)(
-      const PeakRange& range,
       const CarModels& models,
       const PeakPool& peaks,
-      PeakPtrVector& peakPtrs,
-      const PeakIterVector& peakIters,
-      const PeakProfile& profile,
+      PeakRange& range,
       CarDetect& car) const;
 
     struct FncGroup
@@ -76,26 +41,10 @@ class PeakStructure
       string name;
     };
 
-    typedef FindCarType (PeakStructure::*FindCarPtr2)(
-      const CarModels& models,
-      const PeakPool& peaks,
-      PeakRange2& range,
-      CarDetect& car) const;
-
-    struct FncGroup2
-    {
-      FindCarPtr2 fptr;
-      string name;
-    };
-
-
-    list<Recognizer> recognizers;
 
     list<FncGroup> findCarFunctions;
-    list<FncGroup2> findCarFunctions2;
 
-    list<PeakRange> ranges;
-    list<PeakRange2> ranges2;
+    list<PeakRange> ranges2;
 
     unsigned offset;
 
@@ -106,15 +55,9 @@ class PeakStructure
       unsigned& index,
       float& distance) const;
 
-    bool findFourWheeler(
+    bool findNumberedWheeler(
       const CarModels& models,
       const PeakRange& range,
-      const PeakPtrVector& peakPtrs,
-      CarDetect& car) const;
-
-    bool findNumberedWheeler2(
-      const CarModels& models,
-      const PeakRange2& range,
       const PeakPtrVector& peakPtrs,
       const unsigned numWheels,
       CarDetect& car) const;
@@ -137,37 +80,37 @@ class PeakStructure
       const CarModels& models,
       const PeakFncPtr& fptr,
       const unsigned numWheels,
-      PeakRange2& range,
+      PeakRange& range,
       CarDetect& car) const;
 
     FindCarType findPartialFirstCarByQuality(
       const CarModels& models,
       const PeakPool& peaks,
-      PeakRange2& range,
+      PeakRange& range,
       CarDetect& car) const;
 
     FindCarType findCarByQualityNew(
       const CarModels& models,
       const PeakFncPtr& fptr,
-      PeakRange2& range,
+      PeakRange& range,
       CarDetect& car) const;
 
     FindCarType findCarByGreatQuality(
       const CarModels& models,
       const PeakPool& peaks,
-      PeakRange2& range,
+      PeakRange& range,
       CarDetect& car) const;
 
     FindCarType findCarByGoodQuality(
       const CarModels& models,
       const PeakPool& peaks,
-      PeakRange2& range,
+      PeakRange& range,
       CarDetect& car) const;
 
     FindCarType findEmptyRange(
       const CarModels& models,
       const PeakPool& peaks,
-      PeakRange2& range,
+      PeakRange& range,
       CarDetect& car) const;
 
     bool isConsistent(const PeakPtrVector& closestPeaks) const;
@@ -175,7 +118,7 @@ class PeakStructure
     FindCarType findCarByGeometry(
       const CarModels& models,
       const PeakPool& peaks,
-      PeakRange2& range,
+      PeakRange& range,
       CarDetect& car) const;
 
     void makeRanges(
@@ -190,42 +133,22 @@ class PeakStructure
     bool isWholeCar(const PeakPtrVector& pv) const;
 
     FindCarType findCarByOrder(
-      const PeakRange& range,
       const CarModels& models,
       const PeakPool& peaks,
-      PeakPtrVector& peakPtrs,
-      const PeakIterVector& peakIters,
-      const PeakProfile& profile,
+      PeakRange& range,
       CarDetect& car) const;
 
-    FindCarType findCarByOrderNew(
-      const CarModels& models,
-      const PeakPool& peaks,
-      PeakRange2& range,
-      CarDetect& car) const;
-
-    list<PeakRange>::iterator updateRanges(
+    list<PeakRange>::iterator updateRanges2(
       CarModels& models,
       const list<CarDetect>& cars,
       const list<CarDetect>::iterator& carIt,
       list<PeakRange>::iterator& rit,
       const FindCarType& findFlag);
 
-    list<PeakRange2>::iterator updateRanges2(
-      CarModels& models,
-      const list<CarDetect>& cars,
-      const list<CarDetect>::iterator& carIt,
-      list<PeakRange2>::iterator& rit,
-      const FindCarType& findFlag);
-
     bool updateImperfections(
       const unsigned num,
       const bool firstCarFlag,
       Imperfections& imperf) const;
-
-    void printRange(
-      const PeakRange& range,
-      const string& text) const;
 
     void printWheelCount(
       const PeakPool& peaks,

@@ -10,7 +10,7 @@
 
 using namespace std;
 
-class PeakRange2;
+class PeakRange;
 
 struct CarDetectNumbers
 {
@@ -73,15 +73,15 @@ class CarDetect
       Peak * secondBogeyRightPtr);
 
     void makeLastTwoOfFourWheeler(
-      const PeakRange2& range,
+      const PeakRange& range,
       const vector<Peak *>& peakPtrs);
 
     void makeLastThreeOfFourWheeler(
-      const PeakRange2& range,
+      const PeakRange& range,
       const vector<Peak *>& peakPtrs);
 
     void makeFourWheeler(
-      const PeakRange2& range,
+      const PeakRange& range,
       const vector<Peak *>& peakPtrs);
 
     void logStatIndex(const unsigned index);
