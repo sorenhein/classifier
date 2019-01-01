@@ -38,9 +38,11 @@ PeakStructure::PeakStructure()
 
   findCarFunctions.push_back(
     { &PeakStructure::findCarByOrder, "by 1234 order"});
-  findCarFunctions.push_back(
-    { &PeakStructure::findCarByQuality, "by quality"});
+  // findCarFunctions.push_back(
+    // { &PeakStructure::findCarByQuality, "by quality"});
 
+  findCarFunctions2.push_back(
+    { &PeakStructure::findPartialFirstCarByQuality, "partial by quality"});
   findCarFunctions2.push_back(
     { &PeakStructure::findCarByGreatQuality, "by great quality"});
   findCarFunctions2.push_back(
@@ -485,6 +487,68 @@ PeakStructure::FindCarType PeakStructure::findCarByQuality(
   PeakStructure::printRange(range, "Didn't match " + range.order());
   cout << profile.str();
   return FIND_CAR_NO_MATCH;
+}
+
+
+PeakStructure::FindCarType PeakStructure::findPartialCarByQualityNew(
+  const CarModels& models,
+  const PeakFncPtr& fptr,
+  const unsigned numWheels,
+  PeakRange2& range,
+  CarDetect& car) const
+{
+  PeakPtrVector peakPtrsUsed, peakPtrsUnused;
+  range.splitByQuality(fptr, peakPtrsUsed, peakPtrsUnused);
+
+  if (peakPtrsUsed.size() != numWheels)
+    THROW(ERR_ALGO_PEAK_STRUCTURE, 
+      "Not " + to_string(numWheels) + " peaks after all");
+
+  if (PeakStructure::findNumberedWheeler2(models, range,
+      peakPtrsUsed, numWheels, car))
+  {
+    PeakStructure::markUpPeaks(peakPtrsUsed, numWheels);
+    PeakStructure::markDownPeaks(peakPtrsUnused);
+    return FIND_CAR_MATCH;
+  }
+  else
+  {
+    // cout << "Failed to find car among " << recog.text << "\n";
+    // range.strInterval(offset, "Didn't do");
+    // cout << range.strProfile();
+    return FIND_CAR_NO_MATCH;
+  }
+}
+
+
+PeakStructure::FindCarType PeakStructure::findPartialFirstCarByQuality(
+  const CarModels& models,
+  const PeakPool& peaks,
+  PeakRange2& range,
+  CarDetect& car) const
+{
+  UNUSED(peaks);
+
+  if (! range.isFirstCar())
+    return FIND_CAR_NO_MATCH;
+
+  if (range.numGreat() == 3)
+  {
+    return PeakStructure::findPartialCarByQualityNew(models,
+        &Peak::greatQuality, 3, range, car);
+  }
+  else if (range.numGood() == 3)
+  {
+    return PeakStructure::findPartialCarByQualityNew(models,
+        &Peak::goodQuality, 3, range, car);
+  }
+  else if (range.numGreat() == 2)
+  {
+    return PeakStructure::findPartialCarByQualityNew(models,
+        &Peak::greatQuality, 2, range, car);
+  }
+  else
+    return FIND_CAR_NO_MATCH;
 }
 
 

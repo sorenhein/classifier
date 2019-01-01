@@ -73,6 +73,7 @@ class PeakRange2
       PeakPtrVector& peakPtrsUsed,
       PeakPtrVector& peakPtrsUnused) const;
 
+    bool isFirstCar() const;
     bool match(const Recognizer& recog) const;
     bool looksEmpty() const;
 

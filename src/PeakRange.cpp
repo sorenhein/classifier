@@ -38,7 +38,7 @@ void PeakRange2::init(
   const PeakPool& peaks)
 {
   carAfter = cars.begin();
-  source = PEAK_SOURCE_SIZE;
+  source = PEAK_SOURCE_FIRST;
   start = peaks.firstCandIndex();
   endVal = peaks.lastCandIndex();
   leftGapPresent = false;
@@ -67,9 +67,23 @@ void PeakRange2::shortenLeft(const CarDetect& car)
 {
   // Shorten the range on the left to make room for the new
   // car preceding it.  This does not change any carAfter values.
+  source = PEAK_SOURCE_INNER;
   start = car.endValue() + 1;
   leftGapPresent = car.hasRightGap();
   leftOriginal = false;
+}
+
+
+void PeakRange2::shortenRight(
+  const CarDetect& car,
+  const list<CarDetect>::iterator& carIt)
+{
+  // Shorten the range on the right to make room for the new
+  // car following it.
+  carAfter = carIt;
+  endVal = car.startValue() - 1;
+  rightGapPresent = car.hasLeftGap();
+  rightOriginal = false;
 }
 
 
@@ -130,6 +144,12 @@ void PeakRange2::splitByQuality(
 }
 
 
+bool PeakRange2::isFirstCar() const
+{
+  return (source == PEAK_SOURCE_FIRST);
+}
+
+
 bool PeakRange2::match(const Recognizer& recog) const
 {
   return profile.match(recog);
@@ -139,19 +159,6 @@ bool PeakRange2::match(const Recognizer& recog) const
 bool PeakRange2::looksEmpty() const
 {
   return profile.looksEmpty();
-}
-
-
-void PeakRange2::shortenRight(
-  const CarDetect& car,
-  const list<CarDetect>::iterator& carIt)
-{
-  // Shorten the range on the right to make room for the new
-  // car following it.
-  carAfter = carIt;
-  endVal = car.startValue() - 1;
-  rightGapPresent = car.hasLeftGap();
-  rightOriginal = false;
 }
 
 
