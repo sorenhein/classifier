@@ -259,7 +259,6 @@ bool CarGaps::checkTooShort(
 }
 
 
-
 bool CarGaps::sideGapsPlausible(const CarGaps& cgref) const
 {
   if (leftGapSet && cgref.leftGapSet)

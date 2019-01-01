@@ -67,46 +67,15 @@ bool PeakStructure::findNumberedWheeler(
   const unsigned numWheels,
   CarDetect& car) const
 {
-  // TODO Move and consolidate checks, maybe to CarModels.
   if (numWheels == 2)
   {
     car.makeLastTwoOfFourWheeler(range, peakPtrs);
-
-    if (! models.sideGapsPlausible(car))
-      return false;
-
-    // As we don't have a complete car, we'll at least require the
-    // right bogey gap to be similar to something we've seen.
-
-    if (models.rightBogeyPlausible(car))
-      return true;
-    else
-    {
-      cout << "Error: Suspect right bogey gap: ";
-      cout << car.strGaps(0) << endl;
-      cout << "Checked against " << models.size() << " ref cars\n";
-      return false;
-    }
+    return models.twoWheelerPlausible(car);
   }
   else if (numWheels == 3)
   {
     car.makeLastThreeOfFourWheeler(range, peakPtrs);
-
-    if (! models.sideGapsPlausible(car))
-      return false;
-
-    // As we don't have a complete car, we'll at least require the
-    // right bogey gap to be similar to something we've seen.
-
-    if (! models.rightBogeyPlausible(car))
-    {
-      cout << "Error: Suspect right bogey gap: ";
-      cout << car.strGaps(0) << endl;
-      cout << "Checked against " << models.size() << " ref cars\n";
-      return false;
-    }
-
-    return car.midGapPlausible();
+    return models.threeWheelerPlausible(car);
   }
   else if (numWheels == 4)
   {

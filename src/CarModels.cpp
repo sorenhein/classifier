@@ -158,6 +158,33 @@ bool CarModels::sideGapsPlausible(const CarDetect& car) const
 }
 
 
+bool CarModels::twoWheelerPlausible(const CarDetect& car) const
+{
+  if (! CarModels::sideGapsPlausible(car))
+    return false;
+
+  // As we don't have a complete car, we'll at least require the
+  // right bogey gap to be similar to something we've seen.
+
+  return CarModels::rightBogeyPlausible(car);
+}
+
+
+bool CarModels::threeWheelerPlausible(const CarDetect& car) const
+{
+  if (! CarModels::sideGapsPlausible(car))
+    return false;
+
+  // As we don't have a complete car, we'll at least require the
+  // right bogey gap to be similar to something we've seen.
+
+  if (! CarModels::rightBogeyPlausible(car))
+    return false;
+
+  return car.midGapPlausible();
+}
+
+
 bool CarModels::gapsPlausible(const CarDetect& car) const
 {
   for (auto& m: models)

@@ -71,6 +71,8 @@ class CarModels
 
     bool rightBogeyPlausible(const CarDetect& car) const;
     bool sideGapsPlausible(const CarDetect& car) const;
+    bool twoWheelerPlausible(const CarDetect& car) const;
+    bool threeWheelerPlausible(const CarDetect& car) const;
     bool gapsPlausible(const CarDetect& car) const;
 
     string str() const;
