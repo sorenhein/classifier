@@ -39,12 +39,15 @@ class PeakStructure
     {
       FindCarPtr fptr;
       string name;
+      unsigned number;
     };
 
 
     list<FncGroup> findCarFunctions;
 
     list<PeakRange> ranges;
+
+    vector<unsigned> hits;
 
     unsigned offset;
 

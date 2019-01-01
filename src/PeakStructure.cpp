@@ -14,6 +14,7 @@
 
 #define GREAT_CAR_DISTANCE 1.5f
 
+static unsigned hitSize;
 
 
 struct WheelSpec
@@ -36,17 +37,26 @@ PeakStructure::PeakStructure()
   PeakStructure::reset();
 
   findCarFunctions.push_back(
-    { &PeakStructure::findCarByOrder, "by 1234 order"});
+    { &PeakStructure::findCarByOrder, 
+      "by 1234 order", 0});
   findCarFunctions.push_back(
-    { &PeakStructure::findPartialFirstCarByQuality, "partial by quality"});
+    { &PeakStructure::findPartialFirstCarByQuality, 
+      "partial by quality", 1});
   findCarFunctions.push_back(
-    { &PeakStructure::findCarByGreatQuality, "by great quality"});
+    { &PeakStructure::findCarByGreatQuality, 
+      "by great quality", 2});
   findCarFunctions.push_back(
-    { &PeakStructure::findCarByGoodQuality, "by good quality"});
+    { &PeakStructure::findCarByGoodQuality, 
+      "by good quality", 3});
   findCarFunctions.push_back(
-     { &PeakStructure::findCarByGeometry, "by geometry"});
+    { &PeakStructure::findCarByGeometry, 
+      "by geometry", 4});
   findCarFunctions.push_back(
-    { &PeakStructure::findEmptyRange, "by emptiness"});
+    { &PeakStructure::findEmptyRange, 
+      "by emptiness", 5});
+  
+  hitSize = 6;
+  hits.resize(6);
 }
 
 
@@ -246,7 +256,6 @@ PeakStructure::FindCarType PeakStructure::findCarByOrder(
       rangeLocal.init(runPtr);
       car.makeFourWheeler(rangeLocal, runPtr);
 
-      // TODO Maybe something we should do in all recognizers?
       PeakStructure::markUpPeaks(runPtr, 4);
 
       return FIND_CAR_MATCH;
@@ -423,14 +432,8 @@ PeakStructure::FindCarType PeakStructure::findCarByGeometry(
         cout << range.strFull(offset) << endl;
       }
 
-      if (! skippedPeaks.empty())
-      {
-        cout << "WARNING (inspect?): Some good peaks were skipped.\n";
-        cout << skippedPeaks.front()->strHeaderQuality();
-        for (Peak * skip: skippedPeaks)
-          cout << skip->strQuality(offset);
-        cout << "\n";
-      }
+      PeakStructure::markUpPeaks(closestPeaks, 4);
+      PeakStructure::markDownPeaks(skippedPeaks);
 
       return FIND_CAR_MATCH;
     }
@@ -530,6 +533,9 @@ void PeakStructure::markCars(
   PeakPtrVector peakPtrs;
   PeakProfile profile;
 
+  for (unsigned i = 0; i < 6; i++)
+    hits[i] = 0;
+
   bool changeFlag = true;
   while (changeFlag && ! ranges.empty())
   {
@@ -550,8 +556,9 @@ void PeakStructure::markCars(
         findFlag = (this->* fgroup.fptr)(models, peaks, range, car);
         if (findFlag != FIND_CAR_NO_MATCH)
         {
-          cout << "NEWHIT " << fgroup.name << "\n";
+          cout << "Hit " << fgroup.name << "\n";
           cout << range.strFull(offset);
+          hits[fgroup.number]++;
           break;
         }
       }
@@ -585,9 +592,18 @@ void PeakStructure::markCars(
   {
     cout << "WARNFINAL: " << ranges.size() << " ranges left\n";
     for (auto& range: ranges)
+    {
       cout << range.strFull(offset);
+      cout << range.strProfile();
+    }
     cout << endl;
   }
+
+  cout<< "HITS\n";
+  for (unsigned i = 0; i < 6; i++)
+    cout << i << " " << hits[i] << endl;
+  cout << endl;
+
 }
 
 
