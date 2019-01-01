@@ -35,9 +35,11 @@ PeakStructure::PeakStructure()
 {
   PeakStructure::reset();
 
-  findCarFunctions.push_back(
-    { &PeakStructure::findCarByOrder, "by 1234 order"});
+  // findCarFunctions.push_back(
+    // { &PeakStructure::findCarByOrder, "by 1234 order"});
 
+  findCarFunctions2.push_back(
+    { &PeakStructure::findCarByOrderNew, "by 1234 order"});
   findCarFunctions2.push_back(
     { &PeakStructure::findPartialFirstCarByQuality, "partial by quality"});
   findCarFunctions2.push_back(
@@ -587,6 +589,58 @@ PeakStructure::FindCarType PeakStructure::findCarByOrder(
 }
 
 
+PeakStructure::FindCarType PeakStructure::findCarByOrderNew(
+  const CarModels& models,
+  const PeakPool& peaks,
+  PeakRange2& range,
+  CarDetect& car) const
+{
+  UNUSED(models);
+  UNUSED(peaks);
+
+  if (range.looksEmpty())
+    return FIND_CAR_NO_MATCH;
+
+  // Set up a sliding vector of 4 running peaks.
+  PeakPtrVector runPtr;
+
+  auto cit = * range.begin();
+  for (unsigned i = 0; i < 4; i++)
+    runPtr.push_back(* cit);
+
+  PeakRange2 rangeLocal;
+
+  for (auto pit: range)
+  {
+    if (! (* pit)->goodQuality())
+      continue;
+
+    if (PeakStructure::isWholeCar(runPtr))
+    {
+      // We deal with the edges later.
+      // rangeLocal.start = runPtr[0]->getIndex();
+      // rangeLocal.end = runPtr[3]->getIndex();
+      // rangeLocal.leftGapPresent = false;
+      // rangeLocal.rightGapPresent = false;
+      rangeLocal.init(runPtr);
+      car.makeFourWheeler(rangeLocal, runPtr);
+
+      // TODO Maybe something we should do in all recognizers?
+      PeakStructure::markUpPeaks(runPtr, 4);
+
+      return FIND_CAR_MATCH;
+    }
+
+    for (unsigned i = 0; i < 3; i++)
+      runPtr[i] = runPtr[i+1];
+
+    runPtr[3] = * pit;
+  }
+
+  return FIND_CAR_NO_MATCH;
+}
+
+
 list<PeakStructure::PeakRange>::iterator PeakStructure::updateRanges(
   CarModels& models,
   const list<CarDetect>& cars,
@@ -742,6 +796,7 @@ void PeakStructure::markCars(
       range2.fill(peaks);
 
       FindCarType findFlag = FIND_CAR_SIZE;
+      /*
       for (auto& fgroup: findCarFunctions)
       {
         findFlag = (this->* fgroup.fptr)(range, models, peaks,
@@ -752,9 +807,10 @@ void PeakStructure::markCars(
           break;
         }
       }
+      */
 
-      if (findFlag == FIND_CAR_NO_MATCH)
-      {
+      // if (findFlag == FIND_CAR_NO_MATCH)
+      // {
       for (auto& fgroup: findCarFunctions2)
       {
         findFlag = (this->* fgroup.fptr)(models, peaks, range2, car);
@@ -766,7 +822,7 @@ void PeakStructure::markCars(
           break;
         }
       }
-      }
+      // }
 
       if (findFlag == FIND_CAR_NO_MATCH)
       {

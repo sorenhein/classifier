@@ -198,6 +198,12 @@ class PeakStructure
       const PeakProfile& profile,
       CarDetect& car) const;
 
+    FindCarType findCarByOrderNew(
+      const CarModels& models,
+      const PeakPool& peaks,
+      PeakRange2& range,
+      CarDetect& car) const;
+
     list<PeakRange>::iterator updateRanges(
       CarModels& models,
       const list<CarDetect>& cars,
