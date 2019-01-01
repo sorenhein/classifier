@@ -34,12 +34,9 @@ static const vector<WheelSpec> wheelSpecs =
 PeakStructure::PeakStructure()
 {
   PeakStructure::reset();
-  PeakStructure::setCarRecognizers();
 
   findCarFunctions.push_back(
     { &PeakStructure::findCarByOrder, "by 1234 order"});
-  // findCarFunctions.push_back(
-    // { &PeakStructure::findCarByQuality, "by quality"});
 
   findCarFunctions2.push_back(
     { &PeakStructure::findPartialFirstCarByQuality, "partial by quality"});
@@ -63,69 +60,6 @@ void PeakStructure::reset()
 {
 }
 
-void PeakStructure::setCarRecognizers()
-{
-  recognizers.clear();
-
-  Recognizer recog;
-
-  // The simple four-wheel car with great peaks.
-  recog.params.source = {false, 0};
-  recog.params.sumGreat = {true, 4};
-  recog.params.starsGood = {false, 0};
-  recog.numWheels = 4;
-  recog.quality = PEAK_QUALITY_GREAT;
-  recog.text = "4 great peaks";
-  recognizers.push_back(recog);
-
-  // The simple four-wheel car with 3 great + 1 good peak.
-  recog.params.source = {false, 0};
-  recog.params.sumGreat = {true, 3};
-  recog.params.starsGood = {true, 1};
-  recog.numWheels = 4;
-  recog.quality = PEAK_QUALITY_GOOD;
-  recog.text = "4 (3+1) good peaks";
-  recognizers.push_back(recog);
-
-  // The simple four-wheel car with 2 great + 2 good peaks.
-  recog.params.source = {false, 0};
-  recog.params.sumGreat = {true, 2};
-  recog.params.starsGood = {true, 2};
-  recog.numWheels = 4;
-  recog.quality = PEAK_QUALITY_GOOD;
-  recog.text = "4 (2+2) good peaks";
-  recognizers.push_back(recog);
-
-  // The front car with 3 great peaks, missing the very first one.
-  recog.params.source = {true, static_cast<unsigned>(PEAK_SOURCE_FIRST)};
-  recog.params.sumGreat = {true, 3};
-  recog.params.starsGood = {true, 0};
-  recog.numWheels = 3;
-  recog.quality = PEAK_QUALITY_GREAT;
-  recog.text = "3 great peaks (front)";
-  recognizers.push_back(recog);
-
-  // The front car with 2 great +1 good peaks, missing the very first one.
-  recog.params.source = {true, static_cast<unsigned>(PEAK_SOURCE_FIRST)};
-  recog.params.sumGreat = {true, 2};
-  recog.params.starsGood = {true, 1};
-  recog.numWheels = 3;
-  recog.quality = PEAK_QUALITY_GOOD;
-  recog.text = "3 (2+1) peaks (front)";
-  recognizers.push_back(recog);
-
-  // The front car with 2 great peaks, missing the first whole bogey.
-  // Don't try to salvage the first 1-2 peaks if it looks too hard.
-  recog.params.source = {true, PEAK_SOURCE_FIRST};
-  recog.params.sumGreat = {true, 2};
-  recog.params.starsGood = {false, 0};
-  recog.numWheels = 2;
-  recog.quality = PEAK_QUALITY_GREAT;
-  recog.text = "2 great peaks (front)";
-  recognizers.push_back(recog);
-}
-
-
 bool PeakStructure::matchesModel(
   const CarModels& models,
   const CarDetect& car, 
@@ -136,86 +70,6 @@ bool PeakStructure::matchesModel(
     return false;
   else
     return (distance <= GREAT_CAR_DISTANCE);
-}
-
-
-// TODO Combine these methods more closely
-// - Setting up peaks
-// - Checking them
-// Move some of it to CarDetect?
-
-
-bool PeakStructure::findLastTwoOfFourWheeler(
-  const CarModels& models,
-  const PeakRange& range,
-  const PeakPtrVector& peakPtrs,
-  CarDetect& car) const
-{
-  car.setLimits(range.start, range.end);
-
-  const unsigned peakNo0 = peakPtrs[0]->getIndex();
-  const unsigned peakNo1 = peakPtrs[1]->getIndex();
-
-  if (range.rightGapPresent)
-    car.logRightGap(range.end - peakNo1);
-
-  car.logCore(0, 0, peakNo1 - peakNo0);
-
-  car.logPeakPointers(
-    nullptr, nullptr, peakPtrs[0], peakPtrs[1]);
-
-  if (! models.sideGapsPlausible(car))
-    return false;
-
-  // As we don't have a complete car, we'll at least require the
-  // right bogey gap to be similar to something we've seen.
-
-  if (models.rightBogeyPlausible(car))
-    return true;
-  else
-  {
-    cout << "Error: Suspect right bogey gap: ";
-    cout << car.strGaps(0) << endl;
-    cout << "Checked against " << models.size() << " ref cars\n";
-    return false;
-  }
-}
-
-
-bool PeakStructure::findLastThreeOfFourWheeler(
-  const CarModels& models,
-  const PeakRange& range,
-  const PeakPtrVector& peakPtrs,
-  CarDetect& car) const
-{
-  car.setLimits(range.start, range.end);
-
-  const unsigned peakNo0 = peakPtrs[0]->getIndex();
-  const unsigned peakNo1 = peakPtrs[1]->getIndex();
-  const unsigned peakNo2 = peakPtrs[2]->getIndex();
-
-  car.logCore(0, peakNo1 - peakNo0, peakNo2 - peakNo1);
-  if (range.rightGapPresent)
-    car.logRightGap(range.end - peakNo2);
-
-  car.logPeakPointers(
-    nullptr, peakPtrs[0], peakPtrs[1], peakPtrs[2]);
-
-  if (! models.sideGapsPlausible(car))
-    return false;
-
-  // As we don't have a complete car, we'll at least require the
-  // right bogey gap to be similar to something we've seen.
-
-  if (! models.rightBogeyPlausible(car))
-  {
-    cout << "Error: Suspect right bogey gap: ";
-    cout << car.strGaps(0) << endl;
-    cout << "Checked against " << models.size() << " ref cars\n";
-    return false;
-  }
-
-  return car.midGapPlausible();
 }
 
 
@@ -247,27 +101,6 @@ bool PeakStructure::findFourWheeler(
 }
 
 
-bool PeakStructure::findNumberedWheeler(
-  const CarModels& models,
-  const PeakRange& range,
-  const PeakPtrVector& peakPtrs,
-  const unsigned numWheels,
-  CarDetect& car) const
-{
-  if (numWheels == 2)
-    return PeakStructure::findLastTwoOfFourWheeler(models, 
-      range, peakPtrs, car);
-  else if (numWheels == 3)
-    return PeakStructure::findLastThreeOfFourWheeler(models, 
-      range, peakPtrs, car);
-  else if (numWheels == 4)
-    return PeakStructure::findFourWheeler(models, 
-      range, peakPtrs, car);
-  else
-    return false;
-}
-
-
 bool PeakStructure::findNumberedWheeler2(
   const CarModels& models,
   const PeakRange2& range,
@@ -275,6 +108,7 @@ bool PeakStructure::findNumberedWheeler2(
   const unsigned numWheels,
   CarDetect& car) const
 {
+  // TODO Move and consolidate checks, maybe to CarModels.
   if (numWheels == 2)
   {
     car.makeLastTwoOfFourWheeler(range, peakPtrs);
@@ -364,38 +198,6 @@ void PeakStructure::markDownPeaks(PeakPtrVector& peakPtrs) const
 }
 
 
-void PeakStructure::getWheelsByQuality(
-  const PeakPtrVector& peakPtrs,
-  const PeakQuality quality,
-  PeakPtrVector& peakPtrsNew,
-  PeakPtrVector& peakPtrsUnused) const
-{
-  typedef bool (Peak::*QualFncPtr)() const;
-  QualFncPtr qptr;
-
-  if (quality == PEAK_QUALITY_GREAT)
-    qptr = &Peak::greatQuality;
-  else if (quality == PEAK_QUALITY_GOOD)
-    qptr = &Peak::goodQuality;
-  else
-    // TODO Could have more qualities here.
-    return;
-
-  for (unsigned i = 0; i < peakPtrs.size(); i++)
-  {
-    Peak * pp = peakPtrs[i];
-    if (pp->isLeftWheel() || 
-        pp->isRightWheel() ||
-        (pp->* qptr)())
-    {
-      peakPtrsNew.push_back(pp);
-    }
-    else
-      peakPtrsUnused.push_back(pp);
-  }
-}
-
-
 void PeakStructure::updateCarDistances(
   const CarModels& models,
   list<CarDetect>& cars) const
@@ -443,53 +245,6 @@ void PeakStructure::updateModels(
 }
 
 
-PeakStructure::FindCarType PeakStructure::findCarByQuality(
-  const PeakRange& range,
-  const CarModels& models,
-  const PeakPool& peaks,
-  PeakPtrVector& peakPtrs,
-  const PeakIterVector& peakIters,
-  const PeakProfile& profile,
-  CarDetect& car) const
-{
-  UNUSED(peaks);
-  UNUSED(peakIters);
-
-  PeakPtrVector peakPtrsNew;
-  PeakPtrVector peakPtrsUnused;
-  for (auto& recog: recognizers)
-  {
-    if (! profile.match(recog))
-      continue;
-
-    PeakStructure::getWheelsByQuality(peakPtrs, 
-      recog.quality, peakPtrsNew, peakPtrsUnused);
-
-    if (peakPtrsNew.size() != recog.numWheels)
-      THROW(ERR_ALGO_PEAK_STRUCTURE, "Not " + recog.text);
-
-    if (PeakStructure::findNumberedWheeler(models, range,
-        peakPtrsNew, recog.numWheels, car))
-    {
-      PeakStructure::markUpPeaks(peakPtrsNew, recog.numWheels);
-      PeakStructure::markDownPeaks(peakPtrsUnused);
-      return FIND_CAR_MATCH;
-    }
-    else
-    {
-      cout << "Failed to find car among " << recog.text << "\n";
-      PeakStructure::printRange(range, "Didn't do " + range.order());
-      cout << profile.str();
-      return FIND_CAR_NO_MATCH;
-    }
-  }
-
-  PeakStructure::printRange(range, "Didn't match " + range.order());
-  cout << profile.str();
-  return FIND_CAR_NO_MATCH;
-}
-
-
 PeakStructure::FindCarType PeakStructure::findPartialCarByQualityNew(
   const CarModels& models,
   const PeakFncPtr& fptr,
@@ -512,12 +267,7 @@ PeakStructure::FindCarType PeakStructure::findPartialCarByQualityNew(
     return FIND_CAR_MATCH;
   }
   else
-  {
-    // cout << "Failed to find car among " << recog.text << "\n";
-    // range.strInterval(offset, "Didn't do");
-    // cout << range.strProfile();
     return FIND_CAR_NO_MATCH;
-  }
 }
 
 
@@ -572,12 +322,7 @@ PeakStructure::FindCarType PeakStructure::findCarByQualityNew(
     return FIND_CAR_MATCH;
   }
   else
-  {
-    // cout << "Failed to find car among " << recog.text << "\n";
-    // range.strInterval(offset, "Didn't do");
-    // cout << range.strProfile();
     return FIND_CAR_NO_MATCH;
-  }
 }
 
 

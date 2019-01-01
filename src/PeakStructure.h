@@ -100,37 +100,16 @@ class PeakStructure
     unsigned offset;
 
 
-    void setCarRecognizers();
-
     bool matchesModel(
       const CarModels& models,
       const CarDetect& car,
       unsigned& index,
       float& distance) const;
 
-    bool findLastTwoOfFourWheeler(
-      const CarModels& models,
-      const PeakRange& range,
-      const PeakPtrVector& peakPtrs,
-      CarDetect& car) const;
-
-    bool findLastThreeOfFourWheeler(
-      const CarModels& models,
-      const PeakRange& range,
-      const PeakPtrVector& peakPtrs,
-      CarDetect& car) const;
-
     bool findFourWheeler(
       const CarModels& models,
       const PeakRange& range,
       const PeakPtrVector& peakPtrs,
-      CarDetect& car) const;
-
-    bool findNumberedWheeler(
-      const CarModels& models,
-      const PeakRange& range,
-      const PeakPtrVector& peakPtrs,
-      const unsigned numWheels,
       CarDetect& car) const;
 
     bool findNumberedWheeler2(
@@ -146,27 +125,12 @@ class PeakStructure
 
     void markDownPeaks(PeakPtrVector& peakPtrs) const;
 
-    void getWheelsByQuality(
-      const PeakPtrVector& peakPtrs,
-      const PeakQuality quality,
-      PeakPtrVector& peakPtrsNew,
-      PeakPtrVector& peakPtrsUnused) const;
-
     void updateCarDistances(
       const CarModels& models,
       list<CarDetect>& cars) const;
 
     void updateModels(
       CarModels& models,
-      CarDetect& car) const;
-
-    FindCarType findCarByQuality(
-      const PeakRange& range,
-      const CarModels& models,
-      const PeakPool& peaks,
-      PeakPtrVector& peakPtrs,
-      const PeakIterVector& peakIters,
-      const PeakProfile& profile,
       CarDetect& car) const;
 
     FindCarType findPartialCarByQualityNew(
