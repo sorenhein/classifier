@@ -3,52 +3,84 @@
 use strict;
 use warnings;
 
-# Summarize the detector hits in a sensor??.txt file
+# Summarize the detector hits in sensor??.txt files
 
-my ($file, $filebase);
-if ($#ARGV == 0)
+my @cumhits;
+my %imperf;
+if ($#ARGV < 0)
 {
-  $file = $ARGV[0];
-  $filebase = $file;
-  $filebase =~ s/.txt//;
-}
-else
-{
-  print "Usage: summ.pl sensor00.txt";
+  print "Usage: summ.pl sensor??.txt > hits.txt";
   exit;
 }
 
-my @hits;
-
-open my $fh, "<", $file or die "Cannot open $: $!";
-while (my $line = <$fh>)
+for my $file (@ARGV)
 {
-  chomp $line;
-  $line =~ s///g;
+  my $filebase = $file;
+  $filebase =~ s/.txt//;
+  print "$filebase\n";
 
-  if ($line =~ /^HITS/)
+  my @hits;
+  open my $fh, "<", $file or die "Cannot open $file: $!";
+  while (my $line = <$fh>)
   {
-    while (1)
-    {
-      $line = <$fh>;
-      chomp $line;
-      $line =~ s///g;
-      last if $line =~ /^\s*$/;
+    chomp $line;
+    $line =~ s///g;
 
-      $line =~ /^(\d+)\s+(\d+)/;
-      $hits[$1] += $2;
+    if ($line =~ /^HITS/)
+    {
+      while (1)
+      {
+        $line = <$fh>;
+        chomp $line;
+        $line =~ s///g;
+        last if $line =~ /^\s*$/;
+  
+        $line =~ /^(\d+)\s+(\d+)/;
+        $hits[$1] += $2;
+        $cumhits[$1] += $2;
+      }
+    }
+    elsif ($line =~ /^IMPERF/)
+    {
+      $line =~ / (\d+)-(\d+), (\d+)-(\d+)/;
+      $imperf{$filebase}[0] += $1;
+      $imperf{$filebase}[1] += $2;
+      $imperf{$filebase}[2] += $3;
+      $imperf{$filebase}[3] += $4;
     }
   }
+
+  close $fh;
+
+  open my $fo, ">", "summary/hit$file" or die "Cannot open $file: $!";
+
+  print $fo "Sensor $filebase\n";
+  for (my $i = 0; $i <= $#hits; $i++)
+  {
+    printf $fo "%2d  %6d\n", $i, $hits[$i];
+  }
+  print $fo "\n";
+
+  close $fo;
 }
 
-close $fh;
-
-print "Sensor $filebase\n";
-for (my $i = 0; $i <= $#hits; $i++)
+print "SUM\n";
+for (my $i = 0; $i <= $#cumhits; $i++)
 {
-  printf "%2d  %6d\n", $i, $hits[$i];
+  printf "%2d  %6d\n", $i, $cumhits[$i];
 }
 print "\n";
-exit;
 
+print "IMPERF\n\n";
+
+printf "%-10s %6s%6s%6s%6s\n", "Sensor", "FSkip", "FSpur", "Skip", "Spur";
+for my $base (sort keys %imperf)
+{
+  printf "%-10s %6d%6d%6d%6s\n", $base, 
+    $imperf{$base}[0],
+    $imperf{$base}[1],
+    $imperf{$base}[3],
+    $imperf{$base}[2];
+}
+print "\n";
 

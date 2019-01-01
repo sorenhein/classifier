@@ -1,8 +1,5 @@
 PeakStructure:
-- The 1-2-3-4 recognizer could also move into the "event loop"
-  - Split off any 4 peaks, new conditions
-- Downgrader could also be a simple recognizer
-- Much later on, the distance detection could also go there dynamically!
+- The distance detection / peak quality may also have to go here...
 
 Python: Allow 082401 as input?
 
