@@ -63,6 +63,12 @@ class CarModels
       float& distance,
       unsigned& index) const;
 
+    bool matchesDistance(
+      const CarDetect& car,
+      const float& limit,
+      float& distance,
+      unsigned& index) const;
+
     bool rightBogeyPlausible(const CarDetect& car) const;
     bool sideGapsPlausible(const CarDetect& car) const;
     bool gapsPlausible(const CarDetect& car) const;

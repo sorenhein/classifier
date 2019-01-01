@@ -59,18 +59,6 @@ void PeakStructure::reset()
 {
 }
 
-bool PeakStructure::matchesModel(
-  const CarModels& models,
-  const CarDetect& car, 
-  unsigned& index,
-  float& distance) const
-{
-  if (! models.findClosest(car, distance, index))
-    return false;
-  else
-    return (distance <= GREAT_CAR_DISTANCE);
-}
-
 
 bool PeakStructure::findNumberedWheeler(
   const CarModels& models,
@@ -134,27 +122,14 @@ void PeakStructure::markUpPeaks(
   PeakPtrVector& peakPtrsNew,
   const unsigned numPeaks) const
 {
-  // TODO Use wheelSpecs
-  if (numPeaks == 2)
-  {
-    // The assumption is that we missed the first two peaks.
-    peakPtrsNew[0]->markBogeyAndWheel(BOGEY_RIGHT, WHEEL_LEFT);
-    peakPtrsNew[1]->markBogeyAndWheel(BOGEY_RIGHT, WHEEL_RIGHT);
-  }
-  else if (numPeaks == 3)
-  {
-    // The assumption is that we missed the very first peak.
-    peakPtrsNew[0]->markBogeyAndWheel(BOGEY_LEFT, WHEEL_RIGHT);
-    peakPtrsNew[1]->markBogeyAndWheel(BOGEY_RIGHT, WHEEL_LEFT);
-    peakPtrsNew[2]->markBogeyAndWheel(BOGEY_RIGHT, WHEEL_RIGHT);
-  }
-  else if (numPeaks == 4)
-  {
-    peakPtrsNew[0]->markBogeyAndWheel(BOGEY_LEFT, WHEEL_LEFT);
-    peakPtrsNew[1]->markBogeyAndWheel(BOGEY_LEFT, WHEEL_RIGHT);
-    peakPtrsNew[2]->markBogeyAndWheel(BOGEY_RIGHT, WHEEL_LEFT);
-    peakPtrsNew[3]->markBogeyAndWheel(BOGEY_RIGHT, WHEEL_RIGHT);
-  }
+  if (numPeaks > 4)
+    return;
+
+  // Always take the last numPeaks wheels.
+  for (unsigned i = 0; i < numPeaks; i++)
+    peakPtrsNew[i]->markBogeyAndWheel(
+      wheelSpecs[i+4-numPeaks].bogey, 
+      wheelSpecs[i+4-numPeaks].wheel);
 }
 
 
@@ -177,7 +152,7 @@ void PeakStructure::updateCarDistances(
   {
     unsigned index;
     float distance;
-    if (! PeakStructure::matchesModel(models, car, index, distance))
+    if (! models.matchesDistance(car, GREAT_CAR_DISTANCE, distance, index))
     {
       cout << "WARNING: Car doesn't match any model.\n";
       index = 0;
@@ -197,7 +172,7 @@ void PeakStructure::updateModels(
   unsigned index;
   float distance;
 
-  if (PeakStructure::matchesModel(models, car, index, distance))
+  if (models.matchesDistance(car, GREAT_CAR_DISTANCE, distance, index))
   {
     car.logStatIndex(index);
     car.logDistance(distance);
@@ -395,7 +370,8 @@ PeakStructure::FindCarType PeakStructure::findCarByGeometry(
       if (! models.gapsPlausible(car))
         continue;
       
-      if (! PeakStructure::matchesModel(models, car, matchIndex, distance))
+      if (! models.matchesDistance(car, GREAT_CAR_DISTANCE, 
+          distance, matchIndex))
         continue;
       
       if (matchIndex != mno)

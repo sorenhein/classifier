@@ -123,6 +123,19 @@ bool CarModels::findClosest(
 }
 
 
+bool CarModels::matchesDistance(
+  const CarDetect& car,
+  const float& limit,
+  float& distance,
+  unsigned& index) const
+{
+  if (! CarModels::findClosest(car, distance, index))
+    return false;
+  else
+    return (distance <= limit);
+}
+
+
 bool CarModels::rightBogeyPlausible(const CarDetect& car) const
 {
   for (auto& m: models)
