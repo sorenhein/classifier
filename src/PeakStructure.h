@@ -163,15 +163,6 @@ class PeakStructure
       CarDetect& car) const;
 
     FindCarType findEmptyRange(
-      const PeakRange& range,
-      const CarModels& models,
-      const PeakPool& peaks,
-      PeakPtrVector& peakPtrs,
-      const PeakIterVector& peakIters,
-      const PeakProfile& profile,
-      CarDetect& car) const;
-
-    FindCarType findEmptyRange2(
       const CarModels& models,
       const PeakPool& peaks,
       PeakRange2& range,
@@ -180,15 +171,6 @@ class PeakStructure
     bool isConsistent(const PeakPtrVector& closestPeaks) const;
 
     FindCarType findCarByGeometry(
-      const PeakRange& range,
-      const CarModels& models,
-      const PeakPool& peaks,
-      PeakPtrVector& peakPtrs,
-      const PeakIterVector& peakIters,
-      const PeakProfile& profile,
-      CarDetect& car) const;
-
-    FindCarType findCarByGeometry2(
       const CarModels& models,
       const PeakPool& peaks,
       PeakRange2& range,
