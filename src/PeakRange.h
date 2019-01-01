@@ -13,7 +13,8 @@ using namespace std;
 
 class CarDetect;
 
-typedef list<CarDetect>::const_iterator CarListIter;
+typedef list<CarDetect>::iterator CarListIter;
+typedef list<CarDetect>::const_iterator CarListConstIter;
 
 
 class PeakRange
@@ -21,7 +22,7 @@ class PeakRange
   private:
 
     // The car after the range
-    CarListIter carAfter; 
+    CarListConstIter carAfter; 
     PeakSource source;
     unsigned start;
     unsigned endVal;
@@ -60,7 +61,7 @@ class PeakRange
       const CarDetect& car,
       const list<CarDetect>::iterator& carIt);
 
-    const CarListIter& carAfterIter() const;
+    const CarListConstIter& carAfterIter() const;
     unsigned startValue() const;
     unsigned endValue() const;
     bool hasLeftGap() const;

@@ -87,7 +87,7 @@ void PeakRange::shortenRight(
 }
 
 
-const CarListIter& PeakRange::carAfterIter() const
+const CarListConstIter& PeakRange::carAfterIter() const
 {
   return carAfter;
 }

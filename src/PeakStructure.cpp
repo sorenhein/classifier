@@ -466,7 +466,7 @@ PeakStructure::FindCarType PeakStructure::findEmptyRange(
 list<PeakRange>::iterator PeakStructure::updateRanges(
   CarModels& models,
   const list<CarDetect>& cars,
-  const list<CarDetect>::iterator& carIt,
+  const CarListIter& carIt,
   list<PeakRange>::iterator& rit,
   const FindCarType& findFlag)
 {
@@ -524,14 +524,10 @@ void PeakStructure::markCars(
   offset = offsetIn;
 
   ranges.clear();
-  PeakRange range0;
-  range0.init(cars, peaks);
-  ranges.push_back(range0);
+  ranges.emplace_back(PeakRange());
+  ranges.back().init(cars, peaks);
 
   CarDetect car;
-  PeakIterVector peakIters;
-  PeakPtrVector peakPtrs;
-  PeakProfile profile;
 
   for (unsigned i = 0; i < 6; i++)
     hits[i] = 0;
@@ -571,7 +567,7 @@ void PeakStructure::markCars(
 
       changeFlag = true;
 
-      list<CarDetect>::iterator newcit;
+      CarListIter newcit;
       if (findFlag == FIND_CAR_MATCH)
       {
         PeakStructure::updateModels(models, car);
