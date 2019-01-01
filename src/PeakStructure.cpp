@@ -632,6 +632,11 @@ void PeakStructure::makeRanges(
   range.rightGapPresent = false;
   range.leftOriginal = true;
   range.rightOriginal = true;
+
+  ranges2.clear();
+  PeakRange2 range2;
+  range2.init(cars, peaks);
+  ranges2.push_back(range2);
 }
 
 
@@ -807,6 +812,58 @@ list<PeakStructure::PeakRange>::iterator PeakStructure::updateRanges(
 }
 
 
+list<PeakRange2>::iterator PeakStructure::updateRanges2(
+  CarModels& models,
+  const list<CarDetect>& cars,
+  const list<CarDetect>::iterator& carIt,
+  list<PeakRange2>::iterator& rit,
+  const FindCarType& findFlag)
+{
+  PeakRange2& range = * rit;
+
+  if (findFlag == FIND_CAR_DOWNGRADE)
+    return ranges2.erase(rit);
+
+  CarDetect& car = * carIt;
+  if (carIt != cars.begin())
+    PeakStructure::fillPartialSides(models, * prev(carIt), car);
+
+  auto nextCarIt = next(carIt);
+  if (nextCarIt != cars.end())
+    PeakStructure::fillPartialSides(models, car, * nextCarIt);
+
+  if (car.hasLeftGap() || car.startValue() == range.startValue())
+  {
+    if (car.hasRightGap() || car.endValue() == range.endValue())
+      return ranges2.erase(rit);
+    else
+    {
+      // Shorten the range on the left to make room for the new
+      // car preceding it.
+      // This does not change any carAfter values.
+      range.shortenLeft(car);
+      return ++rit;
+    }
+  }
+  else if (car.hasRightGap() || car.endValue() == range.endValue())
+  {
+    // Shorten the range on the right to make room for the new
+    // car following it.
+    range.shortenRight(car, carIt);
+    return ++rit;
+  }
+  else
+  {
+    // Recognized a car in the middle of the range.
+    // The new order is rangeNew - car - range.
+    PeakRange2 rangeNew = range;
+    range.shortenLeft(car);
+    rangeNew.shortenRight(car, carIt);
+    return ranges2.insert(rit, rangeNew);
+  }
+}
+
+
 void PeakStructure::markCars(
   CarModels& models,
   list<CarDetect>& cars,
@@ -828,9 +885,11 @@ void PeakStructure::markCars(
   {
     changeFlag = false;
     auto rit = ranges.begin();
+    auto rit2 = ranges2.begin();
     while (rit != ranges.end())
     {
       PeakRange& range = * rit;
+      PeakRange2& range2 = * rit2;
 
       // TODO This becomes a loop over detectors.
       // Can also include downgrade, separately, then findFlag
@@ -840,6 +899,7 @@ void PeakStructure::markCars(
       // Set up some useful stuff for all recognizers.
       peaks.getCands(range.start, range.end, peakPtrs, peakIters);
       profile.make(peakPtrs, range.source);
+      range2.fill(peaks);
 
       FindCarType findFlag = FIND_CAR_SIZE;
       for (auto& fgroup: findCarFunctions)
@@ -856,6 +916,7 @@ void PeakStructure::markCars(
       if (findFlag == FIND_CAR_NO_MATCH)
       {
         rit++;
+        rit2++;
         continue;
       }
 
@@ -871,6 +932,8 @@ void PeakStructure::markCars(
 
       rit = PeakStructure::updateRanges(models, cars, newcit, 
         rit, findFlag);
+      rit2 = PeakStructure::updateRanges2(models, cars, newcit, 
+        rit2, findFlag);
 
       PeakStructure::printWheelCount(peaks, "Counting");
       PeakStructure::printCars(cars, "after range");

@@ -204,6 +204,13 @@ class PeakStructure
       list<PeakRange>::iterator& rit,
       const FindCarType& findFlag);
 
+    list<PeakRange2>::iterator updateRanges2(
+      CarModels& models,
+      const list<CarDetect>& cars,
+      const list<CarDetect>::iterator& carIt,
+      list<PeakRange2>::iterator& rit,
+      const FindCarType& findFlag);
+
     bool updateImperfections(
       const unsigned num,
       const bool firstCarFlag,

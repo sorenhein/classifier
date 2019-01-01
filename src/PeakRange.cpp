@@ -22,9 +22,14 @@ PeakRange2::~PeakRange2()
 
 void PeakRange2::reset()
 {
-  profile.reset();
+  start = 0;
+  end = 0;
+  leftGapPresent = false;
+  rightGapPresent = false;
+
   peakPtrs.clear();
   peakIters.clear();
+  profile.reset();
 }
 
 
@@ -60,6 +65,18 @@ void PeakRange2::shortenLeft(const CarDetect& car)
   start = car.endValue() + 1;
   leftGapPresent = car.hasRightGap();
   leftOriginal = false;
+}
+
+
+unsigned PeakRange2::startValue() const
+{
+  return start;
+}
+
+
+unsigned PeakRange2::endValue() const
+{
+  return end;
 }
 
 

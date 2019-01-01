@@ -53,6 +53,9 @@ class PeakRange2
       const CarDetect& car,
       const list<CarDetect>::iterator& carIt);
 
+    unsigned startValue() const;
+    unsigned endValue() const;
+
     bool updateImperfections(
       const list<CarDetect>& cars,
       Imperfections& imperf) const;
