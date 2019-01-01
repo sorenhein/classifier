@@ -34,16 +34,16 @@ while (my $line = <$fh>)
 
   if ($line =~ /^File/)
   {
+    if ($#mismatches >= 0)
+    {
+      push_misses(\@mismatches, \@outwarn);
+    }
+
     $line =~ /^File.*\/([0-9_]*)_001_channel1.dat:/;
     my @a = split /_/, $1;
     $date = $a[0];
     $time = $a[1];
     $sname = $a[2];
-
-    if ($#mismatches >= 0)
-    {
-      push_misses(\@mismatches, \@outwarn);
-    }
 
     @mismatches = ();
     $fileno++;
