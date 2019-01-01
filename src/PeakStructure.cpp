@@ -622,47 +622,8 @@ void PeakStructure::markCars(
 }
 
 
-bool PeakStructure::updateImperfections(
-  const unsigned num,
-  const bool firstCarFlag,
-  Imperfections& imperf) const
-{
-  if (firstCarFlag)
-  {
-    // Special case: There are selected peaks preceding the first
-    // recognized car.  Probably we missed the entire car.
-    if (num <= 4)
-    {
-      // It doesn't have to be skips, but we can't sort out here
-      // whether we missed the first or in-between peaks.
-      imperf.numSkipsOfReal = 0;
-      imperf.numSkipsOfSeen = 4 - num;
-    }
-    else
-      return false;
-  }
-  else
-  {
-    if (num <= 4)
-    {
-      // Probably we missed the car.
-      imperf.numMissingLater += 4 - num;
-    }
-    else if (num == 5)
-    {
-      // Probably a single, spurious peak.
-      imperf.numSpuriousLater++;
-    }
-    else
-      return false;
-  }
-  return true;
-}
-
-
 bool PeakStructure::markImperfections(
   const list<CarDetect>& cars,
-  const PeakPool& peaks,
   Imperfections& imperf) const
 {
   // Based on the cars we recognized, make an educated guess of the
@@ -670,62 +631,12 @@ bool PeakStructure::markImperfections(
   // exactly right.
   
   // For now we assume cars of exactly 4 peaks each.
+  // This doesn't really work well yet.
+  // TODO
 
   imperf.reset();
-  auto car = cars.begin();
-  PPciterator cand = peaks.candcbegin();
-  PPciterator candcend = peaks.candcend();
-
-  while (cand != candcend && car != cars.end())
-  {
-    if (! (*cand)->isSelected())
-    {
-      cand++;
-      continue;
-    }
-
-    // First look for unmatched, leading detected peaks.
-    unsigned numPreceding = 0;
-    while (cand != candcend && car->peakPrecedesCar(** cand))
-    {
-      if ((*cand)->isSelected())
-        numPreceding++;
-      cand++;
-    }
-
-    if (numPreceding)
-    {
-      if (! PeakStructure::updateImperfections(numPreceding,
-          car == cars.begin(), imperf))
-        return false;
-    }
-
-    if (cand == candcend)
-      break;
-
-    // Then look for matched, detected peaks.
-    unsigned numMatches = 0;
-    while (cand != candcend && ! car->carPrecedesPeak(** cand))
-    {
-      if ((*cand)->isSelected())
-        numMatches++;
-      cand++;
-    }
-
-    if (numMatches)
-    {
-      if (! PeakStructure::updateImperfections(numMatches,
-          car == cars.begin(), imperf))
-        return false;
-    }
-
-    if (cand == candcend)
-      break;
-
-    // Finally, advance the car.
-    while (car != cars.end() && car->carPrecedesPeak(** cand))
-      car++;
-  }
+  for (auto& range: ranges)
+    range.updateImperfections(cars, imperf);
 
   cout << "IMPERF " <<
     imperf.numSkipsOfReal << "-" << imperf.numSkipsOfSeen << ", " <<

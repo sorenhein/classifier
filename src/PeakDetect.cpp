@@ -591,7 +591,7 @@ void PeakDetect::reduce(
   list<CarDetect> cars;
   pstruct.markCars(models, cars, peaks, offset);
 
-  if (! pstruct.markImperfections(cars, peaks, imperf))
+  if (! pstruct.markImperfections(cars, imperf))
     cout << "WARNING: Failed to mark imperfections\n";
 
 cout << "PEAKPOOL\n";

@@ -137,11 +137,6 @@ class PeakStructure
       list<PeakRange>::iterator& rit,
       const FindCarType& findFlag);
 
-    bool updateImperfections(
-      const unsigned num,
-      const bool firstCarFlag,
-      Imperfections& imperf) const;
-
 
     void printWheelCount(
       const PeakPool& peaks,
@@ -171,7 +166,6 @@ class PeakStructure
     
     bool markImperfections(
       const list<CarDetect>& cars,
-      const PeakPool& peaks,
       Imperfections& imperf) const;
 };
 
