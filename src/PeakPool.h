@@ -132,11 +132,11 @@ class PeakPool
     PPciterator candcend() const;
 
     PPiterator nextCandExcl(
-      PPiterator& pit,
+      const PPiterator& pit,
       const PeakFncPtr& fptr) const;
 
     PPciterator nextCandExcl(
-      PPciterator& pit,
+      const PPciterator& pit,
       const PeakFncPtr& fptr) const;
 
     PPiterator nextCandIncl(
@@ -163,6 +163,14 @@ class PeakPool
       PPciterator& pit,
       const PeakFncPtr& fptr) const;
 
+
+    bool getClosest(
+      const list<unsigned>& carPoints,
+      const PeakFncPtr& fptr,
+      const PPciterator& cit,
+      const unsigned numWheels,
+      PeakPtrVector& closestPeaks,
+      PeakPtrVector& skippedPeaks) const;
 
     void getSelectedSamples(vector<float>& selected) const;
 

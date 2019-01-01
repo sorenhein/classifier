@@ -158,14 +158,6 @@ class PeakStructure
       const PeakProfile& profile,
       CarDetect& car) const;
 
-    bool getClosest(
-      const list<unsigned>& carPoints,
-      const PeakPool& peaks,
-      const PeakFncPtr& fptr,
-      PPciterator& pit,
-      PeakPtrVector& closestPeaks,
-      PeakPtrVector& skippedPeaks) const;
-
     bool isConsistent(const PeakPtrVector& closestPeaks) const;
 
     FindCarType findCarByGeometry(

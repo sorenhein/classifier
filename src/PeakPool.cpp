@@ -272,7 +272,7 @@ PPciterator PeakPool::candcend() const
 
 
 PPiterator PeakPool::nextCandExcl(
-  PPiterator& pit,
+  const PPiterator& pit,
   const PeakFncPtr& fptr) const
 {
   if (pit == candidates.end())
@@ -284,7 +284,7 @@ PPiterator PeakPool::nextCandExcl(
 
 
 PPciterator PeakPool::nextCandExcl(
-  PPciterator& pit,
+  const PPciterator& pit,
   const PeakFncPtr& fptr) const
 {
   if (pit == candidates.end())
@@ -368,6 +368,82 @@ PPciterator PeakPool::prevCandIncl(
     else if (pitPrev == candidates.begin())
       THROW(ERR_ALGO_PEAK_CONSISTENCY, "Miss earlier matching peak");
   }
+}
+
+
+bool PeakPool::getClosest(
+  const list<unsigned>& carPoints,
+  const PeakFncPtr& fptr,
+  const PPciterator& cit,
+  const unsigned numWheels,
+  PeakPtrVector& closestPeaks,
+  PeakPtrVector& skippedPeaks) const
+{
+  if (numWheels < 2)
+    return false;
+
+  // Do the three remaining wheels.
+  PPciterator cit0 = PeakPool::nextCandExcl(cit, fptr);
+  if (cit0 == candidates.end())
+    return false;
+
+  skippedPeaks.clear();
+  closestPeaks.clear();
+  closestPeaks.push_back(* cit);
+  const unsigned pstart = (* cit)->getIndex();
+  
+  auto pointIt = carPoints.begin();
+  pointIt++;
+  // pit is assumed to line up with carPoints[1], the first wheel.
+  const unsigned cstart = * pointIt;
+  pointIt++;
+  // Start from the second wheel.
+
+  PPciterator cit1;
+  for (unsigned i = 0; i < numWheels-1; i++)
+  {
+    const unsigned ptarget = (* pointIt) + pstart - cstart;
+    unsigned pval0 = (* cit0)->getIndex();
+
+    while (true)
+    {
+      cit1 = PeakPool::nextCandExcl(cit0, fptr);
+      if (cit1 == candidates.end())
+      {
+        if (closestPeaks.size() != numWheels-1)
+          return false;
+
+        closestPeaks.push_back(* cit0);
+        return true;
+      }
+
+      const unsigned pval1 = (* cit1)->getIndex();
+      const unsigned mid = (pval0 + pval1) / 2;
+      if (ptarget <= mid)
+      {
+        closestPeaks.push_back(* cit0);
+        cit0 = cit1;
+        break;
+      }
+      else if (ptarget <= pval1)
+      {
+        skippedPeaks.push_back(* cit0);
+        closestPeaks.push_back(* cit1);
+        cit1 = PeakPool::nextCandExcl(cit1, fptr);
+        if (cit1 == candidates.end() && closestPeaks.size() != numWheels)
+          return false;
+
+        cit0 = cit1;
+        break;
+      }
+      else
+      {
+        skippedPeaks.push_back(* cit0);
+        cit0 = cit1;
+      }
+    }
+  }
+  return true;
 }
 
 

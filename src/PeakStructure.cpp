@@ -451,80 +451,6 @@ PeakStructure::FindCarType PeakStructure::findEmptyRange(
 }
 
 
-bool PeakStructure::getClosest(
-  const list<unsigned>& carPoints,
-  const PeakPool& peaks,
-  const PeakFncPtr& fptr,
-  PPciterator& pit,
-  PeakPtrVector& closestPeaks,
-  PeakPtrVector& skippedPeaks) const
-{
-  // Do the three remaining wheels.
-  PPciterator pend = peaks.candcend();
-  PPciterator pit0 = peaks.nextCandExcl(pit, fptr);
-  if (pit0 == pend)
-    return false;
-
-  skippedPeaks.clear();
-  closestPeaks.clear();
-  closestPeaks.push_back(* pit);
-  const unsigned pstart = (* pit)->getIndex() + offset;
-  
-  auto cit = carPoints.begin();
-  cit++;
-  // pit is assumed to line up with carPoints[1], the first wheel.
-  const unsigned cstart = * cit;
-  cit++;
-  // Start from the second wheel.
-
-  PPciterator pit1;
-  for (unsigned i = 0; i < 3; i++)
-  {
-    const unsigned ptarget = (* cit) + pstart - cstart;
-    unsigned pval0 = (* pit0)->getIndex() + offset;
-
-    while (true)
-    {
-      pit1 = peaks.nextCandExcl(pit0, fptr);
-      if (pit1 == pend)
-      {
-        if (closestPeaks.size() != 3)
-          return false;
-
-        closestPeaks.push_back(* pit0);
-        return true;
-      }
-
-      const unsigned pval1 = (* pit1)->getIndex() + offset;
-      const unsigned mid = (pval0 + pval1) / 2;
-      if (ptarget <= mid)
-      {
-        closestPeaks.push_back(* pit0);
-        pit0 = pit1;
-        break;
-      }
-      else if (ptarget <= pval1)
-      {
-        skippedPeaks.push_back(* pit0);
-        closestPeaks.push_back(* pit1);
-        pit1 = peaks.nextCandExcl(pit1, fptr);
-        if (pit1 == pend && closestPeaks.size() != 4)
-          return false;
-
-        pit0 = pit1;
-        break;
-      }
-      else
-      {
-        skippedPeaks.push_back(* pit0);
-        pit0 = pit1;
-      }
-    }
-  }
-  return true;
-}
-
-
 bool PeakStructure::isConsistent(const PeakPtrVector& closestPeaks) const
 {
   for (unsigned i = 0; i < 4; i++)
@@ -572,8 +498,8 @@ PeakStructure::FindCarType PeakStructure::findCarByGeometry(
         continue;
 
       // pit corresponds to the first wheel.
-      if (! PeakStructure::getClosest(carPoints, peaks, &Peak::goodQuality,
-          pit, closestPeaks, skippedPeaks))
+      if (! peaks.getClosest(carPoints, &Peak::goodQuality, pit, 4,
+          closestPeaks, skippedPeaks))
         continue;
 
       // We deal with the edges later.
