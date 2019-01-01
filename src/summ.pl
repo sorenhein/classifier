@@ -57,7 +57,17 @@ while (my $line = <$fh>)
       chomp $line;
       $line =~ s///g;
       last if $line =~ /^\s*$/;
-      push @mismatches, $line;
+
+      my $mline = $line;
+
+      # Also get the profile lines.
+      $line = <$fh>;
+      chomp $line;
+      $line =~ s///g;
+      last if $line =~ /^\s*$/;
+      $line =~ s/^PROFILE .*:/XX/;
+
+      push @mismatches, $mline . $line;
     }
   }
   elsif ($line =~ /MISMATCH/)
@@ -179,6 +189,8 @@ sub line_to_line
     $g2 = "-";
   }
 
-  return sprintf "%-7s %-1s %-12s %-1s", $pos, $g1, $2, $g2;
+  $a[1] =~ /XX (.*)/;
+
+  return sprintf "%-7s %-1s %-12s %-1s    %s", $pos, $g1, $range, $g2, $1;
 }
 
