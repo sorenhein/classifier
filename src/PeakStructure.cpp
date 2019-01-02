@@ -197,7 +197,8 @@ bool PeakStructure::fillPartialSides(
 
   const unsigned lpp1 = car1.lastPeakPlus1();
   const unsigned fpm1 = car2.firstPeakMinus1();
-  if (fpm1 - lpp1 > car1.getMidGap())
+  const unsigned mg1 = car1.getMidGap();
+  if (fpm1 - lpp1 > (mg1 == 0 ? car2.getMidGap() : mg1))
     return false;
 
   const unsigned mid = (lpp1 + fpm1) / 2;
@@ -285,7 +286,10 @@ PeakStructure::FindCarType PeakStructure::findPartialCarByQuality(
     THROW(ERR_ALGO_PEAK_STRUCTURE, 
       "Not " + to_string(numWheels) + " peaks after all");
 
-  if (PeakStructure::findNumberedWheeler(models, range,
+  PeakRange rangeLocal;
+  rangeLocal.init(peakPtrsUsed);
+
+  if (PeakStructure::findNumberedWheeler(models, rangeLocal,
       peakPtrsUsed, numWheels, car))
   {
     PeakStructure::markUpPeaks(peakPtrsUsed, numWheels);
@@ -356,24 +360,56 @@ PeakStructure::FindCarType PeakStructure::findCarByQuality(
   PeakRange& range,
   CarDetect& car) const
 {
-  // TODO Might use isConsistent().
+  // Try the first 4 and last 4 peaks in the range.
+  // TODO Might use isConsistent() as well.
 
   PeakPtrVector peakPtrsUsed, peakPtrsUnused;
   range.splitByQuality(fptr, peakPtrsUsed, peakPtrsUnused);
 
-  // Try the front four peaks.
-  if (PeakStructure::findCarByPeaks(models, range, peakPtrsUsed, car) ==
-      FIND_CAR_MATCH)
-    return FIND_CAR_MATCH;
+  list<PeakPtrVector *> plist;
 
+  // Start with those peaks with the largest number of bogey wheels.
+  PeakPtrVector peakPtrsBack;
   const unsigned lp = peakPtrsUsed.size();
-  if (lp <= 4)
-    return FIND_CAR_NO_MATCH;
+  if (lp > 4)
+  {
+    for (unsigned i = 0; i < 4; i++)
+      peakPtrsBack.push_back(peakPtrsUsed[lp-4+i]);
+    peakPtrsUsed.erase(peakPtrsUsed.begin()+4, peakPtrsUsed.end());
 
-  // Try the back four peaks.
-  peakPtrsUsed.erase(peakPtrsUsed.begin(), peakPtrsUsed.begin() + lp - 4);
+    unsigned numBogeys1 = 0, numBogeys2 = 0;
+    for (unsigned i = 0; i < 4; i++)
+    {
+      if (peakPtrsUsed[i]->isBogey()) numBogeys1++;
+      if (peakPtrsBack[i]->isBogey()) numBogeys2++;
+    }
+    if (numBogeys2 >= numBogeys1)
+    {
+      plist.push_back(&peakPtrsBack);
+      plist.push_back(&peakPtrsUsed);
+    }
+    else
+    {
+      plist.push_back(&peakPtrsUsed);
+      plist.push_back(&peakPtrsBack);
+    }
+  }
+  else
+  {
+    plist.push_back(&peakPtrsUsed);
+  }
 
-  return PeakStructure::findCarByPeaks(models, range, peakPtrsUsed, car);
+  for (auto plp: plist)
+  {
+    if (! PeakStructure::isConsistent(* plp))
+      continue;
+
+    if (PeakStructure::findCarByPeaks(models, range, * plp, car) ==
+        FIND_CAR_MATCH)
+      return FIND_CAR_MATCH;
+  }
+
+  return FIND_CAR_NO_MATCH;
 }
 
 
@@ -508,9 +544,9 @@ list<PeakRange>::iterator PeakStructure::updateRanges(
   if (nextCarIt != cars.end())
     PeakStructure::fillPartialSides(models, car, * nextCarIt);
 
-  if (car.hasLeftGap() || car.startValue() == range.startValue())
+  if (car.hasLeftGap() || car.startValue() <= range.startValue())
   {
-    if (car.hasRightGap() || car.endValue() == range.endValue())
+    if (car.hasRightGap() || car.endValue() >= range.endValue())
       return ranges.erase(rit);
     else
     {
