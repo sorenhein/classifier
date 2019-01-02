@@ -247,9 +247,23 @@ PeakStructure::FindCarType PeakStructure::findCarByOrder(
 
   for (auto pit: range)
   {
+// cout << "New pit " << (* pit)->getIndex() + offset << endl;
+
     if (! (* pit)->goodQuality())
       continue;
 
+    for (unsigned i = 0; i < 3; i++)
+      runPtr[i] = runPtr[i+1];
+
+    runPtr[3] = * pit;
+
+/*
+cout << "CHECKING BY ORDER\n";
+for (auto r: runPtr)
+  cout << r->getIndex() + offset << endl;
+if (runPtr[0]->getIndex() + offset == 3636)
+  cout << "BREAK\n";
+  */
     if (PeakStructure::isWholeCar(runPtr))
     {
       // We deal with the edges later.
@@ -260,11 +274,6 @@ PeakStructure::FindCarType PeakStructure::findCarByOrder(
 
       return FIND_CAR_MATCH;
     }
-
-    for (unsigned i = 0; i < 3; i++)
-      runPtr[i] = runPtr[i+1];
-
-    runPtr[3] = * pit;
   }
 
   return FIND_CAR_NO_MATCH;

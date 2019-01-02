@@ -320,7 +320,7 @@ for my $sensor (sort keys %carsSummary)
     $fullSummary{$sensor},
     \@{$imperfSummary{$sensor}},
     $format);
-  print newLine($format);
+  print forceNewLine($format);
 }
 
 print dividerLine($format);
