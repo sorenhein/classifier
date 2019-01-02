@@ -54,11 +54,14 @@ for my $file (@ARGV)
   
   $sensor = $file;
   $sensor =~ s/.txt//;
-  print "$sensor\n";
+  # print "$sensor\n";
 
   open my $fh, "<", $file or die "Cannot open $file: $!";
 
-  open my $fo, ">", "summary/$file" or die "Cannot open $file: $!";
+  my $fout = ($format == $FORMAT_TXT ? "summary/$file" :
+    "summary/$sensor.csv");
+
+  open my $fo, ">", $fout or die "Cannot open $fout: $!";
   print $fo summaryHeader($format), detailHeader($format), "\n";
 
   # Per-trace arrays.
@@ -69,6 +72,7 @@ for my $file (@ARGV)
   my $hasIssues = 0;
   my $numIssues = 0;
   my $regressError = 0.;
+  my $regressSeen = 0;
   while (my $line = <$fh>)
   {
     chomp $line;
@@ -78,9 +82,6 @@ for my $file (@ARGV)
     {
       $line =~ /^File.*\/([0-9_]*)_001_channel1.dat:/;
       my @a = split /_/, $1;
-      $date = $a[0];
-      $time = $a[1];
-      $sname = $a[2];
 
       if ($hasIssues)
       {
@@ -88,7 +89,15 @@ for my $file (@ARGV)
         {
           $errorsTrace[1]++;
         }
+        elsif (! $regressSeen)
+        {
+          # Can fail silently.
+          $errorsTrace[0]++;
+        }
+
         $errorsTrace[3] += $numIssues;
+
+        print $fo dividerLine($format);
 
         print $fo summaryLine($sensor, 
           $time,
@@ -99,19 +108,27 @@ for my $file (@ARGV)
           \@imperfTrace, 
           $format), "\n";
 
+        print $fo forceNewLine($format);
+
         transferStats(\@errorsTrace, \@carsTrace, 
           $fullTrace, \@imperfTrace);
-
-        @errorsTrace = (0, 0, 0, 0);
-        @carsTrace = ();
-        $fullTrace = 0;
-        @imperfTrace = (0, 0, 0, 0);
-
-        $hasIssues = 0;
-        $numIssues = 0;
       }
 
       $fileno++;
+      $date = $a[0];
+      $time = $a[1];
+      $sname = $a[2];
+
+      @errorsTrace = (0, 0, 0, 0);
+      @carsTrace = ();
+      $fullTrace = 0;
+      @imperfTrace = (0, 0, 0, 0);
+
+      $hasIssues = 0;
+      $numIssues = 0;
+      $regressSeen = 0;
+      $regressError = 0.;
+
     }
     elsif ($line =~ /^HITS/)
     {
@@ -158,7 +175,8 @@ for my $file (@ARGV)
         last if $line =~ /^\s*$/;
 
         parseLines($mline, $line, \@details);
-        print $fo summaryEmpty($format), detailLine(\@details, $format);
+        print $fo summaryEmpty($format), 
+          detailLine(\@details, $format), "\n";
         $numIssues++;
       }
     }
@@ -166,6 +184,8 @@ for my $file (@ARGV)
     {
       $errorsTrace[0]++;
       $errorsTrace[3] += $numIssues;
+
+      print $fo dividerLine($format);
 
       print $fo summaryLine($sensor, 
         $time,
@@ -175,6 +195,8 @@ for my $file (@ARGV)
         $fullTrace, 
         \@imperfTrace, 
         $format), "\n";
+
+      print $fo forceNewLine($format);
 
       transferStats(\@errorsTrace, \@carsTrace, 
         $fullTrace, \@imperfTrace);
@@ -186,6 +208,8 @@ for my $file (@ARGV)
 
       $hasIssues = 0;
       $numIssues = 0;
+      $regressSeen = 0;
+      $regressError = 0.;
     }
     elsif ($line =~ /^Regression alignment/)
     {
@@ -194,6 +218,7 @@ for my $file (@ARGV)
       $line =~ s///g;
       my @a = split /\s+/, $line;
       $regressError = $a[2];
+      $regressSeen = 1;
     }
     elsif ($line =~ /^True train/)
     {
@@ -211,10 +236,12 @@ for my $file (@ARGV)
       $line =~ s///g;
 
       my $p = $fnc . " line " . $lno . ": " . $line;
-      print $fo summaryEmpty($format), $p;
+      print $fo summaryEmpty($format), "  ", $p, "\n";
 
       $errorsTrace[2]++;
       $errorsTrace[3] += $numIssues;
+
+      print $fo dividerLine($format);
 
       print $fo summaryLine($sensor, 
         $time,
@@ -224,6 +251,8 @@ for my $file (@ARGV)
         $fullTrace, 
         \@imperfTrace, 
         $format), "\n";
+
+      print $fo forceNewLine($format);
 
       transferStats(\@errorsTrace, \@carsTrace, 
         $fullTrace, \@imperfTrace);
@@ -235,6 +264,8 @@ for my $file (@ARGV)
 
       $hasIssues = 0;
       $numIssues = 0;
+      $regressSeen = 0;
+      $regressError = 0.;
     }
   }
   close $fh;
@@ -246,7 +277,14 @@ for my $file (@ARGV)
     {
       $errorsTrace[1]++;
     }
+    elsif (! $regressSeen)
+    {
+      # Can fail silently.
+      $errorsTrace[0]++;
+    }
     $errorsTrace[3] += $numIssues;
+
+    print $fo dividerLine($format);
 
     print $fo summaryLine($sensor, 
       $time,
@@ -256,6 +294,8 @@ for my $file (@ARGV)
       $fullTrace, 
       \@imperfTrace, 
       $format), "\n";
+
+    print $fo forceNewLine($format);
 
     transferStats(\@errorsTrace, \@carsTrace, 
       $fullTrace, \@imperfTrace);
@@ -271,7 +311,8 @@ print "\n";
 
 for my $sensor (sort keys %carsSummary)
 {
-  print summaryLine($sensor, 
+  print summaryLine(
+    $sensor, 
     "",
     "",
     \@{$errorsSummary{$sensor}},
@@ -279,13 +320,13 @@ for my $sensor (sort keys %carsSummary)
     $fullSummary{$sensor},
     \@{$imperfSummary{$sensor}},
     $format);
-  print "\n";
+  print newLine($format);
 }
 
 print dividerLine($format);
-print "\n";
 
-print summaryLine($sensor, 
+print summaryLine(
+  "SUM",
   "",
   "",
   \@errorsTotal, 
@@ -293,7 +334,7 @@ print summaryLine($sensor,
   $fullTotal, 
   \@imperfTotal, 
   $format);
-print "\n";
+print forceNewLine($format);
 
 exit;
 
@@ -352,7 +393,7 @@ sub summaryHeaderTXT
     "Error", "Dev", "Exc", "Warn",
     "Fskip", "Fspur", "Skip", "Spur";
 
-  for my $i (0 .. $#carsTotal)
+  for my $i (0 .. $NUM_EMPTY_FNC)
   {
     $str .= sprintf "%6d", $i;
   }
@@ -367,17 +408,17 @@ sub summaryHeaderCSV
   my $str = 
     "Sensor" . $SEPARATOR .
     "Time" . $SEPARATOR .
-    "Trace" . $SEPARATOR .
+    "Trace" . $SEPARATOR . $SEPARATOR .
     "Error" . $SEPARATOR . 
     "Dev" . $SEPARATOR .
     "Exc" . $SEPARATOR .
-    "Warn" . $SEPARATOR .
+    "Warn" . $SEPARATOR . $SEPARATOR .
     "Fskip" . $SEPARATOR .
     "Fspur" . $SEPARATOR .
     "Skip" . $SEPARATOR .
-    "Spur" . $SEPARATOR;
+    "Spur" . $SEPARATOR . $SEPARATOR;
 
-  for my $i (0 .. $#carsTotal)
+  for my $i (0 .. $NUM_EMPTY_FNC)
   {
     $str .= $i . $SEPARATOR;
   }
@@ -401,7 +442,7 @@ sub summaryHeader
 
 sub detailHeaderTXT
 {
-  my $str = sprintf "%4s%6s%4s%4s%s",
+  my $str = sprintf "  %-6s%-12s%4s%4s  %s",
     "first",
     "range",
     "***",
@@ -414,6 +455,8 @@ sub detailHeaderTXT
 sub detailHeaderCSV
 {
   my $str =
+    $SEPARATOR .
+    $SEPARATOR .
     "first" . $SEPARATOR .
     "range" . $SEPARATOR .
     "***" . $SEPARATOR .
@@ -442,12 +485,33 @@ sub dividerLine
   my $format = pop;
   if ($format == $FORMAT_TXT)
   {
-    return "-" x (94 + 6 * ($#carsTotal));
+    return ("-" x (94 + 6 * $NUM_EMPTY_FNC)) . "\n";
   }
   else
   {
     return "";
   }
+}
+
+
+sub newLine
+{
+  my $format = pop;
+  if ($format == $FORMAT_TXT)
+  {
+    return "\n";
+  }
+  else
+  {
+    return "";
+  }
+}
+
+
+sub forceNewLine
+{
+  my $format = pop;
+  return "\n";
 }
 
 
@@ -471,7 +535,7 @@ sub summaryLineTXT
     $imperfRef->[2];
 
   my $s = 0;
-  for my $i (0 .. $#carsTotal)
+  for my $i (0 .. $NUM_EMPTY_FNC)
   {
     if (defined $carsRef->[$i])
     {
@@ -503,23 +567,30 @@ sub summaryLineCSV
   my $str = 
     $sensor . $SEPARATOR .
     $time . $SEPARATOR .
-    $trace . $SEPARATOR .
+    $trace . $SEPARATOR . $SEPARATOR .
 
     $errorsRef->[0] . $SEPARATOR .
     $errorsRef->[1] . $SEPARATOR .
     $errorsRef->[2] . $SEPARATOR .
-    $errorsRef->[3] . $SEPARATOR .
+    $errorsRef->[3] . $SEPARATOR . $SEPARATOR .
 
     $imperfRef->[0] . $SEPARATOR .
     $imperfRef->[1] . $SEPARATOR .
     $imperfRef->[3] . $SEPARATOR .
-    $imperfRef->[2] . $SEPARATOR;
+    $imperfRef->[2] . $SEPARATOR . $SEPARATOR;
 
   my $s = 0;
-  for my $i (0 .. $#carsTotal)
+  for my $i (0 .. $NUM_EMPTY_FNC)
   {
-    $str .= $carsRef->[$i] . $SEPARATOR;
-    $s += $carsRef->[$i];
+    if (defined $carsRef->[$i])
+    {
+      $str .= $carsRef->[$i] . $SEPARATOR;
+      $s += $carsRef->[$i];
+    }
+    else
+    {
+      $str .= $SEPARATOR;
+    }
   }
 
   my $reduced = $s;
@@ -530,7 +601,7 @@ sub summaryLineCSV
 
   $str .=
     $full . $SEPARATOR .
-    $full - $reduced . $SEPARATOR;
+    ($full - $reduced);
   return $str;
 }
 
@@ -555,7 +626,7 @@ sub summaryLine
 sub detailLineTXT
 {
   my $detailsRef = pop;
-  my $str = sprintf "%4s%6s%4s%4s%s",
+  my $str = sprintf "  %-6s%-12s%4d%4d  %s",
     $detailsRef->[0],
     $detailsRef->[1],
     $detailsRef->[2],
@@ -596,11 +667,11 @@ sub summaryEmpty
   my $format = pop;
   if ($format == $FORMAT_TXT)
   {
-    return " " x 80;
+    return " " x 124;
   }
   else
   {
-    return $SEPARATOR x 12;
+    return $SEPARATOR x 23;
   }
 }
 
@@ -666,7 +737,9 @@ sub parseLines
   $detailsRef->[2] += $1 if ($1 ne '-');
   $detailsRef->[3] += $2 if ($2 ne '-');
   
-  $line1 =~ /:(.*)/;
-  $detailsRef->[4] = $1;
+  $line2 =~ s/: (.*)//;
+  my $rest = $1;
+  $rest =~ s/ \(\d+ of \d+\)//;
+  $detailsRef->[4] = $rest;
 }
 
