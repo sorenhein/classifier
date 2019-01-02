@@ -328,27 +328,52 @@ PeakStructure::FindCarType PeakStructure::findPartialFirstCarByQuality(
 }
 
 
+PeakStructure::FindCarType PeakStructure::findCarByPeaks(
+  const CarModels& models,
+  const PeakRange& range,
+  PeakPtrVector& peakPtrs,
+  CarDetect& car) const
+{
+  if (PeakStructure::findNumberedWheeler(models, range, peakPtrs, 4, car))
+  {
+    // We deal with the edges later.
+    PeakRange rangeLocal;
+    rangeLocal.init(peakPtrs);
+    car.makeFourWheeler(rangeLocal, peakPtrs);
+
+    PeakStructure::markUpPeaks(peakPtrs, 4);
+
+    return FIND_CAR_MATCH;
+  }
+  else
+    return FIND_CAR_NO_MATCH;
+}
+
+
 PeakStructure::FindCarType PeakStructure::findCarByQuality(
   const CarModels& models,
   const PeakFncPtr& fptr,
   PeakRange& range,
   CarDetect& car) const
 {
+  // TODO Might use isConsistent().
+
   PeakPtrVector peakPtrsUsed, peakPtrsUnused;
   range.splitByQuality(fptr, peakPtrsUsed, peakPtrsUnused);
 
-  if (peakPtrsUsed.size() != 4)
-    THROW(ERR_ALGO_PEAK_STRUCTURE, "Not 4 peaks after all");
-
-  if (PeakStructure::findNumberedWheeler(models, range,
-      peakPtrsUsed, 4, car))
-  {
-    PeakStructure::markUpPeaks(peakPtrsUsed, 4);
-    PeakStructure::markDownPeaks(peakPtrsUnused);
+  // Try the front four peaks.
+  if (PeakStructure::findCarByPeaks(models, range, peakPtrsUsed, car) ==
+      FIND_CAR_MATCH)
     return FIND_CAR_MATCH;
-  }
-  else
+
+  const unsigned lp = peakPtrsUsed.size();
+  if (lp <= 4)
     return FIND_CAR_NO_MATCH;
+
+  // Try the back four peaks.
+  peakPtrsUsed.erase(peakPtrsUsed.begin(), peakPtrsUsed.begin() + lp - 4);
+
+  return PeakStructure::findCarByPeaks(models, range, peakPtrsUsed, car);
 }
 
 
@@ -359,7 +384,7 @@ PeakStructure::FindCarType PeakStructure::findCarByGreatQuality(
   CarDetect& car) const
 {
   UNUSED(peaks);
-  if (range.numGreat() != 4)
+  if (range.numGreat() < 4)
     return FIND_CAR_NO_MATCH;
   else
     return PeakStructure::findCarByQuality(models,
@@ -374,7 +399,7 @@ PeakStructure::FindCarType PeakStructure::findCarByGoodQuality(
   CarDetect& car) const
 {
   UNUSED(peaks);
-  if (range.numGood() != 4)
+  if (range.numGood() < 4)
     return FIND_CAR_NO_MATCH;
   else
     return PeakStructure::findCarByQuality(models,

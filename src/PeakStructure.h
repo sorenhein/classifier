@@ -102,6 +102,12 @@ class PeakStructure
       PeakRange& range,
       CarDetect& car) const;
 
+    FindCarType findCarByPeaks(
+      const CarModels& models,
+      const PeakRange& range,
+      PeakPtrVector& peakPtrs,
+      CarDetect& car) const;
+
     FindCarType findCarByQuality(
       const CarModels& models,
       const PeakFncPtr& fptr,
