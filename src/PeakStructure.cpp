@@ -183,7 +183,6 @@ bool PeakStructure::isConsistent(const PeakPtrVector& closestPeaks) const
 
 
 bool PeakStructure::fillPartialSides(
-  CarModels& models,
   CarDetect& car1,
   CarDetect& car2) const
 {
@@ -205,9 +204,6 @@ bool PeakStructure::fillPartialSides(
 
   car1.setEndAndGap(mid);
   car2.setStartAndGap(mid);
-
-  PeakStructure::updateModels(models, car1);
-  PeakStructure::updateModels(models, car2);
   return true;
 }
 
@@ -633,11 +629,23 @@ void PeakStructure::markCars(
         PeakStructure::updateCarDistances(models, cars);
 
         if (newcit != cars.begin())
-          PeakStructure::fillPartialSides(models, * prev(newcit), * newcit);
+        {
+          if (PeakStructure::fillPartialSides(* prev(newcit), * newcit))
+          {
+            PeakStructure::updateModels(models, * prev(newcit));
+            PeakStructure::updateModels(models, * newcit);
+          }
+        }
 
         auto nextCarIt = next(newcit);
         if (nextCarIt != cars.end())
-          PeakStructure::fillPartialSides(models, * newcit, * nextCarIt);
+        {
+          if (PeakStructure::fillPartialSides(* newcit, * nextCarIt))
+          {
+            PeakStructure::updateModels(models, * newcit);
+            PeakStructure::updateModels(models, * nextCarIt);
+          }
+        }
       }
 
       rit = PeakStructure::updateRanges(newcit, rit, findFlag);
@@ -659,7 +667,7 @@ void PeakStructure::markCars(
     cout << endl;
   }
 
-  cout<< "HITS\n";
+  cout << "HITS\n";
   for (unsigned i = 0; i < 6; i++)
     cout << i << " " << hits[i] << endl;
   cout << endl;

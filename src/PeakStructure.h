@@ -76,7 +76,6 @@ class PeakStructure
     bool isConsistent(const PeakPtrVector& closestPeaks) const;
 
     bool fillPartialSides(
-      CarModels& models,
       CarDetect& car1,
       CarDetect& car2) const;
 
