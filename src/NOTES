@@ -1,6 +1,29 @@
 Model updates don't have the right count, as some cars show up 
 several times.  Could recalculate from scratch always.
 
+Idea for whenever a new car arrives:
+
+- Can only match within exact same gap pattern
+- Can only match models with a match count > 0
+- Can however match in reverse as well (log reverse flag in car)
+- If it's not a downgrade:
+  - Try to fill partial sides, don't touch models themselves yet
+  - This may change several cars, actually
+  - But we still assume that the models are fine
+  - If it then matches
+    - car: log stat index, distance
+  - Else
+    - add as a model
+    - car: log as before
+  - The other, changed cars if any are reclassified (first withdrawn)
+  - Then recalculate all models based on the logged indices
+    and the reverse flag
+  - Some models now get a count of 0 and become inactive
+  - When printing models, only the active ones
+  - Also print the number of times that model is used
+
+- Update ranges in general, whether or not a downgrade
+
 ByQuality is in an in-between state.  Either turn on or delete.
 
 PeakStructure:

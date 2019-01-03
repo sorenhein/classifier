@@ -532,25 +532,15 @@ PeakStructure::FindCarType PeakStructure::findEmptyRange(
 
 
 list<PeakRange>::iterator PeakStructure::updateRanges(
-  CarModels& models,
-  const list<CarDetect>& cars,
   const CarListIter& carIt,
   list<PeakRange>::iterator& rit,
   const FindCarType& findFlag)
 {
-  PeakRange& range = * rit;
-
   if (findFlag == FIND_CAR_DOWNGRADE)
     return ranges.erase(rit);
 
-  CarDetect& car = * carIt;
-  if (carIt != cars.begin())
-    PeakStructure::fillPartialSides(models, * prev(carIt), car);
-
-  auto nextCarIt = next(carIt);
-  if (nextCarIt != cars.end())
-    PeakStructure::fillPartialSides(models, car, * nextCarIt);
-
+  PeakRange& range = * rit;
+  const CarDetect& car = * carIt;
   if (car.hasLeftGap() || car.startValue() <= range.startValue())
   {
     if (car.hasRightGap() || car.endValue() >= range.endValue())
@@ -641,10 +631,16 @@ void PeakStructure::markCars(
         PeakStructure::updateModels(models, car);
         newcit = cars.insert(range.carAfterIter(), car);
         PeakStructure::updateCarDistances(models, cars);
+
+        if (newcit != cars.begin())
+          PeakStructure::fillPartialSides(models, * prev(newcit), * newcit);
+
+        auto nextCarIt = next(newcit);
+        if (nextCarIt != cars.end())
+          PeakStructure::fillPartialSides(models, * newcit, * nextCarIt);
       }
 
-      rit = PeakStructure::updateRanges(models, cars, newcit, 
-        rit, findFlag);
+      rit = PeakStructure::updateRanges(newcit, rit, findFlag);
 
       PeakStructure::printWheelCount(peaks, "Counting");
       PeakStructure::printCars(cars, "after range");

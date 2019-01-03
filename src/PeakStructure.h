@@ -140,8 +140,6 @@ class PeakStructure
 
 
     list<PeakRange>::iterator updateRanges(
-      CarModels& models,
-      const list<CarDetect>& cars,
       const CarListIter& carIt,
       list<PeakRange>::iterator& rit,
       const FindCarType& findFlag);
