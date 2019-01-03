@@ -83,13 +83,14 @@ for my $file (@ARGV)
       $line =~ /^File.*\/([0-9_]*)_001_channel1.dat:/;
       my @a = split /_/, $1;
 
-      if ($hasIssues)
+      #if ($hasIssues)
+      if ($fileno >= 0)
       {
         if ($regressError > $REGRESS_THRESHOLD)
         {
           $errorsTrace[1]++;
         }
-        elsif (! $regressSeen)
+        elsif (! $regressSeen && $hasIssues)
         {
           # Can fail silently.
           $errorsTrace[0]++;
@@ -271,13 +272,13 @@ for my $file (@ARGV)
   close $fh;
 
   # Stragglers.
-  if ($hasIssues)
+  #if ($hasIssues)
   {
     if ($regressError > $REGRESS_THRESHOLD)
     {
       $errorsTrace[1]++;
     }
-    elsif (! $regressSeen)
+    elsif (! $regressSeen && $hasIssues)
     {
       # Can fail silently.
       $errorsTrace[0]++;

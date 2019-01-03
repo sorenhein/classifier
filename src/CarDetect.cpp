@@ -194,13 +194,7 @@ bool CarDetect::operator < (const CarDetect& c2) const
 
 void CarDetect::increment(CarDetectNumbers& cdn) const
 {
-  if (gaps.hasLeftGap())
-    cdn.numLeftGaps++;
-
-  cdn.numCoreGaps++;
-
-  if (gaps.hasRightGap())
-    cdn.numRightGaps++;
+  gaps.increment(cdn);
 }
 
 
@@ -342,7 +336,7 @@ bool CarDetect::isPartial() const
 
 void CarDetect::averageGaps(const CarDetectNumbers& cdn)
 {
-  gaps.average(cdn.numLeftGaps, cdn.numCoreGaps, cdn.numRightGaps);
+  gaps.average(cdn);
 }
 
 

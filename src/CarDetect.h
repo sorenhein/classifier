@@ -12,13 +12,6 @@ using namespace std;
 
 class PeakRange;
 
-struct CarDetectNumbers
-{
-  unsigned numLeftGaps;
-  unsigned numCoreGaps;
-  unsigned numRightGaps;
-};
-
 
 class CarDetect
 {

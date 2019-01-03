@@ -360,14 +360,13 @@ PeakStructure::FindCarType PeakStructure::findCarByQuality(
   PeakRange& range,
   CarDetect& car) const
 {
-  // Try the first 4 and last 4 peaks in the range.
-  // TODO Might use isConsistent() as well.
-
   PeakPtrVector peakPtrsUsed, peakPtrsUnused;
   range.splitByQuality(fptr, peakPtrsUsed, peakPtrsUnused);
 
+  /*
   list<PeakPtrVector *> plist;
 
+  // Try the first 4 and last 4 peaks in the range.
   // Start with those peaks with the largest number of bogey wheels.
   PeakPtrVector peakPtrsBack;
   const unsigned lp = peakPtrsUsed.size();
@@ -408,6 +407,14 @@ PeakStructure::FindCarType PeakStructure::findCarByQuality(
         FIND_CAR_MATCH)
       return FIND_CAR_MATCH;
   }
+  */
+
+    //if (! PeakStructure::isConsistent(peakPtrsUsed))
+      //return FIND_CAR_NO_MATCH;
+
+    if (PeakStructure::findCarByPeaks(models, range, peakPtrsUsed, car) ==
+        FIND_CAR_MATCH)
+      return FIND_CAR_MATCH;
 
   return FIND_CAR_NO_MATCH;
 }
@@ -420,7 +427,7 @@ PeakStructure::FindCarType PeakStructure::findCarByGreatQuality(
   CarDetect& car) const
 {
   UNUSED(peaks);
-  if (range.numGreat() < 4)
+  if (range.numGreat() != 4)
     return FIND_CAR_NO_MATCH;
   else
     return PeakStructure::findCarByQuality(models,
@@ -435,7 +442,7 @@ PeakStructure::FindCarType PeakStructure::findCarByGoodQuality(
   CarDetect& car) const
 {
   UNUSED(peaks);
-  if (range.numGood() < 4)
+  if (range.numGood() != 4)
     return FIND_CAR_NO_MATCH;
   else
     return PeakStructure::findCarByQuality(models,

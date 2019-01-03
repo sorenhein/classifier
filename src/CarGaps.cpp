@@ -30,6 +30,9 @@ CarGaps::~CarGaps()
 void CarGaps::reset()
 {
   leftGapSet = false;
+  leftBogeyGapSet = false;
+  midGapSet = false;
+  rightBogeyGapSet = false;
   rightGapSet = false;
 
   leftGap = 0;
@@ -122,23 +125,34 @@ void CarGaps::operator += (const CarGaps& cg2)
 }
 
 
-void CarGaps::average(
-  const unsigned numLeftGap,
-  const unsigned numCore,
-  const unsigned numRightGap)
+void CarGaps::increment(CarDetectNumbers& cdn) const
 {
-  if (numLeftGap)
-    leftGap /= numLeftGap;
+  if (leftGapSet)
+    cdn.numLeftGaps++;
+  if (leftBogeyGapSet)
+    cdn.numLeftBogeyGaps++;
+  if (midGapSet)
+    cdn.numMidGaps++;
+  if (rightBogeyGapSet)
+    cdn.numRightBogeyGaps++;
+  if (rightGapSet)
+    cdn.numRightGaps++;
+}
 
-  if (numCore)
-  {
-    leftBogeyGap /= numCore;
-    midGap /= numCore;
-    rightBogeyGap /= numCore;
-  }
 
-  if (numRightGap)
-    rightGap /= numRightGap;
+void CarGaps::average(
+  const CarDetectNumbers& cdn)
+{
+  if (cdn.numLeftGaps)
+    leftGap /= cdn.numLeftGaps;
+  if (cdn.numLeftBogeyGaps)
+    leftBogeyGap /= cdn.numLeftBogeyGaps;
+  if (cdn.numMidGaps)
+    midGap /= cdn.numMidGaps;
+  if (cdn.numRightBogeyGaps)
+    rightBogeyGap /= cdn.numRightBogeyGaps;
+  if (cdn.numRightGaps)
+    rightGap /= cdn.numRightGaps;
 }
 
 

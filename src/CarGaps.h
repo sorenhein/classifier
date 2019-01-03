@@ -6,11 +6,24 @@
 using namespace std;
 
 
+struct CarDetectNumbers
+{
+  unsigned numLeftGaps;
+  unsigned numLeftBogeyGaps;
+  unsigned numMidGaps;
+  unsigned numRightBogeyGaps;
+  unsigned numRightGaps;
+};
+
+
 class CarGaps
 {
   private:
 
     bool leftGapSet;
+    bool leftBogeyGapSet;
+    bool midGapSet;
+    bool rightBogeyGapSet;
     bool rightGapSet;
 
     unsigned leftGap;
@@ -61,10 +74,9 @@ class CarGaps
 
     void operator += (const CarGaps& cg2);
 
-    void average(
-      const unsigned numLeftGap,
-      const unsigned numCore,
-      const unsigned numRightGap);
+    void increment(CarDetectNumbers& cdn) const;
+
+    void average(const CarDetectNumbers& cdn);
 
     unsigned leftGapValue() const;
     unsigned leftBogeyGapValue() const;
