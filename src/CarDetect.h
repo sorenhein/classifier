@@ -113,6 +113,10 @@ class CarDetect
     void averageGaps(const CarDetectNumbers& cdn);
 
     float distance(const CarDetect& cref) const;
+    void distanceSymm(
+      const CarDetect& cref,
+      float& value,
+      bool& reverseFlag) const;
 
     bool gapsPlausible(const CarDetect& cref) const;
     bool sideGapsPlausible(const CarDetect& cref) const;

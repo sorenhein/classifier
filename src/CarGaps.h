@@ -36,6 +36,9 @@ class CarGaps
       const unsigned a,
       const unsigned b) const;
 
+    float distance(const CarGaps& cg2) const;
+    float reverseDistance(const CarGaps& cg2) const;
+
     bool checkTwoSided(
       const unsigned actual,
       const unsigned reference,
@@ -88,7 +91,8 @@ class CarGaps
     bool hasRightGap() const;
     bool isPartial() const;
 
-    float relativeDistance(const CarGaps& cg2) const;
+    float distanceForGapMatch(const CarGaps& cg2) const;
+    float distanceForReverseMatch(const CarGaps& cg2) const;
 
     bool sideGapsPlausible(const CarGaps& cgref) const;
     bool midGapPlausible() const;

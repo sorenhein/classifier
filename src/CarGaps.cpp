@@ -225,7 +225,7 @@ float CarGaps::relativeComponent(
 }
 
 
-float CarGaps::relativeDistance(const CarGaps& cg2) const
+float CarGaps::distance(const CarGaps& cg2) const
 {
   return 100.f * (
     CarGaps::relativeComponent(leftGap, cg2.leftGap) +
@@ -234,6 +234,44 @@ float CarGaps::relativeDistance(const CarGaps& cg2) const
     CarGaps::relativeComponent(rightBogeyGap, cg2.rightBogeyGap) +
     CarGaps::relativeComponent(rightGap, cg2.rightGap)
       );
+}
+
+
+float CarGaps::reverseDistance(const CarGaps& cg2) const
+{
+  return 100.f * (
+    CarGaps::relativeComponent(leftGap, cg2.rightGap) +
+    CarGaps::relativeComponent(leftBogeyGap, cg2.rightBogeyGap) +
+    CarGaps::relativeComponent(midGap, cg2.midGap) +
+    CarGaps::relativeComponent(rightBogeyGap, cg2.leftBogeyGap) +
+    CarGaps::relativeComponent(rightGap, cg2.leftGap)
+      );
+}
+
+
+float CarGaps::distanceForGapMatch(const CarGaps& cg2) const
+{
+  if (leftGapSet != cg2.leftGapSet ||
+      leftBogeyGapSet != cg2.leftBogeyGapSet ||
+      midGapSet != cg2.midGapSet ||
+      rightBogeyGapSet != cg2.rightBogeyGapSet ||
+      rightGapSet != cg2.rightGapSet)
+    return numeric_limits<float>::max();
+
+  return CarGaps::distance(cg2);
+}
+
+
+float CarGaps::distanceForReverseMatch(const CarGaps& cg2) const
+{
+  if (leftGapSet != cg2.rightGapSet ||
+      leftBogeyGapSet != cg2.rightBogeyGapSet ||
+      midGapSet != cg2.midGapSet ||
+      rightBogeyGapSet != cg2.leftBogeyGapSet ||
+      rightGapSet != cg2.leftGapSet)
+    return numeric_limits<float>::max();
+
+  return CarGaps::reverseDistance(cg2);
 }
 
 

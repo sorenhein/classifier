@@ -342,7 +342,28 @@ void CarDetect::averageGaps(const CarDetectNumbers& cdn)
 
 float CarDetect::distance(const CarDetect& cref) const
 {
-  return gaps.relativeDistance(cref.gaps);
+  return gaps.distanceForGapMatch(cref.gaps);
+}
+
+
+void CarDetect::distanceSymm(
+  const CarDetect& cref,
+  float& value,
+  bool& reverseFlag) const
+{
+  const float value1 = gaps.distanceForGapMatch(cref.gaps);
+  const float value2 = gaps.distanceForReverseMatch(cref.gaps);
+
+  if (value1 <= value2)
+  {
+    value = value1;
+    reverseFlag = false;
+  }
+  else
+  {
+    value = value2;
+    reverseFlag = true;
+  }
 }
 
 
