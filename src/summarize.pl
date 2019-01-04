@@ -19,7 +19,7 @@ my $NUM_EMPTY_FNC = 5;
 
 if ($#ARGV < 0)
 {
-  print "Usage: summarize.pl [CSV] sensor??.txt > file";
+  print "Usage: summarize.pl [CSV] sensor??.txt > file\n";
   exit;
 }
 
@@ -35,11 +35,14 @@ else
 }
 
 my %carTable;
+my (@detailsLower, @detailsUpper, @detailsNames);
 setCarTables();
+setDetails();
 
 
 # Summary hashes.
 my (%errorsSummary, %carsSummary, %fullSummary, %imperfSummary);
+my (%detailsSummaryFirst, %detailsSummaryLater);
 
 # Totals.
 my (@errorsTotal, @carsTotal, $fullTotal, @imperfTotal);
@@ -179,6 +182,7 @@ for my $file (@ARGV)
         print $fo summaryEmpty($format), 
           detailLine(\@details, $format), "\n";
         $numIssues++;
+        logDetails($sensor, \@details);
       }
     }
     elsif ($line =~ /MISMATCH/)
@@ -336,6 +340,11 @@ print summaryLine(
   \@imperfTotal, 
   $format);
 print forceNewLine($format);
+print forceNewLine($format);
+
+print summaryDetails(\%detailsSummaryFirst, $format);
+print forceNewLine($format);
+print summaryDetails(\%detailsSummaryLater, $format);
 
 exit;
 
@@ -357,6 +366,21 @@ sub setCarTables
   $carTable{"X74_SWE_14_R"} = 5;
   $carTable{"X74_SWE_28_N"} = 10;
   $carTable{"X74_SWE_28_R"} = 10;
+}
+
+
+sub setDetails
+{
+  @detailsLower = qw(
+     0  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15 16
+    17 21 25 29 33 65);
+  @detailsUpper = qw(
+     0  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15 16
+    20 24 28 32 64 999);
+  @detailsNames = qw(
+     0  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15 16
+     17-20 21-24 25-28 29-32 33-64 65+);
+
 }
 
 
@@ -742,5 +766,105 @@ sub parseLines
   my $rest = $1;
   $rest =~ s/ \(\d+ of \d+\)//;
   $detailsRef->[4] = $rest;
+}
+
+
+sub logDetails
+{
+  my ($sensor, $addRef) = @_;
+  if ($addRef->[0] eq "yes")
+  {
+    $detailsSummaryFirst{$sensor}[$addRef->[2] + $addRef->[3]]++;
+  }
+  else
+  {
+    $detailsSummaryLater{$sensor}[$addRef->[2] + $addRef->[3]]++;
+  }
+}
+
+
+sub countHeaderTXT
+{
+  my $s = sprintf "%-10s", "Sensor";
+  for my $i (0 .. $#detailsNames)
+  {
+    $s .= sprintf "%6s", $detailsNames[$i];
+  }
+  return $s . "\n";
+}
+
+
+sub countHeaderCSV
+{
+  my $s = "Sensor";
+  for my $i (0 .. $#detailsNames)
+  {
+    $s .= $SEPARATOR . $detailsNames[$i];
+  }
+  return $s . "\n";
+}
+
+
+sub countHist
+{
+  my ($histRef, $index) = @_;
+  my $sum = 0;
+  for my $i ($detailsLower[$index] .. $detailsUpper[$index])
+  {
+    if (defined $histRef->[$i])
+    {
+      $sum += $histRef->[$i];
+    }
+  }
+  return $sum;
+}
+
+
+sub countDetailsTXT
+{
+  my $detailsRef = pop;
+  my $s = "";
+  for my $ss (sort keys %carsSummary)
+  {
+    $s .= sprintf "%-10s", $ss;
+    for my $i (0 .. $#detailsNames)
+    {
+      $s .= sprintf "%6s", countHist(\@{$detailsRef->{$ss}}, $i);
+    }
+    $s .= "\n";
+  }
+  $s .= "\n";
+}
+
+
+sub countDetailsCSV
+{
+  my $detailsRef = pop;
+  my $s = "";
+  for my $ss (sort keys %carsSummary)
+  {
+    $s .= $ss;
+    for my $i (0 .. $#detailsNames)
+    {
+      $s .= $SEPARATOR . countHist(\@{$detailsRef->{$ss}}, $i);
+    }
+    $s .= "\n";
+  }
+  $s .= "\n";
+}
+
+
+sub summaryDetails
+{
+  my ($detailsRef, $format) = @_;
+
+  if ($format == $FORMAT_TXT)
+  {
+    return countHeaderTXT() .  countDetailsTXT($detailsRef);
+  }
+  else
+  {
+    return countHeaderCSV() .  countDetailsCSV($detailsRef);
+  }
 }
 

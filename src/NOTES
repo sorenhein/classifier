@@ -1,3 +1,7 @@
+On a partial first, we split off an empty first range.  Should
+just kill.
+
+
 Model updates don't have the right count, as some cars show up 
 several times.  Could recalculate from scratch always.
 
@@ -10,11 +14,7 @@ Idea for whenever a new car arrives:
   - Try to fill partial sides, don't touch models themselves yet
   - This may change several cars, actually
   - But we still assume that the models are fine
-  - If it then matches
-    - car: log stat index, distance
-  - Else
-    - add as a model
-    - car: log as before
+  - If it then matches: the old updateModels(models, car)
   - The other, changed cars if any are reclassified (first withdrawn)
   - Then recalculate all models based on the logged indices
     and the reverse flag
