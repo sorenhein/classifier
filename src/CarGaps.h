@@ -13,6 +13,15 @@ struct CarDetectNumbers
   unsigned numMidGaps;
   unsigned numRightBogeyGaps;
   unsigned numRightGaps;
+
+  void reset()
+  {
+    numLeftGaps = 0;
+    numLeftBogeyGaps = 0;
+    numMidGaps = 0;
+    numRightBogeyGaps = 0;
+    numRightGaps = 0;
+  };
 };
 
 
@@ -78,6 +87,8 @@ class CarGaps
     void operator += (const CarGaps& cg2);
 
     void increment(CarDetectNumbers& cdn) const;
+
+    void reverse();
 
     void average(const CarDetectNumbers& cdn);
 

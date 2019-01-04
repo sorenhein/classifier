@@ -140,6 +140,26 @@ void CarGaps::increment(CarDetectNumbers& cdn) const
 }
 
 
+void CarGaps::reverse()
+{
+  bool btmp = leftGapSet;
+  leftGapSet = rightGapSet;
+  rightGapSet = btmp;
+
+  btmp = leftBogeyGapSet;
+  leftBogeyGapSet = rightBogeyGapSet;
+  rightBogeyGapSet = btmp;
+
+  unsigned tmp = leftGap;
+  leftGap = rightGap;
+  rightGap = tmp;
+
+  tmp = leftBogeyGap;
+  leftBogeyGap = rightBogeyGap;
+  rightBogeyGap = tmp;
+}
+
+
 void CarGaps::average(
   const CarDetectNumbers& cdn)
 {

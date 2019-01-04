@@ -58,6 +58,25 @@ void CarModels::add(
 }
 
 
+void CarModels::recalculate(const list<CarDetect>& cars)
+{
+  for (auto& model: models)
+    model.reset();
+
+  for (auto& car: cars)
+  {
+    if (car.isReversed())
+    {
+      CarDetect revCar = car;
+      revCar.reverse();
+      CarModels::add(revCar, car.index());
+    }
+    else
+      CarModels::add(car, car.index());
+  }
+}
+
+
 unsigned CarModels::size() const
 {
   return models.size();

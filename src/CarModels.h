@@ -24,7 +24,20 @@ class CarModels
 
       CarPeaksNumbers peaksNumbers;
   
+      // TODO Do we still need this per gap?
       CarDetectNumbers gapNumbers;
+      unsigned number;
+
+      void reset()
+      {
+        carSum.reset();
+        peaksSum.reset();
+        carAvg.reset();
+        peaksAvg.reset();
+        peaksNumbers.reset();
+        gapNumbers.reset();
+        number = 0;
+      };
     };
 
     vector<CarModel> models;
@@ -49,6 +62,8 @@ class CarModels
     void add(
       const CarDetect& car,
       const unsigned index);
+
+    void recalculate(const list<CarDetect>& cars);
 
     unsigned size() const;
 

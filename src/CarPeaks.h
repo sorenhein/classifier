@@ -14,14 +14,22 @@ struct CarPeaksNumbers
   unsigned numFirstRight;
   unsigned numSecondLeft;
   unsigned numSecondRight;
+
+  void reset()
+  {
+    numFirstLeft = 0;
+    numFirstRight = 0;
+    numSecondLeft = 0;
+    numSecondLeft = 0;
+  };
 };
 
 struct CarPeaksPtr
 {
- Peak * firstBogeyLeftPtr; 
- Peak * firstBogeyRightPtr; 
- Peak * secondBogeyLeftPtr; 
- Peak * secondBogeyRightPtr; 
+  Peak * firstBogeyLeftPtr; 
+  Peak * firstBogeyRightPtr; 
+  Peak * secondBogeyLeftPtr; 
+  Peak * secondBogeyRightPtr; 
 };
 
 

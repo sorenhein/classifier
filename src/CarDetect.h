@@ -28,6 +28,7 @@ class CarDetect
 
     unsigned statIndex;
     float distanceValue;
+    bool reverseFlag;
 
     void updateStars(
       const Peak * peakPtr,
@@ -87,8 +88,12 @@ class CarDetect
 
     void increment(CarDetectNumbers& cdn) const;
 
+    void reverse();
+
     const unsigned startValue() const;
     const unsigned endValue() const;
+    const unsigned index() const;
+    const bool isReversed() const;
 
     const unsigned firstPeakMinus1() const;
     const unsigned lastPeakPlus1() const;
@@ -116,7 +121,7 @@ class CarDetect
     void distanceSymm(
       const CarDetect& cref,
       float& value,
-      bool& reverseFlag) const;
+      bool& reversed) const;
 
     bool gapsPlausible(const CarDetect& cref) const;
     bool sideGapsPlausible(const CarDetect& cref) const;

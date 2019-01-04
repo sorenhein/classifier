@@ -21,6 +21,8 @@ void CarDetect::reset()
 {
   start = 0;
   end = 0;
+  reverseFlag = false;
+
   peaksPtr.firstBogeyLeftPtr = nullptr;
   peaksPtr.firstBogeyRightPtr = nullptr;
   peaksPtr.secondBogeyLeftPtr = nullptr;
@@ -198,6 +200,22 @@ void CarDetect::increment(CarDetectNumbers& cdn) const
 }
 
 
+void CarDetect::reverse()
+{
+  gaps.reverse();
+
+  Peak * tmp = peaksPtr.firstBogeyLeftPtr;
+  peaksPtr.firstBogeyLeftPtr = peaksPtr.secondBogeyRightPtr;
+  peaksPtr.secondBogeyRightPtr = tmp;
+
+  tmp = peaksPtr.firstBogeyRightPtr;
+  peaksPtr.firstBogeyRightPtr = peaksPtr.secondBogeyLeftPtr;
+  peaksPtr.secondBogeyLeftPtr = tmp;
+
+  reverseFlag = ! reverseFlag;
+}
+
+
 const unsigned CarDetect::startValue() const
 {
   if (start > 0)
@@ -214,6 +232,19 @@ const unsigned CarDetect::endValue() const
   else 
     return CarDetect::lastPeakPlus1();
 }
+
+
+const unsigned CarDetect::index() const
+{
+  return statIndex;
+}
+
+
+const bool CarDetect::isReversed() const
+{
+  return reverseFlag;
+}
+
 
 // TODO TMP
 
@@ -349,7 +380,7 @@ float CarDetect::distance(const CarDetect& cref) const
 void CarDetect::distanceSymm(
   const CarDetect& cref,
   float& value,
-  bool& reverseFlag) const
+  bool& reversed) const
 {
   const float value1 = gaps.distanceForGapMatch(cref.gaps);
   const float value2 = gaps.distanceForReverseMatch(cref.gaps);
@@ -357,12 +388,12 @@ void CarDetect::distanceSymm(
   if (value1 <= value2)
   {
     value = value1;
-    reverseFlag = false;
+    reversed = false;
   }
   else
   {
     value = value2;
-    reverseFlag = true;
+    reversed = true;
   }
 }
 
