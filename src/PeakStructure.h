@@ -138,6 +138,12 @@ class PeakStructure
       CarDetect& car) const;
 
 
+    CarListIter updateRecords(
+      const PeakRange& range,
+      const CarDetect& car,
+      CarModels& models,
+      list<CarDetect>& cars);
+
     list<PeakRange>::iterator updateRanges(
       const CarListIter& carIt,
       list<PeakRange>::iterator& rit,

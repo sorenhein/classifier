@@ -526,6 +526,41 @@ PeakStructure::FindCarType PeakStructure::findEmptyRange(
 }
 
 
+CarListIter PeakStructure::updateRecords(
+  const PeakRange& range,
+  const CarDetect& car,
+  CarModels& models,
+  list<CarDetect>& cars)
+{
+  CarListIter newcit = cars.insert(range.carAfterIter(), car);
+
+  if (newcit != cars.begin())
+  {
+    auto prevcit = prev(newcit);
+    const bool hasRight = prevcit->hasRightGap();
+    PeakStructure::fillPartialSides(* prev(newcit), * newcit);
+    if (prevcit->hasRightGap())
+      PeakStructure::updateModels(models, * prevcit);
+  }
+
+  auto nextCarIt = next(newcit);
+  if (nextCarIt != cars.end())
+  {
+    const bool hasLeft = nextCarIt->hasLeftGap();
+    PeakStructure::fillPartialSides(* newcit, * nextCarIt);
+    if (nextCarIt->hasLeftGap() != hasLeft)
+      PeakStructure::updateModels(models, * nextCarIt);
+  }
+
+  PeakStructure::updateModels(models, * newcit);
+
+  models.recalculate(cars);
+
+  PeakStructure::updateCarDistances(models, cars);
+
+  return newcit;
+}
+
 
 list<PeakRange>::iterator PeakStructure::updateRanges(
   const CarListIter& carIt,
@@ -624,7 +659,9 @@ void PeakStructure::markCars(
       CarListIter newcit;
       if (findFlag == FIND_CAR_MATCH)
       {
-        /* */
+        newcit = PeakStructure::updateRecords(range, car, models, cars);
+
+        /*
         newcit = cars.insert(range.carAfterIter(), car);
 
         if (newcit != cars.begin())
@@ -650,31 +687,6 @@ void PeakStructure::markCars(
         models.recalculate(cars);
 
         PeakStructure::updateCarDistances(models, cars);
-        /* */
-
-        /*
-        PeakStructure::updateModels(models, car);
-        newcit = cars.insert(range.carAfterIter(), car);
-        PeakStructure::updateCarDistances(models, cars);
-
-        if (newcit != cars.begin())
-        {
-          if (PeakStructure::fillPartialSides(* prev(newcit), * newcit))
-          {
-            PeakStructure::updateModels(models, * prev(newcit));
-            PeakStructure::updateModels(models, * newcit);
-          }
-        }
-
-        auto nextCarIt = next(newcit);
-        if (nextCarIt != cars.end())
-        {
-          if (PeakStructure::fillPartialSides(* newcit, * nextCarIt))
-          {
-            PeakStructure::updateModels(models, * newcit);
-            PeakStructure::updateModels(models, * nextCarIt);
-          }
-        }
         */
       }
 
