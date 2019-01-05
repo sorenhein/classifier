@@ -127,6 +127,7 @@ void PeakStructure::updateCarDistances(
   const CarModels& models,
   list<CarDetect>& cars) const
 {
+  // TODO Move to car.updateDistance.  Warning shouldn't happen?
   for (auto& car: cars)
   {
     unsigned index;
@@ -624,6 +625,35 @@ void PeakStructure::markCars(
       CarListIter newcit;
       if (findFlag == FIND_CAR_MATCH)
       {
+        /* */
+        newcit = cars.insert(range.carAfterIter(), car);
+
+        if (newcit != cars.begin())
+        {
+          auto prevcit = prev(newcit);
+          const bool hasRight = prevcit->hasRightGap();
+          PeakStructure::fillPartialSides(* prev(newcit), * newcit);
+          if (prevcit->hasRightGap())
+            PeakStructure::updateModels(models, * prevcit);
+        }
+
+        auto nextCarIt = next(newcit);
+        if (nextCarIt != cars.end())
+        {
+          const bool hasLeft = nextCarIt->hasLeftGap();
+          PeakStructure::fillPartialSides(* newcit, * nextCarIt);
+          if (nextCarIt->hasLeftGap() != hasLeft)
+            PeakStructure::updateModels(models, * nextCarIt);
+        }
+
+        PeakStructure::updateModels(models, * newcit);
+
+        models.recalculate(cars);
+
+        PeakStructure::updateCarDistances(models, cars);
+        /* */
+
+        /*
         PeakStructure::updateModels(models, car);
         newcit = cars.insert(range.carAfterIter(), car);
         PeakStructure::updateCarDistances(models, cars);
@@ -646,6 +676,7 @@ void PeakStructure::markCars(
             PeakStructure::updateModels(models, * nextCarIt);
           }
         }
+        */
       }
 
       rit = PeakStructure::updateRanges(newcit, rit, findFlag);

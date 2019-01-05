@@ -321,44 +321,6 @@ bool CarDetect::hasRightGap() const
 }
 
 
-bool CarDetect::fillSides(
-  const unsigned leftGap,
-  const unsigned rightGap)
-{
-  bool filledFlag = false;
-  unsigned gap;
-  if (leftGap > 0 && 
-      leftGap <= peaksPtr.firstBogeyLeftPtr->getIndex())
-  {
-    gap = gaps.logLeftGap(leftGap);
-    if (gap)
-    {
-      start = peaksPtr.firstBogeyLeftPtr->getIndex() - gap;
-      filledFlag = true;
-    }
-  }
-
-  if (rightGap > 0 &&
-      rightGap <= peaksPtr.secondBogeyRightPtr->getIndex())
-  {
-    gap = gaps.logRightGap(rightGap);
-    if (gap)
-    {
-      end = peaksPtr.secondBogeyRightPtr->getIndex() + gap;
-      filledFlag = true;
-    }
-  }
-  return filledFlag;
-}
-
-
-bool CarDetect::fillSides(const CarDetect& cref)
-{
-  return CarDetect::fillSides(
-    cref.gaps.leftGapValue(), cref.gaps.rightGapValue());
-}
-
-
 bool CarDetect::isPartial() const
 {
   return gaps.isPartial();

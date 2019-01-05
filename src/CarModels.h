@@ -67,8 +67,6 @@ class CarModels
 
     unsigned size() const;
 
-    bool fillSides(CarDetect& car) const;
-
     void getCar(
       CarDetect& car,
       const unsigned index) const;

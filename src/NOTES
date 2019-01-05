@@ -1,6 +1,10 @@
 On a partial first, we split off an empty first range.  Should
 just kill.
 
+Delete Plus1 Minus1
+
+Move away from gap counts in model, maybe also elsewhere
+
 
 Idea for whenever a new car arrives:
 

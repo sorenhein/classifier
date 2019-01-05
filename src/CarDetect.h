@@ -107,12 +107,6 @@ class CarDetect
     bool hasLeftGap() const;
     bool hasRightGap() const;
 
-    bool fillSides(
-      const unsigned leftGap,
-      const unsigned rightGap);
-
-    bool fillSides(const CarDetect& cref);
-
     bool isPartial() const;
 
     void averageGaps(const CarDetectNumbers& cdn);

@@ -53,6 +53,7 @@ void CarModels::add(
   m.peaksSum.increment(car.getPeaksPtr(), m.peaksNumbers);
 
   car.increment(m.gapNumbers);
+  m.number++;
 
   CarModels::average(index);
 }
@@ -79,7 +80,14 @@ void CarModels::recalculate(const list<CarDetect>& cars)
 
 unsigned CarModels::size() const
 {
-  return models.size();
+  unsigned s = 0;
+  for (auto& model: models)
+  {
+    if (model.number > 0)
+      s++;
+  }
+  return s;
+  // return models.size();
 }
 
 
@@ -91,23 +99,6 @@ void CarModels::average(const unsigned index)
 
   m.peaksAvg = m.peaksSum;
   m.peaksAvg.average(m.peaksNumbers);
-}
-
-
-bool CarModels::fillSides(CarDetect& car) const
-{
-  if (models.size() == 1)
-    return car.fillSides(models[0].carAvg);
-  else
-  {
-    cout << "CarModels::fillSides warning:  2+ models\n";
-    return false;
-    // THROW(ERR_MODELS_EMPTY, "Haven't learned 2+ models yet: " + 
-      // to_string(models.size()));
-  }
-
-  // TODO: If this is ever needed, first loop over models to find
-  // the closest model and then use this.
 }
 
 
@@ -131,6 +122,9 @@ bool CarModels::findClosest(
   for (unsigned i = 0; i < models.size(); i++)
   {
     const CarModel& m = models[i];
+    if (m.number == 0)
+      continue;
+
     float d = m.carAvg.distance(car);
     if (d < distance)
     {
@@ -159,7 +153,8 @@ bool CarModels::rightBogeyPlausible(const CarDetect& car) const
 {
   for (auto& m: models)
   {
-    if (car.rightBogeyPlausible(m.carAvg))
+    if (//m.number > 0 && 
+    car.rightBogeyPlausible(m.carAvg))
       return true;
   }
   return false;
@@ -170,7 +165,7 @@ bool CarModels::sideGapsPlausible(const CarDetect& car) const
 {
   for (auto& m: models)
   {
-    if (car.sideGapsPlausible(m.carAvg))
+    if (m.number > 0 && car.sideGapsPlausible(m.carAvg))
       return true;
   }
   return false;
@@ -208,7 +203,7 @@ bool CarModels::gapsPlausible(const CarDetect& car) const
 {
   for (auto& m: models)
   {
-    if (car.gapsPlausible(m.carAvg))
+    if (m.number > 0 && car.gapsPlausible(m.carAvg))
       return true;
   }
   return false;
@@ -225,7 +220,11 @@ string CarModels::str() const
 
   unsigned mno = 0;
   for (auto& m: models)
-    ss << m.carAvg.strGaps(mno++);
+  {
+    if (m.number > 0)
+      ss << m.carAvg.strGaps(mno);
+    mno++;
+  }
 
   return ss.str() + "\n";
 }
