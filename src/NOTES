@@ -5,6 +5,15 @@ Delete Plus1 Minus1
 
 Move away from gap counts in model, maybe also elsewhere
 
+Model print-out should show "R"
+
+Do sth about symm cars
+
+Put "1R" str in model
+
+Reuse empty models
+PeakStr line 162 ask for empty index
+
 
 Idea for whenever a new car arrives:
 

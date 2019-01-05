@@ -91,6 +91,7 @@ class CarGaps
     void reverse();
 
     void average(const CarDetectNumbers& cdn);
+    void average(const unsigned count);
 
     unsigned leftGapValue() const;
     unsigned leftBogeyGapValue() const;

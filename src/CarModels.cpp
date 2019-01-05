@@ -24,21 +24,6 @@ void CarModels::reset()
 }
 
 
-void CarModels::append()
-{
-  models.emplace_back(CarModel());
-}
-
-
-void CarModels::operator += (const CarDetect& car)
-{
-  if (models.size() == 0)
-    THROW(ERR_MODELS_EMPTY, "No model to increment");
-
-  CarModels::add(car, models.size()-1);
-}
-
-
 void CarModels::add(
   const CarDetect& car,
   const unsigned index)
@@ -48,11 +33,19 @@ void CarModels::add(
 
   CarModel& m = models[index];
 
-  m.carSum += car;
+  if (car.isReversed())
+  {
+    CarDetect revCar = car;
+    revCar.reverse();
+    m.carSum += revCar;
+    m.peaksSum.increment(revCar.getPeaksPtr());
+  }
+  else
+  {
+    m.carSum += car;
+    m.peaksSum.increment(car.getPeaksPtr());
+  }
 
-  m.peaksSum.increment(car.getPeaksPtr(), m.peaksNumbers);
-
-  car.increment(m.gapNumbers);
   m.number++;
 
   CarModels::average(index);
@@ -78,16 +71,30 @@ void CarModels::recalculate(const list<CarDetect>& cars)
 }
 
 
+bool CarModels::empty(const unsigned indexIn) const
+{
+  return (models[indexIn].number == 0);
+}
+
+
 unsigned CarModels::size() const
 {
-  unsigned s = 0;
-  for (auto& model: models)
+  return models.size();
+}
+
+
+unsigned CarModels::available()
+{
+  // First look for an unused one.
+  for (unsigned mno = 0; mno < models.size(); mno++)
   {
-    if (model.number > 0)
-      s++;
+    if (CarModels::empty(mno))
+      return mno;
   }
-  return s;
-  // return models.size();
+
+  // If that fails, add one.
+  models.emplace_back(CarModel());
+  return models.size() - 1;
 }
 
 
@@ -95,10 +102,10 @@ void CarModels::average(const unsigned index)
 {
   CarModel& m = models[index];
   m.carAvg = m.carSum;
-  m.carAvg.averageGaps(m.gapNumbers);
+  m.carAvg.averageGaps(m.number);
 
   m.peaksAvg = m.peaksSum;
-  m.peaksAvg.average(m.peaksNumbers);
+  m.peaksAvg.average(m.number);
 }
 
 
@@ -112,24 +119,25 @@ void CarModels::getCar(
 
 bool CarModels::findClosest(
   const CarDetect& car,
-  float& distance,
-  unsigned& index) const
+  MatchData& match) const
 {
   if (models.size() == 0)
     return false;
 
-  distance = numeric_limits<float>::max();
+  match.distance = numeric_limits<float>::max();
+  MatchData matchRunning;
   for (unsigned i = 0; i < models.size(); i++)
   {
     const CarModel& m = models[i];
     if (m.number == 0)
       continue;
 
-    float d = m.carAvg.distance(car);
-    if (d < distance)
+    m.carAvg.distanceSymm(car, matchRunning);
+    if (matchRunning.distance < match.distance)
     {
-      distance = d;
-      index = i;
+      match.distance = matchRunning.distance;
+      match.index = i;
+      match.reverseFlag = matchRunning.reverseFlag;
     }
   }
   return true;
@@ -139,13 +147,12 @@ bool CarModels::findClosest(
 bool CarModels::matchesDistance(
   const CarDetect& car,
   const float& limit,
-  float& distance,
-  unsigned& index) const
+  MatchData& match) const
 {
-  if (! CarModels::findClosest(car, distance, index))
+  if (! CarModels::findClosest(car, match))
     return false;
   else
-    return (distance <= limit);
+    return (match.distance <= limit);
 }
 
 
@@ -153,8 +160,7 @@ bool CarModels::rightBogeyPlausible(const CarDetect& car) const
 {
   for (auto& m: models)
   {
-    if (//m.number > 0 && 
-    car.rightBogeyPlausible(m.carAvg))
+    if (m.number > 0 && car.rightBogeyPlausible(m.carAvg))
       return true;
   }
   return false;

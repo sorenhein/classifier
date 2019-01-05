@@ -53,19 +53,15 @@ class CarModels
 
     void reset();
 
-    // Makes a new, empty model at the end of the list.
-    void append();
-
-    // Increments the last model in the list.
-    void operator += (const CarDetect& car);
-
     void add(
       const CarDetect& car,
       const unsigned index);
 
     void recalculate(const list<CarDetect>& cars);
 
+    bool empty(const unsigned indexIn) const;
     unsigned size() const;
+    unsigned available();
 
     void getCar(
       CarDetect& car,
@@ -73,14 +69,12 @@ class CarModels
 
     bool findClosest(
       const CarDetect& car,
-      float& distance,
-      unsigned& index) const;
+      MatchData& match) const;
 
     bool matchesDistance(
       const CarDetect& car,
       const float& limit,
-      float& distance,
-      unsigned& index) const;
+      MatchData& match) const;
 
     bool rightBogeyPlausible(const CarDetect& car) const;
     bool sideGapsPlausible(const CarDetect& car) const;

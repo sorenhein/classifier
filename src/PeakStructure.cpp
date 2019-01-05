@@ -128,19 +128,16 @@ void PeakStructure::updateCarDistances(
   list<CarDetect>& cars) const
 {
   // TODO Move to car.updateDistance.  Warning shouldn't happen?
+  MatchData match;
   for (auto& car: cars)
   {
-    unsigned index;
-    float distance;
-    if (! models.matchesDistance(car, GREAT_CAR_DISTANCE, distance, index))
+    if (! models.matchesDistance(car, GREAT_CAR_DISTANCE, match))
     {
       cout << "WARNING: Car doesn't match any model.\n";
-      index = 0;
-      distance = 0.f;
+      match.distance = numeric_limits<float>::max();
     }
 
-    car.logStatIndex(index);
-    car.logDistance(distance);
+    car.logMatchData(match);
   }
 }
 
@@ -149,23 +146,24 @@ void PeakStructure::updateModels(
   CarModels& models,
   CarDetect& car) const
 {
-  unsigned index;
-  float distance;
+  MatchData match;
 
-  if (models.matchesDistance(car, GREAT_CAR_DISTANCE, distance, index))
+  if (models.matchesDistance(car, GREAT_CAR_DISTANCE, match))
   {
-    car.logStatIndex(index);
-    car.logDistance(distance);
+    car.logMatchData(match);
 
-    models.add(car, index);
-    cout << "Recognized model " << index << endl;
+    models.add(car, match.index);
+    cout << "Recognized model " << 
+      match.index << (match.reverseFlag ? "R" : "") << endl;
   }
   else
   {
-    car.logStatIndex(models.size());
+    match.distance = 0.f;
+    match.index = models.available();
+    match.reverseFlag = false;
+    car.logMatchData(match);
 
-    models.append();
-    models += car;
+    models.add(car, match.index);
     cout << "Created new model\n";
   }
 }
@@ -456,12 +454,14 @@ PeakStructure::FindCarType PeakStructure::findCarByGeometry(
   CarDetect carModel;
   list<unsigned> carPoints;
   PeakPtrVector closestPeaks, skippedPeaks;
-  unsigned matchIndex;
-  float distance;
+  MatchData match;
   PeakRange rangeLocal;
 
   for (unsigned mno = 0; mno < models.size(); mno++)
   {
+    if (models.empty(mno))
+      continue;
+
     models.getCar(carModel, mno);
 
     // 6 elements: Left edge, 4 wheels, right edge.
@@ -483,17 +483,16 @@ PeakStructure::FindCarType PeakStructure::findCarByGeometry(
       if (! models.gapsPlausible(car))
         continue;
       
-      if (! models.matchesDistance(car, GREAT_CAR_DISTANCE, 
-          distance, matchIndex))
+      if (! models.matchesDistance(car, GREAT_CAR_DISTANCE, match))
         continue;
       
-      if (matchIndex != mno)
+      if (match.index != mno)
         continue;
 
       if (! PeakStructure::isConsistent(closestPeaks))
       {
         cout << "WARNING: Peaks inconsistent with car #" <<
-          matchIndex << " found (distance " << distance << ")\n";
+          match.index << " found (distance " << match.distance << ")\n";
         cout << range.strFull(offset) << endl;
       }
 

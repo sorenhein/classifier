@@ -21,13 +21,16 @@ void CarDetect::reset()
 {
   start = 0;
   end = 0;
-  reverseFlag = false;
+
+  gaps.reset();
 
   peaksPtr.firstBogeyLeftPtr = nullptr;
   peaksPtr.firstBogeyRightPtr = nullptr;
   peaksPtr.secondBogeyLeftPtr = nullptr;
   peaksPtr.secondBogeyRightPtr = nullptr;
-  distanceValue = 0.f;
+
+  match.distance = numeric_limits<float>::max();
+  match.reverseFlag = false;
 }
 
 
@@ -108,7 +111,13 @@ void CarDetect::logPeakPointers(
 
 void CarDetect::logStatIndex(const unsigned index)
 {
-  statIndex = index;
+  match.index = index;
+}
+
+
+void CarDetect::logMatchData(const MatchData& matchIn)
+{
+  match = matchIn;
 }
 
 
@@ -178,7 +187,7 @@ void CarDetect::makeFourWheeler(
 
 void CarDetect::logDistance(const float d)
 {
-  distanceValue = d;
+  match.distance = d;
 }
 
 
@@ -212,7 +221,7 @@ void CarDetect::reverse()
   peaksPtr.firstBogeyRightPtr = peaksPtr.secondBogeyLeftPtr;
   peaksPtr.secondBogeyLeftPtr = tmp;
 
-  reverseFlag = ! reverseFlag;
+  match.reverseFlag = ! match.reverseFlag;
 }
 
 
@@ -236,13 +245,13 @@ const unsigned CarDetect::endValue() const
 
 const unsigned CarDetect::index() const
 {
-  return statIndex;
+  return match.index;
 }
 
 
 const bool CarDetect::isReversed() const
 {
-  return reverseFlag;
+  return match.reverseFlag;
 }
 
 
@@ -333,6 +342,12 @@ void CarDetect::averageGaps(const CarDetectNumbers& cdn)
 }
 
 
+void CarDetect::averageGaps(const unsigned count)
+{
+  gaps.average(count);
+}
+
+
 float CarDetect::distance(const CarDetect& cref) const
 {
   return gaps.distanceForGapMatch(cref.gaps);
@@ -341,21 +356,20 @@ float CarDetect::distance(const CarDetect& cref) const
 
 void CarDetect::distanceSymm(
   const CarDetect& cref,
-  float& value,
-  bool& reversed) const
+  MatchData& matchIn) const
 {
   const float value1 = gaps.distanceForGapMatch(cref.gaps);
   const float value2 = gaps.distanceForReverseMatch(cref.gaps);
 
   if (value1 <= value2)
   {
-    value = value1;
-    reversed = false;
+    matchIn.distance = value1;
+    matchIn.reverseFlag = false;
   }
   else
   {
-    value = value2;
-    reversed = true;
+    matchIn.distance = value2;
+    matchIn.reverseFlag = true;
   }
 }
 
@@ -436,7 +450,7 @@ string CarDetect::strFull(
     setw(6) << end + offset <<
     setw(6) << (end > start ? end-start : 0) <<
     gaps.str() << 
-    setw(6) << statIndex << 
+    setw(6) << (to_string(match.index) + (match.reverseFlag ? "R" : "")) << 
     setw(6) << CarDetect::starsQuality() << 
     setw(6) << CarDetect::starsDistance() << 
     endl;
@@ -479,11 +493,11 @@ string CarDetect::starsQuality() const
 
 string CarDetect::starsDistance() const
 {
-  if (distanceValue <= 1.f)
+  if (match.distance <= 1.f)
     return "***";
-  else if (distanceValue <= 3.f)
+  else if (match.distance <= 3.f)
     return "**";
-  else if (distanceValue <= 5.f)
+  else if (match.distance <= 5.f)
     return "*";
   else
     return "";

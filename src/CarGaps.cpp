@@ -82,8 +82,13 @@ void CarGaps::logCore(
   const unsigned rightBogeyGapIn) // Zero if single wheel
 {
   leftBogeyGap = leftBogeyGapIn;
+  leftBogeyGapSet = (leftBogeyGapIn > 0);
+
   midGap = midGapIn;
+  midGapSet = (midGapIn > 0);
+
   rightBogeyGap = rightBogeyGapIn;
+  rightBogeyGapSet = (rightBogeyGapIn > 0);
 }
 
 
@@ -109,19 +114,22 @@ unsigned CarGaps::logRightGap(const unsigned rightGapIn)
 
 void CarGaps::operator += (const CarGaps& cg2)
 {
-  if (cg2.leftGapSet)
-    leftGapSet = true;
-
   leftGap += cg2.leftGap;
-
   leftBogeyGap += cg2.leftBogeyGap;
   midGap += cg2.midGap;
   rightBogeyGap += cg2.rightBogeyGap;
+  rightGap += cg2.rightGap;
 
+  if (cg2.leftGapSet)
+    leftGapSet = true;
+  if (cg2.leftBogeyGapSet)
+    leftBogeyGapSet = true;
+  if (cg2.midGapSet)
+    midGapSet = true;
+  if (cg2.rightBogeyGapSet)
+    rightBogeyGapSet = true;
   if (cg2.rightGapSet)
     rightGapSet = true;
-
-  rightGap += cg2.rightGap;
 }
 
 
@@ -173,6 +181,19 @@ void CarGaps::average(
     rightBogeyGap /= cdn.numRightBogeyGaps;
   if (cdn.numRightGaps)
     rightGap /= cdn.numRightGaps;
+}
+
+
+void CarGaps::average(const unsigned count)
+{
+  if (count == 0)
+    return;
+
+  leftGap /= count;
+  leftBogeyGap /= count;
+  midGap /= count;
+  rightBogeyGap /= count;
+  rightGap /= count;
 }
 
 

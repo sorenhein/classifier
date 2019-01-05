@@ -26,9 +26,7 @@ class CarDetect
     // The peaks aren't used much at the moment.
     CarPeaksPtr peaksPtr;
 
-    unsigned statIndex;
-    float distanceValue;
-    bool reverseFlag;
+    MatchData match;
 
     void updateStars(
       const Peak * peakPtr,
@@ -82,6 +80,8 @@ class CarDetect
 
     void logDistance(const float d);
 
+    void logMatchData(const MatchData& match);
+
     void operator += (const CarDetect& c2);
 
     bool operator < (const CarDetect& c2) const;
@@ -110,12 +110,12 @@ class CarDetect
     bool isPartial() const;
 
     void averageGaps(const CarDetectNumbers& cdn);
+    void averageGaps(const unsigned count);
 
     float distance(const CarDetect& cref) const;
     void distanceSymm(
       const CarDetect& cref,
-      float& value,
-      bool& reversed) const;
+      MatchData& matchIn) const;
 
     bool gapsPlausible(const CarDetect& cref) const;
     bool sideGapsPlausible(const CarDetect& cref) const;

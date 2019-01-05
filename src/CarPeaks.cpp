@@ -82,6 +82,22 @@ void CarPeaks::increment(
 }
 
 
+void CarPeaks::increment(const CarPeaksPtr& cp2)
+{
+  if (cp2.firstBogeyLeftPtr)
+    firstBogeyLeft += * cp2.firstBogeyLeftPtr;
+
+  if (cp2.firstBogeyRightPtr)
+    firstBogeyRight += * cp2.firstBogeyRightPtr;
+
+  if (cp2.secondBogeyLeftPtr)
+    secondBogeyLeft += * cp2.secondBogeyLeftPtr;
+
+  if (cp2.secondBogeyRightPtr)
+    secondBogeyRight += * cp2.secondBogeyRightPtr;
+}
+
+
 void CarPeaks::average(const CarPeaksNumbers& cpn)
 {
   if (cpn.numFirstLeft)
@@ -95,5 +111,17 @@ void CarPeaks::average(const CarPeaksNumbers& cpn)
 
   if (cpn.numSecondRight)
     secondBogeyRight /= cpn.numSecondRight;
+}
+ 
+
+void CarPeaks::average(const unsigned count)
+{
+  if (count == 0)
+    return;
+
+  firstBogeyLeft /= count;
+  firstBogeyRight /= count;
+  secondBogeyLeft /= count;
+  secondBogeyRight /= count;
 }
  

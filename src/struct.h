@@ -322,4 +322,11 @@ struct Gap
   };
 };
 
+struct MatchData
+{
+  float distance;
+  unsigned index;
+  bool reverseFlag;
+};
+
 #endif

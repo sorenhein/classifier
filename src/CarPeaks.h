@@ -65,10 +65,10 @@ class CarPeaks
       const CarPeaksPtr& cp2,
       CarPeaksNumbers& cpn);
 
+    void increment(const CarPeaksPtr& cp2);
+
     void average(const CarPeaksNumbers& cpn);
-
-
-
+    void average(const unsigned count);
 };
 
 #endif
