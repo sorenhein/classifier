@@ -131,7 +131,7 @@ void PeakStructure::updateCarDistances(
   MatchData match;
   for (auto& car: cars)
   {
-    if (! models.matchesDistance(car, GREAT_CAR_DISTANCE, match))
+    if (! models.matchesDistance(car, GREAT_CAR_DISTANCE, false, match))
     {
       cout << "WARNING: Car doesn't match any model.\n";
       match.distance = numeric_limits<float>::max();
@@ -148,13 +148,12 @@ void PeakStructure::updateModels(
 {
   MatchData match;
 
-  if (models.matchesDistance(car, GREAT_CAR_DISTANCE, match))
+  if (models.matchesDistance(car, GREAT_CAR_DISTANCE, false, match))
   {
     car.logMatchData(match);
 
     models.add(car, match.index);
-    cout << "Recognized model " << 
-      match.index << (match.reverseFlag ? "R" : "") << endl;
+    cout << "Recognized model " << match.strIndex() << endl;
   }
   else
   {
@@ -289,7 +288,7 @@ PeakStructure::FindCarType PeakStructure::findPartialCarByQuality(
   {
     PeakStructure::markUpPeaks(peakPtrsUsed, numWheels);
     PeakStructure::markDownPeaks(peakPtrsUnused);
-    return FIND_CAR_MATCH;
+    return FIND_CAR_PARTIAL;
   }
   else
     return FIND_CAR_NO_MATCH;
@@ -483,7 +482,7 @@ PeakStructure::FindCarType PeakStructure::findCarByGeometry(
       if (! models.gapsPlausible(car))
         continue;
       
-      if (! models.matchesDistance(car, GREAT_CAR_DISTANCE, match))
+      if (! models.matchesDistance(car, GREAT_CAR_DISTANCE, true, match))
         continue;
       
       if (match.index != mno)
@@ -567,7 +566,8 @@ list<PeakRange>::iterator PeakStructure::updateRanges(
   list<PeakRange>::iterator& rit,
   const FindCarType& findFlag)
 {
-  if (findFlag == FIND_CAR_DOWNGRADE)
+  if (findFlag == FIND_CAR_DOWNGRADE ||
+      findFlag == FIND_CAR_PARTIAL)
     return ranges.erase(rit);
 
   PeakRange& range = * rit;
@@ -657,38 +657,9 @@ void PeakStructure::markCars(
       changeFlag = true;
 
       CarListIter newcit;
-      if (findFlag == FIND_CAR_MATCH)
-      {
+      if (findFlag == FIND_CAR_MATCH ||
+          findFlag == FIND_CAR_PARTIAL)
         newcit = PeakStructure::updateRecords(range, car, models, cars);
-
-        /*
-        newcit = cars.insert(range.carAfterIter(), car);
-
-        if (newcit != cars.begin())
-        {
-          auto prevcit = prev(newcit);
-          const bool hasRight = prevcit->hasRightGap();
-          PeakStructure::fillPartialSides(* prev(newcit), * newcit);
-          if (prevcit->hasRightGap())
-            PeakStructure::updateModels(models, * prevcit);
-        }
-
-        auto nextCarIt = next(newcit);
-        if (nextCarIt != cars.end())
-        {
-          const bool hasLeft = nextCarIt->hasLeftGap();
-          PeakStructure::fillPartialSides(* newcit, * nextCarIt);
-          if (nextCarIt->hasLeftGap() != hasLeft)
-            PeakStructure::updateModels(models, * nextCarIt);
-        }
-
-        PeakStructure::updateModels(models, * newcit);
-
-        models.recalculate(cars);
-
-        PeakStructure::updateCarDistances(models, cars);
-        */
-      }
 
       rit = PeakStructure::updateRanges(newcit, rit, findFlag);
 
@@ -760,7 +731,7 @@ void PeakStructure::printCars(
   cout << "Cars " << text << "\n";
   cout << cars.front().strHeaderFull();
 
-  unsigned cno = 0;
+  unsigned cno = 1;
   for (auto cit = cars.begin(); cit != cars.end(); cit++)
   {
     cout << cit->strFull(cno++, offset);

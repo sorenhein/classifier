@@ -303,6 +303,21 @@ float CarGaps::distanceForGapMatch(const CarGaps& cg2) const
 }
 
 
+float CarGaps::distanceForGapInclusion(const CarGaps& cg2) const
+{
+  // Gaps in cg2 must also be present here, but the other way is
+  // not required.
+  if ((cg2.leftGapSet && ! leftGapSet) ||
+      (cg2.leftBogeyGapSet && ! leftBogeyGapSet) ||
+      (cg2.midGapSet && ! midGapSet) ||
+      (cg2.rightBogeyGapSet && ! rightBogeyGapSet) ||
+      (cg2.rightGapSet && ! rightGapSet))
+    return numeric_limits<float>::max();
+
+  return CarGaps::distance(cg2);
+}
+
+
 float CarGaps::distanceForReverseMatch(const CarGaps& cg2) const
 {
   if (leftGapSet != cg2.rightGapSet ||
@@ -310,6 +325,21 @@ float CarGaps::distanceForReverseMatch(const CarGaps& cg2) const
       midGapSet != cg2.midGapSet ||
       rightBogeyGapSet != cg2.leftBogeyGapSet ||
       rightGapSet != cg2.leftGapSet)
+    return numeric_limits<float>::max();
+
+  return CarGaps::reverseDistance(cg2);
+}
+
+
+float CarGaps::distanceForReverseInclusion(const CarGaps& cg2) const
+{
+  // Gaps in cg2 must also be present here, but the other way is
+  // not required.
+  if ((cg2.leftGapSet && ! rightGapSet) ||
+      (cg2.leftBogeyGapSet && ! rightBogeyGapSet) ||
+      (cg2.midGapSet && ! midGapSet) ||
+      (cg2.rightBogeyGapSet && ! leftBogeyGapSet) ||
+      (cg2.rightGapSet && ! leftGapSet))
     return numeric_limits<float>::max();
 
   return CarGaps::reverseDistance(cg2);

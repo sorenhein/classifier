@@ -115,6 +115,7 @@ class CarDetect
     float distance(const CarDetect& cref) const;
     void distanceSymm(
       const CarDetect& cref,
+      const bool partialFlag,
       MatchData& matchIn) const;
 
     bool gapsPlausible(const CarDetect& cref) const;

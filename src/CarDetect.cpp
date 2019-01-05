@@ -236,7 +236,7 @@ const unsigned CarDetect::startValue() const
 
 const unsigned CarDetect::endValue() const
 {
-  if( end > 0)
+  if (end > 0)
     return end;
   else 
     return CarDetect::lastPeakPlus1();
@@ -356,10 +356,20 @@ float CarDetect::distance(const CarDetect& cref) const
 
 void CarDetect::distanceSymm(
   const CarDetect& cref,
+  const bool partialFlag,
   MatchData& matchIn) const
 {
-  const float value1 = gaps.distanceForGapMatch(cref.gaps);
-  const float value2 = gaps.distanceForReverseMatch(cref.gaps);
+  float value1, value2;
+  if (partialFlag)
+  {
+    value1 = gaps.distanceForGapInclusion(cref.gaps);
+    value2 = gaps.distanceForReverseInclusion(cref.gaps);
+  }
+  else
+  {
+    value1 = gaps.distanceForGapMatch(cref.gaps);
+    value2 = gaps.distanceForReverseMatch(cref.gaps);
+  }
 
   if (value1 <= value2)
   {
@@ -450,7 +460,7 @@ string CarDetect::strFull(
     setw(6) << end + offset <<
     setw(6) << (end > start ? end-start : 0) <<
     gaps.str() << 
-    setw(6) << (to_string(match.index) + (match.reverseFlag ? "R" : "")) << 
+    setw(6) << match.strIndex() << 
     setw(6) << CarDetect::starsQuality() << 
     setw(6) << CarDetect::starsDistance() << 
     endl;

@@ -119,6 +119,7 @@ void CarModels::getCar(
 
 bool CarModels::findClosest(
   const CarDetect& car,
+  const bool partialFlag,
   MatchData& match) const
 {
   if (models.size() == 0)
@@ -132,7 +133,7 @@ bool CarModels::findClosest(
     if (m.number == 0)
       continue;
 
-    m.carAvg.distanceSymm(car, matchRunning);
+    m.carAvg.distanceSymm(car, partialFlag, matchRunning);
     if (matchRunning.distance < match.distance)
     {
       match.distance = matchRunning.distance;
@@ -147,9 +148,10 @@ bool CarModels::findClosest(
 bool CarModels::matchesDistance(
   const CarDetect& car,
   const float& limit,
+  const bool partialFlag,
   MatchData& match) const
 {
-  if (! CarModels::findClosest(car, match))
+  if (! CarModels::findClosest(car, partialFlag, match))
     return false;
   else
     return (match.distance <= limit);

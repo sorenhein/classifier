@@ -327,6 +327,11 @@ struct MatchData
   float distance;
   unsigned index;
   bool reverseFlag;
+
+  string strIndex() const
+  {
+    return to_string(index) + (reverseFlag ? "R" : "");
+  };
 };
 
 #endif

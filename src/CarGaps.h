@@ -105,6 +105,8 @@ class CarGaps
 
     float distanceForGapMatch(const CarGaps& cg2) const;
     float distanceForReverseMatch(const CarGaps& cg2) const;
+    float distanceForGapInclusion(const CarGaps& cg2) const;
+    float distanceForReverseInclusion(const CarGaps& cg2) const;
 
     bool sideGapsPlausible(const CarGaps& cgref) const;
     bool midGapPlausible() const;
