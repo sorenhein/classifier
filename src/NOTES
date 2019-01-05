@@ -1,9 +1,29 @@
-On a partial first, we split off an empty first range.  Should
-just kill.
+Can roughly divide the problem into two:
+- Fiddling with individual cars, when the framework is right
+- Getting the initial intervals right
 
-Move away from gap counts in model, maybe also elsewhere
+Getting the gaps right
+----------------------
+PeakMinima::findFirstLargeRange
 
-Do sth about symm cars
+Individual cars
+---------------
+
+Later car, 4 great:
+- Only if stuck (so models are stable)
+- Match car with ***
+- Gap difference a bit bigger, say +/- 20%
+- Use the built-in extent
+
+May have missed peaks, e.g. 3-peak car
+- Go back in PeakPool
+- Selectively restore some peaks
+- Also applies, perhaps particularly, to first car
+
+Efficiency
+----------
+
+Do sth about symm cars and efficiency of checking in general
 - Has all four peaks, and dist(its reverse) < GREAT_DIST
 - If matching two such cars, only use the forward distance
 

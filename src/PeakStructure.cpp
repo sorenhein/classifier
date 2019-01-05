@@ -357,58 +357,12 @@ PeakStructure::FindCarType PeakStructure::findCarByQuality(
   PeakPtrVector peakPtrsUsed, peakPtrsUnused;
   range.splitByQuality(fptr, peakPtrsUsed, peakPtrsUnused);
 
-  /*
-  list<PeakPtrVector *> plist;
+  // if (! PeakStructure::isConsistent(peakPtrsUsed))
+    // return FIND_CAR_NO_MATCH;
 
-  // Try the first 4 and last 4 peaks in the range.
-  // Start with those peaks with the largest number of bogey wheels.
-  PeakPtrVector peakPtrsBack;
-  const unsigned lp = peakPtrsUsed.size();
-  if (lp > 4)
-  {
-    for (unsigned i = 0; i < 4; i++)
-      peakPtrsBack.push_back(peakPtrsUsed[lp-4+i]);
-    peakPtrsUsed.erase(peakPtrsUsed.begin()+4, peakPtrsUsed.end());
-
-    unsigned numBogeys1 = 0, numBogeys2 = 0;
-    for (unsigned i = 0; i < 4; i++)
-    {
-      if (peakPtrsUsed[i]->isBogey()) numBogeys1++;
-      if (peakPtrsBack[i]->isBogey()) numBogeys2++;
-    }
-    if (numBogeys2 >= numBogeys1)
-    {
-      plist.push_back(&peakPtrsBack);
-      plist.push_back(&peakPtrsUsed);
-    }
-    else
-    {
-      plist.push_back(&peakPtrsUsed);
-      plist.push_back(&peakPtrsBack);
-    }
-  }
-  else
-  {
-    plist.push_back(&peakPtrsUsed);
-  }
-
-  for (auto plp: plist)
-  {
-    if (! PeakStructure::isConsistent(* plp))
-      continue;
-
-    if (PeakStructure::findCarByPeaks(models, range, * plp, car) ==
-        FIND_CAR_MATCH)
-      return FIND_CAR_MATCH;
-  }
-  */
-
-    //if (! PeakStructure::isConsistent(peakPtrsUsed))
-      //return FIND_CAR_NO_MATCH;
-
-    if (PeakStructure::findCarByPeaks(models, range, peakPtrsUsed, car) ==
-        FIND_CAR_MATCH)
-      return FIND_CAR_MATCH;
+  if (PeakStructure::findCarByPeaks(models, range, peakPtrsUsed, car) ==
+      FIND_CAR_MATCH)
+    return FIND_CAR_MATCH;
 
   return FIND_CAR_NO_MATCH;
 }
