@@ -446,6 +446,7 @@ bool PeakPool::getClosest(
       {
         closestPeaks.push_back(* cit0);
         cit0 = cit1;
+        pointIt++;
         break;
       }
       else if (ptarget <= pval1)
@@ -457,6 +458,7 @@ bool PeakPool::getClosest(
           return false;
 
         cit0 = cit1;
+        pointIt++;
         break;
       }
       else
