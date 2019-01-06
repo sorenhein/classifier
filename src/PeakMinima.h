@@ -89,7 +89,9 @@ class PeakMinima
       const PeakPool& peaks,
       vector<Peak>& wheels) const;
 
-    void markSinglePeaks(PeakPool& peaks) const;
+    void markSinglePeaks(
+      PeakPool& peaks,
+      const vector<Peak>& peakCenters) const;
 
 
     void markBogeysOfSelects(
@@ -158,6 +160,7 @@ class PeakMinima
 
     void mark(
       PeakPool& peaks,
+      const vector<Peak>& peakCenters,
       const unsigned offsetIn);
 
 };

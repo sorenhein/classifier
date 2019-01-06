@@ -301,7 +301,7 @@ void PeakSeeds::pruneListEnds()
 
     // Count up in the ends of the first list.
     unsigned index1 = 0;
-    list<Interval *>::iterator nit1;
+    list<Interval *>::iterator nit1 = li1.end();
     for (auto it = li1.begin(); it != prev(li1.end()); it++)
     {
       nit1 = next(it);
@@ -343,16 +343,23 @@ void PeakSeeds::pruneListEnds()
 
     if (nit1 != li1.end())
       li1.erase(nit1, li1.end());
-    li2.erase(it2, li2.end());
+    if (it2 != li2.end())
+      li2.erase(it2, li2.end());
   }
 }
 
 
-void PeakSeeds::markSeeds(PeakPool& peaks)
+void PeakSeeds::markSeeds(
+  PeakPool& peaks,
+  vector<Peak>& peakCenters,
+  const unsigned offset)
 {
   unsigned nindex = 0;
   unsigned ni1 = nestedIntervals[nindex].back()->start;
   unsigned ni2 = nestedIntervals[nindex].back()->end;
+
+  PeakPtrVector peaksToSelect;
+  Peak peakSum;
 
   // Note which peaks are tall.
 
@@ -368,7 +375,11 @@ void PeakSeeds::markSeeds(PeakPool& peaks)
 
     const unsigned index = pit->getIndex();
     if (index == ni1 || index == ni2)
-      pit->select();
+    {
+      peaksToSelect.push_back(&*pit);
+      peakSum += * pit;
+      // pit->select();
+    }
 
     if (index >= ni2)
     {
@@ -380,40 +391,69 @@ void PeakSeeds::markSeeds(PeakPool& peaks)
       }
     }
   }
+
+  peakSum /= peaksToSelect.size();
+  // if (peakCenters.size() == 0)
+  if (true)
+  {
+    peakCenters.push_back(peakSum);
+    for (auto& pp: peaksToSelect)
+      pp->select();
+  }
+  else
+  {
+    // TODO For now.  Later on, go by proximity to other peaks etc.
+    cout << "For information: Second-best average: " <<
+      peaksToSelect.size() << "\n";
+    cout << peakSum.strHeaderQuality();
+    cout << peakSum.strQuality(offset);
+    cout << endl;
+
+    cout << "For information: Second-best peaks:\n";
+    cout << peakSum.strHeaderQuality();
+    for (auto& pp: peaksToSelect)
+      cout << pp->strQuality(offset);
+    cout << endl;
+  }
 }
 
 
 void PeakSeeds::mark(
   PeakPool& peaks,
+  vector<Peak>& peakCenters,
   const unsigned offset,
   const float scale)
 {
-  PeakSeeds::reset();
+  for (unsigned iter = 0; iter < 2; iter++)
+  {
+    PeakSeeds::reset();
 
-  PeakSeeds::makeIntervals(peaks, scale);
+    PeakSeeds::makeIntervals(peaks, scale);
 
-  PeakSeeds::makeNestedIntervals();
+    PeakSeeds::makeNestedIntervals();
 
-  // TODO Input flag
-  if (false)
-    cout << PeakSeeds::str(offset, "before pruning");
+    // TODO Input flag
+    if (false)
+      cout << PeakSeeds::str(offset, "before pruning");
 
-  // It happens that two collections of intervals are identical after
-  // the first interval, i.e. the first two intervals collectively
-  // make up the length of the entire lists.  In this case we only
-  // neede one of them.
-  PeakSeeds::mergeSimilarLists();
+    // It happens that two collections of intervals are identical after
+    // the first interval, i.e. the first two intervals collectively
+    // make up the length of the entire lists.  In this case we only
+    // neede one of them.
+    PeakSeeds::mergeSimilarLists();
 
-  // Interval lists can reach very high lengths, but we want to stop
-  // (effectively) when we start to reach into the neighboring lists
-  // of intervals.
-  PeakSeeds::pruneListEnds();
+    // Interval lists can reach very high lengths, but we want to stop
+    // (effectively) when we start to reach into the neighboring lists
+    // of intervals.
 
-  // TODO Input flag
-  if (false)
-    cout << PeakSeeds::str(offset, "after pruning");
+    PeakSeeds::pruneListEnds();
 
-  PeakSeeds::markSeeds(peaks);
+    // TODO Input flag
+    if (false)
+      cout << PeakSeeds::str(offset, "after pruning");
+
+    PeakSeeds::markSeeds(peaks, peakCenters, offset);
+  }
 }
 
 
@@ -426,7 +466,7 @@ string PeakSeeds::str(
   for (auto& li: nestedIntervals)
   {
     for (auto& p: li)
-      ss << p->start + offset << "-" << p->end << " (" << p->len << ")\n";
+      ss << p->start + offset << "-" << p->end + offset << " (" << p->len << ")\n";
     ss << "\n";
   }
   return ss.str() + "\n";

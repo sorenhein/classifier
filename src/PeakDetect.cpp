@@ -578,14 +578,15 @@ void PeakDetect::reduce(
 
   // Mark some tall peaks as seeds.
   PeakSeeds seeds;
-  seeds.mark(peaks, offset, scale.getRange());
+  vector<Peak> peakCenters;
+  seeds.mark(peaks, peakCenters, offset, scale.getRange());
   cout << seeds.str(offset, "after pruning");
 
   peaks.makeCandidates();
 
   // Label the negative minima as wheels, bogeys etc.
   PeakMinima minima;
-  minima.mark(peaks, offset);
+  minima.mark(peaks, peakCenters, offset);
 
   // Use the labels to extract the car structure from the peaks.
   list<CarDetect> cars;

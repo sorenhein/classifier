@@ -1,15 +1,6 @@
-Can roughly divide the problem into two:
-- Fiddling with individual cars, when the framework is right
-- Getting the initial intervals right
-
 Getting the gaps right
 ----------------------
-PeakMinima::findFirstLargeRange
-
-With poorer peaks
-- Lower fractions?
-
-Could look for a second peak cluster after the first one.
+Well, at least it's not worse than before...
 
 
 Individual cars

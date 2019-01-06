@@ -82,6 +82,8 @@ for my $file (@ARGV)
   my $numIssues = 0;
   my $regressError = 0.;
   my $regressSeen = 0;
+  my $mismatchSeen = 0;
+  my $exceptSeen = 0;
   my $peakFrac;
   while (my $line = <$fh>)
   {
@@ -101,7 +103,8 @@ for my $file (@ARGV)
           $errorsTrace[1]++;
           $fracHist[$peakFrac][1]++;
         }
-        elsif (! $regressSeen && $hasIssues)
+        # elsif (! $regressSeen && $hasIssues)
+        elsif (! $regressSeen && ! $mismatchSeen && ! $exceptSeen)
         {
           # Can fail silently.
           $errorsTrace[0]++;
@@ -141,7 +144,8 @@ for my $file (@ARGV)
       $numIssues = 0;
       $regressSeen = 0;
       $regressError = 0.;
-
+      $mismatchSeen = 0;
+      $exceptSeen = 0;
     }
     elsif ($line =~ /^HITS/)
     {
@@ -202,6 +206,7 @@ for my $file (@ARGV)
     }
     elsif ($line =~ /MISMATCH/)
     {
+      $mismatchSeen = 1;
       $errorsTrace[0]++;
       $errorsTrace[3] += $numIssues;
       $fracHist[$peakFrac][0]++;
@@ -231,6 +236,7 @@ for my $file (@ARGV)
       $numIssues = 0;
       $regressSeen = 0;
       $regressError = 0.;
+      $exceptSeen = 0;
     }
     elsif ($line =~ /^Regression alignment/)
     {
@@ -288,6 +294,8 @@ for my $file (@ARGV)
       $numIssues = 0;
       $regressSeen = 0;
       $regressError = 0.;
+      $mismatchSeen = 0;
+      $exceptSeen = 1;
     }
   }
   close $fh;
@@ -300,7 +308,8 @@ for my $file (@ARGV)
       $errorsTrace[1]++;
       $fracHist[$peakFrac][1]++;
     }
-    elsif (! $regressSeen && $hasIssues)
+    # elsif (! $regressSeen && $hasIssues)
+    elsif (! $regressSeen && ! $mismatchSeen && ! $exceptSeen)
     {
       # Can fail silently.
       $errorsTrace[0]++;

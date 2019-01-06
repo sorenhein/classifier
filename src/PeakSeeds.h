@@ -102,7 +102,10 @@ class PeakSeeds
 
     void pruneListEnds();
 
-    void markSeeds(PeakPool& peaks);
+    void markSeeds(
+      PeakPool& peaks,
+      vector<Peak>& peakCenters,
+      const unsigned offset);
 
 
   public:
@@ -115,6 +118,7 @@ class PeakSeeds
 
     void mark(
       PeakPool& peaks,
+      vector<Peak>& peakCenters,
       const unsigned offset,
       const float scale);
 
