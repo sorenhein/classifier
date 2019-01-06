@@ -6,16 +6,11 @@ Getting the gaps right
 ----------------------
 PeakMinima::findFirstLargeRange
 
-Look at
-- Total number of negative minima
-- Number of seeds
-- Number of great-quality seeds after averaging
-
-With excellently suited peaks
-- ?
-
 With poorer peaks
 - Lower fractions?
+
+Could look for a second peak cluster after the first one.
+
 
 Individual cars
 ---------------

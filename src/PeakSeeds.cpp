@@ -56,13 +56,13 @@ void PeakSeeds::makeIntervals(
   {
     // Get a negative minimum.
     const float value = peak->getValue();
-    if (value >= 0. || peak->getMaxFlag())
+    if (! peak->isCandidate() || peak->isSelected())
       continue;
 
     // Find the previous negative minimum that was deeper.
     auto peakPrev = peak;
     bool posFlag = false;
-    bool maxPrevFlag;
+    bool maxPrevFlag = true;
     float vPrev = 0.;
     float lowerMinValue = 0.f;
     do
@@ -71,6 +71,9 @@ void PeakSeeds::makeIntervals(
         break;
 
       peakPrev = prev(peakPrev);
+      if (peakPrev->isSelected())
+        continue;
+
       maxPrevFlag = peakPrev->getMaxFlag();
       vPrev = peakPrev->getValue();
 
@@ -94,15 +97,18 @@ void PeakSeeds::makeIntervals(
     // Same thing forwards.
     auto peakNext = peak;
     posFlag = false;
-    bool maxNextFlag;
+    bool maxNextFlag = true;
     float vNext = 0.;
     lowerMinValue = 0.f;
     do
     {
+      peakNext = next(peakNext);
       if (peakNext == peaks.end())
         break;
 
-      peakNext = next(peakNext);
+      if (peakNext->isSelected())
+        continue;
+
       maxNextFlag = peakNext->getMaxFlag();
       vNext = peakNext->getValue();
 
@@ -353,7 +359,7 @@ void PeakSeeds::markSeeds(PeakPool& peaks)
   for (auto pit = peaks.begin(); pit != peaks.end(); pit++)
   {
     // Only want the negative minima here.
-    if (pit->getValue() >= 0.f || pit->getMaxFlag())
+    if (! pit->isCandidate() || pit->isSelected())
       continue;
 
     // Exclude tall peaks without a right neighbor.
