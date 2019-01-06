@@ -2,6 +2,13 @@ Getting the gaps right
 ----------------------
 Well, at least it's not worse than before...
 
+1. Better detection of wheel gap.  Can't just go by #.
+   May have to go back and look for a distance among all peaks,
+   and count those.
+2. sensor08, 075905: Distance 0-0 yields huge distances, then
+   exception.
+3. PeakSeeds: Maybe we shouldn't uncritically accept 2nd set of peaks.
+
 
 Individual cars
 ---------------
