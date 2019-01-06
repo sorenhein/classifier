@@ -817,6 +817,29 @@ void PeakMinima::markLongGaps(
 }
 
 
+void PeakMinima::mark(
+  PeakPool& peaks,
+  const unsigned offsetIn)
+{
+  offset = offsetIn;
+
+  PeakMinima::markSinglePeaks(peaks);
+
+unsigned countAll = peaks.candsize();
+unsigned countSelected = peaks.countCandidates(&Peak::isSelected);
+cout << "FRAC " << countSelected << " " << 
+  countAll << " " <<
+  fixed << setprecision(2) << 100. * countSelected / countAll << endl;
+
+  Gap wheelGap;
+  PeakMinima::markBogeys(peaks, wheelGap);
+
+  Gap shortGap;
+  PeakMinima::markShortGaps(peaks, shortGap);
+  PeakMinima::markLongGaps(peaks, wheelGap, shortGap.count);
+}
+
+
 void PeakMinima::printPeakQuality(
   const Peak& peak,
   const string& text) const
@@ -842,22 +865,5 @@ void PeakMinima::printRange(
   const string& text) const
 {
   cout << text << " " << start + offset << "-" << end + offset << endl;
-}
-
-
-void PeakMinima::mark(
-  PeakPool& peaks,
-  const unsigned offsetIn)
-{
-  offset = offsetIn;
-
-  PeakMinima::markSinglePeaks(peaks);
-
-  Gap wheelGap;
-  PeakMinima::markBogeys(peaks, wheelGap);
-
-  Gap shortGap;
-  PeakMinima::markShortGaps(peaks, shortGap);
-  PeakMinima::markLongGaps(peaks, wheelGap, shortGap.count);
 }
 

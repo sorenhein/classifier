@@ -50,7 +50,7 @@ void PeakSeeds::makeIntervals(
   const float scale)
 {
   // Here we make a list of all intervals where there is no other
-  // in-between peaks that exceeds the smallest of the edge peaks.
+  // in-between peak that exceeds the smallest of the edge peaks.
 
   for (auto peak = peaks.begin(); peak != peaks.end(); peak++)
   {

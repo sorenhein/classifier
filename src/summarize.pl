@@ -48,6 +48,12 @@ my (%detailsSummaryFirst, %detailsSummaryLater);
 my (@errorsTotal, @carsTotal, $fullTotal, @imperfTotal);
 my $sensor;
 
+my @fracHist;
+for my $i (0 .. 100)
+{
+  $fracHist[$i][$_] = 0 for 0 .. 3;
+}
+
 for my $file (@ARGV)
 {
   # Per-sensor local house-keeping.
@@ -76,6 +82,7 @@ for my $file (@ARGV)
   my $numIssues = 0;
   my $regressError = 0.;
   my $regressSeen = 0;
+  my $peakFrac;
   while (my $line = <$fh>)
   {
     chomp $line;
@@ -92,11 +99,13 @@ for my $file (@ARGV)
         if ($regressError > $REGRESS_THRESHOLD)
         {
           $errorsTrace[1]++;
+          $fracHist[$peakFrac][1]++;
         }
         elsif (! $regressSeen && $hasIssues)
         {
           # Can fail silently.
           $errorsTrace[0]++;
+          $fracHist[$peakFrac][0]++;
         }
 
         $errorsTrace[3] += $numIssues;
@@ -160,6 +169,12 @@ for my $file (@ARGV)
         $hasIssues = 1;
       }
     }
+    elsif ($line =~ /^FRAC/)
+    {
+      $line =~ /^FRAC \d+ \d+ (.+)/;
+      $peakFrac = int($1 + 0.5);
+      $fracHist[$peakFrac][3]++;
+    }
     elsif ($line =~ /^WARNFINAL/)
     {
       $hasIssues = 1;
@@ -189,6 +204,7 @@ for my $file (@ARGV)
     {
       $errorsTrace[0]++;
       $errorsTrace[3] += $numIssues;
+      $fracHist[$peakFrac][0]++;
 
       print $fo dividerLine($format);
 
@@ -245,6 +261,7 @@ for my $file (@ARGV)
 
       $errorsTrace[2]++;
       $errorsTrace[3] += $numIssues;
+      $fracHist[$peakFrac][2]++;
 
       print $fo dividerLine($format);
 
@@ -281,11 +298,13 @@ for my $file (@ARGV)
     if ($regressError > $REGRESS_THRESHOLD)
     {
       $errorsTrace[1]++;
+      $fracHist[$peakFrac][1]++;
     }
     elsif (! $regressSeen && $hasIssues)
     {
       # Can fail silently.
       $errorsTrace[0]++;
+      $fracHist[$peakFrac][0]++;
     }
     $errorsTrace[3] += $numIssues;
 
@@ -345,6 +364,9 @@ print forceNewLine($format);
 print summaryDetails(\%detailsSummaryFirst, $format);
 print forceNewLine($format);
 print summaryDetails(\%detailsSummaryLater, $format);
+print forceNewLine($format);
+
+print summaryFrac($format);
 
 exit;
 
@@ -868,3 +890,68 @@ sub summaryDetails
   }
 }
 
+
+sub fracHeaderTXT
+{
+  my $s = sprintf "%-8s%6s%6s%6s%6s\n",
+    "Percent", "All", "Err", "Dev", "Exc";
+  return $s;
+}
+
+
+sub fracHeaderCSV
+{
+  my $s = 
+    "Percent" . $SEPARATOR .
+    "All" . $SEPARATOR .
+    "Err" . $SEPARATOR .
+    "Dev" . $SEPARATOR .
+    "Exc" . "\n";
+  return $s;
+}
+
+
+sub fracDetailsTXT
+{
+  my $s = "";
+  for my $i (0 .. $#fracHist)
+  {
+    $s .= sprintf "%-8s%6d%6d%6d%6d\n",
+      $i, 
+      $fracHist[$i][3],
+      $fracHist[$i][0],
+      $fracHist[$i][1],
+      $fracHist[$i][2];
+  }
+  return $s;
+}
+
+
+sub fracDetailsCSV
+{
+  my $s = "";
+  for my $i (0 .. $#fracHist)
+  {
+    $s .= 
+      $i . $SEPARATOR .
+      $fracHist[$i][3] . $SEPARATOR .
+      $fracHist[$i][0] . $SEPARATOR .
+      $fracHist[$i][1] . $SEPARATOR .
+      $fracHist[$i][2] . "\n";
+  }
+  return $s;
+}
+
+
+sub summaryFrac
+{
+  my $format = pop;
+  if ($format == $FORMAT_TXT)
+  {
+    return fracHeaderTXT() .  fracDetailsTXT();
+  }
+  else
+  {
+    return fracHeaderCSV() .  fracDetailsCSV();
+  }
+}
