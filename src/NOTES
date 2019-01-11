@@ -9,6 +9,17 @@ Well, at least it's not worse than before...
    exception.
 3. PeakSeeds: Maybe we shouldn't uncritically accept 2nd set of peaks.
 
+findFirstLargeRange to process a list<Gap>&.
+Stop at the first gap that meets the count goal.
+Each gap is a single interval per non-zero interval in histogram.
+guessNeighborDistance doesn't return a value.
+If the list has length 1, it's clear.
+If not, we need to try them out in order from below.
+That means we look for number of pairs (each peak can only 
+be used once) with good quality.
+There can be other intervening peaks.
+
+
 
 Individual cars
 ---------------

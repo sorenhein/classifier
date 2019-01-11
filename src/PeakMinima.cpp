@@ -75,6 +75,13 @@ void PeakMinima::findFirstLargeRange(
 
   sort(steps.begin(), steps.end());
 
+cout << "STEPS\n";
+for (auto s: steps)
+{
+  cout << s.index << ";" << s.direction << "\n";
+}
+cout << "\n";
+
   int bestCount = 0;
   unsigned bestValue = 0;
   unsigned bestUpperValue = 0;
@@ -133,8 +140,13 @@ void PeakMinima::findFirstLargeRange(
     }
   }
 
-  gap.lower = bestLowerValue;
-  gap.upper = bestUpperValue;
+  // So now we havea range of values that are all equally good from
+  // the point of view of covering as many steps as possible +/- 10%.
+  // We make a useful interval out of this.
+
+  const unsigned mid = (bestLowerValue + bestUpperValue) / 2;
+  gap.lower = static_cast<unsigned>(mid * SLIDING_LOWER);
+  gap.upper = static_cast<unsigned>(mid * SLIDING_UPPER);
   gap.count = bestCount;
 }
 
