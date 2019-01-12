@@ -75,12 +75,14 @@ void PeakMinima::findFirstLargeRange(
 
   sort(steps.begin(), steps.end());
 
+/*
 cout << "STEPS\n";
 for (auto s: steps)
 {
   cout << s.index << ";" << s.direction << "\n";
 }
 cout << "\n";
+*/
 
   int bestCount = 0;
   unsigned bestValue = 0;

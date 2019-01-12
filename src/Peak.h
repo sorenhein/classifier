@@ -134,6 +134,8 @@ class Peak
     void calcQualities(const Peak& scale);
     void calcQualities(const vector<Peak>& scales);
 
+    unsigned calcQualityPeak(const vector<Peak>& scales);
+
     unsigned getIndex() const;
     double getTime() const;
     bool getMaxFlag() const;

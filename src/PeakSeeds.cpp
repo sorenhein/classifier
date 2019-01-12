@@ -5,6 +5,10 @@
 
 #include "PeakSeeds.h"
 
+#define PEAKSEEDS_ITER 4
+#define PEAKSEEDS_VALUE 0.7f
+#define PEAKSEEDS_ADD 0.1f
+
 
 PeakSeeds::PeakSeeds()
 {
@@ -350,16 +354,16 @@ void PeakSeeds::pruneListEnds()
 
 
 void PeakSeeds::markSeeds(
-  PeakPool& peaks,
-  vector<Peak>& peakCenters,
-  const unsigned offset)
+  const PeakPool& peaks,
+  PeakPtrVector& peaksToSelect,
+  Peak& peakAvg) const
 {
   unsigned nindex = 0;
   unsigned ni1 = nestedIntervals[nindex].back()->start;
   unsigned ni2 = nestedIntervals[nindex].back()->end;
 
-  PeakPtrVector peaksToSelect;
-  Peak peakSum;
+  peaksToSelect.clear();
+  peakAvg.reset();
 
   // Note which peaks are tall.
 
@@ -377,8 +381,7 @@ void PeakSeeds::markSeeds(
     if (index == ni1 || index == ni2)
     {
       peaksToSelect.push_back(&*pit);
-      peakSum += * pit;
-      // pit->select();
+      peakAvg += * pit;
     }
 
     if (index >= ni2)
@@ -392,28 +395,40 @@ void PeakSeeds::markSeeds(
     }
   }
 
-  peakSum /= peaksToSelect.size();
-  // if (peakCenters.size() == 0)
-  if (true)
-  {
-    peakCenters.push_back(peakSum);
-    for (auto& pp: peaksToSelect)
-      pp->select();
-  }
-  else
-  {
-    // TODO For now.  Later on, go by proximity to other peaks etc.
-    cout << "For information: Second-best average: " <<
-      peaksToSelect.size() << "\n";
-    cout << peakSum.strHeaderQuality();
-    cout << peakSum.strQuality(offset);
-    cout << endl;
+  if (peaksToSelect.size() > 0)
+    peakAvg /= peaksToSelect.size();
+}
 
-    cout << "For information: Second-best peaks:\n";
-    cout << peakSum.strHeaderQuality();
-    for (auto& pp: peaksToSelect)
-      cout << pp->strQuality(offset);
-    cout << endl;
+
+void PeakSeeds::rebalanceCenters(
+  const PeakPool& peaks, 
+  vector<Peak>& peakCenters) const
+{
+  // Rebalance the centers a bit.  We could run a more complete K-Means
+  // here.
+
+  const unsigned pl = peakCenters.size();
+  vector<Peak> psum(pl);
+  vector<unsigned> pcount(pl);
+
+  for (auto pit = peaks.begin(); pit != peaks.end(); pit++)
+  {
+    if (! pit->isSelected())
+      continue;
+
+    const unsigned index = (* pit).calcQualityPeak(peakCenters);
+    psum[index] += * pit;
+    pcount[index]++;
+  }
+
+  peakCenters.clear();
+  for (unsigned i = 0; i < pl; i++)
+  {
+    if (pcount[i] > 0)
+    {
+      psum[i] /= pcount[i];
+      peakCenters.push_back(psum[i]);
+    }
   }
 }
 
@@ -424,7 +439,19 @@ void PeakSeeds::mark(
   const unsigned offset,
   const float scale)
 {
-  for (unsigned iter = 0; iter < 2; iter++)
+  // Make up to PEAKSEEDS_ITER groups of peaks, each center to be
+  // stored in peakCenters.
+  // Stop early if the level of the center peak falls below 
+  // PEAKSEEDS_VALUE times the first leval.
+  // Also stop early if the iteration adds less than the fraction
+  // PEAKSEEDS_ADD new peaks.
+
+  PeakPtrVector peaksToSelect;
+  Peak peakAvg;
+  unsigned peakCount = 0;
+  unsigned numIter = 0;
+
+  for (unsigned iter = 0; iter < PEAKSEEDS_ITER; iter++)
   {
     PeakSeeds::reset();
 
@@ -452,7 +479,50 @@ void PeakSeeds::mark(
     if (false)
       cout << PeakSeeds::str(offset, "after pruning");
 
-    PeakSeeds::markSeeds(peaks, peakCenters, offset);
+    PeakSeeds::markSeeds(peaks, peaksToSelect, peakAvg);
+    const unsigned pl = peaksToSelect.size();
+
+    if (true)
+    {
+      cout << "PeakSeeds iteration " << iter << 
+        ": got " << pl << " new peaks" << endl;
+      cout << peakAvg.strHeaderQuality();
+      cout << peakAvg.strQuality(offset);
+    }
+
+    // Note that the value is negative.
+    if (iter == 0 ||
+        (peakAvg.getValue() <= 
+           PEAKSEEDS_VALUE * peakCenters.front().getValue() &&
+           pl >= PEAKSEEDS_ADD * peakCount))
+    {
+cout << "Adding to peaks\n";
+      peakCenters.push_back(peakAvg);
+      for (auto& pp: peaksToSelect)
+        pp->select();
+      peakCount += pl;
+    }
+    else
+    {
+cout << "Not adding to peaks\n";
+      numIter = iter;
+      break;
+    }
+  }
+
+  if (numIter == 0)
+    return;
+  else
+    PeakSeeds::rebalanceCenters(peaks, peakCenters);
+
+  if (true)
+  {
+    cout << "PeakSeeds: Ended up with " << peakCenters.size() <<
+      " peaks\n";
+    cout << peakCenters.front().strHeaderQuality();
+    for (auto& p: peakCenters)
+      cout << p.strQuality(offset);
+    cout << "\n";
   }
 }
 

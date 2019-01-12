@@ -103,9 +103,13 @@ class PeakSeeds
     void pruneListEnds();
 
     void markSeeds(
-      PeakPool& peaks,
-      vector<Peak>& peakCenters,
-      const unsigned offset);
+      const PeakPool& peaks,
+      PeakPtrVector& peaksToSelect,
+      Peak& peakAvg) const;
+
+    void rebalanceCenters(
+      const PeakPool& peaks,
+      vector<Peak>& peakCenters) const;
 
 
   public:

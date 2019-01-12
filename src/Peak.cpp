@@ -258,6 +258,27 @@ void Peak::calcQualities(const vector<Peak>& scales)
 }
 
 
+unsigned Peak::calcQualityPeak(const vector<Peak>& scales)
+{
+  float distPeakMin = numeric_limits<float>::max();
+  unsigned iBest = 0;
+
+  for (unsigned i = 0; i < scales.size(); i++)
+  {
+    const Peak& scale = scales[i];
+    const float dPeak = Peak::calcQualityPeak(scale);
+    if (dPeak < distPeakMin)
+    {
+      distPeakMin = dPeak;
+      iBest = i;
+    }
+  }
+
+  qualityPeak = distPeakMin;
+  return iBest;
+}
+
+
 unsigned Peak::getIndex() const
 {
   return index;
