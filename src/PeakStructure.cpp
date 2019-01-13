@@ -54,9 +54,13 @@ PeakStructure::PeakStructure()
   findCarFunctions.push_back(
     { &PeakStructure::findEmptyRange, 
       "by emptiness", 5});
+
+  findCarFallbacks.push_back(
+    { &PeakStructure::findCarByLeveledPeaks, 
+      "by leveled peaks", 6});
   
-  hitSize = 6;
-  hits.resize(6);
+  hitSize = 7;
+  hits.resize(7);
 }
 
 
@@ -479,6 +483,34 @@ PeakStructure::FindCarType PeakStructure::findEmptyRange(
 }
 
 
+PeakStructure::FindCarType PeakStructure::findCarByLeveledPeaks(
+  const CarModels& models,
+  const PeakPool& peaks,
+  PeakRange& range,
+  CarDetect& car) const
+{
+  // Here we use peak quality, so if we have 5 peaks with a spurious
+  // one in the middle (and if it's a new car geometry, so
+  // findCarByGeometry didn't find it), then the spurious peak will
+  // probably fail on peak quality as opposed to shape quality.
+  UNUSED(peaks);
+
+  PeakPtrVector peakPtrsUsed, peakPtrsUnused;
+  range.splitByQuality(&Peak::goodPeakQuality, 
+    peakPtrsUsed, peakPtrsUnused);
+
+  if (peakPtrsUsed.size() == 4 &&
+      PeakStructure::findCarByPeaks(models, range, peakPtrsUsed, car) ==
+        FIND_CAR_MATCH)
+  {
+    PeakStructure::markDownPeaks(peakPtrsUnused);
+    return FIND_CAR_MATCH;
+  }
+  else
+    return FIND_CAR_NO_MATCH;
+}
+
+
 CarListIter PeakStructure::updateRecords(
   const PeakRange& range,
   const CarDetect& car,
@@ -558,24 +590,16 @@ list<PeakRange>::iterator PeakStructure::updateRanges(
 }
 
 
-void PeakStructure::markCars(
+bool PeakStructure::loopOverMethods(
   CarModels& models,
   list<CarDetect>& cars,
   PeakPool& peaks,
-  const unsigned offsetIn)
+  list<FncGroup>& findCarMethods)
 {
-  offset = offsetIn;
-
-  ranges.clear();
-  ranges.emplace_back(PeakRange());
-  ranges.back().init(cars, peaks);
-
   CarDetect car;
 
-  for (unsigned i = 0; i < 6; i++)
-    hits[i] = 0;
-
   bool changeFlag = true;
+  bool anyChangeFlag = false;
   while (changeFlag && ! ranges.empty())
   {
     changeFlag = false;
@@ -590,7 +614,7 @@ void PeakStructure::markCars(
       range.fill(peaks);
 
       FindCarType findFlag = FIND_CAR_SIZE;
-      for (auto& fgroup: findCarFunctions)
+      for (auto& fgroup: findCarMethods)
       {
         findFlag = (this->* fgroup.fptr)(models, peaks, range, car);
         if (findFlag != FIND_CAR_NO_MATCH)
@@ -598,6 +622,8 @@ void PeakStructure::markCars(
           cout << "Hit " << fgroup.name << "\n";
           cout << range.strFull(offset);
           hits[fgroup.number]++;
+          changeFlag = true;
+          anyChangeFlag = true;
           break;
         }
       }
@@ -607,8 +633,6 @@ void PeakStructure::markCars(
         rit++;
         continue;
       }
-
-      changeFlag = true;
 
       CarListIter newcit;
       if (findFlag == FIND_CAR_MATCH ||
@@ -621,6 +645,33 @@ void PeakStructure::markCars(
       PeakStructure::printCars(cars, "after range");
       PeakStructure::printCarStats(models, "after range");
     }
+  }
+  return anyChangeFlag;
+}
+
+
+void PeakStructure::markCars(
+  CarModels& models,
+  list<CarDetect>& cars,
+  PeakPool& peaks,
+  const unsigned offsetIn)
+{
+  offset = offsetIn;
+
+  ranges.clear();
+  ranges.emplace_back(PeakRange());
+  ranges.back().init(cars, peaks);
+
+  for (unsigned i = 0; i < 7; i++)
+    hits[i] = 0;
+
+  while (true)
+  {
+    if (! PeakStructure::loopOverMethods(models, cars, peaks, 
+          findCarFunctions) &&
+        ! PeakStructure::loopOverMethods(models, cars, peaks, 
+          findCarFallbacks))
+      break;
   }
 
   if (! ranges.empty())
@@ -635,7 +686,7 @@ void PeakStructure::markCars(
   }
 
   cout << "HITS\n";
-  for (unsigned i = 0; i < 6; i++)
+  for (unsigned i = 0; i < 7; i++)
     cout << i << " " << hits[i] << endl;
   cout << endl;
 

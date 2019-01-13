@@ -16,6 +16,7 @@ my $FORMAT_CSV = 1;
 my $REGRESS_THRESHOLD = 3.;
 
 my $NUM_EMPTY_FNC = 5;
+my $NUM_LAST_FNC = 6;
 
 if ($#ARGV < 0)
 {
@@ -449,7 +450,7 @@ sub summaryHeaderTXT
     "Error", "Dev", "Exc", "Warn",
     "Fskip", "Fspur", "Skip", "Spur";
 
-  for my $i (0 .. $NUM_EMPTY_FNC)
+  for my $i (0 .. $NUM_LAST_FNC)
   {
     $str .= sprintf "%6d", $i;
   }
@@ -474,7 +475,7 @@ sub summaryHeaderCSV
     "Skip" . $SEPARATOR .
     "Spur" . $SEPARATOR . $SEPARATOR;
 
-  for my $i (0 .. $NUM_EMPTY_FNC)
+  for my $i (0 .. $NUM_LAST_FNC)
   {
     $str .= $i . $SEPARATOR;
   }
@@ -541,7 +542,7 @@ sub dividerLine
   my $format = pop;
   if ($format == $FORMAT_TXT)
   {
-    return ("-" x (94 + 6 * $NUM_EMPTY_FNC)) . "\n";
+    return ("-" x (94 + 6 * $NUM_LAST_FNC)) . "\n";
   }
   else
   {
@@ -591,7 +592,7 @@ sub summaryLineTXT
     $imperfRef->[2];
 
   my $s = 0;
-  for my $i (0 .. $NUM_EMPTY_FNC)
+  for my $i (0 .. $NUM_LAST_FNC)
   {
     if (defined $carsRef->[$i])
     {
@@ -636,7 +637,7 @@ sub summaryLineCSV
     $imperfRef->[2] . $SEPARATOR . $SEPARATOR;
 
   my $s = 0;
-  for my $i (0 .. $NUM_EMPTY_FNC)
+  for my $i (0 .. $NUM_LAST_FNC)
   {
     if (defined $carsRef->[$i])
     {

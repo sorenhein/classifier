@@ -45,6 +45,7 @@ class PeakStructure
 
 
     list<FncGroup> findCarFunctions;
+    list<FncGroup> findCarFallbacks;
 
     list<PeakRange> ranges;
 
@@ -138,6 +139,12 @@ class PeakStructure
       PeakRange& range,
       CarDetect& car) const;
 
+    FindCarType findCarByLeveledPeaks(
+      const CarModels& models,
+      const PeakPool& peaks,
+      PeakRange& range,
+      CarDetect& car) const;
+
 
     CarListIter updateRecords(
       const PeakRange& range,
@@ -149,6 +156,12 @@ class PeakStructure
       const CarListIter& carIt,
       list<PeakRange>::iterator& rit,
       const FindCarType& findFlag);
+
+    bool loopOverMethods(
+      CarModels& models,
+      list<CarDetect>& cars,
+      PeakPool& peaks,
+      list<FncGroup>& findCarMethods);
 
 
     void printWheelCount(

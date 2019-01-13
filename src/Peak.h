@@ -183,6 +183,8 @@ class Peak
     bool goodQuality() const;
     bool acceptableQuality() const;
 
+    bool goodPeakQuality() const;
+
     bool similarGradientBest(const Peak& p1) const;
     bool similarGradientForward(const Peak& p1) const;
     bool similarGradientBackward(const Peak& p1) const;

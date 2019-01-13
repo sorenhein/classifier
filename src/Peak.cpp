@@ -502,6 +502,13 @@ bool Peak::acceptableQuality() const
 }
 
 
+bool Peak::goodPeakQuality() const
+{
+  // TODO #define
+  return (qualityShape <= 0.5f && qualityPeak <= 0.75f);
+}
+
+
 bool Peak::similarGradientBest(const Peak& p1) const
 {
   if (index == p1.index)
