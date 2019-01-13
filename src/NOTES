@@ -1,13 +1,10 @@
+sensor03, 193754: Actual gap is 11811-11934, but it's too large to
+detect.  Instead we get 11934-12048 marked as 1-2. Then with the new
+quality, 12048 gets downmarked from * to nothing, so it's unselected
+but still a wheel.  And 11934 is an orphan 1.
+
 Getting the gaps right
 ----------------------
-Well, at least it's not worse than before...
-
-1. Better detection of wheel gap.  Can't just go by #.
-   May have to go back and look for a distance among all peaks,
-   and count those.
-2. sensor08, 075905: Distance 0-0 yields huge distances, then
-   exception.
-3. PeakSeeds: Maybe we shouldn't uncritically accept 2nd set of peaks.
 
 findFirstLargeRange to process a list<Gap>&.
 Stop at the first gap that meets the count goal.

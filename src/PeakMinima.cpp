@@ -583,28 +583,24 @@ void PeakMinima::markBogeysOfUnpaired(
   PPiterator cbegin = peaks.candbegin();
   PPiterator cend = peaks.candend();
 
-  for (auto cit = cbegin; cit != prev(cend); cit++)
+  for (auto cit = cbegin; cit != cend; cit++)
   {
-    Peak * cand = * cit;
-    Peak * nextCand = * next(cit);
-
-    // If they are both set, move on.
-    if (cand->isSelected() && nextCand->isSelected())
-      continue;
-
-    if (! cand->acceptableQuality())
+    if (! (* cit)->acceptableQuality())
       continue;
 
     // If the first one is of acceptable quality, find the first
     // such successor.  There could be poorer peaks in between.
     PPiterator ncit = peaks.nextCandExcl(cit, &Peak::acceptableQuality);
-
     if (ncit == cend)
       break;
 
+    // If they are both set already, move on.
+    if ((* cit)->isSelected() && (* ncit)->isSelected())
+      continue;
+
     // If the distance is right, we lower our quality requirements.
-    if (cand->matchesGap(** ncit, wheelGap))
-      PeakMinima::markWheelPair(* cand, ** ncit, "Adding");
+    if ((* cit)->matchesGap(** ncit, wheelGap))
+      PeakMinima::markWheelPair(** cit, ** ncit, "Adding");
   }
 }
 
@@ -635,15 +631,18 @@ void PeakMinima::markBogeys(
 
   PeakMinima::markBogeysOfSelects(peaks, wheelGap);
 
-  // Look for unpaired wheels where there is a nearby peak that is
-  // not too bad.  If there is a spurious peak in between, we'll fail...
-  PeakMinima::markBogeysOfUnpaired(peaks, wheelGap);
-
   vector<Peak> bogeyScale;
   makeBogeyAverages(peaks, bogeyScale);
 
   // Recalculate the peak qualities using both left and right peaks.
   PeakMinima::reseedBogeysUsingQuality(peaks, bogeyScale);
+
+  // Look for unpaired wheels where there is a nearby peak that is
+  // not too bad.  If there is a spurious peak in between, we'll fail...
+  // TODO There was something to be said for doing this before
+  // reseeding, but then we got orphan wheels when one end of a pair
+  // was downgraded.  Could of course be fixed.
+  PeakMinima::markBogeysOfUnpaired(peaks, wheelGap);
 
   cout << peaks.strAllCandsQuality("All peaks using left/right scales",
     offset);
