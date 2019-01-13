@@ -160,6 +160,10 @@ class PeakPool
       PPiterator& pit,
       const PeakFncPtr& fptr) const;
 
+    PPciterator prevCandExclSoft(
+      PPciterator& pit,
+      const PeakFncPtr& fptr) const;
+
     PPciterator prevCandExcl(
       PPciterator& pit,
       const PeakFncPtr& fptr) const;
@@ -169,6 +173,10 @@ class PeakPool
       const PeakFncPtr& fptr) const;
 
     PPciterator prevCandIncl(
+      PPciterator& pit,
+      const PeakFncPtr& fptr) const;
+
+    PPciterator prevCandInclSoft(
       PPciterator& pit,
       const PeakFncPtr& fptr) const;
 

@@ -354,6 +354,18 @@ PPiterator PeakPool::prevCandExcl(
 }
 
 
+PPciterator PeakPool::prevCandExclSoft(
+  PPciterator& pit,
+  const PeakFncPtr& fptr) const
+{
+  if (pit == candidates.begin())
+    return candidates.cend();
+
+  PPciterator ppit = prev(pit);
+  return PeakPool::prevCandInclSoft(ppit, fptr);
+}
+
+
 PPciterator PeakPool::prevCandExcl(
   PPciterator& pit,
   const PeakFncPtr& fptr) const
@@ -390,6 +402,20 @@ PPciterator PeakPool::prevCandIncl(
       return pitPrev;
     else if (pitPrev == candidates.begin())
       THROW(ERR_ALGO_PEAK_CONSISTENCY, "Miss earlier matching peak");
+  }
+}
+
+
+PPciterator PeakPool::prevCandInclSoft(
+  PPciterator& pit,
+  const PeakFncPtr& fptr) const
+{
+  for (PPciterator pitPrev = pit; ; pitPrev = prev(pitPrev))
+  {
+    if (((* pitPrev)->* fptr)())
+      return pitPrev;
+    else if (pitPrev == candidates.begin())
+      return candidates.end();
   }
 }
 

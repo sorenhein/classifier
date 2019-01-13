@@ -102,6 +102,8 @@ class PeakMinima
       PeakPool& peaks,
       const Gap& wheelGap) const;
 
+    void fixBogeyOrphans(PeakPool& peaks) const;
+
     void markBogeys(
       PeakPool& peaks,
       Gap& wheelGap) const;

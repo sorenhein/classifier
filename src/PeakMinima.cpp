@@ -291,7 +291,11 @@ void PeakMinima::reseedWheelUsingQuality(PeakPool& peaks) const
     if (cand->greatQuality())
       cand->select();
     else
+    {
       cand->unselect();
+      cand->markNoBogey();
+      cand->markNoWheel();
+    }
   }
 }
 
@@ -317,7 +321,11 @@ void PeakMinima::reseedBogeysUsingQuality(
     else if (cand->isWheel() && cand->acceptableQuality())
       cand->select();
     else
+    {
       cand->unselect();
+      cand->markNoBogey();
+      cand->markNoWheel();
+    }
   }
 }
 
@@ -368,7 +376,11 @@ void PeakMinima::reseedLongGapsUsingQuality(
     else if (cand->isWheel() && cand->acceptableQuality())
       cand->select();
     else
+    {
       cand->unselect();
+      cand->markNoBogey();
+      cand->markNoWheel();
+    }
   }
 }
 
@@ -605,6 +617,39 @@ void PeakMinima::markBogeysOfUnpaired(
 }
 
 
+void PeakMinima::fixBogeyOrphans(PeakPool& peaks) const
+{
+  PPiterator cbegin = peaks.candbegin();
+  PPiterator cend = peaks.candend();
+
+  for (auto cit = cbegin; cit != cend; cit++)
+  {
+    if ((* cit)->isLeftWheel())
+    {
+      PPiterator ncit = peaks.nextCandExcl(cit, &Peak::isRightWheel);
+      if (ncit == cend)
+      {
+        (* cit)->unselect();
+        (* cit)->markNoBogey();
+        (* cit)->markNoWheel();
+      }
+      else
+        cit = ncit;
+    }
+    else if ((* cit)->isRightWheel())
+    {
+      PPciterator pcit = peaks.prevCandExclSoft(cit, &Peak::isRightWheel);
+      if (pcit == cend)
+      {
+        (* cit)->unselect();
+        (* cit)->markNoBogey();
+        (* cit)->markNoWheel();
+      }
+    }
+  }
+}
+
+
 void PeakMinima::markBogeys(
   PeakPool& peaks,
   Gap& wheelGap) const
@@ -631,18 +676,18 @@ void PeakMinima::markBogeys(
 
   PeakMinima::markBogeysOfSelects(peaks, wheelGap);
 
+  // Look for unpaired wheels where there is a nearby peak that is
+  // not too bad.  If there is a spurious peak in between, we'll fail...
+  PeakMinima::markBogeysOfUnpaired(peaks, wheelGap);
+
   vector<Peak> bogeyScale;
   makeBogeyAverages(peaks, bogeyScale);
 
   // Recalculate the peak qualities using both left and right peaks.
   PeakMinima::reseedBogeysUsingQuality(peaks, bogeyScale);
 
-  // Look for unpaired wheels where there is a nearby peak that is
-  // not too bad.  If there is a spurious peak in between, we'll fail...
-  // TODO There was something to be said for doing this before
-  // reseeding, but then we got orphan wheels when one end of a pair
-  // was downgraded.  Could of course be fixed.
-  PeakMinima::markBogeysOfUnpaired(peaks, wheelGap);
+  // Some halves of bogeys may have been downgraded.
+  PeakMinima::fixBogeyOrphans(peaks);
 
   cout << peaks.strAllCandsQuality("All peaks using left/right scales",
     offset);
