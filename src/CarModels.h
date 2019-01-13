@@ -67,6 +67,12 @@ class CarModels
       CarDetect& car,
       const unsigned index) const;
 
+    bool findDistance(
+      const CarDetect& car,
+      const bool partialFlag,
+      const unsigned index,
+      MatchData& match) const;
+
     bool findClosest(
       const CarDetect& car,
       const bool partialFlag,
@@ -76,6 +82,13 @@ class CarModels
       const CarDetect& car,
       const float& limit,
       const bool partialFlag,
+      MatchData& match) const;
+
+    bool matchesDistance(
+      const CarDetect& car,
+      const float& limit,
+      const bool partialFlag,
+      const unsigned index,
       MatchData& match) const;
 
     bool rightBogeyPlausible(const CarDetect& car) const;

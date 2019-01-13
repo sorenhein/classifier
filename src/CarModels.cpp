@@ -117,6 +117,21 @@ void CarModels::getCar(
 }
 
 
+bool CarModels::findDistance(
+  const CarDetect& car,
+  const bool partialFlag,
+  const unsigned index,
+  MatchData& match) const
+{
+  const CarModel& m = models[index];
+  if (m.number == 0)
+    return false;
+
+  m.carAvg.distanceSymm(car, partialFlag, match);
+  return true;
+}
+
+
 bool CarModels::findClosest(
   const CarDetect& car,
   const bool partialFlag,
@@ -129,11 +144,9 @@ bool CarModels::findClosest(
   MatchData matchRunning;
   for (unsigned i = 0; i < models.size(); i++)
   {
-    const CarModel& m = models[i];
-    if (m.number == 0)
+    if (! CarModels::findDistance(car, partialFlag, i, matchRunning))
       continue;
 
-    m.carAvg.distanceSymm(car, partialFlag, matchRunning);
     if (matchRunning.distance < match.distance)
     {
       match.distance = matchRunning.distance;
@@ -152,6 +165,20 @@ bool CarModels::matchesDistance(
   MatchData& match) const
 {
   if (! CarModels::findClosest(car, partialFlag, match))
+    return false;
+  else
+    return (match.distance <= limit);
+}
+
+
+bool CarModels::matchesDistance(
+  const CarDetect& car,
+  const float& limit,
+  const bool partialFlag,
+  const unsigned index,
+  MatchData& match) const
+{
+  if (! CarModels::findDistance(car, partialFlag, index, match))
     return false;
   else
     return (match.distance <= limit);

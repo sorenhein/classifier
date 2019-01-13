@@ -1,7 +1,6 @@
-sensor03, 193754: Actual gap is 11811-11934, but it's too large to
-detect.  Instead we get 11934-12048 marked as 1-2. Then with the new
-quality, 12048 gets downmarked from * to nothing, so it's unselected
-but still a wheel.  And 11934 is an orphan 1.
+s05, 102002: Between cars 6 and 7 there's a spurious peak.
+When we fill in ends, should mark down such peaks.
+
 
 Getting the gaps right
 ----------------------

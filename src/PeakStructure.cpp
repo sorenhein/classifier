@@ -440,12 +440,10 @@ PeakStructure::FindCarType PeakStructure::findCarByGeometry(
       if (! models.gapsPlausible(car))
         continue;
       
-      if (! models.matchesDistance(car, GREAT_CAR_DISTANCE, true, match))
+      if (! models.matchesDistance(car, GREAT_CAR_DISTANCE, true, 
+          mno, match))
         continue;
       
-      if (match.index != mno)
-        continue;
-
       if (! PeakStructure::isConsistent(closestPeaks))
       {
         cout << "WARNING: Peaks inconsistent with car #" <<
