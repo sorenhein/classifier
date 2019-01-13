@@ -56,6 +56,7 @@ class PeakProfile
     bool match(const Recognizer& recog) const;
 
     bool looksEmpty() const;
+    bool looksEmptyLast() const;
     bool looksLikeTwoCars() const;
     bool looksLong() const;
 

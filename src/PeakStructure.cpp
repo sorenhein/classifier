@@ -14,6 +14,8 @@
 
 #define GREAT_CAR_DISTANCE 1.5f
 
+#define NUM_METHODS 8
+
 static unsigned hitSize;
 
 
@@ -58,9 +60,12 @@ PeakStructure::PeakStructure()
   findCarFallbacks.push_back(
     { &PeakStructure::findCarByLeveledPeaks, 
       "by leveled peaks", 6});
+  findCarFallbacks.push_back(
+    { &PeakStructure::findCarByEmptyLast, 
+      "by empty last", 7});
   
-  hitSize = 7;
-  hits.resize(7);
+  hitSize = NUM_METHODS;
+  hits.resize(NUM_METHODS);
 }
 
 
@@ -509,6 +514,26 @@ PeakStructure::FindCarType PeakStructure::findCarByLeveledPeaks(
 }
 
 
+PeakStructure::FindCarType PeakStructure::findCarByEmptyLast(
+  const CarModels& models,
+  const PeakPool& peaks,
+  PeakRange& range,
+  CarDetect& car) const
+{
+  UNUSED(models);
+  UNUSED(peaks);
+  UNUSED(car);
+
+  if (range.looksEmptyLast())
+  {
+    PeakStructure::markDownPeaks(range.getPeakPtrs());
+    return FIND_CAR_DOWNGRADE;
+  }
+  else
+    return FIND_CAR_NO_MATCH;
+}
+
+
 CarListIter PeakStructure::updateRecords(
   const PeakRange& range,
   const CarDetect& car,
@@ -648,6 +673,47 @@ bool PeakStructure::loopOverMethods(
 }
 
 
+void PeakStructure::fixSpuriousInterPeaks(
+  const list<CarDetect>& cars,
+  PeakPool& peaks) const
+{
+  // It can happen that there are spurious peaks between the starting
+  // and/or ending bogey of a car and that car's start or end.
+  // We could potentially do this, more efficiently, by storing
+  // iterators in the cars, and then looping directly when we
+  // fill the ends.
+
+  CarListConstIter cit = cars.cbegin();
+  PPiterator pbegin = peaks.candbegin();
+  PPiterator pend = peaks.candend();
+  PPiterator pit = pbegin;
+
+  while (pit != pend && cit != cars.cend())
+  {
+    const unsigned pindex = (* pit)->getIndex();
+    const unsigned cstart = cit->startValue();
+    const unsigned cfirst = cit->firstPeakMinus1();
+    const unsigned clast = cit->lastPeakPlus1();
+    const unsigned cend = cit->endValue();
+
+    if (! (* pit)->isSelected() || 
+        pindex < cstart ||
+        (pindex > cfirst && pindex < clast))
+      pit++;
+    else if (pindex <= cfirst ||
+        (pindex >= clast && pindex <= cend))
+    {
+      (* pit)->markNoBogey();
+      (* pit)->markNoWheel();
+      (* pit)->unselect();
+      pit++;
+    }
+    else
+      cit++;
+  }
+}
+
+
 void PeakStructure::markCars(
   CarModels& models,
   list<CarDetect>& cars,
@@ -660,7 +726,7 @@ void PeakStructure::markCars(
   ranges.emplace_back(PeakRange());
   ranges.back().init(cars, peaks);
 
-  for (unsigned i = 0; i < 7; i++)
+  for (unsigned i = 0; i < NUM_METHODS; i++)
     hits[i] = 0;
 
   while (true)
@@ -671,6 +737,8 @@ void PeakStructure::markCars(
           findCarFallbacks))
       break;
   }
+
+  PeakStructure::fixSpuriousInterPeaks(cars, peaks);
 
   if (! ranges.empty())
   {
@@ -688,7 +756,7 @@ cout << peaks.strSelectedCandsQuality(
 
 
   cout << "HITS\n";
-  for (unsigned i = 0; i < 7; i++)
+  for (unsigned i = 0; i < NUM_METHODS; i++)
     cout << i << " " << hits[i] << endl;
   cout << endl;
 

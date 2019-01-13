@@ -78,8 +78,10 @@ class PeakRange
       PeakPtrVector& peakPtrsUnused) const;
 
     bool isFirstCar() const;
+    bool isLastCar() const;
     bool match(const Recognizer& recog) const;
     bool looksEmpty() const;
+    bool looksEmptyLast() const;
 
     bool updateImperfections(
       const list<CarDetect>& cars,

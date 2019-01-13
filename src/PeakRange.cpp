@@ -156,6 +156,12 @@ bool PeakRange::isFirstCar() const
 }
 
 
+bool PeakRange::isLastCar() const
+{
+  return (! leftOriginal && rightOriginal);
+}
+
+
 bool PeakRange::match(const Recognizer& recog) const
 {
   return profile.match(recog);
@@ -165,6 +171,15 @@ bool PeakRange::match(const Recognizer& recog) const
 bool PeakRange::looksEmpty() const
 {
   return profile.looksEmpty();
+}
+
+
+bool PeakRange::looksEmptyLast() const
+{
+  if (! PeakRange::isLastCar())
+    return false;
+
+  return profile.looksEmptyLast();
 }
 
 

@@ -145,6 +145,12 @@ class PeakStructure
       PeakRange& range,
       CarDetect& car) const;
 
+    FindCarType findCarByEmptyLast(
+      const CarModels& models,
+      const PeakPool& peaks,
+      PeakRange& range,
+      CarDetect& car) const;
+
 
     CarListIter updateRecords(
       const PeakRange& range,
@@ -162,6 +168,10 @@ class PeakStructure
       list<CarDetect>& cars,
       PeakPool& peaks,
       list<FncGroup>& findCarMethods);
+
+    void fixSpuriousInterPeaks(
+      const list<CarDetect>& cars,
+      PeakPool& peaks) const;
 
 
     void printWheelCount(

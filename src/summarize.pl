@@ -16,7 +16,7 @@ my $FORMAT_CSV = 1;
 my $REGRESS_THRESHOLD = 3.;
 
 my $NUM_EMPTY_FNC = 5;
-my $NUM_LAST_FNC = 6;
+my $NUM_LAST_FNC = 7;
 
 if ($#ARGV < 0)
 {

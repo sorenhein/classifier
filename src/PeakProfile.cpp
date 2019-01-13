@@ -134,6 +134,18 @@ bool PeakProfile::looksEmpty() const
 }
 
 
+bool PeakProfile::looksEmptyLast() const
+{
+  return (sumGreat <= 1 &&
+    bogeyWheels[0] == 0 &&
+    bogeyWheels[1] == 0 &&
+    bogeyWheels[2] == 0 &&
+    bogeyWheels[3] == 0 &&
+    wheels[0] == 0 &&
+    wheels[1] == 0);
+}
+
+
 bool PeakProfile::looksLikeTwoCars() const
 {
   return (sumGreat >= 7 && 
