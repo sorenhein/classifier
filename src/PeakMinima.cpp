@@ -903,6 +903,9 @@ cout << "FRAC " << countSelected << " " <<
   Gap shortGap;
   PeakMinima::markShortGaps(peaks, shortGap);
   PeakMinima::markLongGaps(peaks, wheelGap, shortGap.count);
+
+cout << peaks.strSelectedCandsQuality(
+  "All selected peaks at end of PeakMinima", offset);
 }
 
 

@@ -685,6 +685,10 @@ void PeakStructure::markCars(
     cout << endl;
   }
 
+cout << peaks.strSelectedCandsQuality(
+  "All selected peaks at end of PeakStructure", offset);
+
+
   cout << "HITS\n";
   for (unsigned i = 0; i < 7; i++)
     cout << i << " " << hits[i] << endl;

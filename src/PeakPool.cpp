@@ -452,7 +452,6 @@ bool PeakPool::getClosest(
   for (unsigned i = 0; i < numWheels-1; i++)
   {
     const unsigned ptarget = (* pointIt) + pstart - cstart;
-    unsigned pval0 = (* cit0)->getIndex();
 
     while (true)
     {
@@ -466,6 +465,7 @@ bool PeakPool::getClosest(
         return true;
       }
 
+      const unsigned pval0 = (* cit0)->getIndex();
       const unsigned pval1 = (* cit1)->getIndex();
       const unsigned mid = (pval0 + pval1) / 2;
       if (ptarget <= mid)
