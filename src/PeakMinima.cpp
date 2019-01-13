@@ -191,10 +191,8 @@ bool PeakMinima::guessNeighborDistance(
   vector<unsigned> dists;
   PPciterator cbegin = peaks.candcbegin();
   PPciterator cend = peaks.candcend();
-  for (PPciterator pit = cbegin; pit != prev(cend); pit++)
+  for (PPciterator pit = cbegin; pit != cend; pit++)
   {
-    // PPciterator npit = next(pit);
-    // Could loop to end
     PPciterator npit = peaks.nextCandExcl(pit, &Peak::isSelected);
     if (npit == cend)
       break;
@@ -238,8 +236,8 @@ void PeakMinima::markBogeyShortGap(
   Peak& p1,
   Peak& p2,
   PeakPool& peaks,
-  PPiterator& cit, // Iterator to "prev(p1)"
-  PPiterator& ncit, // Iterator to "next(p2)"
+  PPiterator& cit, // Iterator to p1
+  PPiterator& ncit, // Iterator to p2
   const string& text) const
 {
   if (text != "")
@@ -502,14 +500,6 @@ void PeakMinima::markSinglePeaks(
   if (peaks.candsize() == 0)
     THROW(ERR_NO_PEAKS, "No tall peaks");
 
-  // TODO
-  // Calculate qualities based on all peakCenters.
-  // Note which peaks are closer to one or the other.
-  // Recalculate the centers based on this.
-  // Recalculate the qualities.
-  // (Skip all this recalculation?)
-  // reseed.
-
   // Use the peak centers as a first yardstick for calculating qualities.
   PPiterator cbegin = peaks.candbegin();
   PPiterator cend = peaks.candend();
@@ -523,33 +513,6 @@ void PeakMinima::markSinglePeaks(
   PeakMinima::reseedWheelUsingQuality(peaks);
 
   cout << peaks.strSelectedCandsQuality("Great-quality seeds", offset);
-
-/*
-  // Find the average candidate peak.
-  Peak wheelPeak;
-  PeakMinima::makeWheelAverage(peaks, wheelPeak);
-
-  // Use this as a first yardstick for calculating qualities.
-  PPiterator cbegin = peaks.candbegin();
-  PPiterator cend = peaks.candend();
-  for (PPiterator cit = cbegin; cit != cend; cit++)
-    (* cit)->calcQualities(wheelPeak);
-
-  cout << peaks.strAllCandsQuality("All negative minima", offset);
-  cout << peaks.strSelectedCandsQuality("Seeds", offset);
-
-  PeakMinima::makeWheelAverage(peaks, wheelPeak);
-  PeakMinima::printPeakQuality(wheelPeak, "Seed average");
-
-  // Modify selection based on quality.
-  PeakMinima::reseedWheelUsingQuality(peaks);
-
-  cout << peaks.strSelectedCandsQuality("Great-quality seeds", offset);
-
-  // Remake the average.
-  PeakMinima::makeWheelAverage(peaks, wheelPeak);
-  PeakMinima::printPeakQuality(wheelPeak, "Great-quality average");
-*/
 }
 
 
@@ -567,7 +530,6 @@ void PeakMinima::markBogeysOfSelects(
     if (cand->isWheel())
       continue;
 
-    // Peak * nextCand = * next(cit);
     // Don't really need bothSelected then.  Test first one above.
     PPiterator nextCandIter = peaks.nextCandExcl(cit, &Peak::isSelected);
     if (nextCandIter == cend)
@@ -723,15 +685,21 @@ void PeakMinima::markShortGapsOfSelects(
   PPiterator cbegin = peaks.candbegin();
   PPiterator cend = peaks.candend();
 
-  for (PPiterator cit = cbegin; cit != prev(cend); cit++)
+  // Here we mark short gaps where both peaks are already wheels.
+  for (auto cit = cbegin; cit != cend; cit++)
   {
     Peak * cand = * cit;
-    PPiterator ncit = next(cit);
-    Peak * nextCand = * ncit;
-
-    if (! cand->isRightWheel() || ! nextCand->isLeftWheel())
+    if (! cand->isRightWheel())
       continue;
 
+    PPiterator ncit = peaks.nextCandExcl(cit, &Peak::isSelected);
+    if (ncit == cend)
+      break;
+
+    Peak * nextCand = * ncit;
+    if (! nextCand->isLeftWheel())
+      continue;
+      
     if (! cand->matchesGap(* nextCand, shortGap))
       continue;
 
