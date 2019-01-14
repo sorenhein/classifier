@@ -116,16 +116,19 @@ for my $file (@ARGV)
 
         print $fo dividerLine($format);
 
-        print $fo summaryLine($sensor, 
-          $time,
-          $fileno,
-          \@errorsTrace, 
-          \@carsTrace, 
-          $fullTrace, 
-          \@imperfTrace, 
-          $format), "\n";
+        if (hasErrors(\@errorsTrace))
+        {
+          print $fo summaryLine($sensor, 
+            $time,
+            $fileno,
+            \@errorsTrace, 
+            \@carsTrace, 
+            $fullTrace, 
+            \@imperfTrace, 
+            $format), "\n";
 
-        print $fo forceNewLine($format);
+          print $fo forceNewLine($format);
+        }
 
         transferStats(\@errorsTrace, \@carsTrace, 
           $fullTrace, \@imperfTrace);
@@ -212,18 +215,21 @@ for my $file (@ARGV)
       $errorsTrace[3] += $numIssues;
       $fracHist[$peakFrac][0]++;
 
-      print $fo dividerLine($format);
+      if (hasErrors(\@errorsTrace))
+      {
+        print $fo dividerLine($format);
 
-      print $fo summaryLine($sensor, 
-        $time,
-        $fileno,
-        \@errorsTrace, 
-        \@carsTrace, 
-        $fullTrace, 
-        \@imperfTrace, 
-        $format), "\n";
+        print $fo summaryLine($sensor, 
+          $time,
+          $fileno,
+          \@errorsTrace, 
+          \@carsTrace, 
+          $fullTrace, 
+          \@imperfTrace, 
+          $format), "\n";
 
-      print $fo forceNewLine($format);
+        print $fo forceNewLine($format);
+      }
 
       transferStats(\@errorsTrace, \@carsTrace, 
         $fullTrace, \@imperfTrace);
@@ -270,18 +276,21 @@ for my $file (@ARGV)
       $errorsTrace[3] += $numIssues;
       $fracHist[$peakFrac][2]++;
 
-      print $fo dividerLine($format);
+      if (hasErrors(\@errorsTrace))
+      {
+        print $fo dividerLine($format);
 
-      print $fo summaryLine($sensor, 
-        $time,
-        $fileno,
-        \@errorsTrace, 
-        \@carsTrace, 
-        $fullTrace, 
-        \@imperfTrace, 
-        $format), "\n";
+        print $fo summaryLine($sensor, 
+          $time,
+          $fileno,
+          \@errorsTrace, 
+          \@carsTrace, 
+          $fullTrace, 
+          \@imperfTrace, 
+          $format), "\n";
 
-      print $fo forceNewLine($format);
+        print $fo forceNewLine($format);
+      }
 
       transferStats(\@errorsTrace, \@carsTrace, 
         $fullTrace, \@imperfTrace);
@@ -318,18 +327,21 @@ for my $file (@ARGV)
     }
     $errorsTrace[3] += $numIssues;
 
-    print $fo dividerLine($format);
+    if (hasErrors(\@errorsTrace))
+    {
+      print $fo dividerLine($format);
 
-    print $fo summaryLine($sensor, 
-      $time,
-      $fileno,
-      \@errorsTrace, 
-      \@carsTrace, 
-      $fullTrace, 
-      \@imperfTrace, 
-      $format), "\n";
+      print $fo summaryLine($sensor, 
+        $time,
+        $fileno,
+        \@errorsTrace, 
+        \@carsTrace, 
+        $fullTrace, 
+        \@imperfTrace, 
+        $format), "\n";
 
-    print $fo forceNewLine($format);
+      print $fo forceNewLine($format);
+    }
 
     transferStats(\@errorsTrace, \@carsTrace, 
       $fullTrace, \@imperfTrace);
@@ -663,10 +675,22 @@ sub summaryLineCSV
 }
 
 
+sub hasErrors
+{
+  my $errorsRef = pop;
+  return 
+     ($errorsRef->[0] != 0 ||
+      $errorsRef->[1] != 0 ||
+      $errorsRef->[2] != 0 ||
+      $errorsRef->[3] != 0);
+}
+
+
 sub summaryLine
 {
   my ($sensor, $time, $trace,
     $errorsRef, $carsRef, $full, $imperfRef, $format) = @_;
+
   if ($format == $FORMAT_TXT)
   {
     return summaryLineTXT($sensor, $time, $trace,
@@ -728,7 +752,7 @@ sub summaryEmpty
   }
   else
   {
-    return $SEPARATOR x 23;
+    return $SEPARATOR x (18 + $NUM_LAST_FNC);
   }
 }
 
