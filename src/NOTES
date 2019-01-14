@@ -1,3 +1,45 @@
+The regression is odd: Different penalties in first and second stage?
+- s05, 183315
+
+Do not count mismatches between 4_48_N and 4_48_R when both are < 1.00
+(still show them separately, or just count them up).
+
+Later on, make better averages of these two types.
+
+Unbalanced cars, but generally recognizable:
+- Low and high bogey still within factor 4/3 of one another
+- Distance to a car on stock (including ends) less than something
+- Can shift peaks with extents to improve match
+
+Three-peak cars
+- First or last of ranges with >= 3 peaks
+- Assume the two closest of 3 peaks are the bogey
+- Fill in the end(s) as well
+- Get list of fitting car models with optimal peak position, or
+  actually the range that would still get accepted 
+- If there's one in range, pick the middle one
+- Value could optionally even be positive
+- Now we have to synthesize the peak quality when re-inserting this
+- Use the peak type (e.g. peak 3) to guess where the maxima should be
+- Look for them
+- Calculate qualities etc.
+- Reject unless at least a good quality
+
+One peak from first car:
+- Is it already a 4?
+- Or is it roughly at the right distance to the 1 of car 2?
+- Is it at least a good quality?
+- Could look for a peak #3 based on known cars and bogey distance
+  +/- 10%
+- Can we make a good-quality peak out of this as above?
+- Should of course not be at negative time coordinate
+- Pick the best one
+- Can go on to peak #2 and #1
+- See if it roughly matches 
+
+Two or three peaks from first car:
+- Same principle
+
 Getting the gaps right
 ----------------------
 
