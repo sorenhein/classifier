@@ -346,6 +346,148 @@ float CarGaps::distanceForReverseInclusion(const CarGaps& cg2) const
 }
 
 
+unsigned CarGaps::sidelobe(
+  const float& limit,
+  const float& dist,
+  const unsigned gap) const
+{
+  // Roughly.
+  const float headroom = sqrt(limit - dist);
+  const float ratio = (headroom < 1.f ? 1.f-headroom : headroom-1.f);
+  return static_cast<unsigned>(ratio * gap);
+}
+
+
+float CarGaps::distancePartialBest(
+  const unsigned g1,
+  const unsigned g2,
+  const unsigned g3,
+  const PeakPtrVector& peakPtrs,
+  const float& limit,
+  Peak& peakCand) const
+{
+  // The gaps for inner distances (excluding car ends) must exist.
+  if (! leftBogeyGapSet || ! midGapSet && ! rightBogeyGapSet)
+    return numeric_limits<float>::max();
+
+  // The seen gaps that we're trying to match to the car gaps.
+  const unsigned p0 = peakPtrs[0]->getIndex();
+  const unsigned p1 = peakPtrs[0]->getIndex();
+  const unsigned p2 = peakPtrs[0]->getIndex();
+  const unsigned s1 = p1 - p0;
+  const unsigned s2 = p2 - p1;
+
+  if (s1 <= s2)
+  {
+    // We will assume that s1 is the left bogey gap.
+    float dist = CarGaps::relativeComponent(g1, s1);
+    if (dist > limit)
+      return numeric_limits<float>::max();
+
+    const unsigned gmid = (g2+g3) / 2;
+    if (s2 <= gmid)
+    {
+      // We will assume that s2 is the mid gap.
+      // B1W1    B1W2        B2W1    B2W2
+      //  |   g1   |    g2    |   g3   |
+      //  |   s1   |    s2    |
+      //  p0       p1         p2
+      dist += CarGaps::relativeComponent(g2, s2);
+      if (dist > limit)
+        return numeric_limits<float>::max();
+      
+      // peakCand centered on p2 + g3.
+      const unsigned index = p2 + g3;
+      const unsigned lobe = CarGaps::sidelobe(limit, dist, g3);
+      peakCand.logPosition(index, index - lobe, index + lobe);
+      return dist;
+    }
+    else
+    {
+      // We will assume that s2 is a gap from the right wheel of
+      // the first bogey to the right wheel of the second bogey.
+      // B1W1    B1W2        B2W1    B2W2
+      //  |   g1   |    g2    |   g3   |
+      //  |   s1   |         s2        |
+      //  p0       p1                  p2
+      
+      // Very roughly, the best guess for the left wheel of the 
+      // second bogey is the following average.  We can do this more
+      // accurately in an analytical way.
+      const unsigned index = ((p1 + g2) + (p2 - g3)) / 2;
+
+      // We can't be as generous with the sidelobe as there are now
+      // contributions from both sides, assumed similar in absolute size.
+      const unsigned lobe = static_cast<unsigned>(
+        CarGaps::sidelobe(limit, dist, g3) / sqrt(2.f));
+      peakCand.logPosition(index, index - lobe, index + lobe);
+      return dist;
+    }
+  }
+  else
+  {
+    // We will assume that s2 is the right bogey gap.
+    float dist = CarGaps::relativeComponent(g3, s2);
+    if (dist > limit)
+      return numeric_limits<float>::max();
+
+    const unsigned gmid = (g1+g2) / 2;
+    if (s1 <= gmid)
+    {
+      // We will assume that s1 is the mid gap.
+      // B1W1    B1W2        B2W1    B2W2
+      //  |   g1   |    g2    |   g3   |
+      //  |        |    s1    |   s2   |
+      //           p0         p1       p2
+      dist += CarGaps::relativeComponent(g2, s1);
+      if (dist > limit)
+        return numeric_limits<float>::max();
+      
+      // peakCand centered on p0 - g1.
+      const unsigned index = p0 - g1;
+      const unsigned lobe = CarGaps::sidelobe(limit, dist, g1);
+      peakCand.logPosition(index, index - lobe, index + lobe);
+      return dist;
+    }
+    else
+    {
+      // We will assume that s1 is a gap from the left wheel of
+      // the first bogey to the left wheel of the second bogey.
+      // B1W1    B1W2        B2W1    B2W2
+      //  |   g1   |    g2    |   g3   |
+      //  |        s1         |   s2   |
+      //  p0                  p1       p2
+
+      const unsigned index = ((p0 + g1) + (p1 - g2)) / 2;
+      const unsigned lobe = static_cast<unsigned>(
+        CarGaps::sidelobe(limit, dist, g1) / sqrt(2.f));
+      peakCand.logPosition(index, index - lobe, index + lobe);
+      return dist;
+    }
+  }
+}
+
+
+float CarGaps::distancePartial(
+  const PeakPtrVector& peakPtrs,
+  const float& limit,
+  Peak& peakCand) const
+{
+  return CarGaps::distancePartialBest(leftBogeyGap, midGap, rightBogeyGap,
+    peakPtrs, limit, peakCand);
+}
+
+
+float CarGaps::distancePartialReverse(
+  const PeakPtrVector& peakPtrs,
+  const float& limit,
+  Peak& peakCand) const
+{
+  return CarGaps::distancePartialBest(rightBogeyGap, midGap, leftBogeyGap,
+    peakPtrs, limit, peakCand);
+}
+
+
 bool CarGaps::checkTwoSided(
   const unsigned actual,
   const unsigned reference,

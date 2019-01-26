@@ -126,6 +126,17 @@ void Peak::logExtent(
 }
 
 
+void Peak::logPosition(
+  const unsigned indexIn,
+  const unsigned indexLeftIn,
+  const unsigned indexRightIn)
+{
+  index = indexIn;
+  indexLeft = indexLeftIn;
+  indexRight = indexRightIn;
+}
+
+
 void Peak::update(const Peak * peakPrev)
 {
   // This is used before we delete all peaks from peakPrev (included)

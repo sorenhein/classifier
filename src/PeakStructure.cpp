@@ -540,6 +540,9 @@ PeakStructure::FindCarType PeakStructure::findCarByThreePeaks(
   PeakRange& range,
   CarDetect& car) const
 {
+  UNUSED(peaks);
+  UNUSED(car);
+
   if (range.numGood() != 3)
     // TODO For now.
     // Could also take first or last 3 of a large range.
@@ -547,7 +550,22 @@ PeakStructure::FindCarType PeakStructure::findCarByThreePeaks(
   else if (range.isFirstCar())
     // TODO For now, as these are unusually error-prone.
     return FIND_CAR_NO_MATCH;
-  else
+
+  PeakPtrVector peakPtrsUsed, peakPtrsUnused;
+  range.splitByQuality(&Peak::goodQuality, peakPtrsUsed, peakPtrsUnused);
+
+  MatchData match;
+  Peak peakCand;
+  if (! models.matchesPartial(peakPtrsUsed, GREAT_CAR_DISTANCE,
+      match, peakCand))
+    return FIND_CAR_NO_MATCH;
+
+  cout << "Candidate for repair:\n";
+  cout << peakCand.strHeaderQuality();
+  cout << peakCand.strQuality();
+
+  // TODO Try to repair the peakCand in peaks
+  return FIND_CAR_NO_MATCH;
 }
 
 

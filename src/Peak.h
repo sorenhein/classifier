@@ -2,6 +2,7 @@
 #define TRAIN_PEAK_H
 
 #include <string>
+#include <vector>
 
 #include "struct.h"
 
@@ -10,6 +11,7 @@ using namespace std;
 
 class Peak;
 typedef bool (Peak::*PeakFncPtr)() const;
+typedef vector<Peak *> PeakPtrVector;
 
 
 class Peak
@@ -126,6 +128,11 @@ class Peak
     void logExtent(
       const Peak& prevPeak,
       const Peak& nextPeak);
+
+    void logPosition(
+      const unsigned indexIn,
+      const unsigned indexLeftIn,
+      const unsigned indexRightIn);
 
     void update(const Peak * peakPrev);
 

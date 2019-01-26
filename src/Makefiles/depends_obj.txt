@@ -1,7 +1,8 @@
 Align.obj: Align.h struct.h Database.h Clusters.h Timers.h Timer.h print.h
-CarDetect.obj: CarDetect.h CarGaps.h CarPeaks.h Peak.h struct.h
-CarGaps.obj: CarGaps.h Except.h errors.h
-CarModels.obj: CarModels.h CarDetect.h CarGaps.h CarPeaks.h Peak.h struct.h
+CarDetect.obj: CarDetect.h CarGaps.h Peak.h struct.h CarPeaks.h PeakRange.h
+CarDetect.obj: PeakProfile.h PeakPool.h
+CarGaps.obj: CarGaps.h Peak.h struct.h Except.h errors.h
+CarModels.obj: CarModels.h CarDetect.h CarGaps.h Peak.h struct.h CarPeaks.h
 CarModels.obj: Except.h errors.h
 CarPeaks.obj: CarPeaks.h Peak.h struct.h
 Clusters.obj: Ckmeans/Ckmeans.1d.dp.h Ckmeans/within_cluster.h Clusters.h
@@ -24,9 +25,9 @@ PeakRange.obj: PeakRange.h PeakProfile.h struct.h PeakPool.h Peak.h
 PeakRange.obj: CarDetect.h CarGaps.h CarPeaks.h
 PeakSeeds.obj: PeakSeeds.h Peak.h struct.h PeakPool.h
 PeakStats.obj: PeakStats.h struct.h Except.h errors.h
-PeakStructure.obj: PeakStructure.h CarDetect.h CarGaps.h CarPeaks.h Peak.h
-PeakStructure.obj: struct.h PeakPool.h PeakRange.h PeakProfile.h CarModels.h
-PeakStructure.obj: Except.h errors.h
+PeakStructure.obj: PeakStructure.h CarDetect.h CarGaps.h Peak.h struct.h
+PeakStructure.obj: CarPeaks.h PeakPool.h PeakRange.h PeakProfile.h
+PeakStructure.obj: CarModels.h Except.h errors.h
 Regress.obj: Regress.h struct.h Database.h Clusters.h Timers.h Timer.h
 Regress.obj: Except.h errors.h print.h regress/PolynomialRegression.h
 SegActive.obj: SegActive.h Median/median.h PeakDetect.h Peak.h struct.h

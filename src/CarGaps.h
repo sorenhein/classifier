@@ -3,6 +3,8 @@
 
 #include <string>
 
+#include "Peak.h"
+
 using namespace std;
 
 
@@ -103,10 +105,31 @@ class CarGaps
     bool hasRightGap() const;
     bool isPartial() const;
 
+    unsigned sidelobe(
+      const float& limit,
+      const float& dist,
+      const unsigned gap) const;
+
+    float distancePartialBest(
+      const unsigned g1,
+      const unsigned g2,
+      const unsigned g3,
+      const PeakPtrVector& peakPtrs,
+      const float& limit,
+      Peak& peakCand) const;
+
     float distanceForGapMatch(const CarGaps& cg2) const;
     float distanceForReverseMatch(const CarGaps& cg2) const;
     float distanceForGapInclusion(const CarGaps& cg2) const;
     float distanceForReverseInclusion(const CarGaps& cg2) const;
+    float distancePartial(
+      const PeakPtrVector& peakPtrs,
+      const float& limit,
+      Peak& peakCand) const;
+    float distancePartialReverse(
+      const PeakPtrVector& peakPtrs,
+      const float& limit,
+      Peak& peakCand) const;
 
     bool sideGapsPlausible(const CarGaps& cgref) const;
     bool midGapPlausible() const;

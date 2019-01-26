@@ -117,6 +117,11 @@ class CarDetect
       const CarDetect& cref,
       const bool partialFlag,
       MatchData& matchIn) const;
+    bool distancePartialSymm(
+      const PeakPtrVector& peakPtrs,
+      const float& limit,
+      MatchData& matchIn,
+      Peak& peakCand) const;
 
     bool gapsPlausible(const CarDetect& cref) const;
     bool sideGapsPlausible(const CarDetect& cref) const;

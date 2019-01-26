@@ -384,6 +384,33 @@ void CarDetect::distanceSymm(
 }
 
 
+bool CarDetect::distancePartialSymm(
+  const PeakPtrVector& peakPtrs,
+  const float& limit,
+  MatchData& matchIn,
+  Peak& peakCand) const
+{
+  const float value1 = gaps.distancePartial(peakPtrs, limit, peakCand);
+  const float value2 = gaps.distancePartialReverse(peakPtrs, limit, 
+    peakCand);
+
+  if (value1 <= value2 && value1 <= limit)
+  {
+    matchIn.distance = value1;
+    matchIn.reverseFlag = false;
+    return true;
+  }
+  else if (value2 < value1 && value2 <= limit)
+  {
+    matchIn.distance = value2;
+    matchIn.reverseFlag = true;
+    return true;
+  }
+  else
+    return false;
+}
+
+
 bool CarDetect::gapsPlausible(const CarDetect& cref) const
 {
   return gaps.gapsPlausible(cref.gaps);

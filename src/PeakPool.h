@@ -40,7 +40,6 @@ typedef PeakList::const_iterator Pciterator;
 typedef list<Peak *> PeakPtrList;
 typedef PeakPtrList::iterator PPiterator;
 typedef PeakPtrList::const_iterator PPciterator;
-typedef vector<Peak *> PeakPtrVector;
 typedef vector<PPciterator> PeakIterVector;
 typedef list<PPciterator> PeakIterList;
 typedef PeakIterList::iterator PIiterator;
