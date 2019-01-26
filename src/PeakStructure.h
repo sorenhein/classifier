@@ -151,6 +151,12 @@ class PeakStructure
       PeakRange& range,
       CarDetect& car) const;
 
+    FindCarType findCarByThreePeaks(
+      const CarModels& models,
+      const PeakPool& peaks,
+      PeakRange& range,
+      CarDetect& car) const;
+
 
     CarListIter updateRecords(
       const PeakRange& range,

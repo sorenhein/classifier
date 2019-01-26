@@ -534,6 +534,23 @@ PeakStructure::FindCarType PeakStructure::findCarByEmptyLast(
 }
 
 
+PeakStructure::FindCarType PeakStructure::findCarByThreePeaks(
+  const CarModels& models,
+  const PeakPool& peaks,
+  PeakRange& range,
+  CarDetect& car) const
+{
+  if (range.numGood() != 3)
+    // TODO For now.
+    // Could also take first or last 3 of a large range.
+    return FIND_CAR_NO_MATCH;
+  else if (range.isFirstCar())
+    // TODO For now, as these are unusually error-prone.
+    return FIND_CAR_NO_MATCH;
+  else
+}
+
+
 CarListIter PeakStructure::updateRecords(
   const PeakRange& range,
   const CarDetect& car,
