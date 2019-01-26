@@ -372,8 +372,8 @@ float CarGaps::distancePartialBest(
 
   // The seen gaps that we're trying to match to the car gaps.
   const unsigned p0 = peakPtrs[0]->getIndex();
-  const unsigned p1 = peakPtrs[0]->getIndex();
-  const unsigned p2 = peakPtrs[0]->getIndex();
+  const unsigned p1 = peakPtrs[1]->getIndex();
+  const unsigned p2 = peakPtrs[2]->getIndex();
   const unsigned s1 = p1 - p0;
   const unsigned s2 = p2 - p1;
 
@@ -384,7 +384,7 @@ float CarGaps::distancePartialBest(
     if (dist > limit)
       return numeric_limits<float>::max();
 
-    const unsigned gmid = (g2+g3) / 2;
+    const unsigned gmid = g2 + g3 / 2;
     if (s2 <= gmid)
     {
       // We will assume that s2 is the mid gap.
@@ -431,7 +431,7 @@ float CarGaps::distancePartialBest(
     if (dist > limit)
       return numeric_limits<float>::max();
 
-    const unsigned gmid = (g1+g2) / 2;
+    const unsigned gmid = g2 + g1 / 2;
     if (s1 <= gmid)
     {
       // We will assume that s1 is the mid gap.

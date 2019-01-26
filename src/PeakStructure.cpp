@@ -14,7 +14,7 @@
 
 #define GREAT_CAR_DISTANCE 1.5f
 
-#define NUM_METHODS 8
+#define NUM_METHODS 9
 
 static unsigned hitSize;
 
@@ -63,6 +63,9 @@ PeakStructure::PeakStructure()
   findCarFallbacks.push_back(
     { &PeakStructure::findCarByEmptyLast, 
       "by empty last", 7});
+  findCarFallbacks.push_back(
+    { &PeakStructure::findCarByThreePeaks, 
+      "by three peaks", 8});
   
   hitSize = NUM_METHODS;
   hits.resize(NUM_METHODS);
@@ -560,9 +563,9 @@ PeakStructure::FindCarType PeakStructure::findCarByThreePeaks(
       match, peakCand))
     return FIND_CAR_NO_MATCH;
 
-  cout << "Candidate for repair:\n";
+  cout << "\nCandidate for repair:\n";
   cout << peakCand.strHeaderQuality();
-  cout << peakCand.strQuality();
+  cout << peakCand.strQuality(offset) << "\n";
 
   // TODO Try to repair the peakCand in peaks
   return FIND_CAR_NO_MATCH;
