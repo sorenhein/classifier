@@ -119,6 +119,122 @@ Piterator PeakPool::collapse(
 }
 
 
+void PeakPool::getBracketingMinima(
+  const list<PeakList>::reverse_iterator& liter,
+  const unsigned pindex,
+  PiterPair& pprev,
+  PiterPair& pnext) const
+{
+  // Find bracketing minima.
+  pprev.hasFlag = false;
+  pnext.hasFlag = false;
+  for (auto piter = liter->begin(); piter != liter->end(); piter++)
+  {
+    if (! piter->isMinimum())
+      continue;
+
+    if (piter->getIndex() > pindex)
+    {
+      pnext.pit = piter;
+      pnext.hasFlag = true;
+      break;
+    }
+
+    pprev.pit = piter;
+    pprev.hasFlag = true;
+  }
+}
+
+
+bool PeakPool::findCloseIter(
+  const Peak& peakHint,
+  const PiterPair& pprev,
+  const PiterPair& pnext,
+  Piterator& foundIter) const
+{
+  bool fitsNext = false;
+  bool fitsPrev = false;
+  if (pprev.hasFlag && peakHint.fits(* pprev.pit))
+    fitsPrev = true;
+  if (pnext.hasFlag && peakHint.fits(* pnext.pit))
+    fitsNext = true;
+
+  if (fitsPrev && fitsNext)
+  {
+    if (pprev.pit->getValue() <= pnext.pit->getValue())
+      foundIter = pprev.pit;
+    else
+      foundIter = pnext.pit;
+  }
+  else if (fitsPrev)
+    foundIter = pprev.pit;
+  else if (fitsNext)
+    foundIter = pnext.pit;
+  else
+    return false;
+
+  return true;
+}
+
+
+bool PeakPool::repair(const Peak& peakHint)
+{
+  const unsigned pindex = peakHint.getIndex();
+  PiterPair pfirstPrev, pfirstNext;
+
+  unsigned ldepth = 0;
+  for (auto liter = peakLists.rbegin(); liter != peakLists.rend(); 
+      liter++, ldepth++)
+  {
+    if (liter->size() < 2)
+      continue;
+
+    // Find bracketing minima.
+    PiterPair pprev, pnext;
+    PeakPool::getBracketingMinima(liter, pindex, pprev, pnext);
+
+    // Is one of them close enough?  If both, pick the lowest value.
+    Piterator foundIter;
+    if (! PeakPool::findCloseIter(peakHint, pprev, pnext, foundIter))
+    {
+      pfirstPrev = pprev;
+      pfirstNext = pnext;
+      continue;
+    }
+
+    if (liter == peakLists.rbegin())
+    {
+      cout << "Peak exists (without offset)\n";
+      cout << foundIter->strHeaderQuality();
+      cout << foundIter->strQuality();
+      
+      // Peak exists but is not good enough, perhaps because of 
+      // neighboring spurious peaks.  To salvage the peak we'll have
+      // to remove kinks.
+    }
+    else
+    {
+      // Peak only exists in earlier list and might be resurrected.
+      // It would go between pfirstPrev and pfirstNext.
+      // There will be a maximum in between which will go on one
+      // side of the peak.  We have to find another maximum (maybe two)
+      // on the other side.  Our peak has to have a good quality.
+      // Actually we don't have access to the average peaks here?
+      // Maybe PeakDetect should store them here.
+      // If our two modified minima are both of good quality,
+      // modify the (first) list of peaks including flanks and qualities.
+      // Also modify candidates.
+      
+      cout << "Peak found at depth " << ldepth << "\n";
+      cout << foundIter->strHeaderQuality();
+      cout << foundIter->strQuality();
+    }
+  }
+
+  return false;
+}
+
+
 void PeakPool::makeCandidates()
 {
   for (auto& peak: * peaks)

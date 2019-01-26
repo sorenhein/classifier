@@ -57,6 +57,24 @@ class PeakPool
     // Could have one for each PeakList as well.
     PeakPtrList candidates;
 
+    struct PiterPair
+    {
+      Piterator pit;
+      bool hasFlag;
+    };
+
+
+    void getBracketingMinima(
+      const list<PeakList>::reverse_iterator& liter,
+      const unsigned pindex,
+      PiterPair& pprev,
+      PiterPair& pnext) const;
+
+    bool findCloseIter(
+      const Peak& peakHint,
+      const PiterPair& pprev,
+      const PiterPair& pnext,
+      Piterator& foundIter) const;
 
     float getFirstPeakTime() const;
 
@@ -93,6 +111,8 @@ class PeakPool
     Piterator collapse(
       Piterator pit1,
       Piterator pit2);
+
+    bool repair(const Peak& peakHint);
 
 
     void makeCandidates();

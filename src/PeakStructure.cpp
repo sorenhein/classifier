@@ -233,7 +233,7 @@ bool PeakStructure::isWholeCar(const PeakPtrVector& pv) const
 
 PeakStructure::FindCarType PeakStructure::findCarByOrder(
   const CarModels& models,
-  const PeakPool& peaks,
+  PeakPool& peaks,
   PeakRange& range,
   CarDetect& car) const
 {
@@ -309,7 +309,7 @@ PeakStructure::FindCarType PeakStructure::findPartialCarByQuality(
 
 PeakStructure::FindCarType PeakStructure::findPartialFirstCarByQuality(
   const CarModels& models,
-  const PeakPool& peaks,
+  PeakPool& peaks,
   PeakRange& range,
   CarDetect& car) const
 {
@@ -382,7 +382,7 @@ PeakStructure::FindCarType PeakStructure::findCarByQuality(
 
 PeakStructure::FindCarType PeakStructure::findCarByGreatQuality(
   const CarModels& models,
-  const PeakPool& peaks,
+  PeakPool& peaks,
   PeakRange& range,
   CarDetect& car) const
 {
@@ -397,7 +397,7 @@ PeakStructure::FindCarType PeakStructure::findCarByGreatQuality(
 
 PeakStructure::FindCarType PeakStructure::findCarByGoodQuality(
   const CarModels& models,
-  const PeakPool& peaks,
+  PeakPool& peaks,
   PeakRange& range,
   CarDetect& car) const
 {
@@ -412,7 +412,7 @@ PeakStructure::FindCarType PeakStructure::findCarByGoodQuality(
 
 PeakStructure::FindCarType PeakStructure::findCarByGeometry(
   const CarModels& models,
-  const PeakPool& peaks,
+  PeakPool& peaks,
   PeakRange& range,
   CarDetect& car) const
 {
@@ -471,7 +471,7 @@ PeakStructure::FindCarType PeakStructure::findCarByGeometry(
 
 PeakStructure::FindCarType PeakStructure::findEmptyRange(
   const CarModels& models,
-  const PeakPool& peaks,
+  PeakPool& peaks,
   PeakRange& range,
   CarDetect& car) const
 {
@@ -491,7 +491,7 @@ PeakStructure::FindCarType PeakStructure::findEmptyRange(
 
 PeakStructure::FindCarType PeakStructure::findCarByLeveledPeaks(
   const CarModels& models,
-  const PeakPool& peaks,
+  PeakPool& peaks,
   PeakRange& range,
   CarDetect& car) const
 {
@@ -519,7 +519,7 @@ PeakStructure::FindCarType PeakStructure::findCarByLeveledPeaks(
 
 PeakStructure::FindCarType PeakStructure::findCarByEmptyLast(
   const CarModels& models,
-  const PeakPool& peaks,
+  PeakPool& peaks,
   PeakRange& range,
   CarDetect& car) const
 {
@@ -539,7 +539,7 @@ PeakStructure::FindCarType PeakStructure::findCarByEmptyLast(
 
 PeakStructure::FindCarType PeakStructure::findCarByThreePeaks(
   const CarModels& models,
-  const PeakPool& peaks,
+  PeakPool& peaks,
   PeakRange& range,
   CarDetect& car) const
 {
@@ -558,16 +558,21 @@ PeakStructure::FindCarType PeakStructure::findCarByThreePeaks(
   range.splitByQuality(&Peak::goodQuality, peakPtrsUsed, peakPtrsUnused);
 
   MatchData match;
-  Peak peakCand;
+  Peak peakHint;
   if (! models.matchesPartial(peakPtrsUsed, GREAT_CAR_DISTANCE,
-      match, peakCand))
+      match, peakHint))
     return FIND_CAR_NO_MATCH;
 
-  cout << "\nCandidate for repair:\n";
-  cout << peakCand.strHeaderQuality();
-  cout << peakCand.strQuality(offset) << "\n";
+  cout << "\nHint for repair:\n";
+  cout << peakHint.strHeaderQuality();
+  cout << peakHint.strQuality(offset) << "\n";
 
-  // TODO Try to repair the peakCand in peaks
+  if (! peaks.repair(peakHint))
+    return FIND_CAR_NO_MATCH;
+
+  // TODO Try to repair the peakCand in peaks, can't stay const?
+  // TODO range.fill(peaks);
+  // TODO return findCarByGeometry(models, peaks, range, car);
   return FIND_CAR_NO_MATCH;
 }
 

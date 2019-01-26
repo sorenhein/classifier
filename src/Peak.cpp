@@ -387,6 +387,12 @@ bool Peak::isCandidate() const
 }
 
 
+bool Peak::fits(const Peak& peak2) const
+{
+  return (peak2.index >= indexLeft && peak2.index <= indexRight);
+}
+
+
 void Peak::select()
 {
   selectFlag = true;

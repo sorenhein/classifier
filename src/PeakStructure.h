@@ -30,9 +30,10 @@ class PeakStructure
       FIND_CAR_SIZE = 4
     };
 
+    // Only a few methods actually change peaks.
     typedef FindCarType (PeakStructure::*FindCarPtr)(
       const CarModels& models,
-      const PeakPool& peaks,
+      PeakPool& peaks,
       PeakRange& range,
       CarDetect& car) const;
 
@@ -86,7 +87,7 @@ class PeakStructure
 
     FindCarType findCarByOrder(
       const CarModels& models,
-      const PeakPool& peaks,
+      PeakPool& peaks,
       PeakRange& range,
       CarDetect& car) const;
 
@@ -99,7 +100,7 @@ class PeakStructure
 
     FindCarType findPartialFirstCarByQuality(
       const CarModels& models,
-      const PeakPool& peaks,
+      PeakPool& peaks,
       PeakRange& range,
       CarDetect& car) const;
 
@@ -117,43 +118,43 @@ class PeakStructure
 
     FindCarType findCarByGreatQuality(
       const CarModels& models,
-      const PeakPool& peaks,
+      PeakPool& peaks,
       PeakRange& range,
       CarDetect& car) const;
 
     FindCarType findCarByGoodQuality(
       const CarModels& models,
-      const PeakPool& peaks,
+      PeakPool& peaks,
       PeakRange& range,
       CarDetect& car) const;
 
     FindCarType findCarByGeometry(
       const CarModels& models,
-      const PeakPool& peaks,
+      PeakPool& peaks,
       PeakRange& range,
       CarDetect& car) const;
 
     FindCarType findEmptyRange(
       const CarModels& models,
-      const PeakPool& peaks,
+      PeakPool& peaks,
       PeakRange& range,
       CarDetect& car) const;
 
     FindCarType findCarByLeveledPeaks(
       const CarModels& models,
-      const PeakPool& peaks,
+      PeakPool& peaks,
       PeakRange& range,
       CarDetect& car) const;
 
     FindCarType findCarByEmptyLast(
       const CarModels& models,
-      const PeakPool& peaks,
+      PeakPool& peaks,
       PeakRange& range,
       CarDetect& car) const;
 
     FindCarType findCarByThreePeaks(
       const CarModels& models,
-      const PeakPool& peaks,
+      PeakPool& peaks,
       PeakRange& range,
       CarDetect& car) const;
 

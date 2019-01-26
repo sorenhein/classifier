@@ -162,6 +162,8 @@ class Peak
 
     bool isCandidate() const;
 
+    bool fits(const Peak& peak2) const;
+
     void select();
     void unselect();
     bool isSelected() const;
