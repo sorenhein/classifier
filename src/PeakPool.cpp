@@ -296,12 +296,29 @@ bool PeakPool::repair(
 
       if (ins == 2)
       {
+
+  cout << "PINSERT: Peak found at depth " << ldepth << "\n";
+  cout << foundIter->strHeaderQuality();
+  cout << foundIter->strQuality(offset);
+
+  cout << "It is between\n";
+  cout << pprev.pit->strQuality(offset);
+  cout << pnext.pit->strQuality(offset);
+
+  cout << "At top level it is between\n";
+  cout << pfirstPrev.pit->strQuality(offset);
+  cout << pfirstNext.pit->strQuality(offset);
+
+  cout << "At current level it is between\n";
+  cout << pcurrPrev->strQuality(offset);
+  cout << pcurrNext->strQuality(offset);
+
         // The simplest case where one peak pair was considered a kink.
         // We insert the two peaks.
-        peaks->insert(pfirstNext.pit, next(pprev.pit), next(pnext.pit));
+        peaks->insert(pfirstNext.pit, next(pcurrPrev), pcurrNext);
 
         // The left flank of pfirstNext must be updated.
-        pfirstNext.pit->update(&* pnext.pit);
+        pfirstNext.pit->update(&* prev(pfirstNext.pit));
         if (pfirstNext.pit->isMinimum())
           pfirstNext.pit->calcQualities(averages);
 

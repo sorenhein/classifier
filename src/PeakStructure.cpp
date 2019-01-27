@@ -12,7 +12,8 @@
 
 #define UNUSED(x) ((void)(true ? 0 : ((x), void(), 0)))
 
-#define GREAT_CAR_DISTANCE 1.5f
+#define GOOD_CAR_DISTANCE 1.5f
+#define GREAT_CAR_DISTANCE 0.5f
 
 #define NUM_METHODS 9
 
@@ -143,7 +144,7 @@ void PeakStructure::updateCarDistances(
   MatchData match;
   for (auto& car: cars)
   {
-    if (! models.matchesDistance(car, GREAT_CAR_DISTANCE, false, match))
+    if (! models.matchesDistance(car, GOOD_CAR_DISTANCE, false, match))
     {
       cout << "WARNING: Car doesn't match any model.\n";
       match.distance = numeric_limits<float>::max();
@@ -160,7 +161,7 @@ void PeakStructure::updateModels(
 {
   MatchData match;
 
-  if (models.matchesDistance(car, GREAT_CAR_DISTANCE, false, match))
+  if (models.matchesDistance(car, GOOD_CAR_DISTANCE, false, match))
   {
     car.logMatchData(match);
 
@@ -448,7 +449,7 @@ PeakStructure::FindCarType PeakStructure::findCarByGeometry(
       if (! models.gapsPlausible(car))
         continue;
       
-      if (! models.matchesDistance(car, GREAT_CAR_DISTANCE, true, 
+      if (! models.matchesDistance(car, GOOD_CAR_DISTANCE, true, 
           mno, match))
         continue;
       
