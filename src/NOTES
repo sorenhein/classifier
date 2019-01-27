@@ -1,6 +1,5 @@
 Three wheels:
-Why 1 insertion possible?
-Why 53 2-insertions but only 10 recognitions?
+Why 53 2-insertions but only 38 recognitions?
 Deal with 4, 6, 8 insertions (= sum of "at depth N")
 Deal with top-level match (insufficient pruning?)
 

@@ -93,6 +93,30 @@ class PeakPool
 
     bool addCandidate(Peak * peak);
 
+    void printRepairData(
+      const Piterator& foundIter,
+      const Piterator& pprev,
+      const Piterator& pnext,
+      const Piterator& pfirstPrev,
+      const Piterator& pfirstNext,
+      const Piterator& pcurrPrev,
+      const Piterator& pcurrNext,
+      const unsigned offset) const;
+
+    void printRepairedSegment(
+      const Piterator& pfirstPrev,
+      const Piterator& pfirstNext,
+      const unsigned offset) const;
+
+    void updateRepairedPeaks(
+      Piterator& pfirstPrev,
+      Piterator& pfirstNext);
+
+    bool getHighestMax(
+      const Piterator& pb,
+      const Piterator& pe,
+      Peak *& pmax) const;
+
     float getFirstPeakTime() const;
 
 

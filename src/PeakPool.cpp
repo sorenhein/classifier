@@ -239,6 +239,98 @@ bool PeakPool::addCandidate(Peak * peak)
 }
 
 
+void PeakPool::printRepairData(
+  const Piterator& foundIter,
+  const Piterator& pprev,
+  const Piterator& pnext,
+  const Piterator& pfirstPrev,
+  const Piterator& pfirstNext,
+  const Piterator& pcurrPrev,
+  const Piterator& pcurrNext,
+  const unsigned offset) const
+{
+  cout << foundIter->strHeaderQuality();
+  cout << foundIter->strQuality(offset);
+
+  cout << "It is between\n";
+  cout << pprev->strQuality(offset);
+  cout << pnext->strQuality(offset);
+
+  cout << "At top level it is between\n";
+  cout << pfirstPrev->strQuality(offset);
+  cout << pfirstNext->strQuality(offset);
+
+  cout << "At current level it is between\n";
+  cout << pcurrPrev->strQuality(offset);
+  cout << pcurrNext->strQuality(offset);
+}
+
+
+void PeakPool::printRepairedSegment(
+  const Piterator& pfirstPrev,
+  const Piterator& pfirstNext,
+  const unsigned offset) const
+{
+  cout << "Modified the top-level peaks\n";
+  cout << pfirstNext->strHeaderQuality();
+  for (auto pit = pfirstPrev; pit != pfirstNext; pit++)
+    cout << pit->strQuality(offset);
+  cout << pfirstNext->strQuality(offset);
+}
+
+
+void PeakPool::updateRepairedPeaks(
+  Piterator& pfirstPrev,
+  Piterator& pfirstNext)
+{
+  // The left flanks must be updated.
+  for (auto pit = next(pfirstPrev); pit != next(pfirstNext); pit++)
+    pit->update(&* prev(pit));
+
+  if (pfirstNext->isMinimum())
+    pfirstNext->calcQualities(averages);
+
+  // The right flanks must be copied.
+  for (auto pit = pfirstPrev; pit != pfirstNext; pit++)
+  {
+    pit->logNextPeak(&* next(pit));
+    if (pit->isMinimum())
+    {
+      pit->calcQualities(averages);
+
+      if (pit != pfirstPrev && ! PeakPool::addCandidate(&* pit))
+        cout << "PINSERT: Couldn't add candidate\n";
+    }
+  }
+}
+
+
+bool PeakPool::getHighestMax(
+  const Piterator& pb,
+  const Piterator& pe,
+  Peak *& pmax) const
+{
+  pmax = nullptr;
+  float val = numeric_limits<float>::lowest();
+  for (auto pit = pb; pit != pe; pit++)
+  {
+    if (pit->getValue() > val)
+    {
+      val = pit->getValue();
+      pmax = &* pit;
+    }
+  }
+
+  if (pmax == nullptr)
+  {
+    cout << "PINSERT: Null maximum\n";
+    return false;
+  }
+  else
+    return true;
+}
+
+
 bool PeakPool::repair(
   const Peak& peakHint,
   const unsigned offset)
@@ -297,72 +389,62 @@ bool PeakPool::repair(
       if (ins == 2)
       {
 
+  /*
   cout << "PINSERT: Peak found at depth " << ldepth << "\n";
-  cout << foundIter->strHeaderQuality();
-  cout << foundIter->strQuality(offset);
-
-  cout << "It is between\n";
-  cout << pprev.pit->strQuality(offset);
-  cout << pnext.pit->strQuality(offset);
-
-  cout << "At top level it is between\n";
-  cout << pfirstPrev.pit->strQuality(offset);
-  cout << pfirstNext.pit->strQuality(offset);
-
-  cout << "At current level it is between\n";
-  cout << pcurrPrev->strQuality(offset);
-  cout << pcurrNext->strQuality(offset);
+  PeakPool::printRepairData(foundIter, pprev.pit, pnext.pit.
+    pfirstPrev.pit, pfirstNext.pit, pcurrPrev, pcurrNext, offset);
+  */
 
         // The simplest case where one peak pair was considered a kink.
         // We insert the two peaks.
         peaks->insert(pfirstNext.pit, next(pcurrPrev), pcurrNext);
 
-        // The left flank of pfirstNext must be updated.
-        pfirstNext.pit->update(&* prev(pfirstNext.pit));
-        if (pfirstNext.pit->isMinimum())
-          pfirstNext.pit->calcQualities(averages);
+        PeakPool::updateRepairedPeaks(pfirstPrev.pit, pfirstNext.pit);
 
-        // The right flanks must be copied.
-        for (auto pit = pfirstPrev.pit; pit != pfirstNext.pit; pit++)
-        {
-          pit->logNextPeak(&* next(pit));
-          if (pit->isMinimum())
-          {
-            pit->calcQualities(averages);
-            // if (pit->goodQuality())
-              // pit->select();
-
-            if (pit != pfirstPrev.pit && ! PeakPool::addCandidate(&* pit))
-              cout << "PINSERT: Couldn't add candidate\n";
-          }
-        }
-
-        cout << "Modified the top-level peaks\n";
-        cout << foundIter->strHeaderQuality();
-        for (auto pit = pfirstPrev.pit; pit != pfirstNext.pit; pit++)
-          cout << pit->strQuality(offset);
-        cout << pfirstNext.pit->strQuality(offset);
+        PeakPool::printRepairedSegment(pfirstPrev.pit, pfirstNext.pit,
+          offset);
 
         return true;
       }
       else
       {
-        // More general case, not yet implemented.
-        cout << "PINSERT: Peak found at depth " << ldepth << "\n";
-        cout << foundIter->strHeaderQuality();
-        cout << foundIter->strQuality(offset);
+        // More general case.  We only introduce two new peaks, so
+        // the one we found goes next to the bracketing one with
+        // opposite polarity.  In the gap we put the intervening
+        // peak with maximum value.  This is quick and dirty.
 
-        cout << "It is between\n";
-        cout << pprev.pit->strQuality(offset);
-        cout << pnext.pit->strQuality(offset);
+    /*
+    cout << "PINSERT: Peak found at depth " << ldepth << "\n";
+    PeakPool::printRepairData(foundIter, pprev.pit, pnext.pit,
+      pfirstPrev.pit, pfirstNext.pit, pcurrPrev, pcurrNext, offset);
+      */
 
-        cout << "At top level it is between\n";
-        cout << pfirstPrev.pit->strQuality(offset);
-        cout << pfirstNext.pit->strQuality(offset);
+        auto pnew = peaks->insert(pfirstNext.pit, * foundIter);
+        Peak * pmax;
 
-        cout << "At current level it is between\n";
-        cout << pcurrPrev->strQuality(offset);
-        cout << pcurrNext->strQuality(offset);
+        if (pcurrPrev->isMinimum())
+        {
+          // New peak goes next to pfirstNext.
+          if (! PeakPool::getHighestMax(next(pcurrPrev), foundIter, pmax))
+            return false;
+
+          peaks->insert(pnew, * pmax);
+        }
+        else
+        {
+          // New peak goes next to pfirstPrev.
+          if (! PeakPool::getHighestMax(next(foundIter), pcurrNext, pmax))
+            return false;
+
+          peaks->insert(pfirstNext.pit, * pmax);
+        }
+
+        PeakPool::updateRepairedPeaks(pfirstPrev.pit, pfirstNext.pit);
+
+        PeakPool::printRepairedSegment(pfirstPrev.pit, pfirstNext.pit,
+          offset);
+
+        return true;
       }
     }
   }
