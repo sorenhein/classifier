@@ -567,13 +567,12 @@ PeakStructure::FindCarType PeakStructure::findCarByThreePeaks(
   cout << peakHint.strHeaderQuality();
   cout << peakHint.strQuality(offset) << "\n";
 
-  if (! peaks.repair(peakHint))
+  if (! peaks.repair(peakHint, offset))
     return FIND_CAR_NO_MATCH;
 
-  // TODO Try to repair the peakCand in peaks, can't stay const?
-  // TODO range.fill(peaks);
-  // TODO return findCarByGeometry(models, peaks, range, car);
-  return FIND_CAR_NO_MATCH;
+  range.fill(peaks);
+
+  return findCarByGeometry(models, peaks, range, car);
 }
 
 

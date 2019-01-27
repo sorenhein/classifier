@@ -27,6 +27,7 @@ void PeakPool::clear()
   peakLists.resize(1);
   peaks = &peakLists.front();
   candidates.clear();
+  averages.clear();
 }
 
 
@@ -92,6 +93,12 @@ void PeakPool::copy()
 }
 
 
+void PeakPool::logAverages(const vector<Peak>& averagesIn)
+{
+  averages = averagesIn;
+}
+
+
 Piterator PeakPool::erase(
   Piterator pit1,
   Piterator pit2)
@@ -119,9 +126,10 @@ Piterator PeakPool::collapse(
 }
 
 
-void PeakPool::getBracketingMinima(
+void PeakPool::getBracketingPeaks(
   const list<PeakList>::reverse_iterator& liter,
   const unsigned pindex,
+  const bool minFlag,
   PiterPair& pprev,
   PiterPair& pnext) const
 {
@@ -130,7 +138,7 @@ void PeakPool::getBracketingMinima(
   pnext.hasFlag = false;
   for (auto piter = liter->begin(); piter != liter->end(); piter++)
   {
-    if (! piter->isMinimum())
+    if (minFlag && ! piter->isMinimum())
       continue;
 
     if (piter->getIndex() > pindex)
@@ -177,10 +185,65 @@ bool PeakPool::findCloseIter(
 }
 
 
-bool PeakPool::repair(const Peak& peakHint)
+void PeakPool::locateTopBrackets(
+  const PiterPair& pfirstPrev,
+  const PiterPair& pfirstNext,
+  const Piterator& foundIter,
+  Piterator& pprev,
+  Piterator& pnext) const
+{
+  const unsigned ppindex = pfirstPrev.pit->getIndex();
+  const unsigned pnindex = pfirstNext.pit->getIndex();
+
+  pprev = foundIter;
+  do
+  {
+    pprev = prev(pprev);
+  }
+  while (pprev->getIndex() != ppindex);
+
+  pnext = foundIter;
+  do
+  {
+    pnext = next(pnext);
+  }
+  while (pnext->getIndex() != pnindex);
+}
+
+
+unsigned PeakPool::countInsertions(
+  const Piterator& pprev,
+  const Piterator& pnext) const
+{
+  unsigned n = 0;
+  for (auto pit = next(pprev); pit != pnext; pit++)
+    n++;
+  return n;
+}
+
+
+bool PeakPool::addCandidate(Peak * peak)
+{
+  // TODO Pretty inefficient if we are adding multiple candidates.
+  // If we need to do that, add them all at once.
+  const unsigned pindex = peak->getIndex();
+  for (auto cit = candidates.begin(); cit != candidates.end(); cit++)
+  {
+    if ((* cit)->getIndex() > pindex)
+    {
+      candidates.insert(cit, peak);
+      return true;
+    }
+  }
+  return false;
+}
+
+
+bool PeakPool::repair(
+  const Peak& peakHint,
+  const unsigned offset)
 {
   const unsigned pindex = peakHint.getIndex();
-  PiterPair pfirstPrev, pfirstNext;
 
   unsigned ldepth = 0;
   for (auto liter = peakLists.rbegin(); liter != peakLists.rend(); 
@@ -191,22 +254,19 @@ bool PeakPool::repair(const Peak& peakHint)
 
     // Find bracketing minima.
     PiterPair pprev, pnext;
-    PeakPool::getBracketingMinima(liter, pindex, pprev, pnext);
+    PeakPool::getBracketingPeaks(liter, pindex, true, pprev, pnext);
 
     // Is one of them close enough?  If both, pick the lowest value.
     Piterator foundIter;
     if (! PeakPool::findCloseIter(peakHint, pprev, pnext, foundIter))
-    {
-      pfirstPrev = pprev;
-      pfirstNext = pnext;
       continue;
-    }
 
     if (liter == peakLists.rbegin())
     {
-      cout << "Peak exists (without offset)\n";
+      cout << "PINSERT: Peak exists\n";
       cout << foundIter->strHeaderQuality();
-      cout << foundIter->strQuality();
+      cout << foundIter->strQuality(offset);
+      return false;
       
       // Peak exists but is not good enough, perhaps because of 
       // neighboring spurious peaks.  To salvage the peak we'll have
@@ -215,19 +275,78 @@ bool PeakPool::repair(const Peak& peakHint)
     else
     {
       // Peak only exists in earlier list and might be resurrected.
-      // It would go between pfirstPrev and pfirstNext.
-      // There will be a maximum in between which will go on one
-      // side of the peak.  We have to find another maximum (maybe two)
-      // on the other side.  Our peak has to have a good quality.
-      // Actually we don't have access to the average peaks here?
-      // Maybe PeakDetect should store them here.
-      // If our two modified minima are both of good quality,
-      // modify the (first) list of peaks including flanks and qualities.
-      // Also modify candidates.
-      
-      cout << "Peak found at depth " << ldepth << "\n";
-      cout << foundIter->strHeaderQuality();
-      cout << foundIter->strQuality();
+      // It would go between pfirstPrev and pfirstNext (one min, one max).
+      PiterPair pfirstPrev, pfirstNext;
+      PeakPool::getBracketingPeaks(peakLists.rbegin(), 
+        foundIter->getIndex(), false, pfirstPrev, pfirstNext);
+
+      if (! pfirstPrev.hasFlag || ! pfirstNext.hasFlag)
+      {
+        cout << "PINSERT: Not an interior interval\n";
+        return false;
+      }
+
+      // Find the same bracketing peaks in the current list.
+      Piterator pcurrPrev, pcurrNext;
+      PeakPool::locateTopBrackets(pfirstPrev, pfirstNext, foundIter, 
+        pcurrPrev, pcurrNext);
+
+      const unsigned ins = PeakPool::countInsertions(pcurrPrev, pcurrNext);
+      cout << "There are " << ins << " insertions\n";
+
+      if (ins == 2)
+      {
+        // The simplest case where one peak pair was considered a kink.
+        // We insert the two peaks.
+        peaks->insert(pfirstNext.pit, next(pprev.pit), next(pnext.pit));
+
+        // The left flank of pfirstNext must be updated.
+        pfirstNext.pit->update(&* pnext.pit);
+        if (pfirstNext.pit->isMinimum())
+          pfirstNext.pit->calcQualities(averages);
+
+        // The right flanks must be copied.
+        for (auto pit = pfirstPrev.pit; pit != pfirstNext.pit; pit++)
+        {
+          pit->logNextPeak(&* next(pit));
+          if (pit->isMinimum())
+          {
+            pit->calcQualities(averages);
+            // if (pit->goodQuality())
+              // pit->select();
+
+            if (pit != pfirstPrev.pit && ! PeakPool::addCandidate(&* pit))
+              cout << "PINSERT: Couldn't add candidate\n";
+          }
+        }
+
+        cout << "Modified the top-level peaks\n";
+        cout << foundIter->strHeaderQuality();
+        for (auto pit = pfirstPrev.pit; pit != pfirstNext.pit; pit++)
+          cout << pit->strQuality(offset);
+        cout << pfirstNext.pit->strQuality(offset);
+
+        return true;
+      }
+      else
+      {
+        // More general case, not yet implemented.
+        cout << "PINSERT: Peak found at depth " << ldepth << "\n";
+        cout << foundIter->strHeaderQuality();
+        cout << foundIter->strQuality(offset);
+
+        cout << "It is between\n";
+        cout << pprev.pit->strQuality(offset);
+        cout << pnext.pit->strQuality(offset);
+
+        cout << "At top level it is between\n";
+        cout << pfirstPrev.pit->strQuality(offset);
+        cout << pfirstNext.pit->strQuality(offset);
+
+        cout << "At current level it is between\n";
+        cout << pcurrPrev->strQuality(offset);
+        cout << pcurrNext->strQuality(offset);
+      }
     }
   }
 

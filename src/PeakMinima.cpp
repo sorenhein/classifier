@@ -142,7 +142,7 @@ cout << "\n";
     }
   }
 
-  // So now we havea range of values that are all equally good from
+  // So now we have a range of values that are all equally good from
   // the point of view of covering as many steps as possible +/- 10%.
   // We make a useful interval out of this.
 
@@ -879,6 +879,9 @@ void PeakMinima::markLongGaps(
 
   // Mark more bogeys with the refined peak qualities.
   PeakMinima::markLongGapsOfSelects(peaks, longGap);
+
+  // Store the average peaks for later reference.
+  peaks.logAverages(bogeys);
 }
 
 

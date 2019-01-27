@@ -57,6 +57,9 @@ class PeakPool
     // Could have one for each PeakList as well.
     PeakPtrList candidates;
 
+    // Average peaks used for quality.
+    vector<Peak> averages;
+
     struct PiterPair
     {
       Piterator pit;
@@ -64,9 +67,10 @@ class PeakPool
     };
 
 
-    void getBracketingMinima(
+    void getBracketingPeaks(
       const list<PeakList>::reverse_iterator& liter,
       const unsigned pindex,
+      const bool minFlag,
       PiterPair& pprev,
       PiterPair& pnext) const;
 
@@ -75,6 +79,19 @@ class PeakPool
       const PiterPair& pprev,
       const PiterPair& pnext,
       Piterator& foundIter) const;
+
+    void locateTopBrackets(
+      const PiterPair& pfirstPrev,
+      const PiterPair& pfirstNext,
+      const Piterator& foundIter,
+      Piterator& pprev, 
+      Piterator& pnext) const;
+
+    unsigned countInsertions(
+      const Piterator& pprev, 
+      const Piterator& pnext) const;
+
+    bool addCandidate(Peak * peak);
 
     float getFirstPeakTime() const;
 
@@ -104,6 +121,8 @@ class PeakPool
 
     void copy();
 
+    void logAverages(const vector<Peak>& averagesIn);
+
     Piterator erase(
       Piterator pit1,
       Piterator pit2);
@@ -112,7 +131,9 @@ class PeakPool
       Piterator pit1,
       Piterator pit2);
 
-    bool repair(const Peak& peakHint);
+    bool repair(
+      const Peak& peakHint,
+      const unsigned offset); // offset is TMP
 
 
     void makeCandidates();
