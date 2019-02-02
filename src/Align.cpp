@@ -13,8 +13,8 @@
 
 // Can adjust these.
 
-#define INSERT_PENALTY 1000.
-#define DELETE_PENALTY 1000.
+#define INSERT_PENALTY 100.
+#define DELETE_PENALTY 100.
 #define EARLY_MISS_PENALTY 10.
 #define EARLY_DELETE_PENALTY 1.
 #define MAX_EARLY_MISSES 3

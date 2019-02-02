@@ -425,6 +425,9 @@ bool PeakPool::repair(
         // Re-score foundIter.
         foundIter->calcQualities(averages);
 
+        if (foundIter->goodQuality())
+          foundIter->select();
+
         cout << "peakHint now\n";
         cout << foundIter->strQuality(offset);
       }
@@ -465,6 +468,9 @@ bool PeakPool::repair(
 
         // Re-score foundIter.
         foundIter->calcQualities(averages);
+
+        if (foundIter->goodQuality())
+          foundIter->select();
 
         cout << "peakHint now\n";
         cout << foundIter->strQuality(offset);
