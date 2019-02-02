@@ -18,6 +18,9 @@ my $REGRESS_THRESHOLD = 3.;
 my $NUM_EMPTY_FNC = 5;
 my $NUM_LAST_FNC = 8;
 
+my @confusion;
+my $confString = "ICE4_DEU_48";
+
 if ($#ARGV < 0)
 {
   print "Usage: summarize.pl [CSV] sensor??.txt > file\n";
@@ -86,6 +89,10 @@ for my $file (@ARGV)
   my $mismatchSeen = 0;
   my $exceptSeen = 0;
   my $peakFrac;
+
+  my $trueTrain;
+  my $matchedTrain;
+
   while (my $line = <$fh>)
   {
     chomp $line;
@@ -251,13 +258,23 @@ for my $file (@ARGV)
       chomp $line;
       $line =~ s///g;
       my @a = split /\s+/, $line;
+      $matchedTrain = $a[0];
       $regressError = $a[2];
       $regressSeen = 1;
+
+      if ($trueTrain =~ /^$confString/ &&
+          $matchedTrain =~ /^$confString/)
+      {
+        my $i0 = ($trueTrain =~ /_N$/ ? 0 : 1);
+        my $i1 = ($matchedTrain =~ /_N$/ ? 0 : 1);
+        $confusion[$i0][$i1]++;
+      }
     }
     elsif ($line =~ /^True train/)
     {
       $line =~ /^True train (\S+)/;
-      $fullTrace = guessCars($1);
+      $trueTrain = $1;
+      $fullTrace = guessCars($trueTrain);
     }
     elsif ($line =~ /^Exception/)
     {
@@ -389,6 +406,10 @@ print summaryDetails(\%detailsSummaryLater, $format);
 print forceNewLine($format);
 
 print summaryFrac($format);
+
+# print "confusion\n";
+# printf "%6d  %6d\n", $confusion[0][0], $confusion[0][1];
+# printf "%6d  %6d\n", $confusion[1][0], $confusion[1][1];
 
 exit;
 
