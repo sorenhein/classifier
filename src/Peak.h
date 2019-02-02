@@ -198,6 +198,8 @@ class Peak
     bool similarGradientForward(const Peak& p1) const;
     bool similarGradientBackward(const Peak& p1) const;
 
+    float matchMeasure(const Peak& p1) const;
+
     bool similarGradientTwo(
       const Peak& p1,
       const Peak& p2) const;

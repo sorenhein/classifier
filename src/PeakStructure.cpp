@@ -550,6 +550,7 @@ PeakStructure::FindCarType PeakStructure::findCarByThreePeaks(
   if (range.numGood() != 3)
     // TODO For now.
     // Could also take first or last 3 of a large range.
+    // s04, 065516 has two three-wheel cars next to each other.
     return FIND_CAR_NO_MATCH;
   else if (range.isFirstCar())
     // TODO For now, as these are unusually error-prone.

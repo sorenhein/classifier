@@ -117,6 +117,12 @@ class PeakPool
       const Piterator& pe,
       Peak *& pmax) const;
 
+    bool getBestMax(
+      Piterator& pbmin,
+      Piterator& pemin,
+      Piterator& pref,
+      Piterator& pbest) const;
+
     float getFirstPeakTime() const;
 
 
@@ -197,7 +203,7 @@ class PeakPool
     unsigned firstCandIndex() const;
     unsigned lastCandIndex() const;
 
-    // No doubt there is a more elegant way to do this...
+    // TODO: No doubt there is a more elegant way to do this...
     PPiterator candbegin();
     PPciterator candcbegin() const;
 
@@ -242,6 +248,22 @@ class PeakPool
 
     PPciterator prevCandInclSoft(
       PPciterator& pit,
+      const PeakFncPtr& fptr) const;
+
+    Piterator prevExcl(
+      Piterator& pit,
+      const PeakFncPtr& fptr) const;
+
+    Piterator prevIncl(
+      Piterator& pit,
+      const PeakFncPtr& fptr) const;
+
+    Piterator nextExcl(
+      Piterator& pit,
+      const PeakFncPtr& fptr) const;
+
+    Piterator nextIncl(
+      Piterator& pit,
       const PeakFncPtr& fptr) const;
 
 

@@ -111,7 +111,7 @@ Piterator PeakPool::collapse(
   Piterator pit1,
   Piterator pit2)
 {
-  // Analogous to erase(): peak1 does not survive, while peak2 does.
+  // Analogous to erase(): pit1 does not survive, while pit2 does.
   // But pit2 gets updated first.
   if (pit1 == pit2)
     return pit1;
@@ -331,6 +331,31 @@ bool PeakPool::getHighestMax(
 }
 
 
+bool PeakPool::getBestMax(
+  Piterator& pbmin,
+  Piterator& pemin,
+  Piterator& pref,
+  Piterator& pbest) const
+{
+  pbest = peaks->begin();
+  float valMax = 0.f;
+
+  for (auto pit = pbmin; pit != pemin; pit++)
+  {
+    if (pit->isMinimum())
+      continue;
+
+    const float val = pref->matchMeasure(* pit);
+    if (val > valMax)
+    {
+      pbest = pit;
+      valMax = val;
+    }
+  }
+  return (pbest != peaks->begin());
+}
+
+
 bool PeakPool::repair(
   const Peak& peakHint,
   const unsigned offset)
@@ -355,14 +380,97 @@ bool PeakPool::repair(
 
     if (liter == peakLists.rbegin())
     {
-      cout << "PINSERT: Peak exists\n";
-      cout << foundIter->strHeaderQuality();
-      cout << foundIter->strQuality(offset);
-      return false;
-      
       // Peak exists but is not good enough, perhaps because of 
       // neighboring spurious peaks.  To salvage the peak we'll have
       // to remove kinks.
+
+      // Find the previous selected minimum.  
+      Piterator pprevSelected = PeakPool::prevExcl(foundIter,
+        &Peak::isSelected);
+
+      if (pprevSelected == peaks->begin())
+      {
+        cout << "PINSERT: Predecessor is begin()\n";
+        return false;
+      }
+
+      // Find the in-between maximum that maximizes slope * range,
+      // i.e. range^2 / len.
+      Piterator pprevBestMax;
+      if (! PeakPool::getBestMax(pprevSelected, foundIter, foundIter,
+        pprevBestMax))
+      {
+        cout << "PINSERT: Maximum is begin()\n";
+        return false;
+      }
+
+      Piterator nprevBestMax = next(pprevBestMax);
+      if (nprevBestMax != foundIter)
+      {
+        // Delete peaks in (pprevBestMax, foundIter).
+        cout << "PINSERT: Peak exists\n";
+        cout << foundIter->strHeaderQuality();
+        cout << foundIter->strQuality(offset);
+
+        cout << "PINSERT: Delete (" <<
+          pprevBestMax->getIndex() + offset << ", " <<
+          foundIter->getIndex() + offset << ")\n";
+
+        // This also recalculates left flanks.
+        PeakPool::collapse(nprevBestMax, foundIter);
+        //
+        // The right flank of nprevBestMax must/may be updated.
+        nprevBestMax->logNextPeak(&* foundIter);
+
+        // Re-score foundIter.
+        foundIter->calcQualities(averages);
+
+        cout << "peakHint now\n";
+        cout << foundIter->strQuality(offset);
+      }
+
+      Piterator pnextSelected = PeakPool::nextExcl(foundIter,
+        &Peak::isSelected);
+
+      if (pnextSelected == peaks->begin())
+      {
+        cout << "PINSERT: Successor is end()\n";
+        return false;
+      }
+
+      Piterator pnextBestMax;
+      if (! PeakPool::getBestMax(foundIter, pnextSelected, foundIter,
+        pnextBestMax))
+      {
+        cout << "PINSERT: Maximum is begin()\n";
+        return false;
+      }
+
+      Piterator nfoundIter = next(foundIter);
+      if (pnextBestMax != nfoundIter)
+      {
+        // Delete peaks in (foundIter, pnextBestMax).
+        cout << "PINSERT: Peak exists\n";
+        cout << foundIter->strHeaderQuality();
+        cout << foundIter->strQuality(offset);
+
+        cout << "PINSERT: Delete (" <<
+          foundIter->getIndex() + offset << ", " <<
+          pnextBestMax->getIndex() + offset << ")\n";
+        
+        PeakPool::collapse(nfoundIter, pnextBestMax);
+
+        // The right flank of foundIter must be updated.
+        foundIter->logNextPeak(&* pnextBestMax);
+
+        // Re-score foundIter.
+        foundIter->calcQualities(averages);
+
+        cout << "peakHint now\n";
+        cout << foundIter->strQuality(offset);
+      }
+
+      return true;
     }
     else
     {
@@ -388,6 +496,7 @@ bool PeakPool::repair(
 
       if (ins == 2)
       {
+        // TODO This should be the same as the general case below.
 
   /*
   cout << "PINSERT: Peak found at depth " << ldepth << "\n";
@@ -751,6 +860,56 @@ PPciterator PeakPool::prevCandInclSoft(
     else if (pitPrev == candidates.begin())
       return candidates.end();
   }
+}
+
+
+Piterator PeakPool::prevExcl(
+  Piterator& pit,
+  const PeakFncPtr& fptr) const
+{
+  if (pit == peaks->begin())
+    THROW(ERR_ALGO_PEAK_CONSISTENCY, "Miss earlier matching peak");
+
+  Piterator ppit = prev(pit);
+  return PeakPool::prevIncl(ppit, fptr);
+}
+
+
+Piterator PeakPool::prevIncl(
+  Piterator& pit,
+  const PeakFncPtr& fptr) const
+{
+  for (Piterator pitPrev = pit; ; pitPrev = prev(pitPrev))
+  {
+    if (((* pitPrev).* fptr)())
+      return pitPrev;
+    else if (pitPrev == peaks->begin())
+      THROW(ERR_ALGO_PEAK_CONSISTENCY, "Miss earlier matching peak");
+  }
+}
+
+
+Piterator PeakPool::nextExcl(
+  Piterator& pit,
+  const PeakFncPtr& fptr) const
+{
+  if (pit == peaks->end())
+    THROW(ERR_ALGO_PEAK_CONSISTENCY, "Miss later matching peak");
+
+  Piterator npit = next(pit);
+  return PeakPool::nextIncl(npit, fptr);
+}
+
+
+Piterator PeakPool::nextIncl(
+  Piterator& pit,
+  const PeakFncPtr& fptr) const
+{
+  Piterator pitNext = pit;
+  while (pitNext != peaks->end() && ! ((* pitNext).* fptr)())
+    pitNext++;
+
+  return pitNext;
 }
 
 

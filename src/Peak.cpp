@@ -656,6 +656,17 @@ bool Peak::similarGradientTwo(
 }
 
 
+float Peak::matchMeasure(const Peak& p1) const
+{
+  if (index == p1.index)
+    return 0.f;
+  else if (index > p1.index)
+    return (value - p1.value) * (value - p1.value) / (index - p1.index);
+  else
+    return (value - p1.value) * (value - p1.value) / (p1.index - index);
+}
+
+
 void Peak::deviation(
   const unsigned v1,
   const unsigned v2,
