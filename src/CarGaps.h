@@ -135,7 +135,7 @@ class CarGaps
     bool midGapPlausible() const;
     bool rightBogeyPlausible(const CarGaps& cgref) const;
     bool rightBogeyConvincing(const CarGaps& cgref) const;
-    bool gapsPlausible(const CarGaps& cgref) const;
+    bool corePlausible() const;
 
     string strHeader(const bool numberFlag) const;
 

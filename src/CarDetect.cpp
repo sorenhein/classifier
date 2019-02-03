@@ -413,7 +413,13 @@ bool CarDetect::distancePartialSymm(
 
 bool CarDetect::gapsPlausible(const CarDetect& cref) const
 {
-  return gaps.gapsPlausible(cref.gaps);
+  return gaps.sideGapsPlausible(cref.gaps);
+}
+
+
+bool CarDetect::corePlausible() const
+{
+  return gaps.corePlausible();
 }
 
 

@@ -103,6 +103,8 @@ bool PeakStructure::findNumberedWheeler(
   else if (numWheels == 4)
   {
     car.makeFourWheeler(range, peakPtrs);
+    if (! car.corePlausible())
+      return false;
     return models.gapsPlausible(car);
   }
   else

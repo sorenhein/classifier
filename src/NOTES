@@ -1,7 +1,43 @@
-Three wheels:
-Why 53 2-insertions but only 38 recognitions?
-Deal with 4, 6, 8 insertions (= sum of "at depth N")
-Deal with top-level match (insufficient pruning?)
+* Better extent in PeakDetect
+  - Both in small ranges and in kinks
+* Detecting model with extent
+  - Only if normal match is not enough
+  - Only for those models with d < 3 (or whatever)
+  - If detected, enters into model += car with modified peaks
+  - Use for detecting 4-wheel cars
+* Choose delta to center first detected peak on expected peak
+* There's a gradient on delta moving either way
+  - Within an interval, 0
+  - When an interval is moving closer: dist^2, gradient +2 dist
+  - When an interval is moving away: dist^2, gradient -2 dist
+  - Can keep going until hitting an edge
+  - Find the lowest (local) delta or range
+  - Pick the middle one if there's a choice
+  - Note the adjusted peaks within their extents
+  - Calculate the usual car-model distance
+  - Note the adjusted car, but don't change the peaks
+
+* Pass full peaks to regression
+* Also pass in choices of front changes
+  - how many missing?
+  - second choice (whole car missing)?
+* When regression has worked
+  - Adjust peak positions (same LP-type principle above)
+  - Run again
+
+* 3-wheel cars not just in 3-packs, but start or end of range
+
+* 4_DEU_48_N and _R: About 30 confusions
+  - Look at actual dots
+  - Are the reference distances right?
+
+* There seem to be way to many method calls during matching,
+  very slow
+
+* 1-wheel front cars: Could look at typical car spacing to see
+  whether it's a 4-wheel or a 3-wheel, and if a 3-wheel, where the
+  4-wheel ought to be
+
 
 
 The regression is odd: Different penalties in first and second stage?

@@ -578,11 +578,8 @@ bool CarGaps::rightBogeyConvincing(const CarGaps& cgref) const
 }
 
 
-bool CarGaps::gapsPlausible(const CarGaps& cgref) const
+bool CarGaps::corePlausible() const
 {
-  if (! CarGaps::sideGapsPlausible(cgref))
-    return false;
-
   if (! CarGaps::checkTwoSided(leftBogeyGap, rightBogeyGap,
       BOGEY_TO_BOGEY_FACTOR, "bogey size"))
     return false;
