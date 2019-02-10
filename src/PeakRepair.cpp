@@ -101,44 +101,22 @@ bool PeakRepair::add(
 }
 
 
-void PeakRepair::bracket(
+bool PeakRepair::bracket(
   const RepairRange& range,
   const unsigned gap,
-  const unsigned target,
   unsigned& lower,
   unsigned& upper) const
-{
-  const unsigned tolerance = static_cast<unsigned>(REPAIR_TOL * gap);
-  if (range.leftDirection)
-  {
-    PeakRepair::add(range.end, true, target, tolerance, lower);
-    PeakRepair::add(range.start, false, target, tolerance, upper);
-  }
-  else
-  {
-    PeakRepair::add(range.start, true, target, tolerance, lower);
-    PeakRepair::add(range.end, false, target, tolerance, upper);
-  }
-}
-
-
-Peak * PeakRepair::locatePeak(
-  const RepairRange& range,
-  const unsigned gap,
-  PeakPtrVector& peakPtrsUsed) const
 {
   // If we are looking left (leftDirection == true), then end < start.
 
   const unsigned gapLower = static_cast<unsigned>((1.f - REPAIR_TOL) * gap);
   const unsigned gapUpper = static_cast<unsigned>((1.f + REPAIR_TOL) * gap);
 
-  unsigned lower, upper;
-  // TODO Put in bracket
   if (range.leftDirection)
   {
     if (! PeakRepair::add(range.end, range.leftDirection, range.start, 
         gapLower, upper))
-      return nullptr;
+      return false;
 
     PeakRepair::add(range.end, range.leftDirection, range.start, 
         gapUpper, lower);
@@ -147,13 +125,24 @@ Peak * PeakRepair::locatePeak(
   {
     if (! PeakRepair::add(range.end, range.leftDirection, range.start, 
         gapLower, lower))
-      return nullptr;
+      return false;
 
     PeakRepair::add(range.end, range.leftDirection, range.start, 
         gapUpper, upper);
   }
+  return true;
+}
 
-  // PeakRepair::bracket(range, gap, target, lower, upper);
+
+Peak * PeakRepair::locatePeak(
+  const RepairRange& range,
+  const unsigned gap,
+  PeakPtrVector& peakPtrsUsed) const
+{
+  unsigned lower, upper;
+  if (! PeakRepair::bracket(range, gap, lower, upper))
+    return nullptr;
+
 cout << "lower " << lower << ", upper " << upper << endl;
   
   unsigned num = 0;

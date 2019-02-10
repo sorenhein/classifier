@@ -58,10 +58,9 @@ class PeakRepair
       const unsigned adder,
       unsigned& result) const;
 
-    void bracket(
+    bool bracket(
       const RepairRange& range,
       const unsigned gap,
-      const unsigned target,
       unsigned& lower,
       unsigned& upper) const;
 

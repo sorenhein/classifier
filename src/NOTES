@@ -1,4 +1,8 @@
+PeakRepair:
 
+- Let it recognize car and maybe partial cars of 234
+- See if we can then eliminate other partial recognizer
+- Also need to guess new models from partial first car
 
 
 * Better extent in PeakDetect
