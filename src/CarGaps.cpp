@@ -237,10 +237,10 @@ unsigned CarGaps::getGap(
   {
     if (specialFlag)
     {
-      if (peakNo != 0)
-        return 0;
-      else
+      if (peakNo == 0)
         return (leftGapSet ? 2 * leftGap : 0);
+      else
+        return 0;
     }
     else if (peakNo == 0)
       return (skippedFlag ? 0 : leftGap);
@@ -257,10 +257,10 @@ unsigned CarGaps::getGap(
   {
     if (specialFlag)
     {
-      if (peakNo != 3)
-        return 0;
-      else
+      if (peakNo == 3)
         return (rightGapSet ? 2 * rightGap : 0);
+      else
+        return 0;
     }
     else if (peakNo == 3)
       return (skippedFlag ? 0 : rightGap);

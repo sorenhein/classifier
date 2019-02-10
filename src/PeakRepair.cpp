@@ -128,11 +128,33 @@ Peak * PeakRepair::locatePeak(
   PeakPtrVector& peakPtrsUsed) const
 {
   // If we are looking left (leftDirection == true), then end < start.
-  unsigned target;
-  PeakRepair::add(range.end, range.leftDirection, range.start, gap, target);
+
+  const unsigned gapLower = static_cast<unsigned>((1.f - REPAIR_TOL) * gap);
+  const unsigned gapUpper = static_cast<unsigned>((1.f + REPAIR_TOL) * gap);
 
   unsigned lower, upper;
-  PeakRepair::bracket(range, gap, target, upper, lower);
+  // TODO Put in bracket
+  if (range.leftDirection)
+  {
+    if (! PeakRepair::add(range.end, range.leftDirection, range.start, 
+        gapLower, upper))
+      return nullptr;
+
+    PeakRepair::add(range.end, range.leftDirection, range.start, 
+        gapUpper, lower);
+  }
+  else
+  {
+    if (! PeakRepair::add(range.end, range.leftDirection, range.start, 
+        gapLower, lower))
+      return nullptr;
+
+    PeakRepair::add(range.end, range.leftDirection, range.start, 
+        gapUpper, upper);
+  }
+
+  // PeakRepair::bracket(range, gap, target, lower, upper);
+cout << "lower " << lower << ", upper " << upper << endl;
   
   unsigned num = 0;
   Peak * ptr = nullptr;
@@ -145,6 +167,9 @@ Peak * PeakRepair::locatePeak(
       ptr = p;
     }
   }
+
+if (ptr)
+  cout << "got " << ptr->getIndex() + offset << endl;
 
   if (num == 0)
     return nullptr;
@@ -184,19 +209,35 @@ bool PeakRepair::updatePossibleModels(
     if (! m.matchFlag)
       continue;
     
-    const unsigned gap = models.getGap(m.mno, m.reverseFlag, 
-      specialFlag, m.skippedFlag, peakNo);
+
+    const unsigned gap = models.getGap(
+      m.mno, 
+      (m.reverseFlag != range.leftDirection),
+      specialFlag, 
+      m.skippedFlag, 
+      (m.reverseFlag ? 3-peakNo : peakNo));
+
+cout << "\nmno " << m.mno << ", rev " << m.reverseFlag <<
+  ", spec " << specialFlag << ", skip " << m.skippedFlag << ", pno " <<
+  peakNo << ": gap " << gap << endl;
     if (gap == 0)
+    {
+      m.matchFlag = false;
       continue;
+    }
 
     // Start from the last seen peak.
     range.start = m.lastIndex;
+
+cout << "range " << range.start << ", " << range.end << ", " <<
+  range.leftDirection << endl;
 
     m.peaks[peakNo] = PeakRepair::locatePeak(range, gap, peakPtrsUsed);
     if (m.peaks[peakNo] == nullptr)
       m.newFlag = false;
     else
     {
+cout << "updating m\n";
       m.newFlag = true;
       m.lastIndex = m.peaks[peakNo]->getIndex();
       aliveFlag = true;
@@ -239,6 +280,8 @@ bool PeakRepair::firstCar(
   repairRange.end = range.startValue();
   repairRange.leftDirection = true;
 
+cout << "FIRSTSTART\n";
+
   // This finds existing models within the first-car mess.
 
   // TODO Guess cars that don't fit a model.
@@ -264,7 +307,8 @@ bool PeakRepair::firstCar(
     else
     {
       // Give up entirely if no model works.
-      return false;
+      // return false;
+      break;
     }
   }
 
