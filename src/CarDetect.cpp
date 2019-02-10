@@ -441,6 +441,16 @@ bool CarDetect::rightBogeyPlausible(const CarDetect& cref) const
 }
 
 
+unsigned CarDetect::getGap(
+  const bool reverseFlag,
+  const bool specialFlag,
+  const bool skippedFlag,
+  const unsigned peakNo) const
+{
+  return gaps.getGap(reverseFlag, specialFlag, skippedFlag, peakNo);
+}
+
+
 bool CarDetect::peakPrecedesCar(const Peak& peak) const
 {
   return (peak.getIndex() < start);

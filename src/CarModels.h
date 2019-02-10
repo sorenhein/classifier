@@ -22,6 +22,7 @@ class CarModels
       CarDetect carAvg;
       CarPeaks peaksAvg;
 
+      // TODO Do we still need this?
       CarPeaksNumbers peaksNumbers;
   
       // TODO Do we still need this per gap?
@@ -102,6 +103,13 @@ class CarModels
     bool twoWheelerPlausible(const CarDetect& car) const;
     bool threeWheelerPlausible(const CarDetect& car) const;
     bool gapsPlausible(const CarDetect& car) const;
+
+    unsigned getGap(
+      const unsigned mno,
+      const bool reverseFlag,
+      const bool specialFlag,
+      const bool skippedFlag,
+      const unsigned peakNo) const;
 
     string str() const;
 };

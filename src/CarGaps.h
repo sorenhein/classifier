@@ -101,6 +101,12 @@ class CarGaps
     unsigned rightBogeyGapValue() const;
     unsigned rightGapValue() const;
 
+    unsigned getGap(
+      const bool reverseFlag,
+      const bool specialFlag,
+      const bool skippedFlag,
+      const unsigned peakNo) const;
+
     bool hasLeftGap() const;
     bool hasRightGap() const;
     bool isPartial() const;

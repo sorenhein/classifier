@@ -1,21 +1,18 @@
+
+
+
 * Better extent in PeakDetect
   - Both in small ranges and in kinks
 * Detecting model with extent
   - Only if normal match is not enough
-  - Only for those models with d < 3 (or whatever)
+  - Only for those models with d < 5 (or whatever)
   - If detected, enters into model += car with modified peaks
   - Use for detecting 4-wheel cars
-* Choose delta to center first detected peak on expected peak
-* There's a gradient on delta moving either way
-  - Within an interval, 0
-  - When an interval is moving closer: dist^2, gradient +2 dist
-  - When an interval is moving away: dist^2, gradient -2 dist
-  - Can keep going until hitting an edge
-  - Find the lowest (local) delta or range
-  - Pick the middle one if there's a choice
-  - Note the adjusted peaks within their extents
-  - Calculate the usual car-model distance
-  - Note the adjusted car, but don't change the peaks
+* Possible moves of peaks
+  - Try all 4 inner moves and the right 2 outer moves.
+  - Pick the single best move, see if distance is good enough
+  - Keep doing?  Or just the first move?
+
 
 * Pass full peaks to regression
 * Also pass in choices of front changes
@@ -26,6 +23,7 @@
   - Run again
 
 * 3-wheel cars not just in 3-packs, but start or end of range
+  Can utilize knowledge, e.g. 1-3-4
 
 * 4_DEU_48_N and _R: About 30 confusions
   - Look at actual dots
@@ -42,11 +40,6 @@
 
 The regression is odd: Different penalties in first and second stage?
 - s05, 183315
-
-Do not count mismatches between 4_48_N and 4_48_R when both are < 1.00
-(still show them separately, or just count them up).
-
-Later on, make better averages of these two types.
 
 Unbalanced cars, but generally recognizable:
 - Low and high bogey still within factor 4/3 of one another
@@ -119,8 +112,6 @@ Do sth about symm cars and efficiency of checking in general
 - If matching two such cars, only use the forward distance
 
 
-ByQuality is in an in-between state.  Either turn on or delete.
-
 PeakStructure:
 - The distance detection / peak quality may also have to go here...
 
@@ -128,27 +119,6 @@ Python: Allow 082401 as input?
 
 carDetect endValue, startValue: Drop the +1, -1 stuff again, deal
 with in PeakStructure?
-
-MISMATCH in "good" sensors:
-
-sensor
-sensor02        162222  #41     First car: Get 2 last peaks, not 1 last
-
-sensor03        081132  #8      Inner: Only 3 peaks
-                052036  #10     First 10 peaks: Take from behind
-                                Inner: Only 3 peaks
-                193754  #16     First: 1, maybe 2 peaks
-                                Last: 5 peaks, 2 mislabeled early (new car)
-                061240  #19     Whole front car missing! Close 4_48_{N,R}
-                085719  #28     First: 4 great peaks (new car)
-                                Inner: Only 3 peaks (twice)
-                                Last: 4 great peaks (new car)
-                173935  #31     First: 2 great peaks
-                                Inner: Only 3 peaks
-                                Last: 7 peaks = 3 + 4 great ones
-
-sensor04        073931  #7      Wrong short gap, in-between neg. minimum!
-sensor06        115207  #34     ICE4_DEU_48_{N,R} extremely similar
 
 Clean up the PPc/const nonsense in PeakPool and PeakStructure.
 

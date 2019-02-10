@@ -6,6 +6,7 @@
 #include <sstream>
 
 #include "PeakStructure.h"
+#include "PeakRepair.h"
 #include "PeakProfile.h"
 #include "CarModels.h"
 #include "Except.h"
@@ -316,15 +317,35 @@ PeakStructure::FindCarType PeakStructure::findPartialFirstCarByQuality(
   PeakRange& range,
   CarDetect& car) const
 {
-  UNUSED(peaks);
-
   if (! range.isFirstCar())
     return FIND_CAR_NO_MATCH;
 
+  if (range.numGreat() > 4)
+    return FIND_CAR_NO_MATCH;
+
+  PeakRepair repair;
+  if (repair.firstCar(models, offset, peaks, range, car))
+    return FIND_CAR_PARTIAL;
+
+  if (range.numGreat() <= 3)
+  {
+  }
+
+
   if (range.numGreat() == 3)
   {
-    return PeakStructure::findPartialCarByQuality(models,
+    // return PeakStructure::findPartialCarByQuality(models,
+        // &Peak::greatQuality, 3, range, car);
+    PeakStructure::FindCarType f = 
+      PeakStructure::findPartialCarByQuality(models,
         &Peak::greatQuality, 3, range, car);
+    if (f == FIND_CAR_PARTIAL)
+      return f;
+    else if (range.numGood() == 3)
+    {
+cout << "PARTIAL 3GREAT\n";
+    }
+    return f;
   }
   else if (range.numGood() == 3)
   {

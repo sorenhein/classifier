@@ -227,6 +227,55 @@ unsigned CarGaps::rightGapValue() const
 }
 
 
+unsigned CarGaps::getGap(
+  const bool reverseFlag,
+  const bool specialFlag,
+  const bool skippedFlag,
+  const unsigned peakNo) const
+{
+  if (! reverseFlag)
+  {
+    if (specialFlag)
+    {
+      if (peakNo != 0)
+        return 0;
+      else
+        return (leftGapSet ? 2 * leftGap : 0);
+    }
+    else if (peakNo == 0)
+      return (skippedFlag ? 0 : leftGap);
+    else if (peakNo == 1)
+      return leftBogeyGap + (skippedFlag ? leftGap : 0);
+    else if (peakNo == 2)
+      return midGap + (skippedFlag ? leftBogeyGap : 0);
+    else if (peakNo == 3)
+      return rightBogeyGap + (skippedFlag ? midGap : 0);
+    else
+      return 0;
+  }
+  else
+  {
+    if (specialFlag)
+    {
+      if (peakNo != 3)
+        return 0;
+      else
+        return (rightGapSet ? 2 * rightGap : 0);
+    }
+    else if (peakNo == 3)
+      return (skippedFlag ? 0 : rightGap);
+    else if (peakNo == 2)
+      return rightBogeyGap + (skippedFlag ? rightGap : 0);
+    else if (peakNo == 1)
+      return midGap + (skippedFlag ? rightBogeyGap : 0);
+    else if (peakNo == 0)
+      return leftBogeyGap + (skippedFlag ? midGap : 0);
+    else
+      return 0;
+  }
+}
+
+
 bool CarGaps::hasLeftGap() const
 {
   return leftGapSet;

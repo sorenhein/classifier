@@ -263,6 +263,21 @@ bool CarModels::gapsPlausible(const CarDetect& car) const
 }
 
 
+unsigned CarModels::getGap(
+  const unsigned mno,
+  const bool reverseFlag,
+  const bool specialFlag,
+  const bool skippedFlag,
+  const unsigned peakNo) const
+{
+  if (mno >= models.size())
+    return false;
+
+  return models[mno].carAvg.getGap(reverseFlag, specialFlag,
+    skippedFlag, peakNo);
+}
+
+
 string CarModels::str() const
 {
   if (models.size() == 0)

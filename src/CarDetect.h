@@ -129,6 +129,12 @@ class CarDetect
     bool rightBogeyPlausible(const CarDetect& cref) const;
     bool corePlausible() const;
 
+    unsigned getGap(
+      const bool reverseFlag,
+      const bool specialFlag,
+      const bool skippedFlag,
+      const unsigned peakNo) const;
+
     bool peakPrecedesCar(const Peak& peak) const;
     bool carPrecedesPeak(const Peak& peak) const;
 
