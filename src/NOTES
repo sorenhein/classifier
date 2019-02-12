@@ -4,6 +4,23 @@ PeakRepair:
 - See if we can then eliminate other partial recognizer
 - Also need to guess new models from partial first car
 
+Store more in ModelData:
+
+- target, lower, upper
+- # of peak in peakPtrsUsed
+- When printing for debugging, also show the used and unused(?) peaks
+
+Recognize without model:
+- Get ranges of left/right gap (as one) and bogey gap (as one)
+- Store them in a symmetric CarGap?
+- Use same principle (getGaps) to search?
+
+Also:
+- Use extent (later on)
+- If we see a short car for the first time, look out for
+  - Slightly different bogeys
+  - A lot different mid gaps
+
 
 * Better extent in PeakDetect
   - Both in small ranges and in kinks
