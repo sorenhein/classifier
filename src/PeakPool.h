@@ -132,6 +132,7 @@ class PeakPool
 
     bool repairTopLevel(
       Piterator& foundIter,
+      const PeakFncPtr& fptr,
       const unsigned offset);
 
     bool repairFromLower(

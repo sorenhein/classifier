@@ -402,6 +402,7 @@ bool PeakPool::findTopSurrounding(
 
 bool PeakPool::repairTopLevel(
   Piterator& foundIter,
+  const PeakFncPtr& fptr,
   const unsigned offset)
 {
   // Peak exists but is not good enough, perhaps because of 
@@ -411,20 +412,46 @@ bool PeakPool::repairTopLevel(
   // Find the bracketing, selected minima and the bracketing maxima
   // (inside those bracketing minima) that maximize slope * range,
   // i.e. range^2 / len, for the foundIter peak.  This is a measure
-  // of a good, sharp peak.
+  // of a good, sharp peak.  Order, possibly with others in between:
+  // - pprevSelected (min),
+  // - pprevBestMax (max),
+  // - foundIter (min),
+  // - pnextBestMax (max),
+  // - pnextSelected (min).
   Piterator pprevSelected, pnextSelected;
   Piterator pprevBestMax, pnextBestMax;
   if (! PeakPool::findTopSurrounding(foundIter,
       pprevSelected, pnextSelected, pprevBestMax, pnextBestMax))
     return false;
 
+  // We make a trial run to ensure the quality if we clean up.
+  Peak ptmp = * foundIter;
+  ptmp.update(&* pprevBestMax);
+  Peak ptmpNext = * pnextBestMax;
+  ptmpNext.update(& ptmp);
+  ptmp.logNextPeak(& ptmpNext);
+  ptmp.calcQualities(averages);
+  if (! (ptmp.* fptr)())
+  {
+    cout << "PINSERT: Cleaned top-level peak would not be OK(3)\n";
+    cout << ptmp.strHeaderQuality();
+    cout << ptmp.strQuality(offset);
+    cout << "Used peaks:\n";
+    cout << pprevSelected->strQuality(offset);
+    cout << pprevBestMax->strQuality(offset);
+    cout << pnextBestMax->strQuality(offset);
+    cout << pnextSelected->strQuality(offset);
+    return false;
+  }
+
+  cout << "PINSERT: Top peak exists\n";
+  cout << foundIter->strHeaderQuality();
+  cout << foundIter->strQuality(offset);
+
   Piterator nprevBestMax = next(pprevBestMax);
   if (nprevBestMax != foundIter)
   {
     // Delete peaks in (pprevBestMax, foundIter).
-    cout << "PINSERT: Peak exists\n";
-    cout << foundIter->strHeaderQuality();
-    cout << foundIter->strQuality(offset);
 
     cout << "PINSERT: Delete (" <<
       pprevBestMax->getIndex() + offset << ", " <<
@@ -432,18 +459,9 @@ bool PeakPool::repairTopLevel(
 
     // This also recalculates left flanks.
     PeakPool::collapse(nprevBestMax, foundIter);
-    //
+
     // The right flank of nprevBestMax must/may be updated.
     nprevBestMax->logNextPeak(&* foundIter);
-
-    // Re-score foundIter.
-    foundIter->calcQualities(averages);
-
-    if (foundIter->goodQuality())
-      foundIter->select();
-
-    cout << "peakHint now\n";
-    cout << foundIter->strQuality(offset);
   }
 
 
@@ -451,9 +469,6 @@ bool PeakPool::repairTopLevel(
   if (pnextBestMax != nfoundIter)
   {
     // Delete peaks in (foundIter, pnextBestMax).
-    cout << "PINSERT: Peak exists\n";
-    cout << foundIter->strHeaderQuality();
-    cout << foundIter->strQuality(offset);
 
     cout << "PINSERT: Delete (" <<
       foundIter->getIndex() + offset << ", " <<
@@ -464,15 +479,15 @@ bool PeakPool::repairTopLevel(
     // The right flank of foundIter must be updated.
     foundIter->logNextPeak(&* pnextBestMax);
 
-    // Re-score foundIter.
-    foundIter->calcQualities(averages);
-
-    if (foundIter->goodQuality())
-      foundIter->select();
-
-    cout << "peakHint now\n";
-    cout << foundIter->strQuality(offset);
   }
+
+  // Re-score foundIter.
+  foundIter->calcQualities(averages);
+  if (((* foundIter).* fptr)())
+    foundIter->select();
+
+  cout << "peakHint now\n";
+  cout << foundIter->strQuality(offset);
 
   return true;
 }
@@ -601,7 +616,7 @@ bool PeakPool::repair(
     {
       // Peak exists, but may need to be sharpened by removing
       // surrounding peaks.
-      return PeakPool::repairTopLevel(foundIter, offset);
+      return PeakPool::repairTopLevel(foundIter, fptr, offset);
     }
     else
     {

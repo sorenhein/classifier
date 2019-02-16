@@ -1,9 +1,3 @@
-PeakPool:
-
-- Make repair modular
-- Split into a detect and a repair
-- Detect to return true and maybe some data if quality can be reached
-
 - PeakRepair:  Fill out missing wheels using detect and repair
 - See what is left of the old firstCar / partial
 - See what other detectors can be replaced by this
