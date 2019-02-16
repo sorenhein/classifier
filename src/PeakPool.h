@@ -127,6 +127,10 @@ class PeakPool
       Piterator& foundIter,
       const unsigned offset);
 
+    bool repairFromLower(
+      Piterator& foundIter,
+      const unsigned offset);
+
     float getFirstPeakTime() const;
 
 

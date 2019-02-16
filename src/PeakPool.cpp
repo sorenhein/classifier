@@ -460,6 +460,59 @@ bool PeakPool::repairTopLevel(
 }
 
 
+bool PeakPool::repairFromLower(
+  Piterator& foundIter,
+  const unsigned offset)
+{
+  // Peak only exists in earlier list and might be resurrected.
+  // It would go between pfirstPrev and pfirstNext (one min, one max).
+  PiterPair pfirstPrev, pfirstNext;
+  PeakPool::getBracketingPeaks(peakLists.rbegin(), 
+    foundIter->getIndex(), false, pfirstPrev, pfirstNext);
+
+  if (! pfirstPrev.hasFlag || ! pfirstNext.hasFlag)
+  {
+    cout << "PINSERT: Not an interior interval\n";
+    return false;
+  }
+
+  // Find the same bracketing peaks in the current list.
+  Piterator pcurrPrev, pcurrNext;
+  PeakPool::locateTopBrackets(pfirstPrev, pfirstNext, foundIter, 
+    pcurrPrev, pcurrNext);
+
+  // We only introduce two new peaks, so the one we found goes next 
+  // to the bracketing one with opposite polarity.  In the gap we put 
+  // the intervening peak with maximum value.  This is quick and dirty.
+  auto pnew = peaks->insert(pfirstNext.pit, * foundIter);
+
+  Peak * pmax;
+  if (pcurrPrev->isMinimum())
+  {
+    // New peak goes next to pfirstNext.
+    if (! PeakPool::getHighestMax(next(pcurrPrev), foundIter, pmax))
+      return false;
+
+    peaks->insert(pnew, * pmax);
+  }
+  else
+  {
+    // New peak goes next to pfirstPrev.
+    if (! PeakPool::getHighestMax(next(foundIter), pcurrNext, pmax))
+      return false;
+
+    peaks->insert(pfirstNext.pit, * pmax);
+  }
+
+  PeakPool::updateRepairedPeaks(pfirstPrev.pit, pfirstNext.pit);
+
+  PeakPool::printRepairedSegment(pfirstPrev.pit, pfirstNext.pit,
+    offset);
+
+  return true;
+}
+
+
 bool PeakPool::repair(
   const Peak& peakHint,
   const unsigned offset)
@@ -484,191 +537,14 @@ bool PeakPool::repair(
 
     if (liter == peakLists.rbegin())
     {
+      // Peak exists, but may need to be sharpened by removing
+      // surrounding peaks.
       return PeakPool::repairTopLevel(foundIter, offset);
-
-/*
-      // Peak exists but is not good enough, perhaps because of 
-      // neighboring spurious peaks.  To salvage the peak we'll have
-      // to remove kinks.
-
-      // Find the previous selected minimum.  
-      Piterator pprevSelected = PeakPool::prevExcl(foundIter,
-        &Peak::isSelected);
-
-      if (pprevSelected == peaks->begin())
-      {
-        cout << "PINSERT: Predecessor is begin()\n";
-        return false;
-      }
-
-      // Find the in-between maximum that maximizes slope * range,
-      // i.e. range^2 / len.
-      Piterator pprevBestMax;
-      if (! PeakPool::getBestMax(pprevSelected, foundIter, foundIter,
-        pprevBestMax))
-      {
-        cout << "PINSERT: Maximum is begin()\n";
-        return false;
-      }
-
-      Piterator nprevBestMax = next(pprevBestMax);
-      if (nprevBestMax != foundIter)
-      {
-        // Delete peaks in (pprevBestMax, foundIter).
-        cout << "PINSERT: Peak exists\n";
-        cout << foundIter->strHeaderQuality();
-        cout << foundIter->strQuality(offset);
-
-        cout << "PINSERT: Delete (" <<
-          pprevBestMax->getIndex() + offset << ", " <<
-          foundIter->getIndex() + offset << ")\n";
-
-        // This also recalculates left flanks.
-        PeakPool::collapse(nprevBestMax, foundIter);
-        //
-        // The right flank of nprevBestMax must/may be updated.
-        nprevBestMax->logNextPeak(&* foundIter);
-
-        // Re-score foundIter.
-        foundIter->calcQualities(averages);
-
-        if (foundIter->goodQuality())
-          foundIter->select();
-
-        cout << "peakHint now\n";
-        cout << foundIter->strQuality(offset);
-      }
-
-      Piterator pnextSelected = PeakPool::nextExcl(foundIter,
-        &Peak::isSelected);
-
-      if (pnextSelected == peaks->begin())
-      {
-        cout << "PINSERT: Successor is end()\n";
-        return false;
-      }
-
-      Piterator pnextBestMax;
-      if (! PeakPool::getBestMax(foundIter, pnextSelected, foundIter,
-        pnextBestMax))
-      {
-        cout << "PINSERT: Maximum is begin()\n";
-        return false;
-      }
-
-      Piterator nfoundIter = next(foundIter);
-      if (pnextBestMax != nfoundIter)
-      {
-        // Delete peaks in (foundIter, pnextBestMax).
-        cout << "PINSERT: Peak exists\n";
-        cout << foundIter->strHeaderQuality();
-        cout << foundIter->strQuality(offset);
-
-        cout << "PINSERT: Delete (" <<
-          foundIter->getIndex() + offset << ", " <<
-          pnextBestMax->getIndex() + offset << ")\n";
-        
-        PeakPool::collapse(nfoundIter, pnextBestMax);
-
-        // The right flank of foundIter must be updated.
-        foundIter->logNextPeak(&* pnextBestMax);
-
-        // Re-score foundIter.
-        foundIter->calcQualities(averages);
-
-        if (foundIter->goodQuality())
-          foundIter->select();
-
-        cout << "peakHint now\n";
-        cout << foundIter->strQuality(offset);
-      }
-
-      return true;
-      */
     }
     else
     {
       // Peak only exists in earlier list and might be resurrected.
-      // It would go between pfirstPrev and pfirstNext (one min, one max).
-      PiterPair pfirstPrev, pfirstNext;
-      PeakPool::getBracketingPeaks(peakLists.rbegin(), 
-        foundIter->getIndex(), false, pfirstPrev, pfirstNext);
-
-      if (! pfirstPrev.hasFlag || ! pfirstNext.hasFlag)
-      {
-        cout << "PINSERT: Not an interior interval\n";
-        return false;
-      }
-
-      // Find the same bracketing peaks in the current list.
-      Piterator pcurrPrev, pcurrNext;
-      PeakPool::locateTopBrackets(pfirstPrev, pfirstNext, foundIter, 
-        pcurrPrev, pcurrNext);
-
-      const unsigned ins = PeakPool::countInsertions(pcurrPrev, pcurrNext);
-      cout << "There are " << ins << " insertions\n";
-
-      if (ins == 2)
-      {
-        // TODO This should be the same as the general case below.
-
-  /*
-  cout << "PINSERT: Peak found at depth " << ldepth << "\n";
-  PeakPool::printRepairData(foundIter, pprev.pit, pnext.pit.
-    pfirstPrev.pit, pfirstNext.pit, pcurrPrev, pcurrNext, offset);
-  */
-
-        // The simplest case where one peak pair was considered a kink.
-        // We insert the two peaks.
-        peaks->insert(pfirstNext.pit, next(pcurrPrev), pcurrNext);
-
-        PeakPool::updateRepairedPeaks(pfirstPrev.pit, pfirstNext.pit);
-
-        PeakPool::printRepairedSegment(pfirstPrev.pit, pfirstNext.pit,
-          offset);
-
-        return true;
-      }
-      else
-      {
-        // More general case.  We only introduce two new peaks, so
-        // the one we found goes next to the bracketing one with
-        // opposite polarity.  In the gap we put the intervening
-        // peak with maximum value.  This is quick and dirty.
-
-    /*
-    cout << "PINSERT: Peak found at depth " << ldepth << "\n";
-    PeakPool::printRepairData(foundIter, pprev.pit, pnext.pit,
-      pfirstPrev.pit, pfirstNext.pit, pcurrPrev, pcurrNext, offset);
-      */
-
-        auto pnew = peaks->insert(pfirstNext.pit, * foundIter);
-        Peak * pmax;
-
-        if (pcurrPrev->isMinimum())
-        {
-          // New peak goes next to pfirstNext.
-          if (! PeakPool::getHighestMax(next(pcurrPrev), foundIter, pmax))
-            return false;
-
-          peaks->insert(pnew, * pmax);
-        }
-        else
-        {
-          // New peak goes next to pfirstPrev.
-          if (! PeakPool::getHighestMax(next(foundIter), pcurrNext, pmax))
-            return false;
-
-          peaks->insert(pfirstNext.pit, * pmax);
-        }
-
-        PeakPool::updateRepairedPeaks(pfirstPrev.pit, pfirstNext.pit);
-
-        PeakPool::printRepairedSegment(pfirstPrev.pit, pfirstNext.pit,
-          offset);
-
-        return true;
-      }
+      return PeakPool::repairFromLower(foundIter, offset);
     }
   }
 
