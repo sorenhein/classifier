@@ -356,6 +356,110 @@ bool PeakPool::getBestMax(
 }
 
 
+bool PeakPool::repairTopLevel(
+  Piterator& foundIter,
+  const unsigned offset)
+{
+  // Peak exists but is not good enough, perhaps because of 
+  // neighboring spurious peaks.  To salvage the peak we'll have
+  // to remove kinks.
+
+  // Find the previous selected minimum.  
+  Piterator pprevSelected = PeakPool::prevExcl(foundIter,
+    &Peak::isSelected);
+
+  if (pprevSelected == peaks->begin())
+  {
+    cout << "PINSERT: Predecessor is begin()\n";
+    return false;
+  }
+
+  // Find the in-between maximum that maximizes slope * range,
+  // i.e. range^2 / len.
+  Piterator pprevBestMax;
+  if (! PeakPool::getBestMax(pprevSelected, foundIter, foundIter,
+    pprevBestMax))
+  {
+    cout << "PINSERT: Maximum is begin()\n";
+    return false;
+  }
+
+  Piterator nprevBestMax = next(pprevBestMax);
+  if (nprevBestMax != foundIter)
+  {
+    // Delete peaks in (pprevBestMax, foundIter).
+    cout << "PINSERT: Peak exists\n";
+    cout << foundIter->strHeaderQuality();
+    cout << foundIter->strQuality(offset);
+
+    cout << "PINSERT: Delete (" <<
+      pprevBestMax->getIndex() + offset << ", " <<
+      foundIter->getIndex() + offset << ")\n";
+
+    // This also recalculates left flanks.
+    PeakPool::collapse(nprevBestMax, foundIter);
+    //
+    // The right flank of nprevBestMax must/may be updated.
+    nprevBestMax->logNextPeak(&* foundIter);
+
+    // Re-score foundIter.
+    foundIter->calcQualities(averages);
+
+    if (foundIter->goodQuality())
+      foundIter->select();
+
+    cout << "peakHint now\n";
+    cout << foundIter->strQuality(offset);
+  }
+
+  Piterator pnextSelected = PeakPool::nextExcl(foundIter,
+    &Peak::isSelected);
+
+  if (pnextSelected == peaks->begin())
+  {
+    cout << "PINSERT: Successor is end()\n";
+    return false;
+  }
+
+  Piterator pnextBestMax;
+  if (! PeakPool::getBestMax(foundIter, pnextSelected, foundIter,
+    pnextBestMax))
+  {
+    cout << "PINSERT: Maximum is begin()\n";
+    return false;
+  }
+
+  Piterator nfoundIter = next(foundIter);
+  if (pnextBestMax != nfoundIter)
+  {
+    // Delete peaks in (foundIter, pnextBestMax).
+    cout << "PINSERT: Peak exists\n";
+    cout << foundIter->strHeaderQuality();
+    cout << foundIter->strQuality(offset);
+
+    cout << "PINSERT: Delete (" <<
+      foundIter->getIndex() + offset << ", " <<
+      pnextBestMax->getIndex() + offset << ")\n";
+    
+    PeakPool::collapse(nfoundIter, pnextBestMax);
+
+    // The right flank of foundIter must be updated.
+    foundIter->logNextPeak(&* pnextBestMax);
+
+    // Re-score foundIter.
+    foundIter->calcQualities(averages);
+
+    if (foundIter->goodQuality())
+      foundIter->select();
+
+    cout << "peakHint now\n";
+    cout << foundIter->strQuality(offset);
+  }
+
+  return true;
+}
+
+
 bool PeakPool::repair(
   const Peak& peakHint,
   const unsigned offset)
@@ -380,6 +484,9 @@ bool PeakPool::repair(
 
     if (liter == peakLists.rbegin())
     {
+      return PeakPool::repairTopLevel(foundIter, offset);
+
+/*
       // Peak exists but is not good enough, perhaps because of 
       // neighboring spurious peaks.  To salvage the peak we'll have
       // to remove kinks.
@@ -477,6 +584,7 @@ bool PeakPool::repair(
       }
 
       return true;
+      */
     }
     else
     {

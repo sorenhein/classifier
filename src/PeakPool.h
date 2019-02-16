@@ -123,6 +123,10 @@ class PeakPool
       Piterator& pref,
       Piterator& pbest) const;
 
+    bool repairTopLevel(
+      Piterator& foundIter,
+      const unsigned offset);
+
     float getFirstPeakTime() const;
 
 
