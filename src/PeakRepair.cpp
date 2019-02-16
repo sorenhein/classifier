@@ -41,37 +41,15 @@ void PeakRepair::init(
   const unsigned msize,
   const unsigned start)
 {
-  modelData.clear();
   partialData.clear();
 
   for (unsigned i = 0; i < msize; i++)
   {
     for (bool b: {false, true})
     {
-      modelData.emplace_back(ModelData());
-      ModelData& m = modelData.back();
-
       partialData.emplace_back(PeakPartial());
       PeakPartial& p = partialData.back();
       p.init(i, b, start);
-
-      m.mno = i;
-      m.reverseFlag = b;
-
-      m.modelUsedFlag = false;
-      m.matchFlag = true;
-      m.skippedFlag = false;
-      m.newFlag = true;
-      m.lastIndex = start;
-
-      for (unsigned j = 0; j < 4; j++)
-        m.peaks.push_back(nullptr);
-
-      m.lower.resize(4);
-      m.upper.resize(4);
-      m.target.resize(4);
-      m.indexUsed.resize(4);
-      m.numUsed = 0;
     }
   }
 }
@@ -109,7 +87,8 @@ bool PeakRepair::add(
     {
       result = pos1 + adder;
       return true;
-    } }
+    } 
+  }
 }
 
 
@@ -167,9 +146,6 @@ Peak * PeakRepair::locatePeak(
     i++;
   }
 
-// if (ptr)
-  // cout << "got " << ptr->getIndex() + offset << endl;
-
   if (num == 0)
     return nullptr;
   else if (num > 1)
@@ -203,53 +179,39 @@ bool PeakRepair::updatePossibleModels(
   //   g4    g2      g2      g1    g0
 
   bool aliveFlag = false;
-  for (auto& m: modelData)
+  for (auto& p: partialData)
   {
-    if (! m.matchFlag)
+    if (! p.alive())
       continue;
-    
 
     const unsigned gap = models.getGap(
-      m.mno, 
-      (m.reverseFlag != range.leftDirection),
+      p.number(),
+      (p.reversed() != range.leftDirection),
       specialFlag, 
-      m.skippedFlag, 
-      (m.reverseFlag ? 3-peakNo : peakNo));
+      p.skipped(), 
+      (p.reversed() ? 3-peakNo : peakNo));
 
-// cout << "\nmno " << m.mno << ", rev " << m.reverseFlag <<
-  // ", spec " << specialFlag << ", skip " << m.skippedFlag << ", pno " <<
-  // peakNo << ": gap " << gap << endl;
     if (gap == 0)
     {
-      m.matchFlag = false;
+      p.registerFinished();
       continue;
     }
 
     // Start from the last seen peak.
-    range.start = m.lastIndex;
+    range.start = p.latest();
 
-// cout << "range " << range.start << ", " << range.end << ", " <<
-  // range.leftDirection << endl;
-
-    if (! PeakRepair::bracket(range, gap, m.lower[peakNo], m.upper[peakNo]))
+    unsigned lower, upper;
+    if (! PeakRepair::bracket(range, gap, lower, upper))
       continue;
 
-    m.target[peakNo] = (m.lower[peakNo] + m.upper[peakNo]) / 2;
-// cout << "lower " << m.lower[peakNo] << ", upper " << m.upper[peakNo] << endl;
+    p.registerRange(peakNo, lower, upper);
 
-    m.peaks[peakNo] = PeakRepair::locatePeak(m.lower[peakNo], 
-      m.upper[peakNo], peakPtrsUsed, m.indexUsed[peakNo]);
-    if (m.peaks[peakNo] == nullptr)
-      m.newFlag = false;
-    else
-    {
-// cout << "updating m\n";
-      m.modelUsedFlag = true;
-      m.newFlag = true;
-      m.lastIndex = m.peaks[peakNo]->getIndex();
-      m.numUsed++;
-      aliveFlag = true;
-    }
+    unsigned indexUsed;
+    Peak * pptr = PeakRepair::locatePeak(lower, upper, 
+      peakPtrsUsed, indexUsed);
+
+    p.registerPtr(peakNo, pptr);
+    p.registerIndexUsed(peakNo, indexUsed);
   }
   return aliveFlag;
 }
@@ -258,9 +220,9 @@ bool PeakRepair::updatePossibleModels(
 unsigned PeakRepair::numMatches() const
 {
   unsigned numAlive = 0;
-  for (auto& m: modelData)
+  for (auto& p: partialData)
   {
-    if (m.modelUsedFlag)
+    if (p.used())
       numAlive++;
   }
   return numAlive;
@@ -296,25 +258,9 @@ bool PeakRepair::firstCar(
 
   for (unsigned peakNoPlus1 = 4; peakNoPlus1 > 0; peakNoPlus1--)
   {
-    if (PeakRepair::updatePossibleModels(repairRange, peakNoPlus1 == 4,
-      peakPtrsUsed, peakNoPlus1-1, models))
-    {
-      for (auto& m: modelData)
-      {
-        // Give up on a model if we get two skips in a row.
-        if (m.newFlag)
-          m.skippedFlag = false;
-        else if (m.skippedFlag)
-          m.matchFlag = false;
-        else
-          m.skippedFlag = true;
-      }
-    }
-    else
-    {
-      // Give up if no model works.
+    if (! PeakRepair::updatePossibleModels(repairRange, peakNoPlus1 == 4,
+        peakPtrsUsed, peakNoPlus1-1, models))
       break;
-    }
   }
 
   const unsigned numModelMatches = PeakRepair::numMatches();
@@ -323,152 +269,48 @@ bool PeakRepair::firstCar(
 
   PeakRepair::printMatches();
 
-  // Check how many peaks each model uses, and the leftmost such peak.
-  list<unsigned> numPeaks, leftmost;
-  unsigned maxNumPeaks = 0, minLeftmost = 4;
-
-  ModelData *pModelLong = nullptr;
-
-  for (auto& m: modelData)
+  PeakPartial superModel;
+  bool superFlag = true;
+  for (auto& p: partialData)
   {
-    if (m.modelUsedFlag)
+    if (! superModel.supersede(p))
     {
-      for (unsigned pno = 0; pno < 4; pno++)
-      {
-        if (m.peaks[pno])
-        {
-          leftmost.push_back(pno);
-          if (pno < minLeftmost)
-            minLeftmost = pno;
-          break;
-        }
-      }
-
-      numPeaks.push_back(m.numUsed);
-      if (m.numUsed > maxNumPeaks)
-      {
-        maxNumPeaks = m.numUsed;
-        pModelLong = &m;
-      }
-    }
-    else
-    {
-      numPeaks.push_back(0);
-      leftmost.push_back(0);
-    }
-  }
-
-  // Check whether all models use the same peaks.
-  bool samePeaks = true;
-  auto mi = modelData.begin();
-  while (mi != modelData.end() && ! mi->modelUsedFlag)
-    mi++;
-
-  for (auto mi2 = modelData.begin(); mi2 != modelData.end(); mi2++)
-  {
-    if (mi2 == mi || ! mi2->modelUsedFlag)
-      continue;
-
-    for (unsigned i = 0; i < 4; i++)
-    {
-      if (mi->peaks[i] != mi2->peaks[i])
-      {
-        samePeaks = false;
-        break;
-      }
-    }
-    if (! samePeaks)
-      break;
-  }
-
-  // Check whether one model dominates the others.
-  bool dominantPeaks = true;
-
-  for (auto mi2 = modelData.begin(); mi2 != modelData.end(); mi2++)
-  {
-    if (&* mi2 == pModelLong || ! mi2->modelUsedFlag)
-      continue;
-
-    if (mi2->numUsed >= pModelLong->numUsed)
-    {
-      dominantPeaks = false;
+      superFlag = false;
       break;
     }
-
-    for (unsigned i = 0; i < 4; i++)
-    {
-      if (! pModelLong->peaks[i] && mi2->peaks[i])
-      {
-        dominantPeaks = false;
-        break;
-      }
-    }
-    if (! dominantPeaks)
-      break;
   }
 
-  cout << "WARNREPAIR: Total\n";
-  if (dominantPeaks)
+  if (! superFlag)
   {
-    cout << "WARNREPAIR: Dominant model " << maxNumPeaks << "\n";
-
-    if (maxNumPeaks == 4)
-      cout << "WARNREPAIR: Full car (dominant)\n";
-    else
-    {
-      for (unsigned i = 0; i < 4; i++)
-      {
-        if (pModelLong->peaks[i] || pModelLong->upper[i] == 0)
-          continue;
-
-        // See if we could complete the peak.
-        Peak peakHint;
-        peakHint.logPosition(pModelLong->target[i], pModelLong->lower[i], 
-          pModelLong->upper[i]);
-
-        if (peaks.repair(peakHint, &Peak::goodQuality, offset))
-          cout << "WARNREPAIR: " << pModelLong->target[i] + offset <<
-            " fixable\n";
-        else
-          cout << "WARNREPAIR: " << pModelLong->target[i] + offset <<
-            " missing\n";
-      }
-    }
+    cout << "WARNREPAIR: No dominant model " << superModel.count() << "\n";
+    return false;
   }
-  else if (samePeaks)
-  {
-    cout << "WARNREPAIR: Same peaks " << maxNumPeaks << "\n";
-  }
+
+  cout << "WARNREPAIR: Dominant model " << superModel.count() << "\n";
+  cout << superModel.strHeader();
+  cout << superModel.str(offset);
+
+  if (superModel.count() == 4)
+    cout << "WARNREPAIR: Full car (dominant)\n";
   else
   {
-    bool shorterFlag = false;
-    for (auto n: numPeaks)
+    for (unsigned i = 0; i < 4; i++)
     {
-      if (n > 0 && n < maxNumPeaks)
-      {
-        shorterFlag = true;
-        break;
-      }
+      if (superModel.hasPeak(i) || ! superModel.hasRange(i))
+        continue;
+
+      // See if we could complete the peak.
+      Peak peakHint;
+      superModel.setPeak(i, peakHint);
+
+      if (peaks.repair(peakHint, &Peak::goodQuality, offset))
+        cout << "WARNREPAIR: " << superModel.strTarget(i, offset) <<
+          " fixable\n";
+      else
+        cout << "WARNREPAIR: " << superModel.strTarget(i, offset) <<
+          " missing\n";
     }
-
-    if (shorterFlag)
-      cout << "WARNREPAIR: Shorter model\n";
-
-    bool lefterFlag = false;
-    for (auto n: leftmost)
-    {
-      if (n > 0 && n > minLeftmost)
-      {
-        lefterFlag = true;
-        break;
-      }
-    }
-
-    if (lefterFlag)
-      cout << "WARNREPAIR: Righter model\n";
   }
-
-
 
   // For the winning set of peaks:
   // Make downgrades.
@@ -482,24 +324,6 @@ bool PeakRepair::firstCar(
 }
 
 
-string PeakRepair::strIndex(
-  const ModelData& m,
-  const unsigned pno) const
-{
-  if (m.peaks[pno] == nullptr)
-  {
-    if (m.lower[pno] == 0)
-      return "-";
-    else
-      return "(" + to_string(m.lower[pno] + offset) + 
-        ", " + to_string(m.upper[pno] + offset) + ")";
-  }
-  else
-    return to_string(m.peaks[pno]->getIndex() + offset) +
-      " (" + to_string(m.indexUsed[pno]) + ")";
-}
-
-
 void PeakRepair::printMatches() const
 {
   const unsigned n = PeakRepair::numMatches();
@@ -507,28 +331,14 @@ void PeakRepair::printMatches() const
     return;
 
   cout << "FIRSTCAR matches: " << n << "\n";
-
-  cout << 
-    setw(4) << left << "mno" <<
-    setw(4) << left << "rev" <<
-    setw(16) << left << "p1" <<
-    setw(16) << left << "p2" <<
-    setw(16) << left << "p3" <<
-    setw(16) << left << "p4" << endl;
-    
-  for (auto& m: modelData)
+  cout << partialData.front().strHeader();
+  
+  for (auto& p: partialData)
   {
-   if (! m.modelUsedFlag)
-     continue;
-
-    cout << 
-      setw(4) << left << m.mno <<
-      setw(4) << left << (m.reverseFlag ? "R" : "") <<
-      setw(16) << left << PeakRepair::strIndex(m, 0) <<
-      setw(16) << left << PeakRepair::strIndex(m, 1) <<
-      setw(16) << left << PeakRepair::strIndex(m, 2) <<
-      setw(16) << left << PeakRepair::strIndex(m, 3) << "\n";
+    if (p.used())
+      cout << p.str(offset);
   }
+
   cout << endl;
 }
 

@@ -56,12 +56,17 @@ class PeakPartial
     void registerRange(
       const unsigned peakNo,
       const unsigned lowerIn,
-      const unsigned upperIn,
-      const unsigned targetIn);
+      const unsigned upperIn);
+
+    void registerIndexUsed(
+      const unsigned peakNo,
+      const unsigned indexUsedIn);
 
     void registerPtr(
       const unsigned peakNo,
       Peak * pptr);
+
+    void registerFinished();
 
     void setPeak(
       const unsigned peakNo,
@@ -70,10 +75,12 @@ class PeakPartial
     bool supersede(const PeakPartial& p2);
 
     unsigned number() const;
+    unsigned count() const;
+    unsigned latest() const;
     bool reversed() const;
+    bool skipped() const;
     bool alive() const;
     bool used() const;
-
     bool hasPeak(const unsigned peakNo) const;
     bool hasRange(const unsigned peakNo) const;
 

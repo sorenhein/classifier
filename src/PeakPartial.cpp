@@ -52,12 +52,19 @@ void PeakPartial::init(
 void PeakPartial::registerRange(
   const unsigned peakNo,
   const unsigned lowerIn,
-  const unsigned upperIn,
-  const unsigned targetIn)
+  const unsigned upperIn)
 {
   lower[peakNo] = lowerIn;
   upper[peakNo] = upperIn;
-  target[peakNo] = targetIn;
+  target[peakNo] = (lowerIn + upperIn) / 2;
+}
+
+
+void PeakPartial::registerIndexUsed(
+  const unsigned peakNo,
+  const unsigned indexUsedIn)
+{
+  indexUsed[peakNo] = indexUsedIn;
 }
 
 
@@ -86,6 +93,13 @@ void PeakPartial::registerPtr(
 }
 
 
+void PeakPartial::registerFinished()
+{
+  newFlag = false;
+  aliveFlag = false;
+}
+
+
 void PeakPartial::setPeak(
   const unsigned peakNo,
   Peak& peak) const
@@ -100,6 +114,10 @@ bool PeakPartial::dominates(const PeakPartial& p2) const
   {
     if (! peaks[i] && p2.peaks[i])
       return false;
+
+    // If not the same peak, it's confusing.
+    if (peaks[i] && p2.peaks[i] && peaks[i] != p2.peaks[i])
+      return false;
   }
   return true;
 }
@@ -111,6 +129,9 @@ bool PeakPartial::samePeaks(const PeakPartial& p2) const
   {
     if ((peaks[i] && ! p2.peaks[i]) ||
         (! peaks[i] && p2.peaks[i]))
+      return false;
+    
+    if (peaks[i] != p2.peaks[i])
       return false;
   }
   return true;
@@ -160,9 +181,27 @@ unsigned PeakPartial::number() const
 }
 
 
+unsigned PeakPartial::count() const
+{
+  return numUsed;
+}
+
+
+unsigned PeakPartial::latest() const
+{
+  return lastIndex;
+}
+
+
 bool PeakPartial::reversed() const
 {
   return reverseFlag;
+}
+
+
+bool PeakPartial::skipped() const
+{
+  return skippedFlag;
 }
 
 

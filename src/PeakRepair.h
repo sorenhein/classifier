@@ -52,7 +52,7 @@ class PeakRepair
       unsigned numUsed;
     };
 
-    list<ModelData> modelData;
+    // list<ModelData> modelData;
 
     list<PeakPartial> partialData;
 
@@ -88,10 +88,6 @@ class PeakRepair
       const CarModels& models);
 
     unsigned numMatches() const;
-
-    string strIndex(
-      const ModelData& m,
-      const unsigned pno) const;
 
 
   public:
