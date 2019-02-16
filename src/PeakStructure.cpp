@@ -592,7 +592,7 @@ PeakStructure::FindCarType PeakStructure::findCarByThreePeaks(
   cout << peakHint.strHeaderQuality();
   cout << peakHint.strQuality(offset) << "\n";
 
-  if (! peaks.repair(peakHint, offset))
+  if (! peaks.repair(peakHint, &Peak::goodQuality, offset))
     return FIND_CAR_NO_MATCH;
 
   range.fill(peaks);

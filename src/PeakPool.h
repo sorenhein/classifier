@@ -129,6 +129,7 @@ class PeakPool
 
     bool repairFromLower(
       Piterator& foundIter,
+      const PeakFncPtr& fptr,
       const unsigned offset);
 
     float getFirstPeakTime() const;
@@ -171,6 +172,7 @@ class PeakPool
 
     bool repair(
       const Peak& peakHint,
+      const PeakFncPtr& fptr,
       const unsigned offset); // offset is TMP
 
 
