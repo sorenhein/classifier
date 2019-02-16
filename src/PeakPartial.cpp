@@ -49,6 +49,43 @@ void PeakPartial::init(
 }
 
 
+void PeakPartial::registerRange(
+  const unsigned peakNo,
+  const unsigned lowerIn,
+  const unsigned upperIn,
+  const unsigned targetIn)
+{
+  lower[peakNo] = lowerIn;
+  upper[peakNo] = upperIn;
+  target[peakNo] = targetIn;
+}
+
+
+void PeakPartial::registerPtr(
+  const unsigned peakNo,
+  Peak * pptr)
+{
+  peaks[peakNo] = pptr;
+
+  if (pptr)
+  {
+    modelUsedFlag = true;
+    newFlag = true;
+    skippedFlag = false;
+    lastIndex = pptr->getIndex();
+    numUsed++;
+  }
+  else
+  {
+    newFlag = false;
+    if (skippedFlag)
+      aliveFlag = false;
+    else
+      skippedFlag = true;
+  }
+}
+
+
 void PeakPartial::setPeak(
   const unsigned peakNo,
   Peak& peak) const
@@ -114,6 +151,30 @@ bool PeakPartial::supersede(const PeakPartial& p2)
   }
   else
     return false;
+}
+
+
+unsigned PeakPartial::number() const
+{
+  return modelNo;
+}
+
+
+bool PeakPartial::reversed() const
+{
+  return reverseFlag;
+}
+
+
+bool PeakPartial::alive() const
+{
+  return aliveFlag;
+}
+
+
+bool PeakPartial::used() const
+{
+  return modelUsedFlag;
 }
 
 

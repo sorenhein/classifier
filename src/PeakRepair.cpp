@@ -42,6 +42,8 @@ void PeakRepair::init(
   const unsigned start)
 {
   modelData.clear();
+  partialData.clear();
+
   for (unsigned i = 0; i < msize; i++)
   {
     for (bool b: {false, true})

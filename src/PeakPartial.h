@@ -53,11 +53,26 @@ class PeakPartial
       const bool reverseFlagIn,
       const unsigned startIn);
 
+    void registerRange(
+      const unsigned peakNo,
+      const unsigned lowerIn,
+      const unsigned upperIn,
+      const unsigned targetIn);
+
+    void registerPtr(
+      const unsigned peakNo,
+      Peak * pptr);
+
     void setPeak(
       const unsigned peakNo,
       Peak& peak) const;
 
     bool supersede(const PeakPartial& p2);
+
+    unsigned number() const;
+    bool reversed() const;
+    bool alive() const;
+    bool used() const;
 
     bool hasPeak(const unsigned peakNo) const;
     bool hasRange(const unsigned peakNo) const;
