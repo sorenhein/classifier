@@ -10,11 +10,6 @@ PeakRepair:
 - See if we can then eliminate other partial recognizer
 - Also need to guess new models from partial first car
 
-Store more in ModelData:
-
-- target, lower, upper
-- # of peak in peakPtrsUsed
-- When printing for debugging, also show the used and unused(?) peaks
 
 Recognize without model:
 - Get ranges of left/right gap (as one) and bogey gap (as one)

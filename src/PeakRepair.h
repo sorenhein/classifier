@@ -37,11 +37,17 @@ class PeakRepair
       unsigned mno;
       bool reverseFlag;
 
+      bool modelUsedFlag;
       bool matchFlag;
       bool skippedFlag;
       bool newFlag;
       vector<Peak *> peaks;
       unsigned lastIndex;
+
+      vector<unsigned> lower;
+      vector<unsigned> upper;
+      vector<unsigned> target;
+      vector<unsigned> indexUsed;
     };
 
     list<ModelData> modelData;
@@ -65,9 +71,10 @@ class PeakRepair
       unsigned& upper) const;
 
     Peak * locatePeak(
-      const RepairRange& range,
-      const unsigned gap,
-      PeakPtrVector& PeakPtrsUsed) const;
+      const unsigned lower,
+      const unsigned upper,
+      PeakPtrVector& PeakPtrsUsed,
+      unsigned& indexUsed) const;
 
     bool updatePossibleModels(
       RepairRange& range,
@@ -78,7 +85,9 @@ class PeakRepair
 
     unsigned numMatches() const;
 
-    string strIndex(const Peak * peak) const;
+    string strIndex(
+      const ModelData& m,
+      const unsigned pno) const;
 
 
   public:
