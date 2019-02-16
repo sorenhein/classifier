@@ -48,6 +48,7 @@ class PeakRepair
       vector<unsigned> upper;
       vector<unsigned> target;
       vector<unsigned> indexUsed;
+      unsigned numUsed;
     };
 
     list<ModelData> modelData;

@@ -1,15 +1,16 @@
-- PeakRepair:  Fill out missing wheels using detect and repair
-- See what is left of the old firstCar / partial
-- See what other detectors can be replaced by this
-
-
-
 PeakRepair:
 
-- Let it recognize car and maybe partial cars of 234
-- See if we can then eliminate other partial recognizer
-- Also need to guess new models from partial first car
+Why did we lose 30 correct solutions?
+- Try a flag to repair which only inspects, doesn't repair
+- Run firstCar in the last-resort group and only once per pass.
+  Avoid a too-early detection of a partial car when we might later
+  get a full one.  Can we say we need to use all the great peaks?
+- See what we can slice out of WARNREPAIR to actually complete reliably
+  - Could be a couple of dominant partials and some dominated ones.
+    Should become dominant still.
+- See what's left then for the partial match (disable completely?)
 
+- Also need to guess new models:
 
 Recognize without model:
 - Get ranges of left/right gap (as one) and bogey gap (as one)
