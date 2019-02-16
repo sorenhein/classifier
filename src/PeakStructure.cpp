@@ -658,7 +658,7 @@ list<PeakRange>::iterator PeakStructure::updateRanges(
       // car preceding it.
       // This does not change any carAfter values.
       range.shortenLeft(car);
-      return ++rit;
+      return rit;
     }
   }
   else if (car.hasRightGap() || car.endValue() == range.endValue())
