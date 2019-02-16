@@ -49,6 +49,10 @@ void PeakRepair::init(
       modelData.emplace_back(ModelData());
       ModelData& m = modelData.back();
 
+      partialData.emplace_back(PeakPartial());
+      PeakPartial& p = partialData.back();
+      p.init(i, b, start);
+
       m.mno = i;
       m.reverseFlag = b;
 
@@ -103,8 +107,7 @@ bool PeakRepair::add(
     {
       result = pos1 + adder;
       return true;
-    }
-  }
+    } }
 }
 
 
@@ -283,8 +286,6 @@ bool PeakRepair::firstCar(
   repairRange.end = range.startValue();
   repairRange.leftDirection = true;
 
-// cout << "FIRSTSTART\n";
-
   // This finds existing models within the first-car mess.
 
   // TODO Guess cars that don't fit a model.
@@ -309,8 +310,7 @@ bool PeakRepair::firstCar(
     }
     else
     {
-      // Give up entirely if no model works.
-      // return false;
+      // Give up if no model works.
       break;
     }
   }
@@ -419,7 +419,6 @@ bool PeakRepair::firstCar(
         if (pModelLong->peaks[i] || pModelLong->upper[i] == 0)
           continue;
 
-// continue;
         // See if we could complete the peak.
         Peak peakHint;
         peakHint.logPosition(pModelLong->target[i], pModelLong->lower[i], 

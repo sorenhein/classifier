@@ -19,18 +19,19 @@ PeakDetect.obj: Except.h errors.h
 PeakMatch.obj: PeakMatch.h Peak.h struct.h PeakPool.h PeakStats.h Except.h
 PeakMatch.obj: errors.h
 PeakMinima.obj: Peak.h struct.h PeakMinima.h PeakPool.h Except.h errors.h
+PeakPartial.obj: PeakPartial.h Peak.h struct.h
 PeakPool.obj: PeakPool.h Peak.h struct.h Except.h errors.h
 PeakProfile.obj: PeakProfile.h struct.h Peak.h Except.h errors.h
 PeakRange.obj: PeakRange.h PeakProfile.h struct.h PeakPool.h Peak.h
 PeakRange.obj: CarDetect.h CarGaps.h CarPeaks.h
-PeakRepair.obj: PeakRepair.h Peak.h struct.h CarModels.h CarDetect.h
-PeakRepair.obj: CarGaps.h CarPeaks.h PeakPool.h PeakRange.h PeakProfile.h
-PeakRepair.obj: Except.h errors.h
+PeakRepair.obj: PeakRepair.h PeakPartial.h Peak.h struct.h CarModels.h
+PeakRepair.obj: CarDetect.h CarGaps.h CarPeaks.h PeakPool.h PeakRange.h
+PeakRepair.obj: PeakProfile.h Except.h errors.h
 PeakSeeds.obj: PeakSeeds.h Peak.h struct.h PeakPool.h
 PeakStats.obj: PeakStats.h struct.h Except.h errors.h
 PeakStructure.obj: PeakStructure.h CarDetect.h CarGaps.h Peak.h struct.h
 PeakStructure.obj: CarPeaks.h PeakPool.h PeakRange.h PeakProfile.h
-PeakStructure.obj: PeakRepair.h CarModels.h Except.h errors.h
+PeakStructure.obj: PeakRepair.h PeakPartial.h CarModels.h Except.h errors.h
 Regress.obj: Regress.h struct.h Database.h Clusters.h Timers.h Timer.h
 Regress.obj: Except.h errors.h print.h regress/PolynomialRegression.h
 SegActive.obj: SegActive.h Median/median.h PeakDetect.h Peak.h struct.h

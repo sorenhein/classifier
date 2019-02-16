@@ -8,6 +8,7 @@
 #include <vector>
 #include <list>
 
+#include "PeakPartial.h"
 #include "Peak.h"
 
 using namespace std;
@@ -52,6 +53,8 @@ class PeakRepair
     };
 
     list<ModelData> modelData;
+
+    list<PeakPartial> partialData;
 
 
     void init(

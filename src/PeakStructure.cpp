@@ -44,9 +44,6 @@ PeakStructure::PeakStructure()
     { &PeakStructure::findCarByOrder, 
       "by 1234 order", 0});
   findCarFunctions.push_back(
-    { &PeakStructure::findPartialFirstCarByQuality, 
-      "partial by quality", 1});
-  findCarFunctions.push_back(
     { &PeakStructure::findCarByGreatQuality, 
       "by great quality", 2});
   findCarFunctions.push_back(
@@ -59,6 +56,9 @@ PeakStructure::PeakStructure()
     { &PeakStructure::findEmptyRange, 
       "by emptiness", 5});
 
+  findCarFallbacks.push_back(
+    { &PeakStructure::findPartialFirstCarByQuality, 
+      "partial by quality", 1});
   findCarFallbacks.push_back(
     { &PeakStructure::findCarByLeveledPeaks, 
       "by leveled peaks", 6});

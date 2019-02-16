@@ -1,8 +1,25 @@
 PeakRepair:
 
-- Run firstCar in the last-resort group and only once per pass.
-  Avoid a too-early detection of a partial car when we might later
-  get a full one.  Can we say we need to use all the great peaks?
+- Dominance:
+  There will be a group of maximum models
+  They have the same peaks
+  They have the same hole positions
+  The hole ranges may be different -> choose union
+  There should be no other models with same count
+  There should be no other models filling holes
+  There may be shorter models that are strict subsets (except holes)
+
+- No dominance: Give up
+
+Then
+- Look for holes
+
+- Pass in peakPtrsUsed and Unused
+- Don't pass in car
+- Modify peakPtrsUsed to a 1234 raster with nullptrs as needed
+- In PeakStructure, fill the car and mark up and down
+- Only mark down peaks that could not be a new, earlier car
+
 - See what we can slice out of WARNREPAIR to actually complete reliably
   - Could be a couple of dominant partials and some dominated ones.
     Should become dominant still.
