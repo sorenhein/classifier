@@ -123,6 +123,13 @@ class PeakPool
       Piterator& pref,
       Piterator& pbest) const;
 
+    bool findTopSurrounding(
+      Piterator& foundIter,
+      Piterator& pprevSelected,
+      Piterator& pnextSelected,
+      Piterator& pprevBestMax,
+      Piterator& pnextBestMax) const;
+
     bool repairTopLevel(
       Piterator& foundIter,
       const unsigned offset);

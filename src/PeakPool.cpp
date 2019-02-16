@@ -356,17 +356,15 @@ bool PeakPool::getBestMax(
 }
 
 
-bool PeakPool::repairTopLevel(
+bool PeakPool::findTopSurrounding(
   Piterator& foundIter,
-  const unsigned offset)
+  Piterator& pprevSelected,
+  Piterator& pnextSelected,
+  Piterator& pprevBestMax,
+  Piterator& pnextBestMax) const
 {
-  // Peak exists but is not good enough, perhaps because of 
-  // neighboring spurious peaks.  To salvage the peak we'll have
-  // to remove kinks.
-
   // Find the previous selected minimum.  
-  Piterator pprevSelected = PeakPool::prevExcl(foundIter,
-    &Peak::isSelected);
+  pprevSelected = PeakPool::prevExcl(foundIter, &Peak::isSelected);
 
   if (pprevSelected == peaks->begin())
   {
@@ -376,13 +374,49 @@ bool PeakPool::repairTopLevel(
 
   // Find the in-between maximum that maximizes slope * range,
   // i.e. range^2 / len.
-  Piterator pprevBestMax;
   if (! PeakPool::getBestMax(pprevSelected, foundIter, foundIter,
     pprevBestMax))
   {
     cout << "PINSERT: Maximum is begin()\n";
     return false;
   }
+
+  pnextSelected = PeakPool::nextExcl(foundIter, &Peak::isSelected);
+
+  if (pnextSelected == peaks->begin())
+  {
+    cout << "PINSERT: Successor is end()\n";
+    return false;
+  }
+
+  if (! PeakPool::getBestMax(foundIter, pnextSelected, foundIter,
+    pnextBestMax))
+  {
+    cout << "PINSERT: Maximum is end()\n";
+    return false;
+  }
+
+  return true;
+}
+
+
+bool PeakPool::repairTopLevel(
+  Piterator& foundIter,
+  const unsigned offset)
+{
+  // Peak exists but is not good enough, perhaps because of 
+  // neighboring spurious peaks.  To salvage the peak we'll have
+  // to remove kinks.
+
+  // Find the bracketing, selected minima and the bracketing maxima
+  // (inside those bracketing minima) that maximize slope * range,
+  // i.e. range^2 / len, for the foundIter peak.  This is a measure
+  // of a good, sharp peak.
+  Piterator pprevSelected, pnextSelected;
+  Piterator pprevBestMax, pnextBestMax;
+  if (! PeakPool::findTopSurrounding(foundIter,
+      pprevSelected, pnextSelected, pprevBestMax, pnextBestMax))
+    return false;
 
   Piterator nprevBestMax = next(pprevBestMax);
   if (nprevBestMax != foundIter)
@@ -412,22 +446,6 @@ bool PeakPool::repairTopLevel(
     cout << foundIter->strQuality(offset);
   }
 
-  Piterator pnextSelected = PeakPool::nextExcl(foundIter,
-    &Peak::isSelected);
-
-  if (pnextSelected == peaks->begin())
-  {
-    cout << "PINSERT: Successor is end()\n";
-    return false;
-  }
-
-  Piterator pnextBestMax;
-  if (! PeakPool::getBestMax(foundIter, pnextSelected, foundIter,
-    pnextBestMax))
-  {
-    cout << "PINSERT: Maximum is begin()\n";
-    return false;
-  }
 
   Piterator nfoundIter = next(foundIter);
   if (pnextBestMax != nfoundIter)
