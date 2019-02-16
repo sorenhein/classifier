@@ -1,7 +1,5 @@
 PeakRepair:
 
-Why did we lose 30 correct solutions?
-- Try a flag to repair which only inspects, doesn't repair
 - Run firstCar in the last-resort group and only once per pass.
   Avoid a too-early detection of a partial car when we might later
   get a full one.  Can we say we need to use all the great peaks?

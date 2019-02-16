@@ -364,7 +364,7 @@ bool PeakPool::findTopSurrounding(
   Piterator& pnextBestMax) const
 {
   // Find the previous selected minimum.  
-  pprevSelected = PeakPool::prevExcl(foundIter, &Peak::isSelected);
+  pprevSelected = PeakPool::prevExclSoft(foundIter, &Peak::isSelected);
 
   if (pprevSelected == peaks->begin())
   {
@@ -942,6 +942,18 @@ Piterator PeakPool::prevExcl(
 }
 
 
+Piterator PeakPool::prevExclSoft(
+  Piterator& pit,
+  const PeakFncPtr& fptr) const
+{
+  if (pit == peaks->begin())
+    return peaks->begin();
+
+  Piterator ppit = prev(pit);
+  return PeakPool::prevInclSoft(ppit, fptr);
+}
+
+
 Piterator PeakPool::prevIncl(
   Piterator& pit,
   const PeakFncPtr& fptr) const
@@ -952,6 +964,20 @@ Piterator PeakPool::prevIncl(
       return pitPrev;
     else if (pitPrev == peaks->begin())
       THROW(ERR_ALGO_PEAK_CONSISTENCY, "Miss earlier matching peak");
+  }
+}
+
+
+Piterator PeakPool::prevInclSoft(
+  Piterator& pit,
+  const PeakFncPtr& fptr) const
+{
+  for (Piterator pitPrev = pit; ; pitPrev = prev(pitPrev))
+  {
+    if (((* pitPrev).* fptr)())
+      return pitPrev;
+    else if (pitPrev == peaks->begin())
+      return peaks->begin();
   }
 }
 

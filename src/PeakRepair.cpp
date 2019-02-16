@@ -419,7 +419,7 @@ bool PeakRepair::firstCar(
         if (pModelLong->peaks[i] || pModelLong->upper[i] == 0)
           continue;
 
-continue;
+// continue;
         // See if we could complete the peak.
         Peak peakHint;
         peakHint.logPosition(pModelLong->target[i], pModelLong->lower[i], 

@@ -272,7 +272,15 @@ class PeakPool
       Piterator& pit,
       const PeakFncPtr& fptr) const;
 
+    Piterator prevExclSoft(
+      Piterator& pit,
+      const PeakFncPtr& fptr) const;
+
     Piterator prevIncl(
+      Piterator& pit,
+      const PeakFncPtr& fptr) const;
+
+    Piterator prevInclSoft(
       Piterator& pit,
       const PeakFncPtr& fptr) const;
 
