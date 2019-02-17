@@ -55,13 +55,13 @@ PeakStructure::PeakStructure()
   findCarFunctions.push_back(
     { &PeakStructure::findEmptyRange, 
       "by emptiness", 5});
+  findCarFunctions.push_back(
+    { &PeakStructure::findCarByLeveledPeaks, 
+      "by leveled peaks", 6});
 
   findCarFallbacks.push_back(
     { &PeakStructure::findPartialFirstCarByQuality, 
       "partial by quality", 1});
-  findCarFallbacks.push_back(
-    { &PeakStructure::findCarByLeveledPeaks, 
-      "by leveled peaks", 6});
   findCarFallbacks.push_back(
     { &PeakStructure::findCarByEmptyLast, 
       "by empty last", 7});
@@ -358,6 +358,21 @@ PeakStructure::FindCarType PeakStructure::findPartialFirstCarByQuality(
   {
     return FIND_CAR_PARTIAL;
   }
+
+return FIND_CAR_NO_MATCH;
+  
+  /*
+  if (range.numGood() > range.numGreat() && range.numGood() <= 4)
+  {
+    if (PeakStructure::findPartialCarByQualityNew(models, 
+        &Peak::goodQuality, peaks, range, car) == FIND_CAR_PARTIAL)
+    {
+      // TODO Not very useful, only 14 hits.
+cout << "PEAKGOOD\n";
+      return FIND_CAR_PARTIAL;
+    }
+  }
+  */
 
 
   if (range.numGreat() == 3)

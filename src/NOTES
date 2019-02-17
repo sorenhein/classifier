@@ -2,19 +2,14 @@ PeakRepair:
 
 Only missing dominance now: s30 #13, it's a mess.
 
-Number of anywheelers                           758
-Number of 1-4 short first cars not caught:      174
-Number of zero-model fits:                      257
-Number of matches to
-MAIN1, 3 wheels                                   6
-MAIN2, 3 wheels                                   2
-MAIN3, 2 wheels                                  18
-So must fall through                            231
-Means some other methods match for               74
+Number of anywheelers                           760
+Number of 1-4 short first cars not caught       187
+Number of zero-model fits                       257
+Means some other methods match for               70
 
+How often do we move peaks from used to unused in practice?
 
 - See what we can slice out of WARNREPAIR to actually complete reliably
-- See what's left then for the partial match (disable completely?)
 
 Also need to guess new models without a reference:
 - We throw away some good first peaks, as the spacing isn't perfect
