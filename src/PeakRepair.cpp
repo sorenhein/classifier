@@ -257,7 +257,10 @@ bool PeakRepair::firstCar(
 
   const unsigned numModelMatches = PeakRepair::numMatches();
   if (numModelMatches == 0)
+  {
+    cout << "WARNREPAIR: No model match\n";
     return false;
+  }
 
   PeakRepair::printMatches();
 
