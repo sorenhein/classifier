@@ -15,8 +15,6 @@ Then
 - Only mark down peaks that could not be a new, earlier car
 
 - See what we can slice out of WARNREPAIR to actually complete reliably
-  - Could be a couple of dominant partials and some dominated ones.
-    Should become dominant still.
 - See what's left then for the partial match (disable completely?)
 
 - Also need to guess new models:

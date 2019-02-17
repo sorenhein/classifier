@@ -13,20 +13,42 @@ class PeakPartial
 {
   private:
 
+    // The model and reverse flag of the partial fit.
     unsigned modelNo;
     bool reverseFlag;
 
+    // true if the partial fit has any fit at all.
     bool modelUsedFlag;
+
+    // true if the partial fit might still fit even better.
     bool aliveFlag;
+
+    // skippedFlag is set if the peak from which we're starting was
+    // not in fact found, so we have to count up two gaps and not just one.
+    // (We should try to guess the gap of the abutting car, rather than
+    // just doubling our own gap.)
+    // If we're at peak #1, we'll have to add g0+g1 and not just g1.
+    // If we get to two skips, we give up.
+    //
+    // |    #3    #2        #1    #0    |
+    //   g4    g2      g2      g1    g0
     bool skippedFlag;
+    
+    // true if the last attempted fit worked out.
     bool newFlag;
+
     vector<Peak *> peaks;
     unsigned lastIndex;
 
+    // If a peak is not present, the place to look for it.
     vector<unsigned> lower;
     vector<unsigned> upper;
     vector<unsigned> target;
+
+    // The index in peakPtrsUsed corresponding to the stored peak.
     vector<unsigned> indexUsed;
+
+    // Number of peaks found.
     unsigned numUsed;
 
 

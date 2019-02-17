@@ -168,15 +168,6 @@ bool PeakRepair::updatePossibleModels(
 {
   // specialFlag is set for the first wheel in a car, as there are
   // two inter-car gaps in that case.
-  // skippedFlag is set if the peak from which we're starting was
-  // not in fact found, so we have to count up two gaps and not just one.
-  // (We should try to guess the gap of the abutting car, rather than
-  // just doubling our own gap.)
-  // If we're at peak #1, we'll have to add g0+g1 and not just g1.
-  // If we get to two skips, we give up.
-  // 
-  // |    #3    #2        #1    #0    |
-  //   g4    g2      g2      g1    g0
 
   bool aliveFlag = false;
   for (auto& p: partialData)
@@ -209,6 +200,9 @@ bool PeakRepair::updatePossibleModels(
     unsigned indexUsed;
     Peak * pptr = PeakRepair::locatePeak(lower, upper, 
       peakPtrsUsed, indexUsed);
+
+    if (pptr)
+      aliveFlag = true;
 
     p.registerPtr(peakNo, pptr);
     p.registerIndexUsed(peakNo, indexUsed);
