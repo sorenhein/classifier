@@ -258,6 +258,18 @@ bool PeakRepair::firstCar(
   const unsigned numModelMatches = PeakRepair::numMatches();
   if (numModelMatches == 0)
   {
+    if (peakPtrsUsed.size() == 0)
+      cout << "QUADRANT none used\n";
+    else
+    {
+      bool fourthFlag = 
+        peakPtrsUsed.back()->fitsType(BOGEY_RIGHT, WHEEL_RIGHT);
+
+      bool modelEndFlag = models.hasAnEndGap();
+
+      cout << "QUADRANT " << fourthFlag << ", " << modelEndFlag << endl;
+    }
+
     cout << "WARNREPAIR: No model match\n";
     return false;
   }

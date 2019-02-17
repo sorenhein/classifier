@@ -98,6 +98,17 @@ unsigned CarModels::available()
 }
 
 
+bool CarModels::hasAnEndGap() const
+{
+  for (auto& m: models)
+  {
+    if (m.carAvg.hasLeftGap() || m.carAvg.hasRightGap())
+     return true;
+  }
+  return false;
+}
+
+
 void CarModels::average(const unsigned index)
 {
   CarModel& m = models[index];

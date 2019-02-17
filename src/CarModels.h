@@ -63,6 +63,7 @@ class CarModels
     bool empty(const unsigned indexIn) const;
     unsigned size() const;
     unsigned available();
+    bool hasAnEndGap() const;
 
     void getCar(
       CarDetect& car,
