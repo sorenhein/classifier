@@ -1,12 +1,7 @@
 PeakRepair:
 
-- Dominance:
-  At least if they both have 1 peak, favor the one with the earliest peak
-
-- No dominance: Give up
-
-Then
 - Look for holes
+- The fixables generate exceptions for now
 
 - Pass in peakPtrsUsed and Unused
 - Don't pass in car

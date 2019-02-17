@@ -115,9 +115,21 @@ bool PeakPartial::dominates(const PeakPartial& p2) const
     if (! peaks[i] && p2.peaks[i])
       return false;
 
-    // If not the same peak, it's confusing.
+    // If not the same peak, it's not so clear.
     if (peaks[i] && p2.peaks[i] && peaks[i] != p2.peaks[i])
-      return false;
+    {
+      if (numUsed > 1 && 
+          p2.numUsed == 1 && 
+          i == 3 &&
+          peaks[i-1] == p2.peaks[i])
+      {
+        // Accept a p2 with a single peak that is the second-last
+        // peak here.  Effectively, we are betting that in p2 we
+        // telescoped over a real peak.
+      }
+      else
+        return false;
+    }
   }
   return true;
 }
