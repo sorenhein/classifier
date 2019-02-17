@@ -367,7 +367,21 @@ bool PeakRepair::firstCar(
   }
 
   // Fill out Used with the peaks actually used.
-  superModel.getPeaks(peakPtrsUsed, peakPtrsUnused);
+  PeakPtrVector peakPtrsSpare;
+  superModel.getPeaks(peakPtrsUsed, peakPtrsSpare);
+
+  if (peakPtrsSpare.size() > 0)
+  {
+    cout << "WARNSPARE: " << peakPtrsSpare.size() << endl;
+    cout << peakPtrsSpare.front()->strHeaderQuality();
+
+    for (auto& p: peakPtrsSpare)
+    {
+      cout<< p->strQuality(offset);
+      peakPtrsUnused.push_back(p);
+    }
+  }
+
   return true;
 }
 

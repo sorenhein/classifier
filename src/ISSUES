@@ -1,0 +1,55 @@
+PeakRepair:
+
+Only missing dominance now: s30 #13, it's a mess.
+======================
+
+No model match for partial first car
+======================
+
+1, 0  Fourth wheel, but no model with ends (3):
+-----
+s24, #45, 201606: gaps messed up
+s25, #23, 062423: gaps messed up
+s28, #10, 085221: gaps messed up
+
+0, 0  No fourth wheel, no model with ends (7):
+-----
+s09, #12, 075827: gaps messed up
+s13, #32, 135933: somewhat messed up
+s19, #19, 090921: somewhat messed up
+s22, #25, 195455: gaps messed up
+s30, #29, 084041: gaps messed up
+s30, #40, 034724: gaps messed up
+s34, #45, 170523: gaps messed up
+
+0, 1  No fourth wheel, but model with ends (18):
+-----
+s04, #17, 065516 [3]: OK car (4 peaks), but peak numbering messed up
+s07, # 6, 143132: gaps messed up
+s10, #13, 093111 [3]: gaps messed up
+s10, #19, 141941: gaps messed up
+s13, #24, 065025: gaps messed up
+s19, # 5, 170506: gaps messed up
+s19, # 6, 064331: gaps messed up
+s24, # 4, 091755: gaps messed up
+s24, #13, 164601: gaps messed up
+s24, #41, 134308 [3]: gaps messed up
+s32, #39, 082731: 225 too close, might be transient
+s34, # 2, 180956: pretty poor first peak, might be spurious
+
+
+Number of anywheelers                           939
+Number of zero-model fits                        28
+Number of 1-4 short first cars not caught        23
+Means some other methods match for                5
+
+
+Spare peaks: 252 occasions
+1       159     159
+2        62     124
+3        31      93
+-------------------
+        252     376 peaks
+
+* Of the singles, can probably distinguish transient, huge ones.
+* Why don't we ever get holes as in s07?
