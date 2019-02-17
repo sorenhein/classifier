@@ -400,7 +400,7 @@ bool PeakPool::findTopSurrounding(
 }
 
 
-bool PeakPool::repairTopLevel(
+Peak * PeakPool::repairTopLevel(
   Piterator& foundIter,
   const PeakFncPtr& fptr,
   const unsigned offset)
@@ -422,7 +422,7 @@ bool PeakPool::repairTopLevel(
   Piterator pprevBestMax, pnextBestMax;
   if (! PeakPool::findTopSurrounding(foundIter,
       pprevSelected, pnextSelected, pprevBestMax, pnextBestMax))
-    return false;
+    return nullptr;
 
   // We make a trial run to ensure the quality if we clean up.
   Peak ptmp = * foundIter;
@@ -441,7 +441,7 @@ bool PeakPool::repairTopLevel(
     cout << pprevBestMax->strQuality(offset);
     cout << pnextBestMax->strQuality(offset);
     cout << pnextSelected->strQuality(offset);
-    return false;
+    return nullptr;
   }
 
   cout << "PINSERT: Top peak exists\n";
@@ -489,11 +489,11 @@ bool PeakPool::repairTopLevel(
   cout << "peakHint now\n";
   cout << foundIter->strQuality(offset);
 
-  return true;
+  return &* foundIter;
 }
 
 
-bool PeakPool::repairFromLower(
+Peak * PeakPool::repairFromLower(
   Piterator& foundLowerIter,
   const PeakFncPtr& fptr,
   const unsigned offset)
@@ -510,7 +510,7 @@ bool PeakPool::repairFromLower(
   if (! ptopPrev.hasFlag || ! ptopNext.hasFlag)
   {
     cout << "PINSERT: Not an interior interval\n";
-    return false;
+    return nullptr;
   }
 
   // Find the same bracketing peaks in the current, lower list.
@@ -525,7 +525,7 @@ bool PeakPool::repairFromLower(
   if (plowerPrev->isMinimum())
   {
     if (! PeakPool::getHighestMax(next(plowerPrev), foundLowerIter, pmax))
-      return false;
+      return nullptr;
 
     // We make a trial run to ensure that the new minimum at the top
     // level will be of good quality.
@@ -538,7 +538,7 @@ bool PeakPool::repairFromLower(
       cout << "PINSERT: Inserted peak would not be OK(1)\n";
       cout << ptmp.strHeaderQuality();
       cout << ptmp.strQuality(offset);
-      return false;
+      return nullptr;
     }
 
     // Order: 
@@ -554,7 +554,7 @@ bool PeakPool::repairFromLower(
   {
     // New peak goes next to ptopPrev.
     if (! PeakPool::getHighestMax(next(foundLowerIter), plowerNext, pmax))
-      return false;
+      return nullptr;
 
     // Again we make a trial run.
     Peak ptmp = * foundLowerIter;
@@ -568,7 +568,7 @@ bool PeakPool::repairFromLower(
       cout << "PINSERT: Inserted peak would not be OK(2)\n";
       cout << ptmp.strHeaderQuality();
       cout << ptmp.strQuality(offset);
-      return false;
+      return nullptr;
     }
 
     // Order:
@@ -585,11 +585,11 @@ bool PeakPool::repairFromLower(
 
   PeakPool::printRepairedSegment(ptopPrev.pit, ptopNext.pit, offset);
 
-  return true;
+  return &* foundLowerIter;
 }
 
 
-bool PeakPool::repair(
+Peak * PeakPool::repair(
   const Peak& peakHint,
   const PeakFncPtr& fptr,
   const unsigned offset)
@@ -625,7 +625,7 @@ bool PeakPool::repair(
     }
   }
 
-  return false;
+  return nullptr;
 }
 
 

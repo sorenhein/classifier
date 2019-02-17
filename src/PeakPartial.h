@@ -90,7 +90,7 @@ class PeakPartial
 
     void registerFinished();
 
-    void setPeak(
+    void getPeak(
       const unsigned peakNo,
       Peak& peak) const;
 
@@ -107,6 +107,10 @@ class PeakPartial
     bool hasRange(const unsigned peakNo) const;
 
     unsigned numMatches() const;
+
+    void getPeaks(
+      vector<Peak *>& peaksUsed,
+      vector<Peak *>& peaksUnused) const;
 
     string strTarget(
       const unsigned peakNo,

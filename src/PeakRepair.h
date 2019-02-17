@@ -103,7 +103,8 @@ class PeakRepair
       const unsigned offsetIn,
       PeakPool& peaks,
       PeakRange& range,
-      CarDetect& car);
+      PeakPtrVector& peakPtrsUsed,
+      PeakPtrVector& peakPtrsUnused);
 
     void printMatches() const;
 

@@ -185,6 +185,33 @@ void CarDetect::makeFourWheeler(
 }
 
 
+void CarDetect::makeAnyWheeler(
+  const PeakRange& range,
+  const vector<Peak *>& peakPtrs)
+{
+  CarDetect::setLimits(range.startValue(), range.endValue());
+
+  if (peakPtrs[0] && range.hasLeftGap())
+    CarDetect::logLeftGap(peakPtrs[0]->getIndex() - start);
+
+  if (peakPtrs[3] && range.hasRightGap())
+    CarDetect::logRightGap(end - peakPtrs[3]->getIndex());
+
+  unsigned g1 = 0, g2 = 0, g3 = 0;
+  if (peakPtrs[0] && peakPtrs[1])
+    g1 = peakPtrs[1]->getIndex() - peakPtrs[0]->getIndex();
+  if (peakPtrs[1] && peakPtrs[2])
+    g2 = peakPtrs[2]->getIndex() - peakPtrs[1]->getIndex();
+  if (peakPtrs[2] && peakPtrs[3])
+    g3 = peakPtrs[3]->getIndex() - peakPtrs[2]->getIndex();
+
+  CarDetect::logCore(g1, g2, g3);
+
+  CarDetect::logPeakPointers(
+    peakPtrs[0], peakPtrs[1], peakPtrs[2], peakPtrs[3]);
+}
+
+
 void CarDetect::logDistance(const float d)
 {
   match.distance = d;

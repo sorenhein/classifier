@@ -1,13 +1,8 @@
 PeakRepair:
 
-- Look for holes
-- The fixables generate exceptions for now
+- We throw away some good first peaks, as the spacing isn't perfect
 
-- Pass in peakPtrsUsed and Unused
-- Don't pass in car
-- Modify peakPtrsUsed to a 1234 raster with nullptrs as needed
-- In PeakStructure, fill the car and mark up and down
-- Only mark down peaks that could not be a new, earlier car
+- There is another dominance to specify
 
 - See what we can slice out of WARNREPAIR to actually complete reliably
 - See what's left then for the partial match (disable completely?)

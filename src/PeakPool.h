@@ -130,12 +130,12 @@ class PeakPool
       Piterator& pprevBestMax,
       Piterator& pnextBestMax) const;
 
-    bool repairTopLevel(
+    Peak * repairTopLevel(
       Piterator& foundIter,
       const PeakFncPtr& fptr,
       const unsigned offset);
 
-    bool repairFromLower(
+    Peak * repairFromLower(
       Piterator& foundIter,
       const PeakFncPtr& fptr,
       const unsigned offset);
@@ -178,7 +178,7 @@ class PeakPool
       Piterator pit1,
       Piterator pit2);
 
-    bool repair(
+    Peak * repair(
       const Peak& peakHint,
       const PeakFncPtr& fptr,
       const unsigned offset); // offset is TMP

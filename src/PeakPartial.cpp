@@ -100,7 +100,7 @@ void PeakPartial::registerFinished()
 }
 
 
-void PeakPartial::setPeak(
+void PeakPartial::getPeak(
   const unsigned peakNo,
   Peak& peak) const
 {
@@ -184,6 +184,29 @@ bool PeakPartial::supersede(const PeakPartial& p2)
   }
   else
     return false;
+}
+
+
+void PeakPartial::getPeaks(
+  vector<Peak *>& peakPtrsUsed,
+  vector<Peak *>& peakPtrsUnused) const
+{
+  // if we didn't match a peak in the used vector, we move it to unused.
+  const unsigned np = peakPtrsUsed.size();
+  vector<unsigned> v(np, 0);
+  for (unsigned i = 0; i < 4; i++)
+  {
+    if (peaks[i])
+      v[indexUsed[i]] = 1;
+  }
+
+  for (unsigned i = 0; i < np; i++)
+  {
+    if (v[i] == 0)
+      peakPtrsUnused.push_back(peakPtrsUsed[i]);
+  }
+
+  peakPtrsUsed = peaks;
 }
 
 

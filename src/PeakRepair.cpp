@@ -228,12 +228,10 @@ bool PeakRepair::firstCar(
   const unsigned offsetIn,
   PeakPool& peaks,
   PeakRange& range,
-  CarDetect& car)
+  PeakPtrVector& peakPtrsUsed,
+  PeakPtrVector& peakPtrsUnused)
 {
   offset = offsetIn;
-
-  PeakPtrVector peakPtrsUsed, peakPtrsUnused;
-  range.splitByQuality(&Peak::greatQuality, peakPtrsUsed, peakPtrsUnused);
 
   PeakPtrVector peakResult(4, nullptr);
 
@@ -295,26 +293,32 @@ bool PeakRepair::firstCar(
 
       // See if we could complete the peak.
       Peak peakHint;
-      superModel.setPeak(i, peakHint);
+      superModel.getPeak(i, peakHint);
 
-      if (peaks.repair(peakHint, &Peak::goodQuality, offset))
+      Peak * pptr = peaks.repair(peakHint, &Peak::goodQuality, offset);
+      if (pptr)
+      {
         cout << "WARNREPAIR: " << superModel.strTarget(i, offset) <<
           " fixable\n";
-      else
-        cout << "WARNREPAIR: " << superModel.strTarget(i, offset) <<
-          " missing\n";
+        
+        // Add to superModel.
+        superModel.registerPtr(i, pptr);
+
+        // Remove from Unused if needed
+        for (auto p = peakPtrsUnused.begin(); p != peakPtrsUnused.end(); )
+        {
+          if (*p == pptr)
+            p = peakPtrsUnused.erase(p);
+          else
+            p++;
+        }
+      }
     }
   }
 
-  // For the winning set of peaks:
-  // Make downgrades.
-  // Add the peaks.
-  // Is this a model?
-  // If not, add one?
-  // Add car
-  UNUSED(car);
-  UNUSED(peaks);
-  return false;
+  // Fill out Used with the peaks actually used.
+  superModel.getPeaks(peakPtrsUsed, peakPtrsUnused);
+  return true;
 }
 
 

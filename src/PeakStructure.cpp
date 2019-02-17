@@ -122,9 +122,14 @@ void PeakStructure::markUpPeaks(
 
   // Always take the last numPeaks wheels.
   for (unsigned i = 0; i < numPeaks; i++)
+  {
+    if (! peakPtrsNew[i])
+      continue;
+
     peakPtrsNew[i]->markBogeyAndWheel(
       wheelSpecs[i+4-numPeaks].bogey, 
       wheelSpecs[i+4-numPeaks].wheel);
+  }
 }
 
 
@@ -323,9 +328,38 @@ PeakStructure::FindCarType PeakStructure::findPartialFirstCarByQuality(
   if (range.numGreat() > 4)
     return FIND_CAR_NO_MATCH;
 
+  PeakPtrVector peakPtrsUsed, peakPtrsUnused;
+  range.splitByQuality(&Peak::greatQuality, peakPtrsUsed, peakPtrsUnused);
+
   PeakRepair repair;
-  if (repair.firstCar(models, offset, peaks, range, car))
+  if (repair.firstCar(models, offset, peaks, range, 
+      peakPtrsUsed, peakPtrsUnused))
+  {
+cout << "Hit an anywheeler\n";
+cout << "used\n";
+cout << peakPtrsUsed.front()->strHeaderQuality();
+for (auto& p: peakPtrsUsed)
+{
+  if (p)
+    cout << p->strQuality(offset);
+  else
+    cout << "-\n";
+}
+cout << "unused\n";
+cout << peakPtrsUnused.front()->strHeaderQuality();
+for (auto& p: peakPtrsUnused)
+{
+  if (p)
+    cout << p->strQuality(offset);
+  else
+    cout << "-\n";
+}
+
+    car.makeAnyWheeler(range, peakPtrsUsed);
+    PeakStructure::markUpPeaks(peakPtrsUsed, 4);
+    PeakStructure::markDownPeaks(peakPtrsUnused);
     return FIND_CAR_PARTIAL;
+  }
 
   if (range.numGreat() <= 3)
   {

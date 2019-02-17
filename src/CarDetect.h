@@ -76,6 +76,10 @@ class CarDetect
       const PeakRange& range,
       const vector<Peak *>& peakPtrs);
 
+    void makeAnyWheeler(
+      const PeakRange& range,
+      const vector<Peak *>& peakPtrs);
+
     void logStatIndex(const unsigned index);
 
     void logDistance(const float d);
