@@ -175,44 +175,45 @@ bool PeakRepair::updatePossibleModels(
     if (! p.alive())
       continue;
 
-    const unsigned gap = models.getGap(
-      p.number(),
-      (p.reversed() != range.leftDirection),
-      specialFlag, 
-      p.skipped(), 
-      (p.reversed() ? 3-peakNo : peakNo));
-
-    if (gap == 0)
-    {
-      p.registerFinished();
-      continue;
-    }
-
     // Start from the last seen peak.
     range.start = p.latest();
 
-    unsigned lower, upper;
-    if (! PeakRepair::bracket(range, gap, lower, upper))
-      continue;
-
-
+    Peak * pptr;
     unsigned indexUsed;
-    Peak * pptr = PeakRepair::locatePeak(lower, upper, 
-      peakPtrsUsed, indexUsed);
 
-    if (pptr)
-      aliveFlag = true;
-    else if (specialFlag && 
-        peakPtrsUsed.size() > 0 &&
+    if (specialFlag && 
         peakPtrsUsed.back()->fitsType(BOGEY_RIGHT, WHEEL_RIGHT))
     {
-      // We were unlucky with the gap, but the wheel looks like a
-      // fourth one.
+      // Fourth wheel.
       pptr = peakPtrsUsed.back();
       indexUsed = peakPtrsUsed.size()-1;
     }
     else
-      p.registerRange(peakNo, lower, upper);
+    {
+      const unsigned gap = models.getGap(
+        p.number(),
+        (p.reversed() != range.leftDirection),
+        specialFlag, 
+        p.skipped(), 
+        (p.reversed() ? 3-peakNo : peakNo));
+
+      if (gap == 0)
+      {
+        p.registerFinished();
+        continue;
+      }
+
+      unsigned lower, upper;
+      if (! PeakRepair::bracket(range, gap, lower, upper))
+        continue;
+
+      pptr = PeakRepair::locatePeak(lower, upper, peakPtrsUsed, indexUsed);
+      if (! pptr)
+        p.registerRange(peakNo, lower, upper);
+    }
+
+    if (pptr)
+      aliveFlag = true;
 
     p.registerPtr(peakNo, pptr);
     p.registerIndexUsed(peakNo, indexUsed);
@@ -268,17 +269,12 @@ bool PeakRepair::firstCar(
   const unsigned numModelMatches = PeakRepair::numMatches();
   if (numModelMatches == 0)
   {
-    if (peakPtrsUsed.size() == 0)
-      cout << "QUADRANT none used\n";
-    else
-    {
-      bool fourthFlag = 
-        peakPtrsUsed.back()->fitsType(BOGEY_RIGHT, WHEEL_RIGHT);
+    bool fourthFlag = 
+      peakPtrsUsed.back()->fitsType(BOGEY_RIGHT, WHEEL_RIGHT);
 
-      bool modelEndFlag = models.hasAnEndGap();
+    bool modelEndFlag = models.hasAnEndGap();
 
-      cout << "QUADRANT " << fourthFlag << ", " << modelEndFlag << endl;
-    }
+    cout << "QUADRANT " << fourthFlag << ", " << modelEndFlag << endl;
 
     cout << "WARNREPAIR: No model match\n";
     return false;
