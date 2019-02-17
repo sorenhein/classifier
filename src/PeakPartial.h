@@ -58,6 +58,10 @@ class PeakPartial
 
     void extend(const PeakPartial& p2);
 
+    bool closeEnough(
+      const unsigned peakNo,
+      const unsigned posNo) const;
+
     string strIndex(
       const unsigned peakNo,
       const unsigned offset) const;

@@ -108,8 +108,90 @@ void PeakPartial::getPeak(
 }
 
 
+bool PeakPartial::closeEnough(
+  const unsigned peakNo,
+  const unsigned posNo) const
+{
+  const unsigned index = peaks[peakNo]->getIndex();
+
+  if (peakNo < posNo)
+  {
+    if (index > upper[posNo])
+      return true;
+    else
+      return (lower[posNo] - index < (upper[posNo] - lower[posNo]) / 2);
+  }
+  else
+  {
+    if (index < lower[posNo])
+      return true;
+    else
+      return (index - upper[posNo] < (upper[posNo] - lower[posNo]) / 2);
+  }
+}
+
+
 bool PeakPartial::dominates(const PeakPartial& p2) const
 {
+  if (p2.numUsed == 0)
+    return true;
+
+  // This is a bunch of heuristics followed by the actual rule.
+
+  if (p2.numUsed <= 2 && numUsed > p2.numUsed)
+  {
+    // p2 is subsumed in this.
+    bool subsumedFlag = true;
+    unsigned index = 0;
+    for (unsigned i = 0; i < 4; i++)
+    {
+      if (! p2.peaks[i])
+        continue;
+      while (index < 4 && 
+          (! peaks[index] || peaks[index] != p2.peaks[i]))
+        index++;
+      if (index == 4)
+      {
+        subsumedFlag = false;
+        break;
+      }
+    }
+    if (subsumedFlag)
+      return true;
+  }
+
+  if (numUsed == p2.numUsed && numUsed < 4)
+  {
+    // Start out the same (from the right).
+    bool sameFlag = true;
+    for (unsigned i = 5-numUsed; i < 4; i++)
+    {
+      if (! peaks[i] || p2.peaks[i] != peaks[i])
+      {
+        sameFlag = false;
+        break;
+      }
+    }
+
+    // The first peak (from the left) slipped to the left, but is
+    // close enough.
+    if (sameFlag &&
+        p2.peaks[3-numUsed] && p2.peaks[3-numUsed] == peaks[4-numUsed] &&
+        p2.closeEnough(3-numUsed, 4-numUsed))
+      return true;
+  }
+
+/*
+  if (numUsed == 1 && p2.numUsed == 1 &&
+      p2.peaks[2] && p2.peaks[2] == peaks[3] &&
+      p2.closeEnough(2, 3))
+  {
+    // The only p2 peak slipped ahead.  Either it clearly slipped,
+    // or it is at least close enough.
+    return true;
+  }
+*/
+
   for (unsigned i = 0; i < 4; i++)
   {
     if (! peaks[i] && p2.peaks[i])
@@ -117,19 +199,7 @@ bool PeakPartial::dominates(const PeakPartial& p2) const
 
     // If not the same peak, it's not so clear.
     if (peaks[i] && p2.peaks[i] && peaks[i] != p2.peaks[i])
-    {
-      if (numUsed > 1 && 
-          p2.numUsed == 1 && 
-          i == 3 &&
-          peaks[i-1] == p2.peaks[i])
-      {
-        // Accept a p2 with a single peak that is the second-last
-        // peak here.  Effectively, we are betting that in p2 we
-        // telescoped over a real peak.
-      }
-      else
-        return false;
-    }
+      return false;
   }
   return true;
 }
