@@ -353,27 +353,23 @@ PeakStructure::FindCarType PeakStructure::findPartialFirstCarByQuality(
   if (range.numGreat() > 4)
     return FIND_CAR_NO_MATCH;
 
-  if (PeakStructure::findPartialCarByQualityNew(models, 
-      &Peak::greatQuality, peaks, range, car) == FIND_CAR_PARTIAL)
+  if (range.numGreat() > 0 &&
+      PeakStructure::findPartialCarByQualityNew(models, 
+        &Peak::greatQuality, peaks, range, car) == FIND_CAR_PARTIAL)
   {
     return FIND_CAR_PARTIAL;
   }
-
-return FIND_CAR_NO_MATCH;
-  
-  /*
-  if (range.numGood() > range.numGreat() && range.numGood() <= 4)
+  else if (range.numGreat() == 0 && range.numGood() <= 4)
   {
     if (PeakStructure::findPartialCarByQualityNew(models, 
         &Peak::goodQuality, peaks, range, car) == FIND_CAR_PARTIAL)
     {
-      // TODO Not very useful, only 14 hits.
-cout << "PEAKGOOD\n";
       return FIND_CAR_PARTIAL;
     }
   }
-  */
 
+return FIND_CAR_NO_MATCH;
+  
 
   if (range.numGreat() == 3)
   {

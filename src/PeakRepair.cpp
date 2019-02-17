@@ -195,7 +195,6 @@ bool PeakRepair::updatePossibleModels(
     if (! PeakRepair::bracket(range, gap, lower, upper))
       continue;
 
-    p.registerRange(peakNo, lower, upper);
 
     unsigned indexUsed;
     Peak * pptr = PeakRepair::locatePeak(lower, upper, 
@@ -203,6 +202,17 @@ bool PeakRepair::updatePossibleModels(
 
     if (pptr)
       aliveFlag = true;
+    else if (specialFlag && 
+        peakPtrsUsed.size() > 0 &&
+        peakPtrsUsed.back()->fitsType(BOGEY_RIGHT, WHEEL_RIGHT))
+    {
+      // We were unlucky with the gap, but the wheel looks like a
+      // fourth one.
+      pptr = peakPtrsUsed.back();
+      indexUsed = peakPtrsUsed.size()-1;
+    }
+    else
+      p.registerRange(peakNo, lower, upper);
 
     p.registerPtr(peakNo, pptr);
     p.registerIndexUsed(peakNo, indexUsed);

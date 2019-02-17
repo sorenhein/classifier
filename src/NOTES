@@ -2,10 +2,10 @@ PeakRepair:
 
 Only missing dominance now: s30 #13, it's a mess.
 
-Number of anywheelers                           760
-Number of 1-4 short first cars not caught       187
-Number of zero-model fits                       257
-Means some other methods match for               70
+Number of anywheelers                           862
+Number of zero-model fits                       124
+Number of 1-4 short first cars not caught        94
+Means some other methods match for               30
 
 How often do we move peaks from used to unused in practice?
 
