@@ -108,26 +108,34 @@ void PeakPartial::getPeak(
 }
 
 
-bool PeakPartial::closeEnough(
+bool PeakPartial::closeEnoughFull(
+  const unsigned index,
   const unsigned peakNo,
   const unsigned posNo) const
 {
-  const unsigned index = peaks[peakNo]->getIndex();
-
-  if (peakNo < posNo)
-  {
-    if (index > upper[posNo])
-      return true;
-    else
-      return (lower[posNo] - index < (upper[posNo] - lower[posNo]) / 2);
-  }
+  if ((peakNo < posNo && index > upper[posNo]) ||
+      (peakNo > posNo && index < lower[posNo]))
+    return true;
   else
-  {
-    if (index < lower[posNo])
-      return true;
-    else
-      return (index - upper[posNo] < (upper[posNo] - lower[posNo]) / 2);
-  }
+    return PeakPartial::closeEnough(index, peakNo, posNo);
+}
+
+
+bool PeakPartial::closeEnough(
+  const unsigned index,
+  const unsigned peakNo,
+  const unsigned posNo) const
+{
+  if (peakNo < posNo)
+    return (lower[posNo] - index < (upper[posNo] - lower[posNo]) / 2);
+  else if (peakNo > posNo)
+    return (index - upper[posNo] < (upper[posNo] - lower[posNo]) / 2);
+  else if (index < lower[posNo])
+    return (lower[posNo] - index < (upper[posNo] - lower[posNo]) / 2);
+  else if (index > upper[posNo])
+    return (index - upper[posNo] < (upper[posNo] - lower[posNo]) / 2);
+  else
+    return true;
 }
 
 
@@ -175,22 +183,12 @@ bool PeakPartial::dominates(const PeakPartial& p2) const
 
     // The first peak (from the left) slipped to the left, but is
     // close enough.
+    Peak * ptr = p2.peaks[3-numUsed];
     if (sameFlag &&
-        p2.peaks[3-numUsed] && p2.peaks[3-numUsed] == peaks[4-numUsed] &&
-        p2.closeEnough(3-numUsed, 4-numUsed))
+        p2.peaks[3-numUsed] && ptr == peaks[4-numUsed] &&
+        p2.closeEnoughFull(ptr->getIndex(), 3-numUsed, 4-numUsed))
       return true;
   }
-
-/*
-  if (numUsed == 1 && p2.numUsed == 1 &&
-      p2.peaks[2] && p2.peaks[2] == peaks[3] &&
-      p2.closeEnough(2, 3))
-  {
-    // The only p2 peak slipped ahead.  Either it clearly slipped,
-    // or it is at least close enough.
-    return true;
-  }
-*/
 
   for (unsigned i = 0; i < 4; i++)
   {
@@ -236,6 +234,65 @@ void PeakPartial::extend(const PeakPartial& p2)
 }
 
 
+bool PeakPartial::merge(const PeakPartial& p2)
+{
+  // This is a heuristic.
+  if (numUsed != p2.numUsed || numUsed == 4)
+    return false;
+
+  // Start out the same (from the right).
+  bool sameFlag = true;
+  for (unsigned i = 5-numUsed; i < 4; i++)
+  {
+    if (! peaks[i] || p2.peaks[i] != peaks[i])
+    {
+      sameFlag = false;
+      break;
+    }
+  }
+  if (! sameFlag)
+    return false;
+
+  const unsigned start = 3-numUsed;
+  if (peaks[start] && p2.peaks[start+1])
+  {
+    if (peaks[start] == p2.peaks[start+1])
+      return false;
+
+    if (PeakPartial::closeEnough(p2.peaks[start+1]->getIndex(),
+        start+1, start+1))
+    {
+      // Merge in p2.peaks[start+1] into peaks[start+1].
+      peaks[start+1] = p2.peaks[start+1];
+      indexUsed[start+1] = p2.indexUsed[start+1];
+      numUsed++;
+      return true;
+    }
+    else
+      return false;
+      
+  }
+  else if (peaks[start+1] && p2.peaks[start])
+  {
+    if (peaks[start+1] == p2.peaks[start])
+      return false;
+
+    if (p2.closeEnough(peaks[start+1]->getIndex(), start+1, start+1))
+    {
+      // Merge in p2.peaks[start] into peaks[start].
+      peaks[start] = p2.peaks[start];
+      indexUsed[start] = p2.indexUsed[start];
+      numUsed++;
+      return true;
+    }
+    else
+      return false;
+  }
+  else
+    return false;
+}
+
+
 bool PeakPartial::supersede(const PeakPartial& p2)
 {
   if (PeakPartial::dominates(p2))
@@ -250,6 +307,10 @@ bool PeakPartial::supersede(const PeakPartial& p2)
   else if (PeakPartial::samePeaks(p2))
   {
     PeakPartial::extend(p2);
+    return true;
+  }
+  else if (PeakPartial::merge(p2))
+  {
     return true;
   }
   else

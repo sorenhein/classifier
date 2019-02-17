@@ -58,9 +58,17 @@ class PeakPartial
 
     void extend(const PeakPartial& p2);
 
-    bool closeEnough(
+    bool closeEnoughFull(
+      const unsigned index,
       const unsigned peakNo,
       const unsigned posNo) const;
+
+    bool closeEnough(
+      const unsigned index,
+      const unsigned peakNo,
+      const unsigned posNo) const;
+
+    bool merge(const PeakPartial& p2);
 
     string strIndex(
       const unsigned peakNo,

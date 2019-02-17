@@ -1,31 +1,6 @@
 PeakRepair:
 
-- Missing dominance (7)
-
-Different first peak, rest the same up to then, close
-----
-
-s11 #34, p3 is close enough in 2R
-mno rev p1              p2              p3              p4
-0       (71, 105)       (76, 171)       598 (1)         671 (2)
-2   R   (275, 292)      371 (0)         (572, 590)      671 (2)
-
-s14 #37, p3 is close enough in 6R
-mno rev p1              p2              p3              p4
-4   R   (254, 273)      -               355 (1)         471 (2)
-6   R   -               62 (0)          (320, 347)      471 (2)
-
-s19 #25, p3 is close enough in 1
-mno rev p1              p2              p3              p4
-1   R   -               153 (0)         (656, 671)      740 (2)
-2       (575, 590)      -               653 (1)         740 (2)
-
-s21 #14, p3 is close enough in 0
-mno rev p1              p2              p3              p4
-0       (410, 425)      -               490 (2)         564 (3)
-2   R   (144, 163)      246 (1)         (464, 483)      564 (3)
-
-
+Only missing dominance now:
 
 s30 #13, it's a mess
 mno rev p1              p2              p3              p4
