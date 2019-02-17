@@ -234,6 +234,52 @@ unsigned PeakRepair::numMatches() const
 }
 
 
+bool PeakRepair::getDominantModel(PeakPartial& dominantModel) const
+{
+  // Pick a longest model to start.
+  const PeakPartial * superBest = nullptr;
+  unsigned bestCount = 0;
+  for (auto& p: partialData)
+  {
+    if (p.count() > bestCount)
+    {
+      bestCount = p.count();
+      superBest = &p;
+    }
+  }
+  dominantModel = * superBest;
+
+  bool superFlag = true;
+  for (auto& p: partialData)
+  {
+    if (! dominantModel.supersede(p))
+    {
+      cout << dominantModel.strHeader();
+      cout << dominantModel.str(offset);
+      cout << p.str(offset);
+
+      superFlag = false;
+      break;
+    }
+  }
+
+  if ( superFlag)
+  {
+    cout << "WARNREPAIR: Dominant model " << 
+      dominantModel.count() << "\n";
+    cout << dominantModel.strHeader();
+    cout << dominantModel.str(offset);
+    return true;
+  }
+  else
+  {
+    cout << "WARNREPAIR: No dominant model " << 
+      dominantModel.count() << "\n";
+    return false;
+  }
+}
+
+
 bool PeakRepair::firstCar(
   const CarModels& models,
   const unsigned offsetIn,
@@ -282,42 +328,9 @@ bool PeakRepair::firstCar(
 
   PeakRepair::printMatches();
 
-  // Pick a longest model to start.
   PeakPartial superModel;
-  PeakPartial * superBest = nullptr;
-  unsigned bestCount = 0;
-  for (auto& p: partialData)
-  {
-    if (p.count() > bestCount)
-    {
-      bestCount = p.count();
-      superBest = &p;
-    }
-  }
-  superModel = * superBest;
-
-  bool superFlag = true;
-  for (auto& p: partialData)
-  {
-    if (! superModel.supersede(p))
-    {
-  cout << superModel.strHeader();
-  cout << superModel.str(offset);
-  cout << p.str(offset);
-      superFlag = false;
-      break;
-    }
-  }
-
-  if (! superFlag)
-  {
-    cout << "WARNREPAIR: No dominant model " << superModel.count() << "\n";
+  if (! PeakRepair::getDominantModel(superModel))
     return false;
-  }
-
-  cout << "WARNREPAIR: Dominant model " << superModel.count() << "\n";
-  cout << superModel.strHeader();
-  cout << superModel.str(offset);
 
   if (superModel.count() == 4)
     cout << "WARNREPAIR: Full car (dominant)\n";

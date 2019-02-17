@@ -89,6 +89,8 @@ class PeakRepair
 
     unsigned numMatches() const;
 
+    bool getDominantModel(PeakPartial& dominantModel) const;
+
 
   public:
 
