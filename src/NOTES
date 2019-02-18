@@ -1,3 +1,24 @@
+Plan 2019-02-18
+---------------
+Do something about the peripheral peaks in PeakRepair
+- The transient peaks (µ +/- 2 sigma) should be eliminated
+- Should also pass in good peaks, not just great ones
+- Can look first in great peaks, then in good ones
+- Are there holes that should arise but don't, e.g. sensor07?
+
+Pass the front geometry to regression
+- Limit the front +/- to the plausible ones
+- Could also have missed entire front car
+- 124 could be something else as well, particularly if it's a new car
+
+Make PeakRepair more general for internal cars as well
+- Not quite as aggressive about recognizing anything as a car
+- Peaks should generally be there, although they may be hidden
+- Start on first cars up to perhaps 8 peaks
+- Don't mark down peaks in front of the interior car, may be 
+  a partial first car
+
+
 How often do we move peaks from used to unused in practice?
 - Move them to a 3rd list and don't drop them yet
 - High range, no 1234, front -> drop
