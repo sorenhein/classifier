@@ -341,6 +341,8 @@ bool PeakRepair::firstCar(
       if (superModel.hasPeak(i) || ! superModel.hasRange(i))
         continue;
 
+      // TODO Is there almost a peak that fits already?
+
       // See if we could complete the peak.
       Peak peakHint;
       superModel.getPeak(i, peakHint);
