@@ -353,6 +353,8 @@ PeakStructure::FindCarType PeakStructure::findPartialFirstCarByQuality(
   if (range.numGreat() > 4)
     return FIND_CAR_NO_MATCH;
 
+peaks.pruneTransients(offset, range.endValue());
+
   if (range.numGreat() > 0 &&
       PeakStructure::findPartialCarByQualityNew(models, 
         &Peak::greatQuality, peaks, range, car) == FIND_CAR_PARTIAL)

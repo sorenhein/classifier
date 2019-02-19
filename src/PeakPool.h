@@ -178,6 +178,10 @@ class PeakPool
       Piterator pit1,
       Piterator pit2);
 
+    void pruneTransients(
+      const unsigned offset,
+      const unsigned firstGoodIndex);
+
     Peak * repair(
       const Peak& peakHint,
       const PeakFncPtr& fptr,

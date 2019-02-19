@@ -126,6 +126,51 @@ Piterator PeakPool::collapse(
 }
 
 
+void PeakPool::pruneTransients(
+  const unsigned offset,
+  const unsigned firstGoodIndex)
+{
+  float levelSum = 0., levelSumSq = 0.;
+  unsigned num = 0;
+  for (auto& peak: * peaks)
+  {
+    if (peak.isSelected() && peak.getIndex() >= firstGoodIndex)
+    {
+      const float level = peak.getValue();
+      levelSum += level;
+      levelSumSq += level * level;
+      num++;
+    }
+  }
+
+  if (num <= 1)
+    return;
+
+  const float mean = levelSum / num;
+  const float sdev = sqrt(levelSumSq / (num-1) - mean * mean);
+  const float limit = mean - 2.f * sdev;
+
+  // Go for the first consecutive peaks that are too negative.
+  for (auto& peak: * peaks)
+  {
+    if (peak.getIndex() >= firstGoodIndex)
+      return;
+
+    if (! peak.isCandidate())
+      continue;
+
+    if (peak.getValue() >= limit)
+      return;
+
+    cout << "PEAKTRANS " << 
+      setw(10) << setprecision(2) << mean <<
+      setw(10) << setprecision(2) << sdev <<
+      setw(10) << setprecision(2) << limit << 
+      peak.strQuality(offset);
+  }
+}
+
+
 void PeakPool::getBracketingPeaks(
   const list<PeakList>::reverse_iterator& liter,
   const unsigned pindex,
