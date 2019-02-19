@@ -29,6 +29,7 @@ void PeakPool::clear()
   candidates.clear();
   averages.clear();
   transientTrimmedFlag = false;
+  transientLimit = 0;
 }
 
 
@@ -127,13 +128,9 @@ Piterator PeakPool::collapse(
 }
 
 
-  #define UNUSED(x) ((void)(true ? 0 : ((x), void(), 0)))
 bool PeakPool::pruneTransients(
-  const unsigned offset,
   const unsigned firstGoodIndex)
 {
-  // TODO repair should not be possible in front of transients.
-  UNUSED(offset);
   if (transientTrimmedFlag)
     return false;
   else
@@ -179,29 +176,20 @@ bool PeakPool::pruneTransients(
 
     pitLastTransient = pit;
     seenFlag = true;
-
-    cout << "PEAKTRANS " << 
-      setw(10) << setprecision(2) << mean <<
-      setw(10) << setprecision(2) << sdev <<
-      setw(10) << setprecision(2) << limit << 
-      peak.strQuality(offset);
   }
 
   if (! seenFlag) 
     return false;
 
   // Remove the transient peaks.
-  cout << "Removing incl. " << pitLastTransient->getIndex() + offset << endl;
   peaks->erase(peaks->begin(), ++pitLastTransient);
 
   // Also remove any candidates.
+  transientLimit = pitLastTransient->getIndex();
   for (PPiterator ppit = candidates.begin(); ppit != candidates.end(); )
   {
-    if ((* ppit)->getIndex() < pitLastTransient->getIndex())
-    {
-      cout << "Removing candidate " << (* ppit)->getIndex() + offset << endl;
+    if ((* ppit)->getIndex() < transientLimit)
       ppit = candidates.erase(ppit);
-    }
     else
       break;
   }
@@ -678,6 +666,8 @@ Peak * PeakPool::repair(
   const unsigned offset)
 {
   const unsigned pindex = peakHint.getIndex();
+  if (pindex < transientLimit)
+    return nullptr;
 
   unsigned ldepth = 0;
   for (auto liter = peakLists.rbegin(); liter != peakLists.rend(); 

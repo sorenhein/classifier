@@ -62,6 +62,7 @@ class PeakPool
 
     // We only trim leading transients once.
     bool transientTrimmedFlag;
+    unsigned transientLimit;
 
     struct PiterPair
     {
@@ -181,9 +182,7 @@ class PeakPool
       Piterator pit1,
       Piterator pit2);
 
-    bool pruneTransients(
-      const unsigned offset,
-      const unsigned firstGoodIndex);
+    bool pruneTransients(const unsigned firstGoodIndex);
 
     Peak * repair(
       const Peak& peakHint,

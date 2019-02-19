@@ -45,11 +45,10 @@ Means some other methods match for                5
 
 
 Spare peaks: 252 occasions
-1       159     159
-2        62     124
-3        31      93
+1       116     116
+2        51     102
+3        26      78
 -------------------
-        252     376 peaks
+        193     296 peaks
 
-* Of the singles, can probably distinguish transient, huge ones.
 * Why don't we ever get holes as in s07?

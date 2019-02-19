@@ -354,7 +354,7 @@ PeakStructure::FindCarType PeakStructure::findPartialFirstCarByQuality(
     return FIND_CAR_NO_MATCH;
 
   // Have to refill range if we pruned transients.
-  if (peaks.pruneTransients(offset, range.endValue()))
+  if (peaks.pruneTransients(range.endValue()))
   {
     range.fill(peaks);
     if (range.numGood() == 0)

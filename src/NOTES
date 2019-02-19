@@ -1,7 +1,6 @@
 Plan 2019-02-18
 ---------------
 Do something about the peripheral peaks in PeakRepair
-- The transient peaks (µ +/- 2 sigma) should be eliminated
 - Should also pass in good peaks, not just great ones
 - Can look first in great peaks, then in good ones
 - Are there holes that should arise but don't, e.g. sensor07?
