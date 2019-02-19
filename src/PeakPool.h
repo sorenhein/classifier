@@ -60,6 +60,9 @@ class PeakPool
     // Average peaks used for quality.
     vector<Peak> averages;
 
+    // We only trim leading transients once.
+    bool transientTrimmedFlag;
+
     struct PiterPair
     {
       Piterator pit;
@@ -178,7 +181,7 @@ class PeakPool
       Piterator pit1,
       Piterator pit2);
 
-    void pruneTransients(
+    bool pruneTransients(
       const unsigned offset,
       const unsigned firstGoodIndex);
 

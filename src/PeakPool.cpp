@@ -28,6 +28,7 @@ void PeakPool::clear()
   peaks = &peakLists.front();
   candidates.clear();
   averages.clear();
+  transientTrimmedFlag = false;
 }
 
 
@@ -126,10 +127,19 @@ Piterator PeakPool::collapse(
 }
 
 
-void PeakPool::pruneTransients(
+  #define UNUSED(x) ((void)(true ? 0 : ((x), void(), 0)))
+bool PeakPool::pruneTransients(
   const unsigned offset,
   const unsigned firstGoodIndex)
 {
+  // TODO repair should not be possible in front of transients.
+  UNUSED(offset);
+  if (transientTrimmedFlag)
+    return false;
+  else
+    transientTrimmedFlag = true;
+
+  // Determine statistics.
   float levelSum = 0., levelSumSq = 0.;
   unsigned num = 0;
   for (auto& peak: * peaks)
@@ -144,23 +154,31 @@ void PeakPool::pruneTransients(
   }
 
   if (num <= 1)
-    return;
+    return false;
 
   const float mean = levelSum / num;
   const float sdev = sqrt(levelSumSq / (num-1) - mean * mean);
   const float limit = mean - 2.f * sdev;
 
   // Go for the first consecutive peaks that are too negative.
-  for (auto& peak: * peaks)
+  //for (auto& peak: * peaks)
+  Piterator pitLastTransient;
+  bool seenFlag = false;
+
+  for (Piterator pit = peaks->begin(); pit != peaks->end(); pit++)
   {
+    Peak& peak = * pit;
     if (peak.getIndex() >= firstGoodIndex)
-      return;
+      break;
 
     if (! peak.isCandidate())
       continue;
 
     if (peak.getValue() >= limit)
-      return;
+      break;
+
+    pitLastTransient = pit;
+    seenFlag = true;
 
     cout << "PEAKTRANS " << 
       setw(10) << setprecision(2) << mean <<
@@ -168,6 +186,26 @@ void PeakPool::pruneTransients(
       setw(10) << setprecision(2) << limit << 
       peak.strQuality(offset);
   }
+
+  if (! seenFlag) 
+    return false;
+
+  // Remove the transient peaks.
+  cout << "Removing incl. " << pitLastTransient->getIndex() + offset << endl;
+  peaks->erase(peaks->begin(), ++pitLastTransient);
+
+  // Also remove any candidates.
+  for (PPiterator ppit = candidates.begin(); ppit != candidates.end(); )
+  {
+    if ((* ppit)->getIndex() < pitLastTransient->getIndex())
+    {
+      cout << "Removing candidate " << (* ppit)->getIndex() + offset << endl;
+      ppit = candidates.erase(ppit);
+    }
+    else
+      break;
+  }
+  return true;
 }
 
 

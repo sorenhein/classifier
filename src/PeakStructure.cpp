@@ -353,7 +353,16 @@ PeakStructure::FindCarType PeakStructure::findPartialFirstCarByQuality(
   if (range.numGreat() > 4)
     return FIND_CAR_NO_MATCH;
 
-peaks.pruneTransients(offset, range.endValue());
+  // Have to refill range if we pruned transients.
+  if (peaks.pruneTransients(offset, range.endValue()))
+  {
+    range.fill(peaks);
+    if (range.numGood() == 0)
+    {
+      // TODO Should the next car then actively become the first one?
+      return FIND_CAR_DOWNGRADE;
+    }
+  }
 
   if (range.numGreat() > 0 &&
       PeakStructure::findPartialCarByQualityNew(models, 
