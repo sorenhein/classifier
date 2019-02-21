@@ -332,6 +332,8 @@ bool PeakRepair::firstCar(
   if (! PeakRepair::getDominantModel(superModel))
     return false;
 
+  superModel.printSituation(peakPtrsUsed, peakPtrsUnused, offset);
+
   if (superModel.count() == 4)
     cout << "WARNREPAIR: Full car (dominant)\n";
   else

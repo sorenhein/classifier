@@ -318,6 +318,105 @@ bool PeakPartial::supersede(const PeakPartial& p2)
 }
 
 
+string PeakPartial::strEntry(const unsigned n) const
+{
+  if (n == 0)
+    return "-";
+  else
+    return to_string(n);
+}
+
+
+#define UNUSED(x) ((void)(true ? 0 : ((x), void(), 0)))
+void PeakPartial::printSituation(
+  const vector<Peak *>& peakPtrsUsed,
+  const vector<Peak *>& peakPtrsUnused,
+  const unsigned offset) const
+{
+  UNUSED(peakPtrsUnused);
+  const unsigned peakCode =
+    (peaks[0] ? 8 : 0) | 
+    (peaks[1] ? 4 : 0) | 
+    (peaks[2] ? 2 : 0) | 
+    (peaks[3] ? 1 : 0);
+
+  //      p0      p1      p2      p3
+  //   i4 >|< i3 >|<  i2 >|<  i1 >|<  i0
+  //                      |<  i5
+  //              |<      i6     >|
+  //       |<     i7     >|
+  //       i8    >|
+
+  const unsigned p0 = (peaks[0] ? peaks[0]->getIndex() : 0);
+  const unsigned p1 = (peaks[1] ? peaks[1]->getIndex() : 0);
+  const unsigned p2 = (peaks[2] ? peaks[2]->getIndex() : 0);
+  const unsigned p3 = (peaks[3] ? peaks[3]->getIndex() : 0);
+
+  vector<unsigned> intervalCount(11);
+  unsigned count = 0;
+  for (auto& p: peakPtrsUsed)
+  {
+    if (p == peaks[0] || p == peaks[1] || p == peaks[2] || p == peaks[3])
+      continue;
+
+    count++;
+    const unsigned index = p->getIndex();
+
+    if (peaks[0] && index <= p0)
+      intervalCount[4]++;
+    else if (peaks[0] && peaks[1] && index > p0 && index <= p1)
+      intervalCount[3]++;
+    else if (peaks[1] && peaks[2] && index > p1 && index <= p2)
+      intervalCount[2]++;
+    else if (peaks[2] && peaks[3] && index > p2 && index <= p3)
+      intervalCount[1]++;
+    else if (peaks[3] && index > p3)
+      intervalCount[0]++;
+    else if (peaks[1] && index <= p1)
+      intervalCount[8]++;
+    else if (peaks[0] && peaks[2] && index > p0 && index <= p2)
+      intervalCount[7]++;
+    else if (peaks[1] && peaks[3] && index > p1 && index <= p3)
+      intervalCount[6]++;
+    else if (peaks[2] && index > p2)
+      intervalCount[5]++;
+    else if (! peaks[0] && ! peaks[1])
+    {
+      if (! peaks[2] && index <= p3)
+        intervalCount[9]++;
+      else if (peaks[2] && index <= p2)
+        intervalCount[10]++;
+      else
+      cout << "PEAKPARTIALERROR1 " << index + offset << "\n";
+    }
+    else
+      cout << "PEAKPARTIALERROR2 " << index + offset << "\n";
+  }
+  
+  if (! count)
+    return;
+
+  cout << "PEAKPART  " << 
+    setw(2) << peakCode <<
+    setw(4) << PeakPartial::strEntry(peaks[0] == nullptr ? 0 : 1) <<
+    setw(2) << PeakPartial::strEntry(peaks[1] == nullptr ? 0 : 1) <<
+    setw(2) << PeakPartial::strEntry(peaks[2] == nullptr ? 0 : 1) <<
+    setw(2) << PeakPartial::strEntry(peaks[3] == nullptr ? 0 : 1) <<
+
+    setw(4) << PeakPartial::strEntry(intervalCount[4]) <<
+    setw(2) << PeakPartial::strEntry(intervalCount[3]) <<
+    setw(2) << PeakPartial::strEntry(intervalCount[2]) <<
+    setw(2) << PeakPartial::strEntry(intervalCount[1]) <<
+    setw(2) << PeakPartial::strEntry(intervalCount[0]) <<
+    setw(4) << PeakPartial::strEntry(intervalCount[8]) <<
+    setw(2) << PeakPartial::strEntry(intervalCount[7]) <<
+    setw(2) << PeakPartial::strEntry(intervalCount[6]) <<
+    setw(2) << PeakPartial::strEntry(intervalCount[5]) << 
+    setw(3) << PeakPartial::strEntry(intervalCount[9]) <<
+    setw(2) << PeakPartial::strEntry(intervalCount[10]) << endl;
+}
+
+
 void PeakPartial::getPeaks(
   vector<Peak *>& peakPtrsUsed,
   vector<Peak *>& peakPtrsUnused) const

@@ -74,6 +74,8 @@ class PeakPartial
       const unsigned peakNo,
       const unsigned offset) const;
 
+    string strEntry(const unsigned n) const;
+
   public:
 
     PeakPartial();
@@ -123,6 +125,11 @@ class PeakPartial
     void getPeaks(
       vector<Peak *>& peaksUsed,
       vector<Peak *>& peaksUnused) const;
+
+    void printSituation(
+      const vector<Peak *>& peaksUsed,
+      const vector<Peak *>& peaksUnused,
+      const unsigned offset) const;
 
     string strTarget(
       const unsigned peakNo,
