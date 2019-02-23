@@ -5,7 +5,7 @@ use warnings;
 
 # Extract data from sensor??.txt to focus on partial first cars.
 
-my $select = "PEAKPART   3";
+my $select = "PEAKPART   1";
 
 for my $file (@ARGV)
 {

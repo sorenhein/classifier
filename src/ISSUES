@@ -99,3 +99,126 @@ Small problems:
 s24 #22 120447: Too many tiny peaks around 555, the correct peak
 s18 #50 175144: Peak 1107 is chosen (spurious) as it's already 
   marked as #4, even though 999 is actually peak #4
+
+
+PEAKPART 3
+
+a) A single spare peak, < p3: Skip
+
+s00 #2: < p3 is spurious, 0.26 0.26
+s00 #38: < p3 is spurious, 0.31 0.31
+s01 #51: < p3 is spurious, 0.34 0.34
+s02 #1: < p3 is spurious, 0.46 0.56
+s02 #7: < p3 is spurious, 0.41 0.43
+s03 #17: < p3 is spurious, 0.29 0.32
+s05 #54: p3-p4 is spurious, 0.41 1.71
+s08 #6: < p3 OK to skip, 0.39 0.89
+s08 #14: < p3 is spurious, 0.29 0.29
+s09 #24: < p3 is spurious, 0.73 1.13
+s13 #25: < p3 is spurious, 0.40 1.18
+s15 #2: < p3 is spurious, 0.04. 1.29, too close
+s15 #19: < p3, 0.36 0.59
+s15 #27: < p3, 0.22 0.24
+s16 #9: < p3, 0.45 0.59
+s18 #5: < p3, 0.28 0.33
+s19 #29: < p3, 0.24 0.47
+s23 #6: < p3, 0.46 0.47
+s23 #8: < p3, 0.30 0.30
+s23 #36: < p3, 0.25 0.25
+s27 #8: First one of good quality, 0.01 or 0.04, but probably an accident
+s27 #13: < p3, 0.42 0.53
+s28 #9: < p3, 0.06 0.87, not near anything
+s28 #39: < 03, 0.54 1.15
+s28 #44: < p3, 0.21 0.63
+s32 #6: < p3, 0.28 0.28
+s32 #48: < p3, 0.31 0.31
+s32 #52: < p3, 0.43 0.48
+s32 #88: < p3, 0.32 0.32
+s32 #90, close at 282 vs (285, 362), but q 0.38 0.47, can sip
+s32 #94, < p3, 0.11 0.55, probably OK actually
+s32 #21: < p3
+
+s32 #70: 0.00 0.01, distance not otherwise seen, but right
+s32 #77: 0.06 0.30, distance not otherwise seen, but right
+s32 #80: 0.00 0.16, distance not otherwise seen, but right
+
+s23 #29: Actually not bad, but OK to eliminate.  0.07 0.09
+s08 #22: 329 is close enough to (267, 321) and good enough, 0.00 0.39
+
+b) A single peak, p3-p4: Can ignore (delete)
+
+s31 #8: p3-p4, messed up
+s31 #49: p3-p4, spurious
+
+c) Messed up, so doesn't matter what we do (might as well delete)
+
+s09 #22: Messed up
+s13 #8: Messed up
+s19 #16: Messed up
+s22 #8: Messed up
+s24 #15: Messed up
+s24 #50: Messed up
+s30 #52: Messed up
+s31 #29: Messed up
+s33 #23: Messed up
+s32 #56: 3-wheel cars, so no chance for now
+
+d) 3+ spare peaks, probably messed up as well
+
+s31 #3: Three peaks, not plausible.  Somewhat messed up
+s32 #17: Three peaks, one early and two late, messed up
+
+e) Exactly 2 spare peaks in front
+
+                Own spacing     Quality         Car spacing             Int
+s01 #5 135238:  OK (120/91)     Great           New, no other short car -
+s08 #41:        OK (160/131)    Great           New, no other short car -
+s16 #24:        Hmm (157/117)   Great           New, no other short car -
+s28 #15:        OK (95/78)      Great           New, semi-shortish      -
+s33 #21:        OK (144/176)    Good            New, short, right?      -
+
+s26 #2:         First one close to p2 interval                          y
+                0.45/0.45, 0.37/0.55
+s27 #14:        First one close to p2 interval                          y
+                0.00/0.22, 0.23/0.53
+
+
+PEAKPART 13
+
+s08 #43: OK as such, delete the front one
+s14 #1: One of two deletions is close to p3 gap (910, 876-899)
+s19 #30: Messed up, two deletions (1 front, one middle)
+s22 #25: Messed up
+
+
+PEAKPART 5
+
+a) Two great ones in between: Reinstate as p2 and p3
+
+s04 #7: Actually *p1* + p4.  Two great in-between peaks, one spurious front
+s04 #24: Actually *p1* + p4.  Two great in-between peeks
+s11 #13: Treat as p1 and p4, insert two great ones (but p1 is wrong)
+
+b) One great in between, close to p4: Add as p3
+
+s07 #17: OK.  One great between is p3, one bad front.
+s08 #46: OK.  One great between is p3
+s23 #9: Two spurious surrounding p3 and p4!  Only really have p4.
+
+c) One great in between.  Close to "p2": Add as p2 (they were p1 and p3)
+
+s07 #8: Actually p1 and p3.  One great one between them is p2, p4 is missing
+s15 #31: Actually p1 and p3.  One great one between.  p4 missing.
+  Two further fronts are real, too! Remove from unused
+
+s07 #0: OK, but front peak is very close to p1 interval
+
+s07 #37: Messed up
+s08 #8: Messed up
+s13 #7: Messed up
+s13 #10: Messed up
+s13 #36: Messed up
+s13 #40: Messed up
+s19 #9: Messed up
+s24 #16: Messed up
+

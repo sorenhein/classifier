@@ -67,8 +67,8 @@ bool PeakRepair::add(
   {
     if (pos1 < end + adder)
     {
-cout << "fail1: pos1 " << pos1 << " end " << end << " adder " << adder
-  << endl,
+// cout << "fail1: pos1 " << pos1 << " end " << end << " adder " << adder
+  // << endl;
       result = end;
       return false;
     }
@@ -82,8 +82,8 @@ cout << "fail1: pos1 " << pos1 << " end " << end << " adder " << adder
   {
     if (pos1 + adder > end)
     {
-cout << "fail2: pos1 " << pos1 << " end " << end << " adder " << adder
-  << endl,
+// cout << "fail2: pos1 " << pos1 << " end " << end << " adder " << adder
+  // << endl;
       result = end;
       return false;
     }
@@ -182,7 +182,7 @@ bool PeakRepair::updatePossibleModels(
     // Start from the last seen peak.
     range.start = p.latest();
 
-    Peak * pptr;
+    Peak * pptr = nullptr;
     unsigned indexUsed;
 
     if (specialFlag && 
@@ -211,7 +211,10 @@ bool PeakRepair::updatePossibleModels(
 
       unsigned lower, upper;
       if (! PeakRepair::bracket(range, gap, lower, upper))
+      {
+        p.registerFinished();
         continue;
+      }
 // cout << "lower " << lower << " upper " << upper << endl;
 
       pptr = PeakRepair::locatePeak(lower, upper, peakPtrsUsed, indexUsed);
@@ -222,8 +225,7 @@ bool PeakRepair::updatePossibleModels(
     if (pptr)
       aliveFlag = true;
 
-    p.registerPtr(peakNo, pptr);
-    p.registerIndexUsed(peakNo, indexUsed);
+    p.registerPtr(peakNo, pptr, indexUsed);
   }
   return aliveFlag;
 }
@@ -314,10 +316,13 @@ bool PeakRepair::firstCar(
   // For this we need an idea of usual gaps.  Then we can try to
   // guess what's a small gap and a large gap.
 
+  unsigned skips = 0;
   for (unsigned peakNoPlus1 = 4; peakNoPlus1 > 0; peakNoPlus1--)
   {
     if (! PeakRepair::updatePossibleModels(repairRange, peakNoPlus1 == 4,
         peakPtrsUsed, peakNoPlus1-1, models))
+      skips++;
+    if (skips == 2)
       break;
   }
 

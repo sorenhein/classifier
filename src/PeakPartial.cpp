@@ -19,6 +19,8 @@
 #define LEFT_OF_P3 9
 #define LEFT_OF_P2 10
 
+#define INDEX_NOT_USED 999
+
 
 PeakPartial::PeakPartial()
 {
@@ -77,6 +79,18 @@ void PeakPartial::registerRange(
 }
 
 
+void PeakPartial::movePtr(
+  const unsigned indexFrom,
+  const unsigned indexTo)
+{
+  peaks[indexTo] = peaks[indexFrom];
+  indexUsed[indexTo] = indexUsed[indexFrom];
+
+  peaks[indexFrom] = nullptr;
+  indexUsed[indexFrom] = INDEX_NOT_USED;
+}
+
+
 void PeakPartial::registerIndexUsed(
   const unsigned peakNo,
   const unsigned indexUsedIn)
@@ -90,6 +104,7 @@ void PeakPartial::registerPtr(
   Peak * pptr)
 {
   peaks[peakNo] = pptr;
+  indexUsed[peakNo] = INDEX_NOT_USED;
 
   if (pptr)
   {
@@ -107,6 +122,16 @@ void PeakPartial::registerPtr(
     else
       skippedFlag = true;
   }
+}
+
+
+void PeakPartial::registerPtr(
+  const unsigned peakNo,
+  Peak * pptr,
+  const unsigned indexUsedIn)
+{
+  PeakPartial::registerPtr(peakNo, pptr);
+  PeakPartial::registerIndexUsed(peakNo, indexUsedIn);
 }
 
 
@@ -442,13 +467,16 @@ void PeakPartial::moveUnused(
   vector<unsigned> v(np, 0);
   for (unsigned i = 0; i < 4; i++)
   {
-    if (peaks[i])
+    if (peaks[i] && indexUsed[i] != INDEX_NOT_USED)
       v[indexUsed[i]] = 1;
   }
 
+  // Don't remove peaks in front of the car -- could be a new car.
+  const unsigned preserveLimit = (peaks[0] ? peaks[0]->getIndex() : 0);
+
   for (unsigned i = 0; i < np; i++)
   {
-    if (v[i] == 0)
+    if (v[i] == 0 && peakPtrsUsed[i]->getIndex() >= preserveLimit)
       peakPtrsUnused.push_back(peakPtrsUsed[i]);
   }
 
@@ -458,21 +486,70 @@ void PeakPartial::moveUnused(
 
 void PeakPartial::getPeaks(
   vector<Peak *>& peakPtrsUsed,
-  vector<Peak *>& peakPtrsUnused) const
+  vector<Peak *>& peakPtrsUnused)
 {
   // if we didn't match a peak in the used vector, we move it to unused.
   if (peakCode == 0x7)
   {
     // We got the last three peaks.  Generally it's a pretty good bet
     // to throw away anything else.
-    
-    PeakPartial::moveUnused(peakPtrsUsed, peakPtrsUnused);
+  }
+  else if (peakCode == 0x5)
+  {
+    const unsigned iu = indexUsed[3];
+    if (intervalCount[BETWEEN_P1_P3] == 2 &&
+        peakPtrsUsed[iu-2]->greatQuality() &&
+        peakPtrsUsed[iu-1]->greatQuality())
+    {
+        // Probably we found p1 and p4, with these two in between.
+cout << "Reinstating two peaks, should be p2 and p3\n";
+      PeakPartial::movePtr(1, 0);
+
+      PeakPartial::registerPtr(1, peakPtrsUsed[iu-2], iu-2);
+      PeakPartial::registerPtr(2, peakPtrsUsed[iu-1], iu-1);
+    }
+    else if (intervalCount[BETWEEN_P1_P3] == 1 &&
+        peakPtrsUsed[iu-1]->greatQuality())
+    {
+      if (peaks[3]->getIndex() - peakPtrsUsed[iu-1]->getIndex() <
+          peakPtrsUsed[iu-1]->getIndex() - peaks[1]->getIndex())
+      {
+        // Closer to p3.
+cout << "Reinstating one peak, should be p2\n";
+        PeakPartial::registerPtr(2, peakPtrsUsed[iu-1], iu-1);
+      }
+      else
+      {
+        // Assume that the peaks were really p0 and p2.
+cout << "Reinstating one peak, should be p1\n";
+        PeakPartial::movePtr(1, 0);
+        PeakPartial::movePtr(3, 2);
+
+        PeakPartial::registerPtr(1, peakPtrsUsed[iu-1], iu-1);
+      }
+    }
+  }
+  else if (peakCode == 0x3)
+  {
+    const unsigned iu = indexUsed[3];
+    if (intervalEntries == 2 && 
+        intervalCount[LEFT_OF_P2] == 2 &&
+        upper[1] == 0 &&
+        peakPtrsUsed[iu-3]->greatQuality() &&
+        peakPtrsUsed[iu-2]->greatQuality())
+    {
+      // Could also check that the spacing of the two peaks is not
+      // completely off vs. the two last peaks.
+cout << "Reinstating one peak, should be p0 and p1\n";
+      PeakPartial::registerPtr(0, peakPtrsUsed[iu-3], iu-3);
+      PeakPartial::registerPtr(1, peakPtrsUsed[iu-2], iu-2);
+    }
   }
   else
   {
     // TODO
-    PeakPartial::moveUnused(peakPtrsUsed, peakPtrsUnused);
   }
+  PeakPartial::moveUnused(peakPtrsUsed, peakPtrsUnused);
 }
 
 

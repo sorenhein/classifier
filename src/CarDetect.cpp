@@ -302,11 +302,13 @@ const unsigned CarDetect::firstPeakMinus1() const
 
 const unsigned CarDetect::lastPeakPlus1() const
 {
-  if (peaksPtr.secondBogeyRightPtr == nullptr)
-    return 0;
-  else
-    // So we miss the last peak of the car.
+  // Could go further, but OK for now.
+  if (peaksPtr.secondBogeyRightPtr)
     return peaksPtr.secondBogeyRightPtr->getIndex() + 1;
+  else if (peaksPtr.secondBogeyLeftPtr)
+    return peaksPtr.secondBogeyLeftPtr->getIndex() + 1;
+  else
+    return 0;
 }
 
 

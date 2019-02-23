@@ -61,6 +61,10 @@ class PeakPartial
     unsigned intervalEntries;
 
 
+    void movePtr(
+      const unsigned indexFrom,
+      const unsigned indexTo);
+
     bool dominates(const PeakPartial& p2) const;
 
     bool samePeaks(const PeakPartial& p2) const;
@@ -115,6 +119,11 @@ class PeakPartial
       const unsigned peakNo,
       Peak * pptr);
 
+    void registerPtr(
+      const unsigned peakNo,
+      Peak * pptr,
+      const unsigned indexUsedIn);
+
     void registerFinished();
 
     void getPeak(
@@ -141,7 +150,7 @@ class PeakPartial
 
     void getPeaks(
       vector<Peak *>& peaksUsed,
-      vector<Peak *>& peaksUnused) const;
+      vector<Peak *>& peaksUnused);
 
     void printSituation() const;
 

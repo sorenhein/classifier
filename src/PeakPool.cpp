@@ -136,6 +136,7 @@ bool PeakPool::pruneTransients(
   else
     transientTrimmedFlag = true;
 
+cout << "firstGoodIndex " << firstGoodIndex << endl;
   // Determine statistics.
   float levelSum = 0., levelSumSq = 0.;
   unsigned num = 0;
@@ -156,9 +157,9 @@ bool PeakPool::pruneTransients(
   const float mean = levelSum / num;
   const float sdev = sqrt(levelSumSq / (num-1) - mean * mean);
   const float limit = mean - 2.f * sdev;
+// cout << "mean " << mean << " sdev " << sdev << " limit " << limit << endl;
 
   // Go for the first consecutive peaks that are too negative.
-  //for (auto& peak: * peaks)
   Piterator pitLastTransient;
   bool seenFlag = false;
 
@@ -168,7 +169,7 @@ bool PeakPool::pruneTransients(
     if (peak.getIndex() >= firstGoodIndex)
       break;
 
-    if (! peak.isCandidate())
+    if (! peak.isCandidate() || peak.getIndex() == 0)
       continue;
 
     if (peak.getValue() >= limit)
@@ -803,7 +804,7 @@ void PeakPool::getCands(
     const unsigned index = cand->getIndex();
     if (index > end)
       break;
-    if (index < start)
+    if (index < start || index < transientLimit)
       continue;
 
     peakIters.push_back(pit);
