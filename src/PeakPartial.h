@@ -51,6 +51,15 @@ class PeakPartial
     // Number of peaks found.
     unsigned numUsed;
 
+    // A binary code of the peaks found.
+    unsigned peakCode;
+
+    // A count of input peaks in positions relative to found peaks.
+    vector<unsigned> intervalCount;
+
+    // Number of entries in intervalCount
+    unsigned intervalEntries;
+
 
     bool dominates(const PeakPartial& p2) const;
 
@@ -69,6 +78,10 @@ class PeakPartial
       const unsigned posNo) const;
 
     bool merge(const PeakPartial& p2);
+
+    void moveUnused(
+      vector<Peak *>& peaksUsed,
+      vector<Peak *>& peaksUnused) const;
 
     string strIndex(
       const unsigned peakNo,
@@ -122,14 +135,15 @@ class PeakPartial
 
     unsigned numMatches() const;
 
+    void makeCodes(
+      const vector<Peak *>& peaksUsed,
+      const unsigned offset);
+
     void getPeaks(
       vector<Peak *>& peaksUsed,
       vector<Peak *>& peaksUnused) const;
 
-    void printSituation(
-      const vector<Peak *>& peaksUsed,
-      const vector<Peak *>& peaksUnused,
-      const unsigned offset) const;
+    void printSituation() const;
 
     string strTarget(
       const unsigned peakNo,

@@ -67,6 +67,8 @@ bool PeakRepair::add(
   {
     if (pos1 < end + adder)
     {
+cout << "fail1: pos1 " << pos1 << " end " << end << " adder " << adder
+  << endl,
       result = end;
       return false;
     }
@@ -80,6 +82,8 @@ bool PeakRepair::add(
   {
     if (pos1 + adder > end)
     {
+cout << "fail2: pos1 " << pos1 << " end " << end << " adder " << adder
+  << endl,
       result = end;
       return false;
     }
@@ -197,6 +201,8 @@ bool PeakRepair::updatePossibleModels(
         p.skipped(), 
         (p.reversed() ? 3-peakNo : peakNo));
 
+// cout << "model " << p.number() << ", " << p.reversed() << ", " <<
+  // peakNo << ": " << gap << endl;
       if (gap == 0)
       {
         p.registerFinished();
@@ -206,6 +212,7 @@ bool PeakRepair::updatePossibleModels(
       unsigned lower, upper;
       if (! PeakRepair::bracket(range, gap, lower, upper))
         continue;
+// cout << "lower " << lower << " upper " << upper << endl;
 
       pptr = PeakRepair::locatePeak(lower, upper, peakPtrsUsed, indexUsed);
       if (! pptr)
@@ -296,7 +303,9 @@ bool PeakRepair::firstCar(
 
   RepairRange repairRange;
   repairRange.start = range.endValue();
-  repairRange.end = range.startValue();
+  // repairRange.end = range.startValue();
+  // Actually we can go all the way.
+  repairRange.end = 0;
   repairRange.leftDirection = true;
 
   // This finds existing models within the first-car mess.
@@ -332,7 +341,8 @@ bool PeakRepair::firstCar(
   if (! PeakRepair::getDominantModel(superModel))
     return false;
 
-  superModel.printSituation(peakPtrsUsed, peakPtrsUnused, offset);
+  superModel.makeCodes(peakPtrsUsed, offset);
+  superModel.printSituation();
 
   if (superModel.count() == 4)
     cout << "WARNREPAIR: Full car (dominant)\n";

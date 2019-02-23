@@ -5,6 +5,8 @@ use warnings;
 
 # Extract data from sensor??.txt to focus on partial first cars.
 
+my $select = "PEAKPART   3";
+
 for my $file (@ARGV)
 {
   open my $fi, "<", $file or die "Cannot open $: $!";
@@ -58,7 +60,7 @@ for my $file (@ARGV)
       {
         chomp $line;
         $line =~ s///g;
-        $partFlag = 1 if ($line =~ /^PEAKPART/);
+        $partFlag = 1 if ($line =~ /^$select/);
         last if ($line =~ /anywheeler/);
         push @lines, $line . "\n";
         last if ($line =~ /No dominant/);
@@ -81,6 +83,7 @@ for my $file (@ARGV)
     }
     elsif ($state == 4 && $line =~ /^True train/)
     {
+      push @lines, $line . "\n";
       while ($line = <$fi>)
       {
         chomp $line;

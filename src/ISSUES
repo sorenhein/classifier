@@ -63,3 +63,39 @@ Only good, not great first:
 -------------------
         249     418
 
+
+
+PEAKPART 7
+
+a) Spare p2-p3 peak: Skip
+
+s03 #0: The 365 peak is p2-p3, poor value: discard
+s03 #6: The 296 peak is p2-p3, decent value but: discard
+s22 #33: The 420 peak p2-p3, OK value but: discard
+s22 #36: The 436 peak is p2-p3, OK value but: discard
+s26 #49: The 469 peak is p2-p3, is indeed spare
+s28 #0: The 506 peak is p2-p3, is spare
+s33 #20: The p2-p3 peak is actually needed.  Tough to see.
+
+b) < p2: Just drop it, we're doing well already
+
+s04 #8: The 106 peak is < p2, a bit off but a possible p1
+s09 #9: The 183 peak is < p2, a bit off.  Actually the 212 peak
+  should have a better left slope, but is blocked by the 183 peak.
+s10 #8: The 167 peak is < p2, looks great.  p2 has extent?  USE.
+s14 #0: The 259 peak is < p2, looks great, a bit early: USE
+s14 #11: The 164 peak is < p2, looks great, a bit early: USE
+s32 #87 The 217 peak < p2 looks basically OK, though a bit late
+s23 #35: The 114 reconstructed peak is > 0 (kink), but the 81 peak 
+  < p2 is not that far off
+
+c) Messed up
+
+s13 #32: Messed up
+s19 #3: Messed up.
+s33 #5: Messed up
+
+Small problems:
+s24 #22 120447: Too many tiny peaks around 555, the correct peak
+s18 #50 175144: Peak 1107 is chosen (spurious) as it's already 
+  marked as #4, even though 999 is actually peak #4

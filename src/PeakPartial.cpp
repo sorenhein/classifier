@@ -6,6 +6,19 @@
 #include "PeakPartial.h"
 #include "Peak.h"
 
+// Used to count input peaks relative to used peaks.
+#define LEFT_OF_P0 4
+#define BETWEEN_P0_P1 3
+#define BETWEEN_P1_P2 2
+#define BETWEEN_P2_P3 1
+#define RIGHT_OF_P3 0
+#define LEFT_OF_P1 8
+#define BETWEEN_P0_P2 7
+#define BETWEEN_P1_P3 6
+#define RIGHT_OF_P2 5
+#define LEFT_OF_P3 9
+#define LEFT_OF_P2 10
+
 
 PeakPartial::PeakPartial()
 {
@@ -35,6 +48,10 @@ void PeakPartial::reset()
   target.resize(4, 0);
   indexUsed.resize(4, 0);
   numUsed = 0;
+
+  peakCode = 0;
+  intervalCount.resize(11);
+  intervalEntries = 0;
 }
 
 
@@ -327,14 +344,11 @@ string PeakPartial::strEntry(const unsigned n) const
 }
 
 
-#define UNUSED(x) ((void)(true ? 0 : ((x), void(), 0)))
-void PeakPartial::printSituation(
+void PeakPartial::makeCodes(
   const vector<Peak *>& peakPtrsUsed,
-  const vector<Peak *>& peakPtrsUnused,
-  const unsigned offset) const
+  const unsigned offset)
 {
-  UNUSED(peakPtrsUnused);
-  const unsigned peakCode =
+  peakCode =
     (peaks[0] ? 8 : 0) | 
     (peaks[1] ? 4 : 0) | 
     (peaks[2] ? 2 : 0) | 
@@ -352,48 +366,51 @@ void PeakPartial::printSituation(
   const unsigned p2 = (peaks[2] ? peaks[2]->getIndex() : 0);
   const unsigned p3 = (peaks[3] ? peaks[3]->getIndex() : 0);
 
-  vector<unsigned> intervalCount(11);
-  unsigned count = 0;
+  intervalEntries = 0;
   for (auto& p: peakPtrsUsed)
   {
     if (p == peaks[0] || p == peaks[1] || p == peaks[2] || p == peaks[3])
       continue;
 
-    count++;
+    intervalEntries++;
     const unsigned index = p->getIndex();
 
     if (peaks[0] && index <= p0)
-      intervalCount[4]++;
+      intervalCount[LEFT_OF_P0]++;
     else if (peaks[0] && peaks[1] && index > p0 && index <= p1)
-      intervalCount[3]++;
+      intervalCount[BETWEEN_P0_P1]++;
     else if (peaks[1] && peaks[2] && index > p1 && index <= p2)
-      intervalCount[2]++;
+      intervalCount[BETWEEN_P1_P2]++;
     else if (peaks[2] && peaks[3] && index > p2 && index <= p3)
-      intervalCount[1]++;
+      intervalCount[BETWEEN_P2_P3]++;
     else if (peaks[3] && index > p3)
-      intervalCount[0]++;
+      intervalCount[RIGHT_OF_P3]++;
     else if (peaks[1] && index <= p1)
-      intervalCount[8]++;
+      intervalCount[LEFT_OF_P1]++;
     else if (peaks[0] && peaks[2] && index > p0 && index <= p2)
-      intervalCount[7]++;
+      intervalCount[BETWEEN_P0_P2]++;
     else if (peaks[1] && peaks[3] && index > p1 && index <= p3)
-      intervalCount[6]++;
+      intervalCount[BETWEEN_P1_P3]++;
     else if (peaks[2] && index > p2)
-      intervalCount[5]++;
+      intervalCount[RIGHT_OF_P2]++;
     else if (! peaks[0] && ! peaks[1])
     {
       if (! peaks[2] && index <= p3)
-        intervalCount[9]++;
+        intervalCount[LEFT_OF_P3]++;
       else if (peaks[2] && index <= p2)
-        intervalCount[10]++;
+        intervalCount[LEFT_OF_P2]++;
       else
       cout << "PEAKPARTIALERROR1 " << index + offset << "\n";
     }
     else
       cout << "PEAKPARTIALERROR2 " << index + offset << "\n";
   }
-  
-  if (! count)
+}
+
+
+void PeakPartial::printSituation() const
+{
+  if (! intervalEntries)
     return;
 
   cout << "PEAKPART  " << 
@@ -417,11 +434,10 @@ void PeakPartial::printSituation(
 }
 
 
-void PeakPartial::getPeaks(
+void PeakPartial::moveUnused(
   vector<Peak *>& peakPtrsUsed,
   vector<Peak *>& peakPtrsUnused) const
 {
-  // if we didn't match a peak in the used vector, we move it to unused.
   const unsigned np = peakPtrsUsed.size();
   vector<unsigned> v(np, 0);
   for (unsigned i = 0; i < 4; i++)
@@ -437,6 +453,26 @@ void PeakPartial::getPeaks(
   }
 
   peakPtrsUsed = peaks;
+}
+
+
+void PeakPartial::getPeaks(
+  vector<Peak *>& peakPtrsUsed,
+  vector<Peak *>& peakPtrsUnused) const
+{
+  // if we didn't match a peak in the used vector, we move it to unused.
+  if (peakCode == 0x7)
+  {
+    // We got the last three peaks.  Generally it's a pretty good bet
+    // to throw away anything else.
+    
+    PeakPartial::moveUnused(peakPtrsUsed, peakPtrsUnused);
+  }
+  else
+  {
+    // TODO
+    PeakPartial::moveUnused(peakPtrsUsed, peakPtrsUnused);
+  }
 }
 
 
