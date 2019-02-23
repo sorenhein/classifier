@@ -16,6 +16,7 @@ for my $file (@ARGV)
   my $eno = 0;
   my $seg;
   my $firstFlag;
+  my $partFlag;
   my @lines;
   while (my $line = <$fi>)
   {
@@ -28,12 +29,13 @@ for my $file (@ARGV)
       $seg = $1;
       if ($eno)
       {
-        dumplines($fo, $eno-1, $seg, \@lines) if $firstFlag;
+        dumplines($fo, $eno-1, $seg, \@lines) if $partFlag;
       }
       @lines = ();
       $eno++;
       $state = 1;
       $firstFlag = 0;
+      $partFlag = 0;
     }
     elsif ($state == 1 && $line =~ /of PeakMinima$/)
     {
@@ -44,7 +46,7 @@ for my $file (@ARGV)
         $line =~ s///g;
         $dashes++ if ($line =~ /^-----/);
         push @lines, $line . "\n";
-        last if ($dashes == 2);
+        last if ($dashes == 2 || $line eq "");
       }
       push @lines, "\n";
       $state = 2;
@@ -56,8 +58,10 @@ for my $file (@ARGV)
       {
         chomp $line;
         $line =~ s///g;
+        $partFlag = 1 if ($line =~ /^PEAKPART/);
         last if ($line =~ /anywheeler/);
         push @lines, $line . "\n";
+        last if ($line =~ /No dominant/);
       }
       push @lines, "\n";
       $firstFlag = 1;
@@ -84,7 +88,7 @@ for my $file (@ARGV)
         last if ($line =~ /^File /);
         push @lines, $line . "\n";
       }
-      dumplines($fo, $eno-1, $seg, \@lines) if $firstFlag;
+      dumplines($fo, $eno-1, $seg, \@lines) if $partFlag;
 
       if ($line && $line =~ /^File /)
       {
@@ -94,6 +98,7 @@ for my $file (@ARGV)
         $eno++;
         $state = 1;
         $firstFlag = 0;
+        $partFlag = 0;
       }
     }
   }
