@@ -147,6 +147,8 @@ class CarDetect
     bool peakPrecedesCar(const Peak& peak) const;
     bool carPrecedesPeak(const Peak& peak) const;
 
+    unsigned numFrontWheels() const;
+
     string strHeaderGaps() const;
     string strHeaderFull() const;
 

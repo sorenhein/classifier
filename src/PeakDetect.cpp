@@ -589,7 +589,7 @@ void PeakDetect::reduce(
   minima.mark(peaks, peakCenters, offset);
 
   // Use the labels to extract the car structure from the peaks.
-  list<CarDetect> cars;
+  cars.clear();
   pstruct.markCars(models, cars, peaks, offset);
 
   if (! pstruct.markImperfections(cars, imperf))
@@ -617,9 +617,15 @@ void PeakDetect::makeSynthPeaks(vector<float>& synthPeaks) const
 }
 
 
-void PeakDetect::getPeakTimes(vector<PeakTime>& times) const
+void PeakDetect::getPeakTimes(
+  vector<PeakTime>& times,
+  unsigned& numFrontWheels) const
 {
   peaks.getSelectedTimes(times);
+  if (cars.empty())
+    numFrontWheels = 0;
+  else
+    numFrontWheels = cars.front().numFrontWheels();
 }
 
 

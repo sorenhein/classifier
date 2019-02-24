@@ -55,7 +55,9 @@ class SegActive
       const double speedTrue,
       PeakStats& peakStats);
 
-    void getPeakTimes(vector<PeakTime>& times) const; 
+    void getPeakTimes(
+      vector<PeakTime>& times,
+      unsigned& numFrontWheels) const; 
 
     void writeSpeed(
       const string& origname,

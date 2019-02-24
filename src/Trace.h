@@ -59,7 +59,9 @@ class Trace
       const double speedTrue,
       PeakStats& peakStats);
 
-    void getTrace(vector<PeakTime>& times) const;
+    void getTrace(
+      vector<PeakTime>& times,
+      unsigned& numFrontWheels) const;
 
     void write(const Control& control) const;
 

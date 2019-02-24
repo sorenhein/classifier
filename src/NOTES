@@ -1,14 +1,18 @@
-Plan 2019-02-18
+Plan 2019-02-24
 ---------------
-Do something about the peripheral peaks in PeakRepair
-- Should also pass in good peaks, not just great ones
-- Can look first in great peaks, then in good ones
-- Are there holes that should arise but don't, e.g. sensor07?
 
-Pass the front geometry to regression
-- Limit the front +/- to the plausible ones
-- Could also have missed entire front car
-- 124 could be something else as well, particularly if it's a new car
+numWheels       delete (true, detected)
+4               0,0  4,0
+3               1,0  5,0  0,0  4,0  2,1  1,1
+2               2,0  6,0  1,0  5,0  3,1  2,1  0,2(?)
+1               3,0  7,0  2,0  6,0  4,1       0,1(?)
+0??
+
+- To start with, check whether a correct result always matches 
+  one of these.
+- Then limit ourselves to one of these.
+- Then score accordingly in a dynamic way:  The above are penalty-free.
+
 
 Make PeakRepair more general for internal cars as well
 - Not quite as aggressive about recognizing anything as a car
@@ -17,27 +21,11 @@ Make PeakRepair more general for internal cars as well
 - Don't mark down peaks in front of the interior car, may be 
   a partial first car
 
-
-How often do we move peaks from used to unused in practice?
-- Move them to a 3rd list and don't drop them yet
-- High range, no 1234, front -> drop
-- Normal range, in a hole -> odd
-- Normal range, in front -> single peak +/- bogey pair?  new car? 1234?!
-
-- See what we can slice out of WARNREPAIR to actually complete reliably
-
-Also need to guess new models without a reference:
-- We throw away some good first peaks, as the spacing isn't perfect
-- Get ranges of left/right gap (as one) and bogey gap (as one)
-- Store them in a symmetric CarGap?
-- Use same principle (getGaps) to search?
-
 Also:
 - Use extent (later on)
 - If we see a short car for the first time, look out for
   - Slightly different bogeys
   - A lot different mid gaps
-
 
 * Better extent in PeakDetect
   - Both in small ranges and in kinks
@@ -51,7 +39,6 @@ Also:
   - Pick the single best move, see if distance is good enough
   - Keep doing?  Or just the first move?
 
-
 * Pass full peaks to regression
 * Also pass in choices of front changes
   - how many missing?
@@ -59,6 +46,7 @@ Also:
 * When regression has worked
   - Adjust peak positions (same LP-type principle above)
   - Run again
+  - Take into account extent?
 
 * 3-wheel cars not just in 3-packs, but start or end of range
   Can utilize knowledge, e.g. 1-3-4
@@ -67,22 +55,11 @@ Also:
   - Look at actual dots
   - Are the reference distances right?
 
-* There seem to be way to many method calls during matching,
-  very slow
-
-* 1-wheel front cars: Could look at typical car spacing to see
-  whether it's a 4-wheel or a 3-wheel, and if a 3-wheel, where the
-  4-wheel ought to be
-
+* Time profile, speed up
 
 
 The regression is odd: Different penalties in first and second stage?
 - s05, 183315
-
-Unbalanced cars, but generally recognizable:
-- Low and high bogey still within factor 4/3 of one another
-- Distance to a car on stock (including ends) less than something
-- Can shift peaks with extents to improve match
 
 Three-peak cars
 - First or last of ranges with >= 3 peaks
@@ -98,21 +75,6 @@ Three-peak cars
 - Calculate qualities etc.
 - Reject unless at least a good quality
 
-One peak from first car:
-- Is it already a 4?
-- Or is it roughly at the right distance to the 1 of car 2?
-- Is it at least a good quality?
-- Could look for a peak #3 based on known cars and bogey distance
-  +/- 10%
-- Can we make a good-quality peak out of this as above?
-- Should of course not be at negative time coordinate
-- Pick the best one
-- Can go on to peak #2 and #1
-- See if it roughly matches 
-
-Two or three peaks from first car:
-- Same principle
-
 Getting the gaps right
 ----------------------
 
@@ -127,15 +89,8 @@ be used once) with good quality.
 There can be other intervening peaks.
 
 
-
 Individual cars
 ---------------
-
-Later car, 4 great:
-- Only if stuck (so models are stable)
-- Match car with ***
-- Gap difference a bit bigger, say +/- 20%
-- Use the built-in extent
 
 May have missed peaks, e.g. 3-peak car
 - Go back in PeakPool
@@ -148,6 +103,7 @@ Efficiency
 Do sth about symm cars and efficiency of checking in general
 - Has all four peaks, and dist(its reverse) < GREAT_DIST
 - If matching two such cars, only use the forward distance
+- Keep cars symmetrical that are meant to be so
 
 
 PeakStructure:
@@ -169,7 +125,6 @@ Clean up the PPc/const nonsense in PeakPool and PeakStructure.
 2018-09-17
 ----------
 Give out the whole PeakList, don't copy into PeakTime?
-Also output the likely number of missed front peaks
 
 
 2018-09-14
@@ -193,10 +148,6 @@ Maybe transients can be reduced with filter padding as in filtfilt.
   - ICE4_DEU_28 and ICET_DEU_28 have extremely similar ratios
 
 * In doc, make the comments from Train axles.xlsx
-
-* Files to finish:
-  SynthTrain cpp and h
-  driver.cpp
 
 Visual          OK
 mingw           OK

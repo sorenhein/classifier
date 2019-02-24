@@ -899,6 +899,7 @@ bool Align::countTooDifferent(
 
 void Align::bestMatches(
   const vector<PeakTime>& times,
+  const unsigned numFrontWheels,
   const Imperfections& imperf,
   const Database& db,
   const string& country,
@@ -906,6 +907,8 @@ void Align::bestMatches(
   const Control& control,
   vector<Alignment>& matches) const
 {
+  UNUSED(numFrontWheels);
+
   timers.start(TIMER_ALIGN);
 
   vector<PeakPos> refPeaks, scaledPeaks;

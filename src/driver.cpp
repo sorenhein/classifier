@@ -75,7 +75,7 @@ int main(int argc, char * argv[])
 
     for (auto& actualEntry: actualList)
     {
-      align.bestMatches(actualEntry.actual, imperf, db, "DEU", 10, 
+      align.bestMatches(actualEntry.actual, 0, imperf, db, "DEU", 10, 
         control, matchesAlign);
 
       if (matchesAlign.size() == 0)
@@ -121,6 +121,7 @@ int main(int argc, char * argv[])
 
     Trace trace;
     vector<PeakTime> times;
+    unsigned numFrontWheels;
 
     CompStats sensorStats, trainStats;
     PeakStats peakStats;
@@ -145,8 +146,8 @@ int main(int argc, char * argv[])
         trace.logPeakStats(posTrue, trainTrue, speedTrue, peakStats);
         trace.write(control);
 
-        trace.getTrace(times);
-        align.bestMatches(times, imperf,
+        trace.getTrace(times, numFrontWheels);
+        align.bestMatches(times, numFrontWheels, imperf,
           db, country, 10, control, matchesAlign);
 
 
@@ -236,7 +237,7 @@ if (trainDetected != trainTrue)
               continue;
             }
 
-            align.bestMatches(synthTimes, imperf, db, country, 10, 
+            align.bestMatches(synthTimes, 0, imperf, db, country, 10, 
               control, matchesAlign);
 
             if (matchesAlign.size() == 0)

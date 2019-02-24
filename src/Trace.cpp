@@ -162,11 +162,14 @@ void Trace::logPeakStats(
 }
 
 
-void Trace::getTrace(vector<PeakTime>& times) const
+void Trace::getTrace(
+  vector<PeakTime>& times,
+  unsigned& numFrontWheels) const
 {
-  segActive.getPeakTimes(times);
+  segActive.getPeakTimes(times, numFrontWheels);
 
-cout << "Got " << times.size() << " peaks\n\n";
+cout << "Got " << times.size() << " peaks, " <<
+  numFrontWheels << " front wheels\n\n";
 }
 
 

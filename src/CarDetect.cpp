@@ -522,6 +522,23 @@ bool CarDetect::carPrecedesPeak(const Peak& peak) const
 }
 
 
+unsigned CarDetect::numFrontWheels() const
+{
+  if (gaps.hasLeftGap())
+    return 4;
+  else if (gaps.hasLeftBogeyGap())
+    return 4;
+  else if (gaps.hasMidGap())
+    return 3;
+  else if (gaps.hasRightBogeyGap())
+    return 2;
+  else if (hasRightGap())
+    return 1;
+  else
+    return 0;
+}
+
+
 string CarDetect::strHeaderGaps() const
 {
   return gaps.strHeader(true) + "\n";

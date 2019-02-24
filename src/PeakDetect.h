@@ -27,6 +27,7 @@ class PeakDetect
     PeakPool peaks;
 
     CarModels models;
+    list<CarDetect> cars;
     PeakStructure pstruct;
 
 
@@ -86,7 +87,10 @@ class PeakDetect
       PeakStats& peakStats);
 
     void makeSynthPeaks(vector<float>& synthPeaks) const;
-    void getPeakTimes(vector<PeakTime>& times) const;
+
+    void getPeakTimes(
+      vector<PeakTime>& times,
+      unsigned& numFrontWheels) const;
 
     void printPeaksCSV(const vector<PeakTime>& timesTrue) const;
 

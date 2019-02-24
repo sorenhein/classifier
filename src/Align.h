@@ -98,6 +98,7 @@ class Align
 
     void bestMatches(
       const vector<PeakTime>& times,
+      const unsigned numFrontWheels,
       const Imperfections& imperf,
       const Database& db,
       const string& country,
