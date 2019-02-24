@@ -385,9 +385,15 @@ bool PeakRepair::firstCar(
     }
   }
 
+  // Get some typical model data.
+  unsigned bogeyTypical, longTypical;
+  models.getTypical(bogeyTypical, longTypical);
+cout << "Typical " << bogeyTypical << ", " << longTypical << endl;
+
   // Fill out Used with the peaks actually used.
   PeakPtrVector peakPtrsSpare;
-  superModel.getPeaks(peakPtrsUsed, peakPtrsSpare);
+  superModel.getPeaks(bogeyTypical, longTypical, 
+    peakPtrsUsed, peakPtrsSpare);
 
   if (peakPtrsSpare.size() > 0)
   {

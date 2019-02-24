@@ -339,11 +339,15 @@ bool PeakPartial::supersede(const PeakPartial& p2)
 {
   if (PeakPartial::dominates(p2))
   {
+    PeakPartial::extend(p2);
     return true;
   }
   else if (p2.dominates(* this))
   {
-    * this = p2;
+    // Kludge to keep p2 constant.
+    PeakPartial p3 = p2;
+    p3.extend(* this);
+    * this = p3;
     return true;
   }
   else if (PeakPartial::samePeaks(p2))
@@ -484,71 +488,173 @@ void PeakPartial::moveUnused(
 }
 
 
+void PeakPartial::recoverPeaks0101(vector<Peak *>& peakPtrsUsed)
+{
+  // The four peaks: not found - found - not found - found.
+  const unsigned iu = indexUsed[3];
+  if (intervalCount[BETWEEN_P1_P3] == 2 &&
+      peakPtrsUsed[iu-2]->greatQuality() &&
+      peakPtrsUsed[iu-1]->greatQuality())
+  {
+      // Probably we found p1 and p4, with these two in between.
+cout << "Reinstating two peaks, should be p2 and p3\n";
+    PeakPartial::movePtr(1, 0);
+
+    PeakPartial::registerPtr(1, peakPtrsUsed[iu-2], iu-2);
+    PeakPartial::registerPtr(2, peakPtrsUsed[iu-1], iu-1);
+  }
+  else if (intervalCount[BETWEEN_P1_P3] == 1 &&
+      peakPtrsUsed[iu-1]->greatQuality())
+  {
+    if (peaks[3]->getIndex() - peakPtrsUsed[iu-1]->getIndex() <
+        peakPtrsUsed[iu-1]->getIndex() - peaks[1]->getIndex())
+    {
+      // Closer to p3.
+cout << "Reinstating one peak, should be p2\n";
+      PeakPartial::registerPtr(2, peakPtrsUsed[iu-1], iu-1);
+    }
+    else
+    {
+      // Assume that the peaks were really p0 and p2.
+cout << "Reinstating one peak, should be p1\n";
+      PeakPartial::movePtr(1, 0);
+      PeakPartial::movePtr(3, 2);
+
+      PeakPartial::registerPtr(1, peakPtrsUsed[iu-1], iu-1);
+    }
+  }
+}
+
+
+void PeakPartial::recoverPeaks0011(vector<Peak *>& peakPtrsUsed)
+{
+  // The four peaks: not found - not found - found - found.
+  const unsigned iu = indexUsed[3];
+  if (intervalEntries == 2 && 
+      intervalCount[LEFT_OF_P2] == 2 &&
+      upper[1] == 0 &&
+      peakPtrsUsed[iu-3]->greatQuality() &&
+      peakPtrsUsed[iu-2]->greatQuality())
+  {
+    // Could also check that the spacing of the two peaks is not
+    // completely off vs. the two last peaks.
+cout << "Reinstating one peak, should be p0 and p1\n";
+    PeakPartial::registerPtr(0, peakPtrsUsed[iu-3], iu-3);
+    PeakPartial::registerPtr(1, peakPtrsUsed[iu-2], iu-2);
+  }
+}
+
+
+void PeakPartial::recoverPeaks0001(
+  const unsigned bogeyTypical,
+  const unsigned longTypical,
+  vector<Peak *>& peakPtrsUsed)
+{
+  // The four peaks: not found - not found - not found - found.
+  // This has the most varied set of misses and reasons.
+  const unsigned iu = indexUsed[3];
+  if (iu == 0)
+    return;
+
+  const unsigned index = peakPtrsUsed[iu-1]->getIndex();
+
+  // 1.2x is a normal range for short cars, plus a bit of buffer.
+  const unsigned bogey = static_cast<unsigned>(1.3f * bogeyTypical);
+
+  // Even a short car has a certain middle length.
+  const unsigned mid = static_cast<unsigned>(0.4f * longTypical);
+  
+  // Give up if we have nothing to work with.
+  if (intervalEntries == 0 ||
+      index >= peaks[3]->getIndex() || 
+      upper[2] == 0)
+    return;
+
+  // Give up if the rightmost candidate is not plausible.
+  // So if index = 590 and range = 600-610, it would just work.
+  // Effectively we double up the interval.
+  // If this is a new car type, we have higher quality demands.
+  if ((index + upper[2] < 2*lower[2] ||
+      ! peakPtrsUsed[iu-1]->greatQuality()) &&
+      (index < peaks[3]->getIndex() - bogey ||
+      ! peakPtrsUsed[iu-1]->fantasticQuality()))
+    return;
+
+  // Complete the right bogey.
+cout << "Reinstating one 0001 peak, should be p2\n";
+  PeakPartial::registerPtr(2, peakPtrsUsed[iu-1], iu-1);
+
+  if (intervalEntries == 1)
+    return;
+
+  // One possible pattern is: p0 - p1 - spurious - p2, to go with p3.
+  unsigned iuNext;
+  if (peakPtrsUsed[iu-2]->fantasticQuality())
+    iuNext = iu-2;
+  else if (intervalEntries >= 3 &&
+      peakPtrsUsed[iu-3]->fantasticQuality())
+    iuNext = iu-3;
+  else
+    return;
+
+cout << "Trying to reinstate p1: iuNext " << iuNext << ", index " <<
+  index << ", nextptr " << peakPtrsUsed[iuNext]->getIndex() << endl;
+  if (index - peakPtrsUsed[iuNext]->getIndex() >= mid)
+  {
+    // Take a stab at the first wheel of the left bogey, too.
+    // Theoretically there should be an upper limit too.
+cout << "Reinstating one 0001 peak, should be p1\n";
+    PeakPartial::registerPtr(1, peakPtrsUsed[iuNext], iuNext);
+  }
+  else
+    return;
+
+  if (iuNext == 0)
+    return;
+
+  if (! peakPtrsUsed[iuNext-1]->fantasticQuality())
+    return;
+
+  const unsigned d = peaks[3]->getIndex() - peaks[2]->getIndex();
+  const unsigned lo = static_cast<unsigned>(0.9f * d);
+  const unsigned hi = static_cast<unsigned>(1.1f * d);
+  const unsigned limitLo = peaks[1]->getIndex() - hi;
+  const unsigned limitHi = peaks[1]->getIndex() - lo;
+  if (peakPtrsUsed[iuNext-1]->getIndex() >= limitLo &&
+      peakPtrsUsed[iuNext-1]->getIndex() <= limitHi)
+  {
+    PeakPartial::registerPtr(0, peakPtrsUsed[iuNext-1], iuNext-1);
+cout << "Reinstating one 0001 peak, should be p0\n";
+  }
+}
+
+
 void PeakPartial::getPeaks(
+  const unsigned bogeyTypical,
+  const unsigned longTypical,
   vector<Peak *>& peakPtrsUsed,
   vector<Peak *>& peakPtrsUnused)
 {
-  // if we didn't match a peak in the used vector, we move it to unused.
+  // Mostly for the sport, we try to use as many of the front peaks
+  // as possible.  Mostly the alignment will pick up on it anyway.
+
   if (peakCode == 0x7)
   {
     // We got the last three peaks.  Generally it's a pretty good bet
     // to throw away anything else.
   }
   else if (peakCode == 0x5)
-  {
-    const unsigned iu = indexUsed[3];
-    if (intervalCount[BETWEEN_P1_P3] == 2 &&
-        peakPtrsUsed[iu-2]->greatQuality() &&
-        peakPtrsUsed[iu-1]->greatQuality())
-    {
-        // Probably we found p1 and p4, with these two in between.
-cout << "Reinstating two peaks, should be p2 and p3\n";
-      PeakPartial::movePtr(1, 0);
-
-      PeakPartial::registerPtr(1, peakPtrsUsed[iu-2], iu-2);
-      PeakPartial::registerPtr(2, peakPtrsUsed[iu-1], iu-1);
-    }
-    else if (intervalCount[BETWEEN_P1_P3] == 1 &&
-        peakPtrsUsed[iu-1]->greatQuality())
-    {
-      if (peaks[3]->getIndex() - peakPtrsUsed[iu-1]->getIndex() <
-          peakPtrsUsed[iu-1]->getIndex() - peaks[1]->getIndex())
-      {
-        // Closer to p3.
-cout << "Reinstating one peak, should be p2\n";
-        PeakPartial::registerPtr(2, peakPtrsUsed[iu-1], iu-1);
-      }
-      else
-      {
-        // Assume that the peaks were really p0 and p2.
-cout << "Reinstating one peak, should be p1\n";
-        PeakPartial::movePtr(1, 0);
-        PeakPartial::movePtr(3, 2);
-
-        PeakPartial::registerPtr(1, peakPtrsUsed[iu-1], iu-1);
-      }
-    }
-  }
+    PeakPartial::recoverPeaks0101(peakPtrsUsed);
   else if (peakCode == 0x3)
-  {
-    const unsigned iu = indexUsed[3];
-    if (intervalEntries == 2 && 
-        intervalCount[LEFT_OF_P2] == 2 &&
-        upper[1] == 0 &&
-        peakPtrsUsed[iu-3]->greatQuality() &&
-        peakPtrsUsed[iu-2]->greatQuality())
-    {
-      // Could also check that the spacing of the two peaks is not
-      // completely off vs. the two last peaks.
-cout << "Reinstating one peak, should be p0 and p1\n";
-      PeakPartial::registerPtr(0, peakPtrsUsed[iu-3], iu-3);
-      PeakPartial::registerPtr(1, peakPtrsUsed[iu-2], iu-2);
-    }
-  }
+    PeakPartial::recoverPeaks0011(peakPtrsUsed);
+  else if (peakCode == 0x1)
+    PeakPartial::recoverPeaks0001(bogeyTypical, longTypical, peakPtrsUsed);
   else
   {
-    // TODO
+    // Usually nothing left.
   }
+
+  // if we didn't match a peak in the used vector, we move it to unused.
   PeakPartial::moveUnused(peakPtrsUsed, peakPtrsUnused);
 }
 

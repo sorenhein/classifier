@@ -109,6 +109,9 @@ class CarGaps
 
     bool hasLeftGap() const;
     bool hasRightGap() const;
+    bool hasLeftBogeyGap() const;
+    bool hasRightBogeyGap() const;
+    bool hasMidGap() const;
     bool isPartial() const;
 
     unsigned sidelobe(

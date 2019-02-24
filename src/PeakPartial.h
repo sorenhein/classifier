@@ -83,6 +83,13 @@ class PeakPartial
 
     bool merge(const PeakPartial& p2);
 
+    void recoverPeaks0101(vector<Peak *>& peakPtrsUsed);
+    void recoverPeaks0011(vector<Peak *>& peakPtrsUsed);
+    void recoverPeaks0001(
+      const unsigned bogeyTypical,
+      const unsigned longTypical,
+      vector<Peak *>& peakPtrsUsed);
+
     void moveUnused(
       vector<Peak *>& peaksUsed,
       vector<Peak *>& peaksUnused) const;
@@ -149,6 +156,8 @@ class PeakPartial
       const unsigned offset);
 
     void getPeaks(
+      const unsigned bogeyTypical,
+      const unsigned longTypical,
       vector<Peak *>& peaksUsed,
       vector<Peak *>& peaksUnused);
 

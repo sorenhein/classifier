@@ -188,6 +188,7 @@ class Peak
       const BogeyType bogeyType,
       const WheelType wheelType);
 
+    bool fantasticQuality() const;
     bool greatQuality() const;
     bool goodQuality() const;
     bool acceptableQuality() const;

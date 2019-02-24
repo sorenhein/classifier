@@ -1,6 +1,7 @@
 #include <iostream>
 #include <iomanip>
 #include <sstream>
+#include <algorithm>
 
 #include "CarModels.h"
 #include "Except.h"
@@ -117,6 +118,36 @@ void CarModels::average(const unsigned index)
 
   m.peaksAvg = m.peaksSum;
   m.peaksAvg.average(m.number);
+}
+
+
+void CarModels::getTypical(
+  unsigned& bogeyTypical,
+  unsigned& longTypical) const
+{
+  vector<unsigned> bogeys, longs;
+
+  for (auto& m: models)
+  {
+    for (unsigned i = 0; i < m.number; i++)
+    {
+      if (m.carAvg.hasLeftBogeyGap())
+        bogeys.push_back(m.carAvg.getLeftBogeyGap());
+      if (m.carAvg.hasRightBogeyGap())
+        bogeys.push_back(m.carAvg.getRightBogeyGap());
+
+      if (m.carAvg.hasMidGap())
+        longs.push_back(m.carAvg.getMidGap());
+    }
+  }
+
+  unsigned nb = bogeys.size() / 2;
+  nth_element(bogeys.begin(), bogeys.begin() + nb, bogeys.end());
+  bogeyTypical = bogeys[nb];
+
+  unsigned nl = longs.size() / 2;
+  nth_element(longs.begin(), longs.begin() + nl, longs.end());
+  longTypical = longs[nl];
 }
 
 

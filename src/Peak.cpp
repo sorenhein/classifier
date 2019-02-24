@@ -497,6 +497,13 @@ bool Peak::fitsType(
 }
 
 
+bool Peak::fantasticQuality() const
+{
+  // TODO #define
+  return (qualityShape <= 0.1f && qualityPeak <= 1.0f);
+}
+
+
 bool Peak::greatQuality() const
 {
   // TODO #define

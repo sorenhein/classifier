@@ -102,7 +102,9 @@ class CarDetect
     const unsigned firstPeakMinus1() const;
     const unsigned lastPeakPlus1() const;
     // TODO TMP
+    const unsigned getLeftBogeyGap() const;
     const unsigned getMidGap() const;
+    const unsigned getRightBogeyGap() const;
 
     const CarPeaksPtr& getPeaksPtr() const;
 
@@ -110,6 +112,9 @@ class CarDetect
 
     bool hasLeftGap() const;
     bool hasRightGap() const;
+    bool hasLeftBogeyGap() const;
+    bool hasRightBogeyGap() const;
+    bool hasMidGap() const;
 
     bool isPartial() const;
 

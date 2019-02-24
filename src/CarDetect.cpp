@@ -284,9 +284,21 @@ const bool CarDetect::isReversed() const
 
 // TODO TMP
 
+const unsigned CarDetect::getLeftBogeyGap() const
+{
+  return gaps.leftBogeyGapValue();
+}
+
+
 const unsigned CarDetect::getMidGap() const
 {
   return gaps.midGapValue();
+}
+
+
+const unsigned CarDetect::getRightBogeyGap() const
+{
+  return gaps.rightBogeyGapValue();
 }
 
 
@@ -356,6 +368,24 @@ bool CarDetect::hasLeftGap() const
 bool CarDetect::hasRightGap() const
 {
   return gaps.hasRightGap();
+}
+
+
+bool CarDetect::hasLeftBogeyGap() const
+{
+  return gaps.hasLeftBogeyGap();
+}
+
+
+bool CarDetect::hasRightBogeyGap() const
+{
+  return gaps.hasRightBogeyGap();
+}
+
+
+bool CarDetect::hasMidGap() const
+{
+  return gaps.hasMidGap();
 }
 
 

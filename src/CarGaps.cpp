@@ -288,6 +288,24 @@ bool CarGaps::hasRightGap() const
 }
 
 
+bool CarGaps::hasLeftBogeyGap() const
+{
+  return leftBogeyGapSet;
+}
+
+
+bool CarGaps::hasRightBogeyGap() const
+{
+  return rightBogeyGapSet;
+}
+
+
+bool CarGaps::hasMidGap() const
+{
+  return midGapSet;
+}
+
+
 bool CarGaps::isPartial() const
 {
   return (! leftGapSet || ! rightGapSet);

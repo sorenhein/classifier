@@ -65,6 +65,10 @@ class CarModels
     unsigned available();
     bool hasAnEndGap() const;
 
+    void getTypical(
+      unsigned& bogeyTypical,
+      unsigned& longTypical) const;
+
     void getCar(
       CarDetect& car,
       const unsigned index) const;
