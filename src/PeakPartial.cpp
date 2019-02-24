@@ -267,10 +267,12 @@ void PeakPartial::extend(const PeakPartial& p2)
     if (peaks[i] || p2.peaks[i])
       continue;
 
-    if (p2.lower[i] != 0 && p2.lower[i] < lower[i])
+    if (p2.lower[i] != 0 && 
+        (lower[i] == 0 || p2.lower[i] < lower[i]))
       lower[i] = p2.lower[i];
 
-    if (p2.upper[i] != 0 && p2.upper[i] > upper[i])
+    if (p2.upper[i] != 0 && 
+        (upper[i] == 0 || p2.upper[i] > upper[i]))
       upper[i] = p2.upper[i];
   }
 }
@@ -576,7 +578,7 @@ void PeakPartial::recoverPeaks0001(
   // If this is a new car type, we have higher quality demands.
   if ((index + upper[2] < 2*lower[2] ||
       ! peakPtrsUsed[iu-1]->greatQuality()) &&
-      (index < peaks[3]->getIndex() - bogey ||
+      (index + bogey < peaks[3]->getIndex() ||
       ! peakPtrsUsed[iu-1]->fantasticQuality()))
     return;
 

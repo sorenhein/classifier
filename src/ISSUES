@@ -279,16 +279,14 @@ s02 #41: 452 is close to 463-482, 0.25/0.35 (could live without)
 s07 #11: 19 is not close enough to 59-76, 0.11/0.63
 s07 #32: 87 is not close enough to 137-160, 0.01/0.04
 s09 #21: 186 is not close to 232-255, 0.00/0.13
+s14 #21: Two are p1-p2, 0.00/0.05 0.46/0.49
 s21 #26: 421 is spur, 0.50/0.72.  Actually then inserts 674!
 s22 #20: 145 is not that close to 220-247, probably spurious, 0.15/0.43
+s23 #28: 422 not that close, 0.32/0.56, why no p2 range in dominant?
 s23 #45: 124 not that close to 9-36, 0.22/0.42, looks spurious
 s26 #16: 26 is not that close to 59-78, 0.49/0.73
 s28 #7: 92 is not close to 195-210, prob spur, 0.15/0.18
-
----> TODO 808 is only 1 too late for p2 interval
-
-s14 #21: Two are p1-p2, 0.00/0.05 0.46/0.49, 808 poor range, use extents.
-    Could just give up
+s33 #13: Peak 817 too close, really 292, 653 are p1-p2, why gone?
 
 --------------------------------------------------------------------
 
@@ -300,6 +298,7 @@ b2) p2 left, 1.2x usual bogey distance, q < 0.10
 BOTH
 
 s00 #69: Two are p1-p2, 0.01/0.08 0.08/0.13, short car
+s20 #43: Two are p1-p2, 0.00/0.00 0.00/0.18, short car
 s22 #17: Two are p1-p2, 0.00/0.07 0.02/0.04, short car
 s23 #13: Two are ?-p2, 576 is close enough to 593-614, 0.09/0.21 0.06/0.28
 
@@ -308,6 +307,9 @@ ONE
 s08 #44: Two are p1-p2, 0.01/1.08 0.00/0.13, short car
 s19 #4: Two are spur-p2, 0.27/0.54 0.15/0.39, 294 close to 265-282
 s21 #57: Two are p1-p2, 0.13/0.16 0.16/0.32, short car.
+s32 #69: 1889 close to 1893-1954 if dominant interval used, other short?
+  Second 0.19/0.24
+s19 #34: Two are spur-p2, 0.13/1.47 0.00 0.41
 
 NONE
 
@@ -317,16 +319,12 @@ s08 #36: Two aren't great, 0.40/0.84 and 0.32/0.59
 s09 #10: Two are p1-p2, 0.05/0.40 0.00/0.08, short car
 s09 #17: Two are p1-spur, 0.05/0.70 0.00/0.09, short car, long gap too short
 s09 #19: Two might be p1-p2, 0.01/0.34 0.00/0.15, unclear
+s14 #32: 771 is close to 748-765, 126 is unclear, 0.00/0.28 0.26/0.55(?)
 s21 #34: Two aren't great 0.41/0.00 0.45/1.35 (but first one is right)
 
 NONE correctly, but actually repairs the hard way to get 620
 
 s15 #7: 409 is p1 not p2, miss ~ 617. 0.01/0.01
-
----> TODO 771 is quite close to 737-765
-
-s14 #32: 771 is close to 748-765, 126 is unclear, 0.00/0.28 0.26/0.55(?)
-
 
 --------------------------------------------------------------------
 
@@ -396,33 +394,13 @@ s22 #42: Two are spur-p1, then we have p2, miss 730 = p3, short car
 s28 #21: Two are p0-p1 to p2, p3 missing at 615, 0.00/0.14 0.02/0.03
 s31 #48: 382 is p2 not p3, 362 is p1, 0.01/0.01 (messed up)
 
-ODD -- CHECK
-------------
-s19 #34: Two are spur-p2, 0.13/1.47 0.00 0.41
-What happened to 302?
-
-s20 #43: Two are p1-p2, 0.00/0.00 0.00/0.18, short car
-Dominant interval is - ?
-
-s23 #28: 422 not that close, 0.32/0.56, why no p2 range in dominant?
-Dominant interval is - ?
-
-s32 #69: 1889 close to 1893-1954 if dominant interval used, other short?
-   0.19/0.24 0.00/0.10.  p1-p2
-Dominant interval is - ?
-
 PROBLEMS WITH PEAK RANGES
 --------
 s22 #7: 257 and 427 are actually sole peaks, but their ranges are clipped.
     Three peaks are all good in principle.
 s22 #9: Two are p0-p1 to p3, clipped p2 missing, 0.02/0.21 0.00/0.12
 
-
 PROBLEMS WITH EXTENTS NEEDED
 --------
 s04 #33: Two are p1-p3, 0.03/0.22 0.01/0.11, short car
 s27 #19: 463 should have extent, then not so close to 510-527, 0.00/0.13
-
-OTHER PROBLEMS
---------
-s33 #13: Peak 817 too close, really 292, 653 are p1-p2, why gone?
