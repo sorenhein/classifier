@@ -24,6 +24,12 @@ class Align
       vector<double> motion;
     };
 
+    struct OverallShift
+    {
+      unsigned firstRefNo;
+      unsigned firstTimeNo;
+    };
+
 
     bool countTooDifferent(
       const vector<PeakTime>& times,
@@ -44,6 +50,7 @@ class Align
       
     void makeShiftCandidates(
       vector<Shift>& candidates,
+      const vector<OverallShift>& shifts,
       const unsigned lt,
       const unsigned lp) const;
 
@@ -58,6 +65,7 @@ class Align
     void scalePeaks(
       const vector<PeakPos>& refPeaks,
       const vector<PeakTime>& times,
+      const unsigned numFrontWheels,
       Shift& shift,
       vector<PeakPos>& scaledPeaks) const;
 

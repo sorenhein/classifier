@@ -32,24 +32,13 @@
 extern Timers timers;
 
 
-struct OverallShift
+const vector<vector<Align::OverallShift>> likelyShifts =
 {
-  unsigned firstRefNo;
-  unsigned firstTimeNo;
-};
-
-const vector<OverallShift> overallShifts =
-{
-  {0, 0},
-  {0, 1},
-  {1, 0},
-  {0, 2},
-  {2, 0},
-  {0, 3},
-  {3, 0},
-
-  {2, 1},
-  {3, 1},
+  { {0, 0} },
+  { {3, 0}, {7, 0}, {2, 0}, {6, 0}, {4, 1},         {0, 1} },
+  { {2, 0}, {6, 0}, {1, 0}, {5, 0}, {3, 1}, {2, 1}, {0, 2} },
+  { {1, 0}, {5, 0}, {0, 0}, {4, 0}, {2, 1}, {1, 1} },
+  { {0, 0}, {4, 0} }
 };
 
 
@@ -690,14 +679,14 @@ double Align::simpleScore(
 
 void Align::makeShiftCandidates(
   vector<Shift>& candidates,
+  const vector<OverallShift>& shifts,
   const unsigned lt,
   const unsigned lp) const
 {
   candidates.clear();
 
-  for (auto& o: overallShifts)
+  for (auto& o: shifts)
   {
-
     // Let's say firstRefNo = 2, firstTimeNo = 1, lp = 56, lt = 54.
     // So we'll be aligning 54 ref peaks with 53 times.  That means
     // we missed one of the time peaks (or maybe we missed 2 and added
@@ -820,6 +809,7 @@ bool Align::betterSimpleScore(
 void Align::scalePeaks(
   const vector<PeakPos>& refPeaks,
   const vector<PeakTime>& times,
+  const unsigned numFrontWheels,
   Shift& shift,
   vector<PeakPos>& scaledPeaks) const
 {
@@ -839,7 +829,10 @@ void Align::scalePeaks(
   const unsigned lp = refPeaks.size();
 
   vector<Shift> candidates;
-  Align::makeShiftCandidates(candidates, lt, lp);
+
+  if (numFrontWheels <= 4)
+    Align::makeShiftCandidates(candidates, likelyShifts[numFrontWheels], 
+      lt, lp);
 
   // We calculate a simple score for this shift.  In fact
   // we could also run Needleman-Wunsch, so this is a bit of an
@@ -928,7 +921,7 @@ void Align::bestMatches(
 
     const double trainLength = refPeaks.back().pos - refPeaks.front().pos;
     Shift shift;
-    Align::scalePeaks(refPeaks, times, shift, scaledPeaks);
+    Align::scalePeaks(refPeaks, times, numFrontWheels, shift, scaledPeaks);
 
 
     if (control.verboseAlignPeaks)
