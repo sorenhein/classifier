@@ -27,6 +27,13 @@ class Regress
 
     ~Regress();
 
+    void specificMatch(
+      const vector<PeakTime>& times,
+      const Database& db,
+      const Alignment& match,
+      vector<double>& coeffs,
+      double& residuals) const;
+
     void bestMatch(
       const vector<PeakTime>& times,
       const Database& db,

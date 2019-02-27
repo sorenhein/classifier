@@ -37,6 +37,16 @@ unsigned lookupMatchRank(
   const vector<Alignment>& matches,
   const string& tag);
 
+void dumpTrainType(
+  const vector<PeakTime>& times,
+  const unsigned numFrontWheels,
+  const Database& db,
+  const unsigned order,
+  const vector<Alignment>& matches,
+  const string& trainTrue,
+  const string& trainSelect);
+
+
 int main(int argc, char * argv[])
 {
   Control control;
@@ -173,6 +183,12 @@ int main(int argc, char * argv[])
 
 if (trainDetected != trainTrue)
   cout << "DRIVER MISMATCH\n";
+
+if (trainTrue == "ICE4_DEU_48_R")
+  dumpTrainType(times, numFrontWheels, db, order, matchesAlign, 
+    trainTrue, "ICE4_DEU_48_N");
+
+
       }
       catch (Except& ex)
       {
@@ -319,5 +335,42 @@ unsigned lookupMatchRank(
       return i;
   }
   return numeric_limits<unsigned>::max();
+}
+
+
+void dumpTrainType(
+  const vector<PeakTime>& times,
+  const unsigned numFrontWheels,
+  const Database& db,
+  const unsigned order,
+  const vector<Alignment>& matches,
+  const string& trainTrue,
+  const string& trainSelect)
+{
+  Regress regress;
+  vector<double> coeffs(order+1);
+  double residuals;
+  vector<double> pos(times.size() + 4 - numFrontWheels);
+  const unsigned tno = db.lookupTrainNumber(trainSelect);
+
+  for (auto& ma: matches)
+  {
+    if (ma.trainNo != tno)
+      continue;
+
+    regress.specificMatch(times, db, ma, coeffs, residuals);
+
+    for (unsigned i = 0; i < times.size(); i++)
+    {
+      const double t = times[i].time;
+      const unsigned j = i + 4 - numFrontWheels;
+      pos[j] = coeffs[0] + coeffs[1] * t + coeffs[2] * t * t;
+    }
+
+    cout << "SPECTRAIN " << trainTrue << " " << trainSelect << endl;
+    for (unsigned i = 0; i < pos.size(); i++)
+      cout << i << ";" << fixed << setprecision(4) << pos[i] << endl;
+    cout << "ENDSPEC\n";
+  }
 }
 

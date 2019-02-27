@@ -47,6 +47,48 @@ double Regress::residuals(
 }
 
 
+void Regress::specificMatch(
+  const vector<PeakTime>& times,
+  const Database& db,
+  const Alignment& match,
+  vector<double>& coeffs,
+  double& residuals) const
+{
+  PolynomialRegression pol;
+  vector<PeakPos> refPeaks;
+  vector<double> x, y;
+  const unsigned lt = times.size();
+
+  db.getPerfectPeaks(match.trainNo, refPeaks);
+  const unsigned lr = refPeaks.size();
+  const double trainLength = refPeaks.back().pos - refPeaks.front().pos;
+
+  if (lr + match.numAdd != lt + match.numDelete)
+    THROW(ERR_REGRESS, "Number of regression elements don't add up");
+
+  const unsigned lcommon = lt - match.numAdd;
+  x.resize(lcommon);
+  y.resize(lcommon);
+
+  for (unsigned i = 0, p = 0; i < lt; i++)
+  {
+    if (match.actualToRef[i] >= 0)
+    {
+      y[p] = refPeaks[static_cast<unsigned>(match.actualToRef[i])].pos;
+      x[p] = times[i].time;
+      p++;
+    }
+  }
+
+  pol.fitIt(x, y, 2, coeffs);
+
+  // Normalize the distance score to a 200m long train.
+  const double peakScale = 200. * 200. / (trainLength * trainLength);
+  residuals = peakScale * 
+    Regress::residuals(x, y, coeffs);
+}
+
+
 void Regress::bestMatch(
   const vector<PeakTime>& times,
   const Database& db,
@@ -64,6 +106,7 @@ void Regress::bestMatch(
 
   bestAlign.dist = numeric_limits<double>::max();
   vector<double> x, y, coeffs(order+1);
+  double residuals;
 
   const unsigned lt = times.size();
 
@@ -75,6 +118,9 @@ void Regress::bestMatch(
       continue;
     }
 
+    Regress::specificMatch(times, db, ma, coeffs, residuals);
+
+    /*
     db.getPerfectPeaks(ma.trainNo, refPeaks);
     const unsigned lr = refPeaks.size();
     const double trainLength = refPeaks.back().pos - refPeaks.front().pos;
@@ -102,6 +148,7 @@ void Regress::bestMatch(
     const double peakScale = 200. * 200. / (trainLength * trainLength);
     const double residuals = peakScale * 
       Regress::residuals(x, y, coeffs);
+      */
 
     if (ma.dist - ma.distMatch + residuals < bestAlign.dist)
     {
