@@ -38,6 +38,7 @@ void dumpResiduals(
   vector<double> coeffs(order+1);
   double residuals;
   vector<double> pos(numWheels);
+  vector<PeakPos> posTrue;
 
   unsigned mno = 0;
   for (auto& ma: matches)
@@ -56,12 +57,15 @@ void dumpResiduals(
       pos[j] = coeffs[0] + coeffs[1] * t + coeffs[2] * t * t;
     }
 
-    cout << "SPECTRAIN " << trainTrue << " " << trainSelect << endl;
+    db.getPerfectPeaks(ma.trainNo, posTrue);
+
+    cout << "SPECTRAIN " << trainTrue << " " << tname << endl;
     cout << heading << "/" << 
       fixed << setprecision(2) << ma.distMatch << "/#" << mno << "\n";
 
     for (unsigned i = 0; i < pos.size(); i++)
-      cout << i << ";" << fixed << setprecision(4) << pos[i] << endl;
+      cout << i << ";" << fixed << setprecision(4) << 
+        (i < offset ? 0. : pos[i] - posTrue[i].pos) << endl;
     cout << "ENDSPEC\n";
   }
 }
