@@ -14,12 +14,13 @@ struct OptEntry
   unsigned numArgs;
 };
 
-#define TRAIN_NUM_OPTIONS 6
+#define TRAIN_NUM_OPTIONS 8
 
 static const OptEntry OPT_LIST[TRAIN_NUM_OPTIONS] =
 {
   {"c", "control", 1},
   {"p", "pick", 1},
+  {"x", "train", 1},
   {"s", "stats", 1},
   {"a", "append", 0},
   {"w", "writing", 1},
@@ -51,6 +52,8 @@ void usage(
     "\n" <<
     "-p, --pick s       If set, pick the first file among those set in\n" <<
     "                   the input control file that contains 's'.\n" <<
+    "\n" <<
+    "-x, --train s      If set, pick reference trains containing s.\n" <<
     "\n" <<
     "-s, --stats s      Stats output file.\n" <<
     "\n" <<
@@ -130,6 +133,7 @@ static void setDefaults(Control& options)
 {
   options.controlFile = "";
   options.pickFileString = "";
+  options.pickTrainString = "";
   options.summaryFile = "comp.csv";
   options.summaryAppendFlag = false;
 
@@ -200,6 +204,10 @@ void readArgs(
 
       case 'p':
         options.pickFileString = optarg;
+        break;
+
+      case 'x':
+        options.pickTrainString = optarg;
         break;
 
       case 's':

@@ -155,6 +155,19 @@ string TraceDB::lookupSensor(const string& fname) const
 }
 
 
+string TraceDB::lookupTime(const string& fname) const
+{
+  const string basename = TraceDB::basename(fname);
+  auto it = entries.find(basename);
+
+  if (it == entries.end())
+    THROW(ERR_SENSOR_NOT_LOGGED, 
+      "Sensor for " + basename + " not logged");
+
+  return it->second.time;
+}
+
+
 string TraceDB::lookupTrueTrain(const string& fname) const
 {
   const string basename = TraceDB::basename(fname);

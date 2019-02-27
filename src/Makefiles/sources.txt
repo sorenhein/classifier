@@ -34,8 +34,9 @@ SOURCE_FILES    =               \
                 Trace.cpp       \
                 TraceDB.cpp     \
                 args.cpp        \
-                read.cpp        \
+                geometry.cpp    \
                 print.cpp       \
+                read.cpp        \
                 write.cpp       \
                 driver.cpp      \
                 Ckmeans/Ckmeans.1d.dp.cpp       \

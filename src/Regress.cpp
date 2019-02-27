@@ -120,36 +120,6 @@ void Regress::bestMatch(
 
     Regress::specificMatch(times, db, ma, coeffs, residuals);
 
-    /*
-    db.getPerfectPeaks(ma.trainNo, refPeaks);
-    const unsigned lr = refPeaks.size();
-    const double trainLength = refPeaks.back().pos - refPeaks.front().pos;
-
-    if (lr + ma.numAdd != lt + ma.numDelete)
-      THROW(ERR_REGRESS, "Number of regression elements don't add up");
-
-    const unsigned lcommon = lt - ma.numAdd;
-    x.resize(lcommon);
-    y.resize(lcommon);
-
-    for (unsigned i = 0, p = 0; i < lt; i++)
-    {
-      if (ma.actualToRef[i] >= 0)
-      {
-        y[p] = refPeaks[static_cast<unsigned>(ma.actualToRef[i])].pos;
-        x[p] = times[i].time;
-        p++;
-      }
-    }
-
-    pol.fitIt(x, y, 2, coeffs);
-
-    // Normalize the distance score to a 200m long train.
-    const double peakScale = 200. * 200. / (trainLength * trainLength);
-    const double residuals = peakScale * 
-      Regress::residuals(x, y, coeffs);
-      */
-
     if (ma.dist - ma.distMatch + residuals < bestAlign.dist)
     {
       bestAlign = ma;

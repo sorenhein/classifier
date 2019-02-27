@@ -60,6 +60,7 @@ class TraceDB
       const unsigned peakCount);
 
     string lookupSensor(const string& fname) const;
+    string lookupTime(const string& fname) const;
 
     string lookupTrueTrain(const string& fname) const;
     double lookupTrueSpeed(const string& fname) const;

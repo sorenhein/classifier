@@ -37,6 +37,7 @@ struct Control
 
   string controlFile;
   string pickFileString;
+  string pickTrainString;
   string summaryFile;
   bool summaryAppendFlag;
 

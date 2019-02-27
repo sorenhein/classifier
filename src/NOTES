@@ -1,5 +1,19 @@
-Plan 2019-02-24
+Plan 2019-02-27
 ---------------
+Use pickTrain to select runs
+Output
+sensor
+time
+quality
+rank (#1, #2, ...)
+subtract the reference trace before outputting
+print NN, NR, ... in "header"
+
+pass 48 to dump, not numWheels
+
+perl:
+split into cross files
+
 
 numWheels       delete (true, detected)
 4               0,0  4,0
