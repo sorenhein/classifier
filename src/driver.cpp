@@ -170,9 +170,12 @@ if (! control.pickTrainString.empty() &&
         regress.bestMatch(times, db, order, control, matchesAlign,
           bestAlign, motionEstimate);
 
-const string s = sensor + "/" + traceDB.lookupTime(fname);
-dumpResiduals(times, db, order, matchesAlign, 
-  s, trainTrue, control.pickTrainString, db.axleCount(trainNoTrue));
+        if (! control.pickTrainString.empty())
+        {
+          const string s = sensor + "/" + traceDB.lookupTime(fname);
+          dumpResiduals(times, db, order, matchesAlign, s, trainTrue, 
+            control.pickTrainString, db.axleCount(trainNoTrue));
+        }
 
         traceDB.log(fname, matchesAlign, times.size());
 

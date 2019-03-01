@@ -37,7 +37,7 @@ for my $file (@ARGV)
 
         my @b = split /;/, $line;
         my $pno = $b[0];
-        my $pos = $b[1];
+        my $pos = $b[1] || "";
         $pos =~ s/\./,/g;
 
         if (! defined $output{$trainIn}{$trainOut}[$pno+1])

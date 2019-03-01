@@ -32,13 +32,14 @@ void dumpResiduals(
     cout << "ERROR: More time samples than wheels?\n";
     return;
   }
-  const unsigned offset = numWheels - lt;
 
   Regress regress;
   vector<double> coeffs(order+1);
   double residuals;
-  vector<double> pos(numWheels);
+  vector<double> pos(numWheels, 0.);
   vector<PeakPos> posTrue;
+// const unsigned numTrue = db.lookupTrainNumber(trainTrue);
+// db.getPerfectPeaks(numTrue, posTrue);
 
   unsigned mno = 0;
   for (auto& ma: matches)
@@ -47,13 +48,15 @@ void dumpResiduals(
     const string tname = db.lookupTrainName(ma.trainNo);
     if (! nameMatch(tname, trainSelect))
       continue;
+    if (ma.distMatch > 3.)
+      continue;
 
     regress.specificMatch(times, db, ma, coeffs, residuals);
 
     for (unsigned i = 0; i < times.size(); i++)
     {
       const double t = times[i].time;
-      const unsigned j = i + offset;
+      const unsigned j = ma.actualToRef[i];
       pos[j] = coeffs[0] + coeffs[1] * t + coeffs[2] * t * t;
     }
 
@@ -64,8 +67,13 @@ void dumpResiduals(
       fixed << setprecision(2) << ma.distMatch << "/#" << mno << "\n";
 
     for (unsigned i = 0; i < pos.size(); i++)
-      cout << i << ";" << fixed << setprecision(4) << 
-        (i < offset ? 0. : pos[i] - posTrue[i].pos) << endl;
+    {
+      if (pos[i] == 0.)
+        cout << i << ";" << endl;
+      else
+        cout << i << ";" << fixed << setprecision(4) << 
+          pos[i] - posTrue[i].pos << endl;
+    }
     cout << "ENDSPEC\n";
   }
 }
