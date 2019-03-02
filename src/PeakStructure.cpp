@@ -16,7 +16,7 @@
 #define GOOD_CAR_DISTANCE 1.5f
 #define GREAT_CAR_DISTANCE 0.5f
 
-#define NUM_METHODS 9
+#define NUM_METHODS 10
 
 static unsigned hitSize;
 
@@ -61,7 +61,10 @@ PeakStructure::PeakStructure()
 
   findCarFallbacks.push_back(
     { &PeakStructure::findPartialFirstCarByQuality, 
-      "partial by quality", 1});
+      "first partial by quality", 1});
+  findCarFallbacks.push_back(
+    { &PeakStructure::findPartialLastCarByQuality, 
+      "last partial by quality", 1});
   findCarFallbacks.push_back(
     { &PeakStructure::findCarByEmptyLast, 
       "by empty last", 7});
@@ -290,6 +293,7 @@ PeakStructure::FindCarType PeakStructure::findCarByOrder(
 PeakStructure::FindCarType PeakStructure::findPartialCarByQuality(
   const CarModels& models,
   const PeakFncPtr& fptr,
+  const bool firstFlag,
   PeakPool& peaks,
   PeakRange& range,
   CarDetect& car) const
@@ -298,10 +302,19 @@ PeakStructure::FindCarType PeakStructure::findPartialCarByQuality(
   range.splitByQuality(fptr, peakPtrsUsed, peakPtrsUnused);
 
   PeakRepair repair;
-  if (repair.firstCar(models, offset, peaks, range, 
+  if (firstFlag && repair.firstCar(models, offset, peaks, range, 
       peakPtrsUsed, peakPtrsUnused))
   {
 cout << "Hit an anywheeler\n";
+    car.makeAnyWheeler(range, peakPtrsUsed);
+    PeakStructure::markUpPeaks(peakPtrsUsed, 4);
+    PeakStructure::markDownPeaks(peakPtrsUnused);
+    return FIND_CAR_PARTIAL;
+  }
+  else if (! firstFlag && repair.lastCar(models, offset, peaks, range,
+      peakPtrsUsed, peakPtrsUnused))
+  {
+cout << "Hit a lastwheeler\n";
     car.makeAnyWheeler(range, peakPtrsUsed);
     PeakStructure::markUpPeaks(peakPtrsUsed, 4);
     PeakStructure::markDownPeaks(peakPtrsUnused);
@@ -333,7 +346,28 @@ PeakStructure::FindCarType PeakStructure::findPartialFirstCarByQuality(
     return FIND_CAR_DOWNGRADE;
 
   return PeakStructure::findPartialCarByQuality(models, 
-      &Peak::goodQuality, peaks, range, car);
+      &Peak::goodQuality, true, peaks, range, car);
+}
+
+
+PeakStructure::FindCarType PeakStructure::findPartialLastCarByQuality(
+  const CarModels& models,
+  PeakPool& peaks,
+  PeakRange& range,
+  CarDetect& car) const
+{
+  if (! range.isLastCar())
+    return FIND_CAR_NO_MATCH;
+
+  if (range.numGreat() > 4)
+    return FIND_CAR_NO_MATCH;
+
+  // TODO Should the previous car then actively become the last one?
+  if (range.numGood() == 0)
+    return FIND_CAR_DOWNGRADE;
+
+  return PeakStructure::findPartialCarByQuality(models, 
+      &Peak::goodQuality, false, peaks, range, car);
 }
 
 

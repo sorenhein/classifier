@@ -314,11 +314,14 @@ const unsigned CarDetect::firstPeakMinus1() const
 
 const unsigned CarDetect::lastPeakPlus1() const
 {
-  // Could go further, but OK for now.
   if (peaksPtr.secondBogeyRightPtr)
     return peaksPtr.secondBogeyRightPtr->getIndex() + 1;
   else if (peaksPtr.secondBogeyLeftPtr)
     return peaksPtr.secondBogeyLeftPtr->getIndex() + 1;
+  else if (peaksPtr.firstBogeyRightPtr)
+    return peaksPtr.firstBogeyRightPtr->getIndex() + 1;
+  else if (peaksPtr.firstBogeyLeftPtr)
+    return peaksPtr.firstBogeyLeftPtr->getIndex() + 1;
   else
     return 0;
 }

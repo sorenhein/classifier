@@ -108,6 +108,14 @@ class PeakRepair
       PeakPtrVector& peakPtrsUsed,
       PeakPtrVector& peakPtrsUnused);
 
+    bool lastCar(
+      const CarModels& models,
+      const unsigned offsetIn,
+      PeakPool& peaks,
+      PeakRange& range,
+      PeakPtrVector& peakPtrsUsed,
+      PeakPtrVector& peakPtrsUnused);
+
     void printMatches() const;
 
 };

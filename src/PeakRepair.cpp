@@ -186,11 +186,20 @@ bool PeakRepair::updatePossibleModels(
     unsigned indexUsed;
 
     if (specialFlag && 
+        range.leftDirection &&
         peakPtrsUsed.back()->fitsType(BOGEY_RIGHT, WHEEL_RIGHT))
     {
-      // Fourth wheel.
+      // Fourth wheel (first car)
       pptr = peakPtrsUsed.back();
       indexUsed = peakPtrsUsed.size()-1;
+    }
+    else if (specialFlag &&
+         ! range.leftDirection &&
+         peakPtrsUsed.front()->fitsType(BOGEY_LEFT, WHEEL_LEFT))
+    {
+      // First wheel (last car).
+      pptr = peakPtrsUsed.front();
+      indexUsed = 0;
     }
     else
     {
@@ -201,8 +210,8 @@ bool PeakRepair::updatePossibleModels(
         p.skipped(), 
         (p.reversed() ? 3-peakNo : peakNo));
 
-// cout << "model " << p.number() << ", " << p.reversed() << ", " <<
-  // peakNo << ": " << gap << endl;
+cout << "model " << p.number() << ", " << p.reversed() << ", " <<
+  peakNo << ": " << gap << endl;
       if (gap == 0)
       {
         p.registerFinished();
@@ -215,7 +224,7 @@ bool PeakRepair::updatePossibleModels(
         p.registerFinished();
         continue;
       }
-// cout << "lower " << lower << " upper " << upper << endl;
+cout << "lower " << lower << " upper " << upper << endl;
 
       pptr = PeakRepair::locatePeak(lower, upper, peakPtrsUsed, indexUsed);
       if (! pptr)
@@ -384,6 +393,144 @@ bool PeakRepair::firstCar(
       }
     }
   }
+
+  // Get some typical model data.
+  unsigned bogeyTypical, longTypical;
+  models.getTypical(bogeyTypical, longTypical);
+cout << "Typical " << bogeyTypical << ", " << longTypical << endl;
+
+  // Fill out Used with the peaks actually used.
+  PeakPtrVector peakPtrsSpare;
+  superModel.getPeaks(bogeyTypical, longTypical, 
+    peakPtrsUsed, peakPtrsSpare);
+
+  if (peakPtrsSpare.size() > 0)
+  {
+    cout << "WARNSPARE: " << peakPtrsSpare.size() << endl;
+    cout << peakPtrsSpare.front()->strHeaderQuality();
+
+    for (auto& p: peakPtrsSpare)
+    {
+      cout<< p->strQuality(offset);
+      peakPtrsUnused.push_back(p);
+    }
+  }
+
+  return true;
+}
+
+
+bool PeakRepair::lastCar(
+  const CarModels& models,
+  const unsigned offsetIn,
+  PeakPool& peaks,
+  PeakRange& range,
+  PeakPtrVector& peakPtrsUsed,
+  PeakPtrVector& peakPtrsUnused)
+{
+  offset = offsetIn;
+
+  PeakPtrVector peakResult(4, nullptr);
+
+  PeakRepair::init(models.size(), range.endValue());
+
+  RepairRange repairRange;
+
+  // DIRDEPEND
+  repairRange.start = range.startValue();
+  repairRange.end = range.endValue();
+  repairRange.leftDirection = false;
+
+  // This finds existing models within the last-car mess.
+
+cout << "LASTTOKEN\n";
+// return false;
+
+  unsigned skips = 0;
+  // DIRDEPEND
+  for (unsigned peakNo = 0; peakNo < 4; peakNo++)
+  {
+    if (! PeakRepair::updatePossibleModels(repairRange, peakNo == 0,
+        peakPtrsUsed, peakNo, models))
+      skips++;
+    if (skips == 2)
+      break;
+  }
+
+  const unsigned numModelMatches = PeakRepair::numMatches();
+  if (numModelMatches == 0)
+  {
+    bool firstFlag = 
+      peakPtrsUsed.back()->fitsType(BOGEY_LEFT, WHEEL_LEFT);
+
+    bool modelEndFlag = models.hasAnEndGap();
+
+    cout << "LASTQUADRANT " << firstFlag << ", " << modelEndFlag << endl;
+
+    cout << "WARNREPAIR: No model match\n";
+    return false;
+  }
+
+  PeakRepair::printMatches();
+
+  PeakPartial superModel;
+  if (! PeakRepair::getDominantModel(superModel))
+    return false;
+
+  superModel.printSituation();
+
+  if (superModel.count() == 4)
+    cout << "WARNREPAIR: Full car (dominant)\n";
+  else
+  {
+    for (unsigned peakNo = 0; peakNo < 4; peakNo++)
+    {
+      if (superModel.hasPeak(peakNo) || ! superModel.hasRange(peakNo))
+        continue;
+
+      // TODO Is there almost a peak that fits already?
+      Peak * pptr;
+      unsigned lower, upper;
+      if (superModel.getRange(peakNo, lower, upper))
+      {
+        unsigned indexUsed;
+        pptr = PeakRepair::locatePeak(lower, upper, peakPtrsUsed, 
+          indexUsed);
+        
+        if (pptr)
+        {
+          cout << "WARNREPAIR: Found use for peak\n";
+          superModel.registerPtr(peakNo, pptr, indexUsed);
+          continue;
+        }
+      } 
+
+      // See if we could complete the peak.
+      Peak peakHint;
+      superModel.getPeak(peakNo, peakHint);
+
+      pptr = peaks.repair(peakHint, &Peak::goodQuality, offset);
+      if (pptr)
+      {
+        cout << "WARNREPAIR: " << superModel.strTarget(peakNo, offset) <<
+          " fixable\n";
+        
+        // Add to superModel.
+        superModel.registerPtr(peakNo, pptr);
+
+        // Remove from Unused if needed
+        for (auto p = peakPtrsUnused.begin(); p != peakPtrsUnused.end(); )
+        {
+          if (*p == pptr)
+            p = peakPtrsUnused.erase(p);
+          else
+            p++;
+        }
+      }
+    }
+  }
+
+  superModel.makeCodes(peakPtrsUsed, offset);
 
   // Get some typical model data.
   unsigned bogeyTypical, longTypical;

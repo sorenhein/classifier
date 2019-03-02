@@ -133,6 +133,11 @@ class PeakPartial
 
     void registerFinished();
 
+    bool getRange(
+      const unsigned peakNo,
+      unsigned& lowerOut,
+      unsigned& upperOut) const;
+
     void getPeak(
       const unsigned peakNo,
       Peak& peak) const;

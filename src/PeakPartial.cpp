@@ -18,6 +18,8 @@
 #define RIGHT_OF_P2 5
 #define LEFT_OF_P3 9
 #define LEFT_OF_P2 10
+#define RIGHT_OF_P0 11
+#define RIGHT_OF_P1 12
 
 #define INDEX_NOT_USED 999
 
@@ -139,6 +141,20 @@ void PeakPartial::registerFinished()
 {
   newFlag = false;
   aliveFlag = false;
+}
+
+
+bool PeakPartial::getRange(
+  const unsigned peakNo,
+  unsigned& lowerOut,
+  unsigned& upperOut) const
+{
+  if (upper[peakNo] == 0)
+    return false;
+
+  lowerOut = lower[peakNo];
+  upperOut = upper[peakNo];
+  return true;
 }
 
 
@@ -408,22 +424,26 @@ void PeakPartial::makeCodes(
 
     if (peaks[0] && index <= p0)
       intervalCount[LEFT_OF_P0]++;
-    else if (peaks[0] && peaks[1] && index > p0 && index <= p1)
+    else if (peaks[3] && index > p3)
+      intervalCount[RIGHT_OF_P3]++;
+
+    else if (peaks[0] && peaks[1] && index <= p1)
       intervalCount[BETWEEN_P0_P1]++;
     else if (peaks[1] && peaks[2] && index > p1 && index <= p2)
       intervalCount[BETWEEN_P1_P2]++;
     else if (peaks[2] && peaks[3] && index > p2 && index <= p3)
       intervalCount[BETWEEN_P2_P3]++;
-    else if (peaks[3] && index > p3)
-      intervalCount[RIGHT_OF_P3]++;
+
     else if (peaks[1] && index <= p1)
       intervalCount[LEFT_OF_P1]++;
+    else if (peaks[2] && index > p2)
+      intervalCount[RIGHT_OF_P2]++;
+
     else if (peaks[0] && peaks[2] && index > p0 && index <= p2)
       intervalCount[BETWEEN_P0_P2]++;
     else if (peaks[1] && peaks[3] && index > p1 && index <= p3)
       intervalCount[BETWEEN_P1_P3]++;
-    else if (peaks[2] && index > p2)
-      intervalCount[RIGHT_OF_P2]++;
+
     else if (! peaks[0] && ! peaks[1])
     {
       if (! peaks[2] && index <= p3)
@@ -431,10 +451,19 @@ void PeakPartial::makeCodes(
       else if (peaks[2] && index <= p2)
         intervalCount[LEFT_OF_P2]++;
       else
-      cout << "PEAKPARTIALERROR1 " << index + offset << "\n";
+        cout << "PEAKPARTIALERROR1 " << index + offset << "\n";
+    }
+    else if (! peaks[2] && ! peaks[3])
+    {
+      if (! peaks[1] && index > p0)
+        intervalCount[RIGHT_OF_P0]++;
+      else if (peaks[1] && index > p1)
+        intervalCount[RIGHT_OF_P1]++;
+      else
+        cout << "PEAKPARTIALERROR2 " << index + offset << "\n";
     }
     else
-      cout << "PEAKPARTIALERROR2 " << index + offset << "\n";
+      cout << "PEAKPARTIALERROR3 " << index + offset << "\n";
   }
 }
 
@@ -451,17 +480,20 @@ void PeakPartial::printSituation() const
     setw(2) << PeakPartial::strEntry(peaks[2] == nullptr ? 0 : 1) <<
     setw(2) << PeakPartial::strEntry(peaks[3] == nullptr ? 0 : 1) <<
 
-    setw(4) << PeakPartial::strEntry(intervalCount[4]) <<
-    setw(2) << PeakPartial::strEntry(intervalCount[3]) <<
-    setw(2) << PeakPartial::strEntry(intervalCount[2]) <<
-    setw(2) << PeakPartial::strEntry(intervalCount[1]) <<
-    setw(2) << PeakPartial::strEntry(intervalCount[0]) <<
-    setw(4) << PeakPartial::strEntry(intervalCount[8]) <<
-    setw(2) << PeakPartial::strEntry(intervalCount[7]) <<
-    setw(2) << PeakPartial::strEntry(intervalCount[6]) <<
-    setw(2) << PeakPartial::strEntry(intervalCount[5]) << 
-    setw(3) << PeakPartial::strEntry(intervalCount[9]) <<
-    setw(2) << PeakPartial::strEntry(intervalCount[10]) << endl;
+    setw(4) << PeakPartial::strEntry(intervalCount[LEFT_OF_P0]) <<
+    setw(2) << PeakPartial::strEntry(intervalCount[BETWEEN_P0_P1]) <<
+    setw(2) << PeakPartial::strEntry(intervalCount[BETWEEN_P1_P2]) <<
+    setw(2) << PeakPartial::strEntry(intervalCount[BETWEEN_P2_P3]) <<
+    setw(2) << PeakPartial::strEntry(intervalCount[RIGHT_OF_P3]) <<
+    setw(4) << PeakPartial::strEntry(intervalCount[LEFT_OF_P1]) <<
+    setw(2) << PeakPartial::strEntry(intervalCount[BETWEEN_P0_P2]) <<
+    setw(2) << PeakPartial::strEntry(intervalCount[BETWEEN_P1_P3]) <<
+    setw(2) << PeakPartial::strEntry(intervalCount[RIGHT_OF_P2]) << 
+    setw(3) << PeakPartial::strEntry(intervalCount[LEFT_OF_P3]) <<
+    setw(2) << PeakPartial::strEntry(intervalCount[LEFT_OF_P2]) << 
+    setw(2) << PeakPartial::strEntry(intervalCount[RIGHT_OF_P1]) << 
+    setw(2) << PeakPartial::strEntry(intervalCount[RIGHT_OF_P0]) << 
+    endl;
 }
 
 
