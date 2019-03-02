@@ -56,7 +56,10 @@ void dumpResiduals(
     for (unsigned i = 0; i < times.size(); i++)
     {
       const double t = times[i].time;
-      const unsigned j = ma.actualToRef[i];
+      const int j = ma.actualToRef[i];
+      if (j == -1)
+        continue;
+      
       pos[j] = coeffs[0] + coeffs[1] * t + coeffs[2] * t * t;
     }
 
