@@ -298,180 +298,66 @@ bool PeakRepair::getDominantModel(PeakPartial& dominantModel) const
 }
 
 
-bool PeakRepair::firstCar(
+bool PeakRepair::edgeCar(
   const CarModels& models,
   const unsigned offsetIn,
+  const bool firstFlag,
   PeakPool& peaks,
   PeakRange& range,
   PeakPtrVector& peakPtrsUsed,
   PeakPtrVector& peakPtrsUnused)
 {
   offset = offsetIn;
-
   PeakPtrVector peakResult(4, nullptr);
-
   PeakRepair::init(models.size(), range.endValue());
 
   RepairRange repairRange;
-  repairRange.start = range.endValue();
-  // repairRange.end = range.startValue();
-  // Actually we can go all the way.
-  repairRange.end = 0;
-  repairRange.leftDirection = true;
-
-  // This finds existing models within the first-car mess.
-
-  // TODO Guess cars that don't fit a model.
-  // For this we need an idea of usual gaps.  Then we can try to
-  // guess what's a small gap and a large gap.
-
-  unsigned skips = 0;
-  for (unsigned peakNoPlus1 = 4; peakNoPlus1 > 0; peakNoPlus1--)
+  list<unsigned> peakOrder;
+  if (firstFlag)
   {
-    if (! PeakRepair::updatePossibleModels(repairRange, peakNoPlus1 == 4,
-        peakPtrsUsed, peakNoPlus1-1, models))
-      skips++;
-    if (skips == 2)
-      break;
+    repairRange.start = range.endValue();
+    repairRange.end = 0;
+    repairRange.leftDirection = true;
+
+    peakOrder.insert(peakOrder.end(), {3, 2, 1, 0});
   }
-
-  const unsigned numModelMatches = PeakRepair::numMatches();
-  if (numModelMatches == 0)
-  {
-    bool fourthFlag = 
-      peakPtrsUsed.back()->fitsType(BOGEY_RIGHT, WHEEL_RIGHT);
-
-    bool modelEndFlag = models.hasAnEndGap();
-
-    cout << "QUADRANT " << fourthFlag << ", " << modelEndFlag << endl;
-
-    cout << "WARNREPAIR: No model match\n";
-    return false;
-  }
-
-  PeakRepair::printMatches();
-
-  PeakPartial superModel;
-  if (! PeakRepair::getDominantModel(superModel))
-    return false;
-
-  superModel.makeCodes(peakPtrsUsed, offset);
-  superModel.printSituation();
-
-  if (superModel.count() == 4)
-    cout << "WARNREPAIR: Full car (dominant)\n";
   else
   {
-    for (unsigned i = 0; i < 4; i++)
-    {
-      if (superModel.hasPeak(i) || ! superModel.hasRange(i))
-        continue;
+    repairRange.start = range.startValue();
+    repairRange.end = range.endValue();
+    repairRange.leftDirection = false;
 
-      // TODO Is there almost a peak that fits already?
-
-      // See if we could complete the peak.
-      Peak peakHint;
-      superModel.getPeak(i, peakHint);
-
-      Peak * pptr = peaks.repair(peakHint, &Peak::goodQuality, offset);
-      if (pptr)
-      {
-        cout << "WARNREPAIR: " << superModel.strTarget(i, offset) <<
-          " fixable\n";
-        
-        // Add to superModel.
-        superModel.registerPtr(i, pptr);
-
-        // Remove from Unused if needed
-        for (auto p = peakPtrsUnused.begin(); p != peakPtrsUnused.end(); )
-        {
-          if (*p == pptr)
-            p = peakPtrsUnused.erase(p);
-          else
-            p++;
-        }
-      }
-    }
+    peakOrder.insert(peakOrder.end(), {0, 1, 2, 3});
   }
-
-  // Get some typical model data.
-  unsigned bogeyTypical, longTypical;
-  models.getTypical(bogeyTypical, longTypical);
-cout << "Typical " << bogeyTypical << ", " << longTypical << endl;
-
-  // Fill out Used with the peaks actually used.
-  PeakPtrVector peakPtrsSpare;
-  superModel.getPeaks(bogeyTypical, longTypical, 
-    peakPtrsUsed, peakPtrsSpare);
-
-  if (peakPtrsSpare.size() > 0)
-  {
-    cout << "WARNSPARE: " << peakPtrsSpare.size() << endl;
-    cout << peakPtrsSpare.front()->strHeaderQuality();
-
-    for (auto& p: peakPtrsSpare)
-    {
-      cout<< p->strQuality(offset);
-      peakPtrsUnused.push_back(p);
-    }
-  }
-
-  return true;
-}
-
-
-bool PeakRepair::lastCar(
-  const CarModels& models,
-  const unsigned offsetIn,
-  PeakPool& peaks,
-  PeakRange& range,
-  PeakPtrVector& peakPtrsUsed,
-  PeakPtrVector& peakPtrsUnused)
-{
-  offset = offsetIn;
-
-  PeakPtrVector peakResult(4, nullptr);
-
-  PeakRepair::init(models.size(), range.endValue());
-
-  RepairRange repairRange;
-
-  // DIRDEPEND
-  repairRange.start = range.startValue();
-  repairRange.end = range.endValue();
-  repairRange.leftDirection = false;
-
-  // This finds existing models within the last-car mess.
-
-cout << "LASTTOKEN\n";
-// return false;
 
   unsigned skips = 0;
-  // DIRDEPEND
-  for (unsigned peakNo = 0; peakNo < 4; peakNo++)
+  bool firstElemFlag = true;
+  for (unsigned peakNo: peakOrder)
   {
-    if (! PeakRepair::updatePossibleModels(repairRange, peakNo == 0,
+    if (! PeakRepair::updatePossibleModels(repairRange, firstElemFlag,
         peakPtrsUsed, peakNo, models))
       skips++;
     if (skips == 2)
       break;
+    firstElemFlag = false;
   }
 
   const unsigned numModelMatches = PeakRepair::numMatches();
   if (numModelMatches == 0)
   {
-    bool firstFlag = 
+    bool edgeFlag = 
       peakPtrsUsed.back()->fitsType(BOGEY_LEFT, WHEEL_LEFT);
 
     bool modelEndFlag = models.hasAnEndGap();
 
-    cout << "LASTQUADRANT " << firstFlag << ", " << modelEndFlag << endl;
+    cout << (firstFlag ? "FIRST" : "LAST") <<
+      "QUADRANT " << edgeFlag << ", " << modelEndFlag << endl;
 
     cout << "WARNREPAIR: No model match\n";
     return false;
   }
 
-  PeakRepair::printMatches();
+  PeakRepair::printMatches(firstFlag);
 
   PeakPartial superModel;
   if (! PeakRepair::getDominantModel(superModel))
@@ -488,7 +374,7 @@ cout << "LASTTOKEN\n";
       if (superModel.hasPeak(peakNo) || ! superModel.hasRange(peakNo))
         continue;
 
-      // TODO Is there almost a peak that fits already?
+      // Is there almost a peak that fits already?
       Peak * pptr;
       unsigned lower, upper;
       if (superModel.getRange(peakNo, lower, upper))
@@ -558,13 +444,13 @@ cout << "Typical " << bogeyTypical << ", " << longTypical << endl;
 }
 
 
-void PeakRepair::printMatches() const
+void PeakRepair::printMatches(const bool firstFlag) const
 {
   const unsigned n = PeakRepair::numMatches();
   if (n == 0)
     return;
 
-  cout << "FIRSTCAR matches: " << n << "\n";
+  cout << (firstFlag ? "FIRST" : "LAST") << "CAR matches: " << n << "\n";
   cout << partialData.front().strHeader();
   
   for (auto& p: partialData)

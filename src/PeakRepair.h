@@ -100,23 +100,16 @@ class PeakRepair
 
     void reset();
 
-    bool firstCar(
+    bool edgeCar(
       const CarModels& models,
       const unsigned offsetIn,
+      const bool firstFlag,
       PeakPool& peaks,
       PeakRange& range,
       PeakPtrVector& peakPtrsUsed,
       PeakPtrVector& peakPtrsUnused);
 
-    bool lastCar(
-      const CarModels& models,
-      const unsigned offsetIn,
-      PeakPool& peaks,
-      PeakRange& range,
-      PeakPtrVector& peakPtrsUsed,
-      PeakPtrVector& peakPtrsUnused);
-
-    void printMatches() const;
+    void printMatches(const bool firstFlag) const;
 
 };
 

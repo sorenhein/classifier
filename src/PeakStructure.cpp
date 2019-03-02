@@ -302,19 +302,14 @@ PeakStructure::FindCarType PeakStructure::findPartialCarByQuality(
   range.splitByQuality(fptr, peakPtrsUsed, peakPtrsUnused);
 
   PeakRepair repair;
-  if (firstFlag && repair.firstCar(models, offset, peaks, range, 
-      peakPtrsUsed, peakPtrsUnused))
+  if (repair.edgeCar(models, offset, firstFlag, 
+      peaks, range, peakPtrsUsed, peakPtrsUnused))
   {
-cout << "Hit an anywheeler\n";
-    car.makeAnyWheeler(range, peakPtrsUsed);
-    PeakStructure::markUpPeaks(peakPtrsUsed, 4);
-    PeakStructure::markDownPeaks(peakPtrsUnused);
-    return FIND_CAR_PARTIAL;
-  }
-  else if (! firstFlag && repair.lastCar(models, offset, peaks, range,
-      peakPtrsUsed, peakPtrsUnused))
-  {
-cout << "Hit a lastwheeler\n";
+if (firstFlag)
+  cout << "Hit an anywheeler\n";
+else
+  cout << "Hit a lastwheeler\n";
+
     car.makeAnyWheeler(range, peakPtrsUsed);
     PeakStructure::markUpPeaks(peakPtrsUsed, 4);
     PeakStructure::markDownPeaks(peakPtrsUnused);
