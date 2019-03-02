@@ -85,10 +85,12 @@ class PeakPartial
 
     void recoverPeaks0101(vector<Peak *>& peakPtrsUsed);
     void recoverPeaks0011(vector<Peak *>& peakPtrsUsed);
+    void recoverPeaks1100(vector<Peak *>& peakPtrsUsed);
     void recoverPeaks0001(
       const unsigned bogeyTypical,
       const unsigned longTypical,
       vector<Peak *>& peakPtrsUsed);
+    void recoverPeaks1110(vector<Peak *>& peakPtrsUsed);
 
     void moveUnused(
       vector<Peak *>& peaksUsed,

@@ -54,7 +54,7 @@ void PeakPartial::reset()
   numUsed = 0;
 
   peakCode = 0;
-  intervalCount.resize(11);
+  intervalCount.resize(13);
   intervalEntries = 0;
 }
 
@@ -572,9 +572,28 @@ void PeakPartial::recoverPeaks0011(vector<Peak *>& peakPtrsUsed)
   {
     // Could also check that the spacing of the two peaks is not
     // completely off vs. the two last peaks.
-cout << "Reinstating one peak, should be p0 and p1\n";
+cout << "Reinstating two peaks, should be p0 and p1\n";
     PeakPartial::registerPtr(0, peakPtrsUsed[iu-3], iu-3);
     PeakPartial::registerPtr(1, peakPtrsUsed[iu-2], iu-2);
+  }
+}
+
+
+void PeakPartial::recoverPeaks1100(vector<Peak *>& peakPtrsUsed)
+{
+  // The four peaks: found - found - not found - not found.
+  const unsigned iu = indexUsed[0];
+  if (intervalEntries == 2 && 
+      intervalCount[RIGHT_OF_P1] == 2 &&
+      upper[2] == 0 &&
+      peakPtrsUsed[iu+2]->greatQuality() &&
+      peakPtrsUsed[iu+3]->greatQuality())
+  {
+    // Could also check that the spacing of the two peaks is not
+    // completely off vs. the two last peaks.
+cout << "Reinstating two peaks, should be p2 and p3\n";
+    PeakPartial::registerPtr(2, peakPtrsUsed[iu+2], iu+2);
+    PeakPartial::registerPtr(3, peakPtrsUsed[iu+3], iu+3);
   }
 }
 
@@ -663,6 +682,41 @@ cout << "Reinstating one 0001 peak, should be p0\n";
 }
 
 
+void PeakPartial::recoverPeaks1110(vector<Peak *>& peakPtrsUsed)
+{
+  // The four peaks: found - found - found - not found.
+  const unsigned iu = indexUsed[2];
+
+  // TODO When does the latter happen?
+  if (iu == 0 || iu+1 >= peakPtrsUsed.size())
+    return;
+
+  const unsigned index = peakPtrsUsed[iu+1]->getIndex();
+
+  // Give up if we have nothing to work with.
+  if (intervalEntries == 0 ||
+      index <= peaks[2]->getIndex() || 
+      upper[3] == 0)
+    return;
+
+  // Give up if the candidate is not plausible.
+  // If this is a new car type, we have higher quality demands.
+
+  // Not great peak?
+  if (! peakPtrsUsed[iu+1]->greatQuality())
+    return;
+
+  if (index + upper[3] >= 2*lower[3] &&
+      index + lower[3] <= 2*upper[3])
+  {
+    // If index = 9590 and range = 9600-9610, it would just work.
+    // Effectively we double up the interval.
+    PeakPartial::registerPtr(3, peakPtrsUsed[iu+1], iu+1);
+cout << "Reinstating one 1110 peak, should be p3\n";
+  }
+}
+
+
 void PeakPartial::getPeaks(
   const unsigned bogeyTypical,
   const unsigned longTypical,
@@ -672,17 +726,21 @@ void PeakPartial::getPeaks(
   // Mostly for the sport, we try to use as many of the front peaks
   // as possible.  Mostly the alignment will pick up on it anyway.
 
-  if (peakCode == 0x7)
+  if (peakCode == 0x1)
+    PeakPartial::recoverPeaks0001(bogeyTypical, longTypical, peakPtrsUsed);
+  else if (peakCode == 0x3)
+    PeakPartial::recoverPeaks0011(peakPtrsUsed);
+  else if (peakCode == 0x5)
+    PeakPartial::recoverPeaks0101(peakPtrsUsed);
+  else if (peakCode == 0x7)
   {
     // We got the last three peaks.  Generally it's a pretty good bet
     // to throw away anything else.
   }
-  else if (peakCode == 0x5)
-    PeakPartial::recoverPeaks0101(peakPtrsUsed);
-  else if (peakCode == 0x3)
-    PeakPartial::recoverPeaks0011(peakPtrsUsed);
-  else if (peakCode == 0x1)
-    PeakPartial::recoverPeaks0001(bogeyTypical, longTypical, peakPtrsUsed);
+  else if (peakCode == 0xc)
+    PeakPartial::recoverPeaks1100(peakPtrsUsed);
+  else if (peakCode == 0xe)
+    PeakPartial::recoverPeaks1110(peakPtrsUsed);
   else
   {
     // Usually nothing left.

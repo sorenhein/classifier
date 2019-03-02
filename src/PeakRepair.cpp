@@ -210,8 +210,8 @@ bool PeakRepair::updatePossibleModels(
         p.skipped(), 
         (p.reversed() ? 3-peakNo : peakNo));
 
-cout << "model " << p.number() << ", " << p.reversed() << ", " <<
-  peakNo << ": " << gap << endl;
+// cout << "model " << p.number() << ", " << p.reversed() << ", " <<
+  // peakNo << ": " << gap << endl;
       if (gap == 0)
       {
         p.registerFinished();
@@ -224,7 +224,7 @@ cout << "model " << p.number() << ", " << p.reversed() << ", " <<
         p.registerFinished();
         continue;
       }
-cout << "lower " << lower << " upper " << upper << endl;
+// cout << "lower " << lower << " upper " << upper << endl;
 
       pptr = PeakRepair::locatePeak(lower, upper, peakPtrsUsed, indexUsed);
       if (! pptr)

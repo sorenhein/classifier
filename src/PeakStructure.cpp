@@ -64,7 +64,7 @@ PeakStructure::PeakStructure()
       "first partial by quality", 1});
   findCarFallbacks.push_back(
     { &PeakStructure::findPartialLastCarByQuality, 
-      "last partial by quality", 1});
+      "last partial by quality", 9});
   findCarFallbacks.push_back(
     { &PeakStructure::findCarByEmptyLast, 
       "by empty last", 7});
