@@ -3,15 +3,30 @@
 use strict;
 use warnings;
 
-# Extract data from sensor??.txt to focus on partial first cars.
+# Extract data from sensor??.txt to focus on partial first/last cars.
 
-my $select = "PEAKPART   1";
+my $firstFlag = 0;
+my $select = "PEAKPART   8";
+
+my ($dir, $startTag, $endTag);
+if ($firstFlag)
+{
+  $dir = "first";
+  $startTag = "FIRSTCAR ";
+  $endTag = "anywheeler";
+}
+else
+{
+  $dir = "last";
+  $startTag = "LASTCAR ";
+  $endTag = "lastwheeler";
+}
 
 for my $file (@ARGV)
 {
   open my $fi, "<", $file or die "Cannot open $: $!";
 
-  my $fout = "first/$file";
+  my $fout = "$dir/$file";
   open my $fo, ">", $fout or die "Cannot open $: $!";
 
   my $state = 0;
@@ -41,19 +56,50 @@ for my $file (@ARGV)
     }
     elsif ($state == 1 && $line =~ /of PeakMinima$/)
     {
-      my $dashes = 0;
-      while ($line = <$fi>)
+      if ($firstFlag)
       {
-        chomp $line;
-        $line =~ s///g;
-        $dashes++ if ($line =~ /^-----/);
-        push @lines, $line . "\n";
-        last if ($dashes == 2 || $line eq "");
+        # The first couple of peak groups (cars).
+        my $dashes = 0;
+        while ($line = <$fi>)
+        {
+          chomp $line;
+          $line =~ s///g;
+          $dashes++ if ($line =~ /^-----/);
+          push @lines, $line . "\n";
+          last if ($dashes == 2 || $line eq "");
+        }
       }
+      else
+      {
+        # The last couple of peak groups.
+        my @tmp;
+        while ($line = <$fi>)
+        {
+          chomp $line;
+          $line =~ s///g;
+          push @tmp, $line;
+          last if $line eq "";
+        }
+
+        my $dashes = 0;
+        my $j;
+        for my $i (0 .. $#tmp)
+        {
+          $j = $#tmp - $i;
+          $dashes++ if ($tmp[$j] =~ /^-----/);
+          last if $dashes == 2;
+        }
+
+        for my $i ($j .. $#tmp)
+        {
+          push @lines, $tmp[$i] . "\n";
+        }
+      }
+
       push @lines, "\n";
       $state = 2;
     }
-    elsif ($state == 2 && $line =~ /^FIRSTCAR /)
+    elsif ($state == 2 && $line =~ /^$startTag/)
     {
       push @lines, $line . "\n";
       while ($line = <$fi>)
@@ -61,7 +107,7 @@ for my $file (@ARGV)
         chomp $line;
         $line =~ s///g;
         $partFlag = 1 if ($line =~ /^$select/);
-        last if ($line =~ /anywheeler/);
+        last if ($line =~ /$endTag/);
         push @lines, $line . "\n";
         last if ($line =~ /No dominant/);
       }

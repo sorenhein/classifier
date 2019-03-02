@@ -20,6 +20,7 @@
 #define LEFT_OF_P2 10
 #define RIGHT_OF_P0 11
 #define RIGHT_OF_P1 12
+#define NUM_INTERVALS 13
 
 #define INDEX_NOT_USED 999
 
@@ -54,7 +55,6 @@ void PeakPartial::reset()
   numUsed = 0;
 
   peakCode = 0;
-  intervalCount.resize(13);
   intervalEntries = 0;
 }
 
@@ -414,6 +414,9 @@ void PeakPartial::makeCodes(
   const unsigned p3 = (peaks[3] ? peaks[3]->getIndex() : 0);
 
   intervalEntries = 0;
+  intervalCount.clear();
+  intervalCount.resize(NUM_INTERVALS);
+
   for (auto& p: peakPtrsUsed)
   {
     if (p == peaks[0] || p == peaks[1] || p == peaks[2] || p == peaks[3])

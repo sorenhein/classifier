@@ -1,7 +1,6 @@
 Plan 2019-02-27
 ---------------
 - Get some more special cases for lastCar
-- Adapt perl script to look at last cars rather than first ones
 - Go through them systematically? (There are a lot...)
 
 Make PeakRepair more general for internal cars as well

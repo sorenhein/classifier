@@ -363,6 +363,7 @@ bool PeakRepair::edgeCar(
   if (! PeakRepair::getDominantModel(superModel))
     return false;
 
+  superModel.makeCodes(peakPtrsUsed, offset);
   superModel.printSituation();
 
   if (superModel.count() == 4)
@@ -416,6 +417,7 @@ bool PeakRepair::edgeCar(
     }
   }
 
+  // May have changed.
   superModel.makeCodes(peakPtrsUsed, offset);
 
   // Get some typical model data.
