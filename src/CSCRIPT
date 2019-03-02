@@ -1,0 +1,4 @@
+foreach i (../data/control/sensors/sensor*.txt)
+  set bn = `basename $i`
+  ./driver -c $i -x ICE4_DEU_48 > $bn
+end

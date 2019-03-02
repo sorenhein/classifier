@@ -1,33 +1,5 @@
 Plan 2019-02-27
 ---------------
-Use pickTrain to select runs
-Output
-sensor
-time
-quality
-rank (#1, #2, ...)
-subtract the reference trace before outputting
-print NN, NR, ... in "header"
-
-pass 48 to dump, not numWheels
-
-perl:
-split into cross files
-
-
-numWheels       delete (true, detected)
-4               0,0  4,0
-3               1,0  5,0  0,0  4,0  2,1  1,1
-2               2,0  6,0  1,0  5,0  3,1  2,1  0,2(?)
-1               3,0  7,0  2,0  6,0  4,1       0,1(?)
-0??
-
-- To start with, check whether a correct result always matches 
-  one of these.
-- Then limit ourselves to one of these.
-- Then score accordingly in a dynamic way:  The above are penalty-free.
-
-
 Make PeakRepair more general for internal cars as well
 - Not quite as aggressive about recognizing anything as a car
 - Peaks should generally be there, although they may be hidden
@@ -64,10 +36,6 @@ Also:
 
 * 3-wheel cars not just in 3-packs, but start or end of range
   Can utilize knowledge, e.g. 1-3-4
-
-* 4_DEU_48_N and _R: About 30 confusions
-  - Look at actual dots
-  - Are the reference distances right?
 
 * Time profile, speed up
 
