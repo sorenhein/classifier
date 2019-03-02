@@ -6,7 +6,7 @@ use warnings;
 # Extract data from sensor??.txt to focus on partial first/last cars.
 
 my $firstFlag = 0;
-my $select = "PEAKPART   8";
+my $select = "PEAKPART  14";
 
 my ($dir, $startTag, $endTag);
 if ($firstFlag)

@@ -404,3 +404,110 @@ PROBLEMS WITH EXTENTS NEEDED
 --------
 s04 #33: Two are p1-p3, 0.03/0.22 0.01/0.11, short car
 s27 #19: 463 should have extent, then not so close to 510-527, 0.00/0.13
+
+
+
+===================================================================
+
+Last cars
+---------
+
+a) Single peak
+
+s23 #17: probably spurious although great first quality
+s23 #35: probably spurious although great first quality
+s23 #37: probably spurious
+
+b) Two peaks
+
+s11 #42: p1-p3, short, seems to find 3 peaks
+
+c) Three peaks
+
+s01 #40: p1-p2-p3, short, see p1
+s04 #11: p1-p3-p4, short, see p1
+s04 #28: p1-p2-p3, short, see p1
+s04 #29: p1-p2-p3, short, see p1
+s04 #33: p1-p3-p4, short, see p1
+s07 #20: p2-p3-p4, short, see p2-empty-p3-empty
+s08 #41: p1-p2-p3, short, see p1
+s08 #46: p1-p2-p4, short, see p1
+s13 #7: p1-p3-p4, short, see p1-empty-p3
+s13 #10: p1-p3-p4, short, see p1-empty-p3
+s13 #35: p1-p3-p4, short, see p1-empty-p3
+s13 #39: p1-p3-p4, short, see p1-empty-p3
+s13 #40: p1-p3-p4, short, see p1-empty-p3
+s15 #24: p1-p2-p4, short, see p1
+s16 #7: p1-p2-p4, short, see p1
+s16 #25: p2-p3-p4, short, see p2(!)
+s16 #45: p2-p3-p4, short, see p2(!)
+s16 #48: p2-p3-p4, short, see p1(how?)
+s18 #28: p1-p2-p4, short, see p1-p2
+s22 #31: p1-p2-p4, short, see p1
+s23 #32: p1-p2-p3, short, see p1-empty-p3
+s23 #33: p1-p2(?)-p3, see p1-p2-p3
+s27 #8: p1-p2-p4, short, see p1
+s27 #10: p1-p2-p4, short, see p1
+s27 #27: p2-p3-p4, short, p2
+s27 #35: p1-p2-p3, short, p1
+s31 #44: p1-p2-spur, see ?-spur
+
+
+d) Four peaks
+
+s03 #15: p1-p2-p3-p4, see p1-p2-p4-empty...
+s03 #16: p1-p2-p3-p4, see p1-p2
+s03 #28: p1-p2-p3-p4, see p1-p2
+s04 #8: p1-p2-spur-p3, spur = 0.72, short, see p1
+s04 #17: p1-p2-p3-p4, short, see p1
+s04 #21: p1-p2-p3-p4, short, see p1-p2-p3-p4!
+s04 #36: p1-p2-p3-p4, short, see p1-p2-p3-p4!
+s04 #43: p1-p2-p3-p4, short, see p1-p2-p3-p4!
+s07 #32: p1-p2-p3-p4, short, see p1-p2-p3-p4!
+s08 #1: p1-p2-p3-p4, short, see p1
+s08 #14: p1-p2-p3-p4, short, see p1-p2-p3-p4!
+s09 #8: p1-p2-p3-p4, short, see p1-p2-p3
+s09 #9: p1-p2-p3-p4, short, see p1
+s09 #10: p1-p2-p3-p4, short, see p1
+s09 #17: p1-p2-p3-p4, short, see p1
+s09 #20: p1-p2-p3-p4, short, see p1
+s09 #22: p1-p2-p3-p4, short, see p1-p2
+s09 #27: p1-p2-p3-p4, short, p1-p2-p4
+s10 #17: p1-p2-p3-p4, short, see p1-p2-p3-p4!
+s13 #31: p1-p2-p3-p4, short, see p1-p2-p3
+s16 #23: p1-p2-p3-p4, short, see p1
+s19 #20: p1-spur-p3-p4, short, see p1-empty-p3
+s21 #34: p1-p2-p3-p4, see p1-p2-p3-p4
+s22 #13: p1-p2-p3-p4, short, see p1
+s22 #26: p1-p2-p3-p4, short, p1-p2-empty-p4
+s22 #36: p1-p2-p3-p4, short, see p1
+s22 #42: p1-p2-p3-p4, short, see p1-p2-p3-p4!
+s22 #44: p1-p2-p3-p3, short, see p1-empty-p2
+s27 #19: p1-p2-p3-p4, short, see p1
+s27 #21: p1-p2-spur-p3, short, see p1-empty-p4(!)
+s27 #45: p1-p2-p3-p4, see p1-p2-p3-p4!
+s28 #33: p1-p2-p3-p4, short, see p1
+s31 #12: p1-p3-spur-p4, short, see spur-empty-p4
+s33 #12: spur-p2-p3-p4, see p1(!)-p2-p4(!)
+
+e) More
+
+s16 #40: 8 peaks (why edgeCar??), actually two whole cars
+s18 #29: 9 peas (why edgeCar?), actually two whole cars
+s31 #5
+
+f) Messed up
+
+s09 #0 #2 #3 #6
+s10 #39
+s12 #37
+s13 #22 #34
+s14 #21
+s19 #6 #8 #10 #12 #16 #23 #26 #27 #39
+s22 #4 #6
+s23 #0 #3 #5 #15 #16 #18 #23 #28 #29 #45
+s24 #1 #37 #41 #47 #55
+s25 #4 #8 #19
+s30 #15 #40 #41 #52 #58 #67
+s31 #0 #7 #30 #36 #48 #54
+s33 #5 #8 #16 #25
