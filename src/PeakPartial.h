@@ -103,6 +103,7 @@ class PeakPartial
 
     void recoverPeaks0101(vector<Peak *>& peakPtrsUsed);
     void recoverPeaks0011(vector<Peak *>& peakPtrsUsed);
+    void recoverPeaks1011(vector<Peak *>& peakPtrsUsed);
     void recoverPeaks1100(vector<Peak *>& peakPtrsUsed);
     void recoverPeaks1101(vector<Peak *>& peakPtrsUsed);
     void recoverPeaks0001(
@@ -110,11 +111,13 @@ class PeakPartial
       const unsigned longTypical,
       vector<Peak *>& peakPtrsUsed);
 
-    void recoverPeaks11Shared(
-      Peak * pptr2,
-      Peak * pptr3,
-      const unsigned indexUsed2,
-      const unsigned indexUsed3,
+    void recoverPeaksShared(
+      Peak *& pptrA,
+      Peak *& pptrB,
+      const unsigned npA,
+      const unsigned npB,
+      const unsigned indexUsedA,
+      const unsigned indexUsedB,
       const string& source);
 
     void recoverPeaks1110(vector<Peak *>& peakPtrsUsed);

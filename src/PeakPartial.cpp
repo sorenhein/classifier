@@ -744,50 +744,37 @@ Peak * PeakPartial::locatePeak(
 }
 
 
-void PeakPartial::recoverPeaks11Shared(
-  Peak * pptr2,
-  Peak * pptr3,
-  const unsigned indexUsed2,
-  const unsigned indexUsed3,
+void PeakPartial::recoverPeaksShared(
+  Peak *& pptrA,
+  Peak *& pptrB,
+  const unsigned npA,
+  const unsigned npB,
+  const unsigned indexUsedA,
+  const unsigned indexUsedB,
   const string& source)
 {
-  if (pptr2 && pptr3)
+  if (pptrA && pptrB)
   {
-    const unsigned pp2 = pptr2->getIndex();
-
-    if (pp2 <= peaks[1]->getIndex() ||
-        pp2 - peaks[1]->getIndex() < peaks[2]->getIndex() - pp2)
-    {
-      // The putative p2 would be badly positioned to p1.
-      pptr2 = nullptr;
-    }
-    else
-    {
-      cout << "ERROR recoverPeaks1110: p2 and p3 are both there?\n";
-      cout << "Without offset:\n";
-      cout << pptr2->strQuality();
-      cout << pptr3->strQuality();
-      return;
-    }
+    cout << "ERROR recoverPeaks1110: pA and pB are both there?\n";
+    cout << "Without offset:\n";
+    cout << pptrA->strQuality();
+    cout << pptrB->strQuality();
+    return;
   }
 
-  if (pptr2)
+  if (pptrA)
   {
-cout << "Reinstating one " << source << " peak, should be p2\n";
-// cout << "Index " << indexUsed2 << "\n";
-// cout << pptr2->strQuality();
-    // peaks[3] = peaks[2];
-    // indexUsed[3] = indexUsed[2];
-    if (peaks[2])
-      PeakPartial::movePtr(2, 3);
-    PeakPartial::registerPtr(2, pptr2, indexUsed2);
+cout << "Reinstating one " << source << " peak, should be pA\n";
+    if (peaks[npA])
+      PeakPartial::movePtr(npA, npB);
+    PeakPartial::registerPtr(npA, pptrA, indexUsedA);
   }
-  else if (pptr3)
+  else if (pptrB)
   {
-cout << "Reinstating one " << source << " peak, should be p3\n";
-    if (peaks[3])
-      PeakPartial::movePtr(3, 2);
-    PeakPartial::registerPtr(3, pptr3, indexUsed3);
+cout << "Reinstating one " << source << " peak, should be pB\n";
+    if (peaks[npB])
+      PeakPartial::movePtr(npB, npA);
+    PeakPartial::registerPtr(npB, pptrB, indexUsedB);
   }
 }
 
@@ -819,6 +806,41 @@ Peak * PeakPartial::lookForPeak(
 }
 
 
+void PeakPartial::recoverPeaks1011(vector<Peak *>& peakPtrsUsed)
+{
+  // The four peaks: found - not found - found - found.
+  const unsigned bogey = peaks[3]->getIndex() - peaks[2]->getIndex();
+
+  Peak * pptr0 = nullptr, * pptr1 = nullptr;
+  unsigned indexUsed0 = 0, indexUsed1 = 0;
+
+  // Could be p0-null-p2-p3, missing the p1.
+  const unsigned index0 = peaks[0]->getIndex();
+  if (intervalCount[BETWEEN_P0_P2] > 0)
+    pptr1 = PeakPartial::lookForPeak(index0, bogey, 0.2f, 0.5f,
+      true, peakPtrsUsed, indexUsed1);
+
+  // Could be p1-null-p2-p3, missing the p0.
+  if (intervalCount[LEFT_OF_P0] > 0)
+    pptr0 = PeakPartial::lookForPeak(index0, bogey, 0.2f, 0.5f,
+      false, peakPtrsUsed, indexUsed0);
+
+  if (pptr1)
+  {
+    const unsigned pp1 = pptr1->getIndex();
+    if (pp1 >= peaks[2]->getIndex() ||
+        pp1 - peaks[0]->getIndex() > peaks[2]->getIndex() - pp1)
+    {
+      // The putative p1 would be badly positioned to p2.
+      pptr1 = nullptr;
+    }
+  }
+
+  PeakPartial::recoverPeaksShared(pptr0, pptr1, 0, 1,
+    indexUsed0, indexUsed1, "1011");
+}
+
+
 void PeakPartial::recoverPeaks1101(vector<Peak *>& peakPtrsUsed)
 {
   // The four peaks: found - found - not found - found.
@@ -833,11 +855,23 @@ void PeakPartial::recoverPeaks1101(vector<Peak *>& peakPtrsUsed)
     pptr3 = PeakPartial::lookForPeak(index3, bogey, 0.2f, 0.5f,
       true, peakPtrsUsed, indexUsed3);
 
+  // Could be p0-p1-null-p3, missing the p2.
   if (intervalCount[BETWEEN_P1_P3] > 0)
     pptr2 = PeakPartial::lookForPeak(index3, bogey, 0.2f, 0.5f,
       false, peakPtrsUsed, indexUsed2);
 
-  PeakPartial::recoverPeaks11Shared(pptr2, pptr3,
+  if (pptr2)
+  {
+    const unsigned pp2 = pptr2->getIndex();
+    if (pp2 <= peaks[1]->getIndex() ||
+        pp2 - peaks[1]->getIndex() < peaks[3]->getIndex() - pp2)
+    {
+      // The putative p2 would be badly positioned to p1.
+      pptr2 = nullptr;
+    }
+  }
+
+  PeakPartial::recoverPeaksShared(pptr2, pptr3, 2, 3,
     indexUsed2, indexUsed3, "1101");
 }
 
@@ -850,17 +884,28 @@ void PeakPartial::recoverPeaks1110(vector<Peak *>& peakPtrsUsed)
   Peak * pptr2 = nullptr, * pptr3 = nullptr;
   unsigned indexUsed2 = 0, indexUsed3 = 0;
 
-  // Could be p0-p1-p2, missing the p3.
+  // Could be p0-p1-p2-null, missing the p3.
   const unsigned index2 = peaks[2]->getIndex();
   if (intervalCount[RIGHT_OF_P2] > 0)
     pptr3 = PeakPartial::lookForPeak(index2, bogey, 0.2f, 0.5f,
       true, peakPtrsUsed, indexUsed3);
 
+  // Could be p0-p1-p3-null, missing the p2.
   if (intervalCount[BETWEEN_P1_P2] > 0)
     pptr2 = PeakPartial::lookForPeak(index2, bogey, 0.2f, 0.5f,
       false, peakPtrsUsed, indexUsed2);
 
-  PeakPartial::recoverPeaks11Shared(pptr2, pptr3,
+  if (pptr2)
+  {
+    const unsigned pp2 = pptr2->getIndex();
+    if (pp2 <= peaks[1]->getIndex() ||
+        pp2 - peaks[1]->getIndex() < peaks[2]->getIndex() - pp2)
+    {
+      // The putative p2 would be badly positioned to p1.
+      pptr2 = nullptr;
+    }
+  }
+  PeakPartial::recoverPeaksShared(pptr2, pptr3, 2, 3,
     indexUsed2, indexUsed3, "1110");
 }
 
