@@ -6,6 +6,7 @@ Do PEAKLAST
 - 11
 - 12
 - 13
+  - Pass a hint to locatePeak
 
 Look at the ones with no left-over PeakPtrsUsed: repair.
 Also the ones with incomplete PeakPtrsUsed repair can be repaired.

@@ -734,46 +734,13 @@ Peak * PeakPartial::locatePeak(
 }
 
 
-
-void PeakPartial::recoverPeaks1110(vector<Peak *>& peakPtrsUsed)
+void PeakPartial::recoverPeaks11Shared(
+  Peak * pptr2,
+  Peak * pptr3,
+  const unsigned indexUsed2,
+  const unsigned indexUsed3,
+  const string& source)
 {
-  // The four peaks: found - found - found - not found.
-  const unsigned iu = indexUsed[2];
-  const unsigned bogey = peaks[1]->getIndex() - peaks[0]->getIndex();
-  const unsigned lo = static_cast<unsigned>(0.6f * bogey);
-  const unsigned hi = static_cast<unsigned>(1.4f * bogey);
-
-  Peak * pptr2 = nullptr, * pptr3 = nullptr;
-  unsigned indexUsed2 = 0, indexUsed3 = 0;
-
-  // Could be p0-p1-p2, missing the p3.
-  if (intervalCount[RIGHT_OF_P2] > 0)
-  {
-    unsigned plo = peaks[2]->getIndex() + lo;
-    unsigned phi = peaks[2]->getIndex() + hi;
-// cout << "PP try p3 bogey\n";
-    pptr3 = PeakPartial::locatePeak(plo, phi, peakPtrsUsed, indexUsed3);
-
-    // TODO Not consistent in this file: 2x, 1.5x, +/- 10%, ...
-    if (pptr3 == nullptr && upper[3] != 0)
-    {
-// cout << "PP try p3 int (" << lower[3] << ", " << upper[3] << ")\n";
-      pptr3 = PeakPartial::locatePeak(
-        2 * lower[3] - upper[3], 
-        2 * upper[3] - lower[3], 
-        peakPtrsUsed,
-        indexUsed3);
-    }
-  }
-
-  if (intervalCount[BETWEEN_P1_P2] > 0)
-  {
-    unsigned plo = peaks[2]->getIndex() - hi;
-    unsigned phi = peaks[2]->getIndex() - lo;
-// cout << "PP try p2 bogey\n";
-    pptr2 = PeakPartial::locatePeak(plo, phi, peakPtrsUsed, indexUsed2);
-  }
-
   if (pptr2 && pptr3)
   {
     const unsigned pp2 = pptr2->getIndex();
@@ -796,49 +763,99 @@ void PeakPartial::recoverPeaks1110(vector<Peak *>& peakPtrsUsed)
 
   if (pptr2)
   {
-cout << "Reinstating one 1110 peak, should be p2\n";
+cout << "Reinstating one " << source << " peak, should be p2\n";
     peaks[3] = peaks[2];
     indexUsed[3] = indexUsed[2];
-    PeakPartial::registerPtr(2, peakPtrsUsed[indexUsed2], indexUsed2);
+    PeakPartial::registerPtr(2, pptr2, indexUsed2);
     numUsed++;
   }
   else if (pptr3)
   {
-cout << "Reinstating one 1110 peak, should be p3\n";
-    PeakPartial::registerPtr(3, peakPtrsUsed[indexUsed3], indexUsed3);
+cout << "Reinstating one " << source << " peak, should be p3\n";
+    PeakPartial::registerPtr(3, pptr3, indexUsed3);
     numUsed++;
   }
+}
 
 
-  /*
-  // TODO When does the latter happen?
-  if (iu == 0 || iu+1 >= peakPtrsUsed.size())
-    return;
+void PeakPartial::recoverPeaks1101(vector<Peak *>& peakPtrsUsed)
+{
+  // The four peaks: found - found - not found - found.
+  const unsigned bogey = peaks[1]->getIndex() - peaks[0]->getIndex();
+  const unsigned lo = static_cast<unsigned>(0.6f * bogey);
+  const unsigned hi = static_cast<unsigned>(1.4f * bogey);
 
-  const unsigned index = peakPtrsUsed[iu+1]->getIndex();
+  Peak * pptr2 = nullptr, * pptr3 = nullptr;
+  unsigned indexUsed2 = 0, indexUsed3 = 0;
 
-  // Give up if we have nothing to work with.
-  if (intervalEntries == 0 ||
-      index <= peaks[2]->getIndex() || 
-      upper[3] == 0)
-    return;
-
-  // Give up if the candidate is not plausible.
-  // If this is a new car type, we have higher quality demands.
-
-  // Not great peak?
-  if (! peakPtrsUsed[iu+1]->greatQuality())
-    return;
-
-  if (index + upper[3] >= 2*lower[3] &&
-      index + lower[3] <= 2*upper[3])
+  // Could be p0-p1-null-p2, missing the p3.
+  if (intervalCount[RIGHT_OF_P3] > 0)
   {
-    // If index = 9590 and range = 9600-9610, it would just work.
-    // Effectively we double up the interval.
-    PeakPartial::registerPtr(3, peakPtrsUsed[iu+1], iu+1);
-cout << "Reinstating one 1110 peak, should be p3\n";
+    unsigned plo = peaks[3]->getIndex() + lo;
+    unsigned phi = peaks[3]->getIndex() + hi;
+    pptr3 = PeakPartial::locatePeak(plo, phi, peakPtrsUsed, indexUsed3);
+
   }
-  */
+
+  if (intervalCount[BETWEEN_P1_P3] > 0)
+  {
+    unsigned plo = peaks[3]->getIndex() - hi;
+    unsigned phi = peaks[3]->getIndex() - lo;
+    pptr2 = PeakPartial::locatePeak(plo, phi, peakPtrsUsed, indexUsed2);
+
+    if (pptr2 == nullptr && upper[2] != 0)
+    {
+cout << "PP trying " << lower[2] << ", " << upper[2] << endl;
+      pptr3 = PeakPartial::locatePeak(
+        2 * lower[2] - upper[2], 
+        2 * upper[2] - lower[2], 
+        peakPtrsUsed,
+        indexUsed2);
+    }
+  }
+
+  PeakPartial::recoverPeaks11Shared(pptr2, pptr3,
+    indexUsed2, indexUsed3, "1101");
+}
+
+
+void PeakPartial::recoverPeaks1110(vector<Peak *>& peakPtrsUsed)
+{
+  // The four peaks: found - found - found - not found.
+  const unsigned bogey = peaks[1]->getIndex() - peaks[0]->getIndex();
+  const unsigned lo = static_cast<unsigned>(0.6f * bogey);
+  const unsigned hi = static_cast<unsigned>(1.4f * bogey);
+
+  Peak * pptr2 = nullptr, * pptr3 = nullptr;
+  unsigned indexUsed2 = 0, indexUsed3 = 0;
+
+  // Could be p0-p1-p2, missing the p3.
+  if (intervalCount[RIGHT_OF_P2] > 0)
+  {
+    unsigned plo = peaks[2]->getIndex() + lo;
+    unsigned phi = peaks[2]->getIndex() + hi;
+    pptr3 = PeakPartial::locatePeak(plo, phi, peakPtrsUsed, indexUsed3);
+
+    // TODO Not consistent in this file: 2x, 1.5x, +/- 10%, ...
+    if (pptr3 == nullptr && upper[3] != 0)
+    {
+      pptr3 = PeakPartial::locatePeak(
+        2 * lower[3] - upper[3], 
+        2 * upper[3] - lower[3], 
+        peakPtrsUsed,
+        indexUsed3);
+    }
+  }
+
+  if (intervalCount[BETWEEN_P1_P2] > 0)
+  {
+    unsigned plo = peaks[2]->getIndex() - hi;
+    unsigned phi = peaks[2]->getIndex() - lo;
+    pptr2 = PeakPartial::locatePeak(plo, phi, peakPtrsUsed, indexUsed2);
+  }
+
+  PeakPartial::recoverPeaks11Shared(pptr2, pptr3,
+    indexUsed2, indexUsed3, "1110");
 }
 
 
@@ -864,6 +881,8 @@ void PeakPartial::getPeaks(
   }
   else if (peakCode == 0xc)
     PeakPartial::recoverPeaks1100(peakPtrsUsed);
+  else if (peakCode == 0xd)
+    PeakPartial::recoverPeaks1101(peakPtrsUsed);
   else if (peakCode == 0xe)
     PeakPartial::recoverPeaks1110(peakPtrsUsed);
   else
