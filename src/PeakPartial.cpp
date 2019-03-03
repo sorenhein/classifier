@@ -184,14 +184,17 @@ bool PeakPartial::closeEnough(
   const unsigned peakNo,
   const unsigned posNo) const
 {
+  // TODO Divide by 2 or not?
+  const unsigned delta = (upper[posNo] - lower[posNo]) / 2;
+
   if (peakNo < posNo)
-    return (lower[posNo] - index < (upper[posNo] - lower[posNo]) / 2);
+    return (lower[posNo] - index < delta);
   else if (peakNo > posNo)
-    return (index - upper[posNo] < (upper[posNo] - lower[posNo]) / 2);
+    return (index - upper[posNo] < delta);
   else if (index < lower[posNo])
-    return (lower[posNo] - index < (upper[posNo] - lower[posNo]) / 2);
+    return (lower[posNo] - index < delta);
   else if (index > upper[posNo])
-    return (index - upper[posNo] < (upper[posNo] - lower[posNo]) / 2);
+    return (index - upper[posNo] < delta);
   else
     return true;
 }
@@ -384,7 +387,7 @@ bool PeakPartial::supersede(const PeakPartial& p2)
   }
   else if (PeakPartial::samePeakValues(p2))
     return true;
-  else if (PeakPartial::mergeNew(p2))
+  else if (PeakPartial::merge(p2))
     return true;
   else
     return false;
@@ -694,11 +697,120 @@ cout << "Reinstating one 0001 peak, should be p0\n";
 }
 
 
+// TODO TMP: Should become a class (PeakPtrVector).  Then eliminate
+// duplication with PeakRepair.
+Peak * PeakPartial::locatePeak(
+  const unsigned lowerIn,
+  const unsigned upperIn,
+  PeakPtrVector& peakPtrsUsed,
+  unsigned& indexUsedOut) const
+{
+  unsigned num = 0;
+  unsigned i = 0;
+  Peak * ptr = nullptr;
+  for (auto& p: peakPtrsUsed)
+  {
+    const unsigned index = p->getIndex();
+    if (index >= lowerIn && index <= upperIn)
+    {
+      num++;
+      indexUsedOut = i;
+      ptr = p;
+    }
+    i++;
+  }
+
+  if (num == 0)
+    return nullptr;
+  else if (num > 1)
+  {
+    // TODO May have to pick the best one.
+    cout << "WARNING locatePeak: Multiple choices in (" <<
+      lowerIn << ", " << upperIn << ")\n";
+    return nullptr;
+  }
+  else
+    return ptr;
+}
+
+
+
 void PeakPartial::recoverPeaks1110(vector<Peak *>& peakPtrsUsed)
 {
   // The four peaks: found - found - found - not found.
   const unsigned iu = indexUsed[2];
+  const unsigned bogey = peaks[1]->getIndex() - peaks[0]->getIndex();
+  const unsigned lo = static_cast<unsigned>(0.6f * bogey);
+  const unsigned hi = static_cast<unsigned>(1.4f * bogey);
 
+  Peak * pptr2 = nullptr, * pptr3 = nullptr;
+  unsigned indexUsed2 = 0, indexUsed3 = 0;
+
+  // Could be p0-p1-p2, missing the p3.
+  if (intervalCount[RIGHT_OF_P2] > 0)
+  {
+    unsigned plo = peaks[2]->getIndex() + lo;
+    unsigned phi = peaks[2]->getIndex() + hi;
+// cout << "PP try p3 bogey\n";
+    pptr3 = PeakPartial::locatePeak(plo, phi, peakPtrsUsed, indexUsed3);
+
+    // TODO Not consistent in this file: 2x, 1.5x, +/- 10%, ...
+    if (pptr3 == nullptr && upper[3] != 0)
+    {
+// cout << "PP try p3 int (" << lower[3] << ", " << upper[3] << ")\n";
+      pptr3 = PeakPartial::locatePeak(
+        2 * lower[3] - upper[3], 
+        2 * upper[3] - lower[3], 
+        peakPtrsUsed,
+        indexUsed3);
+    }
+  }
+
+  if (intervalCount[BETWEEN_P1_P2] > 0)
+  {
+    unsigned plo = peaks[2]->getIndex() - hi;
+    unsigned phi = peaks[2]->getIndex() - lo;
+// cout << "PP try p2 bogey\n";
+    pptr2 = PeakPartial::locatePeak(plo, phi, peakPtrsUsed, indexUsed2);
+  }
+
+  if (pptr2 && pptr3)
+  {
+    const unsigned pp2 = pptr2->getIndex();
+
+    if (pp2 <= peaks[1]->getIndex() ||
+        pp2 - peaks[1]->getIndex() < peaks[2]->getIndex() - pp2)
+    {
+      // The putative p2 would be badly positioned to p1.
+      pptr2 = nullptr;
+    }
+    else
+    {
+      cout << "ERROR recoverPeaks1110: p2 and p3 are both there?\n";
+      cout << "Without offset:\n";
+      cout << pptr2->strQuality();
+      cout << pptr3->strQuality();
+      return;
+    }
+  }
+
+  if (pptr2)
+  {
+cout << "Reinstating one 1110 peak, should be p2\n";
+    peaks[3] = peaks[2];
+    indexUsed[3] = indexUsed[2];
+    PeakPartial::registerPtr(2, peakPtrsUsed[indexUsed2], indexUsed2);
+    numUsed++;
+  }
+  else if (pptr3)
+  {
+cout << "Reinstating one 1110 peak, should be p3\n";
+    PeakPartial::registerPtr(3, peakPtrsUsed[indexUsed3], indexUsed3);
+    numUsed++;
+  }
+
+
+  /*
   // TODO When does the latter happen?
   if (iu == 0 || iu+1 >= peakPtrsUsed.size())
     return;
@@ -726,6 +838,7 @@ void PeakPartial::recoverPeaks1110(vector<Peak *>& peakPtrsUsed)
     PeakPartial::registerPtr(3, peakPtrsUsed[iu+1], iu+1);
 cout << "Reinstating one 1110 peak, should be p3\n";
   }
+  */
 }
 
 

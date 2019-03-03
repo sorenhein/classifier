@@ -84,6 +84,12 @@ class PeakPartial
 
     bool merge(const PeakPartial& p2);
 
+    Peak * locatePeak(
+      const unsigned lower,
+      const unsigned upper,
+      vector<Peak *>& peakPtrsUsed,
+      unsigned& indexUsed) const;
+
     void recoverPeaks0101(vector<Peak *>& peakPtrsUsed);
     void recoverPeaks0011(vector<Peak *>& peakPtrsUsed);
     void recoverPeaks1100(vector<Peak *>& peakPtrsUsed);

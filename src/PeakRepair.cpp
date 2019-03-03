@@ -345,17 +345,20 @@ bool PeakRepair::edgeCar(
   const unsigned numModelMatches = PeakRepair::numMatches();
   if (numModelMatches == 0)
   {
-    bool edgeFlag = 
-      peakPtrsUsed.back()->fitsType(BOGEY_LEFT, WHEEL_LEFT);
+    bool edgeFlag;
+    if (firstFlag)
+      edgeFlag = peakPtrsUsed.back()->fitsType(BOGEY_RIGHT, WHEEL_RIGHT);
+    else
+      edgeFlag = peakPtrsUsed.front()->fitsType(BOGEY_LEFT, WHEEL_LEFT);
 
     bool modelEndFlag = models.hasAnEndGap();
 
     cout << (firstFlag ? "FIRST" : "LAST") <<
       "QUADRANT " << edgeFlag << ", " << modelEndFlag << endl;
 
-cout << peakPtrsUsed.front()->strHeaderQuality() << endl;
+cout << peakPtrsUsed.front()->strHeaderQuality();
 for (auto& p: peakPtrsUsed)
-  cout << p->strQuality(offset) << endl;
+  cout << p->strQuality(offset);
 
     cout << "WARNREPAIR: No model match\n";
     return false;
