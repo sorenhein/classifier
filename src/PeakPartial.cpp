@@ -702,35 +702,45 @@ cout << "Reinstating one 0001 peak, should be p0\n";
 Peak * PeakPartial::locatePeak(
   const unsigned lowerIn,
   const unsigned upperIn,
+  const unsigned hint,
+  const PeakFncPtr& fptr,
   PeakPtrVector& peakPtrsUsed,
   unsigned& indexUsedOut) const
 {
   unsigned num = 0;
   unsigned i = 0;
+  unsigned dist = numeric_limits<unsigned>::max();
   Peak * ptr = nullptr;
   for (auto& p: peakPtrsUsed)
   {
+    if (! (p->* fptr)())
+    {
+      i++;
+      continue;
+    }
+
     const unsigned index = p->getIndex();
     if (index >= lowerIn && index <= upperIn)
     {
       num++;
-      indexUsedOut = i;
-      ptr = p;
+      if ((index >= hint && index - hint < dist) ||
+          (index < hint && hint - index < dist))
+      {
+        indexUsedOut = i;
+        ptr = p;
+      }
     }
     i++;
   }
 
   if (num == 0)
     return nullptr;
-  else if (num > 1)
-  {
-    // TODO May have to pick the best one.
+
+  if (num > 1)
     cout << "WARNING locatePeak: Multiple choices in (" <<
       lowerIn << ", " << upperIn << ")\n";
-    return nullptr;
-  }
-  else
-    return ptr;
+
+  return ptr;
 }
 
 
@@ -764,17 +774,48 @@ void PeakPartial::recoverPeaks11Shared(
   if (pptr2)
   {
 cout << "Reinstating one " << source << " peak, should be p2\n";
-    peaks[3] = peaks[2];
-    indexUsed[3] = indexUsed[2];
+// cout << "Index " << indexUsed2 << "\n";
+// cout << pptr2->strQuality();
+    // peaks[3] = peaks[2];
+    // indexUsed[3] = indexUsed[2];
+    if (peaks[2])
+      PeakPartial::movePtr(2, 3);
     PeakPartial::registerPtr(2, pptr2, indexUsed2);
-    numUsed++;
   }
   else if (pptr3)
   {
 cout << "Reinstating one " << source << " peak, should be p3\n";
+    if (peaks[3])
+      PeakPartial::movePtr(3, 2);
     PeakPartial::registerPtr(3, pptr3, indexUsed3);
-    numUsed++;
   }
+}
+
+
+Peak * PeakPartial::lookForPeak(
+  const unsigned start,
+  const unsigned step,
+  const float& smallFactor,
+  const float& largeFactor,
+  const bool upFlag,
+  vector<Peak *>& peakPtrsUsed,
+  unsigned& indexUsedOut)
+{
+  const unsigned smallStep = static_cast<unsigned>(smallFactor * step);
+  const unsigned nextStart = (upFlag ? start + step : start - step);
+
+  Peak * pptr;
+  pptr = PeakPartial::locatePeak(
+    nextStart - smallStep, nextStart + smallStep, nextStart,
+    &Peak::goodQuality, peakPtrsUsed, indexUsedOut);
+    
+  if (pptr)
+    return pptr;
+
+  const unsigned largeStep = static_cast<unsigned>(largeFactor * step);
+  return PeakPartial::locatePeak(
+    nextStart - largeStep, nextStart + largeStep, nextStart,
+    &Peak::greatQuality, peakPtrsUsed, indexUsedOut);
 }
 
 
@@ -782,37 +823,19 @@ void PeakPartial::recoverPeaks1101(vector<Peak *>& peakPtrsUsed)
 {
   // The four peaks: found - found - not found - found.
   const unsigned bogey = peaks[1]->getIndex() - peaks[0]->getIndex();
-  const unsigned lo = static_cast<unsigned>(0.6f * bogey);
-  const unsigned hi = static_cast<unsigned>(1.4f * bogey);
 
   Peak * pptr2 = nullptr, * pptr3 = nullptr;
   unsigned indexUsed2 = 0, indexUsed3 = 0;
 
   // Could be p0-p1-null-p2, missing the p3.
+  const unsigned index3 = peaks[3]->getIndex();
   if (intervalCount[RIGHT_OF_P3] > 0)
-  {
-    unsigned plo = peaks[3]->getIndex() + lo;
-    unsigned phi = peaks[3]->getIndex() + hi;
-    pptr3 = PeakPartial::locatePeak(plo, phi, peakPtrsUsed, indexUsed3);
-
-  }
+    pptr3 = PeakPartial::lookForPeak(index3, bogey, 0.2f, 0.5f,
+      true, peakPtrsUsed, indexUsed3);
 
   if (intervalCount[BETWEEN_P1_P3] > 0)
-  {
-    unsigned plo = peaks[3]->getIndex() - hi;
-    unsigned phi = peaks[3]->getIndex() - lo;
-    pptr2 = PeakPartial::locatePeak(plo, phi, peakPtrsUsed, indexUsed2);
-
-    if (pptr2 == nullptr && upper[2] != 0)
-    {
-cout << "PP trying " << lower[2] << ", " << upper[2] << endl;
-      pptr3 = PeakPartial::locatePeak(
-        2 * lower[2] - upper[2], 
-        2 * upper[2] - lower[2], 
-        peakPtrsUsed,
-        indexUsed2);
-    }
-  }
+    pptr2 = PeakPartial::lookForPeak(index3, bogey, 0.2f, 0.5f,
+      false, peakPtrsUsed, indexUsed2);
 
   PeakPartial::recoverPeaks11Shared(pptr2, pptr3,
     indexUsed2, indexUsed3, "1101");
@@ -823,36 +846,19 @@ void PeakPartial::recoverPeaks1110(vector<Peak *>& peakPtrsUsed)
 {
   // The four peaks: found - found - found - not found.
   const unsigned bogey = peaks[1]->getIndex() - peaks[0]->getIndex();
-  const unsigned lo = static_cast<unsigned>(0.6f * bogey);
-  const unsigned hi = static_cast<unsigned>(1.4f * bogey);
 
   Peak * pptr2 = nullptr, * pptr3 = nullptr;
   unsigned indexUsed2 = 0, indexUsed3 = 0;
 
   // Could be p0-p1-p2, missing the p3.
+  const unsigned index2 = peaks[2]->getIndex();
   if (intervalCount[RIGHT_OF_P2] > 0)
-  {
-    unsigned plo = peaks[2]->getIndex() + lo;
-    unsigned phi = peaks[2]->getIndex() + hi;
-    pptr3 = PeakPartial::locatePeak(plo, phi, peakPtrsUsed, indexUsed3);
-
-    // TODO Not consistent in this file: 2x, 1.5x, +/- 10%, ...
-    if (pptr3 == nullptr && upper[3] != 0)
-    {
-      pptr3 = PeakPartial::locatePeak(
-        2 * lower[3] - upper[3], 
-        2 * upper[3] - lower[3], 
-        peakPtrsUsed,
-        indexUsed3);
-    }
-  }
+    pptr3 = PeakPartial::lookForPeak(index2, bogey, 0.2f, 0.5f,
+      true, peakPtrsUsed, indexUsed3);
 
   if (intervalCount[BETWEEN_P1_P2] > 0)
-  {
-    unsigned plo = peaks[2]->getIndex() - hi;
-    unsigned phi = peaks[2]->getIndex() - lo;
-    pptr2 = PeakPartial::locatePeak(plo, phi, peakPtrsUsed, indexUsed2);
-  }
+    pptr2 = PeakPartial::lookForPeak(index2, bogey, 0.2f, 0.5f,
+      false, peakPtrsUsed, indexUsed2);
 
   PeakPartial::recoverPeaks11Shared(pptr2, pptr3,
     indexUsed2, indexUsed3, "1110");

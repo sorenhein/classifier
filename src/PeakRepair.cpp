@@ -370,11 +370,12 @@ cout << (firstFlag ? "MATCHFIRST" : "MATCHLAST") << "\n";
   if (! PeakRepair::getDominantModel(superModel))
   {
 cout << (firstFlag ? "NODOMFIRST" : "NODOMLAST") << "\n";
-  PeakRepair::printMatches(firstFlag);
+  // PeakRepair::printMatches(firstFlag);
 
     return false;
   }
 
+  PeakRepair::printMatches(firstFlag);
   superModel.makeCodes(peakPtrsUsed, offset);
   superModel.printSituation(firstFlag);
 

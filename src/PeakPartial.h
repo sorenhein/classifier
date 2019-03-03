@@ -4,9 +4,9 @@
 #include <vector>
 #include <string>
 
-using namespace std;
+#include "Peak.h"
 
-class Peak;
+using namespace std;
 
 
 class PeakPartial
@@ -87,8 +87,19 @@ class PeakPartial
     Peak * locatePeak(
       const unsigned lower,
       const unsigned upper,
+      const unsigned hint,
+      const PeakFncPtr& fptr,
       vector<Peak *>& peakPtrsUsed,
       unsigned& indexUsed) const;
+
+    Peak * lookForPeak(
+      const unsigned start,
+      const unsigned step,
+      const float& smallFactor,
+      const float& largeFactor,
+      const bool upFlag,
+      vector<Peak *>& peakPtrsUsed,
+      unsigned& indexUsedOut);
 
     void recoverPeaks0101(vector<Peak *>& peakPtrsUsed);
     void recoverPeaks0011(vector<Peak *>& peakPtrsUsed);
