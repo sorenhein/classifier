@@ -919,22 +919,24 @@ void PeakPartial::getPeaks(
   // Mostly for the sport, we try to use as many of the front peaks
   // as possible.  Mostly the alignment will pick up on it anyway.
 
-  if (peakCode == 0x1)
+  if (peakCode == 0b0001)
     PeakPartial::recoverPeaks0001(bogeyTypical, longTypical, peakPtrsUsed);
-  else if (peakCode == 0x3)
+  else if (peakCode == 0b0011)
     PeakPartial::recoverPeaks0011(peakPtrsUsed);
-  else if (peakCode == 0x5)
+  else if (peakCode == 0xb0101)
     PeakPartial::recoverPeaks0101(peakPtrsUsed);
-  else if (peakCode == 0x7)
+  else if (peakCode == 0b0111)
   {
     // We got the last three peaks.  Generally it's a pretty good bet
     // to throw away anything else.
   }
-  else if (peakCode == 0xc)
+  else if (peakCode == 0b1100)
     PeakPartial::recoverPeaks1100(peakPtrsUsed);
-  else if (peakCode == 0xd)
+  else if (peakCode == 0b1011)
+    PeakPartial::recoverPeaks1011(peakPtrsUsed);
+  else if (peakCode == 0b1101)
     PeakPartial::recoverPeaks1101(peakPtrsUsed);
-  else if (peakCode == 0xe)
+  else if (peakCode == 0b1110)
     PeakPartial::recoverPeaks1110(peakPtrsUsed);
   else
   {
