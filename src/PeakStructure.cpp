@@ -361,6 +361,7 @@ PeakStructure::FindCarType PeakStructure::findPartialLastCarByQuality(
   if (range.numGood() == 0)
     return FIND_CAR_DOWNGRADE;
 
+cout << "LASTLAST\n";
   return PeakStructure::findPartialCarByQuality(models, 
       &Peak::goodQuality, false, peaks, range, car);
 }

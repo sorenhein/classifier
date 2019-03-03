@@ -281,7 +281,7 @@ bool PeakRepair::getDominantModel(PeakPartial& dominantModel) const
     }
   }
 
-  if ( superFlag)
+  if (superFlag)
   {
     cout << "WARNREPAIR: Dominant model " << 
       dominantModel.count() << "\n";
@@ -353,19 +353,29 @@ bool PeakRepair::edgeCar(
     cout << (firstFlag ? "FIRST" : "LAST") <<
       "QUADRANT " << edgeFlag << ", " << modelEndFlag << endl;
 
+cout << peakPtrsUsed.front()->strHeaderQuality() << endl;
+for (auto& p: peakPtrsUsed)
+  cout << p->strQuality(offset) << endl;
+
     cout << "WARNREPAIR: No model match\n";
     return false;
   }
 
-  PeakRepair::printMatches(firstFlag);
+cout << (firstFlag ? "MATCHFIRST" : "MATCHLAST") << "\n";
 
   PeakPartial superModel;
   if (! PeakRepair::getDominantModel(superModel))
+  {
+cout << (firstFlag ? "NODOMFIRST" : "NODOMLAST") << "\n";
+  PeakRepair::printMatches(firstFlag);
+
     return false;
+  }
 
   superModel.makeCodes(peakPtrsUsed, offset);
-  superModel.printSituation();
+  superModel.printSituation(firstFlag);
 
+/*
   if (superModel.count() == 4)
     cout << "WARNREPAIR: Full car (dominant)\n";
   else
@@ -416,9 +426,11 @@ bool PeakRepair::edgeCar(
       }
     }
   }
+*/
+UNUSED(peaks);
 
   // May have changed.
-  superModel.makeCodes(peakPtrsUsed, offset);
+  // superModel.makeCodes(peakPtrsUsed, offset);
 
   // Get some typical model data.
   unsigned bogeyTypical, longTypical;

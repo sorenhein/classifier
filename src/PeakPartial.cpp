@@ -276,6 +276,29 @@ bool PeakPartial::samePeaks(const PeakPartial& p2) const
 }
 
 
+bool PeakPartial::samePeakValues(const PeakPartial& p2) const
+{
+  // Could be p1 - p2 - nullptr - p4 and p1 - p2 - p4 - nullptr.
+  // If so, pick either one.
+  vector<const Peak *> v1, v2;
+  for (unsigned i = 0; i < 4; i++)
+  {
+    if (peaks[i] != p2.peaks[i])
+    {
+      v1.push_back(peaks[i]);
+      v2.push_back(p2.peaks[i]);
+    }
+  }
+  if (v1.size() != 2)
+    return false;
+
+  if (v1[0] != v2[1] || v1[1] != v2[0])
+    return false;
+
+  return (v1[0] == nullptr || v2[0] == nullptr);
+}
+
+
 void PeakPartial::extend(const PeakPartial& p2)
 {
   for (unsigned i = 0; i < 4; i++)
@@ -296,59 +319,45 @@ void PeakPartial::extend(const PeakPartial& p2)
 
 bool PeakPartial::merge(const PeakPartial& p2)
 {
-  // This is a heuristic.
-  if (numUsed != p2.numUsed || numUsed == 4)
+  if (numUsed == 0 || numUsed == 4)
     return false;
 
-  // Start out the same (from the right).
-  bool sameFlag = true;
-  for (unsigned i = 5-numUsed; i < 4; i++)
+  bool mergeFrom = true, mergeTo = true;
+  for (unsigned i = 0; i < 4; i++ && mergeFrom && mergeTo)
   {
-    if (! peaks[i] || p2.peaks[i] != peaks[i])
+    if (peaks[i])
     {
-      sameFlag = false;
-      break;
+      if (p2.peaks[i])
+      {
+        if (peaks[i] == p2.peaks[i])
+          continue;
+        else
+          return false;
+      }
+      else if (! p2.closeEnough(peaks[i]->getIndex(), i, i))
+        mergeTo = false;
+    }
+    else if (p2.peaks[i])
+    {
+      if (! PeakPartial::closeEnough(p2.peaks[i]->getIndex(), i, i))
+        mergeFrom = false;
     }
   }
-  if (! sameFlag)
-    return false;
 
-  const unsigned start = 3-numUsed;
-  if (peaks[start] && p2.peaks[start+1])
+  if (mergeFrom || mergeTo)
   {
-    if (peaks[start] == p2.peaks[start+1])
-      return false;
-
-    if (PeakPartial::closeEnough(p2.peaks[start+1]->getIndex(),
-        start+1, start+1))
+    for (unsigned i = 0; i < 4; i++)
     {
-      // Merge in p2.peaks[start+1] into peaks[start+1].
-      peaks[start+1] = p2.peaks[start+1];
-      indexUsed[start+1] = p2.indexUsed[start+1];
-      numUsed++;
-      return true;
+      if (! peaks[i] && p2.peaks[i])
+      {
+        peaks[i] = p2.peaks[i];
+        indexUsed[i] = p2.indexUsed[i];
+        numUsed++;
+      }
     }
-    else
-      return false;
-      
+    return true;
   }
-  else if (peaks[start+1] && p2.peaks[start])
-  {
-    if (peaks[start+1] == p2.peaks[start])
-      return false;
-
-    if (p2.closeEnough(peaks[start+1]->getIndex(), start+1, start+1))
-    {
-      // Merge in p2.peaks[start] into peaks[start].
-      peaks[start] = p2.peaks[start];
-      indexUsed[start] = p2.indexUsed[start];
-      numUsed++;
-      return true;
-    }
-    else
-      return false;
-  }
-  else
+  else 
     return false;
 }
 
@@ -373,10 +382,10 @@ bool PeakPartial::supersede(const PeakPartial& p2)
     PeakPartial::extend(p2);
     return true;
   }
-  else if (PeakPartial::merge(p2))
-  {
+  else if (PeakPartial::samePeakValues(p2))
     return true;
-  }
+  else if (PeakPartial::mergeNew(p2))
+    return true;
   else
     return false;
 }
@@ -471,12 +480,12 @@ void PeakPartial::makeCodes(
 }
 
 
-void PeakPartial::printSituation() const
+void PeakPartial::printSituation(const bool firstFlag) const
 {
   if (! intervalEntries)
     return;
 
-  cout << "PEAKPART  " << 
+  cout << (firstFlag ? "PEAKFIRST " : "PEAKLAST  ") << 
     setw(2) << peakCode <<
     setw(4) << PeakPartial::strEntry(peaks[0] == nullptr ? 0 : 1) <<
     setw(2) << PeakPartial::strEntry(peaks[1] == nullptr ? 0 : 1) <<

@@ -68,6 +68,7 @@ class PeakPartial
     bool dominates(const PeakPartial& p2) const;
 
     bool samePeaks(const PeakPartial& p2) const;
+    bool samePeakValues(const PeakPartial& p2) const;
 
     void extend(const PeakPartial& p2);
 
@@ -168,7 +169,7 @@ class PeakPartial
       vector<Peak *>& peaksUsed,
       vector<Peak *>& peaksUnused);
 
-    void printSituation() const;
+    void printSituation(const bool firstFlag) const;
 
     string strTarget(
       const unsigned peakNo,
