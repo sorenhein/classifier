@@ -22,6 +22,7 @@ PeakMinima.obj: Peak.h struct.h PeakMinima.h PeakPool.h Except.h errors.h
 PeakPartial.obj: PeakPartial.h Peak.h struct.h
 PeakPool.obj: PeakPool.h Peak.h struct.h Except.h errors.h
 PeakProfile.obj: PeakProfile.h struct.h Peak.h Except.h errors.h
+PeakPtrList.obj: PeakPtrList.h Peak.h struct.h Except.h errors.h
 PeakRange.obj: PeakRange.h PeakProfile.h struct.h PeakPool.h Peak.h
 PeakRange.obj: CarDetect.h CarGaps.h CarPeaks.h
 PeakRepair.obj: PeakRepair.h PeakPartial.h Peak.h struct.h CarModels.h
@@ -65,7 +66,7 @@ driver.obj: PeakStructure.h CarDetect.h CarGaps.h CarPeaks.h PeakRange.h
 driver.obj: PeakProfile.h CarModels.h Database.h Clusters.h TraceDB.h
 driver.obj: SynthTrain.h Regress.h Disturb.h Align.h Timers.h Timer.h Stats.h
 driver.obj: StatCross.h StatEntry.h CompStats.h PeakStats.h Except.h errors.h
-driver.obj: print.h
+driver.obj: geometry.h print.h
 Ckmeans/Ckmeans.1d.dp.obj: Ckmeans/Ckmeans.1d.dp.h Ckmeans/within_cluster.h
 Ckmeans/dynamic_prog.obj: Ckmeans/Ckmeans.1d.dp.h Ckmeans/within_cluster.h
 Ckmeans/fill_log_linear.obj: Ckmeans/Ckmeans.1d.dp.h Ckmeans/within_cluster.h
