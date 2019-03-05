@@ -2,9 +2,11 @@ Plan 2019-02-27
 ---------------
 Severely clean up PeakPtrListNew:
 - Its name
-- Its method plethora (only true etc.)
+- The flattenTODO must go in the end
 
 Then move on to others that use or should use it
+
+PeakPool: Call getCandList candidates()
 
 See if we can get rid of the PeakPtrVector and other typedefs.
 

@@ -375,17 +375,20 @@ cout << "LASTLAST\n";
 PeakStructure::FindCarType PeakStructure::findCarByPeaks(
   const CarModels& models,
   const PeakRange& range,
-  PeakPtrVector& peakPtrs,
+  PeakPtrListNew& peakPtrs,
   CarDetect& car) const
 {
-  if (PeakStructure::findNumberedWheeler(models, range, peakPtrs, 4, car))
+  PeakPtrVector pv;
+  peakPtrs.flattenTODO(pv);
+
+  if (PeakStructure::findNumberedWheeler(models, range, pv, 4, car))
   {
     // We deal with the edges later.
     PeakRange rangeLocal;
-    rangeLocal.init(peakPtrs);
-    car.makeFourWheeler(rangeLocal, peakPtrs);
+    rangeLocal.init(pv);
+    car.makeFourWheeler(rangeLocal, pv);
 
-    PeakStructure::markUpPeaks(peakPtrs, 4);
+    PeakStructure::markUpPeaks(pv, 4);
 
     return FIND_CAR_MATCH;
   }
@@ -400,16 +403,8 @@ PeakStructure::FindCarType PeakStructure::findCarByQuality(
   PeakRange& range,
   CarDetect& car) const
 {
-  PeakPtrVector peakPtrsUsed, peakPtrsUnused;
-
-  PeakPtrListNew ppu, ppunu;
-  // range.splitByQuality(fptr, peakPtrsUsed, peakPtrsUnused);
-  range.splitByQuality(fptr, ppu, ppunu);
-  ppu.flattenTODO(peakPtrsUsed);
-  ppunu.flattenTODO(peakPtrsUnused);
-
-  // if (! PeakStructure::isConsistent(peakPtrsUsed))
-    // return FIND_CAR_NO_MATCH;
+  PeakPtrListNew peakPtrsUsed, peakPtrsUnused;
+  range.splitByQuality(fptr, peakPtrsUsed, peakPtrsUnused);
 
   if (PeakStructure::findCarByPeaks(models, range, peakPtrsUsed, car) ==
       FIND_CAR_MATCH)
@@ -540,19 +535,15 @@ PeakStructure::FindCarType PeakStructure::findCarByLeveledPeaks(
   // probably fail on peak quality as opposed to shape quality.
   UNUSED(peaks);
 
-  PeakPtrVector peakPtrsUsed, peakPtrsUnused;
-
-  PeakPtrListNew ppu, ppunu;
-  range.splitByQuality(&Peak::goodPeakQuality, ppu, ppunu);
-  ppu.flattenTODO(peakPtrsUsed);
-  ppunu.flattenTODO(peakPtrsUnused);
-
+  PeakPtrListNew peakPtrsUsed, peakPtrsUnused;
+  range.splitByQuality(&Peak::goodPeakQuality, 
+    peakPtrsUsed, peakPtrsUnused);
 
   if (peakPtrsUsed.size() == 4 &&
       PeakStructure::findCarByPeaks(models, range, peakPtrsUsed, car) ==
         FIND_CAR_MATCH)
   {
-    PeakStructure::markDownPeaks(peakPtrsUnused);
+    peakPtrsUnused.apply(&Peak::markdown);
     return FIND_CAR_MATCH;
   }
   else

@@ -145,10 +145,7 @@ void PeakRange::splitByQuality(
   PeakPtrListNew& peakPtrsUsed,
   PeakPtrListNew& peakPtrsUnused) const
 {
-  // PeakPtrListNew ppu, ppunu;
   peakPtrs.split(&Peak::isWheel, fptr, peakPtrsUsed, peakPtrsUnused);
-  // ppu.flattenTODO(peakPtrsUsed);
-  // ppunu.flattenTODO(peakPtrsUnused);
 }
 
 
