@@ -232,87 +232,7 @@ PPLciterator PeakPtrListNew::prevIncl(
 }
 
 
-void PeakPtrListNew::extractPtrs(
-  const unsigned start,
-  const unsigned end,
-  list<Peak *>& pplNew)
-{
-  pplNew.clear();
-  for (auto& peak: peaks)
-  {
-    const unsigned index = peak->getIndex();
-    if (index > end)
-      break;
-    else if (index < start)
-      continue;
-    else
-      pplNew.push_back(peak);
-  }
-}
-
-
-void PeakPtrListNew::extractPtrs(
-  const unsigned start,
-  const unsigned end,
-  const PeakFncPtr& fptr,
-  list<Peak *>& pplNew)
-{
-  pplNew.clear();
-  for (auto& peak: peaks)
-  {
-    const unsigned index = peak->getIndex();
-    if (index > end)
-      break;
-    else if (index < start)
-      continue;
-    else if ((peak->* fptr)())
-      pplNew.push_back(peak);
-  }
-}
-
-
-void PeakPtrListNew::extractIters(
-  const unsigned start,
-  const unsigned end,
-  list<PPLiterator>& pilNew)
-{
-  pilNew.clear();
-  for (PPLiterator it = peaks.begin(); it != peaks.end(); it++)
-  {
-    Peak * peak = * it;
-    const unsigned index = peak->getIndex();
-    if (index > end)
-      break;
-    else if (index < start)
-      continue;
-    else
-      pilNew.push_back(it);
-  }
-}
-
-
-void PeakPtrListNew::extractIters(
-  const unsigned start,
-  const unsigned end,
-  const PeakFncPtr& fptr,
-  list<PPLiterator>& pilNew)
-{
-  pilNew.clear();
-  for (PPLiterator it = peaks.begin(); it != peaks.end(); it++)
-  {
-    Peak * peak = * it;
-    const unsigned index = peak->getIndex();
-    if (index > end)
-      break;
-    else if (index < start)
-      continue;
-    else if ((peak->* fptr)())
-      pilNew.push_back(it);
-  }
-}
-
-
-void PeakPtrListNew::extractPair(
+void PeakPtrListNew::fill(
   const unsigned start,
   const unsigned end,
   vector<Peak *>& pplNew,
@@ -329,32 +249,6 @@ void PeakPtrListNew::extractPair(
     else if (index < start)
       continue;
     else
-    {
-      pplNew.push_back(peak);
-      pilNew.push_back(it);
-    }
-  }
-}
-
-
-void PeakPtrListNew::extractPair(
-  const unsigned start,
-  const unsigned end,
-  const PeakFncPtr& fptr,
-  vector<Peak *>& pplNew,
-  list<PPLciterator>& pilNew)
-{
-  pplNew.clear();
-  pilNew.clear();
-  for (PPLiterator it = peaks.begin(); it != peaks.end(); it++)
-  {
-    Peak * peak = * it;
-    const unsigned index = peak->getIndex();
-    if (index > end)
-      break;
-    else if (index < start)
-      continue;
-    else if ((peak->* fptr)())
     {
       pplNew.push_back(peak);
       pilNew.push_back(it);

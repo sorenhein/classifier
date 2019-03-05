@@ -61,7 +61,7 @@ void PeakRange::fill(PeakPool& peaks)
 {
   // Set up some useful stuff for all recognizers.
   // peaks.getCands(start, endVal, peakPtrs, peakIters);
-  peaks.getCandList().extractPair(start, endVal, peakPtrs, peakIters);
+  peaks.getCandList().fill(start, endVal, peakPtrs, peakIters);
   profile.make(peakPtrs, source);
 }
 

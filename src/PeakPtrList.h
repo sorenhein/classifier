@@ -100,40 +100,9 @@ class PeakPtrListNew
       const PeakFncPtr& fptr) const;
 
 
-    void extractPtrs(
+    void fill(
       const unsigned start,
       const unsigned end,
-      list<Peak *>& pplNew);
-
-    void extractPtrs(
-      const unsigned start,
-      const unsigned end,
-      const PeakFncPtr& fptr,
-      list<Peak *>& pplNew);
-
-
-    void extractIters(
-      const unsigned start,
-      const unsigned end,
-      list<PPLiterator>& pplNew);
-
-    void extractIters(
-      const unsigned start,
-      const unsigned end,
-      const PeakFncPtr& fptr,
-      list<PPLiterator>& pplNew);
-
-
-    void extractPair(
-      const unsigned start,
-      const unsigned end,
-      vector<Peak *>& pplNew,
-      list<PPLciterator>& pilNew);
-
-    void extractPair(
-      const unsigned start,
-      const unsigned end,
-      const PeakFncPtr& fptr,
       vector<Peak *>& pplNew,
       list<PPLciterator>& pilNew);
 
