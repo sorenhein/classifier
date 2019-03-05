@@ -75,8 +75,8 @@ class PeakRange
 
     void splitByQuality(
       const PeakFncPtr& fptr,
-      PeakPtrVector& peakPtrsUsed,
-      PeakPtrVector& peakPtrsUnused) const;
+      PeakPtrListNew& peakPtrsUsed,
+      PeakPtrListNew& peakPtrsUnused) const;
 
     bool isFirstCar() const;
     bool isLastCar() const;

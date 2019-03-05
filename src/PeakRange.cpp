@@ -142,22 +142,13 @@ PeakPtrListNew& PeakRange::getPeakPtrs()
 
 void PeakRange::splitByQuality(
   const PeakFncPtr& fptr,
-  PeakPtrVector& peakPtrsUsed,
-  PeakPtrVector& peakPtrsUnused) const
+  PeakPtrListNew& peakPtrsUsed,
+  PeakPtrListNew& peakPtrsUnused) const
 {
-  PeakPtrListNew ppu, ppunu;
-  peakPtrs.split(&Peak::isWheel, fptr, ppu, ppunu);
-  ppu.flattenTODO(peakPtrsUsed);
-  ppunu.flattenTODO(peakPtrsUnused);
-  /*
-  for (auto pp: peakPtrs)
-  {
-    if (pp->isWheel() || (pp->* fptr)())
-      peakPtrsUsed.push_back(pp);
-    else
-      peakPtrsUnused.push_back(pp);
-  }
-  */
+  // PeakPtrListNew ppu, ppunu;
+  peakPtrs.split(&Peak::isWheel, fptr, peakPtrsUsed, peakPtrsUnused);
+  // ppu.flattenTODO(peakPtrsUsed);
+  // ppunu.flattenTODO(peakPtrsUnused);
 }
 
 

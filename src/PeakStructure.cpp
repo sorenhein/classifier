@@ -299,7 +299,12 @@ PeakStructure::FindCarType PeakStructure::findPartialCarByQuality(
   CarDetect& car) const
 {
   PeakPtrVector peakPtrsUsed, peakPtrsUnused;
-  range.splitByQuality(fptr, peakPtrsUsed, peakPtrsUnused);
+
+  PeakPtrListNew ppu, ppunu;
+  // range.splitByQuality(fptr, peakPtrsUsed, peakPtrsUnused);
+  range.splitByQuality(fptr, ppu, ppunu);
+  ppu.flattenTODO(peakPtrsUsed);
+  ppunu.flattenTODO(peakPtrsUnused);
 
   PeakRepair repair;
   if (repair.edgeCar(models, offset, firstFlag, 
@@ -396,7 +401,12 @@ PeakStructure::FindCarType PeakStructure::findCarByQuality(
   CarDetect& car) const
 {
   PeakPtrVector peakPtrsUsed, peakPtrsUnused;
-  range.splitByQuality(fptr, peakPtrsUsed, peakPtrsUnused);
+
+  PeakPtrListNew ppu, ppunu;
+  // range.splitByQuality(fptr, peakPtrsUsed, peakPtrsUnused);
+  range.splitByQuality(fptr, ppu, ppunu);
+  ppu.flattenTODO(peakPtrsUsed);
+  ppunu.flattenTODO(peakPtrsUnused);
 
   // if (! PeakStructure::isConsistent(peakPtrsUsed))
     // return FIND_CAR_NO_MATCH;
@@ -510,14 +520,7 @@ PeakStructure::FindCarType PeakStructure::findEmptyRange(
 
   if (range.looksEmpty())
   {
-    // PeakPtrListNew& r = range.getPeakPtrs();
-    // PeakPtrVector p;
-    // r.flattenTODO(p);
-
-    // PeakStructure::markDownPeaks(p);
-
     range.getPeakPtrs().apply(&Peak::markdown);
-    // PeakStructure::markDownPeaks(p);
     return FIND_CAR_DOWNGRADE;
   }
   else
@@ -538,8 +541,12 @@ PeakStructure::FindCarType PeakStructure::findCarByLeveledPeaks(
   UNUSED(peaks);
 
   PeakPtrVector peakPtrsUsed, peakPtrsUnused;
-  range.splitByQuality(&Peak::goodPeakQuality, 
-    peakPtrsUsed, peakPtrsUnused);
+
+  PeakPtrListNew ppu, ppunu;
+  range.splitByQuality(&Peak::goodPeakQuality, ppu, ppunu);
+  ppu.flattenTODO(peakPtrsUsed);
+  ppunu.flattenTODO(peakPtrsUnused);
+
 
   if (peakPtrsUsed.size() == 4 &&
       PeakStructure::findCarByPeaks(models, range, peakPtrsUsed, car) ==
@@ -596,7 +603,13 @@ PeakStructure::FindCarType PeakStructure::findCarByThreePeaks(
     return FIND_CAR_NO_MATCH;
 
   PeakPtrVector peakPtrsUsed, peakPtrsUnused;
-  range.splitByQuality(&Peak::goodQuality, peakPtrsUsed, peakPtrsUnused);
+  // range.splitByQuality(&Peak::goodQuality, peakPtrsUsed, peakPtrsUnused);
+
+  PeakPtrListNew ppu, ppunu;
+  range.splitByQuality(&Peak::goodQuality, ppu, ppunu);
+  ppu.flattenTODO(peakPtrsUsed);
+  ppunu.flattenTODO(peakPtrsUnused);
+
 
   MatchData match;
   Peak peakHint;
