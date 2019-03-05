@@ -249,7 +249,7 @@ void PeakMinima::markBogeyShortGap(
   if (p1.isRightWheel() && ! p1.isRightBogey())
   {
     // Paired previous wheel was not yet marked a bogey.
-    PPLiterator prevCand = candidates.prevExcl(cit, &Peak::isLeftWheel);
+    PPLiterator prevCand = candidates.prev(cit, &Peak::isLeftWheel);
     if (prevCand == candidates.end())
     {
       // TODO Is this an algorithmic error?
@@ -527,19 +527,14 @@ void PeakMinima::markSinglePeaks(
   for (PPiterator cit = cbegin; cit != cend; cit++)
     (* cit)->calcQualities(peakCenters);
 
-  // cout << peaks.strAllCandsQuality("All negative minima", offset);
-  cout << peaks.getCandList().strQuality("All negative minima", 
-    &Peak::always, offset);
-  // cout << peaks.strSelectedCandsQuality("Seeds", offset);
+  cout << peaks.getCandList().strQuality("All negative minima", offset);
   cout << peaks.getCandList().strQuality("Seeds", 
-    &Peak::isSelected, offset);
+    offset, &Peak::isSelected);
 
   // Modify selection based on quality.
   PeakMinima::reseedWheelUsingQuality(peaks);
 
-  cout << peaks.getCandList().strQuality("Great-quality seeds", 
-    &Peak::isSelected, offset);
-  // cout << peaks.strSelectedCandsQuality("Great-quality seeds", offset);
+  cout << peaks.getCandList().strQuality("Great-quality seeds", offset);
 }
 
 
@@ -632,7 +627,7 @@ void PeakMinima::fixBogeyOrphans(PeakPool& peaks) const
     }
     else if ((* cit)->isRightWheel())
     {
-      PPLiterator pcit = candidates.prevExcl(cit, &Peak::isRightWheel);
+      PPLiterator pcit = candidates.prev(cit, &Peak::isRightWheel);
       if (pcit == cend)
       {
         (* cit)->unselect();
@@ -685,7 +680,7 @@ void PeakMinima::markBogeys(
   PeakMinima::fixBogeyOrphans(peaks);
 
   cout << peaks.getCandList().strQuality(
-    "All peaks using left/right scales", &Peak::always, offset);
+    "All peaks using left/right scales", offset);
 
   // Recalculate the averages based on the new qualities.
   makeBogeyAverages(peaks, bogeyScale);
@@ -707,7 +702,7 @@ void PeakMinima::markBogeys(
   PeakMinima::markBogeysOfUnpaired(peaks, wheelGap);
 
   cout << peaks.getCandList().strQuality(
-    "All peaks again using left/right scales", &Peak::always, offset);
+    "All peaks again using left/right scales", offset);
 }
 
 
@@ -864,7 +859,7 @@ void PeakMinima::markLongGapsOfSelects(
       PeakMinima::markBogeyLongGap(* cand, * nextCand, "");
 
       // Neighboring wheels may not have bogeys yet, so we mark them.
-      PPLiterator ppcit = candidates.prevExcl(cit, &Peak::isLeftWheel);
+      PPLiterator ppcit = candidates.prev(cit, &Peak::isLeftWheel);
       if (ppcit == candidates.end())
         continue;
 
@@ -912,8 +907,8 @@ void PeakMinima::markLongGaps(
   PeakMinima::markLongGapsOfSelects(peaks, longGap);
 
   // cout << peaks.strAllCandsQuality("peaks with all four wheels", offset);
-  cout << peaks.getCandList().strQuality(
-    "peaks with all four wheels", &Peak::always, offset);
+  cout << peaks.getCandList().strQuality("peaks with all four wheels", 
+    offset);
 
   // Recalculate the averages based on the new qualities.
   PeakMinima::makeCarAverages(peaks, bogeys);
@@ -962,7 +957,7 @@ cout << "FRAC " << countSelected << " " <<
 
 // cout << peaks.strSelectedCandsQuality(
 cout << peaks.getCandList().strQuality(
-  "All selected peaks at end of PeakMinima", &Peak::isSelected, offset);
+  "All selected peaks at end of PeakMinima", offset, &Peak::isSelected);
 }
 
 

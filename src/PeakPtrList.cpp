@@ -172,50 +172,45 @@ PPLciterator PeakPtrListNew::next(
 }
 
 
-PPLiterator PeakPtrListNew::prevExcl(
+PPLiterator PeakPtrListNew::prev(
   const PPLiterator& it,
-  const PeakFncPtr& fptr)
+  const PeakFncPtr& fptr,
+  const bool exclFlag)
 {
+  // Return something that cannot be a useful iterator.
   if (it == peaks.begin())
     return peaks.end();
-  else
-    return PeakPtrListNew::prevIncl(prev(it), fptr);
-}
 
-PPLciterator PeakPtrListNew::prevExcl(
-  const PPLciterator& it,
-  const PeakFncPtr& fptr) const
-{
-  if (it == peaks.begin())
-    return peaks.end();
-  else
-    return PeakPtrListNew::prevIncl(prev(it), fptr);
-}
-
-
-PPLiterator PeakPtrListNew::prevIncl(
-  const PPLiterator& it,
-  const PeakFncPtr& fptr)
-{
-  for (PPLiterator itPrev = it; ; itPrev = prev(itPrev))
+  PPLiterator itPrev = (exclFlag ? std::prev(it) : it);
+  while (true)
   {
     if (((* itPrev)->* fptr)())
       return itPrev;
     else if (itPrev == peaks.begin())
       return peaks.end();
+    else
+      itPrev = prev(itPrev);
   }
 }
 
-PPLciterator PeakPtrListNew::prevIncl(
+PPLciterator PeakPtrListNew::prev(
   const PPLciterator& it,
-  const PeakFncPtr& fptr) const
+  const PeakFncPtr& fptr,
+  const bool exclFlag) const
 {
-  for (PPLciterator itPrev = it; ; itPrev = prev(itPrev))
+  // Return something that cannot be a useful iterator.
+  if (it == peaks.begin())
+    return peaks.end();
+
+  PPLciterator itPrev = (exclFlag ? std::prev(it) : it);
+  while (true)
   {
     if (((* itPrev)->* fptr)())
       return itPrev;
     else if (itPrev == peaks.begin())
       return peaks.end();
+    else
+      itPrev = std::prev(itPrev);
   }
 }
 
@@ -223,11 +218,12 @@ PPLciterator PeakPtrListNew::prevIncl(
 void PeakPtrListNew::fill(
   const unsigned start,
   const unsigned end,
-  vector<Peak *>& pplNew,
-  list<PPLciterator>& pilNew)
+  PeakPtrListNew& ppl,
+  list<PPLciterator>& pil)
 {
-  pplNew.clear();
-  pilNew.clear();
+  // Pick out peaks in [start, end].
+  ppl.clear();
+  pil.clear();
   for (PPLiterator it = peaks.begin(); it != peaks.end(); it++)
   {
     Peak * peak = * it;
@@ -238,17 +234,49 @@ void PeakPtrListNew::fill(
       continue;
     else
     {
-      pplNew.push_back(peak);
-      pilNew.push_back(it);
+      ppl.push_back(peak);
+      pil.push_back(it);
     }
   }
 }
 
 
+void PeakPtrListNew::split(
+  const PeakFncPtr& fptr1,
+  const PeakFncPtr& fptr2,
+  PeakPtrListNew& peaksMatched,
+  PeakPtrListNew& peaksRejected) const
+{
+  // Pick out peaks satisfying fptr1 or fptr2.
+  for (auto peak: peaks)
+  {
+    if ((peak->* fptr1)() || (peak->* fptr2)())
+      peaksMatched.push_back(peak);
+    else
+      peaksRejected.push_back(peak);
+  }
+}
+
+
+void PeakPtrListNew::flattenTODO(vector<Peak *>& flattened)
+{
+  flattened.clear();
+  for (auto& peak: peaks)
+    flattened.push_back(peak);
+}
+
+
+void PeakPtrListNew::apply(const PeakRunFncPtr& fptr)
+{
+  for (auto& peak: peaks)
+    (peak->* fptr)();
+}
+
+
 string PeakPtrListNew::strQuality(
   const string& text,
-  const PeakFncPtr& fptr,
-  const unsigned offset) const
+  const unsigned offset,
+  const PeakFncPtr& fptr) const
 {
   if (peaks.empty())
     return "";

@@ -32,7 +32,8 @@ class PeakRange
     bool rightOriginal;
 
     PeakIterList peakIters;
-    PeakPtrVector peakPtrs;
+    // PeakPtrVector peakPtrs;
+    PeakPtrListNew peakPtrs;
     PeakProfile profile;
     
 
@@ -70,7 +71,7 @@ class PeakRange
     unsigned numGreat() const;
     unsigned numGood() const;
 
-    PeakPtrVector& getPeakPtrs();
+    PeakPtrListNew& getPeakPtrs();
 
     void splitByQuality(
       const PeakFncPtr& fptr,

@@ -510,7 +510,14 @@ PeakStructure::FindCarType PeakStructure::findEmptyRange(
 
   if (range.looksEmpty())
   {
-    PeakStructure::markDownPeaks(range.getPeakPtrs());
+    // PeakPtrListNew& r = range.getPeakPtrs();
+    // PeakPtrVector p;
+    // r.flattenTODO(p);
+
+    // PeakStructure::markDownPeaks(p);
+
+    range.getPeakPtrs().apply(&Peak::markdown);
+    // PeakStructure::markDownPeaks(p);
     return FIND_CAR_DOWNGRADE;
   }
   else
@@ -558,7 +565,11 @@ PeakStructure::FindCarType PeakStructure::findCarByEmptyLast(
 
   if (range.looksEmptyLast())
   {
-    PeakStructure::markDownPeaks(range.getPeakPtrs());
+    PeakPtrListNew& r = range.getPeakPtrs();
+    PeakPtrVector p;
+    r.flattenTODO(p);
+
+    PeakStructure::markDownPeaks(p);
     return FIND_CAR_DOWNGRADE;
   }
   else
@@ -826,7 +837,7 @@ void PeakStructure::markCars(
 
 // cout << peaks.strSelectedCandsQuality(
 cout << peaks.getCandList().strQuality(
-  "All selected peaks at end of PeakStructure", &Peak::always, offset);
+  "All selected peaks at end of PeakStructure", offset);
 
 
   cout << "HITS\n";

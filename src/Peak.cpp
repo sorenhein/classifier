@@ -449,6 +449,14 @@ bool Peak::isWheel() const
 }
 
 
+void Peak::markdown()
+{
+  Peak::markNoBogey();
+  Peak::markNoWheel();
+  Peak::unselect();
+}
+
+
 void Peak::markBogey(const BogeyType bogeyType)
 {
   bogeySide = bogeyType;

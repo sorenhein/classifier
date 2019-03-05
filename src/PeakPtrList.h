@@ -66,44 +66,49 @@ class PeakPtrListNew
 
     PPLiterator next(
       const PPLiterator& it,
-      const PeakFncPtr& fptr,
+      const PeakFncPtr& fptr = &Peak::always,
       const bool exclFlag = true);
 
     PPLciterator next(
       const PPLciterator& it,
-      const PeakFncPtr& fptr,
+      const PeakFncPtr& fptr = &Peak::always,
       const bool exclFlag = true) const;
 
 
-    PPLiterator prevExcl(
+    PPLiterator prev(
       const PPLiterator& it,
-      const PeakFncPtr& fptr);
+      const PeakFncPtr& fptr = &Peak::always,
+      const bool exclFlag = true);
 
-    PPLciterator prevExcl(
+    PPLciterator prev(
       const PPLciterator& it,
-      const PeakFncPtr& fptr) const;
-
-
-    PPLiterator prevIncl(
-      const PPLiterator& it,
-      const PeakFncPtr& fptr);
-
-    PPLciterator prevIncl(
-      const PPLciterator& it,
-      const PeakFncPtr& fptr) const;
+      const PeakFncPtr& fptr = &Peak::always,
+      const bool exclFlag = true) const;
 
 
     void fill(
       const unsigned start,
       const unsigned end,
-      vector<Peak *>& pplNew,
+      PeakPtrListNew& pplNew,
       list<PPLciterator>& pilNew);
+
+    void split(
+      const PeakFncPtr& fptr1,
+      const PeakFncPtr& fptr2,
+      PeakPtrListNew& peaksMatched,
+      PeakPtrListNew& peaksRejected) const;
+
+    void apply(const PeakRunFncPtr& fptr);
+
+    void flattenTODO(
+      vector<Peak *>& flattened);
+      
 
 
     string strQuality(
       const string& text,
-      const PeakFncPtr& fptr,
-      const unsigned offset) const;
+      const unsigned offset,
+      const PeakFncPtr& fptr = &Peak::always) const;
 
 };
 
