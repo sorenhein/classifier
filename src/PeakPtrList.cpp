@@ -34,7 +34,7 @@ void PeakPtrListNew::push_back(Peak * peak)
 bool PeakPtrListNew::add(Peak * peak)
 {
   // TODO Pretty inefficient if we are adding multiple candidates.
-  // If we need to do that, add them all at once.
+  // If we need to do that, better add them all at once.
   const unsigned pindex = peak->getIndex();
   for (auto it = peaks.begin(); it != peaks.end(); it++)
   {
@@ -98,18 +98,10 @@ PPLciterator PeakPtrListNew::cend() const
 }
 
 
-/*
-const Peak *& PeakPtrListNew::front() const
+unsigned PeakPtrListNew::size() const
 {
-  return peaks.front();
+  return peaks.size();
 }
-
-
-const Peak *& PeakPtrListNew::back() const
-{
-  return peaks.back();
-}
-*/
 
 
 unsigned PeakPtrListNew::count(const PeakFncPtr& fptr) const
@@ -121,12 +113,6 @@ unsigned PeakPtrListNew::count(const PeakFncPtr& fptr) const
       c++;
   }
   return c;
-}
-
-
-unsigned PeakPtrListNew::size() const
-{
-  return peaks.size();
 }
 
 
@@ -156,34 +142,22 @@ unsigned PeakPtrListNew::lastIndex() const
 
 PPLiterator PeakPtrListNew::nextExcl(
   const PPLiterator& it,
-  const PeakFncPtr& fptr,
-  const bool softFlag)
+  const PeakFncPtr& fptr)
 {
   if (it == peaks.end())
-  {
-    if (softFlag)
-      return peaks.end();
-    else
-      THROW(ERR_ALGO_PEAK_CONSISTENCY, "Miss later matching peak");
-  }
-
-  return PeakPtrListNew::nextIncl(next(it), fptr);
+    return peaks.end();
+  else
+    return PeakPtrListNew::nextIncl(next(it), fptr);
 }
 
 PPLciterator PeakPtrListNew::nextExcl(
   const PPLciterator& it,
-  const PeakFncPtr& fptr,
-  const bool softFlag) const
+  const PeakFncPtr& fptr) const
 {
   if (it == peaks.end())
-  {
-    if (softFlag)
-      return peaks.end();
-    else
-      THROW(ERR_ALGO_PEAK_CONSISTENCY, "Miss later matching peak");
-  }
-
-  return PeakPtrListNew::nextIncl(next(it), fptr);
+    return peaks.end();
+  else
+    return PeakPtrListNew::nextIncl(next(it), fptr);
 }
 
 
@@ -212,72 +186,48 @@ PPLciterator PeakPtrListNew::nextIncl(
 
 PPLiterator PeakPtrListNew::prevExcl(
   const PPLiterator& it,
-  const PeakFncPtr& fptr,
-  const bool softFlag)
+  const PeakFncPtr& fptr)
 {
   if (it == peaks.begin())
-  {
-    if (softFlag)
-      return peaks.begin();
-    else
-      THROW(ERR_ALGO_PEAK_CONSISTENCY, "Miss earlier matching peak");
-  }
-
-  return PeakPtrListNew::prevIncl(prev(it), fptr, softFlag);
+    return peaks.end();
+  else
+    return PeakPtrListNew::prevIncl(prev(it), fptr);
 }
 
 PPLciterator PeakPtrListNew::prevExcl(
   const PPLciterator& it,
-  const PeakFncPtr& fptr,
-  const bool softFlag) const
+  const PeakFncPtr& fptr) const
 {
   if (it == peaks.begin())
-  {
-    if (softFlag)
-      return peaks.begin();
-    else
-      THROW(ERR_ALGO_PEAK_CONSISTENCY, "Miss earlier matching peak");
-  }
-
-  return PeakPtrListNew::prevIncl(prev(it), fptr, softFlag);
+    return peaks.end();
+  else
+    return PeakPtrListNew::prevIncl(prev(it), fptr);
 }
 
 
 PPLiterator PeakPtrListNew::prevIncl(
   const PPLiterator& it,
-  const PeakFncPtr& fptr,
-  const bool softFlag) const
+  const PeakFncPtr& fptr)
 {
   for (PPLiterator itPrev = it; ; itPrev = prev(itPrev))
   {
     if (((* itPrev)->* fptr)())
       return itPrev;
     else if (itPrev == peaks.begin())
-    {
-      if (softFlag)
-        return itPrev;
-      else
-        THROW(ERR_ALGO_PEAK_CONSISTENCY, "Miss earlier matching peak");
-    }
+      return peaks.end();
   }
 }
 
 PPLciterator PeakPtrListNew::prevIncl(
   const PPLciterator& it,
-  const PeakFncPtr& fptr,
-  const bool softFlag) const
+  const PeakFncPtr& fptr) const
 {
   for (PPLciterator itPrev = it; ; itPrev = prev(itPrev))
   {
     if (((* itPrev)->* fptr)())
       return itPrev;
     else if (itPrev == peaks.begin())
-    {
-      if (softFlag)
-        return itPrev;
-      else
-        THROW(ERR_ALGO_PEAK_CONSISTENCY, "Miss earlier matching peak");
-    }
+      return peaks.end();
   }
 }
 

@@ -56,25 +56,21 @@ class PeakPtrListNew
     PPLciterator cbegin() const;
     PPLciterator cend() const;
 
-    // const Peak *& front() const;
-    // const Peak *& back() const;
-
     unsigned size() const;
     unsigned count(const PeakFncPtr& fptr) const;
     bool empty() const;
+
     unsigned firstIndex() const;
     unsigned lastIndex() const;
 
 
     PPLiterator nextExcl(
       const PPLiterator& it,
-      const PeakFncPtr& fptr,
-      const bool softFlag);
+      const PeakFncPtr& fptr);
 
     PPLciterator nextExcl(
       const PPLciterator& it,
-      const PeakFncPtr& fptr,
-      const bool softFlag) const;
+      const PeakFncPtr& fptr) const;
 
 
     PPLiterator nextIncl(
@@ -88,24 +84,20 @@ class PeakPtrListNew
 
     PPLiterator prevExcl(
       const PPLiterator& it,
-      const PeakFncPtr& fptr,
-      const bool softFlag);
+      const PeakFncPtr& fptr);
 
     PPLciterator prevExcl(
       const PPLciterator& it,
-      const PeakFncPtr& fptr,
-      const bool softFlag) const;
+      const PeakFncPtr& fptr) const;
 
 
     PPLiterator prevIncl(
       const PPLiterator& it,
-      const PeakFncPtr& fptr,
-      const bool softFlag) const;
+      const PeakFncPtr& fptr);
 
     PPLciterator prevIncl(
       const PPLciterator& it,
-      const PeakFncPtr& fptr,
-      const bool softFlag) const;
+      const PeakFncPtr& fptr) const;
 
 
     void extractPtrs(

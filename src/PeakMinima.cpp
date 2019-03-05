@@ -196,7 +196,7 @@ bool PeakMinima::guessNeighborDistance(
   for (PPLciterator pit = cbegin; pit != cend; pit++)
   {
     // PPciterator npit = peaks.nextCandExcl(pit, &Peak::isSelected);
-    PPLciterator npit = candidates.nextExcl(pit, &Peak::isSelected, true);
+    PPLciterator npit = candidates.nextExcl(pit, &Peak::isSelected);
     if (npit == cend)
       break;
 
@@ -251,8 +251,8 @@ void PeakMinima::markBogeyShortGap(
   if (p1.isRightWheel() && ! p1.isRightBogey())
   {
     // Paired previous wheel was not yet marked a bogey.
-    PPLiterator prevCand = candidates.prevExcl(cit, &Peak::isLeftWheel, true);
-    if (prevCand == candidates.begin())
+    PPLiterator prevCand = candidates.prevExcl(cit, &Peak::isLeftWheel);
+    if (prevCand == candidates.end())
     {
       // TODO Is this an algorithmic error?
       cout << "Miss earlier matching peak";
@@ -264,7 +264,7 @@ void PeakMinima::markBogeyShortGap(
   if (p2.isLeftWheel() && ! p2.isLeftBogey())
   {
     // Paired next wheel was not yet marked a bogey.
-    PPLiterator nextCand = candidates.nextExcl(ncit, &Peak::isRightWheel, true);
+    PPLiterator nextCand = candidates.nextExcl(ncit, &Peak::isRightWheel);
 
     if (nextCand == candidates.end())
       cout << "Miss later matching peak";
@@ -558,7 +558,7 @@ void PeakMinima::markBogeysOfSelects(
       continue;
 
     // Don't really need bothSelected then.  Test first one above.
-    PPLiterator nextIter = candidates.nextExcl(cit, &Peak::isSelected, true);
+    PPLiterator nextIter = candidates.nextExcl(cit, &Peak::isSelected);
     if (nextIter == cend)
       break;
     Peak * nextCand = * nextIter;
@@ -594,7 +594,7 @@ void PeakMinima::markBogeysOfUnpaired(
 
     // If the first one is of acceptable quality, find the first
     // such successor.  There could be poorer peaks in between.
-    PPLiterator ncit = candidates.nextExcl(cit, &Peak::acceptableQuality, true);
+    PPLiterator ncit = candidates.nextExcl(cit, &Peak::acceptableQuality);
     if (ncit == cend)
       break;
 
@@ -619,7 +619,7 @@ void PeakMinima::fixBogeyOrphans(PeakPool& peaks) const
   {
     if ((* cit)->isLeftWheel())
     {
-      PPLiterator ncit = candidates.nextExcl(cit, &Peak::isRightWheel, true);
+      PPLiterator ncit = candidates.nextExcl(cit, &Peak::isRightWheel);
       if (ncit == cend)
       {
         (* cit)->unselect();
@@ -631,7 +631,7 @@ void PeakMinima::fixBogeyOrphans(PeakPool& peaks) const
     }
     else if ((* cit)->isRightWheel())
     {
-      PPLiterator pcit = candidates.prevExcl(cit, &Peak::isRightWheel, true);
+      PPLiterator pcit = candidates.prevExcl(cit, &Peak::isRightWheel);
       if (pcit == cend)
       {
         (* cit)->unselect();
@@ -732,7 +732,7 @@ void PeakMinima::markShortGapsOfSelects(
       continue;
 
     // PPiterator ncit = peaks.nextCandExcl(cit, &Peak::isSelected);
-    PPLiterator ncit = candidates.nextExcl(cit, &Peak::isSelected, true);
+    PPLiterator ncit = candidates.nextExcl(cit, &Peak::isSelected);
     if (ncit == cend)
       break;
 
@@ -825,7 +825,7 @@ void PeakMinima::guessLongGapDistance(
       continue;
 
     // PPciterator ncit = peaks.nextCandExcl(cit, &Peak::isSelected);
-    PPLciterator ncit = candidates.nextExcl(cit, &Peak::isSelected, true);
+    PPLciterator ncit = candidates.nextExcl(cit, &Peak::isSelected);
     if (ncit == cend)
       break;
 
@@ -855,7 +855,7 @@ void PeakMinima::markLongGapsOfSelects(
     if (! cand->isRightWheel() || cand->isRightBogey())
       continue;
 
-    PPLiterator ncit = candidates.nextExcl(cit, &Peak::isSelected, true);
+    PPLiterator ncit = candidates.nextExcl(cit, &Peak::isSelected);
     if (ncit == cend)
       break;
 
@@ -868,14 +868,14 @@ void PeakMinima::markLongGapsOfSelects(
       PeakMinima::markBogeyLongGap(* cand, * nextCand, "");
 
       // Neighboring wheels may not have bogeys yet, so we mark them.
-      PPLiterator ppcit = candidates.prevExcl(cit, &Peak::isLeftWheel, true);
-      if (ppcit == candidates.begin())
+      PPLiterator ppcit = candidates.prevExcl(cit, &Peak::isLeftWheel);
+      if (ppcit == candidates.end())
         continue;
 
       if (! (* ppcit)->isBogey())
         (* ppcit)->markBogey(BOGEY_LEFT);
 
-      PPLiterator nncit = candidates.nextExcl(ncit, &Peak::isRightWheel, true);
+      PPLiterator nncit = candidates.nextExcl(ncit, &Peak::isRightWheel);
       if (nncit != cend && ! (* nncit)->isBogey())
         (* nncit)->markBogey(BOGEY_RIGHT);
     }
