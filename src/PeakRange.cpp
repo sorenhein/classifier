@@ -35,12 +35,14 @@ void PeakRange::reset()
 
 void PeakRange::init(
   const list<CarDetect>& cars,
-  const PeakPool& peaks)
+  PeakPool& peaks)
 {
   carAfter = cars.begin();
   source = PEAK_SOURCE_FIRST;
-  start = peaks.firstCandIndex();
-  endVal = peaks.lastCandIndex();
+  // start = peaks.firstCandIndex();
+  // endVal = peaks.lastCandIndex();
+  start = peaks.getCandList().firstIndex();
+  endVal = peaks.getCandList().lastIndex();
   leftGapPresent = false;
   rightGapPresent = false;
   leftOriginal = true;
@@ -55,10 +57,11 @@ void PeakRange::init(const PeakPtrVector& pv)
 }
 
 
-void PeakRange::fill(const PeakPool& peaks)
+void PeakRange::fill(PeakPool& peaks)
 {
   // Set up some useful stuff for all recognizers.
-  peaks.getCands(start, endVal, peakPtrs, peakIters);
+  // peaks.getCands(start, endVal, peakPtrs, peakIters);
+  peaks.getCandList().extractPair(start, endVal, peakPtrs, peakIters);
   profile.make(peakPtrs, source);
 }
 

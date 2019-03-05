@@ -31,6 +31,49 @@ void PeakPtrListNew::push_back(Peak * peak)
 }
 
 
+bool PeakPtrListNew::add(Peak * peak)
+{
+  // TODO Pretty inefficient if we are adding multiple candidates.
+  // If we need to do that, add them all at once.
+  const unsigned pindex = peak->getIndex();
+  for (auto it = peaks.begin(); it != peaks.end(); it++)
+  {
+    if ((* it)->getIndex() > pindex)
+    {
+      peaks.insert(it, peak);
+      return true;
+    }
+  }
+  return false;
+}
+
+
+void PeakPtrListNew::insert(
+  PPLiterator& it,
+  Peak * peak)
+{
+  peaks.insert(it, peak);
+}
+
+
+PPLiterator PeakPtrListNew::erase(PPLiterator& it)
+{
+  return peaks.erase(it);
+}
+
+
+void PeakPtrListNew::erase_below(const unsigned limit)
+{
+  for (PPLiterator it = peaks.begin(); it != peaks.end(); )
+  {
+    if ((* it)->getIndex() < limit)
+      it = peaks.erase(it);
+    else
+      break;
+  }
+}
+
+
 PPLiterator PeakPtrListNew::begin()
 {
   return peaks.begin();
@@ -52,6 +95,62 @@ PPLciterator PeakPtrListNew::cbegin() const
 PPLciterator PeakPtrListNew::cend() const
 {
   return peaks.cend();
+}
+
+
+/*
+const Peak *& PeakPtrListNew::front() const
+{
+  return peaks.front();
+}
+
+
+const Peak *& PeakPtrListNew::back() const
+{
+  return peaks.back();
+}
+*/
+
+
+unsigned PeakPtrListNew::count(const PeakFncPtr& fptr) const
+{
+  unsigned c = 0;
+  for (auto peak: peaks)
+  {
+    if ((peak->* fptr)())
+      c++;
+  }
+  return c;
+}
+
+
+unsigned PeakPtrListNew::size() const
+{
+  return peaks.size();
+}
+
+
+bool PeakPtrListNew::empty() const
+{
+  return peaks.empty();
+}
+
+
+unsigned PeakPtrListNew::firstIndex() const
+{
+  if (peaks.empty())
+    return numeric_limits<unsigned>::max();
+  else
+    return peaks.front()->getIndex();
+}
+
+
+unsigned PeakPtrListNew::lastIndex() const
+{
+  if (peaks.empty())
+    return numeric_limits<unsigned>::max();
+  else
+    return peaks.back()->getIndex();
 }
 
 
@@ -186,7 +285,7 @@ PPLciterator PeakPtrListNew::prevIncl(
 void PeakPtrListNew::extractPtrs(
   const unsigned start,
   const unsigned end,
-  PeakPtrListNew& pplNew)
+  list<Peak *>& pplNew)
 {
   pplNew.clear();
   for (auto& peak: peaks)
@@ -206,7 +305,7 @@ void PeakPtrListNew::extractPtrs(
   const unsigned start,
   const unsigned end,
   const PeakFncPtr& fptr,
-  PeakPtrListNew& pplNew)
+  list<Peak *>& pplNew)
 {
   pplNew.clear();
   for (auto& peak: peaks)
@@ -225,7 +324,7 @@ void PeakPtrListNew::extractPtrs(
 void PeakPtrListNew::extractIters(
   const unsigned start,
   const unsigned end,
-  PeakIterListNew& pilNew)
+  list<PPLiterator>& pilNew)
 {
   pilNew.clear();
   for (PPLiterator it = peaks.begin(); it != peaks.end(); it++)
@@ -246,7 +345,7 @@ void PeakPtrListNew::extractIters(
   const unsigned start,
   const unsigned end,
   const PeakFncPtr& fptr,
-  PeakIterListNew& pilNew)
+  list<PPLiterator>& pilNew)
 {
   pilNew.clear();
   for (PPLiterator it = peaks.begin(); it != peaks.end(); it++)
@@ -260,5 +359,97 @@ void PeakPtrListNew::extractIters(
     else if ((peak->* fptr)())
       pilNew.push_back(it);
   }
+}
+
+
+void PeakPtrListNew::extractPair(
+  const unsigned start,
+  const unsigned end,
+  vector<Peak *>& pplNew,
+  list<PPLciterator>& pilNew)
+{
+  pplNew.clear();
+  pilNew.clear();
+  for (PPLiterator it = peaks.begin(); it != peaks.end(); it++)
+  {
+    Peak * peak = * it;
+    const unsigned index = peak->getIndex();
+    if (index > end)
+      break;
+    else if (index < start)
+      continue;
+    else
+    {
+      pplNew.push_back(peak);
+      pilNew.push_back(it);
+    }
+  }
+}
+
+
+void PeakPtrListNew::extractPair(
+  const unsigned start,
+  const unsigned end,
+  const PeakFncPtr& fptr,
+  vector<Peak *>& pplNew,
+  list<PPLciterator>& pilNew)
+{
+  pplNew.clear();
+  pilNew.clear();
+  for (PPLiterator it = peaks.begin(); it != peaks.end(); it++)
+  {
+    Peak * peak = * it;
+    const unsigned index = peak->getIndex();
+    if (index > end)
+      break;
+    else if (index < start)
+      continue;
+    else if ((peak->* fptr)())
+    {
+      pplNew.push_back(peak);
+      pilNew.push_back(it);
+    }
+  }
+}
+
+
+string PeakPtrListNew::strQuality(
+  const string& text,
+  const unsigned offset) const
+{
+  if (peaks.empty())
+    return "";
+
+  stringstream ss;
+  if (text != "")
+    ss << text << "\n";
+  ss << peaks.front()->strHeaderQuality();
+
+  for (const auto& peak: peaks)
+    ss << peak->strQuality(offset);
+  ss << endl;
+  return ss.str();
+}
+
+
+string PeakPtrListNew::strSelectedQuality(
+  const string& text,
+  const unsigned offset) const
+{
+  if (peaks.empty())
+    return "";
+
+  stringstream ss;
+  if (text != "")
+    ss << text << "\n";
+  ss << peaks.front()->strHeaderQuality();
+
+  for (const auto& peak: peaks)
+  {
+    if (peak->isSelected())
+      ss << peak->strQuality(offset);
+  }
+  ss << endl;
+  return ss.str();
 }
 

@@ -40,11 +40,30 @@ class PeakPtrListNew
 
     void push_back(Peak * peak);
 
+    bool add(Peak * peak);
+
+    void insert(
+      PPLiterator& it,
+      Peak * peak);
+
+    PPLiterator erase(PPLiterator& it);
+
+    void erase_below(const unsigned limit);
+
     PPLiterator begin();
     PPLiterator end();
 
     PPLciterator cbegin() const;
     PPLciterator cend() const;
+
+    // const Peak *& front() const;
+    // const Peak *& back() const;
+
+    unsigned size() const;
+    unsigned count(const PeakFncPtr& fptr) const;
+    bool empty() const;
+    unsigned firstIndex() const;
+    unsigned lastIndex() const;
 
 
     PPLiterator nextExcl(
@@ -92,25 +111,48 @@ class PeakPtrListNew
     void extractPtrs(
       const unsigned start,
       const unsigned end,
-      PeakPtrListNew& pplNew);
+      list<Peak *>& pplNew);
 
     void extractPtrs(
       const unsigned start,
       const unsigned end,
       const PeakFncPtr& fptr,
-      PeakPtrListNew& pplNew);
+      list<Peak *>& pplNew);
 
 
     void extractIters(
       const unsigned start,
       const unsigned end,
-      PeakIterListNew& pplNew);
+      list<PPLiterator>& pplNew);
 
     void extractIters(
       const unsigned start,
       const unsigned end,
       const PeakFncPtr& fptr,
-      PeakIterListNew& pplNew);
+      list<PPLiterator>& pplNew);
+
+
+    void extractPair(
+      const unsigned start,
+      const unsigned end,
+      vector<Peak *>& pplNew,
+      list<PPLciterator>& pilNew);
+
+    void extractPair(
+      const unsigned start,
+      const unsigned end,
+      const PeakFncPtr& fptr,
+      vector<Peak *>& pplNew,
+      list<PPLciterator>& pilNew);
+
+
+    string strQuality(
+      const string& text,
+      const unsigned offset) const;
+
+    string strSelectedQuality(
+      const string& text,
+      const unsigned offset) const;
 
 };
 

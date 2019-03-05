@@ -28,7 +28,7 @@
 #include <list>
 #include <string>
 
-#include "Peak.h"
+#include "PeakPtrList.h"
 #include "struct.h"
 
 using namespace std;
@@ -55,7 +55,8 @@ class PeakPool
     PeakList * peaks;
 
     // Could have one for each PeakList as well.
-    PeakPtrList candidates;
+    // PeakPtrList candidates;
+    PeakPtrListNew candidates;
 
     // Average peaks used for quality.
     vector<Peak> averages;
@@ -95,7 +96,7 @@ class PeakPool
       const Piterator& pprev, 
       const Piterator& pnext) const;
 
-    bool addCandidate(Peak * peak);
+    // bool addCandidate(Peak * peak);
 
     void printRepairData(
       const Piterator& foundIter,
@@ -201,11 +202,6 @@ class PeakPool
       const unsigned end,
       PeakPtrVector& peakPtrs) const;
 
-    void getCandIters(
-      const unsigned start,
-      const unsigned end,
-      PeakIterVector& peakItesr) const;
-
     void getCandPtrs(
       const unsigned start,
       const unsigned end,
@@ -226,6 +222,9 @@ class PeakPool
 
     unsigned firstCandIndex() const;
     unsigned lastCandIndex() const;
+
+    PeakPtrListNew& getCandList();
+    const PeakPtrListNew& getConstCandList() const;
 
     // TODO: No doubt there is a more elegant way to do this...
     PPiterator candbegin();

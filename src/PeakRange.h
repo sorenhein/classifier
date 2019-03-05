@@ -49,11 +49,11 @@ class PeakRange
 
     void init(
       const list<CarDetect>& cars,
-      const PeakPool& peaks);
+      PeakPool& peaks);
 
     void init(const PeakPtrVector& pv);
 
-    void fill(const PeakPool& peaks);
+    void fill(PeakPool& peaks);
 
     void shortenLeft(const CarDetect& car);
 

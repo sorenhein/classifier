@@ -187,6 +187,8 @@ cout << "firstGoodIndex " << firstGoodIndex << endl;
 
   // Also remove any candidates.
   transientLimit = pitLastTransient->getIndex();
+  candidates.erase_below(transientLimit);
+  /*
   for (PPiterator ppit = candidates.begin(); ppit != candidates.end(); )
   {
     if ((* ppit)->getIndex() < transientLimit)
@@ -194,6 +196,7 @@ cout << "firstGoodIndex " << firstGoodIndex << endl;
     else
       break;
   }
+  */
   return true;
 }
 
@@ -294,6 +297,7 @@ unsigned PeakPool::countInsertions(
 }
 
 
+/*
 bool PeakPool::addCandidate(Peak * peak)
 {
   // TODO Pretty inefficient if we are adding multiple candidates.
@@ -309,6 +313,7 @@ bool PeakPool::addCandidate(Peak * peak)
   }
   return false;
 }
+*/
 
 
 void PeakPool::printRepairData(
@@ -370,7 +375,8 @@ void PeakPool::updateRepairedPeaks(
     {
       pit->calcQualities(averages);
 
-      if (pit != pfirstPrev && ! PeakPool::addCandidate(&* pit))
+      // if (pit != pfirstPrev && ! PeakPool::addCandidate(&* pit))
+      if (pit != pfirstPrev && ! candidates.add(&* pit))
         cout << "PINSERT: Couldn't add candidate\n";
     }
   }
@@ -713,6 +719,7 @@ void PeakPool::makeCandidates()
 }
 
 
+/*
 unsigned PeakPool::countCandidates(const PeakFncPtr& fptr) const
 {
   unsigned c = 0;
@@ -723,6 +730,7 @@ unsigned PeakPool::countCandidates(const PeakFncPtr& fptr) const
   }
   return c;
 }
+*/
 
 
 unsigned PeakPool::candsize() const 
@@ -731,6 +739,7 @@ unsigned PeakPool::candsize() const
 }
 
 
+/*
 void PeakPool::getCandPtrs(
   const unsigned start,
   const unsigned end,
@@ -746,26 +755,6 @@ void PeakPool::getCandPtrs(
       continue;
 
     peakPtrs.push_back(cand);
-  }
-}
-
-
-void PeakPool::getCandIters(
-  const unsigned start,
-  const unsigned end,
-  PeakIterVector& peakIters) const
-{
-  peakIters.clear();
-  for (PPciterator pit = candidates.begin(); pit != candidates.end(); pit++)
-  {
-    Peak * cand = * pit;
-    const unsigned index = cand->getIndex();
-    if (index > end)
-      break;
-    if (index < start)
-      continue;
-
-    peakIters.push_back(pit);
   }
 }
 
@@ -834,8 +823,10 @@ void PeakPool::getCands(
     peakPtrs.push_back(* pit);
   }
 }
+*/
 
 
+/*
 unsigned PeakPool::firstCandIndex() const
 {
   if (candidates.size() == 0)
@@ -852,8 +843,22 @@ unsigned PeakPool::lastCandIndex() const
   else
     return candidates.back()->getIndex();
 }
+*/
 
 
+PeakPtrListNew& PeakPool::getCandList()
+{
+  return candidates;
+}
+
+
+const PeakPtrListNew& PeakPool::getConstCandList() const
+{
+  return candidates;
+}
+
+
+/*
 PPiterator PeakPool::candbegin()
 {
   return candidates.begin();
@@ -1002,6 +1007,7 @@ PPciterator PeakPool::prevCandInclSoft(
       return candidates.end();
   }
 }
+*/
 
 
 Piterator PeakPool::prevExcl(
@@ -1092,8 +1098,9 @@ bool PeakPool::getClosest(
     return false;
 
   // Do the three remaining wheels.
-  PPciterator cit0 = PeakPool::nextCandExcl(cit, fptr);
-  if (cit0 == candidates.end())
+  // PPciterator cit0 = PeakPool::nextCandExcl(cit, fptr);
+  PPLciterator cit0 = candidates.nextExcl(cit, fptr, true);
+  if (cit0 == candidates.cend())
     return false;
 
   skippedPeaks.clear();
@@ -1108,15 +1115,16 @@ bool PeakPool::getClosest(
   pointIt++;
   // Start from the second wheel.
 
-  PPciterator cit1;
+  PPLciterator cit1;
   for (unsigned i = 0; i < numWheels-1; i++)
   {
     const unsigned ptarget = (* pointIt) + pstart - cstart;
 
     while (true)
     {
-      cit1 = PeakPool::nextCandExcl(cit0, fptr);
-      if (cit1 == candidates.end())
+      // cit1 = PeakPool::nextCandExcl(cit0, fptr);
+      cit1 = candidates.nextExcl(cit0, fptr, true);
+      if (cit1 == candidates.cend())
       {
         if (closestPeaks.size() != numWheels-1)
           return false;
@@ -1139,8 +1147,8 @@ bool PeakPool::getClosest(
       {
         skippedPeaks.push_back(* cit0);
         closestPeaks.push_back(* cit1);
-        cit1 = PeakPool::nextCandExcl(cit1, fptr);
-        if (cit1 == candidates.end() && closestPeaks.size() != numWheels)
+        cit1 = candidates.nextExcl(cit1, fptr, true);
+        if (cit1 == candidates.cend() && closestPeaks.size() != numWheels)
           return false;
 
         cit0 = cit1;
@@ -1218,6 +1226,7 @@ string PeakPool::strAll(
 }
 
 
+/*
 string PeakPool::strAllCandsQuality(
   const string& text,
   const unsigned& offset) const
@@ -1249,7 +1258,7 @@ string PeakPool::strSelectedCandsQuality(
     ss << text << "\n";
   ss << candidates.front()->strHeaderQuality();
 
-  for (auto cand: candidates)
+  for (const auto& cand: candidates)
   {
     if (cand->isSelected())
       ss << cand->strQuality(offset);
@@ -1258,6 +1267,7 @@ string PeakPool::strSelectedCandsQuality(
   return ss.str();
 
 }
+*/
 
 
 string PeakPool::strSelectedTimesCSV(const string& text) const

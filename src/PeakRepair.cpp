@@ -446,6 +446,8 @@ cout << "Typical " << bogeyTypical << ", " << longTypical << endl;
   superModel.getPeaks(bogeyTypical, longTypical, 
     peakPtrsUsed, peakPtrsSpare);
 
+cout << "GOT PEAKS" << endl;
+
   if (peakPtrsSpare.size() > 0)
   {
     cout << "WARNSPARE: " << peakPtrsSpare.size() << endl;
@@ -457,6 +459,8 @@ cout << "Typical " << bogeyTypical << ", " << longTypical << endl;
       peakPtrsUnused.push_back(p);
     }
   }
+
+cout << "PUSHED PEAKS" << endl;
 
   return true;
 }

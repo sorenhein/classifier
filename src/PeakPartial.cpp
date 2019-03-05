@@ -652,7 +652,7 @@ void PeakPartial::recoverPeaks0001(
 cout << "Reinstating one 0001 peak, should be p2\n";
   PeakPartial::registerPtr(2, peakPtrsUsed[iu-1], iu-1);
 
-  if (intervalEntries == 1)
+  if (intervalEntries == 1 || iu == 1)
     return;
 
   // One possible pattern is: p0 - p1 - spurious - p2, to go with p3.
