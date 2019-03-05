@@ -69,14 +69,10 @@ class PeakPtrListNew
       const PeakFncPtr& fptr,
       const bool exclFlag = true);
 
-    PPLciterator nextExcl(
+    PPLciterator next(
       const PPLciterator& it,
-      const PeakFncPtr& fptr) const;
-
-
-    PPLciterator nextIncl(
-      const PPLciterator& it,
-      const PeakFncPtr& fptr) const;
+      const PeakFncPtr& fptr,
+      const bool exclFlag = true) const;
 
 
     PPLiterator prevExcl(

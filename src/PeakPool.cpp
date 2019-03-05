@@ -1098,8 +1098,7 @@ bool PeakPool::getClosest(
     return false;
 
   // Do the three remaining wheels.
-  // PPciterator cit0 = PeakPool::nextCandExcl(cit, fptr);
-  PPLciterator cit0 = candidates.nextExcl(cit, fptr);
+  PPLciterator cit0 = candidates.next(cit, fptr);
   if (cit0 == candidates.cend())
     return false;
 
@@ -1122,7 +1121,7 @@ bool PeakPool::getClosest(
 
     while (true)
     {
-      cit1 = candidates.nextExcl(cit0, fptr);
+      cit1 = candidates.next(cit0, fptr);
       if (cit1 == candidates.cend())
       {
         if (closestPeaks.size() != numWheels-1)
@@ -1146,7 +1145,7 @@ bool PeakPool::getClosest(
       {
         skippedPeaks.push_back(* cit0);
         closestPeaks.push_back(* cit1);
-        cit1 = candidates.nextExcl(cit1, fptr);
+        cit1 = candidates.next(cit1, fptr);
         if (cit1 == candidates.cend() && closestPeaks.size() != numWheels)
           return false;
 

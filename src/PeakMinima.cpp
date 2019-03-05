@@ -192,11 +192,9 @@ bool PeakMinima::guessNeighborDistance(
   const PeakPtrListNew& candidates = peaks.getConstCandList();
   PPLciterator cbegin = candidates.cbegin();
   PPLciterator cend = candidates.cend();
-  // for (PPciterator pit = cbegin; pit != cend; pit++)
   for (PPLciterator pit = cbegin; pit != cend; pit++)
   {
-    // PPciterator npit = peaks.nextCandExcl(pit, &Peak::isSelected);
-    PPLciterator npit = candidates.nextExcl(pit, &Peak::isSelected);
+    PPLciterator npit = candidates.next(pit, &Peak::isSelected);
     if (npit == cend)
       break;
 
@@ -823,8 +821,7 @@ void PeakMinima::guessLongGapDistance(
     if (! cand->isRightWheel() || cand->isRightBogey())
       continue;
 
-    // PPciterator ncit = peaks.nextCandExcl(cit, &Peak::isSelected);
-    PPLciterator ncit = candidates.nextExcl(cit, &Peak::isSelected);
+    PPLciterator ncit = candidates.next(cit, &Peak::isSelected);
     if (ncit == cend)
       break;
 

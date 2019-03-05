@@ -155,22 +155,16 @@ PPLiterator PeakPtrListNew::next(
   return itNext;
 }
 
-PPLciterator PeakPtrListNew::nextExcl(
+
+PPLciterator PeakPtrListNew::next(
   const PPLciterator& it,
-  const PeakFncPtr& fptr) const
+  const PeakFncPtr& fptr,
+  const bool exclFlag) const
 {
   if (it == peaks.end())
     return peaks.end();
-  else
-    return PeakPtrListNew::nextIncl(std::next(it), fptr);
-}
 
-
-PPLciterator PeakPtrListNew::nextIncl(
-  const PPLciterator& it,
-  const PeakFncPtr& fptr) const
-{
-  PPLciterator itNext = it;
+  PPLciterator itNext = (exclFlag ? std::next(it) : it);
   while (itNext != peaks.end() && ! ((* itNext)->* fptr)())
     itNext++;
 
