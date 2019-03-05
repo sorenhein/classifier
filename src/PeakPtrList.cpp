@@ -259,25 +259,7 @@ void PeakPtrListNew::fill(
 
 string PeakPtrListNew::strQuality(
   const string& text,
-  const unsigned offset) const
-{
-  if (peaks.empty())
-    return "";
-
-  stringstream ss;
-  if (text != "")
-    ss << text << "\n";
-  ss << peaks.front()->strHeaderQuality();
-
-  for (const auto& peak: peaks)
-    ss << peak->strQuality(offset);
-  ss << endl;
-  return ss.str();
-}
-
-
-string PeakPtrListNew::strSelectedQuality(
-  const string& text,
+  const PeakFncPtr& fptr,
   const unsigned offset) const
 {
   if (peaks.empty())
@@ -290,7 +272,7 @@ string PeakPtrListNew::strSelectedQuality(
 
   for (const auto& peak: peaks)
   {
-    if (peak->isSelected())
+    if ((peak->* fptr)())
       ss << peak->strQuality(offset);
   }
   ss << endl;

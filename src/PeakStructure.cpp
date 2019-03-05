@@ -825,8 +825,8 @@ void PeakStructure::markCars(
   }
 
 // cout << peaks.strSelectedCandsQuality(
-cout << peaks.getCandList().strSelectedQuality(
-  "All selected peaks at end of PeakStructure", offset);
+cout << peaks.getCandList().strQuality(
+  "All selected peaks at end of PeakStructure", &Peak::always, offset);
 
 
   cout << "HITS\n";

@@ -168,6 +168,8 @@ class Peak
     void unselect();
     bool isSelected() const;
 
+    bool always() const;
+
     void markWheel(const WheelType wheelType);
     void markNoWheel();
     bool isLeftWheel() const;

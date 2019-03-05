@@ -530,14 +530,17 @@ void PeakMinima::markSinglePeaks(
     (* cit)->calcQualities(peakCenters);
 
   // cout << peaks.strAllCandsQuality("All negative minima", offset);
-  cout << peaks.getCandList().strQuality("All negative minima", offset);
+  cout << peaks.getCandList().strQuality("All negative minima", 
+    &Peak::always, offset);
   // cout << peaks.strSelectedCandsQuality("Seeds", offset);
-  cout << peaks.getCandList().strSelectedQuality("Seeds", offset);
+  cout << peaks.getCandList().strQuality("Seeds", 
+    &Peak::isSelected, offset);
 
   // Modify selection based on quality.
   PeakMinima::reseedWheelUsingQuality(peaks);
 
-  cout << peaks.getCandList().strSelectedQuality("Great-quality seeds", offset);
+  cout << peaks.getCandList().strQuality("Great-quality seeds", 
+    &Peak::isSelected, offset);
   // cout << peaks.strSelectedCandsQuality("Great-quality seeds", offset);
 }
 
@@ -683,10 +686,8 @@ void PeakMinima::markBogeys(
   // Some halves of bogeys may have been downgraded.
   PeakMinima::fixBogeyOrphans(peaks);
 
-  // cout << peaks.strAllCandsQuality("All peaks using left/right scales",
-    // offset);
-  cout << peaks.getCandList().strQuality("All peaks using left/right scales",
-    offset);
+  cout << peaks.getCandList().strQuality(
+    "All peaks using left/right scales", &Peak::always, offset);
 
   // Recalculate the averages based on the new qualities.
   makeBogeyAverages(peaks, bogeyScale);
@@ -694,7 +695,6 @@ void PeakMinima::markBogeys(
   PeakMinima::printPeakQuality(bogeyScale[1], "Right-wheel average");
 
   // Redo the distances using the new qualities (left and right peaks).
-  // numGreat = peaks.countCandidates(&Peak::greatQuality);
   numGreat = peaks.getCandList().count(&Peak::greatQuality);
 
   PeakMinima::guessNeighborDistance(peaks,
@@ -708,9 +708,8 @@ void PeakMinima::markBogeys(
 
   PeakMinima::markBogeysOfUnpaired(peaks, wheelGap);
 
-  // cout << peaks.strAllCandsQuality(
   cout << peaks.getCandList().strQuality(
-    "All peaks again using left/right scales", offset);
+    "All peaks again using left/right scales", &Peak::always, offset);
 }
 
 
@@ -916,7 +915,8 @@ void PeakMinima::markLongGaps(
   PeakMinima::markLongGapsOfSelects(peaks, longGap);
 
   // cout << peaks.strAllCandsQuality("peaks with all four wheels", offset);
-  cout << peaks.getCandList().strQuality("peaks with all four wheels", offset);
+  cout << peaks.getCandList().strQuality(
+    "peaks with all four wheels", &Peak::always, offset);
 
   // Recalculate the averages based on the new qualities.
   PeakMinima::makeCarAverages(peaks, bogeys);
@@ -964,8 +964,8 @@ cout << "FRAC " << countSelected << " " <<
   PeakMinima::markLongGaps(peaks, wheelGap, shortGap.count);
 
 // cout << peaks.strSelectedCandsQuality(
-cout << peaks.getCandList().strSelectedQuality(
-  "All selected peaks at end of PeakMinima", offset);
+cout << peaks.getCandList().strQuality(
+  "All selected peaks at end of PeakMinima", &Peak::isSelected, offset);
 }
 
 

@@ -411,6 +411,12 @@ bool Peak::isSelected() const
 }
 
 
+bool Peak::always() const
+{
+  return true;
+}
+
+
 void Peak::markWheel(const WheelType wheelType)
 {
   wheelFlag = true;

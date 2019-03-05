@@ -109,10 +109,7 @@ class PeakPtrListNew
 
     string strQuality(
       const string& text,
-      const unsigned offset) const;
-
-    string strSelectedQuality(
-      const string& text,
+      const PeakFncPtr& fptr,
       const unsigned offset) const;
 
 };
