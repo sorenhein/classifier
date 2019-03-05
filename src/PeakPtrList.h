@@ -64,18 +64,15 @@ class PeakPtrListNew
     unsigned lastIndex() const;
 
 
-    PPLiterator nextExcl(
+    PPLiterator next(
       const PPLiterator& it,
-      const PeakFncPtr& fptr);
+      const PeakFncPtr& fptr,
+      const bool exclFlag = true);
 
     PPLciterator nextExcl(
       const PPLciterator& it,
       const PeakFncPtr& fptr) const;
 
-
-    PPLiterator nextIncl(
-      const PPLiterator& it,
-      const PeakFncPtr& fptr) const;
 
     PPLciterator nextIncl(
       const PPLciterator& it,
