@@ -3,6 +3,7 @@
 #include <sstream>
 
 #include "CarGaps.h"
+#include "PeakPtrs.h"
 #include "Except.h"
 #include "errors.h"
 
@@ -429,7 +430,7 @@ float CarGaps::distancePartialBest(
   const unsigned g1,
   const unsigned g2,
   const unsigned g3,
-  const PeakPtrVector& peakPtrs,
+  const PeakPtrs& peakPtrs,
   const float& limit,
   Peak& peakCand) const
 {
@@ -438,9 +439,11 @@ float CarGaps::distancePartialBest(
     return numeric_limits<float>::max();
 
   // The seen gaps that we're trying to match to the car gaps.
-  const unsigned p0 = peakPtrs[0]->getIndex();
-  const unsigned p1 = peakPtrs[1]->getIndex();
-  const unsigned p2 = peakPtrs[2]->getIndex();
+  vector<unsigned> indices;
+  peakPtrs.getIndices(indices);
+  const unsigned p0 = indices[0];
+  const unsigned p1 = indices[1];
+  const unsigned p2 = indices[2];
   const unsigned s1 = p1 - p0;
   const unsigned s2 = p2 - p1;
 
@@ -536,7 +539,7 @@ float CarGaps::distancePartialBest(
 
 
 float CarGaps::distancePartial(
-  const PeakPtrVector& peakPtrs,
+  const PeakPtrs& peakPtrs,
   const float& limit,
   Peak& peakCand) const
 {
@@ -546,7 +549,7 @@ float CarGaps::distancePartial(
 
 
 float CarGaps::distancePartialReverse(
-  const PeakPtrVector& peakPtrs,
+  const PeakPtrs& peakPtrs,
   const float& limit,
   Peak& peakCand) const
 {

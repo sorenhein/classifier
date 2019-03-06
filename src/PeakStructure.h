@@ -82,8 +82,6 @@ class PeakStructure
       CarDetect& car1,
       CarDetect& car2) const;
 
-    bool isWholeCar(const PeakPtrVector& pv) const;
-
 
     FindCarType findCarByOrder(
       const CarModels& models,

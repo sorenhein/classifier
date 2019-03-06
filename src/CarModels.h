@@ -98,7 +98,7 @@ class CarModels
       MatchData& match) const;
 
     bool matchesPartial(
-      const PeakPtrVector& peakPtrs,
+      const PeakPtrs& peakPtrs,
       const float& limit,
       MatchData& match,
       Peak& peakCand) const;

@@ -65,6 +65,8 @@ class PeakPtrs
     unsigned firstIndex() const;
     unsigned lastIndex() const;
 
+    void getIndices(vector<unsigned>& indices) const;
+
     bool isFourWheeler() const;
 
 

@@ -230,19 +230,6 @@ bool PeakStructure::fillPartialSides(
 }
 
 
-bool PeakStructure::isWholeCar(const PeakPtrVector& pv) const
-{
-  bool isLeftPair = (pv[0]->isLeftWheel() && pv[1]->isRightWheel());
-  bool isRightPair = (pv[2]->isLeftWheel() && pv[3]->isRightWheel());
-  bool isLeftBogey = (pv[0]->isLeftBogey() && pv[1]->isLeftBogey());
-  bool isRightBogey = (pv[2]->isRightBogey() && pv[3]->isRightBogey());
-
-  // True if we have two pairs, and at least one of them is
-  // recognized as a sided bogey.
-  return (isLeftPair && isRightPair && (isLeftBogey || isRightBogey));
-}
-
-
 PeakStructure::FindCarType PeakStructure::findCarByOrder(
   const CarModels& models,
   PeakPool& peaks,
@@ -271,12 +258,7 @@ PeakStructure::FindCarType PeakStructure::findCarByOrder(
       continue;
 
     runPtr.shift_down(* pit);
-    // for (unsigned i = 0; i < 3; i++)
-      // runPtr[i] = runPtr[i+1];
 
-    // runPtr[3] = * pit;
-
-    // if (PeakStructure::isWholeCar(runPtr))
     if (runPtr.isFourWheeler())
     {
       // We deal with the edges later.
@@ -600,18 +582,12 @@ PeakStructure::FindCarType PeakStructure::findCarByThreePeaks(
     // TODO For now, as these are unusually error-prone.
     return FIND_CAR_NO_MATCH;
 
-  PeakPtrVector peakPtrsUsed, peakPtrsUnused;
-  // range.splitByQuality(&Peak::goodQuality, peakPtrsUsed, peakPtrsUnused);
-
-  PeakPtrs ppu, ppunu;
-  range.split(&Peak::goodQuality, ppu, ppunu);
-  ppu.flattenTODO(peakPtrsUsed);
-  ppunu.flattenTODO(peakPtrsUnused);
-
+  PeakPtrs peakPtrsUsed, peakPtrsUnused;
+  range.split(&Peak::goodQuality, peakPtrsUsed, peakPtrsUnused);
 
   MatchData match;
   Peak peakHint;
-  if (! models.matchesPartial(peakPtrsUsed, GREAT_CAR_DISTANCE,
+  if (! models.matchesPartial(ppu, GREAT_CAR_DISTANCE,
       match, peakHint))
     return FIND_CAR_NO_MATCH;
 

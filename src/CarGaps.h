@@ -7,6 +7,8 @@
 
 using namespace std;
 
+class PeakPtrs;
+
 
 struct CarDetectNumbers
 {
@@ -123,7 +125,7 @@ class CarGaps
       const unsigned g1,
       const unsigned g2,
       const unsigned g3,
-      const PeakPtrVector& peakPtrs,
+      const PeakPtrs& peakPtrs,
       const float& limit,
       Peak& peakCand) const;
 
@@ -132,11 +134,11 @@ class CarGaps
     float distanceForGapInclusion(const CarGaps& cg2) const;
     float distanceForReverseInclusion(const CarGaps& cg2) const;
     float distancePartial(
-      const PeakPtrVector& peakPtrs,
+      const PeakPtrs& peakPtrs,
       const float& limit,
       Peak& peakCand) const;
     float distancePartialReverse(
-      const PeakPtrVector& peakPtrs,
+      const PeakPtrs& peakPtrs,
       const float& limit,
       Peak& peakCand) const;
 

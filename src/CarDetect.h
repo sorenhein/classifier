@@ -127,7 +127,7 @@ class CarDetect
       const bool partialFlag,
       MatchData& matchIn) const;
     bool distancePartialSymm(
-      const PeakPtrVector& peakPtrs,
+      const PeakPtrs& peakPtrs,
       const float& limit,
       MatchData& matchIn,
       Peak& peakCand) const;

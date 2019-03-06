@@ -4,6 +4,7 @@
 #include <algorithm>
 
 #include "CarModels.h"
+#include "PeakPtrs.h"
 #include "Except.h"
 #include "errors.h"
 
@@ -228,7 +229,7 @@ bool CarModels::matchesDistance(
 
 
 bool CarModels::matchesPartial(
-  const PeakPtrVector& peakPtrs,
+  const PeakPtrs& peakPtrs,
   const float& limit,
   MatchData& match,
   Peak& peakCand) const

@@ -447,7 +447,7 @@ void CarDetect::distanceSymm(
 
 
 bool CarDetect::distancePartialSymm(
-  const PeakPtrVector& peakPtrs,
+  const PeakPtrs& peakPtrs,
   const float& limit,
   MatchData& matchIn,
   Peak& peakCand) const

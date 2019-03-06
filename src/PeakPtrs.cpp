@@ -8,6 +8,19 @@
 #include "Except.h"
 
 
+const list<PeakFncPtr> wheelFncs =
+{
+  &Peak::isLeftWheel, &Peak::isRightWheel, 
+  &Peak::isLeftWheel, &Peak::isRightWheel
+};
+
+const list<PeakFncPtr> bogeyFncs =
+{
+  &Peak::isLeftBogey, &Peak::isLeftBogey, 
+  &Peak::isRightBogey, &Peak::isRightBogey
+};
+
+
 PeakPtrs::PeakPtrs()
 {
   PeakPtrs::clear();
@@ -148,17 +161,12 @@ unsigned PeakPtrs::lastIndex() const
 }
 
 
-const list<PeakFncPtr> wheelFncs =
+void PeakPtrs::getIndices(vector<unsigned>& indices) const
 {
-  &Peak::isLeftWheel, &Peak::isRightWheel, 
-  &Peak::isLeftWheel, &Peak::isRightWheel
-};
+  for (auto peak: peaks)
+    indices.push_back(peak->getIndex());
+}
 
-const list<PeakFncPtr> bogeyFncs =
-{
-  &Peak::isLeftBogey, &Peak::isLeftBogey, 
-  &Peak::isRightBogey, &Peak::isRightBogey
-};
 
 bool PeakPtrs::isFourWheeler() const
 {
