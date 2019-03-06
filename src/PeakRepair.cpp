@@ -125,40 +125,6 @@ bool PeakRepair::bracket(
 }
 
 
-Peak * PeakRepair::locatePeak(
-  const unsigned lower,
-  const unsigned upper,
-  PeakPtrVector& peakPtrsUsed,
-  unsigned& indexUsed) const
-{
-  unsigned num = 0;
-  unsigned i = 0;
-  Peak * ptr = nullptr;
-  for (auto& p: peakPtrsUsed)
-  {
-    const unsigned index = p->getIndex();
-    if (index >= lower && index <= upper)
-    {
-      num++;
-      indexUsed = i;
-      ptr = p;
-    }
-    i++;
-  }
-
-  if (num == 0)
-    return nullptr;
-  else if (num > 1)
-  {
-    // TODO May have to pick the best one.
-    cout << "WARNING locatePeak: Multiple choices\n";
-    return nullptr;
-  }
-  else
-    return ptr;
-}
-
-
 bool PeakRepair::updatePossibleModels(
   RepairRange& range,
   const bool specialFlag,
@@ -222,7 +188,6 @@ bool PeakRepair::updatePossibleModels(
       }
 // cout << "lower " << lower << " upper " << upper << endl;
 
-      // pptr = PeakRepair::locatePeak(lower, upper, peakPtrsUsed, indexUsed);
       pptr = peakPtrsUsed.locate(lower, upper, (lower+upper) / 2,
         &Peak::always, indexUsed);
       if (! pptr)
@@ -305,12 +270,8 @@ bool PeakRepair::edgeCar(
   PeakPtrs& peakPtrsUsedIn,
   PeakPtrs& peakPtrsUnusedIn)
 {
-  PeakPtrVector peakPtrsUsed, peakPtrsUnused;
-  peakPtrsUsedIn.flattenTODO(peakPtrsUsed);
-  peakPtrsUnusedIn.flattenTODO(peakPtrsUnused);
-
   offset = offsetIn;
-  PeakPtrVector peakResult(4, nullptr);
+
   PeakRepair::init(models.size(), range.endValue());
 
   RepairRange repairRange;
@@ -349,18 +310,16 @@ bool PeakRepair::edgeCar(
   {
     bool edgeFlag;
     if (firstFlag)
-      edgeFlag = peakPtrsUsed.back()->fitsType(BOGEY_RIGHT, WHEEL_RIGHT);
+      edgeFlag = peakPtrsUsedIn.back()->fitsType(BOGEY_RIGHT, WHEEL_RIGHT);
     else
-      edgeFlag = peakPtrsUsed.front()->fitsType(BOGEY_LEFT, WHEEL_LEFT);
+      edgeFlag = peakPtrsUsedIn.front()->fitsType(BOGEY_LEFT, WHEEL_LEFT);
 
     bool modelEndFlag = models.hasAnEndGap();
 
     cout << (firstFlag ? "FIRST" : "LAST") <<
       "QUADRANT " << edgeFlag << ", " << modelEndFlag << endl;
 
-cout << peakPtrsUsed.front()->strHeaderQuality();
-for (auto& p: peakPtrsUsed)
-  cout << p->strQuality(offset);
+cout << peakPtrsUsedIn.strQuality("No model match", offset);
 
     cout << "WARNREPAIR: No model match\n";
     return false;
@@ -378,7 +337,7 @@ cout << (firstFlag ? "NODOMFIRST" : "NODOMLAST") << "\n";
   }
 
   PeakRepair::printMatches(firstFlag);
-  superModel.makeCodes(peakPtrsUsed, offset);
+  superModel.makeCodes(peakPtrsUsedIn, offset);
   superModel.printSituation(firstFlag);
 
 /*
@@ -397,8 +356,8 @@ cout << (firstFlag ? "NODOMFIRST" : "NODOMLAST") << "\n";
       if (superModel.getRange(peakNo, lower, upper))
       {
         unsigned indexUsed;
-        pptr = PeakRepair::locatePeak(lower, upper, peakPtrsUsed, 
-          indexUsed);
+        peakPtrsUsed.locate(lower, upper, (lower+upper)/2,
+          &Peak::always, indexUsed);
         
         if (pptr)
         {
@@ -442,6 +401,11 @@ UNUSED(peaks);
   unsigned bogeyTypical, longTypical;
   models.getTypical(bogeyTypical, longTypical);
 cout << "Typical " << bogeyTypical << ", " << longTypical << endl;
+
+  PeakPtrVector peakPtrsUsed, peakPtrsUnused;
+  peakPtrsUsedIn.flattenTODO(peakPtrsUsed);
+  peakPtrsUnusedIn.flattenTODO(peakPtrsUnused);
+
 
   // Fill out Used with the peaks actually used.
   PeakPtrVector peakPtrsSpare;

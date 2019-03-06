@@ -5,6 +5,7 @@
 
 #include "PeakPartial.h"
 #include "Peak.h"
+#include "PeakPtrs.h"
 
 // Used to count input peaks relative to used peaks.
 #define LEFT_OF_P0 4
@@ -404,7 +405,7 @@ string PeakPartial::strEntry(const unsigned n) const
 
 
 void PeakPartial::makeCodes(
-  const vector<Peak *>& peakPtrsUsed,
+  const PeakPtrs& peakPtrsUsed,
   const unsigned offset)
 {
   peakCode =
@@ -429,8 +430,10 @@ void PeakPartial::makeCodes(
   intervalCount.clear();
   intervalCount.resize(NUM_INTERVALS);
 
-  for (auto& p: peakPtrsUsed)
+  for (PPLciterator it = peakPtrsUsed.cbegin(); 
+      it != peakPtrsUsed.cend(); it++)
   {
+    Peak * p = * it;
     if (p == peaks[0] || p == peaks[1] || p == peaks[2] || p == peaks[3])
       continue;
 

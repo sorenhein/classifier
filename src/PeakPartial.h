@@ -8,6 +8,8 @@
 
 using namespace std;
 
+class PeakPtrs;
+
 
 class PeakPartial
 {
@@ -189,7 +191,7 @@ class PeakPartial
     unsigned numMatches() const;
 
     void makeCodes(
-      const vector<Peak *>& peaksUsed,
+      const PeakPtrs& peaksUsed,
       const unsigned offset);
 
     void getPeaks(

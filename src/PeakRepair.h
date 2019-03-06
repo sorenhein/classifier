@@ -34,27 +34,6 @@ class PeakRepair
       bool leftDirection;
     };
 
-    struct ModelData
-    {
-      unsigned mno;
-      bool reverseFlag;
-
-      bool modelUsedFlag;
-      bool matchFlag;
-      bool skippedFlag;
-      bool newFlag;
-      vector<Peak *> peaks;
-      unsigned lastIndex;
-
-      vector<unsigned> lower;
-      vector<unsigned> upper;
-      vector<unsigned> target;
-      vector<unsigned> indexUsed;
-      unsigned numUsed;
-    };
-
-    // list<ModelData> modelData;
-
     list<PeakPartial> partialData;
 
 
@@ -74,12 +53,6 @@ class PeakRepair
       const unsigned gap,
       unsigned& lower,
       unsigned& upper) const;
-
-    Peak * locatePeak(
-      const unsigned lower,
-      const unsigned upper,
-      PeakPtrVector& PeakPtrsUsed,
-      unsigned& indexUsed) const;
 
     bool updatePossibleModels(
       RepairRange& range,
