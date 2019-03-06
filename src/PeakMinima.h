@@ -58,8 +58,8 @@ class PeakMinima
       Peak& p1,
       Peak& p2,
       PeakPool& peaks,
-      PPiterator& cit,
-      PPiterator& ncit,
+      PPLiterator& cit,
+      PPLiterator& ncit,
       const string& text) const;
 
     void markBogeyLongGap(

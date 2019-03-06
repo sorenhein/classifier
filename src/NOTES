@@ -1,14 +1,20 @@
 Plan 2019-02-27
 ---------------
-Severely clean up PeakPtrListNew:
-- Its name
-- The flattenTODO must go in the end
+Files to clean up:
+- PeakPtrListNew
+  - Call PeakPtrListNew -> PeakPtrList (other name gone)
+  - Probably a method to getIndices(number = 0 means all)
+  - The flattenTODO must go in the end
+  - Add method for locatePeak (other name)
+- PeakPool
+  - Think about a PeakList class
+- PeakStructure
+- PeakRange
+- PeakMinima
+- PeakPartial
+- PeakRepair
+- Maybe CarDetect
 
-Then move on to others that use or should use it
-
-PeakPool: Call getCandList candidates()
-
-See if we can get rid of the PeakPtrVector and other typedefs.
 
 In Perl, show last, mid.  Show histo of d's of the true train.
 Don't show devs with Issues.
@@ -23,10 +29,6 @@ Do PEAKLAST
 Look at the ones with no left-over PeakPtrsUsed: repair.
 Also the ones with incomplete PeakPtrsUsed repair can be repaired.
 (s23 #33)
-
-Make a PeakPtrVector class
-- Remove methods such as locatePeak (in two places)
-
 
 Make PeakRepair more general for internal cars as well
 - Not quite as aggressive about recognizing anything as a car

@@ -771,7 +771,7 @@ void PeakStructure::fixSpuriousInterPeaks(
   // fill the ends.
 
   CarListConstIter cit = cars.cbegin();
-  PeakPtrListNew& candidates = peaks.getCandList();
+  PeakPtrListNew& candidates = peaks.candidates();
   PPLiterator pbegin = candidates.begin();
   PPLiterator pend = candidates.end();
   PPLiterator pit = pbegin;
@@ -839,8 +839,7 @@ void PeakStructure::markCars(
     cout << endl;
   }
 
-// cout << peaks.strSelectedCandsQuality(
-cout << peaks.getCandList().strQuality(
+cout << peaks.candidates().strQuality(
   "All selected peaks at end of PeakStructure", offset);
 
 
@@ -880,9 +879,7 @@ void PeakStructure::printWheelCount(
   const string& text) const
 {
   cout << text << " " << 
-    // peaks.countCandidates(&Peak::isSelected) << 
-    peaks.getConstCandList().count(&Peak::isSelected) << 
-    " peaks" << endl;
+    peaks.candidatesConst().count(&Peak::isSelected) << " peaks" << endl;
 }
 
 

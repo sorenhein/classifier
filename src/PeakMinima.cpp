@@ -189,7 +189,7 @@ bool PeakMinima::guessNeighborDistance(
   // Make list of distances between neighbors for which fptr
   // evaluates to true.
   vector<unsigned> dists;
-  const PeakPtrListNew& candidates = peaks.getConstCandList();
+  const PeakPtrListNew& candidates = peaks.candidatesConst();
   PPLciterator cbegin = candidates.cbegin();
   PPLciterator cend = candidates.cend();
   for (PPLciterator pit = cbegin; pit != cend; pit++)
@@ -237,15 +237,15 @@ void PeakMinima::markBogeyShortGap(
   Peak& p1,
   Peak& p2,
   PeakPool& peaks,
-  PPiterator& cit, // Iterator to p1
-  PPiterator& ncit, // Iterator to p2
+  PPLiterator& cit, // Iterator to p1
+  PPLiterator& ncit, // Iterator to p2
   const string& text) const
 {
   if (text != "")
     PeakMinima::printRange(p1.getIndex(), p2.getIndex(),
       text + " short car gap at");
 
-  PeakPtrListNew& candidates = peaks.getCandList();
+  PeakPtrListNew& candidates = peaks.candidates();
   if (p1.isRightWheel() && ! p1.isRightBogey())
   {
     // Paired previous wheel was not yet marked a bogey.
@@ -291,7 +291,7 @@ void PeakMinima::markBogeyLongGap(
 
 void PeakMinima::reseedWheelUsingQuality(PeakPool& peaks) const
 {
-  PeakPtrListNew& candidates = peaks.getCandList();
+  PeakPtrListNew& candidates = peaks.candidates();
   PPLiterator cbegin = candidates.begin();
   PPLiterator cend = candidates.end();
   for (auto cit = cbegin; cit != cend; cit++)
@@ -313,7 +313,7 @@ void PeakMinima::reseedBogeysUsingQuality(
   PeakPool& peaks,
   const vector<Peak>& bogeyScale) const
 {
-  PeakPtrListNew& candidates = peaks.getCandList();
+  PeakPtrListNew& candidates = peaks.candidates();
   PPLiterator cbegin = candidates.begin();
   PPLiterator cend = candidates.end();
   for (auto cit = cbegin; cit != cend; cit++)
@@ -344,7 +344,7 @@ void PeakMinima::reseedLongGapsUsingQuality(
   PeakPool& peaks,
   const vector<Peak>& longGapScale) const
 {
-  const PeakPtrListNew& candidates = peaks.getConstCandList();
+  const PeakPtrListNew& candidates = peaks.candidatesConst();
   PPLciterator cbegin = candidates.cbegin();
   PPLciterator cend = candidates.cend();
   for (PPLciterator cit = cbegin; cit != cend; cit++)
@@ -405,10 +405,10 @@ void PeakMinima::makeWheelAverage(
   wheel.reset();
 
   unsigned count = 0;
-  const PeakPtrListNew& candidates = peaks.getConstCandList();
+  const PeakPtrListNew& candidates = peaks.candidatesConst();
   PPLciterator cbegin = candidates.cbegin();
   PPLciterator cend = candidates.cend();
-  for (PPciterator cit = cbegin; cit != cend; cit++)
+  for (PPLciterator cit = cbegin; cit != cend; cit++)
   {
     Peak const * cand = * cit;
     if (cand->isSelected())
@@ -431,12 +431,10 @@ void PeakMinima::makeBogeyAverages(
   wheels.resize(2);
 
   unsigned cleft = 0, cright = 0;
-  // PPciterator cbegin = peaks.candcbegin();
-  // PPciterator cend = peaks.candcend();
-  const PeakPtrListNew& candidates = peaks.getConstCandList();
+  const PeakPtrListNew& candidates = peaks.candidatesConst();
   PPLciterator cbegin = candidates.cbegin();
   PPLciterator cend = candidates.cend();
-  for (PPciterator cit = cbegin; cit != cend; cit++)
+  for (PPLciterator cit = cbegin; cit != cend; cit++)
   {
     Peak const * cand = * cit;
     if (cand->isLeftWheel())
@@ -469,11 +467,9 @@ void PeakMinima::makeCarAverages(
   vector<unsigned> count;
   count.resize(4);
 
-  const PeakPtrListNew& candidates = peaks.getConstCandList();
+  const PeakPtrListNew& candidates = peaks.candidatesConst();
   PPLciterator cbegin = candidates.cbegin();
   PPLciterator cend = candidates.cend();
-  // PPciterator cbegin = peaks.candcbegin();
-  // PPciterator cend = peaks.candcend();
   for (PPLciterator cit = cbegin; cit != cend; cit++)
   {
     Peak const * cand = * cit;
@@ -521,20 +517,20 @@ void PeakMinima::markSinglePeaks(
     THROW(ERR_NO_PEAKS, "No tall peaks");
 
   // Use the peak centers as a first yardstick for calculating qualities.
-  PeakPtrListNew& candidates = peaks.getCandList();
+  PeakPtrListNew& candidates = peaks.candidates();
   PPLiterator cbegin = candidates.begin();
   PPLiterator cend = candidates.end();
-  for (PPiterator cit = cbegin; cit != cend; cit++)
+  for (PPLiterator cit = cbegin; cit != cend; cit++)
     (* cit)->calcQualities(peakCenters);
 
-  cout << peaks.getCandList().strQuality("All negative minima", offset);
-  cout << peaks.getCandList().strQuality("Seeds", 
+  cout << peaks.candidates().strQuality("All negative minima", offset);
+  cout << peaks.candidates().strQuality("Seeds", 
     offset, &Peak::isSelected);
 
   // Modify selection based on quality.
   PeakMinima::reseedWheelUsingQuality(peaks);
 
-  cout << peaks.getCandList().strQuality("Great-quality seeds", offset);
+  cout << peaks.candidates().strQuality("Great-quality seeds", offset);
 }
 
 
@@ -542,7 +538,7 @@ void PeakMinima::markBogeysOfSelects(
   PeakPool& peaks,
   const Gap& wheelGap) const
 {
-  PeakPtrListNew& candidates = peaks.getCandList();
+  PeakPtrListNew& candidates = peaks.candidates();
   PPLiterator cbegin = candidates.begin();
   PPLiterator cend = candidates.end();
 
@@ -577,9 +573,7 @@ void PeakMinima::markBogeysOfUnpaired(
   PeakPool& peaks,
   const Gap& wheelGap) const
 {
-  PeakPtrListNew& candidates = peaks.getCandList();
-  // PPiterator cbegin = peaks.candbegin();
-  // PPiterator cend = peaks.candend();
+  PeakPtrListNew& candidates = peaks.candidates();
   PPLiterator cbegin = candidates.begin();
   PPLiterator cend = candidates.end();
 
@@ -607,7 +601,7 @@ void PeakMinima::markBogeysOfUnpaired(
 
 void PeakMinima::fixBogeyOrphans(PeakPool& peaks) const
 {
-  PeakPtrListNew& candidates = peaks.getCandList();
+  PeakPtrListNew& candidates = peaks.candidates();
   PPLiterator cbegin = candidates.begin();
   PPLiterator cend = candidates.end();
 
@@ -645,7 +639,7 @@ void PeakMinima::markBogeys(
 {
   // The wheel gap is only plausible if it hits a certain number of peaks.
   // unsigned numGreat = peaks.countCandidates(&Peak::greatQuality);
-  unsigned numGreat = peaks.getCandList().count(&Peak::greatQuality);
+  unsigned numGreat = peaks.candidates().count(&Peak::greatQuality);
 
   if (! PeakMinima::guessNeighborDistance(peaks,
       &PeakMinima::bothSelected, wheelGap, numGreat/4))
@@ -679,7 +673,7 @@ void PeakMinima::markBogeys(
   // Some halves of bogeys may have been downgraded.
   PeakMinima::fixBogeyOrphans(peaks);
 
-  cout << peaks.getCandList().strQuality(
+  cout << peaks.candidates().strQuality(
     "All peaks using left/right scales", offset);
 
   // Recalculate the averages based on the new qualities.
@@ -688,7 +682,7 @@ void PeakMinima::markBogeys(
   PeakMinima::printPeakQuality(bogeyScale[1], "Right-wheel average");
 
   // Redo the distances using the new qualities (left and right peaks).
-  numGreat = peaks.getCandList().count(&Peak::greatQuality);
+  numGreat = peaks.candidates().count(&Peak::greatQuality);
 
   PeakMinima::guessNeighborDistance(peaks,
     &PeakMinima::bothSelected, wheelGap, numGreat/4);
@@ -701,7 +695,7 @@ void PeakMinima::markBogeys(
 
   PeakMinima::markBogeysOfUnpaired(peaks, wheelGap);
 
-  cout << peaks.getCandList().strQuality(
+  cout << peaks.candidates().strQuality(
     "All peaks again using left/right scales", offset);
 }
 
@@ -710,9 +704,7 @@ void PeakMinima::markShortGapsOfSelects(
   PeakPool& peaks,
   const Gap& shortGap) const
 {
-  // PPiterator cbegin = peaks.candbegin();
-  // PPiterator cend = peaks.candend();
-  PeakPtrListNew& candidates = peaks.getCandList();
+  PeakPtrListNew& candidates = peaks.candidates();
   PPLiterator cbegin = candidates.begin();
   PPLiterator cend = candidates.end();
 
@@ -723,7 +715,6 @@ void PeakMinima::markShortGapsOfSelects(
     if (! cand->isRightWheel())
       continue;
 
-    // PPiterator ncit = peaks.nextCandExcl(cit, &Peak::isSelected);
     PPLiterator ncit = candidates.next(cit, &Peak::isSelected);
     if (ncit == cend)
       break;
@@ -744,16 +735,14 @@ void PeakMinima::markShortGapsOfUnpaired(
   PeakPool& peaks,
   const Gap& shortGap) const
 {
-  // PPiterator cbegin = peaks.candbegin();
-  // PPiterator cend = peaks.candend();
-  PeakPtrListNew& candidates = peaks.getCandList();
+  PeakPtrListNew& candidates = peaks.candidates();
   PPLiterator cbegin = candidates.begin();
   PPLiterator cend = candidates.end();
 
-  for (PPiterator cit = cbegin; cit != prev(cend); cit++)
+  for (PPLiterator cit = cbegin; cit != prev(cend); cit++)
   {
     Peak * cand = * cit;
-    PPiterator ncit = next(cit);
+    PPLiterator ncit = next(cit);
     Peak * nextCand = * ncit;
 
     // If neither is set, or both are set, there is nothing to repair.
@@ -803,13 +792,10 @@ void PeakMinima::guessLongGapDistance(
   Gap& longGap) const
 {
   vector<unsigned> dists;
-  // PPciterator cbegin = peaks.candcbegin();
-  // PPciterator cend = peaks.candcend();
-  const PeakPtrListNew & candidates = peaks.getConstCandList();
+  const PeakPtrListNew & candidates = peaks.candidatesConst();
   PPLciterator cbegin = candidates.cbegin();
   PPLciterator cend = candidates.cend();
 
-  // for (PPciterator cit = cbegin; cit != prev(cend); cit++)
   for (PPLciterator cit = cbegin; cit != prev(cend); cit++)
   {
     Peak * cand = * cit;
@@ -835,9 +821,7 @@ void PeakMinima::markLongGapsOfSelects(
   PeakPool& peaks,
   const Gap& longGap) const
 {
-  PeakPtrListNew& candidates = peaks.getCandList();
-  // PPiterator cbegin = peaks.candbegin();
-  // PPiterator cend = peaks.candend();
+  PeakPtrListNew& candidates = peaks.candidates();
   PPLiterator cbegin = candidates.begin();
   PPLiterator cend = candidates.end();
   for (PPLiterator cit = cbegin; cit != prev(cend); cit++)
@@ -906,8 +890,7 @@ void PeakMinima::markLongGaps(
   PeakMinima::markBogeysOfSelects(peaks, wheelGap);
   PeakMinima::markLongGapsOfSelects(peaks, longGap);
 
-  // cout << peaks.strAllCandsQuality("peaks with all four wheels", offset);
-  cout << peaks.getCandList().strQuality("peaks with all four wheels", 
+  cout << peaks.candidates().strQuality("peaks with all four wheels", 
     offset);
 
   // Recalculate the averages based on the new qualities.
@@ -942,8 +925,7 @@ void PeakMinima::mark(
   PeakMinima::markSinglePeaks(peaks, peakCenters);
 
 unsigned countAll = peaks.candsize();
-// unsigned countSelected = peaks.countCandidates(&Peak::isSelected);
-unsigned countSelected = peaks.getCandList().count(&Peak::isSelected);
+unsigned countSelected = peaks.candidates().count(&Peak::isSelected);
 cout << "FRAC " << countSelected << " " << 
   countAll << " " <<
   fixed << setprecision(2) << 100. * countSelected / countAll << endl;
@@ -955,8 +937,7 @@ cout << "FRAC " << countSelected << " " <<
   PeakMinima::markShortGaps(peaks, shortGap);
   PeakMinima::markLongGaps(peaks, wheelGap, shortGap.count);
 
-// cout << peaks.strSelectedCandsQuality(
-cout << peaks.getCandList().strQuality(
+cout << peaks.candidates().strQuality(
   "All selected peaks at end of PeakMinima", offset, &Peak::isSelected);
 }
 

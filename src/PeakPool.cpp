@@ -3,7 +3,6 @@
 #include <sstream>
 
 #include "PeakPool.h"
-
 #include "Except.h"
 
 
@@ -26,7 +25,7 @@ void PeakPool::clear()
   peakLists.clear();
   peakLists.resize(1);
   peaks = &peakLists.front();
-  candidates.clear();
+  _candidates.clear();
   averages.clear();
   transientTrimmedFlag = false;
   transientLimit = 0;
@@ -187,16 +186,7 @@ cout << "firstGoodIndex " << firstGoodIndex << endl;
 
   // Also remove any candidates.
   transientLimit = pitLastTransient->getIndex();
-  candidates.erase_below(transientLimit);
-  /*
-  for (PPiterator ppit = candidates.begin(); ppit != candidates.end(); )
-  {
-    if ((* ppit)->getIndex() < transientLimit)
-      ppit = candidates.erase(ppit);
-    else
-      break;
-  }
-  */
+  _candidates.erase_below(transientLimit);
   return true;
 }
 
@@ -286,36 +276,6 @@ void PeakPool::locateTopBrackets(
 }
 
 
-unsigned PeakPool::countInsertions(
-  const Piterator& pprev,
-  const Piterator& pnext) const
-{
-  unsigned n = 0;
-  for (auto pit = next(pprev); pit != pnext; pit++)
-    n++;
-  return n;
-}
-
-
-/*
-bool PeakPool::addCandidate(Peak * peak)
-{
-  // TODO Pretty inefficient if we are adding multiple candidates.
-  // If we need to do that, add them all at once.
-  const unsigned pindex = peak->getIndex();
-  for (auto cit = candidates.begin(); cit != candidates.end(); cit++)
-  {
-    if ((* cit)->getIndex() > pindex)
-    {
-      candidates.insert(cit, peak);
-      return true;
-    }
-  }
-  return false;
-}
-*/
-
-
 void PeakPool::printRepairData(
   const Piterator& foundIter,
   const Piterator& pprev,
@@ -376,7 +336,7 @@ void PeakPool::updateRepairedPeaks(
       pit->calcQualities(averages);
 
       // if (pit != pfirstPrev && ! PeakPool::addCandidate(&* pit))
-      if (pit != pfirstPrev && ! candidates.add(&* pit))
+      if (pit != pfirstPrev && ! _candidates.add(&* pit))
         cout << "PINSERT: Couldn't add candidate\n";
     }
   }
@@ -714,300 +674,27 @@ void PeakPool::makeCandidates()
   for (auto& peak: * peaks)
   {
     if (peak.isCandidate())
-      candidates.push_back(&peak);
+      _candidates.push_back(&peak);
   }
 }
-
-
-/*
-unsigned PeakPool::countCandidates(const PeakFncPtr& fptr) const
-{
-  unsigned c = 0;
-  for (auto cand: candidates)
-  {
-    if ((cand->* fptr)())
-      c++;
-  }
-  return c;
-}
-*/
 
 
 unsigned PeakPool::candsize() const 
 {
-  return candidates.size();
+  return _candidates.size();
 }
 
 
-/*
-void PeakPool::getCandPtrs(
-  const unsigned start,
-  const unsigned end,
-  PeakPtrVector& peakPtrs) const
+PeakPtrListNew& PeakPool::candidates()
 {
-  peakPtrs.clear();
-  for (auto& cand: candidates)
-  {
-    const unsigned index = cand->getIndex();
-    if (index > end)
-      break;
-    if (index < start)
-      continue;
-
-    peakPtrs.push_back(cand);
-  }
+  return _candidates;
 }
 
 
-void PeakPool::getCandPtrs(
-  const unsigned start,
-  const unsigned end,
-  const PeakFncPtr& fptr,
-  PeakPtrVector& peakPtrs) const
+const PeakPtrListNew& PeakPool::candidatesConst() const
 {
-  for (auto& cand: candidates)
-  {
-    const unsigned index = cand->getIndex();
-    if (index > end)
-      break;
-    if (index < start)
-      continue;
-
-    if ((cand->* fptr)())
-      peakPtrs.push_back(cand);
-  }
+  return _candidates;
 }
-
-
-void PeakPool::getCands(
-  const unsigned start,
-  const unsigned end,
-  PeakPtrVector& peakPtrs,
-  PeakIterVector& peakIters) const
-{
-  peakPtrs.clear();
-  peakIters.clear();
-  for (PPciterator pit = candidates.begin(); pit != candidates.end(); pit++)
-  {
-    Peak * cand = * pit;
-    const unsigned index = cand->getIndex();
-    if (index > end)
-      break;
-    if (index < start || index < transientLimit)
-      continue;
-
-    peakIters.push_back(pit);
-    peakPtrs.push_back(* pit);
-  }
-}
-
-
-void PeakPool::getCands(
-  const unsigned start,
-  const unsigned end,
-  PeakPtrVector& peakPtrs,
-  PeakIterList& peakIters) const
-{
-  peakPtrs.clear();
-  peakIters.clear();
-  for (PPciterator pit = candidates.begin(); pit != candidates.end(); pit++)
-  {
-    Peak * cand = * pit;
-    const unsigned index = cand->getIndex();
-    if (index > end)
-      break;
-    if (index < start)
-      continue;
-
-    peakIters.push_back(pit);
-    peakPtrs.push_back(* pit);
-  }
-}
-*/
-
-
-/*
-unsigned PeakPool::firstCandIndex() const
-{
-  if (candidates.size() == 0)
-    return numeric_limits<unsigned>::max();
-  else
-    return candidates.front()->getIndex();
-}
-
-
-unsigned PeakPool::lastCandIndex() const
-{
-  if (candidates.size() == 0)
-    return numeric_limits<unsigned>::max();
-  else
-    return candidates.back()->getIndex();
-}
-*/
-
-
-PeakPtrListNew& PeakPool::getCandList()
-{
-  return candidates;
-}
-
-
-const PeakPtrListNew& PeakPool::getConstCandList() const
-{
-  return candidates;
-}
-
-
-/*
-PPiterator PeakPool::candbegin()
-{
-  return candidates.begin();
-}
-
-
-PPciterator PeakPool::candcbegin() const
-{
-  return candidates.cbegin();
-}
-
-
-PPiterator PeakPool::candend()
-{
-  return candidates.end();
-}
-
-
-PPciterator PeakPool::candcend() const
-{
-  return candidates.cend();
-}
-
-
-PPiterator PeakPool::nextCandExcl(
-  const PPiterator& pit,
-  const PeakFncPtr& fptr) const
-{
-  if (pit == candidates.end())
-    THROW(ERR_ALGO_PEAK_CONSISTENCY, "Miss later matching peak");
-
-  PPiterator npit = next(pit);
-  return PeakPool::nextCandIncl(npit, fptr);
-}
-
-
-PPciterator PeakPool::nextCandExcl(
-  const PPciterator& pit,
-  const PeakFncPtr& fptr) const
-{
-  if (pit == candidates.end())
-    THROW(ERR_ALGO_PEAK_CONSISTENCY, "Miss later matching peak");
-
-  PPciterator npit = next(pit);
-  return PeakPool::nextCandIncl(npit, fptr);
-}
-
-
-PPiterator PeakPool::nextCandIncl(
-  PPiterator& pit,
-  const PeakFncPtr& fptr) const
-{
-  PPiterator pitNext = pit;
-  while (pitNext != candidates.end() && ! ((* pitNext)->* fptr)())
-    pitNext++;
-
-  return pitNext;
-}
-
-
-PPciterator PeakPool::nextCandIncl(
-  const PPciterator& pit,
-  const PeakFncPtr& fptr) const
-{
-  PPciterator pitNext = pit;
-  while (pitNext != candidates.end() && ! ((* pitNext)->* fptr)())
-    pitNext++;
-
-  return pitNext;
-}
-
-
-PPiterator PeakPool::prevCandExcl(
-  PPiterator& pit,
-  const PeakFncPtr& fptr) const
-{
-  if (pit == candidates.begin())
-    THROW(ERR_ALGO_PEAK_CONSISTENCY, "Miss earlier matching peak");
-
-  PPiterator ppit = prev(pit);
-  return PeakPool::prevCandIncl(ppit, fptr);
-}
-
-
-PPciterator PeakPool::prevCandExclSoft(
-  PPciterator& pit,
-  const PeakFncPtr& fptr) const
-{
-  if (pit == candidates.begin())
-    return candidates.cend();
-
-  PPciterator ppit = prev(pit);
-  return PeakPool::prevCandInclSoft(ppit, fptr);
-}
-
-
-PPciterator PeakPool::prevCandExcl(
-  PPciterator& pit,
-  const PeakFncPtr& fptr) const
-{
-  if (pit == candidates.begin())
-    THROW(ERR_ALGO_PEAK_CONSISTENCY, "Miss earlier matching peak");
-
-  PPciterator ppit = prev(pit);
-  return PeakPool::prevCandIncl(ppit, fptr);
-}
-
-
-PPiterator PeakPool::prevCandIncl(
-  PPiterator& pit,
-  const PeakFncPtr& fptr) const
-{
-  for (PPiterator pitPrev = pit; ; pitPrev = prev(pitPrev))
-  {
-    if (((* pitPrev)->* fptr)())
-      return pitPrev;
-    else if (pitPrev == candidates.begin())
-      THROW(ERR_ALGO_PEAK_CONSISTENCY, "Miss earlier matching peak");
-  }
-}
-
-
-PPciterator PeakPool::prevCandIncl(
-  PPciterator& pit,
-  const PeakFncPtr& fptr) const
-{
-  for (PPciterator pitPrev = pit; ; pitPrev = prev(pitPrev))
-  {
-    if (((* pitPrev)->* fptr)())
-      return pitPrev;
-    else if (pitPrev == candidates.begin())
-      THROW(ERR_ALGO_PEAK_CONSISTENCY, "Miss earlier matching peak");
-  }
-}
-
-
-PPciterator PeakPool::prevCandInclSoft(
-  PPciterator& pit,
-  const PeakFncPtr& fptr) const
-{
-  for (PPciterator pitPrev = pit; ; pitPrev = prev(pitPrev))
-  {
-    if (((* pitPrev)->* fptr)())
-      return pitPrev;
-    else if (pitPrev == candidates.begin())
-      return candidates.end();
-  }
-}
-*/
 
 
 Piterator PeakPool::prevExcl(
@@ -1089,7 +776,7 @@ Piterator PeakPool::nextIncl(
 bool PeakPool::getClosest(
   const list<unsigned>& carPoints,
   const PeakFncPtr& fptr,
-  const PPciterator& cit,
+  const PPLciterator& cit,
   const unsigned numWheels,
   PeakPtrVector& closestPeaks,
   PeakPtrVector& skippedPeaks) const
@@ -1098,8 +785,8 @@ bool PeakPool::getClosest(
     return false;
 
   // Do the three remaining wheels.
-  PPLciterator cit0 = candidates.next(cit, fptr);
-  if (cit0 == candidates.cend())
+  PPLciterator cit0 = _candidates.next(cit, fptr);
+  if (cit0 == _candidates.cend())
     return false;
 
   skippedPeaks.clear();
@@ -1121,8 +808,8 @@ bool PeakPool::getClosest(
 
     while (true)
     {
-      cit1 = candidates.next(cit0, fptr);
-      if (cit1 == candidates.cend())
+      cit1 = _candidates.next(cit0, fptr);
+      if (cit1 == _candidates.cend())
       {
         if (closestPeaks.size() != numWheels-1)
           return false;
@@ -1145,8 +832,8 @@ bool PeakPool::getClosest(
       {
         skippedPeaks.push_back(* cit0);
         closestPeaks.push_back(* cit1);
-        cit1 = candidates.next(cit1, fptr);
-        if (cit1 == candidates.cend() && closestPeaks.size() != numWheels)
+        cit1 = _candidates.next(cit1, fptr);
+        if (cit1 == _candidates.cend() && closestPeaks.size() != numWheels)
           return false;
 
         cit0 = cit1;
@@ -1222,50 +909,6 @@ string PeakPool::strAll(
   ss << endl;
   return ss.str();
 }
-
-
-/*
-string PeakPool::strAllCandsQuality(
-  const string& text,
-  const unsigned& offset) const
-{
-  if (candidates.empty())
-    return "";
-
-  stringstream ss;
-  if (text != "")
-    ss << text << ": " << candidates.size() << "\n";
-  ss << candidates.front()->strHeaderQuality();
-
-  for (auto cand: candidates)
-    ss << cand->strQuality(offset);
-  ss << endl;
-  return ss.str();
-}
-
-
-string PeakPool::strSelectedCandsQuality(
-  const string& text,
-  const unsigned& offset) const
-{
-  if (candidates.empty())
-    return "";
-
-  stringstream ss;
-  if (text != "")
-    ss << text << "\n";
-  ss << candidates.front()->strHeaderQuality();
-
-  for (const auto& cand: candidates)
-  {
-    if (cand->isSelected())
-      ss << cand->strQuality(offset);
-  }
-  ss << endl;
-  return ss.str();
-
-}
-*/
 
 
 string PeakPool::strSelectedTimesCSV(const string& text) const

@@ -41,8 +41,8 @@ void PeakRange::init(
   source = PEAK_SOURCE_FIRST;
   // start = peaks.firstCandIndex();
   // endVal = peaks.lastCandIndex();
-  start = peaks.getCandList().firstIndex();
-  endVal = peaks.getCandList().lastIndex();
+  start = peaks.candidates().firstIndex();
+  endVal = peaks.candidates().lastIndex();
   leftGapPresent = false;
   rightGapPresent = false;
   leftOriginal = true;
@@ -61,7 +61,7 @@ void PeakRange::fill(PeakPool& peaks)
 {
   // Set up some useful stuff for all recognizers.
   PeakPtrListNew ppl;
-  peaks.getCandList().fill(start, endVal, peakPtrs, peakIters);
+  peaks.candidates().fill(start, endVal, peakPtrs, peakIters);
   vector<Peak *> peaksFlattened;
   peakPtrs.flattenTODO(peaksFlattened);
   profile.make(peaksFlattened, source);

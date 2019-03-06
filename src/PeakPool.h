@@ -38,7 +38,6 @@ typedef PeakList::iterator Piterator;
 typedef PeakList::const_iterator Pciterator;
 
 typedef list<Peak *> PeakPtrList;
-typedef PeakPtrList::iterator PPiterator;
 typedef PeakPtrList::const_iterator PPciterator;
 typedef vector<PPciterator> PeakIterVector;
 typedef list<PPciterator> PeakIterList;
@@ -55,8 +54,7 @@ class PeakPool
     PeakList * peaks;
 
     // Could have one for each PeakList as well.
-    // PeakPtrList candidates;
-    PeakPtrListNew candidates;
+    PeakPtrListNew _candidates;
 
     // Average peaks used for quality.
     vector<Peak> averages;
@@ -91,12 +89,6 @@ class PeakPool
       const Piterator& foundIter,
       Piterator& pprev, 
       Piterator& pnext) const;
-
-    unsigned countInsertions(
-      const Piterator& pprev, 
-      const Piterator& pnext) const;
-
-    // bool addCandidate(Peak * peak);
 
     void printRepairData(
       const Piterator& foundIter,
@@ -197,81 +189,14 @@ class PeakPool
 
     unsigned candsize() const;
 
-    void getCandPtrs(
-      const unsigned start,
-      const unsigned end,
-      PeakPtrVector& peakPtrs) const;
-
-    void getCandPtrs(
-      const unsigned start,
-      const unsigned end,
-      const PeakFncPtr& fptr,
-      PeakPtrVector& peakPtrs) const;
-
-    void getCands(
-      const unsigned start,
-      const unsigned end,
-      PeakPtrVector& peakPtrs,
-      PeakIterVector& peakIters) const;
-
-    void getCands(
-      const unsigned start,
-      const unsigned end,
-      PeakPtrVector& peakPtrs,
-      PeakIterList& peakIters) const;
-
     unsigned firstCandIndex() const;
     unsigned lastCandIndex() const;
 
-    PeakPtrListNew& getCandList();
-    const PeakPtrListNew& getConstCandList() const;
+    PeakPtrListNew& candidates();
+    const PeakPtrListNew& candidatesConst() const;
 
     // TODO: No doubt there is a more elegant way to do this...
-    PPiterator candbegin();
-    PPciterator candcbegin() const;
 
-    PPiterator candend();
-    PPciterator candcend() const;
-
-    PPiterator nextCandExcl(
-      const PPiterator& pit,
-      const PeakFncPtr& fptr) const;
-
-    PPciterator nextCandExcl(
-      const PPciterator& pit,
-      const PeakFncPtr& fptr) const;
-
-    PPiterator nextCandIncl(
-      PPiterator& pit,
-      const PeakFncPtr& fptr) const;
-
-    PPciterator nextCandIncl(
-      const PPciterator& pit,
-      const PeakFncPtr& fptr) const;
-
-    PPiterator prevCandExcl(
-      PPiterator& pit,
-      const PeakFncPtr& fptr) const;
-
-    PPciterator prevCandExclSoft(
-      PPciterator& pit,
-      const PeakFncPtr& fptr) const;
-
-    PPciterator prevCandExcl(
-      PPciterator& pit,
-      const PeakFncPtr& fptr) const;
-
-    PPiterator prevCandIncl(
-      PPiterator& pit,
-      const PeakFncPtr& fptr) const;
-
-    PPciterator prevCandIncl(
-      PPciterator& pit,
-      const PeakFncPtr& fptr) const;
-
-    PPciterator prevCandInclSoft(
-      PPciterator& pit,
-      const PeakFncPtr& fptr) const;
 
     Piterator prevExcl(
       Piterator& pit,
@@ -301,7 +226,7 @@ class PeakPool
     bool getClosest(
       const list<unsigned>& carPoints,
       const PeakFncPtr& fptr,
-      const PPciterator& cit,
+      const PPLciterator& cit,
       const unsigned numWheels,
       PeakPtrVector& closestPeaks,
       PeakPtrVector& skippedPeaks) const;
@@ -312,14 +237,6 @@ class PeakPool
 
 
     string strAll(
-      const string& text,
-      const unsigned& offset) const;
-
-    string strAllCandsQuality(
-      const string& text,
-      const unsigned& offset) const;
-
-    string strSelectedCandsQuality(
       const string& text,
       const unsigned& offset) const;
 
