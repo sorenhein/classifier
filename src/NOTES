@@ -2,15 +2,12 @@ Plan 2019-02-27
 ---------------
 Files to clean up:
 - PeakPtrs
-  - Probably a method to getIndices(number = 0 means all)
   - The flattenTODO must go in the end
-  - Add method for locatePeak (other name)
   - Instead of pointer functions can have array as in PeakStructure?
 - PeakPool
   - Think about a PeakList class
 - PeakMinima
 - PeakPartial
-- PeakRepair
 
 
 In Perl, show last, mid.  Show histo of d's of the true train.

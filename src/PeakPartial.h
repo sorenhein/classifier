@@ -197,8 +197,8 @@ class PeakPartial
     void getPeaks(
       const unsigned bogeyTypical,
       const unsigned longTypical,
-      vector<Peak *>& peaksUsed,
-      vector<Peak *>& peaksUnused);
+      PeakPtrs& peaksUsed,
+      PeakPtrs& peaksUnused);
 
     void printSituation(const bool firstFlag) const;
 
