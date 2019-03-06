@@ -4,6 +4,7 @@
 #include <algorithm>
 
 #include "PeakSeeds.h"
+#include "PeakPtrs.h"
 
 #define PEAKSEEDS_ITER 4
 #define PEAKSEEDS_VALUE 0.7f
@@ -355,7 +356,7 @@ void PeakSeeds::pruneListEnds()
 
 void PeakSeeds::markSeeds(
   const PeakPool& peaks,
-  PeakPtrVector& peaksToSelect,
+  PeakPtrs& peaksToSelect,
   Peak& peakAvg) const
 {
   unsigned nindex = 0;
@@ -446,7 +447,7 @@ void PeakSeeds::mark(
   // Also stop early if the iteration adds less than the fraction
   // PEAKSEEDS_ADD new peaks.
 
-  PeakPtrVector peaksToSelect;
+  PeakPtrs peaksToSelect;
   Peak peakAvg;
   unsigned peakCount = 0;
   unsigned numIter = 0;

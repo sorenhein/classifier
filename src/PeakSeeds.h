@@ -23,6 +23,8 @@
 
 using namespace std;
 
+class PeakPtrs;
+
 
 class PeakSeeds
 {
@@ -104,7 +106,7 @@ class PeakSeeds
 
     void markSeeds(
       const PeakPool& peaks,
-      PeakPtrVector& peaksToSelect,
+      PeakPtrs& peaksToSelect,
       Peak& peakAvg) const;
 
     void rebalanceCenters(
