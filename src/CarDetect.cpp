@@ -190,8 +190,11 @@ void CarDetect::makeFourWheeler(
 
 void CarDetect::makeAnyWheeler(
   const PeakRange& range,
-  const vector<Peak *>& peakPtrs)
+  PeakPtrs& peakPtrsIn) // TODO Const later on again
 {
+  PeakPtrVector peakPtrs;
+  peakPtrsIn.flattenTODO(peakPtrs);
+
   CarDetect::setLimits(range.startValue(), range.endValue());
 
   if (peakPtrs[0] && range.hasLeftGap())

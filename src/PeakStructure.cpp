@@ -286,27 +286,21 @@ PeakStructure::FindCarType PeakStructure::findPartialCarByQuality(
   CarDetect& car) const
 {
 
-  PeakPtrs ppu, ppunu;
-  range.split(fptr, ppu, ppunu);
+  PeakPtrs peakPtrsUsed, peakPtrsUnused;
+  range.split(fptr, peakPtrsUnused, peakPtrsUnused);
 
   PeakRepair repair;
   if (repair.edgeCar(models, offset, firstFlag, 
-      peaks, range, ppu, ppunu))
+      peaks, range, peakPtrsUsed, peakPtrsUnused))
   {
 if (firstFlag)
   cout << "Hit an anywheeler\n";
 else
   cout << "Hit a lastwheeler\n";
 
-  PeakPtrVector peakPtrsUsed, peakPtrsUnused;
-  ppu.flattenTODO(peakPtrsUsed);
-  ppunu.flattenTODO(peakPtrsUnused);
-
     car.makeAnyWheeler(range, peakPtrsUsed);
-    // PeakStructure::markUpPeaks(peakPtrsUsed, 4);
-    // PeakStructure::markDownPeaks(peakPtrsUnused);
-      ppu.markup();
-      ppunu.apply(&Peak::markdown);
+    peakPtrsUsed.markup();
+    peakPtrsUnused.apply(&Peak::markdown);
     return FIND_CAR_PARTIAL;
   }
   else

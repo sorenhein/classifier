@@ -78,7 +78,7 @@ class CarDetect
 
     void makeAnyWheeler(
       const PeakRange& range,
-      const vector<Peak *>& peakPtrs);
+      PeakPtrs& peakPtrs);
 
     void logStatIndex(const unsigned index);
 
