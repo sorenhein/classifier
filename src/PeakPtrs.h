@@ -1,5 +1,5 @@
-#ifndef TRAIN_PEAKPTRLIST_H
-#define TRAIN_PEAKPTRLIST_H
+#ifndef TRAIN_PEAKPTRS_H
+#define TRAIN_PEAKPTRS_H
 
 #include <string>
 #include <list>
@@ -23,7 +23,7 @@ typedef PeakIterListNew::iterator PILiterator;
 typedef PeakIterListNew::const_iterator PILciterator;
 
 
-class PeakPtrListNew
+class PeakPtrs
 {
   private:
 
@@ -32,9 +32,9 @@ class PeakPtrListNew
 
   public:
 
-    PeakPtrListNew();
+    PeakPtrs();
 
-    ~PeakPtrListNew();
+    ~PeakPtrs();
 
     void clear();
 
@@ -89,14 +89,14 @@ class PeakPtrListNew
     void fill(
       const unsigned start,
       const unsigned end,
-      PeakPtrListNew& pplNew,
+      PeakPtrs& pplNew,
       list<PPLciterator>& pilNew);
 
     void split(
       const PeakFncPtr& fptr1,
       const PeakFncPtr& fptr2,
-      PeakPtrListNew& peaksMatched,
-      PeakPtrListNew& peaksRejected) const;
+      PeakPtrs& peaksMatched,
+      PeakPtrs& peaksRejected) const;
 
     void apply(const PeakRunFncPtr& fptr);
 

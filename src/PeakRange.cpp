@@ -60,7 +60,7 @@ void PeakRange::init(const PeakPtrVector& pv)
 void PeakRange::fill(PeakPool& peaks)
 {
   // Set up some useful stuff for all recognizers.
-  PeakPtrListNew ppl;
+  PeakPtrs ppl;
   peaks.candidates().fill(start, endVal, peakPtrs, peakIters);
   vector<Peak *> peaksFlattened;
   peakPtrs.flattenTODO(peaksFlattened);
@@ -134,7 +134,7 @@ unsigned PeakRange::numGood() const
 }
 
 
-PeakPtrListNew& PeakRange::getPeakPtrs()
+PeakPtrs& PeakRange::getPeakPtrs()
 {
   return peakPtrs;
 }
@@ -142,8 +142,8 @@ PeakPtrListNew& PeakRange::getPeakPtrs()
 
 void PeakRange::splitByQuality(
   const PeakFncPtr& fptr,
-  PeakPtrListNew& peakPtrsUsed,
-  PeakPtrListNew& peakPtrsUnused) const
+  PeakPtrs& peakPtrsUsed,
+  PeakPtrs& peakPtrsUnused) const
 {
   peakPtrs.split(&Peak::isWheel, fptr, peakPtrsUsed, peakPtrsUnused);
 }

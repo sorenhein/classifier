@@ -16,7 +16,7 @@ SOURCE_FILES    =               \
                 PeakPartial.cpp \
                 PeakPool.cpp    \
                 PeakProfile.cpp \
-                PeakPtrList.cpp \
+                PeakPtrs.cpp    \
                 PeakRange.cpp   \
                 PeakRepair.cpp  \
                 PeakSeeds.cpp   \

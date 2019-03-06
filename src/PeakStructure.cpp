@@ -300,7 +300,7 @@ PeakStructure::FindCarType PeakStructure::findPartialCarByQuality(
 {
   PeakPtrVector peakPtrsUsed, peakPtrsUnused;
 
-  PeakPtrListNew ppu, ppunu;
+  PeakPtrs ppu, ppunu;
   // range.splitByQuality(fptr, peakPtrsUsed, peakPtrsUnused);
   range.splitByQuality(fptr, ppu, ppunu);
   ppu.flattenTODO(peakPtrsUsed);
@@ -375,7 +375,7 @@ cout << "LASTLAST\n";
 PeakStructure::FindCarType PeakStructure::findCarByPeaks(
   const CarModels& models,
   const PeakRange& range,
-  PeakPtrListNew& peakPtrs,
+  PeakPtrs& peakPtrs,
   CarDetect& car) const
 {
   PeakPtrVector pv;
@@ -403,7 +403,7 @@ PeakStructure::FindCarType PeakStructure::findCarByQuality(
   PeakRange& range,
   CarDetect& car) const
 {
-  PeakPtrListNew peakPtrsUsed, peakPtrsUnused;
+  PeakPtrs peakPtrsUsed, peakPtrsUnused;
   range.splitByQuality(fptr, peakPtrsUsed, peakPtrsUnused);
 
   if (PeakStructure::findCarByPeaks(models, range, peakPtrsUsed, car) ==
@@ -535,7 +535,7 @@ PeakStructure::FindCarType PeakStructure::findCarByLeveledPeaks(
   // probably fail on peak quality as opposed to shape quality.
   UNUSED(peaks);
 
-  PeakPtrListNew peakPtrsUsed, peakPtrsUnused;
+  PeakPtrs peakPtrsUsed, peakPtrsUnused;
   range.splitByQuality(&Peak::goodPeakQuality, 
     peakPtrsUsed, peakPtrsUnused);
 
@@ -563,7 +563,7 @@ PeakStructure::FindCarType PeakStructure::findCarByEmptyLast(
 
   if (range.looksEmptyLast())
   {
-    PeakPtrListNew& r = range.getPeakPtrs();
+    PeakPtrs& r = range.getPeakPtrs();
     PeakPtrVector p;
     r.flattenTODO(p);
 
@@ -596,7 +596,7 @@ PeakStructure::FindCarType PeakStructure::findCarByThreePeaks(
   PeakPtrVector peakPtrsUsed, peakPtrsUnused;
   // range.splitByQuality(&Peak::goodQuality, peakPtrsUsed, peakPtrsUnused);
 
-  PeakPtrListNew ppu, ppunu;
+  PeakPtrs ppu, ppunu;
   range.splitByQuality(&Peak::goodQuality, ppu, ppunu);
   ppu.flattenTODO(peakPtrsUsed);
   ppunu.flattenTODO(peakPtrsUnused);
@@ -771,7 +771,7 @@ void PeakStructure::fixSpuriousInterPeaks(
   // fill the ends.
 
   CarListConstIter cit = cars.cbegin();
-  PeakPtrListNew& candidates = peaks.candidates();
+  PeakPtrs& candidates = peaks.candidates();
   PPLiterator pbegin = candidates.begin();
   PPLiterator pend = candidates.end();
   PPLiterator pit = pbegin;

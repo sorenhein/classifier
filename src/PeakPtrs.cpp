@@ -4,34 +4,34 @@
 #include <fstream>
 #include <sstream>
 
-#include "PeakPtrList.h"
+#include "PeakPtrs.h"
 #include "Except.h"
 
 
-PeakPtrListNew::PeakPtrListNew()
+PeakPtrs::PeakPtrs()
 {
-  PeakPtrListNew::clear();
+  PeakPtrs::clear();
 }
 
 
-PeakPtrListNew::~PeakPtrListNew()
+PeakPtrs::~PeakPtrs()
 {
 }
 
 
-void PeakPtrListNew::clear()
+void PeakPtrs::clear()
 {
   peaks.clear();
 }
 
 
-void PeakPtrListNew::push_back(Peak * peak)
+void PeakPtrs::push_back(Peak * peak)
 {
   peaks.push_back(peak);
 }
 
 
-bool PeakPtrListNew::add(Peak * peak)
+bool PeakPtrs::add(Peak * peak)
 {
   // TODO Pretty inefficient if we are adding multiple candidates.
   // If we need to do that, better add them all at once.
@@ -48,7 +48,7 @@ bool PeakPtrListNew::add(Peak * peak)
 }
 
 
-void PeakPtrListNew::insert(
+void PeakPtrs::insert(
   PPLiterator& it,
   Peak * peak)
 {
@@ -56,13 +56,13 @@ void PeakPtrListNew::insert(
 }
 
 
-PPLiterator PeakPtrListNew::erase(PPLiterator& it)
+PPLiterator PeakPtrs::erase(PPLiterator& it)
 {
   return peaks.erase(it);
 }
 
 
-void PeakPtrListNew::erase_below(const unsigned limit)
+void PeakPtrs::erase_below(const unsigned limit)
 {
   for (PPLiterator it = peaks.begin(); it != peaks.end(); )
   {
@@ -74,37 +74,37 @@ void PeakPtrListNew::erase_below(const unsigned limit)
 }
 
 
-PPLiterator PeakPtrListNew::begin()
+PPLiterator PeakPtrs::begin()
 {
   return peaks.begin();
 }
 
 
-PPLiterator PeakPtrListNew::end()
+PPLiterator PeakPtrs::end()
 {
   return peaks.end();
 }
 
 
-PPLciterator PeakPtrListNew::cbegin() const
+PPLciterator PeakPtrs::cbegin() const
 {
   return peaks.cbegin();
 }
 
 
-PPLciterator PeakPtrListNew::cend() const
+PPLciterator PeakPtrs::cend() const
 {
   return peaks.cend();
 }
 
 
-unsigned PeakPtrListNew::size() const
+unsigned PeakPtrs::size() const
 {
   return peaks.size();
 }
 
 
-unsigned PeakPtrListNew::count(const PeakFncPtr& fptr) const
+unsigned PeakPtrs::count(const PeakFncPtr& fptr) const
 {
   unsigned c = 0;
   for (auto peak: peaks)
@@ -116,13 +116,13 @@ unsigned PeakPtrListNew::count(const PeakFncPtr& fptr) const
 }
 
 
-bool PeakPtrListNew::empty() const
+bool PeakPtrs::empty() const
 {
   return peaks.empty();
 }
 
 
-unsigned PeakPtrListNew::firstIndex() const
+unsigned PeakPtrs::firstIndex() const
 {
   if (peaks.empty())
     return numeric_limits<unsigned>::max();
@@ -131,7 +131,7 @@ unsigned PeakPtrListNew::firstIndex() const
 }
 
 
-unsigned PeakPtrListNew::lastIndex() const
+unsigned PeakPtrs::lastIndex() const
 {
   if (peaks.empty())
     return numeric_limits<unsigned>::max();
@@ -140,7 +140,7 @@ unsigned PeakPtrListNew::lastIndex() const
 }
 
 
-PPLiterator PeakPtrListNew::next(
+PPLiterator PeakPtrs::next(
   const PPLiterator& it,
   const PeakFncPtr& fptr,
   const bool exclFlag)
@@ -156,7 +156,7 @@ PPLiterator PeakPtrListNew::next(
 }
 
 
-PPLciterator PeakPtrListNew::next(
+PPLciterator PeakPtrs::next(
   const PPLciterator& it,
   const PeakFncPtr& fptr,
   const bool exclFlag) const
@@ -172,7 +172,7 @@ PPLciterator PeakPtrListNew::next(
 }
 
 
-PPLiterator PeakPtrListNew::prev(
+PPLiterator PeakPtrs::prev(
   const PPLiterator& it,
   const PeakFncPtr& fptr,
   const bool exclFlag)
@@ -193,7 +193,7 @@ PPLiterator PeakPtrListNew::prev(
   }
 }
 
-PPLciterator PeakPtrListNew::prev(
+PPLciterator PeakPtrs::prev(
   const PPLciterator& it,
   const PeakFncPtr& fptr,
   const bool exclFlag) const
@@ -215,10 +215,10 @@ PPLciterator PeakPtrListNew::prev(
 }
 
 
-void PeakPtrListNew::fill(
+void PeakPtrs::fill(
   const unsigned start,
   const unsigned end,
-  PeakPtrListNew& ppl,
+  PeakPtrs& ppl,
   list<PPLciterator>& pil)
 {
   // Pick out peaks in [start, end].
@@ -241,11 +241,11 @@ void PeakPtrListNew::fill(
 }
 
 
-void PeakPtrListNew::split(
+void PeakPtrs::split(
   const PeakFncPtr& fptr1,
   const PeakFncPtr& fptr2,
-  PeakPtrListNew& peaksMatched,
-  PeakPtrListNew& peaksRejected) const
+  PeakPtrs& peaksMatched,
+  PeakPtrs& peaksRejected) const
 {
   // Pick out peaks satisfying fptr1 or fptr2.
   for (auto peak: peaks)
@@ -258,7 +258,7 @@ void PeakPtrListNew::split(
 }
 
 
-void PeakPtrListNew::flattenTODO(vector<Peak *>& flattened)
+void PeakPtrs::flattenTODO(vector<Peak *>& flattened)
 {
   flattened.clear();
   for (auto& peak: peaks)
@@ -266,14 +266,14 @@ void PeakPtrListNew::flattenTODO(vector<Peak *>& flattened)
 }
 
 
-void PeakPtrListNew::apply(const PeakRunFncPtr& fptr)
+void PeakPtrs::apply(const PeakRunFncPtr& fptr)
 {
   for (auto& peak: peaks)
     (peak->* fptr)();
 }
 
 
-string PeakPtrListNew::strQuality(
+string PeakPtrs::strQuality(
   const string& text,
   const unsigned offset,
   const PeakFncPtr& fptr) const

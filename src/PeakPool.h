@@ -28,7 +28,7 @@
 #include <list>
 #include <string>
 
-#include "PeakPtrList.h"
+#include "PeakPtrs.h"
 #include "struct.h"
 
 using namespace std;
@@ -50,7 +50,7 @@ class PeakPool
     PeakList * peaks;
 
     // Could have one for each PeakList as well.
-    PeakPtrListNew _candidates;
+    PeakPtrs _candidates;
 
     // Average peaks used for quality.
     vector<Peak> averages;
@@ -188,8 +188,8 @@ class PeakPool
     unsigned firstCandIndex() const;
     unsigned lastCandIndex() const;
 
-    PeakPtrListNew& candidates();
-    const PeakPtrListNew& candidatesConst() const;
+    PeakPtrs& candidates();
+    const PeakPtrs& candidatesConst() const;
 
     // TODO: No doubt there is a more elegant way to do this...
 

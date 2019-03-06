@@ -685,13 +685,13 @@ unsigned PeakPool::candsize() const
 }
 
 
-PeakPtrListNew& PeakPool::candidates()
+PeakPtrs& PeakPool::candidates()
 {
   return _candidates;
 }
 
 
-const PeakPtrListNew& PeakPool::candidatesConst() const
+const PeakPtrs& PeakPool::candidatesConst() const
 {
   return _candidates;
 }

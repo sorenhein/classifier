@@ -189,7 +189,7 @@ bool PeakMinima::guessNeighborDistance(
   // Make list of distances between neighbors for which fptr
   // evaluates to true.
   vector<unsigned> dists;
-  const PeakPtrListNew& candidates = peaks.candidatesConst();
+  const PeakPtrs& candidates = peaks.candidatesConst();
   PPLciterator cbegin = candidates.cbegin();
   PPLciterator cend = candidates.cend();
   for (PPLciterator pit = cbegin; pit != cend; pit++)
@@ -245,7 +245,7 @@ void PeakMinima::markBogeyShortGap(
     PeakMinima::printRange(p1.getIndex(), p2.getIndex(),
       text + " short car gap at");
 
-  PeakPtrListNew& candidates = peaks.candidates();
+  PeakPtrs& candidates = peaks.candidates();
   if (p1.isRightWheel() && ! p1.isRightBogey())
   {
     // Paired previous wheel was not yet marked a bogey.
@@ -291,7 +291,7 @@ void PeakMinima::markBogeyLongGap(
 
 void PeakMinima::reseedWheelUsingQuality(PeakPool& peaks) const
 {
-  PeakPtrListNew& candidates = peaks.candidates();
+  PeakPtrs& candidates = peaks.candidates();
   PPLiterator cbegin = candidates.begin();
   PPLiterator cend = candidates.end();
   for (auto cit = cbegin; cit != cend; cit++)
@@ -313,7 +313,7 @@ void PeakMinima::reseedBogeysUsingQuality(
   PeakPool& peaks,
   const vector<Peak>& bogeyScale) const
 {
-  PeakPtrListNew& candidates = peaks.candidates();
+  PeakPtrs& candidates = peaks.candidates();
   PPLiterator cbegin = candidates.begin();
   PPLiterator cend = candidates.end();
   for (auto cit = cbegin; cit != cend; cit++)
@@ -344,7 +344,7 @@ void PeakMinima::reseedLongGapsUsingQuality(
   PeakPool& peaks,
   const vector<Peak>& longGapScale) const
 {
-  const PeakPtrListNew& candidates = peaks.candidatesConst();
+  const PeakPtrs& candidates = peaks.candidatesConst();
   PPLciterator cbegin = candidates.cbegin();
   PPLciterator cend = candidates.cend();
   for (PPLciterator cit = cbegin; cit != cend; cit++)
@@ -405,7 +405,7 @@ void PeakMinima::makeWheelAverage(
   wheel.reset();
 
   unsigned count = 0;
-  const PeakPtrListNew& candidates = peaks.candidatesConst();
+  const PeakPtrs& candidates = peaks.candidatesConst();
   PPLciterator cbegin = candidates.cbegin();
   PPLciterator cend = candidates.cend();
   for (PPLciterator cit = cbegin; cit != cend; cit++)
@@ -431,7 +431,7 @@ void PeakMinima::makeBogeyAverages(
   wheels.resize(2);
 
   unsigned cleft = 0, cright = 0;
-  const PeakPtrListNew& candidates = peaks.candidatesConst();
+  const PeakPtrs& candidates = peaks.candidatesConst();
   PPLciterator cbegin = candidates.cbegin();
   PPLciterator cend = candidates.cend();
   for (PPLciterator cit = cbegin; cit != cend; cit++)
@@ -467,7 +467,7 @@ void PeakMinima::makeCarAverages(
   vector<unsigned> count;
   count.resize(4);
 
-  const PeakPtrListNew& candidates = peaks.candidatesConst();
+  const PeakPtrs& candidates = peaks.candidatesConst();
   PPLciterator cbegin = candidates.cbegin();
   PPLciterator cend = candidates.cend();
   for (PPLciterator cit = cbegin; cit != cend; cit++)
@@ -517,7 +517,7 @@ void PeakMinima::markSinglePeaks(
     THROW(ERR_NO_PEAKS, "No tall peaks");
 
   // Use the peak centers as a first yardstick for calculating qualities.
-  PeakPtrListNew& candidates = peaks.candidates();
+  PeakPtrs& candidates = peaks.candidates();
   PPLiterator cbegin = candidates.begin();
   PPLiterator cend = candidates.end();
   for (PPLiterator cit = cbegin; cit != cend; cit++)
@@ -538,7 +538,7 @@ void PeakMinima::markBogeysOfSelects(
   PeakPool& peaks,
   const Gap& wheelGap) const
 {
-  PeakPtrListNew& candidates = peaks.candidates();
+  PeakPtrs& candidates = peaks.candidates();
   PPLiterator cbegin = candidates.begin();
   PPLiterator cend = candidates.end();
 
@@ -573,7 +573,7 @@ void PeakMinima::markBogeysOfUnpaired(
   PeakPool& peaks,
   const Gap& wheelGap) const
 {
-  PeakPtrListNew& candidates = peaks.candidates();
+  PeakPtrs& candidates = peaks.candidates();
   PPLiterator cbegin = candidates.begin();
   PPLiterator cend = candidates.end();
 
@@ -601,7 +601,7 @@ void PeakMinima::markBogeysOfUnpaired(
 
 void PeakMinima::fixBogeyOrphans(PeakPool& peaks) const
 {
-  PeakPtrListNew& candidates = peaks.candidates();
+  PeakPtrs& candidates = peaks.candidates();
   PPLiterator cbegin = candidates.begin();
   PPLiterator cend = candidates.end();
 
@@ -704,7 +704,7 @@ void PeakMinima::markShortGapsOfSelects(
   PeakPool& peaks,
   const Gap& shortGap) const
 {
-  PeakPtrListNew& candidates = peaks.candidates();
+  PeakPtrs& candidates = peaks.candidates();
   PPLiterator cbegin = candidates.begin();
   PPLiterator cend = candidates.end();
 
@@ -735,7 +735,7 @@ void PeakMinima::markShortGapsOfUnpaired(
   PeakPool& peaks,
   const Gap& shortGap) const
 {
-  PeakPtrListNew& candidates = peaks.candidates();
+  PeakPtrs& candidates = peaks.candidates();
   PPLiterator cbegin = candidates.begin();
   PPLiterator cend = candidates.end();
 
@@ -792,7 +792,7 @@ void PeakMinima::guessLongGapDistance(
   Gap& longGap) const
 {
   vector<unsigned> dists;
-  const PeakPtrListNew & candidates = peaks.candidatesConst();
+  const PeakPtrs & candidates = peaks.candidatesConst();
   PPLciterator cbegin = candidates.cbegin();
   PPLciterator cend = candidates.cend();
 
@@ -821,7 +821,7 @@ void PeakMinima::markLongGapsOfSelects(
   PeakPool& peaks,
   const Gap& longGap) const
 {
-  PeakPtrListNew& candidates = peaks.candidates();
+  PeakPtrs& candidates = peaks.candidates();
   PPLiterator cbegin = candidates.begin();
   PPLiterator cend = candidates.end();
   for (PPLiterator cit = cbegin; cit != prev(cend); cit++)

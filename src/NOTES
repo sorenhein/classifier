@@ -2,7 +2,6 @@ Plan 2019-02-27
 ---------------
 Files to clean up:
 - PeakPtrListNew
-  - Call PeakPtrListNew -> PeakPtrList (other name gone)
   - Probably a method to getIndices(number = 0 means all)
   - The flattenTODO must go in the end
   - Add method for locatePeak (other name)
