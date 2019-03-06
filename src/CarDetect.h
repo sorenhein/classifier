@@ -74,7 +74,7 @@ class CarDetect
 
     void makeFourWheeler(
       const PeakRange& range,
-      const vector<Peak *>& peakPtrs);
+      PeakPtrs& peakPtrs);
 
     void makeAnyWheeler(
       const PeakRange& range,

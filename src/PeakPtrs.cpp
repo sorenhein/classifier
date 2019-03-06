@@ -337,6 +337,19 @@ void PeakPtrs::split(
 }
 
 
+void PeakPtrs::flattenCar(CarPeaksPtr& carPeaksPtr)
+{
+  if (peaks.size() != 4)
+    return;
+
+  auto it = peaks.begin();
+  carPeaksPtr.firstBogeyLeftPtr = * it++;
+  carPeaksPtr.firstBogeyRightPtr = * it++;
+  carPeaksPtr.secondBogeyLeftPtr = * it++;
+  carPeaksPtr.secondBogeyRightPtr = * it++;
+}
+
+
 void PeakPtrs::flattenTODO(vector<Peak *>& flattened)
 {
   flattened.clear();

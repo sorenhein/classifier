@@ -5,6 +5,7 @@
 #include <list>
 
 #include "Peak.h"
+#include "CarPeaks.h"
 
 using namespace std;
 
@@ -111,6 +112,8 @@ class PeakPtrs
     void apply(const PeakRunFncPtr& fptr);
 
     void markup();
+
+    void flattenCar(CarPeaksPtr& carPeaksPtr);
 
     void flattenTODO(
       vector<Peak *>& flattened);

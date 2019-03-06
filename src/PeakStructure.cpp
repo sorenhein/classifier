@@ -90,18 +90,22 @@ void PeakStructure::reset()
 bool PeakStructure::findNumberedWheeler(
   const CarModels& models,
   const PeakRange& range,
-  const PeakPtrVector& peakPtrs,
+  PeakPtrs& peakPtrs,
   const unsigned numWheels,
   CarDetect& car) const
 {
   if (numWheels == 2)
   {
-    car.makeLastTwoOfFourWheeler(range, peakPtrs);
+PeakPtrVector ppv;
+peakPtrs.flattenTODO(ppv);
+    car.makeLastTwoOfFourWheeler(range, ppv);
     return models.twoWheelerPlausible(car);
   }
   else if (numWheels == 3)
   {
-    car.makeLastThreeOfFourWheeler(range, peakPtrs);
+PeakPtrVector ppv;
+peakPtrs.flattenTODO(ppv);
+    car.makeLastThreeOfFourWheeler(range, ppv);
     return models.threeWheelerPlausible(car);
   }
   else if (numWheels == 4)
@@ -258,10 +262,10 @@ PeakStructure::FindCarType PeakStructure::findCarByOrder(
     if (runPtr.isFourWheeler())
     {
       // We deal with the edges later.
-      PeakPtrVector rp;
-      runPtr.flattenTODO(rp);
+      // PeakPtrVector rp;
+      // runPtr.flattenTODO(rp);
       rangeLocal.init(runPtr);
-      car.makeFourWheeler(rangeLocal, rp);
+      car.makeFourWheeler(rangeLocal, runPtr);
 
       runPtr.markup();
 
@@ -364,12 +368,12 @@ PeakStructure::FindCarType PeakStructure::findCarByPeaks(
   PeakPtrVector pv;
   peakPtrs.flattenTODO(pv);
 
-  if (PeakStructure::findNumberedWheeler(models, range, pv, 4, car))
+  if (PeakStructure::findNumberedWheeler(models, range, peakPtrs, 4, car))
   {
     // We deal with the edges later.
     PeakRange rangeLocal;
     rangeLocal.init(peakPtrs);
-    car.makeFourWheeler(rangeLocal, pv);
+    car.makeFourWheeler(rangeLocal, peakPtrs);
 
     PeakStructure::markUpPeaks(pv, 4);
 
@@ -465,7 +469,8 @@ peakPtrsUsed.flattenTODO(closestPeaks);
 peakPtrsUnused.flattenTODO(skippedPeaks);
 
       rangeLocal.init(peakPtrsUsed);
-      car.makeFourWheeler(rangeLocal, closestPeaks);
+      // car.makeFourWheeler(rangeLocal, closestPeaks);
+      car.makeFourWheeler(rangeLocal, peakPtrsUsed);
       if (! models.gapsPlausible(car))
         continue;
       

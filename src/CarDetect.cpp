@@ -162,14 +162,16 @@ void CarDetect::makeLastThreeOfFourWheeler(
 
 void CarDetect::makeFourWheeler(
   const PeakRange& range,
-  const vector<Peak *>& peakPtrs)
+  PeakPtrs& peakPtrs)
 {
   CarDetect::setLimits(range.startValue(), range.endValue());
 
-  const unsigned peakNo0 = peakPtrs[0]->getIndex();
-  const unsigned peakNo1 = peakPtrs[1]->getIndex();
-  const unsigned peakNo2 = peakPtrs[2]->getIndex();
-  const unsigned peakNo3 = peakPtrs[3]->getIndex();
+  vector<unsigned> indices;
+  peakPtrs.getIndices(indices);
+  const unsigned peakNo0 = indices[0];
+  const unsigned peakNo1 = indices[1];
+  const unsigned peakNo2 = indices[2];
+  const unsigned peakNo3 = indices[3];
 
   if (range.hasLeftGap())
     CarDetect::logLeftGap(peakNo0 - start);
@@ -180,8 +182,9 @@ void CarDetect::makeFourWheeler(
   CarDetect::logCore(
     peakNo1 - peakNo0, peakNo2 - peakNo1, peakNo3 - peakNo2);
 
-  CarDetect::logPeakPointers(
-    peakPtrs[0], peakPtrs[1], peakPtrs[2], peakPtrs[3]);
+  peakPtrs.flattenCar(peaksPtr);
+  // CarDetect::logPeakPointers(
+    // peakPtrs[0], peakPtrs[1], peakPtrs[2], peakPtrs[3]);
 }
 
 

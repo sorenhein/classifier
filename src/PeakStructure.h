@@ -58,7 +58,7 @@ class PeakStructure
     bool findNumberedWheeler(
       const CarModels& models,
       const PeakRange& range,
-      const PeakPtrVector& peakPtrs,
+      PeakPtrs& peakPtrs,
       const unsigned numWheels,
       CarDetect& car) const;
 
