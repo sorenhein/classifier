@@ -67,8 +67,6 @@ bool PeakRepair::add(
   {
     if (pos1 < end + adder)
     {
-// cout << "fail1: pos1 " << pos1 << " end " << end << " adder " << adder
-  // << endl;
       result = end;
       return false;
     }
@@ -82,8 +80,6 @@ bool PeakRepair::add(
   {
     if (pos1 + adder > end)
     {
-// cout << "fail2: pos1 " << pos1 << " end " << end << " adder " << adder
-  // << endl;
       result = end;
       return false;
     }

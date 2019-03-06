@@ -129,6 +129,8 @@ void CarDetect::makeLastTwoOfFourWheeler(
 
   vector<unsigned> indices;
   peakPtrsIn.getIndices(indices);
+  peakPtrsIn.flattenCar(peaksPtr);
+
   const unsigned peakNo0 = indices[0];
   const unsigned peakNo1 = indices[1];
 
@@ -137,7 +139,6 @@ void CarDetect::makeLastTwoOfFourWheeler(
 
   CarDetect::logCore(0, 0, peakNo1 - peakNo0);
 
-  peakPtrsIn.flattenCar(peaksPtr);
 }
 
 
@@ -149,6 +150,8 @@ void CarDetect::makeLastThreeOfFourWheeler(
 
   vector<unsigned> indices;
   peakPtrsIn.getIndices(indices);
+  peakPtrsIn.flattenCar(peaksPtr);
+
   const unsigned peakNo0 = indices[0];
   const unsigned peakNo1 = indices[1];
   const unsigned peakNo2 = indices[2];
@@ -158,7 +161,6 @@ void CarDetect::makeLastThreeOfFourWheeler(
   if (range.hasRightGap())
     CarDetect::logRightGap(end - peakNo2);
 
-  peakPtrsIn.flattenCar(peaksPtr);
 }
 
 
@@ -170,6 +172,7 @@ void CarDetect::makeFourWheeler(
 
   vector<unsigned> indices;
   peakPtrs.getIndices(indices);
+
   const unsigned peakNo0 = indices[0];
   const unsigned peakNo1 = indices[1];
   const unsigned peakNo2 = indices[2];
@@ -190,31 +193,29 @@ void CarDetect::makeFourWheeler(
 
 void CarDetect::makeAnyWheeler(
   const PeakRange& range,
-  PeakPtrs& peakPtrsIn) // TODO Const later on again
+  PeakPtrs& peakPtrs) // TODO Const later on again
 {
-  PeakPtrVector peakPtrs;
-  peakPtrsIn.flattenTODO(peakPtrs);
-
   CarDetect::setLimits(range.startValue(), range.endValue());
 
-  if (peakPtrs[0] && range.hasLeftGap())
-    CarDetect::logLeftGap(peakPtrs[0]->getIndex() - start);
+  vector<unsigned> indices;
+  peakPtrs.getIndices(indices);
+  peakPtrs.flattenCar(peaksPtr);
 
-  if (peakPtrs[3] && range.hasRightGap())
-    CarDetect::logRightGap(end - peakPtrs[3]->getIndex());
+  if (peaksPtr.firstBogeyLeftPtr && range.hasLeftGap())
+    CarDetect::logLeftGap(indices[0] - start);
+
+  if (peaksPtr.secondBogeyRightPtr && range.hasRightGap())
+    CarDetect::logRightGap(end - indices[3]);
 
   unsigned g1 = 0, g2 = 0, g3 = 0;
-  if (peakPtrs[0] && peakPtrs[1])
-    g1 = peakPtrs[1]->getIndex() - peakPtrs[0]->getIndex();
-  if (peakPtrs[1] && peakPtrs[2])
-    g2 = peakPtrs[2]->getIndex() - peakPtrs[1]->getIndex();
-  if (peakPtrs[2] && peakPtrs[3])
-    g3 = peakPtrs[3]->getIndex() - peakPtrs[2]->getIndex();
+  if (peaksPtr.firstBogeyLeftPtr && peaksPtr.firstBogeyRightPtr)
+    g1 = indices[1] - indices[0];
+  if (peaksPtr.secondBogeyLeftPtr && peaksPtr.firstBogeyRightPtr) 
+    g2 = indices[2] - indices[1];
+  if (peaksPtr.secondBogeyLeftPtr && peaksPtr.secondBogeyRightPtr)
+    g3 = indices[3] - indices[2];
 
   CarDetect::logCore(g1, g2, g3);
-
-  CarDetect::logPeakPointers(
-    peakPtrs[0], peakPtrs[1], peakPtrs[2], peakPtrs[3]);
 }
 
 

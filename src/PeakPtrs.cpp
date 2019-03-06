@@ -187,7 +187,12 @@ unsigned PeakPtrs::lastIndex() const
 void PeakPtrs::getIndices(vector<unsigned>& indices) const
 {
   for (auto peak: peaks)
-    indices.push_back(peak->getIndex());
+  {
+    if (peak)
+      indices.push_back(peak->getIndex());
+    else
+      indices.push_back(0);
+  }
 }
 
 

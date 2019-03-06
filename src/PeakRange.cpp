@@ -58,10 +58,7 @@ void PeakRange::init(const PeakPtrs& candidates)
 void PeakRange::fill(PeakPool& peaks)
 {
   // Set up some useful stuff for all recognizers.
-  // PeakPtrs ppl;
   peaks.candidates().fill(start, endVal, peakPtrs, peakIters);
-  // vector<Peak *> peaksFlattened;
-  // peakPtrs.flattenTODO(peaksFlattened);
   profile.make(peakPtrs, source);
 }
 
