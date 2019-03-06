@@ -96,16 +96,12 @@ bool PeakStructure::findNumberedWheeler(
 {
   if (numWheels == 2)
   {
-PeakPtrVector ppv;
-peakPtrs.flattenTODO(ppv);
-    car.makeLastTwoOfFourWheeler(range, ppv);
+    car.makeLastTwoOfFourWheeler(range, peakPtrs);
     return models.twoWheelerPlausible(car);
   }
   else if (numWheels == 3)
   {
-PeakPtrVector ppv;
-peakPtrs.flattenTODO(ppv);
-    car.makeLastThreeOfFourWheeler(range, ppv);
+    car.makeLastThreeOfFourWheeler(range, peakPtrs);
     return models.threeWheelerPlausible(car);
   }
   else if (numWheels == 4)

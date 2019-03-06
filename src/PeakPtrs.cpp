@@ -339,14 +339,31 @@ void PeakPtrs::split(
 
 void PeakPtrs::flattenCar(CarPeaksPtr& carPeaksPtr)
 {
-  if (peaks.size() != 4)
+  if (peaks.size() > 4)
     return;
 
   auto it = peaks.begin();
-  carPeaksPtr.firstBogeyLeftPtr = * it++;
-  carPeaksPtr.firstBogeyRightPtr = * it++;
-  carPeaksPtr.secondBogeyLeftPtr = * it++;
-  carPeaksPtr.secondBogeyRightPtr = * it++;
+  if (peaks.size() == 2)
+  {
+    carPeaksPtr.firstBogeyLeftPtr = nullptr;
+    carPeaksPtr.firstBogeyRightPtr = nullptr;
+    carPeaksPtr.secondBogeyLeftPtr = * it++;
+    carPeaksPtr.secondBogeyRightPtr = * it++;
+  }
+  else if (peaks.size() == 3)
+  {
+    carPeaksPtr.firstBogeyLeftPtr = nullptr;
+    carPeaksPtr.firstBogeyRightPtr = * it++;
+    carPeaksPtr.secondBogeyLeftPtr = * it++;
+    carPeaksPtr.secondBogeyRightPtr = * it++;
+  }
+  else if (peaks.size() == 4)
+  {
+    carPeaksPtr.firstBogeyLeftPtr = * it++;
+    carPeaksPtr.firstBogeyRightPtr = * it++;
+    carPeaksPtr.secondBogeyLeftPtr = * it++;
+    carPeaksPtr.secondBogeyRightPtr = * it++;
+  }
 }
 
 

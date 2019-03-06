@@ -123,9 +123,12 @@ void CarDetect::logMatchData(const MatchData& matchIn)
 
 void CarDetect::makeLastTwoOfFourWheeler(
   const PeakRange& range,
-  const vector<Peak *>& peakPtrs)
+  PeakPtrs& peakPtrsIn) // TODO should be const again
 {
   CarDetect::setLimits(range.startValue(), range.endValue());
+
+  PeakPtrVector peakPtrs;
+  peakPtrsIn.flattenTODO(peakPtrs);
 
   const unsigned peakNo0 = peakPtrs[0]->getIndex();
   const unsigned peakNo1 = peakPtrs[1]->getIndex();
@@ -142,9 +145,12 @@ void CarDetect::makeLastTwoOfFourWheeler(
 
 void CarDetect::makeLastThreeOfFourWheeler(
   const PeakRange& range,
-  const vector<Peak *>& peakPtrs)
+  PeakPtrs& peakPtrsIn)
 {
   CarDetect::setLimits(range.startValue(), range.endValue());
+
+  PeakPtrVector peakPtrs;
+  peakPtrsIn.flattenTODO(peakPtrs);
 
   const unsigned peakNo0 = peakPtrs[0]->getIndex();
   const unsigned peakNo1 = peakPtrs[1]->getIndex();
@@ -183,8 +189,6 @@ void CarDetect::makeFourWheeler(
     peakNo1 - peakNo0, peakNo2 - peakNo1, peakNo3 - peakNo2);
 
   peakPtrs.flattenCar(peaksPtr);
-  // CarDetect::logPeakPointers(
-    // peakPtrs[0], peakPtrs[1], peakPtrs[2], peakPtrs[3]);
 }
 
 

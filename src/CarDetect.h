@@ -66,11 +66,11 @@ class CarDetect
 
     void makeLastTwoOfFourWheeler(
       const PeakRange& range,
-      const vector<Peak *>& peakPtrs);
+      PeakPtrs& peakPtrs);
 
     void makeLastThreeOfFourWheeler(
       const PeakRange& range,
-      const vector<Peak *>& peakPtrs);
+      PeakPtrs& peakPtrs);
 
     void makeFourWheeler(
       const PeakRange& range,

@@ -8,7 +8,6 @@ Files to clean up:
   - Instead of pointer functions can have array as in PeakStructure?
 - PeakPool
   - Think about a PeakList class
-- PeakStructure
 - PeakMinima
 - PeakPartial
 - PeakRepair
