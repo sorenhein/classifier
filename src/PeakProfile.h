@@ -9,6 +9,7 @@
 using namespace std;
 
 class Peak;
+class PeakPtrs;
 
 
 class PeakProfile
@@ -46,7 +47,7 @@ class PeakProfile
     void reset();
 
     void make(
-      const vector<Peak *>& peakPtrs,
+      const PeakPtrs& peakPtrs,
       const unsigned source);
 
     unsigned numGood() const;

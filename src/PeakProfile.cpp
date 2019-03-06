@@ -7,6 +7,7 @@
 
 #include "PeakProfile.h"
 #include "Peak.h"
+#include "PeakPtrs.h"
 #include "Except.h"
 #include "errors.h"
 
@@ -39,14 +40,15 @@ void PeakProfile::reset()
 
 
 void PeakProfile::make(
-  const vector<Peak *>& peakPtrs,
+  const PeakPtrs& peakPtrs,
   const unsigned sourceIn)
 {
   source = sourceIn;
 
   PeakProfile::reset();
-  for (auto& peakPtr: peakPtrs)
+  for (auto it = peakPtrs.cbegin(); it != peakPtrs.cend(); it++)
   {
+    Peak * const peakPtr = * it;
     if (peakPtr->isSelected())
       sumSelected++;
 
