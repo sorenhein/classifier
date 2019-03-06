@@ -458,7 +458,6 @@ PeakStructure::FindCarType PeakStructure::findCarByGeometry(
       // pit corresponds to the first wheel.
       if (! peaks.getClosest(carPoints, &Peak::goodQuality, pit, 4,
           peakPtrsUsed, peakPtrsUnused))
-          // closestPeaks, skippedPeaks))
         continue;
 
       // We deal with the edges later.
@@ -474,15 +473,15 @@ peakPtrsUnused.flattenTODO(skippedPeaks);
           mno, match))
         continue;
       
-      if (! PeakStructure::isConsistent(closestPeaks))
+      if (! peakPtrsUsed.isFourWheeler(true))
       {
         cout << "WARNING: Peaks inconsistent with car #" <<
           match.index << " found (distance " << match.distance << ")\n";
         cout << range.strFull(offset) << endl;
       }
 
-      PeakStructure::markUpPeaks(closestPeaks, 4);
-      PeakStructure::markDownPeaks(skippedPeaks);
+      peakPtrsUsed.markup();
+      peakPtrsUnused.apply(&Peak::markdown);
 
       return FIND_CAR_MATCH;
     }
