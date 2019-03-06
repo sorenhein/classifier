@@ -40,6 +40,10 @@ class PeakPtrs
 
     void push_back(Peak * peak);
 
+    void assign(
+      const unsigned num,
+      Peak * const peak);
+
     bool add(Peak * peak);
 
     void insert(
@@ -105,6 +109,8 @@ class PeakPtrs
       PeakPtrs& peaksRejected) const;
 
     void apply(const PeakRunFncPtr& fptr);
+
+    void markup();
 
     void flattenTODO(
       vector<Peak *>& flattened);

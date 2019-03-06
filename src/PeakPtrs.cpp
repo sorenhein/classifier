@@ -8,6 +8,21 @@
 #include "Except.h"
 
 
+struct WheelSpec
+{
+  BogeyType bogey;
+  WheelType wheel;
+};
+
+static const vector<WheelSpec> wheelSpecs =
+{
+  {BOGEY_LEFT, WHEEL_LEFT},
+  {BOGEY_LEFT, WHEEL_RIGHT},
+  {BOGEY_RIGHT, WHEEL_LEFT},
+  {BOGEY_RIGHT, WHEEL_RIGHT}
+};
+
+
 const list<PeakFncPtr> wheelFncs =
 {
   &Peak::isLeftWheel, &Peak::isRightWheel, 
@@ -41,6 +56,14 @@ void PeakPtrs::clear()
 void PeakPtrs::push_back(Peak * peak)
 {
   peaks.push_back(peak);
+}
+
+
+void PeakPtrs::assign(
+  const unsigned num,
+  Peak * const peak)
+{
+  peaks.assign(num, peak);
 }
 
 
@@ -322,6 +345,22 @@ void PeakPtrs::apply(const PeakRunFncPtr& fptr)
 {
   for (auto& peak: peaks)
     (peak->* fptr)();
+}
+
+
+void PeakPtrs::markup()
+{
+  // Can't use apply() for this, as we need method arguments.
+  if (peaks.size() != 4)
+    return;
+
+  unsigned i = 0;
+  for (auto& peak: peaks)
+  {
+    if (peak)
+      peak->markBogeyAndWheel(wheelSpecs[i].bogey, wheelSpecs[i].wheel);
+    i++;
+  }
 }
 
 

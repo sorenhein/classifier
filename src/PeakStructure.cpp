@@ -243,12 +243,8 @@ PeakStructure::FindCarType PeakStructure::findCarByOrder(
     return FIND_CAR_NO_MATCH;
 
   // Set up a sliding vector of 4 running peaks.
-  // PeakPtrVector runPtr;
   PeakPtrs runPtr;
-
-  auto cit = * range.begin();
-  for (unsigned i = 0; i < 4; i++)
-    runPtr.push_back(* cit);
+  runPtr.assign(4, ** range.begin());
 
   PeakRange rangeLocal;
 
@@ -267,7 +263,7 @@ PeakStructure::FindCarType PeakStructure::findCarByOrder(
       rangeLocal.init(runPtr);
       car.makeFourWheeler(rangeLocal, rp);
 
-      PeakStructure::markUpPeaks(rp, 4);
+      runPtr.markup();
 
       return FIND_CAR_MATCH;
     }
@@ -552,11 +548,7 @@ PeakStructure::FindCarType PeakStructure::findCarByEmptyLast(
 
   if (range.looksEmptyLast())
   {
-    PeakPtrs& r = range.getPeakPtrs();
-    PeakPtrVector p;
-    r.flattenTODO(p);
-
-    PeakStructure::markDownPeaks(p);
+    range.getPeakPtrs().apply(&Peak::markdown);
     return FIND_CAR_DOWNGRADE;
   }
   else
@@ -570,9 +562,6 @@ PeakStructure::FindCarType PeakStructure::findCarByThreePeaks(
   PeakRange& range,
   CarDetect& car) const
 {
-  UNUSED(peaks);
-  UNUSED(car);
-
   if (range.numGood() != 3)
     // TODO For now.
     // Could also take first or last 3 of a large range.
@@ -587,7 +576,7 @@ PeakStructure::FindCarType PeakStructure::findCarByThreePeaks(
 
   MatchData match;
   Peak peakHint;
-  if (! models.matchesPartial(ppu, GREAT_CAR_DISTANCE,
+  if (! models.matchesPartial(peakPtrsUsed, GREAT_CAR_DISTANCE,
       match, peakHint))
     return FIND_CAR_NO_MATCH;
 
