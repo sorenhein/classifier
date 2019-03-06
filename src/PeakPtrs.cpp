@@ -56,6 +56,14 @@ void PeakPtrs::insert(
 }
 
 
+void PeakPtrs::shift_down(Peak * peak)
+{
+  if (peaks.size() > 0)
+    peaks.pop_front();
+  peaks.push_back(peak);
+}
+
+
 PPLiterator PeakPtrs::erase(PPLiterator& it)
 {
   return peaks.erase(it);
@@ -137,6 +145,42 @@ unsigned PeakPtrs::lastIndex() const
     return numeric_limits<unsigned>::max();
   else
     return peaks.back()->getIndex();
+}
+
+
+const list<PeakFncPtr> wheelFncs =
+{
+  &Peak::isLeftWheel, &Peak::isRightWheel, 
+  &Peak::isLeftWheel, &Peak::isRightWheel
+};
+
+const list<PeakFncPtr> bogeyFncs =
+{
+  &Peak::isLeftBogey, &Peak::isLeftBogey, 
+  &Peak::isRightBogey, &Peak::isRightBogey
+};
+
+bool PeakPtrs::isFourWheeler() const
+{
+  if (peaks.size() != 4)
+    return false;
+
+  unsigned numWheels = 0, numBogeys = 0;
+  PPLciterator pit = peaks.cbegin();
+  list<PeakFncPtr>::const_iterator wf = wheelFncs.begin();
+  list<PeakFncPtr>::const_iterator bf = bogeyFncs.begin();
+
+  while (pit != peaks.cend())
+  {
+    if (((* pit)->** wf)())
+      numWheels++;
+    if (((* pit)->** bf)())
+      numBogeys++;
+    pit++; 
+    wf++; 
+    bf++;
+  }
+  return (numWheels == 4 && numBogeys >= 2);
 }
 
 

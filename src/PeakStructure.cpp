@@ -256,7 +256,8 @@ PeakStructure::FindCarType PeakStructure::findCarByOrder(
     return FIND_CAR_NO_MATCH;
 
   // Set up a sliding vector of 4 running peaks.
-  PeakPtrVector runPtr;
+  // PeakPtrVector runPtr;
+  PeakPtrs runPtr;
 
   auto cit = * range.begin();
   for (unsigned i = 0; i < 4; i++)
@@ -269,18 +270,22 @@ PeakStructure::FindCarType PeakStructure::findCarByOrder(
     if (! (* pit)->isSelected())
       continue;
 
-    for (unsigned i = 0; i < 3; i++)
-      runPtr[i] = runPtr[i+1];
+    runPtr.shift_down(* pit);
+    // for (unsigned i = 0; i < 3; i++)
+      // runPtr[i] = runPtr[i+1];
 
-    runPtr[3] = * pit;
+    // runPtr[3] = * pit;
 
-    if (PeakStructure::isWholeCar(runPtr))
+    // if (PeakStructure::isWholeCar(runPtr))
+    if (runPtr.isFourWheeler())
     {
       // We deal with the edges later.
+      PeakPtrVector rp;
+      runPtr.flattenTODO(rp);
       rangeLocal.init(runPtr);
-      car.makeFourWheeler(rangeLocal, runPtr);
+      car.makeFourWheeler(rangeLocal, rp);
 
-      PeakStructure::markUpPeaks(runPtr, 4);
+      PeakStructure::markUpPeaks(rp, 4);
 
       return FIND_CAR_MATCH;
     }
@@ -302,7 +307,7 @@ PeakStructure::FindCarType PeakStructure::findPartialCarByQuality(
 
   PeakPtrs ppu, ppunu;
   // range.splitByQuality(fptr, peakPtrsUsed, peakPtrsUnused);
-  range.splitByQuality(fptr, ppu, ppunu);
+  range.split(fptr, ppu, ppunu);
   ppu.flattenTODO(peakPtrsUsed);
   ppunu.flattenTODO(peakPtrsUnused);
 
@@ -385,7 +390,7 @@ PeakStructure::FindCarType PeakStructure::findCarByPeaks(
   {
     // We deal with the edges later.
     PeakRange rangeLocal;
-    rangeLocal.init(pv);
+    rangeLocal.init(peakPtrs);
     car.makeFourWheeler(rangeLocal, pv);
 
     PeakStructure::markUpPeaks(pv, 4);
@@ -404,7 +409,7 @@ PeakStructure::FindCarType PeakStructure::findCarByQuality(
   CarDetect& car) const
 {
   PeakPtrs peakPtrsUsed, peakPtrsUnused;
-  range.splitByQuality(fptr, peakPtrsUsed, peakPtrsUnused);
+  range.split(fptr, peakPtrsUsed, peakPtrsUnused);
 
   if (PeakStructure::findCarByPeaks(models, range, peakPtrsUsed, car) ==
       FIND_CAR_MATCH)
@@ -477,7 +482,10 @@ PeakStructure::FindCarType PeakStructure::findCarByGeometry(
         continue;
 
       // We deal with the edges later.
-      rangeLocal.init(closestPeaks);
+PeakPtrs pp;
+for (auto cp: closestPeaks)
+  pp.push_back(cp);
+      rangeLocal.init(pp);
       car.makeFourWheeler(rangeLocal, closestPeaks);
       if (! models.gapsPlausible(car))
         continue;
@@ -536,8 +544,7 @@ PeakStructure::FindCarType PeakStructure::findCarByLeveledPeaks(
   UNUSED(peaks);
 
   PeakPtrs peakPtrsUsed, peakPtrsUnused;
-  range.splitByQuality(&Peak::goodPeakQuality, 
-    peakPtrsUsed, peakPtrsUnused);
+  range.split(&Peak::goodPeakQuality, peakPtrsUsed, peakPtrsUnused);
 
   if (peakPtrsUsed.size() == 4 &&
       PeakStructure::findCarByPeaks(models, range, peakPtrsUsed, car) ==
@@ -597,7 +604,7 @@ PeakStructure::FindCarType PeakStructure::findCarByThreePeaks(
   // range.splitByQuality(&Peak::goodQuality, peakPtrsUsed, peakPtrsUnused);
 
   PeakPtrs ppu, ppunu;
-  range.splitByQuality(&Peak::goodQuality, ppu, ppunu);
+  range.split(&Peak::goodQuality, ppu, ppunu);
   ppu.flattenTODO(peakPtrsUsed);
   ppunu.flattenTODO(peakPtrsUnused);
 
@@ -812,7 +819,7 @@ void PeakStructure::markCars(
 
   ranges.clear();
   ranges.emplace_back(PeakRange());
-  ranges.back().init(cars, peaks);
+  ranges.back().init(cars, peaks.candidates());
 
   for (unsigned i = 0; i < NUM_METHODS; i++)
     hits[i] = 0;

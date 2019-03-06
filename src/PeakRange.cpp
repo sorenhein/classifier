@@ -35,14 +35,12 @@ void PeakRange::reset()
 
 void PeakRange::init(
   const list<CarDetect>& cars,
-  PeakPool& peaks)
+  const PeakPtrs& candidates)
 {
   carAfter = cars.begin();
   source = PEAK_SOURCE_FIRST;
-  // start = peaks.firstCandIndex();
-  // endVal = peaks.lastCandIndex();
-  start = peaks.candidates().firstIndex();
-  endVal = peaks.candidates().lastIndex();
+  start = candidates.firstIndex();
+  endVal = candidates.lastIndex();
   leftGapPresent = false;
   rightGapPresent = false;
   leftOriginal = true;
@@ -50,10 +48,10 @@ void PeakRange::init(
 }
 
 
-void PeakRange::init(const PeakPtrVector& pv)
+void PeakRange::init(const PeakPtrs& candidates)
 {
-  start = pv.front()->getIndex() - 1;
-  endVal = pv.back()->getIndex() + 1;
+  start = candidates.firstIndex() - 1;
+  endVal = candidates.lastIndex() + 1;
 }
 
 
@@ -140,7 +138,7 @@ PeakPtrs& PeakRange::getPeakPtrs()
 }
 
 
-void PeakRange::splitByQuality(
+void PeakRange::split(
   const PeakFncPtr& fptr,
   PeakPtrs& peakPtrsUsed,
   PeakPtrs& peakPtrsUnused) const

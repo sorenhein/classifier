@@ -49,9 +49,9 @@ class PeakRange
 
     void init(
       const list<CarDetect>& cars,
-      PeakPool& peaks);
+      const PeakPtrs& candidates);
 
-    void init(const PeakPtrVector& pv);
+    void init(const PeakPtrs& candidates);
 
     void fill(PeakPool& peaks);
 
@@ -72,7 +72,7 @@ class PeakRange
 
     PeakPtrs& getPeakPtrs();
 
-    void splitByQuality(
+    void split(
       const PeakFncPtr& fptr,
       PeakPtrs& peakPtrsUsed,
       PeakPtrs& peakPtrsUnused) const;

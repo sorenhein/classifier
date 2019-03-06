@@ -46,6 +46,8 @@ class PeakPtrs
       PPLiterator& it,
       Peak * peak);
 
+    void shift_down(Peak * peak);
+
     PPLiterator erase(PPLiterator& it);
 
     void erase_below(const unsigned limit);
@@ -62,6 +64,8 @@ class PeakPtrs
 
     unsigned firstIndex() const;
     unsigned lastIndex() const;
+
+    bool isFourWheeler() const;
 
 
     PPLiterator next(
