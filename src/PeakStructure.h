@@ -62,12 +62,6 @@ class PeakStructure
       const unsigned numWheels,
       CarDetect& car) const;
 
-    void markUpPeaks(
-      PeakPtrVector& peakPtrsNew,
-      const unsigned numPeaks) const;
-
-    void markDownPeaks(PeakPtrVector& peakPtrs) const;
-
     void updateCarDistances(
       const CarModels& models,
       list<CarDetect>& cars) const;
@@ -75,8 +69,6 @@ class PeakStructure
     void updateModels(
       CarModels& models,
       CarDetect& car) const;
-
-    bool isConsistent(const PeakPtrVector& closestPeaks) const;
 
     bool fillPartialSides(
       CarDetect& car1,
