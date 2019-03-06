@@ -304,9 +304,13 @@ bool PeakRepair::edgeCar(
   const bool firstFlag,
   PeakPool& peaks,
   PeakRange& range,
-  PeakPtrVector& peakPtrsUsed,
-  PeakPtrVector& peakPtrsUnused)
+  PeakPtrs& peakPtrsUsedIn,
+  PeakPtrs& peakPtrsUnusedIn)
 {
+  PeakPtrVector peakPtrsUsed, peakPtrsUnused;
+  peakPtrsUsedIn.flattenTODO(peakPtrsUsed);
+  peakPtrsUnusedIn.flattenTODO(peakPtrsUnused);
+
   offset = offsetIn;
   PeakPtrVector peakResult(4, nullptr);
   PeakRepair::init(models.size(), range.endValue());
@@ -459,6 +463,15 @@ cout << "GOT PEAKS" << endl;
       peakPtrsUnused.push_back(p);
     }
   }
+
+  peakPtrsUsedIn.clear();
+  for (auto& p: peakPtrsUsed)
+    peakPtrsUsedIn.push_back(p);
+
+  peakPtrsUnusedIn.clear();
+  for (auto& p: peakPtrsUnused)
+    peakPtrsUnusedIn.push_back(p);
+
 
 cout << "PUSHED PEAKS" << endl;
 

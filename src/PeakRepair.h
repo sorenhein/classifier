@@ -15,6 +15,7 @@ using namespace std;
 
 class CarModels;
 class PeakPool;
+class PeakPtrs;
 class PeakRange;
 class CarDetect;
 
@@ -106,8 +107,8 @@ class PeakRepair
       const bool firstFlag,
       PeakPool& peaks,
       PeakRange& range,
-      PeakPtrVector& peakPtrsUsed,
-      PeakPtrVector& peakPtrsUnused);
+      PeakPtrs& peakPtrsUsed,
+      PeakPtrs& peakPtrsUnused);
 
     void printMatches(const bool firstFlag) const;
 
