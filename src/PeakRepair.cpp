@@ -162,7 +162,7 @@ Peak * PeakRepair::locatePeak(
 bool PeakRepair::updatePossibleModels(
   RepairRange& range,
   const bool specialFlag,
-  PeakPtrVector& peakPtrsUsed,
+  PeakPtrs& peakPtrsUsed,
   const unsigned peakNo,
   const CarModels& models)
 {
@@ -222,7 +222,9 @@ bool PeakRepair::updatePossibleModels(
       }
 // cout << "lower " << lower << " upper " << upper << endl;
 
-      pptr = PeakRepair::locatePeak(lower, upper, peakPtrsUsed, indexUsed);
+      // pptr = PeakRepair::locatePeak(lower, upper, peakPtrsUsed, indexUsed);
+      pptr = peakPtrsUsed.locate(lower, upper, (lower+upper) / 2,
+        &Peak::always, indexUsed);
       if (! pptr)
         p.registerRange(peakNo, lower, upper);
     }
@@ -335,7 +337,7 @@ bool PeakRepair::edgeCar(
   for (unsigned peakNo: peakOrder)
   {
     if (! PeakRepair::updatePossibleModels(repairRange, firstElemFlag,
-        peakPtrsUsed, peakNo, models))
+        peakPtrsUsedIn, peakNo, models))
       skips++;
     if (skips == 2)
       break;

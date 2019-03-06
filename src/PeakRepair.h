@@ -84,7 +84,7 @@ class PeakRepair
     bool updatePossibleModels(
       RepairRange& range,
       const bool specialFlag,
-      PeakPtrVector& peakPtrsUsed,
+      PeakPtrs& peakPtrsUsed,
       const unsigned peakNo,
       const CarModels& models);
 

@@ -142,6 +142,18 @@ PPLciterator PeakPtrs::cend() const
 }
 
 
+Peak * PeakPtrs::front()
+{
+  return peaks.front();
+}
+
+
+Peak * PeakPtrs::back()
+{
+  return peaks.back();
+}
+
+
 unsigned PeakPtrs::size() const
 {
   return peaks.size();
@@ -296,6 +308,50 @@ PPLciterator PeakPtrs::prev(
     else
       itPrev = std::prev(itPrev);
   }
+}
+
+
+Peak * PeakPtrs::locate(
+  const unsigned lower,
+  const unsigned upper,
+  const unsigned hint,
+  const PeakFncPtr& fptr,
+  unsigned& indexUsed) const
+{
+  unsigned num = 0;
+  unsigned i = 0;
+  unsigned dist = numeric_limits<unsigned>::max();
+  Peak * ptr = nullptr;
+  for (auto& peak: peaks)
+  {
+    if (! (peak->* fptr)())
+    {
+      i++;
+      continue;
+    }
+
+    const unsigned index = peak->getIndex();
+    if (index >= lower && index <= upper)
+    {
+      num++;
+      if ((index >= hint && index - hint < dist) ||
+          (index < hint && hint - index < dist))
+      {
+        indexUsed = i;
+        ptr = peak;
+      }
+    }
+    i++;
+  }
+
+  if (num == 0)
+    return nullptr;
+
+  if (num > 1)
+    cout << "WARNING locate: Multiple choices in (" <<
+      lower << ", " << upper << ")\n";
+
+  return ptr;
 }
 
 
