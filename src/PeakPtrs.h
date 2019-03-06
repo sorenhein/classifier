@@ -71,7 +71,7 @@ class PeakPtrs
 
     void getIndices(vector<unsigned>& indices) const;
 
-    bool isFourWheeler() const;
+    bool isFourWheeler(const bool perfectFlag = false) const;
 
 
     PPLiterator next(

@@ -435,6 +435,7 @@ PeakStructure::FindCarType PeakStructure::findCarByGeometry(
 {
   CarDetect carModel;
   list<unsigned> carPoints;
+  PeakPtrs peakPtrsUsed, peakPtrsUnused;
   PeakPtrVector closestPeaks, skippedPeaks;
   MatchData match;
   PeakRange rangeLocal;
@@ -456,14 +457,15 @@ PeakStructure::FindCarType PeakStructure::findCarByGeometry(
 
       // pit corresponds to the first wheel.
       if (! peaks.getClosest(carPoints, &Peak::goodQuality, pit, 4,
-          closestPeaks, skippedPeaks))
+          peakPtrsUsed, peakPtrsUnused))
+          // closestPeaks, skippedPeaks))
         continue;
 
       // We deal with the edges later.
-PeakPtrs pp;
-for (auto cp: closestPeaks)
-  pp.push_back(cp);
-      rangeLocal.init(pp);
+peakPtrsUsed.flattenTODO(closestPeaks);
+peakPtrsUnused.flattenTODO(skippedPeaks);
+
+      rangeLocal.init(peakPtrsUsed);
       car.makeFourWheeler(rangeLocal, closestPeaks);
       if (! models.gapsPlausible(car))
         continue;

@@ -778,8 +778,8 @@ bool PeakPool::getClosest(
   const PeakFncPtr& fptr,
   const PPLciterator& cit,
   const unsigned numWheels,
-  PeakPtrVector& closestPeaks,
-  PeakPtrVector& skippedPeaks) const
+  PeakPtrs& closestPeaks,
+  PeakPtrs& skippedPeaks) const
 {
   if (numWheels < 2)
     return false;

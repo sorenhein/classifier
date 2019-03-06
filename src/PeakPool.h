@@ -224,8 +224,8 @@ class PeakPool
       const PeakFncPtr& fptr,
       const PPLciterator& cit,
       const unsigned numWheels,
-      PeakPtrVector& closestPeaks,
-      PeakPtrVector& skippedPeaks) const;
+      PeakPtrs& closestPeaks,
+      PeakPtrs& skippedPeaks) const;
 
     void getSelectedSamples(vector<float>& selected) const;
 

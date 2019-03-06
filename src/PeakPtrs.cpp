@@ -191,7 +191,7 @@ void PeakPtrs::getIndices(vector<unsigned>& indices) const
 }
 
 
-bool PeakPtrs::isFourWheeler() const
+bool PeakPtrs::isFourWheeler(const bool perfectFlag) const
 {
   if (peaks.size() != 4)
     return false;
@@ -211,7 +211,11 @@ bool PeakPtrs::isFourWheeler() const
     wf++; 
     bf++;
   }
-  return (numWheels == 4 && numBogeys >= 2);
+  
+  if (perfectFlag)
+    return (numWheels == 4 && numBogeys == 4);
+  else
+    return (numWheels == 4 && numBogeys >= 2);
 }
 
 
