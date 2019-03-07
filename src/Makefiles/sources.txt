@@ -10,6 +10,7 @@ SOURCE_FILES    =               \
                 Disturb.cpp     \
                 Except.cpp      \
                 Peak.cpp        \
+                Peaks.cpp       \
                 PeakDetect.cpp  \
                 PeakMatch.cpp   \
                 PeakMinima.cpp  \
