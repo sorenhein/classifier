@@ -118,10 +118,7 @@ class PeakPtrs
 
     void flattenCar(CarPeaksPtr& carPeaksPtr);
 
-    void flattenTODO(
-      vector<Peak *>& flattened);
-      
-
+    void flatten(vector<Peak *>& flattened);
 
     string strQuality(
       const string& text,

@@ -5,6 +5,7 @@
 #include <string>
 
 #include "Peak.h"
+#include "PeakSlots.h"
 
 using namespace std;
 

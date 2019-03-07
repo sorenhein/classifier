@@ -923,8 +923,10 @@ void PeakPartial::getPeaks(
   // as possible.  Mostly the alignment will pick up on it anyway.
 
   PeakPtrVector peakPtrsUsed, peakPtrsUnused;
-  peakPtrsUsedIn.flattenTODO(peakPtrsUsed);
-  peakPtrsUnusedIn.flattenTODO(peakPtrsUnused);
+
+  // TODO Work directly with PeakPtrs somehow?
+  peakPtrsUsedIn.flatten(peakPtrsUsed);
+  peakPtrsUnusedIn.flatten(peakPtrsUnused);
 
   if (peakCode == 0b0001)
     PeakPartial::recoverPeaks0001(bogeyTypical, longTypical, peakPtrsUsed);

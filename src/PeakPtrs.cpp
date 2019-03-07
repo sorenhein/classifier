@@ -428,7 +428,7 @@ void PeakPtrs::flattenCar(CarPeaksPtr& carPeaksPtr)
 }
 
 
-void PeakPtrs::flattenTODO(vector<Peak *>& flattened)
+void PeakPtrs::flatten(vector<Peak *>& flattened)
 {
   flattened.clear();
   for (auto& peak: peaks)
