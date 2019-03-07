@@ -110,13 +110,6 @@ class PeakPool
 
     void makeCandidates();
 
-    unsigned countCandidates(const PeakFncPtr& fptr) const;
-
-    unsigned candsize() const;
-
-    unsigned firstCandIndex() const;
-    unsigned lastCandIndex() const;
-
     PeakPtrs& candidates();
     const PeakPtrs& candidatesConst() const;
 

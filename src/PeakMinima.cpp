@@ -513,7 +513,7 @@ void PeakMinima::markSinglePeaks(
   PeakPool& peaks,
   const vector<Peak>& peakCenters) const
 {
-  if (peaks.candsize() == 0)
+  if (peaks.candidates().size() == 0)
     THROW(ERR_NO_PEAKS, "No tall peaks");
 
   // Use the peak centers as a first yardstick for calculating qualities.
@@ -638,7 +638,6 @@ void PeakMinima::markBogeys(
   Gap& wheelGap) const
 {
   // The wheel gap is only plausible if it hits a certain number of peaks.
-  // unsigned numGreat = peaks.countCandidates(&Peak::greatQuality);
   unsigned numGreat = peaks.candidates().count(&Peak::greatQuality);
 
   if (! PeakMinima::guessNeighborDistance(peaks,
@@ -924,7 +923,7 @@ void PeakMinima::mark(
 
   PeakMinima::markSinglePeaks(peaks, peakCenters);
 
-unsigned countAll = peaks.candsize();
+unsigned countAll = peaks.candidates().size();
 unsigned countSelected = peaks.candidates().count(&Peak::isSelected);
 cout << "FRAC " << countSelected << " " << 
   countAll << " " <<

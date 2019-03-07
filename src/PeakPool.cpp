@@ -3,10 +3,6 @@
 #include <sstream>
 
 #include "PeakPool.h"
-#include "Except.h"
-
-
-#define SAMPLE_RATE 2000.
 
 
 PeakPool::PeakPool()
@@ -46,8 +42,7 @@ void PeakPool::logAverages(const vector<Peak>& averagesIn)
 }
 
 
-bool PeakPool::pruneTransients(
-  const unsigned firstGoodIndex)
+bool PeakPool::pruneTransients(const unsigned firstGoodIndex)
 {
   if (transientTrimmedFlag)
     return false;
@@ -423,12 +418,6 @@ void PeakPool::makeCandidates()
     if (peak.isCandidate())
       _candidates.push_back(&peak);
   }
-}
-
-
-unsigned PeakPool::candsize() const 
-{
-  return _candidates.size();
 }
 
 
