@@ -176,7 +176,7 @@ void PeakMatch::setOffsets(
   const vector<PeakTime>& timesTrue,
   vector<double>& offsetList) const
 {
-  const unsigned lp = peaks.size();
+  const unsigned lp = peaks.topConst().size();
   const unsigned lt = timesTrue.size();
 
   // Probably too many.
@@ -186,24 +186,24 @@ void PeakMatch::setOffsets(
   offsetList.resize(MAX_SHIFT_SEEN + MAX_SHIFT_TRUE + 1);
 
   // Offsets are subtracted from the seen peaks.
-  list<Peak>::const_iterator peak = peaks.end();
+  Pciterator peak = peaks.topConst().cend();
   for (unsigned i = 0; i <= MAX_SHIFT_SEEN; i++)
   {
     do
     {
       peak = prev(peak);
     }
-    while (peak != peaks.begin() && ! peak->isSelected());
+    while (peak != peaks.topConst().cbegin() && ! peak->isSelected());
 
     offsetList[i] = peak->getTime() - timesTrue[lt-1].time;
   }
 
-  peak = peaks.end();
+  peak = peaks.topConst().cend();
   do
   {
     peak = prev(peak);
   }
-  while (peak != peaks.begin() && ! peak->isSelected());
+  while (peak != peaks.topConst().cbegin() && ! peak->isSelected());
 
   const double lastTime = peak->getTime();
 
@@ -311,12 +311,13 @@ void PeakMatch::logPeakStats(
     PeakMatch::printPeaks(peaks, timesTrue);
 
   // Make a wrapper such that we don't have to modify the peaks.
-  for (auto& peak: peaks)
+  for (Pciterator pit = peaks.topConst().cbegin();
+      pit != peaks.topConst().cend(); pit++)
   {
     peaksWrapped.emplace_back(PeakWrapper());
     PeakWrapper& pw = peaksWrapped.back();
 
-    pw.peakPtr = &peak;
+    pw.peakPtr = &* pit;
     pw.match = -1;
     pw.bestDistance = numeric_limits<float>::max();
   }
@@ -451,17 +452,6 @@ void PeakMatch::printPeaks(
     cout << i << ";" <<
       fixed << setprecision(6) << timesTrue[i].time << "\n";
 
-  cout << "\nseen\n";
-  unsigned pp = 0;
-  for (auto& peak: peaks)
-  {
-    if (peak.isCandidate())
-    {
-      cout << pp << ";" <<
-        fixed << setprecision(6) << peak.getTime() << endl;
-      pp++;
-    }
-  }
-  cout << "\n";
+  cout << "\n" << peaks.topConst().strTimesCSV(&Peak::isCandidate, "seen");
 }
 

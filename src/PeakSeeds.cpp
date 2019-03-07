@@ -57,7 +57,7 @@ void PeakSeeds::makeIntervals(
   // Here we make a list of all intervals where there is no other
   // in-between peak that exceeds the smallest of the edge peaks.
 
-  for (auto peak = peaks.begin(); peak != peaks.end(); peak++)
+  for (auto peak = peaks.top().begin(); peak != peaks.top().end(); peak++)
   {
     // Get a negative minimum.
     const float value = peak->getValue();
@@ -72,7 +72,7 @@ void PeakSeeds::makeIntervals(
     float lowerMinValue = 0.f;
     do
     {
-      if (peakPrev == peaks.begin())
+      if (peakPrev == peaks.top().begin())
         break;
 
       peakPrev = prev(peakPrev);
@@ -92,7 +92,7 @@ void PeakSeeds::makeIntervals(
 
     if (posFlag && 
         lowerMinValue < 0.f &&
-        peakPrev != peaks.begin() && 
+        peakPrev != peaks.top().begin() && 
         vPrev < value)
     {
       PeakSeeds::logInterval(&*peakPrev, &*peak, 
@@ -108,7 +108,7 @@ void PeakSeeds::makeIntervals(
     do
     {
       peakNext = next(peakNext);
-      if (peakNext == peaks.end())
+      if (peakNext == peaks.top().end())
         break;
 
       if (peakNext->isSelected())
@@ -127,7 +127,7 @@ void PeakSeeds::makeIntervals(
 
     if (posFlag && 
       lowerMinValue < 0.f &&
-        peakNext != peaks.end() &&
+        peakNext != peaks.top().end() &&
         vNext < value)
     {
       PeakSeeds::logInterval(&*peak, &*peakNext, 
@@ -355,7 +355,7 @@ void PeakSeeds::pruneListEnds()
 
 
 void PeakSeeds::markSeeds(
-  const PeakPool& peaks,
+  PeakPool& peaks,
   PeakPtrs& peaksToSelect,
   Peak& peakAvg) const
 {
@@ -368,14 +368,14 @@ void PeakSeeds::markSeeds(
 
   // Note which peaks are tall.
 
-  for (auto pit = peaks.begin(); pit != peaks.end(); pit++)
+  for (auto pit = peaks.top().begin(); pit != peaks.top().end(); pit++)
   {
     // Only want the negative minima here.
     if (! pit->isCandidate() || pit->isSelected())
       continue;
 
     // Exclude tall peaks without a right neighbor.
-    if (next(pit) == peaks.end())
+    if (next(pit) == peaks.top().cend())
       continue;
 
     const unsigned index = pit->getIndex();
@@ -402,7 +402,7 @@ void PeakSeeds::markSeeds(
 
 
 void PeakSeeds::rebalanceCenters(
-  const PeakPool& peaks, 
+  PeakPool& peaks, 
   vector<Peak>& peakCenters) const
 {
   // Rebalance the centers a bit.  We could run a more complete K-Means
@@ -412,7 +412,7 @@ void PeakSeeds::rebalanceCenters(
   vector<Peak> psum(pl);
   vector<unsigned> pcount(pl);
 
-  for (auto pit = peaks.begin(); pit != peaks.end(); pit++)
+  for (auto pit = peaks.top().begin(); pit != peaks.top().end(); pit++)
   {
     if (! pit->isSelected())
       continue;

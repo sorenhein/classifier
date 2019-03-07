@@ -32,6 +32,7 @@ void PeakPool::clear()
 }
 
 
+/*
 bool PeakPool::empty() const
 {
   return peaks->empty();
@@ -84,6 +85,7 @@ void PeakPool::extend()
 {
   peaks->extend();
 }
+*/
 
 
 void PeakPool::copy()
@@ -100,6 +102,7 @@ void PeakPool::logAverages(const vector<Peak>& averagesIn)
 }
 
 
+/*
 Piterator PeakPool::erase(
   Piterator pit1,
   Piterator pit2)
@@ -114,6 +117,7 @@ Piterator PeakPool::collapse(
 {
   return peaks->collapse(pit1, pit2);
 }
+*/
 
 
 bool PeakPool::pruneTransients(
@@ -303,7 +307,7 @@ Peak * PeakPool::repairTopLevel(
       foundIter->getIndex() + offset << ")\n";
 
     // This also recalculates left flanks.
-    PeakPool::collapse(nprevBestMax, foundIter);
+    peaks->collapse(nprevBestMax, foundIter);
 
     // The right flank of nprevBestMax must/may be updated.
     nprevBestMax->logNextPeak(&* foundIter);
@@ -319,7 +323,7 @@ Peak * PeakPool::repairTopLevel(
       foundIter->getIndex() + offset << ", " <<
       bracketInnerMax.right.pit->getIndex() + offset << ")\n";
     
-    PeakPool::collapse(nfoundIter, bracketInnerMax.right.pit);
+    peaks->collapse(nfoundIter, bracketInnerMax.right.pit);
 
     // The right flank of foundIter must be updated.
     foundIter->logNextPeak(&* bracketInnerMax.right.pit);
@@ -514,6 +518,18 @@ const PeakPtrs& PeakPool::candidatesConst() const
 }
 
 
+Peaks& PeakPool::top()
+{
+  return * peaks;
+}
+
+
+const Peaks& PeakPool::topConst() const
+{
+  return * peaks;
+}
+
+
 bool PeakPool::getClosest(
   const list<unsigned>& carPoints,
   const PeakFncPtr& fptr,
@@ -592,6 +608,7 @@ bool PeakPool::getClosest(
 }
 
 
+/*
 void PeakPool::getSelectedSamples(vector<float>& selected) const
 {
   if (! peaks)
@@ -627,6 +644,7 @@ string PeakPool::strSelectedTimesCSV(const string& text) const
   else
     return peaks->strTimesCSV(&Peak::isSelected, text);
 }
+*/
 
 
 string PeakPool::strCounts() const

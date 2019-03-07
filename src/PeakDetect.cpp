@@ -57,12 +57,12 @@ float PeakDetect::integrate(
 
 void PeakDetect::annotate()
 {
-  if (peaks.size() < 2)
-    THROW(ERR_NO_PEAKS, "Too few peaks: " + to_string(peaks.size()));
+  if (peaks.top().size() < 2)
+    THROW(ERR_NO_PEAKS, "Too few peaks: " + to_string(peaks.top().size()));
 
-  const auto peakFirst = peaks.begin();
+  const auto peakFirst = peaks.top().begin();
 
-  for (auto it = peakFirst; it != peaks.end(); it++)
+  for (auto it = peakFirst; it != peaks.top().end(); it++)
   {
     const Peak * peakPrev = (it == peakFirst ? nullptr : &*prev(it));
 
@@ -76,13 +76,14 @@ bool PeakDetect::check(const vector<float>& samples) const
   if (samples.size() == 0)
     THROW(ERR_SHORT_ACCEL_TRACE, "Accel trace length: " + to_string(len));
 
-  if (peaks.size() < 2)
-    THROW(ERR_NO_PEAKS, "Too few peaks: " + to_string(peaks.size()));
+  if (peaks.topConst().size() < 2)
+    THROW(ERR_NO_PEAKS, "Too few peaks: " + 
+      to_string(peaks.topConst().size()));
 
-  const Pciterator& peakFirst = peaks.cbegin();
+  const Pciterator& peakFirst = peaks.topConst().cbegin();
   bool flag = true;
 
-  for (Pciterator it = peakFirst; it != peaks.cend(); it++)
+  for (Pciterator it = peakFirst; it != peaks.topConst().cend(); it++)
   {
     Peak peakSynth;
     Peak const * peakPrev = nullptr;
@@ -108,7 +109,7 @@ bool PeakDetect::check(const vector<float>& samples) const
 
 void PeakDetect::logFirst(const vector<float>& samples)
 {
-  peaks.extend();
+  peaks.top().extend();
 
   // Find the initial peak polarity.
   bool maxFlag = false;
@@ -125,19 +126,19 @@ void PeakDetect::logFirst(const vector<float>& samples)
       break;
     }
   }
-  peaks.back().logSentinel(samples[0], maxFlag);
+  peaks.top().back().logSentinel(samples[0], maxFlag);
 }
 
 
 void PeakDetect::logLast(const vector<float>& samples)
 {
-  const auto& peakPrev = peaks.back();
+  const auto& peakPrev = peaks.top().back();
   const float areaFull = 
     PeakDetect::integrate(samples, peakPrev.getIndex(), len-1);
   const float areaCumPrev = peakPrev.getAreaCum();
 
-  peaks.extend();
-  peaks.back().log(
+  peaks.top().extend();
+  peaks.top().back().log(
     samples.size()-1, 
     samples[samples.size()-1], 
     areaCumPrev + areaFull, 
@@ -190,14 +191,14 @@ void PeakDetect::log(
         maxFlag = false;
     }
 
-    const auto& peakPrev = peaks.back();
+    const auto& peakPrev = peaks.top().back();
     const float areaFull = PeakDetect::integrate(samples, 
       peakPrev.getIndex(), i);
     const float areaCumPrev = peakPrev.getAreaCum();
 
     // The peak contains data for the interval preceding it.
-    peaks.extend();
-    peaks.back().log(i, samples[i], areaCumPrev + areaFull, maxFlag);
+    peaks.top().extend();
+    peaks.top().back().log(i, samples[i], areaCumPrev + areaFull, maxFlag);
   }
 
   // The last peak is a dummy extremum at the last sample.
@@ -234,12 +235,12 @@ void PeakDetect::reduceSmallPeaks(
   // In either case, we only allow reductions that don't drastically
   // change the slope of remaining peaks.
 
-  if (peaks.empty())
+  if (peaks.top().empty())
     THROW(ERR_NO_PEAKS, "Peak list is empty");
 
-  auto peak = next(peaks.begin());
+  auto peak = next(peaks.top().begin());
 
-  while (peak != peaks.end())
+  while (peak != peaks.top().end())
   {
     const float paramCurrent = peak->getParameter(param);
     if (paramCurrent >= paramLimit)
@@ -254,7 +255,7 @@ void PeakDetect::reduceSmallPeaks(
     do
     {
       peak++;
-      if (peak == peaks.end())
+      if (peak == peaks.top().end())
         break;
 
       sumParam = peak->getParameter(* peakCurrent, param);
@@ -269,8 +270,8 @@ void PeakDetect::reduceSmallPeaks(
       // of the same polarity as peakCurrent (instead of peakCurrent).
       // It's a bit random whether or not this would be a "real" peak,
       // and we also don't keep track of this above.  So we just stop.
-      if (peakCurrent != peaks.end())
-        peaks.erase(peakCurrent, peaks.end());
+      if (peakCurrent != peaks.top().end())
+        peaks.top().erase(peakCurrent, peaks.top().end());
       break;
     }
 
@@ -355,7 +356,7 @@ cout << "EXTREME " << peakExtreme->getIndex() + offset << endl << endl;
       {
         if (control.verbosePeakReduce)
           cout << PeakDetect::deleteStr(&*peakFirst, &*prev(peakExtreme));
-        peaks.collapse(peakFirst, peakExtreme);
+        peaks.top().collapse(peakFirst, peakExtreme);
       }
 
       peakExtreme++;
@@ -363,7 +364,7 @@ cout << "EXTREME " << peakExtreme->getIndex() + offset << endl << endl;
       {
         if (control.verbosePeakReduce)
           cout << PeakDetect::deleteStr(&*peakExtreme, &*prev(peak));
-        peaks.collapse(peakExtreme, peak);
+        peaks.top().collapse(peakExtreme, peak);
       }
 
       peak++;
@@ -383,7 +384,7 @@ cout << peak->str(offset);
 cout << PeakDetect::deleteStr(&*peakFirst, &*prev(peak));
 }
 
-        peaks.collapse(peakFirst, peak);
+        peaks.top().collapse(peakFirst, peak);
 
       peak++;
       continue;
@@ -408,7 +409,7 @@ cout << peak->str(offset);
 cout << PeakDetect::deleteStr(&*peakFirst, &*prev(peak));
 }
 
-        peaks.collapse(peakFirst, peak);
+        peaks.top().collapse(peakFirst, peak);
 
       peak++;
       continue;
@@ -419,10 +420,11 @@ cout << PeakDetect::deleteStr(&*peakFirst, &*prev(peak));
 
 void PeakDetect::eliminateKinks()
 {
-  if (peaks.size() < 4)
+  if (peaks.top().size() < 4)
     THROW(ERR_NO_PEAKS, "Peak list is short");
 
-  for (auto peak = next(peaks.begin(), 2); peak != prev(peaks.end()); )
+  for (auto peak = next(peaks.top().begin(), 2); 
+      peak != prev(peaks.top().end()); )
   {
     const auto peakPrev = prev(peak);
     const auto peakPrevPrev = prev(peakPrev);
@@ -480,7 +482,7 @@ void PeakDetect::eliminateKinks()
 
     if (ratioPrev * ratioNext > KINK_RATIO)
     {
-      peaks.collapse(peakPrev, peakNext);
+      peaks.top().collapse(peakPrev, peakNext);
       continue;
     }
 
@@ -494,7 +496,7 @@ void PeakDetect::eliminateKinks()
         KINK_RATIO_ONE_DIM * vMid < vWhole)
     {
       // Another way of looking like a kink.
-      peaks.collapse(peakPrev, peakNext);
+      peaks.top().collapse(peakPrev, peakNext);
     }
     else
       peak++;
@@ -506,7 +508,8 @@ void PeakDetect::estimateScale(Peak& scale) const
 {
   scale.reset();
   unsigned no = 0;
-  for (auto peak = next(peaks.begin()); peak != peaks.end(); peak++)
+  for (auto peak = next(peaks.topConst().cbegin()); 
+      peak != peaks.topConst().cend(); peak++)
   {
     if (peak->isCandidate())
     {
@@ -524,7 +527,7 @@ void PeakDetect::estimateScale(Peak& scale) const
 
 void PeakDetect::completePeaks()
 {
-  for (auto pit = peaks.begin(); pit != prev(peaks.end()); pit++)
+  for (auto pit = peaks.top().begin(); pit != prev(peaks.top().end()); pit++)
   {
     auto npit = next(pit);
     pit->logNextPeak(&*npit);
@@ -536,26 +539,26 @@ void PeakDetect::reduce(
   const Control& control,
   Imperfections& imperf)
 {
-  if (peaks.empty())
+  if (peaks.top().empty())
     return;
 
   const bool debug = true;
   const bool debugDetails = true;
 
   if (debugDetails)
-    cout << peaks.strAll("Original peaks", offset);
+    cout << peaks.top().str("Original peaks", offset);
 
   PeakDetect::reduceSmallPeaks(PEAK_PARAM_AREA, 0.1f, false, control);
   peaks.copy();
 
   if (debugDetails)
-    cout << peaks.strAll("Non-tiny peaks", offset);
+    cout << peaks.top().str("Non-tiny peaks", offset);
 
   PeakDetect::eliminateKinks();
   peaks.copy();
 
   if (debugDetails)
-    cout << peaks.strAll("Non-kinky list peaks (first)", offset);
+    cout << peaks.top().str("Non-kinky list peaks (first)", offset);
 
   Peak scale;
   PeakDetect::estimateScale(scale);
@@ -567,12 +570,12 @@ void PeakDetect::reduce(
   peaks.copy();
 
   if (debugDetails)
-    cout << peaks.strAll("Range-reduced peaks", offset);
+    cout << peaks.top().str("Range-reduced peaks", offset);
 
   PeakDetect::eliminateKinks();
 
   if (debugDetails)
-    cout << peaks.strAll("Non-kinky list peaks (second)", offset);
+    cout << peaks.top().str("Non-kinky list peaks (second)", offset);
 
   PeakDetect::completePeaks();
 
@@ -613,7 +616,7 @@ void PeakDetect::logPeakStats(
 
 void PeakDetect::makeSynthPeaks(vector<float>& synthPeaks) const
 {
-  peaks.getSelectedSamples(synthPeaks);
+  peaks.topConst().getSamples(&Peak::isSelected, synthPeaks);
 }
 
 
@@ -621,7 +624,7 @@ void PeakDetect::getPeakTimes(
   vector<PeakTime>& times,
   unsigned& numFrontWheels) const
 {
-  peaks.getSelectedTimes(times);
+  peaks.topConst().getTimes(&Peak::isSelected, times);
   if (cars.empty())
     numFrontWheels = 0;
   else
@@ -647,6 +650,6 @@ void PeakDetect::printPeaksCSV(const vector<PeakTime>& timesTrue) const
     cout << i++ << ";" << fixed << setprecision(6) << tt.time << "\n";
   cout << "\n";
 
-  cout << peaks.strSelectedTimesCSV("seen");
+  cout << peaks.topConst().strTimesCSV(&Peak::isSelected, "seen");
 }
 
