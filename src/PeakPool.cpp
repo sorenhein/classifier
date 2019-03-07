@@ -134,6 +134,8 @@ bool PeakPool::peakFixable(
   Piterator& foundIter,
   const PeakFncPtr& fptr,
   const Bracket& bracket,
+  const bool nextSkipFlag,
+  const string& text,
   const unsigned offset) const
 {
   // bracket      max             max
@@ -144,10 +146,18 @@ bool PeakPool::peakFixable(
   Peak peak = * foundIter;
   peak.update(&* bracket.left.pit);
 
-  Peak peakNext = * bracket.right.pit;
-  peakNext.update(& peak);
+  if (nextSkipFlag)
+  {
+    // There may be other peaks in between, so before we can use
+    // the left flank to update peak, we must modify the next one.
+    Peak peakNext = * bracket.right.pit;
+    peakNext.update(& peak);
 
-  peak.logNextPeak(& peakNext);
+    peak.logNextPeak(& peakNext);
+  }
+  else
+    peak.logNextPeak(&* bracket.right.pit);
+
   peak.calcQualities(averages);
 
   if ((peak.* fptr)())
@@ -155,7 +165,7 @@ bool PeakPool::peakFixable(
   else
   {
     cout << 
-      foundIter->strQualityWhole("Top-level peak not repairable", offset);
+      foundIter->strQualityWhole(text + " not repairable", offset);
     return false;
   }
 }
@@ -183,7 +193,8 @@ Peak * PeakPool::repairTopLevel(
     return nullptr;
 
   // We make a trial run to ensure the quality if we clean up.
-  if (! PeakPool::peakFixable(foundIter, fptr, bracketInnerMax, offset))
+  if (! PeakPool::peakFixable(foundIter, fptr, bracketInnerMax, 
+      true, "Top-level peak", offset))
   {
     PeakPool::printRepairedSegment("Top-level bracket",
       bracketInnerMax, offset);
@@ -218,8 +229,7 @@ Peak * PeakPool::repairTopLevel(
 
   // Re-score foundIter.
   foundIter->calcQualities(averages);
-  // if (((* foundIter).* fptr)())
-    foundIter->select();
+  foundIter->select();
 
   cout << foundIter->strQualityWhole("Top-level peak now", offset);
 
@@ -236,8 +246,31 @@ Peak * PeakPool::repairFromLower(
   // There is a lower list, in which foundLowerIter was found.
   // There is the top list, pointed to by peaks, which we may modify.
 
-  // Peak only exists in lower list and might be resurrected.
-  // It would go between ptopPrev and ptopNext (one min, one max).
+  // Peak only exists in listLower and might be resurrected.
+  // It would go within bracketTop (one min, one max).
+
+  // In listLower
+  // ------------
+  // foundLowerIter                       *
+  //
+  // Version 1:
+  // bracketLower      left min                           right max
+  //
+  // Version 2:
+  // bracketLower      left max                           right min
+  //
+  // In the top list
+  // ---------------
+  // index of found                       . (not a top peak)
+  //
+  // Version 1:
+  // bracketTop        left min                           right max
+  // insert                     pmax     min
+  //
+  // Version 2:
+  // bracketTop        left max                           right min
+  // insert                              min     max
+
   Bracket bracketTop;
   peakLists.rbegin()->bracket(foundLowerIter->getIndex(), false, bracketTop);
 
@@ -248,21 +281,25 @@ Peak * PeakPool::repairFromLower(
   }
 
   // Find the same bracketing peaks in the current, lower list.
-  // Piterator plowerPrev, plowerNext;
-  // PeakPool::locateTopBrackets(ptopPrev, ptopNext, foundLowerIter, 
-    // plowerPrev, plowerNext);
   Bracket bracketLower;
   listLower.bracketSpecific(bracketTop, foundLowerIter, bracketLower);
-
 
   // We only introduce two new peaks, so the one we found goes next 
   // to the bracketing one with opposite polarity.  In the gap we put 
   // the intervening peak with maximum value.  This is quick and dirty.
-  Peak * pmax;
+  Piterator pmax;
   Bracket bracketTmp;
 
   if (bracketLower.left.pit->isMinimum())
   {
+    // Version 1
+    // bracketLower      left min                           right max
+    //
+    // index of found                       . (not a top peak)
+    //
+    // bracketTop        left min                           right max
+    // insert                     pmax     min
+
     bracketTmp.left.pit = next(bracketLower.left.pit);
     bracketTmp.right.pit = foundLowerIter;
 
@@ -271,24 +308,18 @@ Peak * PeakPool::repairFromLower(
 
     // We make a trial run to ensure that the new minimum at the top
     // level will be of good quality.
-    Peak ptmp = * foundLowerIter;
-    ptmp.update(pmax);
-    ptmp.logNextPeak(&* next(foundLowerIter));
-    ptmp.calcQualities(averages);
-    if (! (ptmp.* fptr)())
+
+    bracketTmp.left.pit = pmax;
+    bracketTmp.right.pit = next(foundLowerIter);
+
+    if (! PeakPool::peakFixable(foundLowerIter, fptr, bracketTmp, 
+        false, "Lower-level peak", offset))
     {
-      cout << "PINSERT: Inserted peak would not be OK(1)\n";
-      cout << ptmp.strHeaderQuality();
-      cout << ptmp.strQuality(offset);
+      PeakPool::printRepairedSegment("Lower-level bracket", 
+        bracketTmp, offset);
       return nullptr;
     }
 
-    // Order: 
-    // - ptopPrev (min), 
-    // - NEW: pmax (max),
-    // - NEW: the peak pointed to by foundLowerIter (min),
-    // - the old maximum lifted from the lower level, 
-    // - ptopNext (min).
     auto ptopNew = peaks->insert(bracketTop.right.pit, * foundLowerIter);
     peaks->insert(ptopNew, * pmax);
   }

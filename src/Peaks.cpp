@@ -255,7 +255,8 @@ void Peaks::bracket(
   const bool minFlag,
   Bracket& bracket)
 {
-  // Find bracketing minima.
+  // Find bracketing minima if minFlag is set, 
+  // otherwise find bracketing extrema.
   bracket.left.hasFlag = false;
   bracket.right.hasFlag = false;
   for (auto pit = peaks.begin(); pit != peaks.end(); pit++)
@@ -353,20 +354,20 @@ bool Peaks::brackets(
 
 bool Peaks::getHighestMax(
   const Bracket& bracket,
-  Peak *& pmax) const
+  Piterator& pmax)
 {
-  pmax = nullptr;
+  pmax = peaks.end();
   float val = numeric_limits<float>::lowest();
   for (auto pit = bracket.left.pit; pit != bracket.right.pit; pit++)
   {
     if (pit->getValue() > val)
     {
       val = pit->getValue();
-      pmax = &* pit;
+      pmax = pit;
     }
   }
 
-  if (pmax == nullptr)
+  if (pmax == peaks.end())
   {
     cout << "PINSERT: Null maximum\n";
     return false;

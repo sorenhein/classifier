@@ -121,7 +121,7 @@ class Peaks
 
     bool getHighestMax(
       const Bracket& bracket,
-      Peak *& pmax) const;
+      Piterator& pmax);
 
     bool getBestMax(
       const Piterator& leftIter,

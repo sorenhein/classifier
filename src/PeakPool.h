@@ -68,6 +68,8 @@ class PeakPool
       Piterator& foundIter,
       const PeakFncPtr& fptr,
       const Bracket& bracket,
+      const bool nextSkipFlag,
+      const string &text,
       const unsigned offset) const;
 
     Peak * repairTopLevel(
