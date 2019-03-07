@@ -7,22 +7,6 @@
 #include "Peak.h"
 #include "PeakPtrs.h"
 
-// Used to count input peaks relative to used peaks.
-#define LEFT_OF_P0 4
-#define BETWEEN_P0_P1 3
-#define BETWEEN_P1_P2 2
-#define BETWEEN_P2_P3 1
-#define RIGHT_OF_P3 0
-#define LEFT_OF_P1 8
-#define BETWEEN_P0_P2 7
-#define BETWEEN_P1_P3 6
-#define RIGHT_OF_P2 5
-#define LEFT_OF_P3 9
-#define LEFT_OF_P2 10
-#define RIGHT_OF_P0 11
-#define RIGHT_OF_P1 12
-#define NUM_INTERVALS 13
-
 #define INDEX_NOT_USED 999
 
 
@@ -55,8 +39,7 @@ void PeakPartial::reset()
   indexUsed.resize(4, 0);
   numUsed = 0;
 
-  peakCode = 0;
-  intervalEntries = 0;
+  peakSlots.reset();
 }
 
 
@@ -408,110 +391,14 @@ void PeakPartial::makeCodes(
   const PeakPtrs& peakPtrsUsed,
   const unsigned offset)
 {
-  peakCode =
-    (peaks[0] ? 8 : 0) | 
-    (peaks[1] ? 4 : 0) | 
-    (peaks[2] ? 2 : 0) | 
-    (peaks[3] ? 1 : 0);
+  peakSlots.log(peaks, peakPtrsUsed, offset);
 
-  //      p0      p1      p2      p3
-  //   i4 >|< i3 >|<  i2 >|<  i1 >|<  i0
-  //                      |<  i5
-  //              |<      i6     >|
-  //       |<     i7     >|
-  //       i8    >|
-
-  const unsigned p0 = (peaks[0] ? peaks[0]->getIndex() : 0);
-  const unsigned p1 = (peaks[1] ? peaks[1]->getIndex() : 0);
-  const unsigned p2 = (peaks[2] ? peaks[2]->getIndex() : 0);
-  const unsigned p3 = (peaks[3] ? peaks[3]->getIndex() : 0);
-
-  intervalEntries = 0;
-  intervalCount.clear();
-  intervalCount.resize(NUM_INTERVALS);
-
-  for (PPLciterator it = peakPtrsUsed.cbegin(); 
-      it != peakPtrsUsed.cend(); it++)
-  {
-    Peak * p = * it;
-    if (p == peaks[0] || p == peaks[1] || p == peaks[2] || p == peaks[3])
-      continue;
-
-    intervalEntries++;
-    const unsigned index = p->getIndex();
-
-    if (peaks[0] && index <= p0)
-      intervalCount[LEFT_OF_P0]++;
-    else if (peaks[3] && index > p3)
-      intervalCount[RIGHT_OF_P3]++;
-
-    else if (peaks[0] && peaks[1] && index <= p1)
-      intervalCount[BETWEEN_P0_P1]++;
-    else if (peaks[1] && peaks[2] && index > p1 && index <= p2)
-      intervalCount[BETWEEN_P1_P2]++;
-    else if (peaks[2] && peaks[3] && index > p2 && index <= p3)
-      intervalCount[BETWEEN_P2_P3]++;
-
-    else if (peaks[1] && index <= p1)
-      intervalCount[LEFT_OF_P1]++;
-    else if (peaks[2] && index > p2)
-      intervalCount[RIGHT_OF_P2]++;
-
-    else if (peaks[0] && peaks[2] && index > p0 && index <= p2)
-      intervalCount[BETWEEN_P0_P2]++;
-    else if (peaks[1] && peaks[3] && index > p1 && index <= p3)
-      intervalCount[BETWEEN_P1_P3]++;
-
-    else if (! peaks[0] && ! peaks[1])
-    {
-      if (! peaks[2] && index <= p3)
-        intervalCount[LEFT_OF_P3]++;
-      else if (peaks[2] && index <= p2)
-        intervalCount[LEFT_OF_P2]++;
-      else
-        cout << "PEAKPARTIALERROR1 " << index + offset << "\n";
-    }
-    else if (! peaks[2] && ! peaks[3])
-    {
-      if (! peaks[1] && index > p0)
-        intervalCount[RIGHT_OF_P0]++;
-      else if (peaks[1] && index > p1)
-        intervalCount[RIGHT_OF_P1]++;
-      else
-        cout << "PEAKPARTIALERROR2 " << index + offset << "\n";
-    }
-    else
-      cout << "PEAKPARTIALERROR3 " << index + offset << "\n";
-  }
 }
 
 
 void PeakPartial::printSituation(const bool firstFlag) const
 {
-  if (! intervalEntries)
-    return;
-
-  cout << (firstFlag ? "PEAKFIRST " : "PEAKLAST  ") << 
-    setw(2) << peakCode <<
-    setw(4) << PeakPartial::strEntry(peaks[0] == nullptr ? 0 : 1) <<
-    setw(2) << PeakPartial::strEntry(peaks[1] == nullptr ? 0 : 1) <<
-    setw(2) << PeakPartial::strEntry(peaks[2] == nullptr ? 0 : 1) <<
-    setw(2) << PeakPartial::strEntry(peaks[3] == nullptr ? 0 : 1) <<
-
-    setw(4) << PeakPartial::strEntry(intervalCount[LEFT_OF_P0]) <<
-    setw(2) << PeakPartial::strEntry(intervalCount[BETWEEN_P0_P1]) <<
-    setw(2) << PeakPartial::strEntry(intervalCount[BETWEEN_P1_P2]) <<
-    setw(2) << PeakPartial::strEntry(intervalCount[BETWEEN_P2_P3]) <<
-    setw(2) << PeakPartial::strEntry(intervalCount[RIGHT_OF_P3]) <<
-    setw(4) << PeakPartial::strEntry(intervalCount[LEFT_OF_P1]) <<
-    setw(2) << PeakPartial::strEntry(intervalCount[BETWEEN_P0_P2]) <<
-    setw(2) << PeakPartial::strEntry(intervalCount[BETWEEN_P1_P3]) <<
-    setw(2) << PeakPartial::strEntry(intervalCount[RIGHT_OF_P2]) << 
-    setw(3) << PeakPartial::strEntry(intervalCount[LEFT_OF_P3]) <<
-    setw(2) << PeakPartial::strEntry(intervalCount[LEFT_OF_P2]) << 
-    setw(2) << PeakPartial::strEntry(intervalCount[RIGHT_OF_P1]) << 
-    setw(2) << PeakPartial::strEntry(intervalCount[RIGHT_OF_P0]) << 
-    endl;
+  cout << peakSlots.str(firstFlag);
 }
 
 
@@ -544,7 +431,7 @@ void PeakPartial::recoverPeaks0101(vector<Peak *>& peakPtrsUsed)
 {
   // The four peaks: not found - found - not found - found.
   const unsigned iu = indexUsed[3];
-  if (intervalCount[BETWEEN_P1_P3] == 2 &&
+  if (peakSlots.count(PEAKSLOT_BETWEEN_P1_P3) == 2 &&
       peakPtrsUsed[iu-2]->greatQuality() &&
       peakPtrsUsed[iu-1]->greatQuality())
   {
@@ -555,7 +442,7 @@ cout << "Reinstating two peaks, should be p2 and p3\n";
     PeakPartial::registerPtr(1, peakPtrsUsed[iu-2], iu-2);
     PeakPartial::registerPtr(2, peakPtrsUsed[iu-1], iu-1);
   }
-  else if (intervalCount[BETWEEN_P1_P3] == 1 &&
+  else if (peakSlots.count(PEAKSLOT_BETWEEN_P1_P3) == 1 &&
       peakPtrsUsed[iu-1]->greatQuality())
   {
     if (peaks[3]->getIndex() - peakPtrsUsed[iu-1]->getIndex() <
@@ -582,8 +469,8 @@ void PeakPartial::recoverPeaks0011(vector<Peak *>& peakPtrsUsed)
 {
   // The four peaks: not found - not found - found - found.
   const unsigned iu = indexUsed[3];
-  if (intervalEntries == 2 && 
-      intervalCount[LEFT_OF_P2] == 2 &&
+  if (peakSlots.number() == 2 && 
+      peakSlots.count(PEAKSLOT_LEFT_OF_P2) == 2 &&
       upper[1] == 0 &&
       peakPtrsUsed[iu-3]->greatQuality() &&
       peakPtrsUsed[iu-2]->greatQuality())
@@ -601,8 +488,8 @@ void PeakPartial::recoverPeaks1100(vector<Peak *>& peakPtrsUsed)
 {
   // The four peaks: found - found - not found - not found.
   const unsigned iu = indexUsed[0];
-  if (intervalEntries == 2 && 
-      intervalCount[RIGHT_OF_P1] == 2 &&
+  if (peakSlots.number() == 2 && 
+      peakSlots.count(PEAKSLOT_RIGHT_OF_P1) == 2 &&
       upper[2] == 0 &&
       peakPtrsUsed[iu+2]->greatQuality() &&
       peakPtrsUsed[iu+3]->greatQuality())
@@ -636,7 +523,7 @@ void PeakPartial::recoverPeaks0001(
   const unsigned mid = static_cast<unsigned>(0.4f * longTypical);
   
   // Give up if we have nothing to work with.
-  if (intervalEntries == 0 ||
+  if (peakSlots.number() == 0 ||
       index >= peaks[3]->getIndex() || 
       upper[2] == 0)
     return;
@@ -655,14 +542,14 @@ void PeakPartial::recoverPeaks0001(
 cout << "Reinstating one 0001 peak, should be p2\n";
   PeakPartial::registerPtr(2, peakPtrsUsed[iu-1], iu-1);
 
-  if (intervalEntries == 1 || iu == 1)
+  if (peakSlots.number() == 1 || iu == 1)
     return;
 
   // One possible pattern is: p0 - p1 - spurious - p2, to go with p3.
   unsigned iuNext;
   if (peakPtrsUsed[iu-2]->fantasticQuality())
     iuNext = iu-2;
-  else if (intervalEntries >= 3 &&
+  else if (peakSlots.number() >= 3 &&
       peakPtrsUsed[iu-3]->fantasticQuality())
     iuNext = iu-3;
   else
@@ -819,12 +706,12 @@ void PeakPartial::recoverPeaks1011(vector<Peak *>& peakPtrsUsed)
 
   // Could be p0-null-p2-p3, missing the p1.
   const unsigned index0 = peaks[0]->getIndex();
-  if (intervalCount[BETWEEN_P0_P2] > 0)
+  if (peakSlots.count(PEAKSLOT_BETWEEN_P0_P2) > 0)
     pptr1 = PeakPartial::lookForPeak(index0, bogey, 0.2f, 0.5f,
       true, peakPtrsUsed, indexUsed1);
 
   // Could be p1-null-p2-p3, missing the p0.
-  if (intervalCount[LEFT_OF_P0] > 0)
+  if (peakSlots.count(PEAKSLOT_LEFT_OF_P0) > 0)
     pptr0 = PeakPartial::lookForPeak(index0, bogey, 0.2f, 0.5f,
       false, peakPtrsUsed, indexUsed0);
 
@@ -854,12 +741,12 @@ void PeakPartial::recoverPeaks1101(vector<Peak *>& peakPtrsUsed)
 
   // Could be p0-p1-null-p2, missing the p3.
   const unsigned index3 = peaks[3]->getIndex();
-  if (intervalCount[RIGHT_OF_P3] > 0)
+  if (peakSlots.count(PEAKSLOT_RIGHT_OF_P3) > 0)
     pptr3 = PeakPartial::lookForPeak(index3, bogey, 0.2f, 0.5f,
       true, peakPtrsUsed, indexUsed3);
 
   // Could be p0-p1-null-p3, missing the p2.
-  if (intervalCount[BETWEEN_P1_P3] > 0)
+  if (peakSlots.count(PEAKSLOT_BETWEEN_P1_P3) > 0)
     pptr2 = PeakPartial::lookForPeak(index3, bogey, 0.2f, 0.5f,
       false, peakPtrsUsed, indexUsed2);
 
@@ -889,12 +776,12 @@ void PeakPartial::recoverPeaks1110(vector<Peak *>& peakPtrsUsed)
 
   // Could be p0-p1-p2-null, missing the p3.
   const unsigned index2 = peaks[2]->getIndex();
-  if (intervalCount[RIGHT_OF_P2] > 0)
+  if (peakSlots.count(PEAKSLOT_RIGHT_OF_P2) > 0)
     pptr3 = PeakPartial::lookForPeak(index2, bogey, 0.2f, 0.5f,
       true, peakPtrsUsed, indexUsed3);
 
   // Could be p0-p1-p3-null, missing the p2.
-  if (intervalCount[BETWEEN_P1_P2] > 0)
+  if (peakSlots.count(PEAKSLOT_BETWEEN_P1_P2) > 0)
     pptr2 = PeakPartial::lookForPeak(index2, bogey, 0.2f, 0.5f,
       false, peakPtrsUsed, indexUsed2);
 
@@ -928,28 +815,36 @@ void PeakPartial::getPeaks(
   peakPtrsUsedIn.flatten(peakPtrsUsed);
   peakPtrsUnusedIn.flatten(peakPtrsUnused);
 
-  if (peakCode == 0b0001)
-    PeakPartial::recoverPeaks0001(bogeyTypical, longTypical, peakPtrsUsed);
-  else if (peakCode == 0b0011)
-    PeakPartial::recoverPeaks0011(peakPtrsUsed);
-  else if (peakCode == 0xb0101)
-    PeakPartial::recoverPeaks0101(peakPtrsUsed);
-  else if (peakCode == 0b0111)
+  switch(peakSlots.code())
   {
-    // We got the last three peaks.  Generally it's a pretty good bet
-    // to throw away anything else.
-  }
-  else if (peakCode == 0b1100)
-    PeakPartial::recoverPeaks1100(peakPtrsUsed);
-  else if (peakCode == 0b1011)
-    PeakPartial::recoverPeaks1011(peakPtrsUsed);
-  else if (peakCode == 0b1101)
-    PeakPartial::recoverPeaks1101(peakPtrsUsed);
-  else if (peakCode == 0b1110)
-    PeakPartial::recoverPeaks1110(peakPtrsUsed);
-  else
-  {
-    // Usually nothing left.
+    case 0b0001:
+      PeakPartial::recoverPeaks0001(bogeyTypical, longTypical, peakPtrsUsed);
+      break;
+    case 0b0011:
+      PeakPartial::recoverPeaks0011(peakPtrsUsed);
+      break;
+    case 0xb0101:
+      PeakPartial::recoverPeaks0101(peakPtrsUsed);
+      break;
+    case 0b0111:
+      // We got the last three peaks.  Generally it's a pretty good bet
+      // to throw away anything else.
+      break;
+    case 0b1100:
+      PeakPartial::recoverPeaks1100(peakPtrsUsed);
+      break;
+    case 0b1011:
+      PeakPartial::recoverPeaks1011(peakPtrsUsed);
+      break;
+    case 0b1101:
+      PeakPartial::recoverPeaks1101(peakPtrsUsed);
+      break;
+    case 0b1110:
+      PeakPartial::recoverPeaks1110(peakPtrsUsed);
+      break;
+    default:
+      // Usually nothing left.
+      break;
   }
 
   // if we didn't match a peak in the used vector, we move it to unused.

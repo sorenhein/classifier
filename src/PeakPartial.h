@@ -54,14 +54,7 @@ class PeakPartial
     // Number of peaks found.
     unsigned numUsed;
 
-    // A binary code of the peaks found.
-    unsigned peakCode;
-
-    // A count of input peaks in positions relative to found peaks.
-    vector<unsigned> intervalCount;
-
-    // Number of entries in intervalCount
-    unsigned intervalEntries;
+    PeakSlots peakSlots;
 
 
     void movePtr(

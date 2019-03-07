@@ -35,7 +35,7 @@ class PeakSlots
   private:
 
     // A binary code of the peaks found.
-    unsigned code;
+    unsigned peakCode;
 
     // A count of input peaks in positions relative to found peaks.
     vector<unsigned> slots;
@@ -62,6 +62,10 @@ class PeakSlots
       const unsigned offset);
 
     unsigned count(const PeakSlot ps) const;
+    
+    unsigned number() const;
+
+    unsigned code() const;
 
     string str(const bool firstFlag) const;
 

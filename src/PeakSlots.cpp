@@ -20,7 +20,7 @@ PeakSlots::~PeakSlots()
 
 void PeakSlots::reset()
 {
-  code = 0;
+  peakCode = 0;
   slots.clear();
   slots.resize(PEAKSLOT_SIZE);
   numEntries = 0;
@@ -34,7 +34,7 @@ void PeakSlots::log(
 {
   PeakSlots::reset();
 
-  code =
+  peakCode =
     (peaks[0] ? 8 : 0) | 
     (peaks[1] ? 4 : 0) | 
     (peaks[2] ? 2 : 0) | 
@@ -114,6 +114,18 @@ unsigned PeakSlots::count(const PeakSlot ps) const
 }
 
 
+unsigned PeakSlots::number() const
+{
+  return numEntries;
+}
+
+
+unsigned PeakSlots::code() const
+{
+  return peakCode;
+}
+
+
 string PeakSlots::s(unsigned n) const
 {
   if (n == 0)
@@ -139,11 +151,11 @@ string PeakSlots::str(const bool firstFlag) const
 
   stringstream ss;
   ss << (firstFlag ? "PEAKFIRST " : "PEAKLAST  ") << 
-    setw(2) << code <<
-    setw(4) << PeakSlots::s(code & 0x8 ? 1 : 0) <<
-    setw(2) << PeakSlots::s(code & 0x4 ? 1 : 0) <<
-    setw(2) << PeakSlots::s(code & 0x2 ? 1 : 0) <<
-    setw(2) << PeakSlots::s(code & 0x1 ? 1 : 0) <<
+    setw(2) << peakCode <<
+    setw(4) << PeakSlots::s(peakCode & 0x8 ? 1 : 0) <<
+    setw(2) << PeakSlots::s(peakCode & 0x4 ? 1 : 0) <<
+    setw(2) << PeakSlots::s(peakCode & 0x2 ? 1 : 0) <<
+    setw(2) << PeakSlots::s(peakCode & 0x1 ? 1 : 0) <<
 
     setw(4) << PeakSlots::s(PEAKSLOT_LEFT_OF_P0) <<
     setw(2) << PeakSlots::s(PEAKSLOT_BETWEEN_P0_P1) <<
