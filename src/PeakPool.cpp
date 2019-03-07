@@ -32,62 +32,6 @@ void PeakPool::clear()
 }
 
 
-/*
-bool PeakPool::empty() const
-{
-  return peaks->empty();
-}
-
-
-unsigned PeakPool::size() const 
-{
-  return peaks->size();
-}
-
-
-Piterator PeakPool::begin() const
-{
-  return peaks->begin();
-}
-
-
-Pciterator PeakPool::cbegin() const
-{
-  return peaks->cbegin();
-}
-
-
-Piterator PeakPool::end() const
-{
-  return peaks->end();
-}
-
-
-Pciterator PeakPool::cend() const
-{
-  return peaks->cend();
-}
-
-
-Peak& PeakPool::front()
-{
-  return peaks->front();
-}
-
-
-Peak& PeakPool::back()
-{
-  return peaks->back();
-}
-
-
-void PeakPool::extend()
-{
-  peaks->extend();
-}
-*/
-
-
 void PeakPool::copy()
 {
   peakLists.emplace_back(Peaks());
@@ -100,24 +44,6 @@ void PeakPool::logAverages(const vector<Peak>& averagesIn)
 {
   averages = averagesIn;
 }
-
-
-/*
-Piterator PeakPool::erase(
-  Piterator pit1,
-  Piterator pit2)
-{
-  return peaks->erase(pit1, pit2);
-}
-
-
-Piterator PeakPool::collapse(
-  Piterator pit1,
-  Piterator pit2)
-{
-  return peaks->collapse(pit1, pit2);
-}
-*/
 
 
 bool PeakPool::pruneTransients(
@@ -606,45 +532,6 @@ bool PeakPool::getClosest(
   }
   return true;
 }
-
-
-/*
-void PeakPool::getSelectedSamples(vector<float>& selected) const
-{
-  if (! peaks)
-    return;
-
-  peaks->getSamples(&Peak::isSelected, selected);
-}
-
-
-void PeakPool::getSelectedTimes(vector<PeakTime>& times) const
-{
-  if (! peaks)
-    return;
-
-  peaks->getTimes(&Peak::isSelected, times);
-}
-
-string PeakPool::strAll(
-  const string& text,
-  const unsigned& offset) const
-{
-  if (! peaks)
-    return "";
-  else
-    return peaks->str(text, offset);
-}
-
-
-string PeakPool::strSelectedTimesCSV(const string& text) const
-{
-  if (! peaks)
-    return "";
-  else
-    return peaks->strTimesCSV(&Peak::isSelected, text);
-}
-*/
 
 
 string PeakPool::strCounts() const

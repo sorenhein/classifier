@@ -96,36 +96,9 @@ class PeakPool
 
     void clear();
 
-    /*
-    bool empty() const;
-
-    unsigned size() const;
-
-    Piterator begin() const;
-    Pciterator cbegin() const;
-
-    Piterator end() const;
-    Pciterator cend() const;
-
-    Peak& front();
-    Peak& back();
-
-    void extend(); // Like emplace_back()
-    */
-
     void copy();
 
     void logAverages(const vector<Peak>& averagesIn);
-
-    /*
-    Piterator erase(
-      Piterator pit1,
-      Piterator pit2);
-
-    Piterator collapse(
-      Piterator pit1,
-      Piterator pit2);
-      */
 
     bool pruneTransients(const unsigned firstGoodIndex);
 
@@ -157,19 +130,6 @@ class PeakPool
       const unsigned numWheels,
       PeakPtrs& closestPeaks,
       PeakPtrs& skippedPeaks) const;
-
-    /*
-    void getSelectedSamples(vector<float>& selected) const;
-
-    void getSelectedTimes(vector<PeakTime>& times) const;
-
-
-    string strAll(
-      const string& text,
-      const unsigned& offset) const;
-
-    string strSelectedTimesCSV(const string& text) const;
-    */
 
     string strCounts() const;
 };
