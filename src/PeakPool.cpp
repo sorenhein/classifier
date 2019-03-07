@@ -105,66 +105,37 @@ cout << "firstGoodIndex " << firstGoodIndex << endl;
 }
 
 
-void PeakPool::printRepairData(
-  const Piterator& foundIter,
-  const Piterator& pprev,
-  const Piterator& pnext,
-  const Piterator& pfirstPrev,
-  const Piterator& pfirstNext,
-  const Piterator& pcurrPrev,
-  const Piterator& pcurrNext,
-  const unsigned offset) const
-{
-  cout << foundIter->strHeaderQuality();
-  cout << foundIter->strQuality(offset);
-
-  cout << "It is between\n";
-  cout << pprev->strQuality(offset);
-  cout << pnext->strQuality(offset);
-
-  cout << "At top level it is between\n";
-  cout << pfirstPrev->strQuality(offset);
-  cout << pfirstNext->strQuality(offset);
-
-  cout << "At current level it is between\n";
-  cout << pcurrPrev->strQuality(offset);
-  cout << pcurrNext->strQuality(offset);
-}
-
-
 void PeakPool::printRepairedSegment(
-  const Piterator& pfirstPrev,
-  const Piterator& pfirstNext,
+  const Bracket& bracketTop,
   const unsigned offset) const
 {
   cout << "Modified the top-level peaks\n";
-  cout << pfirstNext->strHeaderQuality();
-  for (auto pit = pfirstPrev; pit != pfirstNext; pit++)
+  cout << bracketTop.left.pit->strHeaderQuality();
+  for (auto pit = bracketTop.left.pit; pit != bracketTop.right.pit; pit++)
     cout << pit->strQuality(offset);
-  cout << pfirstNext->strQuality(offset);
+  cout << bracketTop.right.pit->strQuality(offset);
 }
 
 
-void PeakPool::updateRepairedPeaks(
-  Piterator& pfirstPrev,
-  Piterator& pfirstNext)
+void PeakPool::updateRepairedPeaks(Bracket& bracket)
 {
   // The left flanks must be updated.
-  for (auto pit = next(pfirstPrev); pit != next(pfirstNext); pit++)
+  for (auto pit = next(bracket.left.pit); 
+      pit != next(bracket.right.pit); pit++)
     pit->update(&* prev(pit));
 
-  if (pfirstNext->isMinimum())
-    pfirstNext->calcQualities(averages);
+  if (bracket.right.pit->isMinimum())
+    bracket.right.pit->calcQualities(averages);
 
   // The right flanks must be copied.
-  for (auto pit = pfirstPrev; pit != pfirstNext; pit++)
+  for (auto pit = bracket.left.pit; pit != bracket.right.pit; pit++)
   {
     pit->logNextPeak(&* next(pit));
     if (pit->isMinimum())
     {
       pit->calcQualities(averages);
 
-      if (pit != pfirstPrev && ! _candidates.add(&* pit))
+      if (pit != bracket.left.pit && ! _candidates.add(&* pit))
         cout << "PINSERT: Couldn't add candidate\n";
     }
   }
@@ -362,9 +333,8 @@ Peak * PeakPool::repairFromLower(
     peaks->insert(bracketTop.right.pit, * pmax);
   }
 
-  PeakPool::updateRepairedPeaks(bracketTop.left.pit, bracketTop.right.pit);
-
-  PeakPool::printRepairedSegment(bracketTop.left.pit, bracketTop.right.pit, offset);
+  PeakPool::updateRepairedPeaks(bracketTop);
+  PeakPool::printRepairedSegment(bracketTop, offset);
 
   return &* foundLowerIter;
 }
@@ -450,8 +420,8 @@ bool PeakPool::getClosest(
   const PeakFncPtr& fptr,
   const PPLciterator& cit,
   const unsigned numWheels,
-  PeakPtrs& closestPeaks,
-  PeakPtrs& skippedPeaks) const
+  PeakPtrs& peakPtrsUsed,
+  PeakPtrs& peakPtrsUnused) const
 {
   if (numWheels < 2)
     return false;
@@ -461,9 +431,9 @@ bool PeakPool::getClosest(
   if (cit0 == _candidates.cend())
     return false;
 
-  skippedPeaks.clear();
-  closestPeaks.clear();
-  closestPeaks.push_back(* cit);
+  peakPtrsUnused.clear();
+  peakPtrsUsed.clear();
+  peakPtrsUsed.push_back(* cit);
   const unsigned pstart = (* cit)->getIndex();
   
   auto pointIt = carPoints.begin();
@@ -483,10 +453,10 @@ bool PeakPool::getClosest(
       cit1 = _candidates.next(cit0, fptr);
       if (cit1 == _candidates.cend())
       {
-        if (closestPeaks.size() != numWheels-1)
+        if (peakPtrsUsed.size() != numWheels-1)
           return false;
 
-        closestPeaks.push_back(* cit0);
+        peakPtrsUsed.push_back(* cit0);
         return true;
       }
 
@@ -495,17 +465,17 @@ bool PeakPool::getClosest(
       const unsigned mid = (pval0 + pval1) / 2;
       if (ptarget <= mid)
       {
-        closestPeaks.push_back(* cit0);
+        peakPtrsUsed.push_back(* cit0);
         cit0 = cit1;
         pointIt++;
         break;
       }
       else if (ptarget <= pval1)
       {
-        skippedPeaks.push_back(* cit0);
-        closestPeaks.push_back(* cit1);
+        peakPtrsUnused.push_back(* cit0);
+        peakPtrsUsed.push_back(* cit1);
         cit1 = _candidates.next(cit1, fptr);
-        if (cit1 == _candidates.cend() && closestPeaks.size() != numWheels)
+        if (cit1 == _candidates.cend() && peakPtrsUsed.size() != numWheels)
           return false;
 
         cit0 = cit1;
@@ -514,7 +484,7 @@ bool PeakPool::getClosest(
       }
       else
       {
-        skippedPeaks.push_back(* cit0);
+        peakPtrsUnused.push_back(* cit0);
         cit0 = cit1;
       }
     }

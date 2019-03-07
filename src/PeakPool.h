@@ -57,24 +57,11 @@ class PeakPool
     unsigned transientLimit;
 
 
-    void printRepairData(
-      const Piterator& foundIter,
-      const Piterator& pprev,
-      const Piterator& pnext,
-      const Piterator& pfirstPrev,
-      const Piterator& pfirstNext,
-      const Piterator& pcurrPrev,
-      const Piterator& pcurrNext,
-      const unsigned offset) const;
-
     void printRepairedSegment(
-      const Piterator& pfirstPrev,
-      const Piterator& pfirstNext,
+      const Bracket& bracketTop,
       const unsigned offset) const;
 
-    void updateRepairedPeaks(
-      Piterator& pfirstPrev,
-      Piterator& pfirstNext);
+    void updateRepairedPeaks(Bracket& bracket);
 
     Peak * repairTopLevel(
       Piterator& foundIter,
@@ -121,8 +108,8 @@ class PeakPool
       const PeakFncPtr& fptr,
       const PPLciterator& cit,
       const unsigned numWheels,
-      PeakPtrs& closestPeaks,
-      PeakPtrs& skippedPeaks) const;
+      PeakPtrs& peakPtrsUsed,
+      PeakPtrs& peakPtrsUnused) const;
 
     string strCounts() const;
 };
