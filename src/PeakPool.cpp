@@ -180,93 +180,6 @@ cout << "firstGoodIndex " << firstGoodIndex << endl;
 }
 
 
-/*
-void PeakPool::getBracketingPeaks(
-  const list<PeakList>::reverse_iterator& liter,
-  const unsigned pindex,
-  const bool minFlag,
-  PiterPair& pprev,
-  PiterPair& pnext) const
-{
-  // Find bracketing minima.
-  pprev.hasFlag = false;
-  pnext.hasFlag = false;
-  for (auto piter = liter->begin(); piter != liter->end(); piter++)
-  {
-    if (minFlag && ! piter->isMinimum())
-      continue;
-
-    if (piter->getIndex() > pindex)
-    {
-      pnext.pit = piter;
-      pnext.hasFlag = true;
-      break;
-    }
-
-    pprev.pit = piter;
-    pprev.hasFlag = true;
-  }
-}
-
-
-bool PeakPool::findCloseIter(
-  const Peak& peakHint,
-  const PiterPair& pprev,
-  const PiterPair& pnext,
-  Piterator& foundIter) const
-{
-  bool fitsNext = false;
-  bool fitsPrev = false;
-  if (pprev.hasFlag && peakHint.fits(* pprev.pit))
-    fitsPrev = true;
-  if (pnext.hasFlag && peakHint.fits(* pnext.pit))
-    fitsNext = true;
-
-  if (fitsPrev && fitsNext)
-  {
-    if (pprev.pit->getValue() <= pnext.pit->getValue())
-      foundIter = pprev.pit;
-    else
-      foundIter = pnext.pit;
-  }
-  else if (fitsPrev)
-    foundIter = pprev.pit;
-  else if (fitsNext)
-    foundIter = pnext.pit;
-  else
-    return false;
-
-  return true;
-}
-
-
-void PeakPool::locateTopBrackets(
-  const PiterPair& pfirstPrev,
-  const PiterPair& pfirstNext,
-  const Piterator& foundIter,
-  Piterator& pprev,
-  Piterator& pnext) const
-{
-  const unsigned ppindex = pfirstPrev.pit->getIndex();
-  const unsigned pnindex = pfirstNext.pit->getIndex();
-
-  pprev = foundIter;
-  do
-  {
-    pprev = prev(pprev);
-  }
-  while (pprev->getIndex() != ppindex);
-
-  pnext = foundIter;
-  do
-  {
-    pnext = next(pnext);
-  }
-  while (pnext->getIndex() != pnindex);
-}
-*/
-
-
 void PeakPool::printRepairData(
   const Piterator& foundIter,
   const Piterator& pprev,
@@ -326,109 +239,11 @@ void PeakPool::updateRepairedPeaks(
     {
       pit->calcQualities(averages);
 
-      // if (pit != pfirstPrev && ! PeakPool::addCandidate(&* pit))
       if (pit != pfirstPrev && ! _candidates.add(&* pit))
         cout << "PINSERT: Couldn't add candidate\n";
     }
   }
 }
-
-
-/*
-bool PeakPool::getHighestMax(
-  const Piterator& pb,
-  const Piterator& pe,
-  Peak *& pmax) const
-{
-  pmax = nullptr;
-  float val = numeric_limits<float>::lowest();
-  for (auto pit = pb; pit != pe; pit++)
-  {
-    if (pit->getValue() > val)
-    {
-      val = pit->getValue();
-      pmax = &* pit;
-    }
-  }
-
-  if (pmax == nullptr)
-  {
-    cout << "PINSERT: Null maximum\n";
-    return false;
-  }
-  else
-    return true;
-}
-
-
-bool PeakPool::getBestMax(
-  Piterator& pbmin,
-  Piterator& pemin,
-  Piterator& pref,
-  Piterator& pbest) const
-{
-  pbest = peaks->begin();
-  float valMax = 0.f;
-
-  for (auto pit = pbmin; pit != pemin; pit++)
-  {
-    if (pit->isMinimum())
-      continue;
-
-    const float val = pref->matchMeasure(* pit);
-    if (val > valMax)
-    {
-      pbest = pit;
-      valMax = val;
-    }
-  }
-  return (pbest != peaks->begin());
-}
-
-
-bool PeakPool::findTopSurrounding(
-  Piterator& foundIter,
-  Piterator& pprevSelected,
-  Piterator& pnextSelected,
-  Piterator& pprevBestMax,
-  Piterator& pnextBestMax) const
-{
-  // Find the previous selected minimum.  
-  pprevSelected = PeakPool::prevExclSoft(foundIter, &Peak::isSelected);
-
-  if (pprevSelected == peaks->begin())
-  {
-    cout << "PINSERT: Predecessor is begin()\n";
-    return false;
-  }
-
-  // Find the in-between maximum that maximizes slope * range,
-  // i.e. range^2 / len.
-  if (! PeakPool::getBestMax(pprevSelected, foundIter, foundIter,
-    pprevBestMax))
-  {
-    cout << "PINSERT: Maximum is begin()\n";
-    return false;
-  }
-
-  pnextSelected = PeakPool::nextExcl(foundIter, &Peak::isSelected);
-
-  if (pnextSelected == peaks->begin())
-  {
-    cout << "PINSERT: Successor is end()\n";
-    return false;
-  }
-
-  if (! PeakPool::getBestMax(foundIter, pnextSelected, foundIter,
-    pnextBestMax))
-  {
-    cout << "PINSERT: Maximum is end()\n";
-    return false;
-  }
-
-  return true;
-}
-*/
 
 
 Peak * PeakPool::repairTopLevel(
@@ -449,13 +264,6 @@ Peak * PeakPool::repairTopLevel(
   // - foundIter (min),
   // - pnextBestMax (max),
   // - pnextSelected (min).
-  /*
-  Piterator pprevSelected, pnextSelected;
-  Piterator pprevBestMax, pnextBestMax;
-  if (! PeakPool::findTopSurrounding(foundIter,
-      pprevSelected, pnextSelected, pprevBestMax, pnextBestMax))
-    return nullptr;
-    */
 
   Bracket bracketOuterMin, bracketInnerMax;
   if (! peaks->brackets(foundIter, bracketOuterMin, bracketInnerMax))
@@ -541,9 +349,6 @@ Peak * PeakPool::repairFromLower(
 
   // Peak only exists in lower list and might be resurrected.
   // It would go between ptopPrev and ptopNext (one min, one max).
-  // PiterPair ptopPrev, ptopNext;
-  // PeakPool::getBracketingPeaks(peakLists.rbegin(), 
-    // foundLowerIter->getIndex(), false, ptopPrev, ptopNext);
   Bracket bracketTop;
   peakLists.rbegin()->bracket(foundLowerIter->getIndex(), false, bracketTop);
 
@@ -569,7 +374,6 @@ Peak * PeakPool::repairFromLower(
 
   if (bracketLower.left.pit->isMinimum())
   {
-    // if (! PeakPool::getHighestMax(next(plowerPrev), foundLowerIter, pmax))
     bracketTmp.left.pit = next(bracketLower.left.pit);
     bracketTmp.right.pit = foundLowerIter;
 
@@ -657,15 +461,11 @@ Peak * PeakPool::repair(
     if (liter->size() < 2)
       continue;
 
-    // Find bracketing minima.
-    // PiterPair pprev, pnext;
     Bracket bracket;
     liter->bracket(pindex, true, bracket);
-    // PeakPool::getBracketingPeaks(liter, pindex, true, pprev, pnext);
 
     // Is one of them close enough?  If both, pick the lowest value.
     Piterator foundIter;
-    // if (! PeakPool::findCloseIter(peakHint, pprev, pnext, foundIter))
     if (! liter->near(peakHint, bracket, foundIter))
       continue;
 
@@ -712,84 +512,6 @@ const PeakPtrs& PeakPool::candidatesConst() const
 {
   return _candidates;
 }
-
-
-/*
-Piterator PeakPool::prevExcl(
-  Piterator& pit,
-  const PeakFncPtr& fptr) const
-{
-  if (pit == peaks->begin())
-    THROW(ERR_ALGO_PEAK_CONSISTENCY, "Miss earlier matching peak");
-
-  Piterator ppit = prev(pit);
-  return PeakPool::prevIncl(ppit, fptr);
-}
-
-
-Piterator PeakPool::prevExclSoft(
-  Piterator& pit,
-  const PeakFncPtr& fptr) const
-{
-  if (pit == peaks->begin())
-    return peaks->begin();
-
-  Piterator ppit = prev(pit);
-  return PeakPool::prevInclSoft(ppit, fptr);
-}
-
-
-Piterator PeakPool::prevIncl(
-  Piterator& pit,
-  const PeakFncPtr& fptr) const
-{
-  for (Piterator pitPrev = pit; ; pitPrev = prev(pitPrev))
-  {
-    if (((* pitPrev).* fptr)())
-      return pitPrev;
-    else if (pitPrev == peaks->begin())
-      THROW(ERR_ALGO_PEAK_CONSISTENCY, "Miss earlier matching peak");
-  }
-}
-
-
-Piterator PeakPool::prevInclSoft(
-  Piterator& pit,
-  const PeakFncPtr& fptr) const
-{
-  for (Piterator pitPrev = pit; ; pitPrev = prev(pitPrev))
-  {
-    if (((* pitPrev).* fptr)())
-      return pitPrev;
-    else if (pitPrev == peaks->begin())
-      return peaks->begin();
-  }
-}
-
-
-Piterator PeakPool::nextExcl(
-  Piterator& pit,
-  const PeakFncPtr& fptr) const
-{
-  if (pit == peaks->end())
-    THROW(ERR_ALGO_PEAK_CONSISTENCY, "Miss later matching peak");
-
-  Piterator npit = next(pit);
-  return PeakPool::nextIncl(npit, fptr);
-}
-
-
-Piterator PeakPool::nextIncl(
-  Piterator& pit,
-  const PeakFncPtr& fptr) const
-{
-  Piterator pitNext = pit;
-  while (pitNext != peaks->end() && ! ((* pitNext).* fptr)())
-    pitNext++;
-
-  return pitNext;
-}
-*/
 
 
 bool PeakPool::getClosest(

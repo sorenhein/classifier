@@ -34,10 +34,6 @@
 
 using namespace std;
 
-// typedef list<Peak> PeakList;
-// typedef PeakList::iterator Piterator;
-// typedef PeakList::const_iterator Pciterator;
-
 typedef list<PPLciterator> PeakIterList;
 typedef PeakIterList::const_iterator PIciterator;
 
@@ -46,7 +42,6 @@ class PeakPool
 {
   private:
 
-    // list<PeakList> peakLists;
     list<Peaks> peakLists;
 
     Peaks * peaks;
@@ -61,36 +56,6 @@ class PeakPool
     bool transientTrimmedFlag;
     unsigned transientLimit;
 
-    /*
-    struct PiterPair
-    {
-      Piterator pit;
-      bool hasFlag;
-    };
-    */
-
-
-    /*
-    void getBracketingPeaks(
-      const list<PeakList>::reverse_iterator& liter,
-      const unsigned pindex,
-      const bool minFlag,
-      PiterPair& pprev,
-      PiterPair& pnext) const;
-
-    bool findCloseIter(
-      const Peak& peakHint,
-      const PiterPair& pprev,
-      const PiterPair& pnext,
-      Piterator& foundIter) const;
-
-    void locateTopBrackets(
-      const PiterPair& pfirstPrev,
-      const PiterPair& pfirstNext,
-      const Piterator& foundIter,
-      Piterator& pprev, 
-      Piterator& pnext) const;
-      */
 
     void printRepairData(
       const Piterator& foundIter,
@@ -111,26 +76,6 @@ class PeakPool
       Piterator& pfirstPrev,
       Piterator& pfirstNext);
 
-    /*
-    bool getHighestMax(
-      const Piterator& pb,
-      const Piterator& pe,
-      Peak *& pmax) const;
-
-    bool getBestMax(
-      Piterator& pbmin,
-      Piterator& pemin,
-      Piterator& pref,
-      Piterator& pbest) const;
-
-    bool findTopSurrounding(
-      Piterator& foundIter,
-      Piterator& pprevSelected,
-      Piterator& pnextSelected,
-      Piterator& pprevBestMax,
-      Piterator& pnextBestMax) const;
-      */
-
     Peak * repairTopLevel(
       Piterator& foundIter,
       const PeakFncPtr& fptr,
@@ -141,8 +86,6 @@ class PeakPool
       Piterator& foundIter,
       const PeakFncPtr& fptr,
       const unsigned offset);
-
-    // float getFirstPeakTime() const;
 
 
   public:
@@ -199,36 +142,6 @@ class PeakPool
 
     PeakPtrs& candidates();
     const PeakPtrs& candidatesConst() const;
-
-    // TODO: No doubt there is a more elegant way to do this...
-
-
-    /*
-    Piterator prevExcl(
-      Piterator& pit,
-      const PeakFncPtr& fptr) const;
-
-    Piterator prevExclSoft(
-      Piterator& pit,
-      const PeakFncPtr& fptr) const;
-
-    Piterator prevIncl(
-      Piterator& pit,
-      const PeakFncPtr& fptr) const;
-
-    Piterator prevInclSoft(
-      Piterator& pit,
-      const PeakFncPtr& fptr) const;
-
-    Piterator nextExcl(
-      Piterator& pit,
-      const PeakFncPtr& fptr) const;
-
-    Piterator nextIncl(
-      Piterator& pit,
-      const PeakFncPtr& fptr) const;
-      */
-
 
     bool getClosest(
       const list<unsigned>& carPoints,

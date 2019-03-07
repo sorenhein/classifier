@@ -16,13 +16,6 @@ class Peak;
 typedef list<Peak *>::iterator PPLiterator;
 typedef list<Peak *>::const_iterator PPLciterator;
 
-// A list of iterators to the pointer list.
-typedef list<PPLiterator> PeakIterListNew;
-
-// Iterators for the iterator list.
-typedef PeakIterListNew::iterator PILiterator;
-typedef PeakIterListNew::const_iterator PILciterator;
-
 
 class PeakPtrs
 {
