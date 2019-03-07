@@ -6,6 +6,7 @@ Files to clean up:
   - Instead of pointer functions can have array as in PeakStructure?
 - PeakPool
   - Think about a PeakList class
+  - Expose top(), then eliminate all the passthrough methods?
 - PeakMinima
 - PeakPartial
 

@@ -36,21 +36,6 @@ class Peaks
 
     float getFirstPeakTime(const PeakFncPtr& fptr) const;
 
-
-
-    bool empty() const;
-
-    unsigned size() const;
-
-    Piterator begin();
-    Pciterator cbegin() const;
-
-    Piterator end();
-    Pciterator cend() const;
-
-    Peak& front();
-    Peak& back();
-
     Piterator next(
       const Piterator& pit,
       const PeakFncPtr& fptr,
@@ -72,6 +57,33 @@ class Peaks
       const bool exclFlag = true) const;
 
 
+  public:
+
+    Peaks();
+
+    ~Peaks();
+
+    void clear();
+
+    bool empty() const;
+
+    unsigned size() const;
+
+    Piterator begin();
+    Pciterator cbegin() const;
+
+    Piterator end();
+    Pciterator cend() const;
+
+    Peak& front();
+    Peak& back();
+
+    Piterator insert(
+      Piterator& pit,
+      Peak& peak);
+
+    void extend();
+
     Piterator erase(
       Piterator pit1,
       Piterator pit2);
@@ -79,6 +91,13 @@ class Peaks
     Piterator collapse(
       Piterator pit1,
       Piterator pit2);
+
+
+    bool near(
+      const Peak& peakHint,
+      const Bracket& bracket,
+      Piterator& foundIter) const;
+
 
     void bracket(
       const unsigned pindex,
@@ -90,10 +109,11 @@ class Peaks
       const Piterator& foundIter,
       Bracket& bracket) const;
 
-    bool near(
-      const Peak& peakHint,
-      const Bracket& bracket,
-      Piterator& foundIter) const;
+    bool brackets(
+      const Piterator& foundIter,
+      Bracket& bracketOuterMin,
+      Bracket& bracketInnerMax);
+
 
     bool getHighestMax(
       const Bracket& bracket,
@@ -104,11 +124,6 @@ class Peaks
       const Piterator& rightIter,
       const Piterator& pref,
       Piterator& pbest);
-
-    bool brackets(
-      const Piterator& foundIter,
-      Bracket& bracketOuterMin,
-      Bracket& bracketInnerMax);
 
 
     void getSamples(
@@ -127,18 +142,6 @@ class Peaks
     string str(
       const string& text,
       const unsigned& offset) const;
-
-
-
-
-  public:
-
-    Peaks();
-
-    ~Peaks();
-
-    void clear();
-
 
 };
 

@@ -73,6 +73,20 @@ Peak& Peaks::back()
 }
 
 
+Piterator Peaks::insert(
+  Piterator& pit,
+  Peak& peak)
+{
+  return peaks.insert(pit, peak);
+}
+
+
+void Peaks::extend()
+{
+  peaks.emplace_back(Peak());
+}
+
+
 Piterator Peaks::next(
   const Piterator& pit,
   const PeakFncPtr& fptr,

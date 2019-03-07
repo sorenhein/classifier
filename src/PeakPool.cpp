@@ -82,13 +82,13 @@ Peak& PeakPool::back()
 
 void PeakPool::extend()
 {
-  peaks->emplace_back(Peak());
+  peaks->extend();
 }
 
 
 void PeakPool::copy()
 {
-  peakLists.emplace_back(PeakList());
+  peakLists.emplace_back(Peaks());
   peakLists.back() = * peaks;
   peaks = &peakLists.back();
 }
@@ -112,18 +112,7 @@ Piterator PeakPool::collapse(
   Piterator pit1,
   Piterator pit2)
 {
-  // Analogous to erase(): pit1 does not survive, while pit2 does.
-  // But pit2 gets updated first.
-  if (pit1 == pit2)
-    return pit1;
-
-  Peak * peak0 =
-    (pit1 == peaks->begin() ? nullptr : &*prev(pit1));
-
-  if (peak0 != nullptr)
-    pit2->update(peak0);
-
-  return peaks->erase(pit1, pit2);
+  return peaks->collapse(pit1, pit2);
 }
 
 
@@ -191,6 +180,7 @@ cout << "firstGoodIndex " << firstGoodIndex << endl;
 }
 
 
+/*
 void PeakPool::getBracketingPeaks(
   const list<PeakList>::reverse_iterator& liter,
   const unsigned pindex,
@@ -274,6 +264,7 @@ void PeakPool::locateTopBrackets(
   }
   while (pnext->getIndex() != pnindex);
 }
+*/
 
 
 void PeakPool::printRepairData(
@@ -343,6 +334,7 @@ void PeakPool::updateRepairedPeaks(
 }
 
 
+/*
 bool PeakPool::getHighestMax(
   const Piterator& pb,
   const Piterator& pe,
@@ -436,6 +428,7 @@ bool PeakPool::findTopSurrounding(
 
   return true;
 }
+*/
 
 
 Peak * PeakPool::repairTopLevel(
@@ -456,16 +449,22 @@ Peak * PeakPool::repairTopLevel(
   // - foundIter (min),
   // - pnextBestMax (max),
   // - pnextSelected (min).
+  /*
   Piterator pprevSelected, pnextSelected;
   Piterator pprevBestMax, pnextBestMax;
   if (! PeakPool::findTopSurrounding(foundIter,
       pprevSelected, pnextSelected, pprevBestMax, pnextBestMax))
     return nullptr;
+    */
+
+  Bracket bracketOuterMin, bracketInnerMax;
+  if (! peaks->brackets(foundIter, bracketOuterMin, bracketInnerMax))
+    return nullptr;
 
   // We make a trial run to ensure the quality if we clean up.
   Peak ptmp = * foundIter;
-  ptmp.update(&* pprevBestMax);
-  Peak ptmpNext = * pnextBestMax;
+  ptmp.update(&* bracketInnerMax.left.pit);
+  Peak ptmpNext = * bracketInnerMax.right.pit;
   ptmpNext.update(& ptmp);
   ptmp.logNextPeak(& ptmpNext);
   ptmp.calcQualities(averages);
@@ -475,10 +474,10 @@ Peak * PeakPool::repairTopLevel(
     cout << ptmp.strHeaderQuality();
     cout << ptmp.strQuality(offset);
     cout << "Used peaks:\n";
-    cout << pprevSelected->strQuality(offset);
-    cout << pprevBestMax->strQuality(offset);
-    cout << pnextBestMax->strQuality(offset);
-    cout << pnextSelected->strQuality(offset);
+    cout << bracketOuterMin.left.pit->strQuality(offset);
+    cout << bracketInnerMax.left.pit->strQuality(offset);
+    cout << bracketInnerMax.right.pit->strQuality(offset);
+    cout << bracketOuterMin.right.pit->strQuality(offset);
     return nullptr;
   }
 
@@ -486,13 +485,13 @@ Peak * PeakPool::repairTopLevel(
   cout << foundIter->strHeaderQuality();
   cout << foundIter->strQuality(offset);
 
-  Piterator nprevBestMax = next(pprevBestMax);
+  Piterator nprevBestMax = next(bracketInnerMax.left.pit);
   if (nprevBestMax != foundIter)
   {
     // Delete peaks in (pprevBestMax, foundIter).
 
     cout << "PINSERT: Delete (" <<
-      pprevBestMax->getIndex() + offset << ", " <<
+      bracketInnerMax.left.pit->getIndex() + offset << ", " <<
       foundIter->getIndex() + offset << ")\n";
 
     // This also recalculates left flanks.
@@ -504,18 +503,18 @@ Peak * PeakPool::repairTopLevel(
 
 
   Piterator nfoundIter = next(foundIter);
-  if (pnextBestMax != nfoundIter)
+  if (bracketInnerMax.right.pit != nfoundIter)
   {
     // Delete peaks in (foundIter, pnextBestMax).
 
     cout << "PINSERT: Delete (" <<
       foundIter->getIndex() + offset << ", " <<
-      pnextBestMax->getIndex() + offset << ")\n";
+      bracketInnerMax.right.pit->getIndex() + offset << ")\n";
     
-    PeakPool::collapse(nfoundIter, pnextBestMax);
+    PeakPool::collapse(nfoundIter, bracketInnerMax.right.pit);
 
     // The right flank of foundIter must be updated.
-    foundIter->logNextPeak(&* pnextBestMax);
+    foundIter->logNextPeak(&* bracketInnerMax.right.pit);
 
   }
 
@@ -532,6 +531,7 @@ Peak * PeakPool::repairTopLevel(
 
 
 Peak * PeakPool::repairFromLower(
+  Peaks& listLower,
   Piterator& foundLowerIter,
   const PeakFncPtr& fptr,
   const unsigned offset)
@@ -541,28 +541,39 @@ Peak * PeakPool::repairFromLower(
 
   // Peak only exists in lower list and might be resurrected.
   // It would go between ptopPrev and ptopNext (one min, one max).
-  PiterPair ptopPrev, ptopNext;
-  PeakPool::getBracketingPeaks(peakLists.rbegin(), 
-    foundLowerIter->getIndex(), false, ptopPrev, ptopNext);
+  // PiterPair ptopPrev, ptopNext;
+  // PeakPool::getBracketingPeaks(peakLists.rbegin(), 
+    // foundLowerIter->getIndex(), false, ptopPrev, ptopNext);
+  Bracket bracketTop;
+  peakLists.rbegin()->bracket(foundLowerIter->getIndex(), false, bracketTop);
 
-  if (! ptopPrev.hasFlag || ! ptopNext.hasFlag)
+  if (! bracketTop.left.hasFlag || ! bracketTop.right.hasFlag)
   {
     cout << "PINSERT: Not an interior interval\n";
     return nullptr;
   }
 
   // Find the same bracketing peaks in the current, lower list.
-  Piterator plowerPrev, plowerNext;
-  PeakPool::locateTopBrackets(ptopPrev, ptopNext, foundLowerIter, 
-    plowerPrev, plowerNext);
+  // Piterator plowerPrev, plowerNext;
+  // PeakPool::locateTopBrackets(ptopPrev, ptopNext, foundLowerIter, 
+    // plowerPrev, plowerNext);
+  Bracket bracketLower;
+  listLower.bracketSpecific(bracketTop, foundLowerIter, bracketLower);
+
 
   // We only introduce two new peaks, so the one we found goes next 
   // to the bracketing one with opposite polarity.  In the gap we put 
   // the intervening peak with maximum value.  This is quick and dirty.
   Peak * pmax;
-  if (plowerPrev->isMinimum())
+  Bracket bracketTmp;
+
+  if (bracketLower.left.pit->isMinimum())
   {
-    if (! PeakPool::getHighestMax(next(plowerPrev), foundLowerIter, pmax))
+    // if (! PeakPool::getHighestMax(next(plowerPrev), foundLowerIter, pmax))
+    bracketTmp.left.pit = next(bracketLower.left.pit);
+    bracketTmp.right.pit = foundLowerIter;
+
+    if (! listLower.getHighestMax(bracketTmp, pmax))
       return nullptr;
 
     // We make a trial run to ensure that the new minimum at the top
@@ -585,13 +596,16 @@ Peak * PeakPool::repairFromLower(
     // - NEW: the peak pointed to by foundLowerIter (min),
     // - the old maximum lifted from the lower level, 
     // - ptopNext (min).
-    auto ptopNew = peaks->insert(ptopNext.pit, * foundLowerIter);
+    auto ptopNew = peaks->insert(bracketTop.right.pit, * foundLowerIter);
     peaks->insert(ptopNew, * pmax);
   }
   else
   {
     // New peak goes next to ptopPrev.
-    if (! PeakPool::getHighestMax(next(foundLowerIter), plowerNext, pmax))
+    // if (! PeakPool::getHighestMax(next(foundLowerIter), plowerNext, pmax))
+    bracketTmp.left.pit = next(foundLowerIter);
+    bracketTmp.right.pit = bracketLower.right.pit;
+    if (! listLower.getHighestMax(bracketTmp, pmax))
       return nullptr;
 
     // Again we make a trial run.
@@ -615,13 +629,13 @@ Peak * PeakPool::repairFromLower(
     // - NEW: the peak pointed to by foundLowerIter (min),
     // - NEW: pmax (max),
     // - ptopNext (min).
-    auto ptopNew = peaks->insert(ptopNext.pit, * foundLowerIter);
-    peaks->insert(ptopNext.pit, * pmax);
+    auto ptopNew = peaks->insert(bracketTop.right.pit, * foundLowerIter);
+    peaks->insert(bracketTop.right.pit, * pmax);
   }
 
-  PeakPool::updateRepairedPeaks(ptopPrev.pit, ptopNext.pit);
+  PeakPool::updateRepairedPeaks(bracketTop.left.pit, bracketTop.right.pit);
 
-  PeakPool::printRepairedSegment(ptopPrev.pit, ptopNext.pit, offset);
+  PeakPool::printRepairedSegment(bracketTop.left.pit, bracketTop.right.pit, offset);
 
   return &* foundLowerIter;
 }
@@ -644,12 +658,15 @@ Peak * PeakPool::repair(
       continue;
 
     // Find bracketing minima.
-    PiterPair pprev, pnext;
-    PeakPool::getBracketingPeaks(liter, pindex, true, pprev, pnext);
+    // PiterPair pprev, pnext;
+    Bracket bracket;
+    liter->bracket(pindex, true, bracket);
+    // PeakPool::getBracketingPeaks(liter, pindex, true, pprev, pnext);
 
     // Is one of them close enough?  If both, pick the lowest value.
     Piterator foundIter;
-    if (! PeakPool::findCloseIter(peakHint, pprev, pnext, foundIter))
+    // if (! PeakPool::findCloseIter(peakHint, pprev, pnext, foundIter))
+    if (! liter->near(peakHint, bracket, foundIter))
       continue;
 
     if (liter == peakLists.rbegin())
@@ -661,7 +678,7 @@ Peak * PeakPool::repair(
     else
     {
       // Peak only exists in earlier list and might be resurrected.
-      return PeakPool::repairFromLower(foundIter, fptr, offset);
+      return PeakPool::repairFromLower(* liter, foundIter, fptr, offset);
     }
   }
 
@@ -697,6 +714,7 @@ const PeakPtrs& PeakPool::candidatesConst() const
 }
 
 
+/*
 Piterator PeakPool::prevExcl(
   Piterator& pit,
   const PeakFncPtr& fptr) const
@@ -771,6 +789,7 @@ Piterator PeakPool::nextIncl(
 
   return pitNext;
 }
+*/
 
 
 bool PeakPool::getClosest(
@@ -853,80 +872,38 @@ bool PeakPool::getClosest(
 
 void PeakPool::getSelectedSamples(vector<float>& selected) const
 {
-  for (unsigned i = 0; i < selected.size(); i++)
-    selected[i] = 0;
+  if (! peaks)
+    return;
 
-  for (auto& peak: * peaks)
-  {
-    if (peak.isSelected())
-      selected[peak.getIndex()] = peak.getValue();
-  }
-}
-
-
-float PeakPool::getFirstPeakTime() const
-{
-  for (auto& peak: * peaks)
-  {
-    if (peak.isSelected())
-      return peak.getIndex() / static_cast<float>(SAMPLE_RATE);
-  }
-  return 0.f;
+  peaks->getSamples(&Peak::isSelected, selected);
 }
 
 
 void PeakPool::getSelectedTimes(vector<PeakTime>& times) const
 {
-  times.clear();
-  const float t0 = PeakPool::getFirstPeakTime();
+  if (! peaks)
+    return;
 
-  for (auto& peak: * peaks)
-  {
-    if (peak.isSelected())
-    {
-      times.emplace_back(PeakTime());
-      PeakTime& p = times.back();
-      p.time = peak.getIndex() / SAMPLE_RATE - t0;
-      p.value = peak.getValue();
-    }
-  }
+  peaks->getTimes(&Peak::isSelected, times);
 }
 
 string PeakPool::strAll(
   const string& text,
   const unsigned& offset) const
 {
-  if (peaks->empty())
+  if (! peaks)
     return "";
-
-  stringstream ss;
-  if (text != "")
-    ss << text << ": " << peaks->size() << "\n";
-  ss << peaks->front().strHeader();
-
-  for (auto& peak: * peaks)
-    ss << peak.str(offset);
-  ss << endl;
-  return ss.str();
+  else
+    return peaks->str(text, offset);
 }
 
 
 string PeakPool::strSelectedTimesCSV(const string& text) const
 {
-  if (peaks->empty())
+  if (! peaks)
     return "";
-
-  stringstream ss;
-  ss << text << "n";
-  unsigned i = 0;
-  for (auto& peak: * peaks)
-  {
-    if (peak.isSelected())
-      ss << i++ << ";" <<
-        fixed << setprecision(6) << peak.getTime() << "\n";
-  }
-  ss << endl;
-  return ss.str();
+  else
+    return peaks->strTimesCSV(&Peak::isSelected, text);
 }
 
 
