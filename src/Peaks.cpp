@@ -87,6 +87,33 @@ void Peaks::extend()
 }
 
 
+Piterator Peaks::erase(
+  Piterator pit1,
+  Piterator pit2)
+{
+  return peaks.erase(pit1, pit2);
+}
+
+
+Piterator Peaks::collapse(
+  Piterator pit1,
+  Piterator pit2)
+{
+  // Analogous to erase(): pit1 does not survive, while pit2 does.
+  // But pit2 gets updated first.
+  if (pit1 == pit2)
+    return pit1;
+
+  Peak * peak0 =
+    (pit1 == peaks.begin() ? nullptr : &*std::prev(pit1));
+
+  if (peak0 != nullptr)
+    pit2->update(peak0);
+
+  return peaks.erase(pit1, pit2);
+}
+
+
 Piterator Peaks::next(
   const Piterator& pit,
   const PeakFncPtr& fptr,
@@ -163,30 +190,36 @@ Pciterator Peaks::prev(
 }
 
 
-Piterator Peaks::erase(
-  Piterator pit1,
-  Piterator pit2)
+bool Peaks::near(
+  const Peak& peakHint,
+  const Bracket& bracket,
+  Piterator& foundIter) const
 {
-  return peaks.erase(pit1, pit2);
-}
+  // If one of the bracketing minima is near enough, return it.
+  // If they're both near, pick the nearest one.
 
+  bool fitsNext = false;
+  bool fitsPrev = false;
+  if (bracket.left.hasFlag && peakHint.fits(* bracket.left.pit))
+    fitsPrev = true;
+  if (bracket.right.hasFlag && peakHint.fits(* bracket.right.pit))
+    fitsNext = true;
 
-Piterator Peaks::collapse(
-  Piterator pit1,
-  Piterator pit2)
-{
-  // Analogous to erase(): pit1 does not survive, while pit2 does.
-  // But pit2 gets updated first.
-  if (pit1 == pit2)
-    return pit1;
+  if (fitsPrev && fitsNext)
+  {
+    if (bracket.left.pit->getValue() <= bracket.right.pit->getValue())
+      foundIter = bracket.left.pit;
+    else
+      foundIter = bracket.right.pit;
+  }
+  else if (fitsPrev)
+    foundIter = bracket.left.pit;
+  else if (fitsNext)
+    foundIter = bracket.right.pit;
+  else
+    return false;
 
-  Peak * peak0 =
-    (pit1 == peaks.begin() ? nullptr : &*std::prev(pit1));
-
-  if (peak0 != nullptr)
-    pit2->update(peak0);
-
-  return peaks.erase(pit1, pit2);
+  return true;
 }
 
 
@@ -245,34 +278,47 @@ void Peaks::bracketSpecific(
 }
 
 
-bool Peaks::near(
-  const Peak& peakHint,
-  const Bracket& bracket,
-  Piterator& foundIter) const
+bool Peaks::brackets(
+  const Piterator& foundIter,
+  Bracket& bracketOuterMin,
+  Bracket& bracketInnerMax)
 {
-  // If one of the bracketing minima is near enough, return it.
-  // If they're both near, pick the nearest one.
+  // Find the two surrounding brackets:
+  // bracketOuterMin  |                                       |
+  // brackerInnerMax            |                   |
+  // foundIter                           *
 
-  bool fitsNext = false;
-  bool fitsPrev = false;
-  if (bracket.left.hasFlag && peakHint.fits(* bracket.left.pit))
-    fitsPrev = true;
-  if (bracket.right.hasFlag && peakHint.fits(* bracket.right.pit))
-    fitsNext = true;
-
-  if (fitsPrev && fitsNext)
+  // Find the previous selected minimum.  
+  bracketOuterMin.left.pit = Peaks::prev(foundIter, &Peak::isSelected);
+  if (bracketOuterMin.left.pit == peaks.end())
   {
-    if (bracket.left.pit->getValue() <= bracket.right.pit->getValue())
-      foundIter = bracket.left.pit;
-    else
-      foundIter = bracket.right.pit;
-  }
-  else if (fitsPrev)
-    foundIter = bracket.left.pit;
-  else if (fitsNext)
-    foundIter = bracket.right.pit;
-  else
+    cout << "PINSERT: Predecessor is end()\n";
     return false;
+  }
+
+  // Find the following selected minimum.
+  bracketOuterMin.right.pit = Peaks::next(foundIter, &Peak::isSelected);
+  if (bracketOuterMin.right.pit == peaks.end())
+  {
+    cout << "PINSERT: Successor is end()\n";
+    return false;
+  }
+
+  // Find the in-between maximum that maximizes slope * range,
+  // i.e. range^2 / len.
+  if (! Peaks::getBestMax(bracketOuterMin.left.pit, foundIter, foundIter,
+    bracketInnerMax.left.pit))
+  {
+    cout << "PINSERT: Maximum is begin()\n";
+    return false;
+  }
+
+  if (! Peaks::getBestMax(foundIter, bracketOuterMin.right.pit, foundIter,
+    bracketInnerMax.right.pit))
+  {
+    cout << "PINSERT: Maximum is end()\n";
+    return false;
+  }
 
   return true;
 }
@@ -325,52 +371,6 @@ bool Peaks::getBestMax(
     }
   }
   return (pbest != peaks.begin());
-}
-
-
-bool Peaks::brackets(
-  const Piterator& foundIter,
-  Bracket& bracketOuterMin,
-  Bracket& bracketInnerMax)
-{
-  // Find the two surrounding brackets:
-  // bracketOuterMin  |                                       |
-  // brackerInnerMax            |                   |
-  // foundIter                           *
-
-  // Find the previous selected minimum.  
-  bracketOuterMin.left.pit = Peaks::prev(foundIter, &Peak::isSelected);
-  if (bracketOuterMin.left.pit == peaks.end())
-  {
-    cout << "PINSERT: Predecessor is end()\n";
-    return false;
-  }
-
-  // Find the following selected minimum.
-  bracketOuterMin.right.pit = Peaks::next(foundIter, &Peak::isSelected);
-  if (bracketOuterMin.right.pit == peaks.end())
-  {
-    cout << "PINSERT: Successor is end()\n";
-    return false;
-  }
-
-  // Find the in-between maximum that maximizes slope * range,
-  // i.e. range^2 / len.
-  if (! Peaks::getBestMax(bracketOuterMin.left.pit, foundIter, foundIter,
-    bracketInnerMax.left.pit))
-  {
-    cout << "PINSERT: Maximum is begin()\n";
-    return false;
-  }
-
-  if (! Peaks::getBestMax(foundIter, bracketOuterMin.right.pit, foundIter,
-    bracketInnerMax.right.pit))
-  {
-    cout << "PINSERT: Maximum is end()\n";
-    return false;
-  }
-
-  return true;
 }
 
 

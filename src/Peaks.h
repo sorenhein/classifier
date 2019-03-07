@@ -34,8 +34,6 @@ class Peaks
     PeakList peaks;
 
 
-    float getFirstPeakTime(const PeakFncPtr& fptr) const;
-
     Piterator next(
       const Piterator& pit,
       const PeakFncPtr& fptr,
@@ -55,6 +53,8 @@ class Peaks
       const Piterator& pit,
       const PeakFncPtr& fptr,
       const bool exclFlag = true) const;
+
+    float getFirstPeakTime(const PeakFncPtr& fptr) const;
 
 
   public:
