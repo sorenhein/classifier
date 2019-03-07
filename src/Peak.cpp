@@ -914,6 +914,16 @@ string Peak::strQuality(const unsigned offset) const
 }
 
 
+string Peak::strQualityWhole(
+  const string& text,
+  const unsigned offset) const
+{
+  return text + "\n" + 
+    Peak::strHeaderQuality() +
+    Peak::strQuality(offset);
+}
+
+
 string Peak::strExtent() const
 {
   stringstream ss;

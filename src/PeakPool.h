@@ -58,10 +58,17 @@ class PeakPool
 
 
     void printRepairedSegment(
+      const string& text,
       const Bracket& bracketTop,
       const unsigned offset) const;
 
     void updateRepairedPeaks(Bracket& bracket);
+
+    bool peakFixable(
+      Piterator& foundIter,
+      const PeakFncPtr& fptr,
+      const Bracket& bracket,
+      const unsigned offset) const;
 
     Peak * repairTopLevel(
       Piterator& foundIter,

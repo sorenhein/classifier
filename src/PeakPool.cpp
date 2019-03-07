@@ -93,10 +93,11 @@ bool PeakPool::pruneTransients(const unsigned firstGoodIndex)
 
 
 void PeakPool::printRepairedSegment(
+  const string& text,
   const Bracket& bracketTop,
   const unsigned offset) const
 {
-  cout << "Modified the top-level peaks\n";
+  cout << text << "\n";
   cout << bracketTop.left.pit->strHeaderQuality();
   for (auto pit = bracketTop.left.pit; pit != bracketTop.right.pit; pit++)
     cout << pit->strQuality(offset);
@@ -129,6 +130,37 @@ void PeakPool::updateRepairedPeaks(Bracket& bracket)
 }
 
 
+bool PeakPool::peakFixable(
+  Piterator& foundIter,
+  const PeakFncPtr& fptr,
+  const Bracket& bracket,
+  const unsigned offset) const
+{
+  // bracket      max             max
+  // foundIter           min
+  // peak                *
+  // peakNext                     *
+
+  Peak peak = * foundIter;
+  peak.update(&* bracket.left.pit);
+
+  Peak peakNext = * bracket.right.pit;
+  peakNext.update(& peak);
+
+  peak.logNextPeak(& peakNext);
+  peak.calcQualities(averages);
+
+  if ((peak.* fptr)())
+    return true;
+  else
+  {
+    cout << 
+      foundIter->strQualityWhole("Top-level peak not repairable", offset);
+    return false;
+  }
+}
+
+
 Peak * PeakPool::repairTopLevel(
   Piterator& foundIter,
   const PeakFncPtr& fptr,
@@ -142,49 +174,28 @@ Peak * PeakPool::repairTopLevel(
   // (inside those bracketing minima) that maximize slope * range,
   // i.e. range^2 / len, for the foundIter peak.  This is a measure
   // of a good, sharp peak.  Order, possibly with others in between:
-  // - pprevSelected (min),
-  // - pprevBestMax (max),
-  // - foundIter (min),
-  // - pnextBestMax (max),
-  // - pnextSelected (min).
+  // bracketOuterMin       left                              right
+  // bracketInnerMax                 left          right
+  // foundIter                               x
 
   Bracket bracketOuterMin, bracketInnerMax;
   if (! peaks->brackets(foundIter, bracketOuterMin, bracketInnerMax))
     return nullptr;
 
   // We make a trial run to ensure the quality if we clean up.
-  Peak ptmp = * foundIter;
-  ptmp.update(&* bracketInnerMax.left.pit);
-  Peak ptmpNext = * bracketInnerMax.right.pit;
-  ptmpNext.update(& ptmp);
-  ptmp.logNextPeak(& ptmpNext);
-  ptmp.calcQualities(averages);
-  if (! (ptmp.* fptr)())
+  if (! PeakPool::peakFixable(foundIter, fptr, bracketInnerMax, offset))
   {
-    cout << "PINSERT: Cleaned top-level peak would not be OK(3)\n";
-    cout << ptmp.strHeaderQuality();
-    cout << ptmp.strQuality(offset);
-    cout << "Used peaks:\n";
-    cout << bracketOuterMin.left.pit->strQuality(offset);
-    cout << bracketInnerMax.left.pit->strQuality(offset);
-    cout << bracketInnerMax.right.pit->strQuality(offset);
-    cout << bracketOuterMin.right.pit->strQuality(offset);
+    PeakPool::printRepairedSegment("Top-level bracket",
+      bracketInnerMax, offset);
     return nullptr;
   }
 
-  cout << "PINSERT: Top peak exists\n";
-  cout << foundIter->strHeaderQuality();
-  cout << foundIter->strQuality(offset);
+  cout << foundIter->strQualityWhole("Top-level peak repairable", offset);
 
   Piterator nprevBestMax = next(bracketInnerMax.left.pit);
   if (nprevBestMax != foundIter)
   {
-    // Delete peaks in (pprevBestMax, foundIter).
-
-    cout << "PINSERT: Delete (" <<
-      bracketInnerMax.left.pit->getIndex() + offset << ", " <<
-      foundIter->getIndex() + offset << ")\n";
-
+    // Delete peaks in [nprevBestMax, foundIter).
     // This also recalculates left flanks.
     peaks->collapse(nprevBestMax, foundIter);
 
@@ -196,12 +207,8 @@ Peak * PeakPool::repairTopLevel(
   Piterator nfoundIter = next(foundIter);
   if (bracketInnerMax.right.pit != nfoundIter)
   {
-    // Delete peaks in (foundIter, pnextBestMax).
+    // Delete peaks in [nfoundIter, pnextBestMax).
 
-    cout << "PINSERT: Delete (" <<
-      foundIter->getIndex() + offset << ", " <<
-      bracketInnerMax.right.pit->getIndex() + offset << ")\n";
-    
     peaks->collapse(nfoundIter, bracketInnerMax.right.pit);
 
     // The right flank of foundIter must be updated.
@@ -211,11 +218,10 @@ Peak * PeakPool::repairTopLevel(
 
   // Re-score foundIter.
   foundIter->calcQualities(averages);
-  if (((* foundIter).* fptr)())
+  // if (((* foundIter).* fptr)())
     foundIter->select();
 
-  cout << "peakHint now\n";
-  cout << foundIter->strQuality(offset);
+  cout << foundIter->strQualityWhole("Top-level peak now", offset);
 
   return &* foundIter;
 }
@@ -321,7 +327,7 @@ Peak * PeakPool::repairFromLower(
   }
 
   PeakPool::updateRepairedPeaks(bracketTop);
-  PeakPool::printRepairedSegment(bracketTop, offset);
+  PeakPool::printRepairedSegment("Fixed top-level", bracketTop, offset);
 
   return &* foundLowerIter;
 }

@@ -227,6 +227,9 @@ class Peak
 
     string str(const unsigned offset = 0) const;
     string strQuality(const unsigned offset = 0) const;
+    string strQualityWhole(
+      const string& text,
+      const unsigned offset) const;
 
     string stars() const;
 };
