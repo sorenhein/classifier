@@ -20,9 +20,13 @@ void PeakPool::clear()
 {
   peakLists.clear();
   peakLists.resize(1);
+
   peaks = &peakLists.front();
+
   _candidates.clear();
+
   averages.clear();
+
   transientTrimmedFlag = false;
   transientLimit = 0;
 }
@@ -49,28 +53,11 @@ bool PeakPool::pruneTransients(const unsigned firstGoodIndex)
   else
     transientTrimmedFlag = true;
 
-cout << "firstGoodIndex " << firstGoodIndex << endl;
-  // Determine statistics.
-  float levelSum = 0., levelSumSq = 0.;
-  unsigned num = 0;
-  for (auto& peak: * peaks)
-  {
-    if (peak.isSelected() && peak.getIndex() >= firstGoodIndex)
-    {
-      const float level = peak.getValue();
-      levelSum += level;
-      levelSumSq += level * level;
-      num++;
-    }
-  }
-
-  if (num <= 1)
+  float mean, sdev;
+  if (! peaks->stats(firstGoodIndex, mean, sdev))
     return false;
 
-  const float mean = levelSum / num;
-  const float sdev = sqrt(levelSumSq / (num-1) - mean * mean);
   const float limit = mean - 2.f * sdev;
-// cout << "mean " << mean << " sdev " << sdev << " limit " << limit << endl;
 
   // Go for the first consecutive peaks that are too negative.
   Piterator pitLastTransient;

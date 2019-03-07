@@ -223,6 +223,33 @@ bool Peaks::near(
 }
 
 
+bool Peaks::stats(
+  const unsigned lower,
+  float& mean,
+  float& sdev) const
+{
+  float sum = 0., sumsq = 0.;
+  unsigned num = 0;
+  for (auto& peak: peaks)
+  {
+    if (peak.isSelected() && peak.getIndex() >= lower)
+    {
+      const float level = peak.getValue();
+      sum += level;
+      sumsq += level * level;
+      num++;
+    }
+  }
+
+  if (num <= 1)
+    return false;
+
+  mean = sum / num;
+  sdev = sqrt(sumsq / (num-1) - mean * mean);
+  return true;
+}
+
+
 void Peaks::bracket(
   const unsigned pindex,
   const bool minFlag,

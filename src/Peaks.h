@@ -98,6 +98,10 @@ class Peaks
       const Bracket& bracket,
       Piterator& foundIter) const;
 
+    bool stats(
+      const unsigned lower,
+      float& mean,
+      float& sdev) const;
 
     void bracket(
       const unsigned pindex,
