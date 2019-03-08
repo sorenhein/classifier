@@ -112,6 +112,11 @@ class PeakPtrs
       PeakPtrs& peaksMatched,
       PeakPtrs& peaksRejected) const;
 
+    void split(
+      const vector<Peak const *>& flattened,
+      PeakPtrs& peaksMatched,
+      PeakPtrs& peaksRejected);
+
     void apply(const PeakRunFncPtr& fptr);
 
     void markup();
@@ -119,6 +124,8 @@ class PeakPtrs
     void flattenCar(CarPeaksPtr& carPeaksPtr);
 
     void flatten(vector<Peak *>& flattened);
+
+    void select(const vector<Peak *>& flattened);
 
     string strQuality(
       const string& text,

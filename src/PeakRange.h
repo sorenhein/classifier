@@ -77,6 +77,11 @@ class PeakRange
       PeakPtrs& peakPtrsUsed,
       PeakPtrs& peakPtrsUnused) const;
 
+    void split(
+      const vector<Peak const *>& flattened,
+      PeakPtrs& peakPtrsUsed,
+      PeakPtrs& peakPtrsUnused);
+
     bool isFirstCar() const;
     bool isLastCar() const;
     bool match(const Recognizer& recog) const;

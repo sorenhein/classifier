@@ -685,6 +685,12 @@ Peak * PeakPartial::lookForPeak(
   pptr = PeakPartial::locatePeak(
     nextStart - smallStep, nextStart + smallStep, nextStart,
     &Peak::goodQuality, peakPtrsUsed, indexUsedOut);
+  // This won't work, as peakPtrsUsed is a normal vector here.
+  /*
+  pptr = peakPtrsUsed.locate(
+    nextStart - smallStep, nextStart + smallStep, nextStart,
+    &Peak::goodQuality, indexUsedOut);
+    */
     
   if (pptr)
     return pptr;

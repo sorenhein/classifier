@@ -2,6 +2,8 @@ Plan 2019-02-27
 ---------------
 Files to clean up:
 - PeakPartial
+  - Split into PeakPartialUsed, later Unused, Hidden
+  - Have an array of structs? lower, upper, peaks etc.
 
 In Perl, show last, mid.  Show histo of d's of the true train.
 Don't show devs with Issues.

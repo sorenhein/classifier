@@ -398,6 +398,59 @@ void PeakPtrs::split(
 }
 
 
+void PeakPtrs::split(
+  const vector<Peak const *>& flattened,
+  PeakPtrs& peaksMatched,
+  PeakPtrs& peaksRejected)
+{
+  // In a sense we could clear peaks and then push back each element
+  // of flattened.  But due to the constness of flattened, we do it
+  // in this way.
+  
+  peaksMatched.clear();
+  peaksRejected.clear();
+
+  PPLiterator pit = peaks.begin();
+  vector<Peak const *>::const_iterator fit = flattened.cbegin();
+
+  while (pit != peaks.end() || fit != flattened.cend())
+  {
+    if (pit == peaks.end())
+    {
+      cout << "PeakPtrs::split ERROR1\n";
+      return;
+    }
+    else if (fit == flattened.cend())
+    {
+      peaksRejected.push_back(* pit);
+      pit++;
+      continue;
+    }
+
+    const unsigned pindex = (* pit)->getIndex();
+    const unsigned findex = (* fit)->getIndex();
+
+    if (findex == pindex)
+    {
+      // Match.
+      peaksMatched.push_back(* pit);
+      pit++;
+      fit++;
+    }
+    else if (findex > pindex)
+    {
+      peaksRejected.push_back(* pit);
+      pit++;
+    }
+    else
+    {
+      cout << "PeakPtrs::split ERROR2\n";
+      return;
+    }
+  }
+}
+
+
 void PeakPtrs::flattenCar(CarPeaksPtr& carPeaksPtr)
 {
   if (peaks.size() > 4)

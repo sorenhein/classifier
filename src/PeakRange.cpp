@@ -144,6 +144,15 @@ void PeakRange::split(
 }
 
 
+void PeakRange::split(
+  const vector<Peak const *>& flattened,
+  PeakPtrs& peakPtrsUsed,
+  PeakPtrs& peakPtrsUnused)
+{
+  peakPtrs.split(flattened, peakPtrsUsed, peakPtrsUnused);
+}
+
+
 bool PeakRange::isFirstCar() const
 {
   return (source == PEAK_SOURCE_FIRST);
