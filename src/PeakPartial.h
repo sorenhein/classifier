@@ -111,7 +111,8 @@ class PeakPartial
     void recoverPeaks0001(vector<Peak const *>& peakPtrsUsed);
     void recoverPeaks0011(vector<Peak const *>& peakPtrsUsed);
     void recoverPeaks0101(vector<Peak const *>& peakPtrsUsed);
-    void recoverPeaks0111New(vector<Peak const *>& peakPtrsUsed);
+    void recoverPeaks0111(vector<Peak const *>& peakPtrsUsed);
+
     void recoverPeaks1011(vector<Peak const *>& peakPtrsUsed);
     void recoverPeaks1100(vector<Peak const *>& peakPtrsUsed);
     void recoverPeaks1101(vector<Peak const *>& peakPtrsUsed);

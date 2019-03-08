@@ -4,8 +4,7 @@ PeakPartial: Histo of method hits?
 
 Files to clean up:
 - PeakPartial
-  - Split into PeakPartialUsed, later Unused, Hidden
-  - Have an array of structs? lower, upper, peaks etc.
+  - Later Unused, Hidden
 
 In Perl, show last, mid.  Show histo of d's of the true train.
 Don't show devs with Issues.

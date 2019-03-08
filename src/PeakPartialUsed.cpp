@@ -91,14 +91,15 @@ void PeakPartial::recoverPeaks0011(vector<Peak const *>& peakPtrsUsed)
 
 void PeakPartial::recoverPeaks0101(vector<Peak const *>& peakPtrsUsed)
 {
-  // The four peaks: not found - found - not found - found.
   const unsigned iu = comps[3].indexUsed;
+
   if (peakSlots.count(PEAKSLOT_BETWEEN_P1_P3) == 2 &&
       peakPtrsUsed[iu-2]->greatQuality() &&
       peakPtrsUsed[iu-1]->greatQuality())
   {
-      // Probably we found p1 and p4, with these two in between.
-cout << "Reinstating two peaks, should be p2 and p3\n";
+    if (verboseFlag)
+      cout << "Reinstating two 0101 peaks, should be p1+p2 (between)\n";
+
     PeakPartial::movePtr(1, 0);
 
     PeakPartial::registerPtr(1, peakPtrsUsed[iu-2], iu-2);
@@ -111,17 +112,27 @@ cout << "Reinstating two peaks, should be p2 and p3\n";
         peakPtrsUsed[iu-1]->getIndex() - comps[1].peak->getIndex())
     {
       // Closer to p3.
-cout << "Reinstating one peak, should be p2\n";
+      
+      if (verboseFlag)
+        cout << "Reinstating one 0101 peak, should be p2\n";
+
       PeakPartial::registerPtr(2, peakPtrsUsed[iu-1], iu-1);
+
+      // TODO Call 0111
     }
     else
     {
       // Assume that the peaks were really p0 and p2.
-cout << "Reinstating one peak, should be p1\n";
+
+      if (verboseFlag)
+        cout << "Reinstating one 0101 peak, should be (p0) p1 (p2)\n";
+
       PeakPartial::movePtr(1, 0);
       PeakPartial::movePtr(3, 2);
 
       PeakPartial::registerPtr(1, peakPtrsUsed[iu-1], iu-1);
+
+      // TODO Call 1110
     }
   }
 }
@@ -160,7 +171,6 @@ void PeakPartial::recoverPeaks0111(vector<Peak const *>& peakPtrsUsed)
 
 void PeakPartial::recoverPeaks1011(vector<Peak const *>& peakPtrsUsed)
 {
-  // The four peaks: found - not found - found - found.
   const unsigned bogeySpecific = 
     comps[3].peak->getIndex() - comps[2].peak->getIndex();
 
@@ -182,6 +192,7 @@ void PeakPartial::recoverPeaks1011(vector<Peak const *>& peakPtrsUsed)
   if (pptr1)
   {
     const unsigned pp1 = pptr1->getIndex();
+
     if (pp1 >= comps[2].peak->getIndex() ||
         pp1 - comps[0].peak->getIndex() > comps[2].peak->getIndex() - pp1)
     {
@@ -197,8 +208,8 @@ void PeakPartial::recoverPeaks1011(vector<Peak const *>& peakPtrsUsed)
 
 void PeakPartial::recoverPeaks1100(vector<Peak const *>& peakPtrsUsed)
 {
-  // The four peaks: found - found - not found - not found.
   const unsigned iu = comps[0].indexUsed;
+
   if (peakSlots.number() == 2 && 
       peakSlots.count(PEAKSLOT_RIGHT_OF_P1) == 2 &&
       comps[2].upper == 0 &&
@@ -207,16 +218,20 @@ void PeakPartial::recoverPeaks1100(vector<Peak const *>& peakPtrsUsed)
   {
     // Could also check that the spacing of the two peaks is not
     // completely off vs. the two last peaks.
-cout << "Reinstating two peaks, should be p2 and p3\n";
+    
+    if (verboseFlag)
+      cout << "Reinstating two 1100 peaks, should be p2+p3\n";
+
     PeakPartial::registerPtr(2, peakPtrsUsed[iu+2], iu+2);
     PeakPartial::registerPtr(3, peakPtrsUsed[iu+3], iu+3);
   }
+
+  // TODO Could also be a single peak, I suppose
 }
 
 
 void PeakPartial::recoverPeaks1101(vector<Peak const *>& peakPtrsUsed)
 {
-  // The four peaks: found - found - not found - found.
   const unsigned bogeySpecific = 
     comps[1].peak->getIndex() - comps[0].peak->getIndex();
 
@@ -252,7 +267,6 @@ void PeakPartial::recoverPeaks1101(vector<Peak const *>& peakPtrsUsed)
 
 void PeakPartial::recoverPeaks1110(vector<Peak const *>& peakPtrsUsed)
 {
-  // The four peaks: found - found - found - not found.
   const unsigned bogeySpecific = 
     comps[1].peak->getIndex() - comps[0].peak->getIndex();
 
@@ -281,6 +295,7 @@ void PeakPartial::recoverPeaks1110(vector<Peak const *>& peakPtrsUsed)
       pptr2 = nullptr;
     }
   }
+
   PeakPartial::recoverPeaksShared(pptr2, pptr3, 2, 3,
     indexUsed2, indexUsed3, "1110");
 }
@@ -297,7 +312,8 @@ void PeakPartial::recoverPeaksShared(
 {
   if (pptrA && pptrB)
   {
-    cout << "ERROR recoverPeaks1110: pA and pB are both there?\n";
+    cout << "ERROR recoverPeaks " << source << 
+      ": pA and pB are both there?\n";
     cout << "Without offset:\n";
     cout << pptrA->strQuality();
     cout << pptrB->strQuality();
@@ -306,14 +322,18 @@ void PeakPartial::recoverPeaksShared(
 
   if (pptrA)
   {
-cout << "Reinstating one " << source << " peak, should be pA\n";
+    if (verboseFlag)
+      cout << "Reinstating one " << source << " peak, should be pA\n";
+
     if (comps[npA].peak)
       PeakPartial::movePtr(npA, npB);
     PeakPartial::registerPtr(npA, pptrA, indexUsedA);
   }
   else if (pptrB)
   {
-cout << "Reinstating one " << source << " peak, should be pB\n";
+    if (verboseFlag)
+      cout << "Reinstating one " << source << " peak, should be pB\n";
+
     if (comps[npB].peak)
       PeakPartial::movePtr(npB, npA);
     PeakPartial::registerPtr(npB, pptrB, indexUsedB);
