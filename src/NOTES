@@ -6,9 +6,6 @@ Files to clean up:
 - PeakPartial
   - Later Unused, Hidden
 
-In Perl, show last, mid.  Show histo of d's of the true train.
-Don't show devs with Issues.
-
 Do PEAKLAST
 - 8
 - 10

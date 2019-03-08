@@ -55,7 +55,7 @@ my $sensor;
 my @fracHist;
 for my $i (0 .. 100)
 {
-  $fracHist[$i][$_] = 0 for 0 .. 3;
+  $fracHist[$i][$_] = 0 for 0 .. 7;
 }
 
 for my $file (@ARGV)
@@ -79,8 +79,8 @@ for my $file (@ARGV)
 
   # Per-trace arrays.
   my (@errorsTrace, @carsTrace, $fullTrace, @imperfTrace);
-  @errorsTrace = (0, 0, 0, 0);
-  @imperfTrace = (0, 0, 0, 0);
+  @errorsTrace = (0, 0, 0, 0, 0, 0, 0, 0);
+  @imperfTrace = (0, 0, 0, 0, 0, 0, 0, 0);
   $fullTrace = 0;
   my $hasIssues = 0;
   my $numIssues = 0;
@@ -106,12 +106,34 @@ for my $file (@ARGV)
       #if ($hasIssues)
       if ($fileno >= 0)
       {
-        if ($regressError > $REGRESS_THRESHOLD)
+        if ($regressError > 0.)
         {
-          $errorsTrace[1]++;
-          $fracHist[$peakFrac][1]++;
+          if ($regressError > 100.)
+          {
+            $errorsTrace[7]++;
+            $fracHist[$peakFrac][7]++;
+          }
+          elsif ($regressError > 10.)
+          {
+            $errorsTrace[6]++;
+            $fracHist[$peakFrac][6]++;
+          }
+          elsif ($regressError > 3.)
+          {
+            $errorsTrace[5]++;
+            $fracHist[$peakFrac][5]++;
+          }
+          elsif ($regressError > 1.)
+          {
+            $errorsTrace[4]++;
+            $fracHist[$peakFrac][4]++;
+          }
+          else
+          {
+            $errorsTrace[3]++;
+            $fracHist[$peakFrac][3]++;
+          }
         }
-        # elsif (! $regressSeen && $hasIssues)
         elsif (! $regressSeen && ! $mismatchSeen && ! $exceptSeen)
         {
           # Can fail silently.
@@ -119,7 +141,7 @@ for my $file (@ARGV)
           $fracHist[$peakFrac][0]++;
         }
 
-        $errorsTrace[3] += $numIssues;
+        $errorsTrace[2] += $numIssues;
 
         print $fo dividerLine($format);
 
@@ -146,10 +168,10 @@ for my $file (@ARGV)
       $time = $a[1];
       $sname = $a[2];
 
-      @errorsTrace = (0, 0, 0, 0);
+      @errorsTrace = (0, 0, 0, 0, 0, 0, 0, 0);
       @carsTrace = ();
       $fullTrace = 0;
-      @imperfTrace = (0, 0, 0, 0);
+      @imperfTrace = (0, 0, 0, 0, 0, 0, 0, 0);
 
       $hasIssues = 0;
       $numIssues = 0;
@@ -188,7 +210,7 @@ for my $file (@ARGV)
     {
       $line =~ /^FRAC \d+ \d+ (.+)/;
       $peakFrac = int($1 + 0.5);
-      $fracHist[$peakFrac][3]++;
+      $fracHist[$peakFrac][2]++;
     }
     elsif ($line =~ /^WARNFINAL/)
     {
@@ -219,7 +241,7 @@ for my $file (@ARGV)
     {
       $mismatchSeen = 1;
       $errorsTrace[0]++;
-      $errorsTrace[3] += $numIssues;
+      $errorsTrace[2] += $numIssues;
       $fracHist[$peakFrac][0]++;
 
       if (hasErrors(\@errorsTrace))
@@ -241,10 +263,10 @@ for my $file (@ARGV)
       transferStats(\@errorsTrace, \@carsTrace, 
         $fullTrace, \@imperfTrace);
 
-      @errorsTrace = (0, 0, 0, 0);
+      @errorsTrace = (0, 0, 0, 0, 0, 0, 0, 0);
       @carsTrace = ();
       $fullTrace = 0;
-      @imperfTrace = (0, 0, 0, 0);
+      @imperfTrace = (0, 0, 0, 0, 0, 0, 0, 0);
 
       $hasIssues = 0;
       $numIssues = 0;
@@ -289,9 +311,9 @@ for my $file (@ARGV)
       my $p = $fnc . " line " . $lno . ": " . $line;
       print $fo summaryEmpty($format), "  ", $p, "\n";
 
-      $errorsTrace[2]++;
-      $errorsTrace[3] += $numIssues;
-      $fracHist[$peakFrac][2]++;
+      $errorsTrace[1]++;
+      $errorsTrace[2] += $numIssues;
+      $fracHist[$peakFrac][1]++;
 
       if (hasErrors(\@errorsTrace))
       {
@@ -312,10 +334,10 @@ for my $file (@ARGV)
       transferStats(\@errorsTrace, \@carsTrace, 
         $fullTrace, \@imperfTrace);
 
-      @errorsTrace = (0, 0, 0, 0);
+      @errorsTrace = (0, 0, 0, 0, 0, 0, 0, 0);
       @carsTrace = ();
       $fullTrace = 0;
-      @imperfTrace = (0, 0, 0, 0);
+      @imperfTrace = (0, 0, 0, 0, 0, 0, 0, 0);
 
       $hasIssues = 0;
       $numIssues = 0;
@@ -330,19 +352,41 @@ for my $file (@ARGV)
   # Stragglers.
   #if ($hasIssues)
   {
-    if ($regressError > $REGRESS_THRESHOLD)
+    if ($regressError > 0.)
     {
-      $errorsTrace[1]++;
-      $fracHist[$peakFrac][1]++;
+      if ($regressError > 100.)
+      {
+        $errorsTrace[7]++;
+        $fracHist[$peakFrac][7]++;
+      }
+      elsif ($regressError > 10.)
+      {
+        $errorsTrace[6]++;
+        $fracHist[$peakFrac][6]++;
+      }
+      elsif ($regressError > 3.)
+      {
+        $errorsTrace[5]++;
+        $fracHist[$peakFrac][5]++;
+      }
+      elsif ($regressError > 1.)
+      {
+        $errorsTrace[4]++;
+        $fracHist[$peakFrac][4]++;
+      }
+      else
+      {
+        $errorsTrace[3]++;
+        $fracHist[$peakFrac][3]++;
+      }
     }
-    # elsif (! $regressSeen && $hasIssues)
     elsif (! $regressSeen && ! $mismatchSeen && ! $exceptSeen)
     {
       # Can fail silently.
       $errorsTrace[0]++;
       $fracHist[$peakFrac][0]++;
     }
-    $errorsTrace[3] += $numIssues;
+    $errorsTrace[2] += $numIssues;
 
     if (hasErrors(\@errorsTrace))
     {
@@ -480,9 +524,9 @@ sub transferStats
 
 sub summaryHeaderTXT
 {
-  my $str = sprintf "%-10s%8s%6s%6s%6s%6s%6s  %6s%6s%6s%6s  ",
+  my $str = sprintf "%-10s%8s%6s%6s%6s%6s  %6s%6s%6s%6s%6s  %6s%6s%6s%6s  ",
     "Sensor", "Time", "Trace",
-    "Error", "Dev", "Exc", "Warn",
+    "Error", "Exc", "Warn",
     "Fskip", "Fspur", "Skip", "Spur";
 
   for my $i (0 .. $NUM_LAST_FNC)
@@ -502,9 +546,13 @@ sub summaryHeaderCSV
     "Time" . $SEPARATOR .
     "Trace" . $SEPARATOR . $SEPARATOR .
     "Error" . $SEPARATOR . 
-    "Dev" . $SEPARATOR .
     "Exc" . $SEPARATOR .
     "Warn" . $SEPARATOR . $SEPARATOR .
+    "<=1" . $SEPARATOR .
+    "<=3" . $SEPARATOR .
+    "<=10" . $SEPARATOR .
+    "<=100" . $SEPARATOR .
+    "100+" . $SEPARATOR . $SEPARATOR .
     "Fskip" . $SEPARATOR .
     "Fspur" . $SEPARATOR .
     "Skip" . $SEPARATOR .
@@ -611,7 +659,7 @@ sub summaryLineTXT
 {
   my ($sensor, $time, $trace,
     $errorsRef, $carsRef, $full, $imperfRef) = @_;
-  my $str = sprintf "%-10s%8s%6s%6s%6s%6s%6s  %6s%6s%6s%6s  ",
+  my $str = sprintf "%-10s%8s%6s%6s%6s%6s  %6s%6s%6s%6s%6s  %6s%6s%6s%6s  ",
     $sensor,
     $time,
     $trace,
@@ -619,7 +667,12 @@ sub summaryLineTXT
     $errorsRef->[0],
     $errorsRef->[1],
     $errorsRef->[2],
+
     $errorsRef->[3],
+    $errorsRef->[4],
+    $errorsRef->[5],
+    $errorsRef->[6],
+    $errorsRef->[7],
 
     $imperfRef->[0],
     $imperfRef->[1],
@@ -663,8 +716,13 @@ sub summaryLineCSV
 
     $errorsRef->[0] . $SEPARATOR .
     $errorsRef->[1] . $SEPARATOR .
-    $errorsRef->[2] . $SEPARATOR .
-    $errorsRef->[3] . $SEPARATOR . $SEPARATOR .
+    $errorsRef->[2] . $SEPARATOR . $SEPARATOR .
+
+    $errorsRef->[3] . $SEPARATOR .
+    $errorsRef->[4] . $SEPARATOR .
+    $errorsRef->[5] . $SEPARATOR .
+    $errorsRef->[6] . $SEPARATOR .
+    $errorsRef->[7] . $SEPARATOR . $SEPARATOR .
 
     $imperfRef->[0] . $SEPARATOR .
     $imperfRef->[1] . $SEPARATOR .
@@ -959,7 +1017,16 @@ sub summaryDetails
 sub fracHeaderTXT
 {
   my $s = sprintf "%-8s%6s%6s%6s%6s\n",
-    "Percent", "All", "Err", "Dev", "Exc";
+    "Percent", 
+    "All", 
+    "Err", 
+    "Exc",
+    "<=1",
+    "<=3",
+    "<=10",
+    "<=100",
+    "100+";
+
   return $s;
 }
 
@@ -970,8 +1037,13 @@ sub fracHeaderCSV
     "Percent" . $SEPARATOR .
     "All" . $SEPARATOR .
     "Err" . $SEPARATOR .
-    "Dev" . $SEPARATOR .
-    "Exc" . "\n";
+    "Exc" . $SEPARATOR . $SEPARATOR .
+    "<=1" . $SEPARATOR .
+    "<=3" . $SEPARATOR .
+    "<=10" . $SEPARATOR .
+    "<=100" . $SEPARATOR .
+    "100+" . $SEPARATOR .
+    "\n";
   return $s;
 }
 
@@ -981,12 +1053,16 @@ sub fracDetailsTXT
   my $s = "";
   for my $i (0 .. $#fracHist)
   {
-    $s .= sprintf "%-8s%6d%6d%6d%6d\n",
+    $s .= sprintf "%-8s6d%6d%6d%6d%6d%6d%6d%6d\n",
       $i, 
-      $fracHist[$i][3],
+      $fracHist[$i][2],
       $fracHist[$i][0],
       $fracHist[$i][1],
-      $fracHist[$i][2];
+      $fracHist[$i][3],
+      $fracHist[$i][4],
+      $fracHist[$i][5],
+      $fracHist[$i][6],
+      $fracHist[$i][7],
   }
   return $s;
 }
@@ -999,9 +1075,14 @@ sub fracDetailsCSV
   {
     $s .= 
       $i . $SEPARATOR .
-      $fracHist[$i][3] . $SEPARATOR .
+      $fracHist[$i][2] . $SEPARATOR .
       $fracHist[$i][0] . $SEPARATOR .
-      $fracHist[$i][1] . $SEPARATOR .
+      $fracHist[$i][1] . $SEPARATOR . $SEPARATOR .
+      $fracHist[$i][3] . $SEPARATOR .
+      $fracHist[$i][4] . $SEPARATOR .
+      $fracHist[$i][5] . $SEPARATOR .
+      $fracHist[$i][6] . $SEPARATOR .
+      $fracHist[$i][7] . $SEPARATOR .
       $fracHist[$i][2] . "\n";
   }
   return $s;
