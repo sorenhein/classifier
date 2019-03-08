@@ -142,13 +142,13 @@ PPLciterator PeakPtrs::cend() const
 }
 
 
-Peak * PeakPtrs::front()
+Peak const * PeakPtrs::front() const
 {
   return peaks.front();
 }
 
 
-Peak * PeakPtrs::back()
+Peak const * PeakPtrs::back() const
 {
   return peaks.back();
 }
@@ -311,7 +311,7 @@ PPLciterator PeakPtrs::prev(
 }
 
 
-Peak * PeakPtrs::locate(
+Peak const * PeakPtrs::locate(
   const unsigned lower,
   const unsigned upper,
   const unsigned hint,

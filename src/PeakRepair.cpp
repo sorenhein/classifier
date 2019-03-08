@@ -122,7 +122,7 @@ bool PeakRepair::bracket(
 bool PeakRepair::updatePossibleModels(
   RepairRange& range,
   const bool specialFlag,
-  PeakPtrs& peakPtrsUsed,
+  const PeakPtrs& peakPtrsUsed,
   const unsigned peakNo,
   const CarModels& models)
 {
@@ -138,7 +138,7 @@ bool PeakRepair::updatePossibleModels(
     // Start from the last seen peak.
     range.start = p.latest();
 
-    Peak * pptr = nullptr;
+    Peak const * pptr = nullptr;
     unsigned indexUsed;
 
     if (specialFlag && 

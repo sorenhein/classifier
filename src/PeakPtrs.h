@@ -56,8 +56,8 @@ class PeakPtrs
     PPLciterator cbegin() const;
     PPLciterator cend() const;
 
-    Peak * front();
-    Peak * back();
+    Peak const * front() const;
+    Peak const * back() const;
 
     unsigned size() const;
     unsigned count(const PeakFncPtr& fptr) const;
@@ -93,7 +93,7 @@ class PeakPtrs
       const bool exclFlag = true) const;
 
 
-    Peak * locate(
+    Peak const * locate(
       const unsigned lower,
       const unsigned upper,
       const unsigned hint,
