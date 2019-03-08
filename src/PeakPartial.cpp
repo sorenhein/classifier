@@ -32,11 +32,16 @@ void PeakPartial::reset()
   newFlag = true;
   lastIndex = 0;
 
-  peaks.resize(4, nullptr);
-  lower.resize(4, 0);
-  upper.resize(4, 0);
-  target.resize(4, 0);
-  indexUsed.resize(4, 0);
+  comps.resize(4);
+  for (unsigned i = 0; i < 4; i++)
+  {
+    comps[i].peak = nullptr;
+    comps[i].lower = 0;
+    comps[i].upper = 0;
+    comps[i].target = 0;
+    comps[i].indexUsed = 0;
+  }
+
   numUsed = 0;
 
   peakSlots.reset();
@@ -56,12 +61,12 @@ void PeakPartial::init(
 
 void PeakPartial::registerRange(
   const unsigned peakNo,
-  const unsigned lowerIn,
-  const unsigned upperIn)
+  const unsigned lower,
+  const unsigned upper)
 {
-  lower[peakNo] = lowerIn;
-  upper[peakNo] = upperIn;
-  target[peakNo] = (lowerIn + upperIn) / 2;
+  comps[peakNo].lower = lower;
+  comps[peakNo].upper = upper;
+  comps[peakNo].target = (lower + upper) / 2;
 }
 
 
@@ -69,19 +74,18 @@ void PeakPartial::movePtr(
   const unsigned indexFrom,
   const unsigned indexTo)
 {
-  peaks[indexTo] = peaks[indexFrom];
-  indexUsed[indexTo] = indexUsed[indexFrom];
+  comps[indexTo] = comps[indexFrom];
 
-  peaks[indexFrom] = nullptr;
-  indexUsed[indexFrom] = INDEX_NOT_USED;
+  comps[indexFrom].peak = nullptr;
+  comps[indexFrom].indexUsed = INDEX_NOT_USED;
 }
 
 
 void PeakPartial::registerIndexUsed(
   const unsigned peakNo,
-  const unsigned indexUsedIn)
+  const unsigned indexUsed)
 {
-  indexUsed[peakNo] = indexUsedIn;
+  comps[peakNo].indexUsed = indexUsed;
 }
 
 
@@ -89,8 +93,8 @@ void PeakPartial::registerPtr(
   const unsigned peakNo,
   Peak const * pptr)
 {
-  peaks[peakNo] = pptr;
-  indexUsed[peakNo] = INDEX_NOT_USED;
+  comps[peakNo].peak = pptr;
+  comps[peakNo].indexUsed = INDEX_NOT_USED;
 
   if (pptr)
   {
@@ -133,11 +137,11 @@ bool PeakPartial::getRange(
   unsigned& lowerOut,
   unsigned& upperOut) const
 {
-  if (upper[peakNo] == 0)
+  if (comps[peakNo].upper == 0)
     return false;
 
-  lowerOut = lower[peakNo];
-  upperOut = upper[peakNo];
+  lowerOut = comps[peakNo].lower;
+  upperOut = comps[peakNo].upper;
   return true;
 }
 
@@ -146,7 +150,10 @@ void PeakPartial::getPeak(
   const unsigned peakNo,
   Peak& peak) const
 {
-  peak.logPosition(target[peakNo], lower[peakNo], upper[peakNo]);
+  peak.logPosition(
+    comps[peakNo].target, 
+    comps[peakNo].lower, 
+    comps[peakNo].upper);
 }
 
 
@@ -155,8 +162,8 @@ bool PeakPartial::closeEnoughFull(
   const unsigned peakNo,
   const unsigned posNo) const
 {
-  if ((peakNo < posNo && index > upper[posNo]) ||
-      (peakNo > posNo && index < lower[posNo]))
+  if ((peakNo < posNo && index > comps[posNo].upper) ||
+      (peakNo > posNo && index < comps[posNo].lower))
     return true;
   else
     return PeakPartial::closeEnough(index, peakNo, posNo);
@@ -169,16 +176,16 @@ bool PeakPartial::closeEnough(
   const unsigned posNo) const
 {
   // TODO Divide by 2 or not?
-  const unsigned delta = (upper[posNo] - lower[posNo]) / 2;
+  const unsigned delta = (comps[posNo].upper - comps[posNo].lower) / 2;
 
   if (peakNo < posNo)
-    return (lower[posNo] - index < delta);
+    return (comps[posNo].lower - index < delta);
   else if (peakNo > posNo)
-    return (index - upper[posNo] < delta);
-  else if (index < lower[posNo])
-    return (lower[posNo] - index < delta);
-  else if (index > upper[posNo])
-    return (index - upper[posNo] < delta);
+    return (index - comps[posNo].upper < delta);
+  else if (index < comps[posNo].lower)
+    return (comps[posNo].lower - index < delta);
+  else if (index > comps[posNo].upper)
+    return (index - comps[posNo].upper < delta);
   else
     return true;
 }
@@ -198,10 +205,10 @@ bool PeakPartial::dominates(const PeakPartial& p2) const
     unsigned index = 0;
     for (unsigned i = 0; i < 4; i++)
     {
-      if (! p2.peaks[i])
+      if (! p2.comps[i].peak)
         continue;
       while (index < 4 && 
-          (! peaks[index] || peaks[index] != p2.peaks[i]))
+          (! comps[index].peak || comps[index].peak != p2.comps[i].peak))
         index++;
       if (index == 4)
       {
@@ -219,7 +226,7 @@ bool PeakPartial::dominates(const PeakPartial& p2) const
     bool sameFlag = true;
     for (unsigned i = 5-numUsed; i < 4; i++)
     {
-      if (! peaks[i] || p2.peaks[i] != peaks[i])
+      if (! comps[i].peak || p2.comps[i].peak != comps[i].peak)
       {
         sameFlag = false;
         break;
@@ -228,20 +235,23 @@ bool PeakPartial::dominates(const PeakPartial& p2) const
 
     // The first peak (from the left) slipped to the left, but is
     // close enough.
-    Peak const * ptr = p2.peaks[3-numUsed];
+    Peak const * ptr = p2.comps[3-numUsed].peak;
     if (sameFlag &&
-        p2.peaks[3-numUsed] && ptr == peaks[4-numUsed] &&
+        p2.comps[3-numUsed].peak && 
+        ptr == comps[4-numUsed].peak &&
         p2.closeEnoughFull(ptr->getIndex(), 3-numUsed, 4-numUsed))
       return true;
   }
 
   for (unsigned i = 0; i < 4; i++)
   {
-    if (! peaks[i] && p2.peaks[i])
+    if (! comps[i].peak && p2.comps[i].peak)
       return false;
 
     // If not the same peak, it's not so clear.
-    if (peaks[i] && p2.peaks[i] && peaks[i] != p2.peaks[i])
+    if (comps[i].peak && 
+        p2.comps[i].peak && 
+        comps[i].peak != p2.comps[i].peak)
       return false;
   }
   return true;
@@ -252,11 +262,11 @@ bool PeakPartial::samePeaks(const PeakPartial& p2) const
 {
   for (unsigned i = 0; i < 4; i++)
   {
-    if ((peaks[i] && ! p2.peaks[i]) ||
-        (! peaks[i] && p2.peaks[i]))
+    if ((comps[i].peak && ! p2.comps[i].peak) ||
+        (! comps[i].peak && p2.comps[i].peak))
       return false;
     
-    if (peaks[i] != p2.peaks[i])
+    if (comps[i].peak != p2.comps[i].peak)
       return false;
   }
   return true;
@@ -270,10 +280,10 @@ bool PeakPartial::samePeakValues(const PeakPartial& p2) const
   vector<const Peak *> v1, v2;
   for (unsigned i = 0; i < 4; i++)
   {
-    if (peaks[i] != p2.peaks[i])
+    if (comps[i].peak != p2.comps[i].peak)
     {
-      v1.push_back(peaks[i]);
-      v2.push_back(p2.peaks[i]);
+      v1.push_back(comps[i].peak);
+      v2.push_back(p2.comps[i].peak);
     }
   }
   if (v1.size() != 2)
@@ -290,16 +300,16 @@ void PeakPartial::extend(const PeakPartial& p2)
 {
   for (unsigned i = 0; i < 4; i++)
   {
-    if (peaks[i] || p2.peaks[i])
+    if (comps[i].peak || p2.comps[i].peak)
       continue;
 
-    if (p2.lower[i] != 0 && 
-        (lower[i] == 0 || p2.lower[i] < lower[i]))
-      lower[i] = p2.lower[i];
+    if (p2.comps[i].lower != 0 && 
+        (comps[i].lower == 0 || p2.comps[i].lower < comps[i].lower))
+      comps[i].lower = p2.comps[i].lower;
 
-    if (p2.upper[i] != 0 && 
-        (upper[i] == 0 || p2.upper[i] > upper[i]))
-      upper[i] = p2.upper[i];
+    if (p2.comps[i].upper != 0 && 
+        (comps[i].upper == 0 || p2.comps[i].upper > comps[i].upper))
+      comps[i].upper = p2.comps[i].upper;
   }
 }
 
@@ -312,21 +322,21 @@ bool PeakPartial::merge(const PeakPartial& p2)
   bool mergeFrom = true, mergeTo = true;
   for (unsigned i = 0; i < 4; i++ && mergeFrom && mergeTo)
   {
-    if (peaks[i])
+    if (comps[i].peak)
     {
-      if (p2.peaks[i])
+      if (p2.comps[i].peak)
       {
-        if (peaks[i] == p2.peaks[i])
+        if (comps[i].peak == p2.comps[i].peak)
           continue;
         else
           return false;
       }
-      else if (! p2.closeEnough(peaks[i]->getIndex(), i, i))
+      else if (! p2.closeEnough(comps[i].peak->getIndex(), i, i))
         mergeTo = false;
     }
-    else if (p2.peaks[i])
+    else if (p2.comps[i].peak)
     {
-      if (! PeakPartial::closeEnough(p2.peaks[i]->getIndex(), i, i))
+      if (! PeakPartial::closeEnough(p2.comps[i].peak->getIndex(), i, i))
         mergeFrom = false;
     }
   }
@@ -335,10 +345,9 @@ bool PeakPartial::merge(const PeakPartial& p2)
   {
     for (unsigned i = 0; i < 4; i++)
     {
-      if (! peaks[i] && p2.peaks[i])
+      if (! comps[i].peak && p2.comps[i].peak)
       {
-        peaks[i] = p2.peaks[i];
-        indexUsed[i] = p2.indexUsed[i];
+        comps[i] = p2.comps[i];
         numUsed++;
       }
     }
@@ -391,8 +400,8 @@ void PeakPartial::makeCodes(
   const PeakPtrs& peakPtrsUsed,
   const unsigned offset)
 {
-  peakSlots.log(peaks, peakPtrsUsed, offset);
-
+  peakSlots.log(comps[0].peak, comps[1].peak, comps[2].peak, comps[3].peak,
+    peakPtrsUsed, offset);
 }
 
 
@@ -410,12 +419,13 @@ void PeakPartial::moveUnused(
   vector<unsigned> v(np, 0);
   for (unsigned i = 0; i < 4; i++)
   {
-    if (peaks[i] && indexUsed[i] != INDEX_NOT_USED)
-      v[indexUsed[i]] = 1;
+    if (comps[i].peak && comps[i].indexUsed != INDEX_NOT_USED)
+      v[comps[i].indexUsed] = 1;
   }
 
   // Don't remove peaks in front of the car -- could be a new car.
-  const unsigned preserveLimit = (peaks[0] ? peaks[0]->getIndex() : 0);
+  const unsigned preserveLimit = 
+    (comps[0].peak ? comps[0].peak->getIndex() : 0);
 
   for (unsigned i = 0; i < np; i++)
   {
@@ -423,7 +433,9 @@ void PeakPartial::moveUnused(
       peakPtrsUnused.push_back(peakPtrsUsed[i]);
   }
 
-  peakPtrsUsed = peaks;
+  peakPtrsUsed.clear();
+  for (unsigned i = 0; i < 4; i++)
+    peakPtrsUsed.push_back(comps[i].peak);
 }
 
 
@@ -516,7 +528,8 @@ void PeakPartial::getPeaks(
   // Mostly for the sport, we try to use as many of the front peaks
   // as possible.  Mostly the alignment will pick up on it anyway.
 
-  PeakPartial::getPeaksFromUsed(bogeyTypical, longTypical, peakPtrsUsed);
+  PeakPartial::getPeaksFromUsed(bogeyTypical, longTypical, 
+    true, peakPtrsUsed);
 
   // if we didn't match a peak in the used vector, we move it to unused.
   PeakPartial::moveUnused(peakPtrsUsed, peakPtrsUnused);
@@ -567,13 +580,13 @@ bool PeakPartial::used() const
 
 bool PeakPartial::hasPeak(const unsigned peakNo) const
 {
-  return (peaks[peakNo] != nullptr);
+  return (comps[peakNo].peak != nullptr);
 }
 
 
 bool PeakPartial::hasRange(const unsigned peakNo) const
 {
-  return (upper[peakNo] > 0);
+  return (comps[peakNo].upper > 0);
 }
 
 
@@ -581,7 +594,7 @@ string PeakPartial::strTarget(
   const unsigned peakNo,
   const unsigned offset) const
 {
-  return to_string(target[peakNo] + offset);
+  return to_string(comps[peakNo].target + offset);
 }
 
 
@@ -589,17 +602,17 @@ string PeakPartial::strIndex(
   const unsigned peakNo,
   const unsigned offset) const
 {
-  if (peaks[peakNo] == nullptr)
+  if (comps[peakNo].peak == nullptr)
   {
-    if (lower[peakNo] == 0)
+    if (comps[peakNo].lower == 0)
       return "-";
     else
-      return "(" + to_string(lower[peakNo] + offset) + ", " +
-        to_string(upper[peakNo] + offset) + ")";
+      return "(" + to_string(comps[peakNo].lower + offset) + ", " +
+        to_string(comps[peakNo].upper + offset) + ")";
   }
   else
-    return to_string(peaks[peakNo]->getIndex() + offset) +
-      " (" + to_string(indexUsed[peakNo]) + ")";
+    return to_string(comps[peakNo].peak->getIndex() + offset) +
+      " (" + to_string(comps[peakNo].indexUsed) + ")";
 }
 
 

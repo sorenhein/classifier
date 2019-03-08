@@ -40,21 +40,32 @@ class PeakPartial
     // true if the last attempted fit worked out.
     bool newFlag;
 
-    vector<Peak const *> peaks;
+    struct Component
+    {
+      Peak const * peak;
+
+      // If a peak is not present, the place to look for it.
+      unsigned lower;
+      unsigned upper;
+      unsigned target;
+
+      // The index in peakPtrsUsed corresponding to the stored peak.
+      unsigned indexUsed;
+    };
+
+    vector<Component> comps;
+
     unsigned lastIndex;
-
-    // If a peak is not present, the place to look for it.
-    vector<unsigned> lower;
-    vector<unsigned> upper;
-    vector<unsigned> target;
-
-    // The index in peakPtrsUsed corresponding to the stored peak.
-    vector<unsigned> indexUsed;
 
     // Number of peaks found.
     unsigned numUsed;
 
     PeakSlots peakSlots;
+
+    // Some typical quantities that would otherwise get passed around.
+    unsigned bogey;
+    unsigned mid;
+    bool verboseFlag;
 
 
     void movePtr(
@@ -97,15 +108,15 @@ class PeakPartial
       vector<Peak const *>& peakPtrsUsed,
       unsigned& indexUsedOut);
 
-    void recoverPeaks0101(vector<Peak const *>& peakPtrsUsed);
+    void recoverPeaks0001(vector<Peak const *>& peakPtrsUsed);
     void recoverPeaks0011(vector<Peak const *>& peakPtrsUsed);
+    void recoverPeaks0011New(vector<Peak const *>& peakPtrsUsed);
+    void recoverPeaks0101(vector<Peak const *>& peakPtrsUsed);
+    void recoverPeaks0111New(vector<Peak const *>& peakPtrsUsed);
     void recoverPeaks1011(vector<Peak const *>& peakPtrsUsed);
     void recoverPeaks1100(vector<Peak const *>& peakPtrsUsed);
     void recoverPeaks1101(vector<Peak const *>& peakPtrsUsed);
-    void recoverPeaks0001(
-      const unsigned bogeyTypical,
-      const unsigned longTypical,
-      vector<Peak const *>& peakPtrsUsed);
+    void recoverPeaks1110(vector<Peak const *>& peakPtrsUsed);
 
     void recoverPeaksShared(
       Peak const *& pptrA,
@@ -116,8 +127,6 @@ class PeakPartial
       const unsigned indexUsedB,
       const string& source);
 
-    void recoverPeaks1110(vector<Peak const *>& peakPtrsUsed);
-
     void moveUnused(
       vector<Peak const *>& peaksUsed,
       vector<Peak const *>& peaksUnused) const;
@@ -125,6 +134,7 @@ class PeakPartial
     void getPeaksFromUsed(
       const unsigned bogeyTypical,
       const unsigned longTypical,
+      const bool verboseFlag,
       vector<Peak const *>& peaksUsed);
 
     string strIndex(

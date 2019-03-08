@@ -28,17 +28,16 @@ void PeakSlots::reset()
 
 
 void PeakSlots::log(
-  const vector<Peak const *> peaks,
+  Peak const * pk0,
+  Peak const * pk1,
+  Peak const * pk2,
+  Peak const * pk3,
   const PeakPtrs& peakPtrsUsed,
   const unsigned offset)
 {
   PeakSlots::reset();
 
-  peakCode =
-    (peaks[0] ? 8 : 0) | 
-    (peaks[1] ? 4 : 0) | 
-    (peaks[2] ? 2 : 0) | 
-    (peaks[3] ? 1 : 0);
+  peakCode = (pk0 ? 8 : 0) | (pk1 ? 4 : 0) | (pk2 ? 2 : 0) | (pk3 ? 1 : 0);
 
   //      p0      p1      p2      p3
   //   i4 >|< i3 >|<  i2 >|<  i1 >|<  i0
@@ -47,57 +46,57 @@ void PeakSlots::log(
   //       |<     i7     >|
   //       i8    >|
 
-  const unsigned p0 = (peaks[0] ? peaks[0]->getIndex() : 0);
-  const unsigned p1 = (peaks[1] ? peaks[1]->getIndex() : 0);
-  const unsigned p2 = (peaks[2] ? peaks[2]->getIndex() : 0);
-  const unsigned p3 = (peaks[3] ? peaks[3]->getIndex() : 0);
+  const unsigned p0 = (pk0 ? pk0->getIndex() : 0);
+  const unsigned p1 = (pk1 ? pk1->getIndex() : 0);
+  const unsigned p2 = (pk2 ? pk2->getIndex() : 0);
+  const unsigned p3 = (pk3 ? pk3->getIndex() : 0);
 
   for (PPLciterator it = peakPtrsUsed.cbegin(); 
       it != peakPtrsUsed.cend(); it++)
   {
     Peak * p = * it;
-    if (p == peaks[0] || p == peaks[1] || p == peaks[2] || p == peaks[3])
+    if (p == pk0 || p == pk1 || p == pk2 || p == pk3)
       continue;
 
     numEntries++;
     const unsigned index = p->getIndex();
 
-    if (peaks[0] && index <= p0)
+    if (pk0 && index <= p0)
       slots[PEAKSLOT_LEFT_OF_P0]++;
-    else if (peaks[3] && index > p3)
+    else if (pk3 && index > p3)
       slots[PEAKSLOT_RIGHT_OF_P3]++;
 
-    else if (peaks[0] && peaks[1] && index <= p1)
+    else if (pk0 && pk1 && index <= p1)
       slots[PEAKSLOT_BETWEEN_P0_P1]++;
-    else if (peaks[1] && peaks[2] && index > p1 && index <= p2)
+    else if (pk1 && pk2 && index > p1 && index <= p2)
       slots[PEAKSLOT_BETWEEN_P1_P2]++;
-    else if (peaks[2] && peaks[3] && index > p2 && index <= p3)
+    else if (pk2 && pk3 && index > p2 && index <= p3)
       slots[PEAKSLOT_BETWEEN_P2_P3]++;
 
-    else if (peaks[1] && index <= p1)
+    else if (pk1 && index <= p1)
       slots[PEAKSLOT_LEFT_OF_P1]++;
-    else if (peaks[2] && index > p2)
+    else if (pk2 && index > p2)
       slots[PEAKSLOT_RIGHT_OF_P2]++;
 
-    else if (peaks[0] && peaks[2] && index > p0 && index <= p2)
+    else if (pk0 && pk2 && index > p0 && index <= p2)
       slots[PEAKSLOT_BETWEEN_P0_P2]++;
-    else if (peaks[1] && peaks[3] && index > p1 && index <= p3)
+    else if (pk1 && pk3 && index > p1 && index <= p3)
       slots[PEAKSLOT_BETWEEN_P1_P3]++;
 
-    else if (! peaks[0] && ! peaks[1])
+    else if (! pk0 && ! pk1)
     {
-      if (! peaks[2] && index <= p3)
+      if (! pk2 && index <= p3)
         slots[PEAKSLOT_LEFT_OF_P3]++;
-      else if (peaks[2] && index <= p2)
+      else if (pk2 && index <= p2)
         slots[PEAKSLOT_LEFT_OF_P2]++;
       else
         cout << "PEAKSLOT ERROR1 " << index + offset << "\n";
     }
-    else if (! peaks[2] && ! peaks[3])
+    else if (! pk2 && ! pk3)
     {
-      if (! peaks[1] && index > p0)
+      if (! pk1 && index > p0)
         slots[PEAKSLOT_RIGHT_OF_P0]++;
-      else if (peaks[1] && index > p1)
+      else if (pk1 && index > p1)
         slots[PEAKSLOT_RIGHT_OF_P1]++;
       else
         cout << "PEAKSLOT ERROR2 " << index + offset << "\n";

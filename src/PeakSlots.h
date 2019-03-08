@@ -57,7 +57,10 @@ class PeakSlots
     void reset();
 
     void log(
-      const vector<Peak const *> peaks,
+      Peak const * p0,
+      Peak const * p1,
+      Peak const * p2,
+      Peak const * p3,
       const PeakPtrs& peaksUsed,
       const unsigned offset);
 
