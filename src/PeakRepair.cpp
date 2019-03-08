@@ -403,9 +403,20 @@ UNUSED(peaks);
 cout << "Typical " << bogeyTypical << ", " << longTypical << endl;
 
   // Fill out Used with the peaks actually used.
-  PeakPtrs peakPtrsSpare;
+
+  vector<Peak *> peakPtrsUsed, peakPtrsUnused;
+  peakPtrsUsedIn.flatten(peakPtrsUsed);
+
   superModel.getPeaks(bogeyTypical, longTypical, 
-    peakPtrsUsedIn, peakPtrsSpare);
+    peakPtrsUsed, peakPtrsUnused);
+
+  peakPtrsUsedIn.clear();
+  for (auto& p: peakPtrsUsed)
+    peakPtrsUsedIn.push_back(p);
+
+  PeakPtrs peakPtrsSpare;
+  for (auto& p: peakPtrsSpare)
+    peakPtrsSpare.push_back(p);
 
 cout << "GOT PEAKS" << endl;
 

@@ -809,17 +809,11 @@ void PeakPartial::recoverPeaks1110(vector<Peak *>& peakPtrsUsed)
 void PeakPartial::getPeaks(
   const unsigned bogeyTypical,
   const unsigned longTypical,
-  PeakPtrs& peakPtrsUsedIn,
-  PeakPtrs& peakPtrsUnusedIn)
+  vector<Peak *>& peakPtrsUsed,
+  vector<Peak *>& peakPtrsUnused)
 {
   // Mostly for the sport, we try to use as many of the front peaks
   // as possible.  Mostly the alignment will pick up on it anyway.
-
-  PeakPtrVector peakPtrsUsed, peakPtrsUnused;
-
-  // TODO Work directly with PeakPtrs somehow?
-  peakPtrsUsedIn.flatten(peakPtrsUsed);
-  peakPtrsUnusedIn.flatten(peakPtrsUnused);
 
   switch(peakSlots.code())
   {
@@ -855,14 +849,6 @@ void PeakPartial::getPeaks(
 
   // if we didn't match a peak in the used vector, we move it to unused.
   PeakPartial::moveUnused(peakPtrsUsed, peakPtrsUnused);
-
-  peakPtrsUsedIn.clear();
-  for (auto& p: peakPtrsUsed)
-    peakPtrsUsedIn.push_back(p);
-
-  peakPtrsUnusedIn.clear();
-  for (auto& p: peakPtrsUnused)
-    peakPtrsUnusedIn.push_back(p);
 }
 
 
