@@ -20,8 +20,6 @@
 
 void PeakPartial::recoverPeaks0001(vector<Peak const *>& peakPtrsUsed)
 {
-  // This has the most varied set of misses and reasons.
-
   const unsigned iu = comps[3].indexUsed;
   if (iu == 0)
     return;
@@ -53,21 +51,20 @@ void PeakPartial::recoverPeaks0001(vector<Peak const *>& peakPtrsUsed)
 
   PeakPartial::registerPtr(2, peakPtrsUsed[iu-1], iu-1);
 
-  if (peakSlots.number() == 1 || iu == 1)
-    return;
-
-  PeakPartial::recoverPeaks0011New(peakPtrsUsed);
+  PeakPartial::recoverPeaks0011(peakPtrsUsed);
 }
 
 
-void PeakPartial::recoverPeaks0011New(vector<Peak const *>& peakPtrsUsed)
+void PeakPartial::recoverPeaks0011(vector<Peak const *>& peakPtrsUsed)
 {
   // One of the two previous peaks should be fantastic.  There could
   // be a spurious peak first.
 
   const unsigned iu = comps[2].indexUsed;
-  unsigned iuNext;
+  if (iu == 0)
+    return;
 
+  unsigned iuNext;
   if (peakPtrsUsed[iu-1]->fantasticQuality())
     iuNext = iu-1;
   else if (peakSlots.number() >= 3 && peakPtrsUsed[iu-2]->fantasticQuality())
@@ -77,73 +74,18 @@ void PeakPartial::recoverPeaks0011New(vector<Peak const *>& peakPtrsUsed)
 
   const unsigned index = peakPtrsUsed[iu]->getIndex();
 
-  if (index - peakPtrsUsed[iuNext]->getIndex() >= mid)
-  {
-    // Take a stab at the first wheel of the left bogey, too.
-    // Theoretically there should be an upper limit too.
-
-    if (verboseFlag)
-      cout << "Reinstating one 0011 peak, should be p1\n";
-
-    PeakPartial::registerPtr(1, peakPtrsUsed[iuNext], iuNext);
-  }
-  else
+  if (index - peakPtrsUsed[iuNext]->getIndex() < mid)
     return;
 
-  if (iuNext == 0)
-    return;
+  // Take a stab at the first wheel of the left bogey, too.
+  // Theoretically there should be an upper limit too.
 
-  PeakPartial::recoverPeaks0111New(peakPtrsUsed);
-}
+  if (verboseFlag)
+    cout << "Reinstating one 0011 peak, should be p1\n";
 
+  PeakPartial::registerPtr(1, peakPtrsUsed[iuNext], iuNext);
 
-void PeakPartial::recoverPeaks0111New(vector<Peak const *>& peakPtrsUsed)
-{
-  const unsigned iu = comps[1].indexUsed;
-  if (iu == 0)
-    return;
-
-  if (! peakPtrsUsed[iu-1]->fantasticQuality())
-    return;
-
-  const unsigned d = comps[3].peak->getIndex() - comps[2].peak->getIndex();
-
-  const unsigned lo = 
-    static_cast<unsigned>((1.0f - BOGEY_SPECIFIC_FACTOR) * d);
-
-  const unsigned hi = 
-    static_cast<unsigned>((1.0f + BOGEY_SPECIFIC_FACTOR) * d);
-
-  const unsigned limitLo = comps[1].peak->getIndex() - hi;
-  const unsigned limitHi = comps[1].peak->getIndex() - lo;
-
-  if (peakPtrsUsed[iu-1]->getIndex() >= limitLo &&
-      peakPtrsUsed[iu-1]->getIndex() <= limitHi)
-  {
-    if (verboseFlag)
-      cout << "Reinstating one 0111 peak, should be p0\n";
-
-    PeakPartial::registerPtr(0, peakPtrsUsed[iu-1], iu-1);
-  }
-}
-
-
-void PeakPartial::recoverPeaks0011(vector<Peak const *>& peakPtrsUsed)
-{
-  // The four peaks: not found - not found - found - found.
-  const unsigned iu = comps[3].indexUsed;
-  if (peakSlots.number() == 2 && 
-      peakSlots.count(PEAKSLOT_LEFT_OF_P2) == 2 &&
-      comps[1].upper == 0 &&
-      peakPtrsUsed[iu-3]->greatQuality() &&
-      peakPtrsUsed[iu-2]->greatQuality())
-  {
-    // Could also check that the spacing of the two peaks is not
-    // completely off vs. the two last peaks.
-cout << "Reinstating two peaks, should be p0 and p1\n";
-    PeakPartial::registerPtr(0, peakPtrsUsed[iu-3], iu-3);
-    PeakPartial::registerPtr(1, peakPtrsUsed[iu-2], iu-2);
-  }
+  PeakPartial::recoverPeaks0111(peakPtrsUsed);
 }
 
 
@@ -181,6 +123,37 @@ cout << "Reinstating one peak, should be p1\n";
 
       PeakPartial::registerPtr(1, peakPtrsUsed[iu-1], iu-1);
     }
+  }
+}
+
+
+void PeakPartial::recoverPeaks0111(vector<Peak const *>& peakPtrsUsed)
+{
+  const unsigned iu = comps[1].indexUsed;
+  if (iu == 0)
+    return;
+
+  if (! peakPtrsUsed[iu-1]->fantasticQuality())
+    return;
+
+  const unsigned d = comps[3].peak->getIndex() - comps[2].peak->getIndex();
+
+  const unsigned lo = 
+    static_cast<unsigned>((1.0f - BOGEY_SPECIFIC_FACTOR) * d);
+
+  const unsigned hi = 
+    static_cast<unsigned>((1.0f + BOGEY_SPECIFIC_FACTOR) * d);
+
+  const unsigned limitLo = comps[1].peak->getIndex() - hi;
+  const unsigned limitHi = comps[1].peak->getIndex() - lo;
+
+  if (peakPtrsUsed[iu-1]->getIndex() >= limitLo &&
+      peakPtrsUsed[iu-1]->getIndex() <= limitHi)
+  {
+    if (verboseFlag)
+      cout << "Reinstating one 0111 peak, should be p0\n";
+
+    PeakPartial::registerPtr(0, peakPtrsUsed[iu-1], iu-1);
   }
 }
 
@@ -373,8 +346,7 @@ void PeakPartial::getPeaksFromUsed(
       PeakPartial::recoverPeaks0101(peakPtrsUsed);
       break;
     case 0b0111:
-      // We got the last three peaks.  Generally it's a pretty good bet
-      // to throw away anything else.
+      PeakPartial::recoverPeaks0111(peakPtrsUsed);
       break;
     case 0b1011:
       PeakPartial::recoverPeaks1011(peakPtrsUsed);
