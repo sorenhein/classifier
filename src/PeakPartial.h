@@ -122,6 +122,11 @@ class PeakPartial
       vector<Peak const *>& peaksUsed,
       vector<Peak const *>& peaksUnused) const;
 
+    void getPeaksFromUsed(
+      const unsigned bogeyTypical,
+      const unsigned longTypical,
+      vector<Peak const *>& peaksUsed);
+
     string strIndex(
       const unsigned peakNo,
       const unsigned offset) const;

@@ -15,6 +15,7 @@ SOURCE_FILES    =               \
                 PeakMatch.cpp   \
                 PeakMinima.cpp  \
                 PeakPartial.cpp \
+                PeakPartialUsed.cpp \
                 PeakPool.cpp    \
                 PeakProfile.cpp \
                 PeakPtrs.cpp    \

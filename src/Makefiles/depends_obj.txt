@@ -24,6 +24,8 @@ PeakMinima.obj: Peak.h struct.h PeakMinima.h PeakPool.h Peaks.h PeakPtrs.h
 PeakMinima.obj: CarPeaks.h Except.h errors.h
 PeakPartial.obj: PeakPartial.h Peak.h struct.h PeakSlots.h PeakPtrs.h
 PeakPartial.obj: CarPeaks.h
+PeakPartialUsed.obj: PeakPartial.h Peak.h struct.h PeakSlots.h PeakPtrs.h
+PeakPartialUsed.obj: CarPeaks.h
 PeakPool.obj: PeakPool.h Peaks.h Peak.h struct.h PeakPtrs.h CarPeaks.h
 PeakProfile.obj: PeakProfile.h struct.h Peak.h PeakPtrs.h CarPeaks.h Except.h
 PeakProfile.obj: errors.h

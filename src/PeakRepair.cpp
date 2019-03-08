@@ -1,19 +1,13 @@
-#include <list>
-#include <vector>
 #include <string>
 #include <iostream>
 #include <iomanip>
 #include <algorithm>
-#include <fstream>
-#include <sstream>
 
 #include "PeakRepair.h"
 #include "CarModels.h"
 #include "PeakPool.h"
 #include "PeakRange.h"
 #include "CarDetect.h"
-
-#include "Except.h"
 
 #define REPAIR_TOL 0.1f
 
