@@ -87,7 +87,7 @@ void PeakPartial::registerIndexUsed(
 
 void PeakPartial::registerPtr(
   const unsigned peakNo,
-  Peak * pptr)
+  Peak const * pptr)
 {
   peaks[peakNo] = pptr;
   indexUsed[peakNo] = INDEX_NOT_USED;
@@ -113,7 +113,7 @@ void PeakPartial::registerPtr(
 
 void PeakPartial::registerPtr(
   const unsigned peakNo,
-  Peak * pptr,
+  Peak const * pptr,
   const unsigned indexUsedIn)
 {
   PeakPartial::registerPtr(peakNo, pptr);
@@ -228,7 +228,7 @@ bool PeakPartial::dominates(const PeakPartial& p2) const
 
     // The first peak (from the left) slipped to the left, but is
     // close enough.
-    Peak * ptr = p2.peaks[3-numUsed];
+    Peak const * ptr = p2.peaks[3-numUsed];
     if (sameFlag &&
         p2.peaks[3-numUsed] && ptr == peaks[4-numUsed] &&
         p2.closeEnoughFull(ptr->getIndex(), 3-numUsed, 4-numUsed))
@@ -403,8 +403,8 @@ void PeakPartial::printSituation(const bool firstFlag) const
 
 
 void PeakPartial::moveUnused(
-  vector<Peak *>& peakPtrsUsed,
-  vector<Peak *>& peakPtrsUnused) const
+  vector<Peak const *>& peakPtrsUsed,
+  vector<Peak const *>& peakPtrsUnused) const
 {
   const unsigned np = peakPtrsUsed.size();
   vector<unsigned> v(np, 0);
@@ -427,7 +427,7 @@ void PeakPartial::moveUnused(
 }
 
 
-void PeakPartial::recoverPeaks0101(vector<Peak *>& peakPtrsUsed)
+void PeakPartial::recoverPeaks0101(vector<Peak const *>& peakPtrsUsed)
 {
   // The four peaks: not found - found - not found - found.
   const unsigned iu = indexUsed[3];
@@ -465,7 +465,7 @@ cout << "Reinstating one peak, should be p1\n";
 }
 
 
-void PeakPartial::recoverPeaks0011(vector<Peak *>& peakPtrsUsed)
+void PeakPartial::recoverPeaks0011(vector<Peak const *>& peakPtrsUsed)
 {
   // The four peaks: not found - not found - found - found.
   const unsigned iu = indexUsed[3];
@@ -484,7 +484,7 @@ cout << "Reinstating two peaks, should be p0 and p1\n";
 }
 
 
-void PeakPartial::recoverPeaks1100(vector<Peak *>& peakPtrsUsed)
+void PeakPartial::recoverPeaks1100(vector<Peak const *>& peakPtrsUsed)
 {
   // The four peaks: found - found - not found - not found.
   const unsigned iu = indexUsed[0];
@@ -506,7 +506,7 @@ cout << "Reinstating two peaks, should be p2 and p3\n";
 void PeakPartial::recoverPeaks0001(
   const unsigned bogeyTypical,
   const unsigned longTypical,
-  vector<Peak *>& peakPtrsUsed)
+  vector<Peak const *>& peakPtrsUsed)
 {
   // The four peaks: not found - not found - not found - found.
   // This has the most varied set of misses and reasons.
@@ -589,18 +589,18 @@ cout << "Reinstating one 0001 peak, should be p0\n";
 
 // TODO TMP: Should become a class (PeakPtrVector).  Then eliminate
 // duplication with PeakRepair.
-Peak * PeakPartial::locatePeak(
+Peak const * PeakPartial::locatePeak(
   const unsigned lowerIn,
   const unsigned upperIn,
   const unsigned hint,
   const PeakFncPtr& fptr,
-  PeakPtrVector& peakPtrsUsed,
+  vector<Peak const *>& peakPtrsUsed,
   unsigned& indexUsedOut) const
 {
   unsigned num = 0;
   unsigned i = 0;
   unsigned dist = numeric_limits<unsigned>::max();
-  Peak * ptr = nullptr;
+  Peak const * ptr = nullptr;
   for (auto& p: peakPtrsUsed)
   {
     if (! (p->* fptr)())
@@ -635,8 +635,8 @@ Peak * PeakPartial::locatePeak(
 
 
 void PeakPartial::recoverPeaksShared(
-  Peak *& pptrA,
-  Peak *& pptrB,
+  Peak const *& pptrA,
+  Peak const *& pptrB,
   const unsigned npA,
   const unsigned npB,
   const unsigned indexUsedA,
@@ -669,19 +669,19 @@ cout << "Reinstating one " << source << " peak, should be pB\n";
 }
 
 
-Peak * PeakPartial::lookForPeak(
+Peak const * PeakPartial::lookForPeak(
   const unsigned start,
   const unsigned step,
   const float& smallFactor,
   const float& largeFactor,
   const bool upFlag,
-  vector<Peak *>& peakPtrsUsed,
+  vector<Peak const *>& peakPtrsUsed,
   unsigned& indexUsedOut)
 {
   const unsigned smallStep = static_cast<unsigned>(smallFactor * step);
   const unsigned nextStart = (upFlag ? start + step : start - step);
 
-  Peak * pptr;
+  Peak const * pptr;
   pptr = PeakPartial::locatePeak(
     nextStart - smallStep, nextStart + smallStep, nextStart,
     &Peak::goodQuality, peakPtrsUsed, indexUsedOut);
@@ -702,12 +702,12 @@ Peak * PeakPartial::lookForPeak(
 }
 
 
-void PeakPartial::recoverPeaks1011(vector<Peak *>& peakPtrsUsed)
+void PeakPartial::recoverPeaks1011(vector<Peak const *>& peakPtrsUsed)
 {
   // The four peaks: found - not found - found - found.
   const unsigned bogey = peaks[3]->getIndex() - peaks[2]->getIndex();
 
-  Peak * pptr0 = nullptr, * pptr1 = nullptr;
+  Peak const * pptr0 = nullptr, * pptr1 = nullptr;
   unsigned indexUsed0 = 0, indexUsed1 = 0;
 
   // Could be p0-null-p2-p3, missing the p1.
@@ -737,12 +737,12 @@ void PeakPartial::recoverPeaks1011(vector<Peak *>& peakPtrsUsed)
 }
 
 
-void PeakPartial::recoverPeaks1101(vector<Peak *>& peakPtrsUsed)
+void PeakPartial::recoverPeaks1101(vector<Peak const *>& peakPtrsUsed)
 {
   // The four peaks: found - found - not found - found.
   const unsigned bogey = peaks[1]->getIndex() - peaks[0]->getIndex();
 
-  Peak * pptr2 = nullptr, * pptr3 = nullptr;
+  Peak const * pptr2 = nullptr, * pptr3 = nullptr;
   unsigned indexUsed2 = 0, indexUsed3 = 0;
 
   // Could be p0-p1-null-p2, missing the p3.
@@ -772,12 +772,12 @@ void PeakPartial::recoverPeaks1101(vector<Peak *>& peakPtrsUsed)
 }
 
 
-void PeakPartial::recoverPeaks1110(vector<Peak *>& peakPtrsUsed)
+void PeakPartial::recoverPeaks1110(vector<Peak const *>& peakPtrsUsed)
 {
   // The four peaks: found - found - found - not found.
   const unsigned bogey = peaks[1]->getIndex() - peaks[0]->getIndex();
 
-  Peak * pptr2 = nullptr, * pptr3 = nullptr;
+  Peak const * pptr2 = nullptr, * pptr3 = nullptr;
   unsigned indexUsed2 = 0, indexUsed3 = 0;
 
   // Could be p0-p1-p2-null, missing the p3.
@@ -809,8 +809,8 @@ void PeakPartial::recoverPeaks1110(vector<Peak *>& peakPtrsUsed)
 void PeakPartial::getPeaks(
   const unsigned bogeyTypical,
   const unsigned longTypical,
-  vector<Peak *>& peakPtrsUsed,
-  vector<Peak *>& peakPtrsUnused)
+  vector<Peak const *>& peakPtrsUsed,
+  vector<Peak const *>& peakPtrsUnused)
 {
   // Mostly for the sport, we try to use as many of the front peaks
   // as possible.  Mostly the alignment will pick up on it anyway.

@@ -123,7 +123,7 @@ class PeakPtrs
 
     void flattenCar(CarPeaksPtr& carPeaksPtr);
 
-    void flatten(vector<Peak *>& flattened);
+    void flatten(vector<Peak const *>& flattened);
 
     void select(const vector<Peak *>& flattened);
 

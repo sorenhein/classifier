@@ -267,8 +267,8 @@ bool PeakRepair::edgeCar(
   const bool firstFlag,
   PeakPool& peaks,
   PeakRange& range,
-  PeakPtrs& peakPtrsUsedIn,
-  PeakPtrs& peakPtrsUnusedIn)
+  PeakPtrs& peakPtrsUsed,
+  PeakPtrs& peakPtrsUnused)
 {
   offset = offsetIn;
 
@@ -298,7 +298,7 @@ bool PeakRepair::edgeCar(
   for (unsigned peakNo: peakOrder)
   {
     if (! PeakRepair::updatePossibleModels(repairRange, firstElemFlag,
-        peakPtrsUsedIn, peakNo, models))
+        peakPtrsUsed, peakNo, models))
       skips++;
     if (skips == 2)
       break;
@@ -310,16 +310,16 @@ bool PeakRepair::edgeCar(
   {
     bool edgeFlag;
     if (firstFlag)
-      edgeFlag = peakPtrsUsedIn.back()->fitsType(BOGEY_RIGHT, WHEEL_RIGHT);
+      edgeFlag = peakPtrsUsed.back()->fitsType(BOGEY_RIGHT, WHEEL_RIGHT);
     else
-      edgeFlag = peakPtrsUsedIn.front()->fitsType(BOGEY_LEFT, WHEEL_LEFT);
+      edgeFlag = peakPtrsUsed.front()->fitsType(BOGEY_LEFT, WHEEL_LEFT);
 
     bool modelEndFlag = models.hasAnEndGap();
 
     cout << (firstFlag ? "FIRST" : "LAST") <<
       "QUADRANT " << edgeFlag << ", " << modelEndFlag << endl;
 
-cout << peakPtrsUsedIn.strQuality("No model match", offset);
+cout << peakPtrsUsed.strQuality("No model match", offset);
 
     cout << "WARNREPAIR: No model match\n";
     return false;
@@ -337,7 +337,7 @@ cout << (firstFlag ? "NODOMFIRST" : "NODOMLAST") << "\n";
   }
 
   PeakRepair::printMatches(firstFlag);
-  superModel.makeCodes(peakPtrsUsedIn, offset);
+  superModel.makeCodes(peakPtrsUsed, offset);
   superModel.printSituation(firstFlag);
 
 /*
@@ -404,35 +404,22 @@ cout << "Typical " << bogeyTypical << ", " << longTypical << endl;
 
   // Fill out Used with the peaks actually used.
 
-  vector<Peak *> peakPtrsUsed, peakPtrsUnused;
-  peakPtrsUsedIn.flatten(peakPtrsUsed);
+  vector<Peak const *> peakPtrsUsedFlat, peakPtrsUnusedFlat;
+  peakPtrsUsed.flatten(peakPtrsUsedFlat);
 
   superModel.getPeaks(bogeyTypical, longTypical, 
-    peakPtrsUsed, peakPtrsUnused);
+    peakPtrsUsedFlat, peakPtrsUnusedFlat);
 
-  peakPtrsUsedIn.clear();
-  for (auto& p: peakPtrsUsed)
-    peakPtrsUsedIn.push_back(p);
-
-  PeakPtrs peakPtrsSpare;
-  for (auto& p: peakPtrsSpare)
-    peakPtrsSpare.push_back(p);
-
-cout << "GOT PEAKS" << endl;
-
-  if (peakPtrsSpare.size() > 0)
+  if (peakPtrsUnusedFlat.size() > 0)
   {
-    cout << "WARNSPARE: " << peakPtrsSpare.size() << endl;
-    cout << peakPtrsSpare.front()->strHeaderQuality();
+    cout << "WARNSPARE: " << peakPtrsUnusedFlat.size() << endl;
+    cout << peakPtrsUnusedFlat.front()->strHeaderQuality();
 
-    for (auto& p: peakPtrsSpare)
-    {
+    for (auto& p: peakPtrsUnusedFlat)
       cout<< p->strQuality(offset);
-      peakPtrsUnusedIn.push_back(p);
-    }
   }
 
-cout << "PUSHED PEAKS" << endl;
+  range.split(peakPtrsUsedFlat, peakPtrsUsed, peakPtrsUnused);
 
   return true;
 }

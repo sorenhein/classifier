@@ -415,7 +415,13 @@ void PeakPtrs::split(
 
   while (pit != peaks.end() || fit != flattened.cend())
   {
-    if (pit == peaks.end())
+    if (* fit == nullptr)
+    {
+      peaksMatched.push_back(nullptr);
+      fit++;
+      continue;
+    }
+    else if (pit == peaks.end())
     {
       cout << "PeakPtrs::split ERROR1\n";
       return;
@@ -481,7 +487,7 @@ void PeakPtrs::flattenCar(CarPeaksPtr& carPeaksPtr)
 }
 
 
-void PeakPtrs::flatten(vector<Peak *>& flattened)
+void PeakPtrs::flatten(vector<Peak const *>& flattened)
 {
   flattened.clear();
   for (auto& peak: peaks)

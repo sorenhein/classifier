@@ -236,7 +236,6 @@ PeakStructure::FindCarType PeakStructure::findPartialCarByQuality(
   PeakRange& range,
   CarDetect& car) const
 {
-
   PeakPtrs peakPtrsUsed, peakPtrsUnused;
   range.split(fptr, peakPtrsUsed, peakPtrsUnused);
 

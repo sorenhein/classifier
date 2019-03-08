@@ -28,7 +28,7 @@ void PeakSlots::reset()
 
 
 void PeakSlots::log(
-  const vector<Peak *> peaks,
+  const vector<Peak const *> peaks,
   const PeakPtrs& peakPtrsUsed,
   const unsigned offset)
 {
