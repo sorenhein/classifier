@@ -46,7 +46,7 @@ setDetails();
 
 # Summary hashes.
 my (%errorsSummary, %carsSummary, %fullSummary, %imperfSummary);
-my (%detailsSummaryFirst, %detailsSummaryLater);
+my (%detailsSummaryFirst, %detailsSummaryMid, %detailsSummaryLast);
 
 # Totals.
 my (@errorsTotal, @carsTotal, $fullTotal, @imperfTotal);
@@ -402,7 +402,9 @@ print forceNewLine($format);
 
 print summaryDetails(\%detailsSummaryFirst, $format);
 print forceNewLine($format);
-print summaryDetails(\%detailsSummaryLater, $format);
+print summaryDetails(\%detailsSummaryMid, $format);
+print forceNewLine($format);
+print summaryDetails(\%detailsSummaryLast, $format);
 print forceNewLine($format);
 
 print summaryFrac($format);
@@ -807,11 +809,15 @@ sub parseLines
 
   if ($line1 =~ /^first/)
   {
-    $detailsRef->[0] = "yes";
+    $detailsRef->[0] = "first";
+  }
+  elsif ($line1 =~ /^intra/)
+  {
+    $detailsRef->[0] = "";
   }
   else
   {
-    $detailsRef->[0] = "";
+    $detailsRef->[0] = "last";
   }
 
   $line1 =~ /(\d+-\d+)/;
@@ -849,13 +855,17 @@ sub parseLines
 sub logDetails
 {
   my ($sensor, $addRef) = @_;
-  if ($addRef->[0] eq "yes")
+  if ($addRef->[0] eq "first")
   {
     $detailsSummaryFirst{$sensor}[$addRef->[2] + $addRef->[3]]++;
   }
+  elsif ($addRef->[0] eq "last")
+  {
+    $detailsSummaryLast{$sensor}[$addRef->[2] + $addRef->[3]]++;
+  }
   else
   {
-    $detailsSummaryLater{$sensor}[$addRef->[2] + $addRef->[3]]++;
+    $detailsSummaryMid{$sensor}[$addRef->[2] + $addRef->[3]]++;
   }
 }
 
