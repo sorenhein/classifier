@@ -183,6 +183,37 @@ void PeakPartial::recoverPeaks0111(vector<Peak const *>& peakPtrsUsed)
 }
 
 
+void PeakPartial::recoverPeaks1000(vector<Peak const *>& peakPtrsUsed)
+{
+  pstats[0b1000].num++;
+
+  // TODO Could also be missing a single peak, among other things.
+
+  const unsigned iu0 = comps[0].indexUsed;
+
+  // Look for the left pair.
+
+  Peak const * pptr;
+  unsigned indexUsed;
+
+  const unsigned num01 = PeakPartial::recoverPeak(
+    0.3f, 0.5f, true, iu0, iu0+1, peakPtrsUsed.size(), 
+    peakPtrsUsed, pptr, indexUsed);
+  
+  if (num01 == 1)
+  {
+    if (verboseFlag)
+      cout << "Reinstating one 1000 peak, should be p1\n";
+
+    PeakPartial::registerPtr(1, peakPtrsUsed[indexUsed], indexUsed);
+    pstats[0b1000].hits++;
+
+    PeakPartial::recoverPeaks1100(peakPtrsUsed);
+    return;
+  }
+}
+
+
 void PeakPartial::recoverPeaks1010(vector<Peak const *>& peakPtrsUsed)
 {
   // Take a simple look for a pair that looks like a bogey.
@@ -322,6 +353,7 @@ void PeakPartial::recoverPeaks1100(vector<Peak const *>& peakPtrsUsed)
 
   for (unsigned iu = comps[1].indexUsed+1; iu < peakPtrsUsed.size()-1; iu++)
   {
+    // TODO Don't have to be consecutive.
     if (! peakPtrsUsed[iu]->greatQuality() ||
         ! peakPtrsUsed[iu+1]->greatQuality())
       continue;
@@ -519,6 +551,9 @@ void PeakPartial::getPeaksFromUsed(
       break;
     case 0b0111:
       PeakPartial::recoverPeaks0111(peakPtrsUsed);
+      break;
+    case 0b1000:
+      PeakPartial::recoverPeaks1000(peakPtrsUsed);
       break;
     case 0b1010:
       PeakPartial::recoverPeaks1010(peakPtrsUsed);
