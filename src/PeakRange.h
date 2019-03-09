@@ -69,6 +69,7 @@ class PeakRange
 
     unsigned numGreat() const;
     unsigned numGood() const;
+    unsigned num() const;
 
     PeakPtrs& getPeakPtrs();
 

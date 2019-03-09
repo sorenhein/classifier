@@ -129,6 +129,12 @@ unsigned PeakRange::numGood() const
 }
 
 
+unsigned PeakRange::num() const
+{
+  return profile.num();
+}
+
+
 PeakPtrs& PeakRange::getPeakPtrs()
 {
   return peakPtrs;

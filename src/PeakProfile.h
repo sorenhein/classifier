@@ -53,6 +53,7 @@ class PeakProfile
     unsigned numGood() const;
     unsigned numGreat() const;
     unsigned numSelected() const;
+    unsigned num() const;
 
     bool match(const Recognizer& recog) const;
 

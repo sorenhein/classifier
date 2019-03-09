@@ -122,6 +122,12 @@ unsigned PeakProfile::numSelected() const
 }
 
 
+unsigned PeakProfile::num() const
+{
+  return sum;
+}
+
+
 bool PeakProfile::match(const Recognizer& recog) const
 {
   return (recog.params.source.match(source) &&
