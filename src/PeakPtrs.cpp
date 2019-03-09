@@ -415,7 +415,13 @@ void PeakPtrs::split(
 
   while (pit != peaks.end() || fit != flattened.cend())
   {
-    if (* fit == nullptr)
+    if (fit == flattened.cend())
+    {
+      peaksRejected.push_back(* pit);
+      pit++;
+      continue;
+    }
+    else if (* fit == nullptr)
     {
       peaksMatched.push_back(nullptr);
       fit++;
@@ -425,12 +431,6 @@ void PeakPtrs::split(
     {
       cout << "PeakPtrs::split ERROR1\n";
       return;
-    }
-    else if (fit == flattened.cend())
-    {
-      peaksRejected.push_back(* pit);
-      pit++;
-      continue;
     }
 
     const unsigned pindex = (* pit)->getIndex();

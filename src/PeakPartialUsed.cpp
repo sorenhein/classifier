@@ -183,33 +183,6 @@ void PeakPartial::recoverPeaks0111(vector<Peak const *>& peakPtrsUsed)
 }
 
 
-unsigned PeakPartial::recoverPeak(
-  const float& smallFactor,
-  const float& largeFactor,
-  const bool upFlag,
-  const unsigned iuRef,
-  const unsigned iuStart,
-  const unsigned iuEnd,
-  const vector<Peak const *>& peakPtrsUsed,
-  Peak const *& pptr,
-  unsigned& indexUsed) const
-{
-  unsigned num = 0;
-  for (unsigned iu = iuStart; iu < iuEnd; iu++)
-  {
-    pptr = PeakPartial::closePeak(smallFactor, largeFactor, upFlag,
-      peakPtrsUsed, iuRef, iu);
-    
-    if (pptr)
-    {
-      num++;
-      indexUsed = iu;
-    }
-  }
-  return num;
-}
-
-
 void PeakPartial::recoverPeaks1010(vector<Peak const *>& peakPtrsUsed)
 {
   // Take a simple look for a pair that looks like a bogey.
@@ -336,26 +309,37 @@ void PeakPartial::recoverPeaks1100(vector<Peak const *>& peakPtrsUsed)
 {
   pstats[0b1100].num++;
 
-  const unsigned iu = comps[0].indexUsed;
+  // TODO Could also be a single peak.
+  if (peakSlots.count(PEAKSLOT_RIGHT_OF_P1) < 2)
+    return;
 
-  if (peakSlots.number() == 2 && 
-      peakSlots.count(PEAKSLOT_RIGHT_OF_P1) == 2 &&
-      comps[2].upper == 0 &&
-      peakPtrsUsed[iu+2]->greatQuality() &&
-      peakPtrsUsed[iu+3]->greatQuality())
+  const unsigned dlo = comps[1].peak->getIndex() -
+    comps[0].peak->getIndex();
+  const unsigned dlimLo = 
+    static_cast<unsigned>((1.0f - BOGEY_GENERAL_FACTOR) * dlo);
+  const unsigned dlimHi = 
+    static_cast<unsigned>((1.0f + BOGEY_GENERAL_FACTOR) * dlo);
+
+  for (unsigned iu = comps[1].indexUsed+1; iu < peakPtrsUsed.size()-1; iu++)
   {
-    // Could also check that the spacing of the two peaks is not
-    // completely off vs. the two last peaks.
-    
+    if (! peakPtrsUsed[iu]->greatQuality() ||
+        ! peakPtrsUsed[iu+1]->greatQuality())
+      continue;
+
+    const unsigned dhi = peakPtrsUsed[iu+1]->getIndex() -
+      peakPtrsUsed[iu]->getIndex();
+
+    if (dhi < dlimLo || dhi > dlimHi)
+      continue;
+
     if (verboseFlag)
       cout << "Reinstating two 1100 peaks, should be p2+p3\n";
 
-    PeakPartial::registerPtr(2, peakPtrsUsed[iu+2], iu+2);
-    PeakPartial::registerPtr(3, peakPtrsUsed[iu+3], iu+3);
+    PeakPartial::registerPtr(2, peakPtrsUsed[iu], iu);
+    PeakPartial::registerPtr(3, peakPtrsUsed[iu+1], iu+1);
     pstats[0b1100].hits++;
+    return;
   }
-
-  // TODO Could also be a single peak, I suppose
 }
 
 
@@ -431,6 +415,33 @@ void PeakPartial::recoverPeaks1110(vector<Peak const *>& peakPtrsUsed)
 
   PeakPartial::recoverPeaksShared(pptr2, pptr3, 2, 3,
     indexUsed2, indexUsed3, "1110", 0b1110);
+}
+
+
+unsigned PeakPartial::recoverPeak(
+  const float& smallFactor,
+  const float& largeFactor,
+  const bool upFlag,
+  const unsigned iuRef,
+  const unsigned iuStart,
+  const unsigned iuEnd,
+  const vector<Peak const *>& peakPtrsUsed,
+  Peak const *& pptr,
+  unsigned& indexUsed) const
+{
+  unsigned num = 0;
+  for (unsigned iu = iuStart; iu < iuEnd; iu++)
+  {
+    pptr = PeakPartial::closePeak(smallFactor, largeFactor, upFlag,
+      peakPtrsUsed, iuRef, iu);
+    
+    if (pptr)
+    {
+      num++;
+      indexUsed = iu;
+    }
+  }
+  return num;
 }
 
 
