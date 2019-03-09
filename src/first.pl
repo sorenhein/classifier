@@ -17,7 +17,7 @@ if ($firstFlag)
 }
 else
 {
-  $select = "PEAKLAST  14";
+  $select = "PEAKLAST  10";
   $dir = "last";
   $startTag = "LASTCAR ";
   $endTag = "lastwheeler";

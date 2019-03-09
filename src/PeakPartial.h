@@ -64,6 +64,8 @@ class PeakPartial
 
     // Some typical quantities that would otherwise get passed around.
     unsigned bogey;
+    unsigned bogeyLo;
+    unsigned bogeyHi;
     unsigned mid;
     bool verboseFlag;
 
@@ -116,11 +118,28 @@ class PeakPartial
       vector<Peak const *>& peakPtrsUsed,
       unsigned& indexUsedOut);
 
+    Peak const * closePeak(
+      const float& factor,
+      const bool upFlag,
+      const PeakFncPtr& fptr,
+      const vector<Peak const *>& peakPtrsUsed,
+      const unsigned iuKnown,
+      const unsigned iuCand) const;
+
+    Peak const * closePeak(
+      const float& smallFactor,
+      const float& largeFactor,
+      const bool upFlag,
+      const vector<Peak const *>& peakPtrsUsed,
+      const unsigned iuKnown,
+      const unsigned iuCand) const;
+
     void recoverPeaks0001(vector<Peak const *>& peakPtrsUsed);
     void recoverPeaks0011(vector<Peak const *>& peakPtrsUsed);
     void recoverPeaks0101(vector<Peak const *>& peakPtrsUsed);
     void recoverPeaks0111(vector<Peak const *>& peakPtrsUsed);
 
+    void recoverPeaks1010(vector<Peak const *>& peakPtrsUsed);
     void recoverPeaks1011(vector<Peak const *>& peakPtrsUsed);
     void recoverPeaks1100(vector<Peak const *>& peakPtrsUsed);
     void recoverPeaks1101(vector<Peak const *>& peakPtrsUsed);

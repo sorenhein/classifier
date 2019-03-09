@@ -9,7 +9,7 @@
 
 
 // 1.2x is a normal range for short cars, plus a bit of buffer.
-#define BOGEY_GENERAL_FACTOR 1.3f
+#define BOGEY_GENERAL_FACTOR 0.3f
 
 // When we're comparing within a given car, we are stricter.
 #define BOGEY_SPECIFIC_FACTOR 0.1f
@@ -42,7 +42,7 @@ void PeakPartial::recoverPeaks0001(vector<Peak const *>& peakPtrsUsed)
 
   if ((index + comps[2].upper < 2 * comps[2].lower ||
       ! peakPtrsUsed[iu-1]->greatQuality()) &&
-      (index + bogey < comps[3].peak->getIndex() ||
+      (index + bogeyHi < comps[3].peak->getIndex() ||
       ! peakPtrsUsed[iu-1]->fantasticQuality()))
     return;
 
@@ -179,6 +179,113 @@ void PeakPartial::recoverPeaks0111(vector<Peak const *>& peakPtrsUsed)
 
     PeakPartial::registerPtr(0, peakPtrsUsed[iu-1], iu-1);
     pstats[0b0111].hits++;
+  }
+}
+
+
+void PeakPartial::recoverPeaks1010(vector<Peak const *>& peakPtrsUsed)
+{
+  pstats[0b1010].num++;
+
+  // Start from 3+ peaks.
+  if (peakPtrsUsed.size() <= 2)
+    return;
+
+  // Take a simple look for a pair that looks like a bogey.
+  const unsigned iu0 = comps[0].indexUsed;
+  const unsigned iu2 = comps[2].indexUsed;
+
+  Peak const * pptr;
+  unsigned indexUsed = 0;
+
+  // Look between the peaks.
+  Peak const * ptmp;
+  unsigned num01 = 0, num12 = 0;
+  for (unsigned iu = iu0+1; iu < iu2; iu++)
+  {
+    // Look forward from p0.
+    ptmp = PeakPartial::closePeak(0.3f, 0.5f, true, peakPtrsUsed, iu0, iu);
+
+    if (ptmp)
+    {
+      num01++;
+      pptr = ptmp;
+      indexUsed = iu;
+    }
+
+    // Look backward from p2.
+    ptmp = PeakPartial::closePeak(0.3f, 0.5f, false, peakPtrsUsed, iu2, iu);
+
+    if (ptmp)
+    {
+      num12++;
+      pptr = ptmp;
+      indexUsed = iu;
+    }
+  }
+
+  if (num01 + num12 > 1)
+  {
+    cout << "recoverPeaks1010: " << 
+      num01 << " + " << num12 << " options\n";
+    return;
+  }
+
+  if (num01)
+  {
+    if (verboseFlag)
+      cout << "Reinstating one 1010 peak, should be p1\n";
+
+    PeakPartial::registerPtr(1, peakPtrsUsed[indexUsed], indexUsed);
+    pstats[0b1010].hits++;
+
+    // TODO Call 1110
+  }
+  else if (num12)
+  {
+    if (verboseFlag)
+      cout << "Reinstating one 1010 peak, should be p2(p3)\n";
+
+    PeakPartial::movePtr(2, 3);
+    PeakPartial::registerPtr(2, peakPtrsUsed[indexUsed], indexUsed);
+    pstats[0b1010].hits++;
+
+    // TODO Call 1011
+  }
+  else
+  {
+    unsigned num23 = 0;
+
+    for (unsigned iu = iu2+1; iu < peakPtrsUsed.size(); iu++)
+    {
+      // Look forward from p2.
+      ptmp = PeakPartial::closePeak(0.3f, 0.5f, true, peakPtrsUsed, 
+          iu2, iu);
+
+      if (ptmp)
+      {
+        num23++;
+        pptr = ptmp;
+        indexUsed = iu;
+      }
+    }
+
+    if (num23 > 1)
+    {
+      cout << "recoverPeaks1010: " << num23 << " options\n";
+      return;
+    }
+    else if (num23)
+    {
+      if (verboseFlag)
+        cout << "Reinstating one 1010 peak, should be p3\n";
+
+      PeakPartial::registerPtr(3, peakPtrsUsed[indexUsed], indexUsed);
+      pstats[0b1010].hits++;
+  
+      // TODO Call 1011
+    }
+
   }
 }
 
@@ -376,7 +483,12 @@ void PeakPartial::getPeaksFromUsed(
   // Mostly for the sport, we try to use as many of the front peaks
   // as possible.  Mostly the alignment will pick up on it anyway.
 
-  bogey = static_cast<unsigned>(BOGEY_GENERAL_FACTOR * bogeyTypical);
+  bogey = bogeyTypical;
+  bogeyLo = 
+    static_cast<unsigned>((1.f - BOGEY_GENERAL_FACTOR) * bogeyTypical);
+  bogeyHi = 
+    static_cast<unsigned>((1.f + BOGEY_GENERAL_FACTOR) * bogeyTypical);
+
   mid = static_cast<unsigned>(MID_FACTOR * longTypical);
   verboseFlag = verboseFlagIn;
 
@@ -393,6 +505,9 @@ void PeakPartial::getPeaksFromUsed(
       break;
     case 0b0111:
       PeakPartial::recoverPeaks0111(peakPtrsUsed);
+      break;
+    case 0b1010:
+      PeakPartial::recoverPeaks1010(peakPtrsUsed);
       break;
     case 0b1011:
       PeakPartial::recoverPeaks1011(peakPtrsUsed);

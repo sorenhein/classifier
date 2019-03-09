@@ -489,6 +489,62 @@ Peak const * PeakPartial::locatePeak(
 }
 
 
+Peak const * PeakPartial::closePeak(
+  const float& factor,
+  const bool upFlag,
+  const PeakFncPtr& fptr,
+  const vector<Peak const *>& peakPtrsUsed,
+  const unsigned iuKnown,
+  const unsigned iuCand) const
+{
+  const unsigned step = static_cast<unsigned>(factor * bogey);
+  const unsigned start = peakPtrsUsed[iuKnown]->getIndex();
+
+  unsigned nextLo, nextHi;
+  if (upFlag)
+  {
+    nextLo = start + bogey - step;
+    nextHi = start + bogey + step;
+  }
+  else
+  {
+    nextLo = start - bogey - step;
+    nextHi = start - bogey + step;
+  }
+
+// cout << "CLOSE " << factor << " " << upFlag << ", " <<
+  // nextLo << ", " << nextHi << " iuCand " << iuCand << endl;
+
+  const unsigned cand = peakPtrsUsed[iuCand]->getIndex();
+  if (cand >= nextLo && 
+      cand <= nextHi && 
+      (peakPtrsUsed[iuCand]->* fptr)())
+    return peakPtrsUsed[iuCand];
+  else
+    return nullptr;
+}
+
+
+Peak const * PeakPartial::closePeak(
+  const float& smallFactor,
+  const float& largeFactor,
+  const bool upFlag,
+  const vector<Peak const *>& peakPtrsUsed,
+  const unsigned iuKnown,
+  const unsigned iuCand) const
+{
+  Peak const * pptr;
+  pptr = PeakPartial::closePeak(smallFactor, upFlag, &Peak::goodQuality,
+    peakPtrsUsed, iuKnown, iuCand);
+
+  if (pptr)
+    return pptr;
+
+  return PeakPartial::closePeak(largeFactor, upFlag, &Peak::goodQuality,
+    peakPtrsUsed, iuKnown, iuCand);
+}
+
+
 Peak const * PeakPartial::lookForPeak(
   const unsigned start,
   const unsigned step,

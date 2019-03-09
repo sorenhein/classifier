@@ -4,6 +4,10 @@ Files to clean up:
 - PeakPartial
   - Later Unused, Hidden
 
+Two candidates in locatePeak: Could well both be true if greatQuality.
+
+Rename bogey to bogie
+
 Do PEAKLAST
 - 8
 - 10

@@ -294,7 +294,7 @@ PeakStructure::FindCarType PeakStructure::findPartialLastCarByQuality(
 
   if (range.numGreat() > 4 ||
       range.numGood() > 6 || 
-      range.num() > 8)
+      range.num() > 10)
     return FIND_CAR_NO_MATCH;
 
   // TODO Should the previous car then actively become the last one?
