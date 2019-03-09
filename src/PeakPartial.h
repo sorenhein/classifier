@@ -67,6 +67,14 @@ class PeakPartial
     unsigned mid;
     bool verboseFlag;
 
+    struct Pstats
+    {
+      unsigned num;
+      unsigned hits;
+    };
+
+    vector<Pstats> pstats;
+
 
     void movePtr(
       const unsigned indexFrom,
@@ -125,7 +133,8 @@ class PeakPartial
       const unsigned npB,
       const unsigned indexUsedA,
       const unsigned indexUsedB,
-      const string& source);
+      const string& source,
+      const unsigned bits);
 
     void moveUnused(
       vector<Peak const *>& peaksUsed,
@@ -136,6 +145,8 @@ class PeakPartial
       const unsigned longTypical,
       const bool verboseFlag,
       vector<Peak const *>& peaksUsed);
+
+    void printHits() const;
 
     string strIndex(
       const unsigned peakNo,

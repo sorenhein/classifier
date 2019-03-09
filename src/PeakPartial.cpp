@@ -45,6 +45,9 @@ void PeakPartial::reset()
   numUsed = 0;
 
   peakSlots.reset();
+
+  pstats.clear();
+  pstats.resize(16);
 }
 
 

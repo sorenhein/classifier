@@ -20,6 +20,8 @@
 
 void PeakPartial::recoverPeaks0001(vector<Peak const *>& peakPtrsUsed)
 {
+  pstats[0b0001].num++;
+
   const unsigned iu = comps[3].indexUsed;
   if (iu == 0)
     return;
@@ -50,6 +52,7 @@ void PeakPartial::recoverPeaks0001(vector<Peak const *>& peakPtrsUsed)
     cout << "Reinstating one 0001 peak, should be p2\n";
 
   PeakPartial::registerPtr(2, peakPtrsUsed[iu-1], iu-1);
+  pstats[0b0001].hits++;
 
   PeakPartial::recoverPeaks0011(peakPtrsUsed);
 }
@@ -59,6 +62,8 @@ void PeakPartial::recoverPeaks0011(vector<Peak const *>& peakPtrsUsed)
 {
   // One of the two previous peaks should be fantastic.  There could
   // be a spurious peak first.
+
+  pstats[0b0011].num++;
 
   const unsigned iu = comps[2].indexUsed;
   if (iu == 0)
@@ -84,6 +89,7 @@ void PeakPartial::recoverPeaks0011(vector<Peak const *>& peakPtrsUsed)
     cout << "Reinstating one 0011 peak, should be p1\n";
 
   PeakPartial::registerPtr(1, peakPtrsUsed[iuNext], iuNext);
+  pstats[0b0011].hits++;
 
   PeakPartial::recoverPeaks0111(peakPtrsUsed);
 }
@@ -91,6 +97,8 @@ void PeakPartial::recoverPeaks0011(vector<Peak const *>& peakPtrsUsed)
 
 void PeakPartial::recoverPeaks0101(vector<Peak const *>& peakPtrsUsed)
 {
+  pstats[0b0101].num++;
+
   const unsigned iu = comps[3].indexUsed;
 
   if (peakSlots.count(PEAKSLOT_BETWEEN_P1_P3) == 2 &&
@@ -104,6 +112,7 @@ void PeakPartial::recoverPeaks0101(vector<Peak const *>& peakPtrsUsed)
 
     PeakPartial::registerPtr(1, peakPtrsUsed[iu-2], iu-2);
     PeakPartial::registerPtr(2, peakPtrsUsed[iu-1], iu-1);
+    pstats[0b0101].hits++;
   }
   else if (peakSlots.count(PEAKSLOT_BETWEEN_P1_P3) == 1 &&
       peakPtrsUsed[iu-1]->greatQuality())
@@ -117,6 +126,7 @@ void PeakPartial::recoverPeaks0101(vector<Peak const *>& peakPtrsUsed)
         cout << "Reinstating one 0101 peak, should be p2\n";
 
       PeakPartial::registerPtr(2, peakPtrsUsed[iu-1], iu-1);
+      pstats[0b0101].hits++;
 
       // TODO Call 0111
     }
@@ -131,6 +141,7 @@ void PeakPartial::recoverPeaks0101(vector<Peak const *>& peakPtrsUsed)
       PeakPartial::movePtr(3, 2);
 
       PeakPartial::registerPtr(1, peakPtrsUsed[iu-1], iu-1);
+      pstats[0b0101].hits++;
 
       // TODO Call 1110
     }
@@ -140,6 +151,8 @@ void PeakPartial::recoverPeaks0101(vector<Peak const *>& peakPtrsUsed)
 
 void PeakPartial::recoverPeaks0111(vector<Peak const *>& peakPtrsUsed)
 {
+  pstats[0b0111].num++;
+
   const unsigned iu = comps[1].indexUsed;
   if (iu == 0)
     return;
@@ -165,12 +178,15 @@ void PeakPartial::recoverPeaks0111(vector<Peak const *>& peakPtrsUsed)
       cout << "Reinstating one 0111 peak, should be p0\n";
 
     PeakPartial::registerPtr(0, peakPtrsUsed[iu-1], iu-1);
+    pstats[0b0111].hits++;
   }
 }
 
 
 void PeakPartial::recoverPeaks1011(vector<Peak const *>& peakPtrsUsed)
 {
+  pstats[0b1011].num++;
+
   const unsigned bogeySpecific = 
     comps[3].peak->getIndex() - comps[2].peak->getIndex();
 
@@ -202,12 +218,14 @@ void PeakPartial::recoverPeaks1011(vector<Peak const *>& peakPtrsUsed)
   }
 
   PeakPartial::recoverPeaksShared(pptr0, pptr1, 0, 1,
-    indexUsed0, indexUsed1, "1011");
+    indexUsed0, indexUsed1, "1011", 0b1011);
 }
 
 
 void PeakPartial::recoverPeaks1100(vector<Peak const *>& peakPtrsUsed)
 {
+  pstats[0b1100].num++;
+
   const unsigned iu = comps[0].indexUsed;
 
   if (peakSlots.number() == 2 && 
@@ -224,6 +242,7 @@ void PeakPartial::recoverPeaks1100(vector<Peak const *>& peakPtrsUsed)
 
     PeakPartial::registerPtr(2, peakPtrsUsed[iu+2], iu+2);
     PeakPartial::registerPtr(3, peakPtrsUsed[iu+3], iu+3);
+    pstats[0b1100].hits++;
   }
 
   // TODO Could also be a single peak, I suppose
@@ -232,6 +251,8 @@ void PeakPartial::recoverPeaks1100(vector<Peak const *>& peakPtrsUsed)
 
 void PeakPartial::recoverPeaks1101(vector<Peak const *>& peakPtrsUsed)
 {
+  pstats[0b1101].num++;
+
   const unsigned bogeySpecific = 
     comps[1].peak->getIndex() - comps[0].peak->getIndex();
 
@@ -261,12 +282,14 @@ void PeakPartial::recoverPeaks1101(vector<Peak const *>& peakPtrsUsed)
   }
 
   PeakPartial::recoverPeaksShared(pptr2, pptr3, 2, 3,
-    indexUsed2, indexUsed3, "1101");
+    indexUsed2, indexUsed3, "1101", 0b1101);
 }
 
 
 void PeakPartial::recoverPeaks1110(vector<Peak const *>& peakPtrsUsed)
 {
+  pstats[0b1110].num++;
+
   const unsigned bogeySpecific = 
     comps[1].peak->getIndex() - comps[0].peak->getIndex();
 
@@ -297,7 +320,7 @@ void PeakPartial::recoverPeaks1110(vector<Peak const *>& peakPtrsUsed)
   }
 
   PeakPartial::recoverPeaksShared(pptr2, pptr3, 2, 3,
-    indexUsed2, indexUsed3, "1110");
+    indexUsed2, indexUsed3, "1110", 0b1110);
 }
 
 
@@ -308,7 +331,8 @@ void PeakPartial::recoverPeaksShared(
   const unsigned npB,
   const unsigned indexUsedA,
   const unsigned indexUsedB,
-  const string& source)
+  const string& source,
+  const unsigned bits)
 {
   if (pptrA && pptrB)
   {
@@ -328,6 +352,7 @@ void PeakPartial::recoverPeaksShared(
     if (comps[npA].peak)
       PeakPartial::movePtr(npA, npB);
     PeakPartial::registerPtr(npA, pptrA, indexUsedA);
+    pstats[bits].hits++;
   }
   else if (pptrB)
   {
@@ -337,6 +362,7 @@ void PeakPartial::recoverPeaksShared(
     if (comps[npB].peak)
       PeakPartial::movePtr(npB, npA);
     PeakPartial::registerPtr(npB, pptrB, indexUsedB);
+    pstats[bits].hits++;
   }
 }
 
@@ -383,6 +409,25 @@ void PeakPartial::getPeaksFromUsed(
     default:
       // Usually nothing left.
       break;
+  }
+  PeakPartial::printHits();
+}
+
+
+void PeakPartial::printHits() const
+{
+  string s;
+  if (verboseFlag)
+  {
+    s = "PPNUM";
+    for (unsigned i = 0; i < 16; i++)
+      s += " " + to_string(pstats[i].num);
+    cout << s << "\n";
+
+    s = "PPHIT";
+    for (unsigned i = 0; i < 16; i++)
+      s += " " + to_string(pstats[i].hits);
+    cout << s << "\n";
   }
 }
 
