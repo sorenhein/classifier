@@ -6,6 +6,8 @@ Files to clean up:
 
 Two candidates in locatePeak: Could well both be true if greatQuality.
 
+Are there last cars where we don't remove trailing unused peaks?
+
 Rename bogey to bogie
 
 Do PEAKLAST

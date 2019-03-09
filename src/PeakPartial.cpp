@@ -512,9 +512,6 @@ Peak const * PeakPartial::closePeak(
     nextHi = start - bogey + step;
   }
 
-// cout << "CLOSE " << factor << " " << upFlag << ", " <<
-  // nextLo << ", " << nextHi << " iuCand " << iuCand << endl;
-
   const unsigned cand = peakPtrsUsed[iuCand]->getIndex();
   if (cand >= nextLo && 
       cand <= nextHi && 

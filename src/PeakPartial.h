@@ -145,6 +145,17 @@ class PeakPartial
     void recoverPeaks1101(vector<Peak const *>& peakPtrsUsed);
     void recoverPeaks1110(vector<Peak const *>& peakPtrsUsed);
 
+    unsigned recoverPeak(
+      const float& smallFactor,
+      const float& largeFactor,
+      const bool upFlag,
+      const unsigned iuRef,
+      const unsigned iuStart,
+      const unsigned iuEnd,
+      const vector<Peak const *>& peakPtrsUsed,
+      Peak const *& pptr,
+      unsigned& indexUsed) const;
+      
     void recoverPeaksShared(
       Peak const *& pptrA,
       Peak const *& pptrB,

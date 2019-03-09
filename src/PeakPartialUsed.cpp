@@ -183,55 +183,59 @@ void PeakPartial::recoverPeaks0111(vector<Peak const *>& peakPtrsUsed)
 }
 
 
+unsigned PeakPartial::recoverPeak(
+  const float& smallFactor,
+  const float& largeFactor,
+  const bool upFlag,
+  const unsigned iuRef,
+  const unsigned iuStart,
+  const unsigned iuEnd,
+  const vector<Peak const *>& peakPtrsUsed,
+  Peak const *& pptr,
+  unsigned& indexUsed) const
+{
+  unsigned num = 0;
+  for (unsigned iu = iuStart; iu < iuEnd; iu++)
+  {
+    pptr = PeakPartial::closePeak(smallFactor, largeFactor, upFlag,
+      peakPtrsUsed, iuRef, iu);
+    
+    if (pptr)
+    {
+      num++;
+      indexUsed = iu;
+    }
+  }
+  return num;
+}
+
+
 void PeakPartial::recoverPeaks1010(vector<Peak const *>& peakPtrsUsed)
 {
+  // Take a simple look for a pair that looks like a bogey.
+
   pstats[0b1010].num++;
 
   // Start from 3+ peaks.
   if (peakPtrsUsed.size() <= 2)
     return;
 
-  // Take a simple look for a pair that looks like a bogey.
   const unsigned iu0 = comps[0].indexUsed;
   const unsigned iu2 = comps[2].indexUsed;
 
   Peak const * pptr;
   unsigned indexUsed = 0;
 
-  // Look between the peaks.
-  Peak const * ptmp;
-  unsigned num01 = 0, num12 = 0;
-  for (unsigned iu = iu0+1; iu < iu2; iu++)
+  // Look forward from p0.
+  const unsigned num01 = PeakPartial::recoverPeak(
+    0.3f, 0.5f, true, iu0, iu0+1, iu2, peakPtrsUsed, pptr, indexUsed);
+
+  if (num01 > 1)
   {
-    // Look forward from p0.
-    ptmp = PeakPartial::closePeak(0.3f, 0.5f, true, peakPtrsUsed, iu0, iu);
-
-    if (ptmp)
-    {
-      num01++;
-      pptr = ptmp;
-      indexUsed = iu;
-    }
-
-    // Look backward from p2.
-    ptmp = PeakPartial::closePeak(0.3f, 0.5f, false, peakPtrsUsed, iu2, iu);
-
-    if (ptmp)
-    {
-      num12++;
-      pptr = ptmp;
-      indexUsed = iu;
-    }
-  }
-
-  if (num01 + num12 > 1)
-  {
-    cout << "recoverPeaks1010: " << 
-      num01 << " + " << num12 << " options\n";
+    cout << "recoverPeaks1010: " << num01 << " 02up options\n";
     return;
   }
-
-  if (num01)
+  else if (num01)
   {
     if (verboseFlag)
       cout << "Reinstating one 1010 peak, should be p1\n";
@@ -239,7 +243,18 @@ void PeakPartial::recoverPeaks1010(vector<Peak const *>& peakPtrsUsed)
     PeakPartial::registerPtr(1, peakPtrsUsed[indexUsed], indexUsed);
     pstats[0b1010].hits++;
 
-    // TODO Call 1110
+    PeakPartial::recoverPeaks1110(peakPtrsUsed);
+    return;
+  }
+
+  // Look backward from p2.
+  const unsigned num12 = PeakPartial::recoverPeak(
+    0.3f, 0.5f, true, iu2, iu0+1, iu2, peakPtrsUsed, pptr, indexUsed);
+
+  if (num12 > 1)
+  {
+    cout << "recoverPeaks1010: " << num12 << " 02down options\n";
+    return;
   }
   else if (num12)
   {
@@ -250,42 +265,30 @@ void PeakPartial::recoverPeaks1010(vector<Peak const *>& peakPtrsUsed)
     PeakPartial::registerPtr(2, peakPtrsUsed[indexUsed], indexUsed);
     pstats[0b1010].hits++;
 
-    // TODO Call 1011
+    PeakPartial::recoverPeaks1011(peakPtrsUsed);
+    return;
   }
-  else
+
+  // Look forward from p2.
+  const unsigned num23 = PeakPartial::recoverPeak(
+    0.3f, 0.5f, true, iu2, iu2+1, peakPtrsUsed.size(), 
+    peakPtrsUsed, pptr, indexUsed);
+
+  if (num23 > 1)
   {
-    unsigned num23 = 0;
+    cout << "recoverPeaks1010: " << num23 << " 2up options\n";
+    return;
+  }
+  else if (num23)
+  {
+    if (verboseFlag)
+      cout << "Reinstating one 1010 peak, should be p3\n";
 
-    for (unsigned iu = iu2+1; iu < peakPtrsUsed.size(); iu++)
-    {
-      // Look forward from p2.
-      ptmp = PeakPartial::closePeak(0.3f, 0.5f, true, peakPtrsUsed, 
-          iu2, iu);
+    PeakPartial::registerPtr(3, peakPtrsUsed[indexUsed], indexUsed);
+    pstats[0b1010].hits++;
 
-      if (ptmp)
-      {
-        num23++;
-        pptr = ptmp;
-        indexUsed = iu;
-      }
-    }
-
-    if (num23 > 1)
-    {
-      cout << "recoverPeaks1010: " << num23 << " options\n";
-      return;
-    }
-    else if (num23)
-    {
-      if (verboseFlag)
-        cout << "Reinstating one 1010 peak, should be p3\n";
-
-      PeakPartial::registerPtr(3, peakPtrsUsed[indexUsed], indexUsed);
-      pstats[0b1010].hits++;
-  
-      // TODO Call 1011
-    }
-
+    PeakPartial::recoverPeaks1011(peakPtrsUsed);
+    return;
   }
 }
 
