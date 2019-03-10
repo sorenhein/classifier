@@ -497,19 +497,19 @@ Peak const * PeakPartial::closePeak(
   const unsigned iuKnown,
   const unsigned iuCand) const
 {
-  const unsigned step = static_cast<unsigned>(factor * bogey);
+  const unsigned step = static_cast<unsigned>(factor * bogie);
   const unsigned start = peakPtrsUsed[iuKnown]->getIndex();
 
   unsigned nextLo, nextHi;
   if (upFlag)
   {
-    nextLo = start + bogey - step;
-    nextHi = start + bogey + step;
+    nextLo = start + bogie - step;
+    nextHi = start + bogie + step;
   }
   else
   {
-    nextLo = start - bogey - step;
-    nextHi = start - bogey + step;
+    nextLo = start - bogie - step;
+    nextHi = start - bogie + step;
   }
 
   const unsigned cand = peakPtrsUsed[iuCand]->getIndex();
@@ -576,7 +576,7 @@ Peak const * PeakPartial::lookForPeak(
 
 
 void PeakPartial::getPeaks(
-  const unsigned bogeyTypical,
+  const unsigned bogieTypical,
   const unsigned longTypical,
   const CarPosition carpos,
   vector<Peak const *>& peakPtrsUsed,
@@ -585,7 +585,7 @@ void PeakPartial::getPeaks(
   // Mostly for the sport, we try to use as many of the front peaks
   // as possible.  Mostly the alignment will pick up on it anyway.
 
-  PeakPartial::getPeaksFromUsed(bogeyTypical, longTypical, 
+  PeakPartial::getPeaksFromUsed(bogieTypical, longTypical, 
     carpos == CARPOSITION_INNER, peakPtrsUsed);
     // true, peakPtrsUsed);
     // TODO Switch back

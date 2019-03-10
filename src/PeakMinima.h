@@ -39,7 +39,7 @@ class PeakMinima
       const Peak * p1,
       const Peak * p2) const;
 
-    bool formBogeyGap(
+    bool formBogieGap(
       const Peak * p1,
       const Peak * p2) const;
 
@@ -54,7 +54,7 @@ class PeakMinima
       Peak& p2,
       const string& text) const;
 
-    void markBogeyShortGap(
+    void markBogieShortGap(
       Peak& p1,
       Peak& p2,
       PeakPool& peaks,
@@ -62,16 +62,16 @@ class PeakMinima
       PPLiterator& ncit,
       const string& text) const;
 
-    void markBogeyLongGap(
+    void markBogieLongGap(
       Peak& p1,
       Peak& p2,
       const string& text) const;
 
     void reseedWheelUsingQuality(PeakPool& peaks) const;
 
-    void reseedBogeysUsingQuality(
+    void reseedBogiesUsingQuality(
       PeakPool& peaks,
-      const vector<Peak>& bogeyScale) const;
+      const vector<Peak>& bogieScale) const;
 
     void reseedLongGapsUsingQuality(
       PeakPool& peaks,
@@ -81,7 +81,7 @@ class PeakMinima
       const PeakPool& peaks,
       Peak& wheel) const;
 
-    void makeBogeyAverages(
+    void makeBogieAverages(
       const PeakPool& peaks,
       vector<Peak>& wheels) const;
 
@@ -94,17 +94,17 @@ class PeakMinima
       const vector<Peak>& peakCenters) const;
 
 
-    void markBogeysOfSelects(
+    void markBogiesOfSelects(
       PeakPool& peaks,
       const Gap& wheelGap) const;
 
-    void markBogeysOfUnpaired(
+    void markBogiesOfUnpaired(
       PeakPool& peaks,
       const Gap& wheelGap) const;
 
-    void fixBogeyOrphans(PeakPool& peaks) const;
+    void fixBogieOrphans(PeakPool& peaks) const;
 
-    void markBogeys(
+    void markBogies(
       PeakPool& peaks,
       Gap& wheelGap) const;
 

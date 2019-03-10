@@ -25,11 +25,11 @@ PeakProfile::~PeakProfile()
 
 void PeakProfile::reset()
 {
-  bogeyWheels.clear();
+  bogieWheels.clear();
   wheels.clear();
   stars.clear();
 
-  bogeyWheels.resize(4);
+  bogieWheels.resize(4);
   wheels.resize(2);
   stars.resize(4);
 
@@ -52,25 +52,25 @@ void PeakProfile::make(
     if (peakPtr->isSelected())
       sumSelected++;
 
-    if (peakPtr->isLeftBogey())
+    if (peakPtr->isLeftBogie())
     {
       if (peakPtr->isLeftWheel())
-        bogeyWheels[0]++;
+        bogieWheels[0]++;
       else if (peakPtr->isRightWheel())
-        bogeyWheels[1]++;
+        bogieWheels[1]++;
       else
-        THROW(ERR_ALGO_PEAK_STRUCTURE, "Left bogey has no wheel mark");
+        THROW(ERR_ALGO_PEAK_STRUCTURE, "Left bogie has no wheel mark");
 
       sumGreat++;
     }
-    else if (peakPtr->isRightBogey())
+    else if (peakPtr->isRightBogie())
     {
       if (peakPtr->isLeftWheel())
-        bogeyWheels[2]++;
+        bogieWheels[2]++;
       else if (peakPtr->isRightWheel())
-        bogeyWheels[3]++;
+        bogieWheels[3]++;
       else
-        THROW(ERR_ALGO_PEAK_STRUCTURE, "Right bogey has no wheel mark");
+        THROW(ERR_ALGO_PEAK_STRUCTURE, "Right bogie has no wheel mark");
 
       sumGreat++;
     }
@@ -145,10 +145,10 @@ bool PeakProfile::looksEmpty() const
 bool PeakProfile::looksEmptyLast() const
 {
   return (sumGreat <= 1 &&
-    bogeyWheels[0] == 0 &&
-    bogeyWheels[1] == 0 &&
-    bogeyWheels[2] == 0 &&
-    bogeyWheels[3] == 0 &&
+    bogieWheels[0] == 0 &&
+    bogieWheels[1] == 0 &&
+    bogieWheels[2] == 0 &&
+    bogieWheels[3] == 0 &&
     wheels[0] == 0 &&
     wheels[1] == 0);
 }
@@ -188,10 +188,10 @@ string PeakProfile::str() const
 
   stringstream ss;
   ss << "PROFILE " << src << ": " <<
-    PeakProfile::strEntry(bogeyWheels[0]) << " " <<
-    PeakProfile::strEntry(bogeyWheels[1]) << " " <<
-    PeakProfile::strEntry(bogeyWheels[2]) << " " <<
-    PeakProfile::strEntry(bogeyWheels[3]) << ", wh " <<
+    PeakProfile::strEntry(bogieWheels[0]) << " " <<
+    PeakProfile::strEntry(bogieWheels[1]) << " " <<
+    PeakProfile::strEntry(bogieWheels[2]) << " " <<
+    PeakProfile::strEntry(bogieWheels[3]) << ", wh " <<
     PeakProfile::strEntry(wheels[0]) << " " <<
     PeakProfile::strEntry(wheels[1]) << ", q " <<
     PeakProfile::strEntry(stars[0]) << " " <<

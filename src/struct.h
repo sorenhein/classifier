@@ -230,11 +230,11 @@ enum WheelType
   WHEEL_SIZE = 3
 };
 
-enum BogeyType
+enum BogieType
 {
-  BOGEY_LEFT = 0,
-  BOGEY_RIGHT = 1,
-  BOGEY_SIZE = 2
+  BOGIE_LEFT = 0,
+  BOGIE_RIGHT = 1,
+  BOGIE_SIZE = 2
 };
 
 struct RecogEntry

@@ -1,24 +1,17 @@
 Plan 2019-02-27
 ---------------
 Work on split peaks
+- Once bogie distance is determined, combine some peaks
+- But there could be so many that we end up combining p1 and p2?
+
 - PeakPartial
-  - Add mid cars of length 1-4
-    - To begin with, only if the whole car emerges
+  - Add more mid cars of length 1-4
   - Add mid cars that are longer (then don't discard long peaks)
   - Later Unused, Hidden
 
 Two candidates in locatePeak: Could well both be true if greatQuality.
 
 Are there last cars where we don't remove trailing unused peaks?
-
-Rename bogey to bogie
-
-Do PEAKLAST
-- 8
-- 10
-- 11
-- 12
-- 13
 
 Look at the ones with no left-over PeakPtrsUsed: repair.
 Also the ones with incomplete PeakPtrsUsed repair can be repaired.

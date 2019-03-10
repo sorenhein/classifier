@@ -587,7 +587,7 @@ void PeakDetect::reduce(
 
   peaks.makeCandidates();
 
-  // Label the negative minima as wheels, bogeys etc.
+  // Label the negative minima as wheels, bogies etc.
   PeakMinima minima;
   minima.mark(peaks, peakCenters, offset);
 

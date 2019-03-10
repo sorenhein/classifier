@@ -63,9 +63,9 @@ class PeakPartial
     PeakSlots peakSlots;
 
     // Some typical quantities that would otherwise get passed around.
-    unsigned bogey;
-    unsigned bogeyLo;
-    unsigned bogeyHi;
+    unsigned bogie;
+    unsigned bogieLo;
+    unsigned bogieHi;
     unsigned mid;
     bool verboseFlag;
 
@@ -172,7 +172,7 @@ class PeakPartial
       vector<Peak const *>& peaksUnused) const;
 
     void getPeaksFromUsed(
-      const unsigned bogeyTypical,
+      const unsigned bogieTypical,
       const unsigned longTypical,
       const bool verboseFlag,
       vector<Peak const *>& peaksUsed);
@@ -246,7 +246,7 @@ class PeakPartial
       const unsigned offset);
 
     void getPeaks(
-      const unsigned bogeyTypical,
+      const unsigned bogieTypical,
       const unsigned longTypical,
       const CarPosition carpos,
       vector<Peak const *>& peaksUsed,

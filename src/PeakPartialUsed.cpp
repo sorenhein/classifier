@@ -9,10 +9,10 @@
 
 
 // 1.2x is a normal range for short cars, plus a bit of buffer.
-#define BOGEY_GENERAL_FACTOR 0.3f
+#define BOGIE_GENERAL_FACTOR 0.3f
 
 // When we're comparing within a given car, we are stricter.
-#define BOGEY_SPECIFIC_FACTOR 0.1f
+#define BOGIE_SPECIFIC_FACTOR 0.1f
 
 // Even a short car has a certain middle length.
 #define MID_FACTOR 0.4f
@@ -42,11 +42,11 @@ void PeakPartial::recoverPeaks0001(vector<Peak const *>& peakPtrsUsed)
 
   if ((index + comps[2].upper < 2 * comps[2].lower ||
       ! peakPtrsUsed[iu-1]->greatQuality()) &&
-      (index + bogeyHi < comps[3].peak->getIndex() ||
+      (index + bogieHi < comps[3].peak->getIndex() ||
       ! peakPtrsUsed[iu-1]->fantasticQuality()))
     return;
 
-  // Complete the right bogey.
+  // Complete the right bogie.
   
   if (verboseFlag)
     cout << "Reinstating one 0001 peak, should be p2\n";
@@ -82,7 +82,7 @@ void PeakPartial::recoverPeaks0011(vector<Peak const *>& peakPtrsUsed)
   if (index - peakPtrsUsed[iuNext]->getIndex() < mid)
     return;
 
-  // Take a stab at the first wheel of the left bogey, too.
+  // Take a stab at the first wheel of the left bogie, too.
   // Theoretically there should be an upper limit too.
 
   if (verboseFlag)
@@ -163,10 +163,10 @@ void PeakPartial::recoverPeaks0111(vector<Peak const *>& peakPtrsUsed)
   const unsigned d = comps[3].peak->getIndex() - comps[2].peak->getIndex();
 
   const unsigned lo = 
-    static_cast<unsigned>((1.0f - BOGEY_SPECIFIC_FACTOR) * d);
+    static_cast<unsigned>((1.0f - BOGIE_SPECIFIC_FACTOR) * d);
 
   const unsigned hi = 
-    static_cast<unsigned>((1.0f + BOGEY_SPECIFIC_FACTOR) * d);
+    static_cast<unsigned>((1.0f + BOGIE_SPECIFIC_FACTOR) * d);
 
   const unsigned limitLo = comps[1].peak->getIndex() - hi;
   const unsigned limitHi = comps[1].peak->getIndex() - lo;
@@ -217,7 +217,7 @@ void PeakPartial::recoverPeaks1000(vector<Peak const *>& peakPtrsUsed)
 
 void PeakPartial::recoverPeaks1010(vector<Peak const *>& peakPtrsUsed)
 {
-  // Take a simple look for a pair that looks like a bogey.
+  // Take a simple look for a pair that looks like a bogie.
 
   pstats[0b1010].num++;
 
@@ -302,7 +302,7 @@ void PeakPartial::recoverPeaks1011(vector<Peak const *>& peakPtrsUsed)
 {
   pstats[0b1011].num++;
 
-  const unsigned bogeySpecific = 
+  const unsigned bogieSpecific = 
     comps[3].peak->getIndex() - comps[2].peak->getIndex();
 
   Peak const * pptr0 = nullptr, * pptr1 = nullptr;
@@ -312,12 +312,12 @@ void PeakPartial::recoverPeaks1011(vector<Peak const *>& peakPtrsUsed)
   const unsigned index0 = comps[0].peak->getIndex();
 
   if (peakSlots.count(PEAKSLOT_BETWEEN_P0_P2) > 0)
-    pptr1 = PeakPartial::lookForPeak(index0, bogeySpecific, 0.2f, 0.5f,
+    pptr1 = PeakPartial::lookForPeak(index0, bogieSpecific, 0.2f, 0.5f,
       true, peakPtrsUsed, indexUsed1);
 
   // Could be p1-null-p2-p3, missing the p0.
   if (peakSlots.count(PEAKSLOT_LEFT_OF_P0) > 0)
-    pptr0 = PeakPartial::lookForPeak(index0, bogeySpecific, 0.2f, 0.5f,
+    pptr0 = PeakPartial::lookForPeak(index0, bogieSpecific, 0.2f, 0.5f,
       false, peakPtrsUsed, indexUsed0);
 
   if (pptr1)
@@ -341,15 +341,15 @@ void PeakPartial::recoverPeaks1100(vector<Peak const *>& peakPtrsUsed)
 {
   pstats[0b1100].num++;
 
-  // Look for the right bogey.
+  // Look for the right bogie.
   // TODO Could also be a single peak.
 
   const unsigned dlo = comps[1].peak->getIndex() -
     comps[0].peak->getIndex();
   const unsigned dlimLo = 
-    static_cast<unsigned>((1.0f - BOGEY_GENERAL_FACTOR) * dlo);
+    static_cast<unsigned>((1.0f - BOGIE_GENERAL_FACTOR) * dlo);
   const unsigned dlimHi = 
-    static_cast<unsigned>((1.0f + BOGEY_GENERAL_FACTOR) * dlo);
+    static_cast<unsigned>((1.0f + BOGIE_GENERAL_FACTOR) * dlo);
 
 // cout << "PPX d " << dlo << " " << dlimLo << " " << dlimHi << endl;
   for (unsigned iu = comps[1].indexUsed+1; iu < peakPtrsUsed.size()-1; iu++)
@@ -380,7 +380,7 @@ void PeakPartial::recoverPeaks1101(vector<Peak const *>& peakPtrsUsed)
 {
   pstats[0b1101].num++;
 
-  const unsigned bogeySpecific = 
+  const unsigned bogieSpecific = 
     comps[1].peak->getIndex() - comps[0].peak->getIndex();
 
   Peak const * pptr2 = nullptr, * pptr3 = nullptr;
@@ -389,12 +389,12 @@ void PeakPartial::recoverPeaks1101(vector<Peak const *>& peakPtrsUsed)
   // Could be p0-p1-null-p2, missing the p3.
   const unsigned index3 = comps[3].peak->getIndex();
   if (peakSlots.count(PEAKSLOT_RIGHT_OF_P3) > 0)
-    pptr3 = PeakPartial::lookForPeak(index3, bogeySpecific, 0.2f, 0.5f,
+    pptr3 = PeakPartial::lookForPeak(index3, bogieSpecific, 0.2f, 0.5f,
       true, peakPtrsUsed, indexUsed3);
 
   // Could be p0-p1-null-p3, missing the p2.
   if (peakSlots.count(PEAKSLOT_BETWEEN_P1_P3) > 0)
-    pptr2 = PeakPartial::lookForPeak(index3, bogeySpecific, 0.2f, 0.5f,
+    pptr2 = PeakPartial::lookForPeak(index3, bogieSpecific, 0.2f, 0.5f,
       false, peakPtrsUsed, indexUsed2);
 
   if (pptr2)
@@ -417,7 +417,7 @@ void PeakPartial::recoverPeaks1110(vector<Peak const *>& peakPtrsUsed)
 {
   pstats[0b1110].num++;
 
-  const unsigned bogeySpecific = 
+  const unsigned bogieSpecific = 
     comps[1].peak->getIndex() - comps[0].peak->getIndex();
 
   Peak const * pptr2 = nullptr, * pptr3 = nullptr;
@@ -427,12 +427,12 @@ void PeakPartial::recoverPeaks1110(vector<Peak const *>& peakPtrsUsed)
   const unsigned index2 = comps[2].peak->getIndex();
 
   if (peakSlots.count(PEAKSLOT_RIGHT_OF_P2) > 0)
-    pptr3 = PeakPartial::lookForPeak(index2, bogeySpecific, 0.2f, 0.5f,
+    pptr3 = PeakPartial::lookForPeak(index2, bogieSpecific, 0.2f, 0.5f,
       true, peakPtrsUsed, indexUsed3);
 
   // Could be p0-p1-p3-null, missing the p2.
   if (peakSlots.count(PEAKSLOT_BETWEEN_P1_P2) > 0)
-    pptr2 = PeakPartial::lookForPeak(index2, bogeySpecific, 0.2f, 0.5f,
+    pptr2 = PeakPartial::lookForPeak(index2, bogieSpecific, 0.2f, 0.5f,
       false, peakPtrsUsed, indexUsed2);
 
   if (pptr2)
@@ -522,7 +522,7 @@ void PeakPartial::recoverPeaksShared(
 
 
 void PeakPartial::getPeaksFromUsed(
-  const unsigned bogeyTypical,
+  const unsigned bogieTypical,
   const unsigned longTypical,
   const bool verboseFlagIn,
   vector<Peak const *>& peakPtrsUsed)
@@ -530,11 +530,11 @@ void PeakPartial::getPeaksFromUsed(
   // Mostly for the sport, we try to use as many of the front peaks
   // as possible.  Mostly the alignment will pick up on it anyway.
 
-  bogey = bogeyTypical;
-  bogeyLo = 
-    static_cast<unsigned>((1.f - BOGEY_GENERAL_FACTOR) * bogeyTypical);
-  bogeyHi = 
-    static_cast<unsigned>((1.f + BOGEY_GENERAL_FACTOR) * bogeyTypical);
+  bogie = bogieTypical;
+  bogieLo = 
+    static_cast<unsigned>((1.f - BOGIE_GENERAL_FACTOR) * bogieTypical);
+  bogieHi = 
+    static_cast<unsigned>((1.f + BOGIE_GENERAL_FACTOR) * bogieTypical);
 
   mid = static_cast<unsigned>(MID_FACTOR * longTypical);
   verboseFlag = verboseFlagIn;

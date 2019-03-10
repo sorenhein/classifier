@@ -10,16 +10,16 @@
 
 struct WheelSpec
 {
-  BogeyType bogey;
+  BogieType bogie;
   WheelType wheel;
 };
 
 static const vector<WheelSpec> wheelSpecs =
 {
-  {BOGEY_LEFT, WHEEL_LEFT},
-  {BOGEY_LEFT, WHEEL_RIGHT},
-  {BOGEY_RIGHT, WHEEL_LEFT},
-  {BOGEY_RIGHT, WHEEL_RIGHT}
+  {BOGIE_LEFT, WHEEL_LEFT},
+  {BOGIE_LEFT, WHEEL_RIGHT},
+  {BOGIE_RIGHT, WHEEL_LEFT},
+  {BOGIE_RIGHT, WHEEL_RIGHT}
 };
 
 
@@ -29,10 +29,10 @@ const list<PeakFncPtr> wheelFncs =
   &Peak::isLeftWheel, &Peak::isRightWheel
 };
 
-const list<PeakFncPtr> bogeyFncs =
+const list<PeakFncPtr> bogieFncs =
 {
-  &Peak::isLeftBogey, &Peak::isLeftBogey, 
-  &Peak::isRightBogey, &Peak::isRightBogey
+  &Peak::isLeftBogie, &Peak::isLeftBogie, 
+  &Peak::isRightBogie, &Peak::isRightBogie
 };
 
 
@@ -213,26 +213,26 @@ bool PeakPtrs::isFourWheeler(const bool perfectFlag) const
   if (peaks.size() != 4)
     return false;
 
-  unsigned numWheels = 0, numBogeys = 0;
+  unsigned numWheels = 0, numBogies = 0;
   PPLciterator pit = peaks.cbegin();
   list<PeakFncPtr>::const_iterator wf = wheelFncs.begin();
-  list<PeakFncPtr>::const_iterator bf = bogeyFncs.begin();
+  list<PeakFncPtr>::const_iterator bf = bogieFncs.begin();
 
   while (pit != peaks.cend())
   {
     if (((* pit)->** wf)())
       numWheels++;
     if (((* pit)->** bf)())
-      numBogeys++;
+      numBogies++;
     pit++; 
     wf++; 
     bf++;
   }
   
   if (perfectFlag)
-    return (numWheels == 4 && numBogeys == 4);
+    return (numWheels == 4 && numBogies == 4);
   else
-    return (numWheels == 4 && numBogeys >= 2);
+    return (numWheels == 4 && numBogies >= 2);
 }
 
 
@@ -465,24 +465,24 @@ void PeakPtrs::flattenCar(CarPeaksPtr& carPeaksPtr)
   auto it = peaks.begin();
   if (peaks.size() == 2)
   {
-    carPeaksPtr.firstBogeyLeftPtr = nullptr;
-    carPeaksPtr.firstBogeyRightPtr = nullptr;
-    carPeaksPtr.secondBogeyLeftPtr = * it++;
-    carPeaksPtr.secondBogeyRightPtr = * it++;
+    carPeaksPtr.firstBogieLeftPtr = nullptr;
+    carPeaksPtr.firstBogieRightPtr = nullptr;
+    carPeaksPtr.secondBogieLeftPtr = * it++;
+    carPeaksPtr.secondBogieRightPtr = * it++;
   }
   else if (peaks.size() == 3)
   {
-    carPeaksPtr.firstBogeyLeftPtr = nullptr;
-    carPeaksPtr.firstBogeyRightPtr = * it++;
-    carPeaksPtr.secondBogeyLeftPtr = * it++;
-    carPeaksPtr.secondBogeyRightPtr = * it++;
+    carPeaksPtr.firstBogieLeftPtr = nullptr;
+    carPeaksPtr.firstBogieRightPtr = * it++;
+    carPeaksPtr.secondBogieLeftPtr = * it++;
+    carPeaksPtr.secondBogieRightPtr = * it++;
   }
   else if (peaks.size() == 4)
   {
-    carPeaksPtr.firstBogeyLeftPtr = * it++;
-    carPeaksPtr.firstBogeyRightPtr = * it++;
-    carPeaksPtr.secondBogeyLeftPtr = * it++;
-    carPeaksPtr.secondBogeyRightPtr = * it++;
+    carPeaksPtr.firstBogieLeftPtr = * it++;
+    carPeaksPtr.firstBogieRightPtr = * it++;
+    carPeaksPtr.secondBogieLeftPtr = * it++;
+    carPeaksPtr.secondBogieRightPtr = * it++;
   }
 }
 
@@ -512,7 +512,7 @@ void PeakPtrs::markup()
   for (auto& peak: peaks)
   {
     if (peak)
-      peak->markBogeyAndWheel(wheelSpecs[i].bogey, wheelSpecs[i].wheel);
+      peak->markBogieAndWheel(wheelSpecs[i].bogie, wheelSpecs[i].wheel);
     i++;
   }
 }

@@ -55,7 +55,7 @@ void Peak::reset()
   wheelFlag = false;
   wheelSide = WHEEL_SIZE;
 
-  bogeySide = BOGEY_SIZE;
+  bogieSide = BOGIE_SIZE;
 }
 
 
@@ -451,58 +451,58 @@ bool Peak::isWheel() const
 
 void Peak::markdown()
 {
-  Peak::markNoBogey();
+  Peak::markNoBogie();
   Peak::markNoWheel();
   Peak::unselect();
 }
 
 
-void Peak::markBogey(const BogeyType bogeyType)
+void Peak::markBogie(const BogieType bogieType)
 {
-  bogeySide = bogeyType;
+  bogieSide = bogieType;
 }
 
 
-void Peak::markBogeyAndWheel(
-  const BogeyType bogeyType,
+void Peak::markBogieAndWheel(
+  const BogieType bogieType,
   const WheelType wheelType)
 {
   selectFlag = true;
   wheelFlag = true;
-  bogeySide = bogeyType;
+  bogieSide = bogieType;
   wheelSide = wheelType;
 }
 
 
-void Peak::markNoBogey()
+void Peak::markNoBogie()
 {
-  bogeySide = BOGEY_SIZE;
+  bogieSide = BOGIE_SIZE;
 }
 
 
-bool Peak::isLeftBogey() const
+bool Peak::isLeftBogie() const
 {
-  return (bogeySide == BOGEY_LEFT);
+  return (bogieSide == BOGIE_LEFT);
 }
 
 
-bool Peak::isRightBogey() const
+bool Peak::isRightBogie() const
 {
-  return (bogeySide == BOGEY_RIGHT);
+  return (bogieSide == BOGIE_RIGHT);
 }
 
 
-bool Peak::isBogey() const
+bool Peak::isBogie() const
 {
-  return (bogeySide != BOGEY_SIZE);
+  return (bogieSide != BOGIE_SIZE);
 }
 
 
 bool Peak::fitsType(
-  const BogeyType bogeyType,
+  const BogieType bogieType,
   const WheelType wheelType) const
 {
-  if (bogeySide != BOGEY_SIZE && bogeySide != bogeyType)
+  if (bogieSide != BOGIE_SIZE && bogieSide != bogieType)
     return false;
   else if (wheelFlag && wheelSide != wheelType)
     return false;
@@ -893,9 +893,9 @@ string Peak::strQuality(const unsigned offset) const
   string str = "  ";
   if (! selectFlag || ! wheelFlag)
     str += Peak::stars();
-  else if (bogeySide != BOGEY_SIZE)
+  else if (bogieSide != BOGIE_SIZE)
   {
-    if (bogeySide == BOGEY_LEFT)
+    if (bogieSide == BOGIE_LEFT)
       str += (wheelSide == WHEEL_LEFT ? "1" : " 2");
     else 
       str += (wheelSide == WHEEL_LEFT ? "  3" : "   4");
@@ -907,7 +907,7 @@ string Peak::strQuality(const unsigned offset) const
   }
   str += "\n";
 
-  if (bogeySide == BOGEY_RIGHT && wheelSide == WHEEL_RIGHT)
+  if (bogieSide == BOGIE_RIGHT && wheelSide == WHEEL_RIGHT)
     str += string(62, '-') + "\n";
 
   return ss.str() + str;

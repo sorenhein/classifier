@@ -143,7 +143,7 @@ bool PeakRepair::updatePossibleModels(
 
     if (specialFlag && 
         range.leftDirection &&
-        peakPtrsUsed.back()->fitsType(BOGEY_RIGHT, WHEEL_RIGHT))
+        peakPtrsUsed.back()->fitsType(BOGIE_RIGHT, WHEEL_RIGHT))
     {
       // Fourth wheel (first car)
       pptr = peakPtrsUsed.back();
@@ -151,7 +151,7 @@ bool PeakRepair::updatePossibleModels(
     }
     else if (specialFlag &&
          ! range.leftDirection &&
-         peakPtrsUsed.front()->fitsType(BOGEY_LEFT, WHEEL_LEFT))
+         peakPtrsUsed.front()->fitsType(BOGIE_LEFT, WHEEL_LEFT))
     {
       // First wheel (last car).
       pptr = peakPtrsUsed.front();
@@ -305,9 +305,9 @@ bool PeakRepair::edgeCar(
   {
     bool edgeFlag;
     if (carpos == CARPOSITION_FIRST)
-      edgeFlag = peakPtrsUsed.back()->fitsType(BOGEY_RIGHT, WHEEL_RIGHT);
+      edgeFlag = peakPtrsUsed.back()->fitsType(BOGIE_RIGHT, WHEEL_RIGHT);
     else
-      edgeFlag = peakPtrsUsed.front()->fitsType(BOGEY_LEFT, WHEEL_LEFT);
+      edgeFlag = peakPtrsUsed.front()->fitsType(BOGIE_LEFT, WHEEL_LEFT);
 
     bool modelEndFlag = models.hasAnEndGap();
 
@@ -393,16 +393,16 @@ UNUSED(peaks);
   // superModel.makeCodes(peakPtrsUsed, offset);
 
   // Get some typical model data.
-  unsigned bogeyTypical, longTypical;
-  models.getTypical(bogeyTypical, longTypical);
-cout << "Typical " << bogeyTypical << ", " << longTypical << endl;
+  unsigned bogieTypical, longTypical;
+  models.getTypical(bogieTypical, longTypical);
+cout << "Typical " << bogieTypical << ", " << longTypical << endl;
 
   // Fill out Used with the peaks actually used.
 
   vector<Peak const *> peakPtrsUsedFlat, peakPtrsUnusedFlat;
   peakPtrsUsed.flatten(peakPtrsUsedFlat);
 
-  superModel.getPeaks(bogeyTypical, longTypical, carpos,
+  superModel.getPeaks(bogieTypical, longTypical, carpos,
     peakPtrsUsedFlat, peakPtrsUnusedFlat);
 
   if (peakPtrsUnusedFlat.size() > 0)

@@ -66,7 +66,7 @@ class CarModels
     bool hasAnEndGap() const;
 
     void getTypical(
-      unsigned& bogeyTypical,
+      unsigned& bogieTypical,
       unsigned& longTypical) const;
 
     void getCar(
@@ -103,7 +103,7 @@ class CarModels
       MatchData& match,
       Peak& peakCand) const;
 
-    bool rightBogeyPlausible(const CarDetect& car) const;
+    bool rightBogiePlausible(const CarDetect& car) const;
     bool sideGapsPlausible(const CarDetect& car) const;
     bool twoWheelerPlausible(const CarDetect& car) const;
     bool threeWheelerPlausible(const CarDetect& car) const;

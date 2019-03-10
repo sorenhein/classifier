@@ -5,19 +5,26 @@ use warnings;
 
 # Extract data from sensor??.txt to focus on partial first/last cars.
 
-my $firstFlag = 0;
+my $carposFlag = 1;
 
 my ($select, $dir, $startTag, $endTag);
-if ($firstFlag)
+if ($carposFlag == 0)
 {
   $select = "PEAKFIRST   1";
   $dir = "first";
   $startTag = "FIRSTCAR ";
   $endTag = "anywheeler";
 }
+elsif ($carposFlag == 1)
+{
+  $select = "PEAKINNER 11";
+  $dir = "inner";
+  $startTag = "INNERCAR ";
+  $endTag = "midwheeler";
+}
 else
 {
-  $select = "PEAKLAST  10";
+  $select = "PEAKLAST   8";
   $dir = "last";
   $startTag = "LASTCAR ";
   $endTag = "lastwheeler";

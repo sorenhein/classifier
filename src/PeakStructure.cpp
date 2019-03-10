@@ -23,16 +23,16 @@ static unsigned hitSize;
 
 struct WheelSpec
 {
-  BogeyType bogey;
+  BogieType bogie;
   WheelType wheel;
 };
 
 static const vector<WheelSpec> wheelSpecs =
 {
-  {BOGEY_LEFT, WHEEL_LEFT},
-  {BOGEY_LEFT, WHEEL_RIGHT},
-  {BOGEY_RIGHT, WHEEL_LEFT},
-  {BOGEY_RIGHT, WHEEL_RIGHT}
+  {BOGIE_LEFT, WHEEL_LEFT},
+  {BOGIE_LEFT, WHEEL_RIGHT},
+  {BOGIE_RIGHT, WHEEL_LEFT},
+  {BOGIE_RIGHT, WHEEL_RIGHT}
 };
 
 
@@ -249,6 +249,8 @@ PeakStructure::FindCarType PeakStructure::findPartialCarByQuality(
 // for (auto& peak: peakPtrsUsed)
   // cout << peak->strQuality(offset);
 
+const unsigned numOrig = peakPtrsUsed.size();
+
   PeakRepair repair;
   if (repair.edgeCar(models, offset, carpos, 
       peaks, range, peakPtrsUsed, peakPtrsUnused))
@@ -264,8 +266,8 @@ else if (carpos == CARPOSITION_INNER)
     if (peak != nullptr)
       num++;
   }
+cout << "PP AFTER " << numOrig << " " << num << "\n";
   /*
-cout << "PP AFTER\n";
 for (auto& peak: peakPtrsUsed)
   if (peak)
     cout << peak->strQuality(offset);
@@ -733,7 +735,7 @@ void PeakStructure::fixSpuriousInterPeaks(
   PeakPool& peaks) const
 {
   // It can happen that there are spurious peaks between the starting
-  // and/or ending bogey of a car and that car's start or end.
+  // and/or ending bogie of a car and that car's start or end.
   // We could potentially do this, more efficiently, by storing
   // iterators in the cars, and then looping directly when we
   // fill the ends.
@@ -759,7 +761,7 @@ void PeakStructure::fixSpuriousInterPeaks(
     else if (pindex <= cfirst ||
         (pindex >= clast && pindex <= cend))
     {
-      (* pit)->markNoBogey();
+      (* pit)->markNoBogie();
       (* pit)->markNoWheel();
       (* pit)->unselect();
       pit++;

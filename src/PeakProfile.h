@@ -16,9 +16,9 @@ class PeakProfile
 {
   private:
 
-    // Peaks that are labeled both w.r.t. bogeys and wheels
-    // (left bogey left/right wheel, right bogey left/right wheel).
-    vector<unsigned> bogeyWheels;
+    // Peaks that are labeled both w.r.t. bogies and wheels
+    // (left bogie left/right wheel, right bogie left/right wheel).
+    vector<unsigned> bogieWheels;
 
     // Peaks that are only labeled as wheels (left/right).
     vector<unsigned> wheels;

@@ -24,10 +24,10 @@ void CarDetect::reset()
 
   gaps.reset();
 
-  peaksPtr.firstBogeyLeftPtr = nullptr;
-  peaksPtr.firstBogeyRightPtr = nullptr;
-  peaksPtr.secondBogeyLeftPtr = nullptr;
-  peaksPtr.secondBogeyRightPtr = nullptr;
+  peaksPtr.firstBogieLeftPtr = nullptr;
+  peaksPtr.firstBogieRightPtr = nullptr;
+  peaksPtr.secondBogieLeftPtr = nullptr;
+  peaksPtr.secondBogieRightPtr = nullptr;
 
   match.distance = numeric_limits<float>::max();
   match.reverseFlag = false;
@@ -46,10 +46,10 @@ void CarDetect::setLimits(
 void CarDetect::setStartAndGap(const unsigned startIn)
 {
   start = startIn;
-  if (peaksPtr.firstBogeyLeftPtr == nullptr)
+  if (peaksPtr.firstBogieLeftPtr == nullptr)
     return;
 
-  const unsigned index = peaksPtr.firstBogeyLeftPtr->getIndex();
+  const unsigned index = peaksPtr.firstBogieLeftPtr->getIndex();
   if (start >= index)
   {
     cout << "CarDetect::setStartAndGap WARNING: index too small\n";
@@ -62,10 +62,10 @@ void CarDetect::setStartAndGap(const unsigned startIn)
 void CarDetect::setEndAndGap(const unsigned endIn)
 {
   end = endIn;
-  if (peaksPtr.secondBogeyRightPtr == nullptr)
+  if (peaksPtr.secondBogieRightPtr == nullptr)
     return;
   
-  const unsigned index = peaksPtr.secondBogeyRightPtr->getIndex();
+  const unsigned index = peaksPtr.secondBogieRightPtr->getIndex();
   if (end <= index)
   {
     cout << "CarDetect::setEndAndGap WARNING: index too large\n";
@@ -76,11 +76,11 @@ void CarDetect::setEndAndGap(const unsigned endIn)
 
 
 void CarDetect::logCore(
-  const unsigned leftBogeyGap,
+  const unsigned leftBogieGap,
   const unsigned midGap,
-  const unsigned rightBogeyGap)
+  const unsigned rightBogieGap)
 {
-  gaps.logCore(leftBogeyGap, midGap, rightBogeyGap);
+  gaps.logCore(leftBogieGap, midGap, rightBogieGap);
 }
 
 
@@ -97,15 +97,15 @@ void CarDetect::logRightGap(const unsigned rightGap)
 
 
 void CarDetect::logPeakPointers(
-  Peak * firstBogeyLeftPtr,
-  Peak * firstBogeyRightPtr,
-  Peak * secondBogeyLeftPtr,
-  Peak * secondBogeyRightPtr)
+  Peak * firstBogieLeftPtr,
+  Peak * firstBogieRightPtr,
+  Peak * secondBogieLeftPtr,
+  Peak * secondBogieRightPtr)
 {
-  peaksPtr.firstBogeyLeftPtr = firstBogeyLeftPtr;
-  peaksPtr.firstBogeyRightPtr = firstBogeyRightPtr;
-  peaksPtr.secondBogeyLeftPtr = secondBogeyLeftPtr;
-  peaksPtr.secondBogeyRightPtr = secondBogeyRightPtr;
+  peaksPtr.firstBogieLeftPtr = firstBogieLeftPtr;
+  peaksPtr.firstBogieRightPtr = firstBogieRightPtr;
+  peaksPtr.secondBogieLeftPtr = secondBogieLeftPtr;
+  peaksPtr.secondBogieRightPtr = secondBogieRightPtr;
 }
 
 
@@ -201,18 +201,18 @@ void CarDetect::makeAnyWheeler(
   peakPtrs.getIndices(indices);
   peakPtrs.flattenCar(peaksPtr);
 
-  if (peaksPtr.firstBogeyLeftPtr && range.hasLeftGap())
+  if (peaksPtr.firstBogieLeftPtr && range.hasLeftGap())
     CarDetect::logLeftGap(indices[0] - start);
 
-  if (peaksPtr.secondBogeyRightPtr && range.hasRightGap())
+  if (peaksPtr.secondBogieRightPtr && range.hasRightGap())
     CarDetect::logRightGap(end - indices[3]);
 
   unsigned g1 = 0, g2 = 0, g3 = 0;
-  if (peaksPtr.firstBogeyLeftPtr && peaksPtr.firstBogeyRightPtr)
+  if (peaksPtr.firstBogieLeftPtr && peaksPtr.firstBogieRightPtr)
     g1 = indices[1] - indices[0];
-  if (peaksPtr.secondBogeyLeftPtr && peaksPtr.firstBogeyRightPtr) 
+  if (peaksPtr.secondBogieLeftPtr && peaksPtr.firstBogieRightPtr) 
     g2 = indices[2] - indices[1];
-  if (peaksPtr.secondBogeyLeftPtr && peaksPtr.secondBogeyRightPtr)
+  if (peaksPtr.secondBogieLeftPtr && peaksPtr.secondBogieRightPtr)
     g3 = indices[3] - indices[2];
 
   CarDetect::logCore(g1, g2, g3);
@@ -247,13 +247,13 @@ void CarDetect::reverse()
 {
   gaps.reverse();
 
-  Peak * tmp = peaksPtr.firstBogeyLeftPtr;
-  peaksPtr.firstBogeyLeftPtr = peaksPtr.secondBogeyRightPtr;
-  peaksPtr.secondBogeyRightPtr = tmp;
+  Peak * tmp = peaksPtr.firstBogieLeftPtr;
+  peaksPtr.firstBogieLeftPtr = peaksPtr.secondBogieRightPtr;
+  peaksPtr.secondBogieRightPtr = tmp;
 
-  tmp = peaksPtr.firstBogeyRightPtr;
-  peaksPtr.firstBogeyRightPtr = peaksPtr.secondBogeyLeftPtr;
-  peaksPtr.secondBogeyLeftPtr = tmp;
+  tmp = peaksPtr.firstBogieRightPtr;
+  peaksPtr.firstBogieRightPtr = peaksPtr.secondBogieLeftPtr;
+  peaksPtr.secondBogieLeftPtr = tmp;
 
   match.reverseFlag = ! match.reverseFlag;
 }
@@ -291,9 +291,9 @@ const bool CarDetect::isReversed() const
 
 // TODO TMP
 
-const unsigned CarDetect::getLeftBogeyGap() const
+const unsigned CarDetect::getLeftBogieGap() const
 {
-  return gaps.leftBogeyGapValue();
+  return gaps.leftBogieGapValue();
 }
 
 
@@ -303,32 +303,32 @@ const unsigned CarDetect::getMidGap() const
 }
 
 
-const unsigned CarDetect::getRightBogeyGap() const
+const unsigned CarDetect::getRightBogieGap() const
 {
-  return gaps.rightBogeyGapValue();
+  return gaps.rightBogieGapValue();
 }
 
 
 const unsigned CarDetect::firstPeakMinus1() const
 {
-  if (peaksPtr.firstBogeyLeftPtr == nullptr)
+  if (peaksPtr.firstBogieLeftPtr == nullptr)
     return 0;
   else
     // So we miss the first peak of the car.
-    return peaksPtr.firstBogeyLeftPtr->getIndex() - 1;
+    return peaksPtr.firstBogieLeftPtr->getIndex() - 1;
 }
 
 
 const unsigned CarDetect::lastPeakPlus1() const
 {
-  if (peaksPtr.secondBogeyRightPtr)
-    return peaksPtr.secondBogeyRightPtr->getIndex() + 1;
-  else if (peaksPtr.secondBogeyLeftPtr)
-    return peaksPtr.secondBogeyLeftPtr->getIndex() + 1;
-  else if (peaksPtr.firstBogeyRightPtr)
-    return peaksPtr.firstBogeyRightPtr->getIndex() + 1;
-  else if (peaksPtr.firstBogeyLeftPtr)
-    return peaksPtr.firstBogeyLeftPtr->getIndex() + 1;
+  if (peaksPtr.secondBogieRightPtr)
+    return peaksPtr.secondBogieRightPtr->getIndex() + 1;
+  else if (peaksPtr.secondBogieLeftPtr)
+    return peaksPtr.secondBogieLeftPtr->getIndex() + 1;
+  else if (peaksPtr.firstBogieRightPtr)
+    return peaksPtr.firstBogieRightPtr->getIndex() + 1;
+  else if (peaksPtr.firstBogieLeftPtr)
+    return peaksPtr.firstBogieLeftPtr->getIndex() + 1;
   else
     return 0;
 }
@@ -347,20 +347,20 @@ void CarDetect::getCarPoints(list<unsigned>& carPoints) const
   // Left edge of the car.
   carPoints.push_back(0);
 
-  // Left bogey, left wheel.
+  // Left bogie, left wheel.
   unsigned v = gaps.leftGapValue();
   carPoints.push_back(v);
 
-  // Left bogey, right wheel.
-  v += gaps.leftBogeyGapValue();
+  // Left bogie, right wheel.
+  v += gaps.leftBogieGapValue();
   carPoints.push_back(v);
 
-  // Right bogey, left wheel.
+  // Right bogie, left wheel.
   v += gaps.midGapValue();
   carPoints.push_back(v);
 
-  // Right bogey, right wheel.
-  v += gaps.rightBogeyGapValue();
+  // Right bogie, right wheel.
+  v += gaps.rightBogieGapValue();
   carPoints.push_back(v);
 
   // Right edge of the car.
@@ -381,15 +381,15 @@ bool CarDetect::hasRightGap() const
 }
 
 
-bool CarDetect::hasLeftBogeyGap() const
+bool CarDetect::hasLeftBogieGap() const
 {
-  return gaps.hasLeftBogeyGap();
+  return gaps.hasLeftBogieGap();
 }
 
 
-bool CarDetect::hasRightBogeyGap() const
+bool CarDetect::hasRightBogieGap() const
 {
-  return gaps.hasRightBogeyGap();
+  return gaps.hasRightBogieGap();
 }
 
 
@@ -504,9 +504,9 @@ bool CarDetect::midGapPlausible() const
 }
 
 
-bool CarDetect::rightBogeyPlausible(const CarDetect& cref) const
+bool CarDetect::rightBogiePlausible(const CarDetect& cref) const
 {
-  return gaps.rightBogeyPlausible(cref.gaps);
+  return gaps.rightBogiePlausible(cref.gaps);
 }
 
 
@@ -536,11 +536,11 @@ unsigned CarDetect::numFrontWheels() const
 {
   if (gaps.hasLeftGap())
     return 4;
-  else if (gaps.hasLeftBogeyGap())
+  else if (gaps.hasLeftBogieGap())
     return 4;
   else if (gaps.hasMidGap())
     return 3;
-  else if (gaps.hasRightBogeyGap())
+  else if (gaps.hasRightBogieGap())
     return 2;
   else if (hasRightGap())
     return 1;
@@ -622,10 +622,10 @@ void CarDetect::updateStars(
 string CarDetect::starsQuality() const
 {
   string best(3, '*');
-  CarDetect::updateStars(peaksPtr.firstBogeyLeftPtr, best);
-  CarDetect::updateStars(peaksPtr.firstBogeyRightPtr, best);
-  CarDetect::updateStars(peaksPtr.secondBogeyLeftPtr, best);
-  CarDetect::updateStars(peaksPtr.secondBogeyRightPtr, best);
+  CarDetect::updateStars(peaksPtr.firstBogieLeftPtr, best);
+  CarDetect::updateStars(peaksPtr.firstBogieRightPtr, best);
+  CarDetect::updateStars(peaksPtr.secondBogieLeftPtr, best);
+  CarDetect::updateStars(peaksPtr.secondBogieRightPtr, best);
   return best;
 }
 

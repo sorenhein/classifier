@@ -26,10 +26,10 @@ struct CarPeaksNumbers
 
 struct CarPeaksPtr
 {
-  Peak * firstBogeyLeftPtr; 
-  Peak * firstBogeyRightPtr; 
-  Peak * secondBogeyLeftPtr; 
-  Peak * secondBogeyRightPtr; 
+  Peak * firstBogieLeftPtr; 
+  Peak * firstBogieRightPtr; 
+  Peak * secondBogieLeftPtr; 
+  Peak * secondBogieRightPtr; 
 };
 
 
@@ -37,10 +37,10 @@ class CarPeaks
 {
   private:
 
-    Peak firstBogeyLeft; 
-    Peak firstBogeyRight; 
-    Peak secondBogeyLeft; 
-    Peak secondBogeyRight; 
+    Peak firstBogieLeft; 
+    Peak firstBogieRight; 
+    Peak secondBogieLeft; 
+    Peak secondBogieRight; 
 
 
   public:
@@ -52,10 +52,10 @@ class CarPeaks
     void reset();
 
     void logAll(
-      const Peak& firstBogeyLeftIn,
-      const Peak& firstBogeyRightIn,
-      const Peak& secondBogeyLeftIn,
-      const Peak& secondBogeyRightIn);
+      const Peak& firstBogieLeftIn,
+      const Peak& firstBogieRightIn,
+      const Peak& secondBogieLeftIn,
+      const Peak& secondBogieRightIn);
 
     void operator += (const CarPeaks& cp2);
 

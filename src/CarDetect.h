@@ -51,18 +51,18 @@ class CarDetect
     void setEndAndGap(const unsigned endIn);
 
     void logCore(
-      const unsigned leftBogeyGap, // Zero if single wheel
+      const unsigned leftBogieGap, // Zero if single wheel
       const unsigned midGap,
-      const unsigned rightBogeyGap); // Zero if single wheel
+      const unsigned rightBogieGap); // Zero if single wheel
 
     void logLeftGap(const unsigned leftGap);
     void logRightGap(const unsigned rightGap);
 
     void logPeakPointers(
-      Peak * firstBogeyLeftPtr,
-      Peak * firstBogeyRightPtr,
-      Peak * secondBogeyLeftPtr,
-      Peak * secondBogeyRightPtr);
+      Peak * firstBogieLeftPtr,
+      Peak * firstBogieRightPtr,
+      Peak * secondBogieLeftPtr,
+      Peak * secondBogieRightPtr);
 
     void makeLastTwoOfFourWheeler(
       const PeakRange& range,
@@ -102,9 +102,9 @@ class CarDetect
     const unsigned firstPeakMinus1() const;
     const unsigned lastPeakPlus1() const;
     // TODO TMP
-    const unsigned getLeftBogeyGap() const;
+    const unsigned getLeftBogieGap() const;
     const unsigned getMidGap() const;
-    const unsigned getRightBogeyGap() const;
+    const unsigned getRightBogieGap() const;
 
     const CarPeaksPtr& getPeaksPtr() const;
 
@@ -112,8 +112,8 @@ class CarDetect
 
     bool hasLeftGap() const;
     bool hasRightGap() const;
-    bool hasLeftBogeyGap() const;
-    bool hasRightBogeyGap() const;
+    bool hasLeftBogieGap() const;
+    bool hasRightBogieGap() const;
     bool hasMidGap() const;
 
     bool isPartial() const;
@@ -135,7 +135,7 @@ class CarDetect
     bool gapsPlausible(const CarDetect& cref) const;
     bool sideGapsPlausible(const CarDetect& cref) const;
     bool midGapPlausible() const;
-    bool rightBogeyPlausible(const CarDetect& cref) const;
+    bool rightBogiePlausible(const CarDetect& cref) const;
     bool corePlausible() const;
 
     unsigned getGap(

@@ -123,28 +123,28 @@ void CarModels::average(const unsigned index)
 
 
 void CarModels::getTypical(
-  unsigned& bogeyTypical,
+  unsigned& bogieTypical,
   unsigned& longTypical) const
 {
-  vector<unsigned> bogeys, longs;
+  vector<unsigned> bogies, longs;
 
   for (auto& m: models)
   {
     for (unsigned i = 0; i < m.number; i++)
     {
-      if (m.carAvg.hasLeftBogeyGap())
-        bogeys.push_back(m.carAvg.getLeftBogeyGap());
-      if (m.carAvg.hasRightBogeyGap())
-        bogeys.push_back(m.carAvg.getRightBogeyGap());
+      if (m.carAvg.hasLeftBogieGap())
+        bogies.push_back(m.carAvg.getLeftBogieGap());
+      if (m.carAvg.hasRightBogieGap())
+        bogies.push_back(m.carAvg.getRightBogieGap());
 
       if (m.carAvg.hasMidGap())
         longs.push_back(m.carAvg.getMidGap());
     }
   }
 
-  unsigned nb = bogeys.size() / 2;
-  nth_element(bogeys.begin(), bogeys.begin() + nb, bogeys.end());
-  bogeyTypical = bogeys[nb];
+  unsigned nb = bogies.size() / 2;
+  nth_element(bogies.begin(), bogies.begin() + nb, bogies.end());
+  bogieTypical = bogies[nb];
 
   unsigned nl = longs.size() / 2;
   nth_element(longs.begin(), longs.begin() + nl, longs.end());
@@ -246,11 +246,11 @@ bool CarModels::matchesPartial(
 }
 
 
-bool CarModels::rightBogeyPlausible(const CarDetect& car) const
+bool CarModels::rightBogiePlausible(const CarDetect& car) const
 {
   for (auto& m: models)
   {
-    if (m.number > 0 && car.rightBogeyPlausible(m.carAvg))
+    if (m.number > 0 && car.rightBogiePlausible(m.carAvg))
       return true;
   }
   return false;
@@ -274,9 +274,9 @@ bool CarModels::twoWheelerPlausible(const CarDetect& car) const
     return false;
 
   // As we don't have a complete car, we'll at least require the
-  // right bogey gap to be similar to something we've seen.
+  // right bogie gap to be similar to something we've seen.
 
-  return CarModels::rightBogeyPlausible(car);
+  return CarModels::rightBogiePlausible(car);
 }
 
 
@@ -286,9 +286,9 @@ bool CarModels::threeWheelerPlausible(const CarDetect& car) const
     return false;
 
   // As we don't have a complete car, we'll at least require the
-  // right bogey gap to be similar to something we've seen.
+  // right bogie gap to be similar to something we've seen.
 
-  if (! CarModels::rightBogeyPlausible(car))
+  if (! CarModels::rightBogiePlausible(car))
     return false;
 
   return car.midGapPlausible();

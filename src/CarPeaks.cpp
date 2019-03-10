@@ -22,33 +22,33 @@ void CarPeaks::reset()
 
 
 void CarPeaks::logAll(
-  const Peak& firstBogeyLeftIn,
-  const Peak& firstBogeyRightIn,
-  const Peak& secondBogeyLeftIn,
-  const Peak& secondBogeyRightIn)
+  const Peak& firstBogieLeftIn,
+  const Peak& firstBogieRightIn,
+  const Peak& secondBogieLeftIn,
+  const Peak& secondBogieRightIn)
 {
-  firstBogeyLeft = firstBogeyLeftIn;
-  firstBogeyRight = firstBogeyRightIn;
-  secondBogeyLeft = secondBogeyLeftIn;
-  secondBogeyRight = secondBogeyRightIn;
+  firstBogieLeft = firstBogieLeftIn;
+  firstBogieRight = firstBogieRightIn;
+  secondBogieLeft = secondBogieLeftIn;
+  secondBogieRight = secondBogieRightIn;
 }
 
 
 void CarPeaks::operator += (const CarPeaks& cp2)
 {
-  firstBogeyLeft += cp2.firstBogeyLeft;
-  firstBogeyRight += cp2.firstBogeyRight;
-  secondBogeyLeft += cp2.secondBogeyLeft;
-  secondBogeyRight += cp2.secondBogeyRight;
+  firstBogieLeft += cp2.firstBogieLeft;
+  firstBogieRight += cp2.firstBogieRight;
+  secondBogieLeft += cp2.secondBogieLeft;
+  secondBogieRight += cp2.secondBogieRight;
 }
 
 
 void CarPeaks::getPeaksPtr(CarPeaksPtr& cp)
 {
-  cp.firstBogeyLeftPtr = &firstBogeyLeft;
-  cp.firstBogeyRightPtr = &firstBogeyRight;
-  cp.secondBogeyLeftPtr = &secondBogeyLeft;
-  cp.secondBogeyRightPtr = &secondBogeyRight;
+  cp.firstBogieLeftPtr = &firstBogieLeft;
+  cp.firstBogieRightPtr = &firstBogieRight;
+  cp.secondBogieLeftPtr = &secondBogieLeft;
+  cp.secondBogieRightPtr = &secondBogieRight;
 }
 
 
@@ -56,27 +56,27 @@ void CarPeaks::increment(
   const CarPeaksPtr& cp2,
   CarPeaksNumbers& cpn)
 {
-  if (cp2.firstBogeyLeftPtr)
+  if (cp2.firstBogieLeftPtr)
   {
-    firstBogeyLeft += * cp2.firstBogeyLeftPtr;
+    firstBogieLeft += * cp2.firstBogieLeftPtr;
     cpn.numFirstLeft++;
   }
 
-  if (cp2.firstBogeyRightPtr)
+  if (cp2.firstBogieRightPtr)
   {
-    firstBogeyRight += * cp2.firstBogeyRightPtr;
+    firstBogieRight += * cp2.firstBogieRightPtr;
     cpn.numFirstRight++;
   }
 
-  if (cp2.secondBogeyLeftPtr)
+  if (cp2.secondBogieLeftPtr)
   {
-    secondBogeyLeft += * cp2.secondBogeyLeftPtr;
+    secondBogieLeft += * cp2.secondBogieLeftPtr;
     cpn.numSecondLeft++;
   }
 
-  if (cp2.secondBogeyRightPtr)
+  if (cp2.secondBogieRightPtr)
   {
-    secondBogeyRight += * cp2.secondBogeyRightPtr;
+    secondBogieRight += * cp2.secondBogieRightPtr;
     cpn.numSecondRight++;
   }
 }
@@ -84,33 +84,33 @@ void CarPeaks::increment(
 
 void CarPeaks::increment(const CarPeaksPtr& cp2)
 {
-  if (cp2.firstBogeyLeftPtr)
-    firstBogeyLeft += * cp2.firstBogeyLeftPtr;
+  if (cp2.firstBogieLeftPtr)
+    firstBogieLeft += * cp2.firstBogieLeftPtr;
 
-  if (cp2.firstBogeyRightPtr)
-    firstBogeyRight += * cp2.firstBogeyRightPtr;
+  if (cp2.firstBogieRightPtr)
+    firstBogieRight += * cp2.firstBogieRightPtr;
 
-  if (cp2.secondBogeyLeftPtr)
-    secondBogeyLeft += * cp2.secondBogeyLeftPtr;
+  if (cp2.secondBogieLeftPtr)
+    secondBogieLeft += * cp2.secondBogieLeftPtr;
 
-  if (cp2.secondBogeyRightPtr)
-    secondBogeyRight += * cp2.secondBogeyRightPtr;
+  if (cp2.secondBogieRightPtr)
+    secondBogieRight += * cp2.secondBogieRightPtr;
 }
 
 
 void CarPeaks::average(const CarPeaksNumbers& cpn)
 {
   if (cpn.numFirstLeft)
-    firstBogeyLeft /= cpn.numFirstLeft;
+    firstBogieLeft /= cpn.numFirstLeft;
 
   if (cpn.numFirstRight)
-    firstBogeyRight /= cpn.numFirstRight;
+    firstBogieRight /= cpn.numFirstRight;
 
   if (cpn.numSecondLeft)
-    secondBogeyLeft /= cpn.numSecondLeft;
+    secondBogieLeft /= cpn.numSecondLeft;
 
   if (cpn.numSecondRight)
-    secondBogeyRight /= cpn.numSecondRight;
+    secondBogieRight /= cpn.numSecondRight;
 }
  
 
@@ -119,9 +119,9 @@ void CarPeaks::average(const unsigned count)
   if (count == 0)
     return;
 
-  firstBogeyLeft /= count;
-  firstBogeyRight /= count;
-  secondBogeyLeft /= count;
-  secondBogeyRight /= count;
+  firstBogieLeft /= count;
+  firstBogieRight /= count;
+  secondBogieLeft /= count;
+  secondBogieRight /= count;
 }
  

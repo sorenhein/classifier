@@ -8,11 +8,11 @@
 #include "errors.h"
 
 #define SIDE_GAP_FACTOR 2.f
-#define SIDE_GAP_TO_BOGEY_FACTOR 2.f
-#define MID_GAP_TO_BOGEY_FACTOR 0.67f
-#define BOGEY_TO_BOGEY_FACTOR 1.2f
-#define BOGEY_TO_REF_SOFT_FACTOR 1.5f
-#define BOGEY_TO_REF_HARD_FACTOR 1.1f
+#define SIDE_GAP_TO_BOGIE_FACTOR 2.f
+#define MID_GAP_TO_BOGIE_FACTOR 0.67f
+#define BOGIE_TO_BOGIE_FACTOR 1.2f
+#define BOGIE_TO_REF_SOFT_FACTOR 1.5f
+#define BOGIE_TO_REF_HARD_FACTOR 1.1f
 
 #define RESET_SIDE_GAP_TOLERANCE 10 // Samples
 
@@ -31,28 +31,28 @@ CarGaps::~CarGaps()
 void CarGaps::reset()
 {
   leftGapSet = false;
-  leftBogeyGapSet = false;
+  leftBogieGapSet = false;
   midGapSet = false;
-  rightBogeyGapSet = false;
+  rightBogieGapSet = false;
   rightGapSet = false;
 
   leftGap = 0;
-  leftBogeyGap = 0;
+  leftBogieGap = 0;
   midGap = 0;
-  rightBogeyGap = 0;
+  rightBogieGap = 0;
   rightGap = 0;
 }
 
 
 void CarGaps::logAll(
   const unsigned leftGapIn,
-  const unsigned leftBogeyGapIn, // Zero if single wheel
+  const unsigned leftBogieGapIn, // Zero if single wheel
   const unsigned midGapIn,
-  const unsigned rightBogeyGapIn, // Zero if single wheel
+  const unsigned rightBogieGapIn, // Zero if single wheel
   const unsigned rightGapIn)
 {
   CarGaps::logLeftGap(leftGapIn);
-  CarGaps::logCore(leftBogeyGapIn, midGapIn, rightBogeyGapIn);
+  CarGaps::logCore(leftBogieGapIn, midGapIn, rightBogieGapIn);
   CarGaps::logRightGap(rightGapIn);
 }
 
@@ -78,18 +78,18 @@ unsigned CarGaps::logLeftGap(const unsigned leftGapIn)
 
 
 void CarGaps::logCore(
-  const unsigned leftBogeyGapIn, // Zero if single wheel
+  const unsigned leftBogieGapIn, // Zero if single wheel
   const unsigned midGapIn,
-  const unsigned rightBogeyGapIn) // Zero if single wheel
+  const unsigned rightBogieGapIn) // Zero if single wheel
 {
-  leftBogeyGap = leftBogeyGapIn;
-  leftBogeyGapSet = (leftBogeyGapIn > 0);
+  leftBogieGap = leftBogieGapIn;
+  leftBogieGapSet = (leftBogieGapIn > 0);
 
   midGap = midGapIn;
   midGapSet = (midGapIn > 0);
 
-  rightBogeyGap = rightBogeyGapIn;
-  rightBogeyGapSet = (rightBogeyGapIn > 0);
+  rightBogieGap = rightBogieGapIn;
+  rightBogieGapSet = (rightBogieGapIn > 0);
 }
 
 
@@ -116,19 +116,19 @@ unsigned CarGaps::logRightGap(const unsigned rightGapIn)
 void CarGaps::operator += (const CarGaps& cg2)
 {
   leftGap += cg2.leftGap;
-  leftBogeyGap += cg2.leftBogeyGap;
+  leftBogieGap += cg2.leftBogieGap;
   midGap += cg2.midGap;
-  rightBogeyGap += cg2.rightBogeyGap;
+  rightBogieGap += cg2.rightBogieGap;
   rightGap += cg2.rightGap;
 
   if (cg2.leftGapSet)
     leftGapSet = true;
-  if (cg2.leftBogeyGapSet)
-    leftBogeyGapSet = true;
+  if (cg2.leftBogieGapSet)
+    leftBogieGapSet = true;
   if (cg2.midGapSet)
     midGapSet = true;
-  if (cg2.rightBogeyGapSet)
-    rightBogeyGapSet = true;
+  if (cg2.rightBogieGapSet)
+    rightBogieGapSet = true;
   if (cg2.rightGapSet)
     rightGapSet = true;
 }
@@ -138,12 +138,12 @@ void CarGaps::increment(CarDetectNumbers& cdn) const
 {
   if (leftGapSet)
     cdn.numLeftGaps++;
-  if (leftBogeyGapSet)
-    cdn.numLeftBogeyGaps++;
+  if (leftBogieGapSet)
+    cdn.numLeftBogieGaps++;
   if (midGapSet)
     cdn.numMidGaps++;
-  if (rightBogeyGapSet)
-    cdn.numRightBogeyGaps++;
+  if (rightBogieGapSet)
+    cdn.numRightBogieGaps++;
   if (rightGapSet)
     cdn.numRightGaps++;
 }
@@ -155,17 +155,17 @@ void CarGaps::reverse()
   leftGapSet = rightGapSet;
   rightGapSet = btmp;
 
-  btmp = leftBogeyGapSet;
-  leftBogeyGapSet = rightBogeyGapSet;
-  rightBogeyGapSet = btmp;
+  btmp = leftBogieGapSet;
+  leftBogieGapSet = rightBogieGapSet;
+  rightBogieGapSet = btmp;
 
   unsigned tmp = leftGap;
   leftGap = rightGap;
   rightGap = tmp;
 
-  tmp = leftBogeyGap;
-  leftBogeyGap = rightBogeyGap;
-  rightBogeyGap = tmp;
+  tmp = leftBogieGap;
+  leftBogieGap = rightBogieGap;
+  rightBogieGap = tmp;
 }
 
 
@@ -174,12 +174,12 @@ void CarGaps::average(
 {
   if (cdn.numLeftGaps)
     leftGap /= cdn.numLeftGaps;
-  if (cdn.numLeftBogeyGaps)
-    leftBogeyGap /= cdn.numLeftBogeyGaps;
+  if (cdn.numLeftBogieGaps)
+    leftBogieGap /= cdn.numLeftBogieGaps;
   if (cdn.numMidGaps)
     midGap /= cdn.numMidGaps;
-  if (cdn.numRightBogeyGaps)
-    rightBogeyGap /= cdn.numRightBogeyGaps;
+  if (cdn.numRightBogieGaps)
+    rightBogieGap /= cdn.numRightBogieGaps;
   if (cdn.numRightGaps)
     rightGap /= cdn.numRightGaps;
 }
@@ -191,9 +191,9 @@ void CarGaps::average(const unsigned count)
     return;
 
   leftGap /= count;
-  leftBogeyGap /= count;
+  leftBogieGap /= count;
   midGap /= count;
-  rightBogeyGap /= count;
+  rightBogieGap /= count;
   rightGap /= count;
 }
 
@@ -204,9 +204,9 @@ unsigned CarGaps::leftGapValue() const
 }
 
 
-unsigned CarGaps::leftBogeyGapValue() const
+unsigned CarGaps::leftBogieGapValue() const
 {
-  return leftBogeyGap;
+  return leftBogieGap;
 }
 
 
@@ -216,9 +216,9 @@ unsigned CarGaps::midGapValue() const
 }
 
 
-unsigned CarGaps::rightBogeyGapValue() const
+unsigned CarGaps::rightBogieGapValue() const
 {
-  return rightBogeyGap;
+  return rightBogieGap;
 }
 
 
@@ -246,11 +246,11 @@ unsigned CarGaps::getGap(
     else if (peakNo == 0)
       return (skippedFlag ? 0 : leftGap);
     else if (peakNo == 1)
-      return leftBogeyGap + (skippedFlag ? leftGap : 0);
+      return leftBogieGap + (skippedFlag ? leftGap : 0);
     else if (peakNo == 2)
-      return midGap + (skippedFlag ? leftBogeyGap : 0);
+      return midGap + (skippedFlag ? leftBogieGap : 0);
     else if (peakNo == 3)
-      return rightBogeyGap + (skippedFlag ? midGap : 0);
+      return rightBogieGap + (skippedFlag ? midGap : 0);
     else
       return 0;
   }
@@ -266,11 +266,11 @@ unsigned CarGaps::getGap(
     else if (peakNo == 3)
       return (skippedFlag ? 0 : rightGap);
     else if (peakNo == 2)
-      return rightBogeyGap + (skippedFlag ? rightGap : 0);
+      return rightBogieGap + (skippedFlag ? rightGap : 0);
     else if (peakNo == 1)
-      return midGap + (skippedFlag ? rightBogeyGap : 0);
+      return midGap + (skippedFlag ? rightBogieGap : 0);
     else if (peakNo == 0)
-      return leftBogeyGap + (skippedFlag ? midGap : 0);
+      return leftBogieGap + (skippedFlag ? midGap : 0);
     else
       return 0;
   }
@@ -289,15 +289,15 @@ bool CarGaps::hasRightGap() const
 }
 
 
-bool CarGaps::hasLeftBogeyGap() const
+bool CarGaps::hasLeftBogieGap() const
 {
-  return leftBogeyGapSet;
+  return leftBogieGapSet;
 }
 
 
-bool CarGaps::hasRightBogeyGap() const
+bool CarGaps::hasRightBogieGap() const
 {
-  return rightBogeyGapSet;
+  return rightBogieGapSet;
 }
 
 
@@ -338,9 +338,9 @@ float CarGaps::distance(const CarGaps& cg2) const
 {
   return 100.f * (
     CarGaps::relativeComponent(leftGap, cg2.leftGap) +
-    CarGaps::relativeComponent(leftBogeyGap, cg2.leftBogeyGap) +
+    CarGaps::relativeComponent(leftBogieGap, cg2.leftBogieGap) +
     CarGaps::relativeComponent(midGap, cg2.midGap) +
-    CarGaps::relativeComponent(rightBogeyGap, cg2.rightBogeyGap) +
+    CarGaps::relativeComponent(rightBogieGap, cg2.rightBogieGap) +
     CarGaps::relativeComponent(rightGap, cg2.rightGap)
       );
 }
@@ -350,9 +350,9 @@ float CarGaps::reverseDistance(const CarGaps& cg2) const
 {
   return 100.f * (
     CarGaps::relativeComponent(leftGap, cg2.rightGap) +
-    CarGaps::relativeComponent(leftBogeyGap, cg2.rightBogeyGap) +
+    CarGaps::relativeComponent(leftBogieGap, cg2.rightBogieGap) +
     CarGaps::relativeComponent(midGap, cg2.midGap) +
-    CarGaps::relativeComponent(rightBogeyGap, cg2.leftBogeyGap) +
+    CarGaps::relativeComponent(rightBogieGap, cg2.leftBogieGap) +
     CarGaps::relativeComponent(rightGap, cg2.leftGap)
       );
 }
@@ -361,9 +361,9 @@ float CarGaps::reverseDistance(const CarGaps& cg2) const
 float CarGaps::distanceForGapMatch(const CarGaps& cg2) const
 {
   if (leftGapSet != cg2.leftGapSet ||
-      leftBogeyGapSet != cg2.leftBogeyGapSet ||
+      leftBogieGapSet != cg2.leftBogieGapSet ||
       midGapSet != cg2.midGapSet ||
-      rightBogeyGapSet != cg2.rightBogeyGapSet ||
+      rightBogieGapSet != cg2.rightBogieGapSet ||
       rightGapSet != cg2.rightGapSet)
     return numeric_limits<float>::max();
 
@@ -376,9 +376,9 @@ float CarGaps::distanceForGapInclusion(const CarGaps& cg2) const
   // Gaps in cg2 must also be present here, but the other way is
   // not required.
   if ((cg2.leftGapSet && ! leftGapSet) ||
-      (cg2.leftBogeyGapSet && ! leftBogeyGapSet) ||
+      (cg2.leftBogieGapSet && ! leftBogieGapSet) ||
       (cg2.midGapSet && ! midGapSet) ||
-      (cg2.rightBogeyGapSet && ! rightBogeyGapSet) ||
+      (cg2.rightBogieGapSet && ! rightBogieGapSet) ||
       (cg2.rightGapSet && ! rightGapSet))
     return numeric_limits<float>::max();
 
@@ -389,9 +389,9 @@ float CarGaps::distanceForGapInclusion(const CarGaps& cg2) const
 float CarGaps::distanceForReverseMatch(const CarGaps& cg2) const
 {
   if (leftGapSet != cg2.rightGapSet ||
-      leftBogeyGapSet != cg2.rightBogeyGapSet ||
+      leftBogieGapSet != cg2.rightBogieGapSet ||
       midGapSet != cg2.midGapSet ||
-      rightBogeyGapSet != cg2.leftBogeyGapSet ||
+      rightBogieGapSet != cg2.leftBogieGapSet ||
       rightGapSet != cg2.leftGapSet)
     return numeric_limits<float>::max();
 
@@ -404,9 +404,9 @@ float CarGaps::distanceForReverseInclusion(const CarGaps& cg2) const
   // Gaps in cg2 must also be present here, but the other way is
   // not required.
   if ((cg2.leftGapSet && ! rightGapSet) ||
-      (cg2.leftBogeyGapSet && ! rightBogeyGapSet) ||
+      (cg2.leftBogieGapSet && ! rightBogieGapSet) ||
       (cg2.midGapSet && ! midGapSet) ||
-      (cg2.rightBogeyGapSet && ! leftBogeyGapSet) ||
+      (cg2.rightBogieGapSet && ! leftBogieGapSet) ||
       (cg2.rightGapSet && ! leftGapSet))
     return numeric_limits<float>::max();
 
@@ -435,7 +435,7 @@ float CarGaps::distancePartialBest(
   Peak& peakCand) const
 {
   // The gaps for inner distances (excluding car ends) must exist.
-  if (! leftBogeyGapSet || ! midGapSet && ! rightBogeyGapSet)
+  if (! leftBogieGapSet || ! midGapSet && ! rightBogieGapSet)
     return numeric_limits<float>::max();
 
   // The seen gaps that we're trying to match to the car gaps.
@@ -449,7 +449,7 @@ float CarGaps::distancePartialBest(
 
   if (s1 <= s2)
   {
-    // We will assume that s1 is the left bogey gap.
+    // We will assume that s1 is the left bogie gap.
     float dist = CarGaps::relativeComponent(g1, s1);
     if (dist > limit)
       return numeric_limits<float>::max();
@@ -475,14 +475,14 @@ float CarGaps::distancePartialBest(
     else
     {
       // We will assume that s2 is a gap from the right wheel of
-      // the first bogey to the right wheel of the second bogey.
+      // the first bogie to the right wheel of the second bogie.
       // B1W1    B1W2        B2W1    B2W2
       //  |   g1   |    g2    |   g3   |
       //  |   s1   |         s2        |
       //  p0       p1                  p2
       
       // Very roughly, the best guess for the left wheel of the 
-      // second bogey is the following average.  We can do this more
+      // second bogie is the following average.  We can do this more
       // accurately in an analytical way.
       const unsigned index = ((p1 + g2) + (p2 - g3)) / 2;
 
@@ -496,7 +496,7 @@ float CarGaps::distancePartialBest(
   }
   else
   {
-    // We will assume that s2 is the right bogey gap.
+    // We will assume that s2 is the right bogie gap.
     float dist = CarGaps::relativeComponent(g3, s2);
     if (dist > limit)
       return numeric_limits<float>::max();
@@ -522,7 +522,7 @@ float CarGaps::distancePartialBest(
     else
     {
       // We will assume that s1 is a gap from the left wheel of
-      // the first bogey to the left wheel of the second bogey.
+      // the first bogie to the left wheel of the second bogie.
       // B1W1    B1W2        B2W1    B2W2
       //  |   g1   |    g2    |   g3   |
       //  |        s1         |   s2   |
@@ -543,7 +543,7 @@ float CarGaps::distancePartial(
   const float& limit,
   Peak& peakCand) const
 {
-  return CarGaps::distancePartialBest(leftBogeyGap, midGap, rightBogeyGap,
+  return CarGaps::distancePartialBest(leftBogieGap, midGap, rightBogieGap,
     peakPtrs, limit, peakCand);
 }
 
@@ -553,7 +553,7 @@ float CarGaps::distancePartialReverse(
   const float& limit,
   Peak& peakCand) const
 {
-  return CarGaps::distancePartialBest(rightBogeyGap, midGap, leftBogeyGap,
+  return CarGaps::distancePartialBest(rightBogieGap, midGap, leftBogieGap,
     peakPtrs, limit, peakCand);
 }
 
@@ -602,8 +602,8 @@ bool CarGaps::sideGapsPlausible(const CarGaps& cgref) const
         SIDE_GAP_FACTOR, "left gap"))
       return false;
 
-    if (! CarGaps::checkTooShort(leftGap, cgref.leftBogeyGap,
-        SIDE_GAP_TO_BOGEY_FACTOR, "left gap vs. bogey"))
+    if (! CarGaps::checkTooShort(leftGap, cgref.leftBogieGap,
+        SIDE_GAP_TO_BOGIE_FACTOR, "left gap vs. bogie"))
       return false;
   }
 
@@ -613,8 +613,8 @@ bool CarGaps::sideGapsPlausible(const CarGaps& cgref) const
         SIDE_GAP_FACTOR, "right gap"))
       return false;
 
-    if (! CarGaps::checkTooShort(rightGap, cgref.rightBogeyGap,
-        SIDE_GAP_TO_BOGEY_FACTOR, "right gap vs. bogey"))
+    if (! CarGaps::checkTooShort(rightGap, cgref.rightBogieGap,
+        SIDE_GAP_TO_BOGIE_FACTOR, "right gap vs. bogie"))
       return false;
   }
   return true;
@@ -623,35 +623,35 @@ bool CarGaps::sideGapsPlausible(const CarGaps& cgref) const
 
 bool CarGaps::midGapPlausible() const
 {
-  if (leftBogeyGap > 0)
-    return CarGaps::checkTooShort(midGap, leftBogeyGap,
-      MID_GAP_TO_BOGEY_FACTOR, "mid-gap vs. left bogey");
-  else if (rightBogeyGap > 0)
-    return CarGaps::checkTooShort(midGap, rightBogeyGap,
-      MID_GAP_TO_BOGEY_FACTOR, "mid-gap vs. right bogey");
+  if (leftBogieGap > 0)
+    return CarGaps::checkTooShort(midGap, leftBogieGap,
+      MID_GAP_TO_BOGIE_FACTOR, "mid-gap vs. left bogie");
+  else if (rightBogieGap > 0)
+    return CarGaps::checkTooShort(midGap, rightBogieGap,
+      MID_GAP_TO_BOGIE_FACTOR, "mid-gap vs. right bogie");
   else
     return false;
 }
 
 
-bool CarGaps::rightBogeyPlausible(const CarGaps& cgref) const
+bool CarGaps::rightBogiePlausible(const CarGaps& cgref) const
 {
-  return CarGaps::checkTwoSided(rightBogeyGap, cgref.rightBogeyGap,
-      BOGEY_TO_REF_SOFT_FACTOR, "");
+  return CarGaps::checkTwoSided(rightBogieGap, cgref.rightBogieGap,
+      BOGIE_TO_REF_SOFT_FACTOR, "");
 }
 
 
-bool CarGaps::rightBogeyConvincing(const CarGaps& cgref) const
+bool CarGaps::rightBogieConvincing(const CarGaps& cgref) const
 {
-  return CarGaps::checkTwoSided(rightBogeyGap, cgref.rightBogeyGap,
-      BOGEY_TO_REF_HARD_FACTOR, "");
+  return CarGaps::checkTwoSided(rightBogieGap, cgref.rightBogieGap,
+      BOGIE_TO_REF_HARD_FACTOR, "");
 }
 
 
 bool CarGaps::corePlausible() const
 {
-  if (! CarGaps::checkTwoSided(leftBogeyGap, rightBogeyGap,
-      BOGEY_TO_BOGEY_FACTOR, "bogey size"))
+  if (! CarGaps::checkTwoSided(leftBogieGap, rightBogieGap,
+      BOGIE_TO_BOGIE_FACTOR, "bogie size"))
     return false;
   
   if (! CarGaps::midGapPlausible())
@@ -682,9 +682,9 @@ string CarGaps::str() const
   stringstream ss;
   ss << right << 
     setw(6) << leftGap <<
-    setw(6) << leftBogeyGap <<
+    setw(6) << leftBogieGap <<
     setw(6) << midGap <<
-    setw(6) << rightBogeyGap <<
+    setw(6) << rightBogieGap <<
     setw(6) << rightGap;
   return ss.str();
 }

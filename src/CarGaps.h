@@ -13,17 +13,17 @@ class PeakPtrs;
 struct CarDetectNumbers
 {
   unsigned numLeftGaps;
-  unsigned numLeftBogeyGaps;
+  unsigned numLeftBogieGaps;
   unsigned numMidGaps;
-  unsigned numRightBogeyGaps;
+  unsigned numRightBogieGaps;
   unsigned numRightGaps;
 
   void reset()
   {
     numLeftGaps = 0;
-    numLeftBogeyGaps = 0;
+    numLeftBogieGaps = 0;
     numMidGaps = 0;
-    numRightBogeyGaps = 0;
+    numRightBogieGaps = 0;
     numRightGaps = 0;
   };
 };
@@ -34,15 +34,15 @@ class CarGaps
   private:
 
     bool leftGapSet;
-    bool leftBogeyGapSet;
+    bool leftBogieGapSet;
     bool midGapSet;
-    bool rightBogeyGapSet;
+    bool rightBogieGapSet;
     bool rightGapSet;
 
     unsigned leftGap;
-    unsigned leftBogeyGap; // Zero if single wheel
+    unsigned leftBogieGap; // Zero if single wheel
     unsigned midGap;
-    unsigned rightBogeyGap; // Zero if single wheel
+    unsigned rightBogieGap; // Zero if single wheel
     unsigned rightGap;
 
     float relativeComponent(
@@ -75,15 +75,15 @@ class CarGaps
 
     void logAll(
       const unsigned leftGapIn,
-      const unsigned leftBogeyGapIn, // Zero if single wheel
+      const unsigned leftBogieGapIn, // Zero if single wheel
       const unsigned midGapIn,
-      const unsigned rightBogeyGapIn, // Zero if single wheel
+      const unsigned rightBogieGapIn, // Zero if single wheel
       const unsigned rightGapIn);
 
     void logCore(
-      const unsigned leftBogeyGapIn, // Zero if single wheel
+      const unsigned leftBogieGapIn, // Zero if single wheel
       const unsigned midGapIn,
-      const unsigned rightBogeyGap); // Zero if single wheel
+      const unsigned rightBogieGap); // Zero if single wheel
 
     unsigned logLeftGap(const unsigned leftGapIn);
     unsigned logRightGap(const unsigned rightGapIn);
@@ -98,9 +98,9 @@ class CarGaps
     void average(const unsigned count);
 
     unsigned leftGapValue() const;
-    unsigned leftBogeyGapValue() const;
+    unsigned leftBogieGapValue() const;
     unsigned midGapValue() const;
-    unsigned rightBogeyGapValue() const;
+    unsigned rightBogieGapValue() const;
     unsigned rightGapValue() const;
 
     unsigned getGap(
@@ -111,8 +111,8 @@ class CarGaps
 
     bool hasLeftGap() const;
     bool hasRightGap() const;
-    bool hasLeftBogeyGap() const;
-    bool hasRightBogeyGap() const;
+    bool hasLeftBogieGap() const;
+    bool hasRightBogieGap() const;
     bool hasMidGap() const;
     bool isPartial() const;
 
@@ -144,8 +144,8 @@ class CarGaps
 
     bool sideGapsPlausible(const CarGaps& cgref) const;
     bool midGapPlausible() const;
-    bool rightBogeyPlausible(const CarGaps& cgref) const;
-    bool rightBogeyConvincing(const CarGaps& cgref) const;
+    bool rightBogiePlausible(const CarGaps& cgref) const;
+    bool rightBogieConvincing(const CarGaps& cgref) const;
     bool corePlausible() const;
 
     string strHeader(const bool numberFlag) const;

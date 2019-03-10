@@ -80,7 +80,7 @@ class Peak
 
     bool wheelFlag;
     WheelType wheelSide;
-    BogeyType bogeySide;
+    BogieType bogieSide;
 
 
     void deviation(
@@ -179,18 +179,18 @@ class Peak
 
     void markdown();
 
-    void markBogey(const BogeyType bogeyType);
-    void markNoBogey();
-    bool isLeftBogey() const;
-    bool isRightBogey() const;
-    bool isBogey() const;
+    void markBogie(const BogieType bogieType);
+    void markNoBogie();
+    bool isLeftBogie() const;
+    bool isRightBogie() const;
+    bool isBogie() const;
 
     bool fitsType(
-      const BogeyType bogeyType,
+      const BogieType bogieType,
       const WheelType wheelType) const;
 
-    void markBogeyAndWheel(
-      const BogeyType bogeyType,
+    void markBogieAndWheel(
+      const BogieType bogieType,
       const WheelType wheelType);
 
     bool fantasticQuality() const;
