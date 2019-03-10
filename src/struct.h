@@ -335,4 +335,12 @@ struct MatchData
   };
 };
 
+enum CarPosition
+{
+  CARPOSITION_FIRST = 0,
+  CARPOSITION_INNER = 1,
+  CARPOSITION_LAST = 2,
+  CARPOSITION_SIZE = 3
+};
+
 #endif

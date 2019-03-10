@@ -208,6 +208,7 @@ void PeakPartial::recoverPeaks1000(vector<Peak const *>& peakPtrsUsed)
     PeakPartial::registerPtr(1, peakPtrsUsed[indexUsed], indexUsed);
     pstats[0b1000].hits++;
 
+// cout << "PPX moving to 1100" << endl;
     PeakPartial::recoverPeaks1100(peakPtrsUsed);
     return;
   }
@@ -340,9 +341,8 @@ void PeakPartial::recoverPeaks1100(vector<Peak const *>& peakPtrsUsed)
 {
   pstats[0b1100].num++;
 
+  // Look for the right bogey.
   // TODO Could also be a single peak.
-  if (peakSlots.count(PEAKSLOT_RIGHT_OF_P1) < 2)
-    return;
 
   const unsigned dlo = comps[1].peak->getIndex() -
     comps[0].peak->getIndex();
@@ -351,6 +351,7 @@ void PeakPartial::recoverPeaks1100(vector<Peak const *>& peakPtrsUsed)
   const unsigned dlimHi = 
     static_cast<unsigned>((1.0f + BOGEY_GENERAL_FACTOR) * dlo);
 
+// cout << "PPX d " << dlo << " " << dlimLo << " " << dlimHi << endl;
   for (unsigned iu = comps[1].indexUsed+1; iu < peakPtrsUsed.size()-1; iu++)
   {
     // TODO Don't have to be consecutive.
@@ -538,6 +539,7 @@ void PeakPartial::getPeaksFromUsed(
   mid = static_cast<unsigned>(MID_FACTOR * longTypical);
   verboseFlag = verboseFlagIn;
 
+cout << "CODE " << peakSlots.code() << endl;
   switch(peakSlots.code())
   {
     case 0b0001:

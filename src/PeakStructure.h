@@ -84,12 +84,18 @@ class PeakStructure
     FindCarType findPartialCarByQuality(
       const CarModels& models,
       const PeakFncPtr& fptr,
-      const bool firstFlag,
+      const CarPosition carpos,
       PeakPool& peaks,
       PeakRange& range,
       CarDetect& car) const;
 
     FindCarType findPartialFirstCarByQuality(
+      const CarModels& models,
+      PeakPool& peaks,
+      PeakRange& range,
+      CarDetect& car) const;
+
+    FindCarType findPartialInnerCarByQuality(
       const CarModels& models,
       PeakPool& peaks,
       PeakRange& range,

@@ -66,6 +66,9 @@ PeakStructure::PeakStructure()
     { &PeakStructure::findPartialLastCarByQuality, 
       "last partial by quality", 9});
   findCarFallbacks.push_back(
+    { &PeakStructure::findPartialInnerCarByQuality, 
+      "last partial by quality", 7}); // TODO Should get own number
+  findCarFallbacks.push_back(
     { &PeakStructure::findCarByEmptyLast, 
       "by empty last", 7});
   findCarFallbacks.push_back(
@@ -231,7 +234,7 @@ PeakStructure::FindCarType PeakStructure::findCarByOrder(
 PeakStructure::FindCarType PeakStructure::findPartialCarByQuality(
   const CarModels& models,
   const PeakFncPtr& fptr,
-  const bool firstFlag,
+  const CarPosition carpos,
   PeakPool& peaks,
   PeakRange& range,
   CarDetect& car) const
@@ -239,12 +242,38 @@ PeakStructure::FindCarType PeakStructure::findPartialCarByQuality(
   PeakPtrs peakPtrsUsed, peakPtrsUnused;
   range.split(fptr, peakPtrsUsed, peakPtrsUnused);
 
+  if (peakPtrsUsed.size() == 0)
+    return FIND_CAR_NO_MATCH;
+
+// cout << "PP BEFORE\n";
+// for (auto& peak: peakPtrsUsed)
+  // cout << peak->strQuality(offset);
+
   PeakRepair repair;
-  if (repair.edgeCar(models, offset, firstFlag, 
+  if (repair.edgeCar(models, offset, carpos, 
       peaks, range, peakPtrsUsed, peakPtrsUnused))
   {
-if (firstFlag)
+if (carpos == CARPOSITION_FIRST)
   cout << "Hit an anywheeler\n";
+else if (carpos == CARPOSITION_INNER)
+{
+  cout << "Hit a midwheeler\n";
+  unsigned num = 0;
+  for (auto& peak: peakPtrsUsed)
+  {
+    if (peak != nullptr)
+      num++;
+  }
+  /*
+cout << "PP AFTER\n";
+for (auto& peak: peakPtrsUsed)
+  if (peak)
+    cout << peak->strQuality(offset);
+  cout << "MIDCOUNT " << num << "\n";
+  */
+  if (num != 4)
+    return FIND_CAR_NO_MATCH;
+}
 else
   cout << "Hit a lastwheeler\n";
 
@@ -279,7 +308,27 @@ PeakStructure::FindCarType PeakStructure::findPartialFirstCarByQuality(
     return FIND_CAR_DOWNGRADE;
 
   return PeakStructure::findPartialCarByQuality(models, 
-      &Peak::goodQuality, true, peaks, range, car);
+      &Peak::goodQuality, CARPOSITION_FIRST, peaks, range, car);
+}
+
+
+PeakStructure::FindCarType PeakStructure::findPartialInnerCarByQuality(
+  const CarModels& models,
+  PeakPool& peaks,
+  PeakRange& range,
+  CarDetect& car) const
+{
+  if (range.isFirstCar() || range.isLastCar())
+    return FIND_CAR_NO_MATCH;
+
+  if (range.numGreat() > 4 ||
+      range.numGood() > 6 || 
+      range.num() > 10)
+    return FIND_CAR_NO_MATCH;
+
+cout << "MIDMID\n";
+  return PeakStructure::findPartialCarByQuality(models, 
+      &Peak::goodQuality, CARPOSITION_INNER, peaks, range, car);
 }
 
 
@@ -303,7 +352,7 @@ PeakStructure::FindCarType PeakStructure::findPartialLastCarByQuality(
 
 cout << "LASTLAST\n";
   return PeakStructure::findPartialCarByQuality(models, 
-      &Peak::goodQuality, false, peaks, range, car);
+      &Peak::goodQuality, CARPOSITION_LAST, peaks, range, car);
 }
 
 
@@ -759,7 +808,7 @@ void PeakStructure::markCars(
   }
 
 cout << peaks.candidates().strQuality(
-  "All selected peaks at end of PeakStructure", offset);
+  "All selected peaks at end of PeakStructure", offset, &Peak::isSelected);
 
 
   cout << "HITS\n";

@@ -762,8 +762,7 @@ sub hasErrors
   return 
      ($errorsRef->[0] != 0 ||
       $errorsRef->[1] != 0 ||
-      $errorsRef->[2] != 0 ||
-      $errorsRef->[3] != 0);
+      $errorsRef->[2] != 0);
 }
 
 
@@ -833,7 +832,7 @@ sub summaryEmpty
   }
   else
   {
-    return $SEPARATOR x (18 + $NUM_LAST_FNC);
+    return $SEPARATOR x (23 + $NUM_LAST_FNC);
   }
 }
 

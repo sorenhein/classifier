@@ -65,6 +65,8 @@ class PeakRepair
 
     bool getDominantModel(PeakPartial& dominantModel) const;
 
+    string prefix(CarPosition carpos) const;
+
 
   public:
 
@@ -77,13 +79,13 @@ class PeakRepair
     bool edgeCar(
       const CarModels& models,
       const unsigned offsetIn,
-      const bool firstFlag,
+      const CarPosition carpos,
       PeakPool& peaks,
       PeakRange& range,
       PeakPtrs& peakPtrsUsed,
       PeakPtrs& peakPtrsUnused);
 
-    void printMatches(const bool firstFlag) const;
+    void printMatches(const CarPosition carpos) const;
 
 };
 

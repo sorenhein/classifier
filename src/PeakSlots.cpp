@@ -143,13 +143,23 @@ string PeakSlots::s(const PeakSlot ps) const
 }
 
 
-string PeakSlots::str(const bool firstFlag) const
+string PeakSlots::str(const CarPosition carpos) const
 {
   if (! numEntries)
     return "";
 
   stringstream ss;
-  ss << (firstFlag ? "PEAKFIRST " : "PEAKLAST  ") << 
+  string cp;
+  if (carpos == CARPOSITION_FIRST)
+    cp = "FIRST ";
+  else if (carpos == CARPOSITION_INNER)
+    cp = "INNER ";
+  else if (carpos == CARPOSITION_LAST)
+    cp = "LAST  ";
+  else
+    cp = "";
+    
+  ss << "PEAK" << cp << 
     setw(2) << peakCode <<
     setw(4) << PeakSlots::s(peakCode & 0x8 ? 1 : 0) <<
     setw(2) << PeakSlots::s(peakCode & 0x4 ? 1 : 0) <<

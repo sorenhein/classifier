@@ -4,6 +4,8 @@
 #include <vector>
 #include <string>
 
+#include "struct.h"
+
 using namespace std;
 
 class PeakPtrs;
@@ -70,7 +72,7 @@ class PeakSlots
 
     unsigned code() const;
 
-    string str(const bool firstFlag) const;
+    string str(const CarPosition carpos) const;
 
 };
 

@@ -408,9 +408,9 @@ void PeakPartial::makeCodes(
 }
 
 
-void PeakPartial::printSituation(const bool firstFlag) const
+void PeakPartial::printSituation(const CarPosition carpos) const
 {
-  cout << peakSlots.str(firstFlag);
+  cout << peakSlots.str(carpos);
 }
 
 
@@ -578,6 +578,7 @@ Peak const * PeakPartial::lookForPeak(
 void PeakPartial::getPeaks(
   const unsigned bogeyTypical,
   const unsigned longTypical,
+  const CarPosition carpos,
   vector<Peak const *>& peakPtrsUsed,
   vector<Peak const *>& peakPtrsUnused)
 {
@@ -585,7 +586,9 @@ void PeakPartial::getPeaks(
   // as possible.  Mostly the alignment will pick up on it anyway.
 
   PeakPartial::getPeaksFromUsed(bogeyTypical, longTypical, 
-    true, peakPtrsUsed);
+    carpos == CARPOSITION_INNER, peakPtrsUsed);
+    // true, peakPtrsUsed);
+    // TODO Switch back
 
   // if we didn't match a peak in the used vector, we move it to unused.
   PeakPartial::moveUnused(peakPtrsUsed, peakPtrsUnused);

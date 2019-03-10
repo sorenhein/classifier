@@ -53,4 +53,5 @@ doc/~*.xlsx
 data/~*.xlsx
 src/summary/*.txt
 src/first/*.txt
+src/inner/*.txt
 src/last/*.txt

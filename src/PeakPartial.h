@@ -248,10 +248,11 @@ class PeakPartial
     void getPeaks(
       const unsigned bogeyTypical,
       const unsigned longTypical,
+      const CarPosition carpos,
       vector<Peak const *>& peaksUsed,
       vector<Peak const *>& peaksUnused);
 
-    void printSituation(const bool firstFlag) const;
+    void printSituation(const CarPosition carpos) const;
 
     string strTarget(
       const unsigned peakNo,

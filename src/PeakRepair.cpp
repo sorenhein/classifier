@@ -258,7 +258,7 @@ bool PeakRepair::getDominantModel(PeakPartial& dominantModel) const
 bool PeakRepair::edgeCar(
   const CarModels& models,
   const unsigned offsetIn,
-  const bool firstFlag,
+  const CarPosition carpos,
   PeakPool& peaks,
   PeakRange& range,
   PeakPtrs& peakPtrsUsed,
@@ -270,7 +270,7 @@ bool PeakRepair::edgeCar(
 
   RepairRange repairRange;
   list<unsigned> peakOrder;
-  if (firstFlag)
+  if (carpos == CARPOSITION_FIRST)
   {
     repairRange.start = range.endValue();
     repairRange.end = 0;
@@ -280,6 +280,7 @@ bool PeakRepair::edgeCar(
   }
   else
   {
+    // Both for inner and left car.
     repairRange.start = range.startValue();
     repairRange.end = range.endValue();
     repairRange.leftDirection = false;
@@ -303,14 +304,14 @@ bool PeakRepair::edgeCar(
   if (numModelMatches == 0)
   {
     bool edgeFlag;
-    if (firstFlag)
+    if (carpos == CARPOSITION_FIRST)
       edgeFlag = peakPtrsUsed.back()->fitsType(BOGEY_RIGHT, WHEEL_RIGHT);
     else
       edgeFlag = peakPtrsUsed.front()->fitsType(BOGEY_LEFT, WHEEL_LEFT);
 
     bool modelEndFlag = models.hasAnEndGap();
 
-    cout << (firstFlag ? "FIRST" : "LAST") <<
+    cout << PeakRepair::prefix(carpos) <<
       "QUADRANT " << edgeFlag << ", " << modelEndFlag << endl;
 
 cout << peakPtrsUsed.strQuality("No model match", offset);
@@ -319,20 +320,20 @@ cout << peakPtrsUsed.strQuality("No model match", offset);
     return false;
   }
 
-cout << (firstFlag ? "MATCHFIRST" : "MATCHLAST") << "\n";
+cout << "MATCH" << PeakRepair::prefix(carpos) <<  "\n";
 
   PeakPartial superModel;
   if (! PeakRepair::getDominantModel(superModel))
   {
-cout << (firstFlag ? "NODOMFIRST" : "NODOMLAST") << "\n";
-  // PeakRepair::printMatches(firstFlag);
+cout << "NODOM" << PeakRepair::prefix(carpos) << "\n";
+  // PeakRepair::printMatches(carpos);
 
     return false;
   }
 
-  PeakRepair::printMatches(firstFlag);
+  PeakRepair::printMatches(carpos);
   superModel.makeCodes(peakPtrsUsed, offset);
-  superModel.printSituation(firstFlag);
+  superModel.printSituation(carpos);
 
 /*
   if (superModel.count() == 4)
@@ -401,7 +402,7 @@ cout << "Typical " << bogeyTypical << ", " << longTypical << endl;
   vector<Peak const *> peakPtrsUsedFlat, peakPtrsUnusedFlat;
   peakPtrsUsed.flatten(peakPtrsUsedFlat);
 
-  superModel.getPeaks(bogeyTypical, longTypical, 
+  superModel.getPeaks(bogeyTypical, longTypical, carpos,
     peakPtrsUsedFlat, peakPtrsUnusedFlat);
 
   if (peakPtrsUnusedFlat.size() > 0)
@@ -419,13 +420,27 @@ cout << "Typical " << bogeyTypical << ", " << longTypical << endl;
 }
 
 
-void PeakRepair::printMatches(const bool firstFlag) const
+string PeakRepair::prefix(const CarPosition carpos) const
+{
+  if (carpos == CARPOSITION_FIRST)
+    return "FIRST";
+  else if (carpos == CARPOSITION_INNER)
+    return "INNER";
+  else if (carpos == CARPOSITION_LAST)
+    return "LAST";
+  else
+    return "";
+}
+
+
+void PeakRepair::printMatches(const CarPosition carpos) const
 {
   const unsigned n = PeakRepair::numMatches();
   if (n == 0)
     return;
 
-  cout << (firstFlag ? "FIRST" : "LAST") << "CAR matches: " << n << "\n";
+  cout << PeakRepair::prefix(carpos) << "CAR matches: " << n << "\n";
+
   cout << partialData.front().strHeader();
   
   for (auto& p: partialData)

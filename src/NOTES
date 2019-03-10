@@ -1,7 +1,10 @@
 Plan 2019-02-27
 ---------------
-Files to clean up:
+Work on split peaks
 - PeakPartial
+  - Add mid cars of length 1-4
+    - To begin with, only if the whole car emerges
+  - Add mid cars that are longer (then don't discard long peaks)
   - Later Unused, Hidden
 
 Two candidates in locatePeak: Could well both be true if greatQuality.
