@@ -130,6 +130,68 @@ void PeakPool::updateRepairedPeaks(Bracket& bracket)
 }
 
 
+void PeakPool::mergeSplits(
+  const unsigned wheelDist,
+  const unsigned offset)
+{
+  // Look for peaks that are a lot closer than wheelDist.
+  // These should probably have been merged.
+  //
+  // TODO
+  // * Stand-alone stretches with enough distance on both sides
+  //   -> A single, new peak.
+  //      May have extent if the levels are similar.
+  // * Stretch attached on one side to a selected peak
+  //   -> Eliminate.
+  //      May add to extent if the levels are similar.
+  // * Stretch attached on both sides.
+  //   -> For now this is flagged as an error.
+  //      Don't connect two selected peaks in this way.
+
+  const unsigned limit = wheelDist / 3;
+
+  Piterator pStart = peaks->begin();
+  Piterator pEnd = pStart;
+
+  for (Piterator pit = peaks->begin(); pit != peaks->end(); pit++)
+  {
+    if (! pit->isCandidate())
+      continue;
+    else if (! pit->isSelected() &&
+        pit->getIndex() - pStart->getIndex() <= limit)
+    {
+      // Extend the run.
+      pEnd = pit;
+    }
+    else
+    {
+      // A selected peak or a jump ends all runs.
+      if (pStart != pEnd)
+      {
+        // It was a real run.
+        // TODO
+        cout << "Likely split peaks\n";
+        cout << pStart->strHeaderQuality();
+        for (Piterator pp = pStart; pp != next(pEnd); pp++)
+          cout << pp->strQuality(offset);
+      }
+      pStart = pit;
+      pEnd = pit;
+    }
+  }
+
+  if (pStart != pEnd)
+  {
+    // End run.
+    // TODO
+    cout << "Likely split peaks\n";
+    cout << pStart->strHeaderQuality();
+    for (Piterator pp = pStart; pp != next(pEnd); pp++)
+      cout << pp->strQuality(offset);
+  }
+}
+
+
 bool PeakPool::peakFixable(
   Piterator& foundIter,
   const PeakFncPtr& fptr,

@@ -98,6 +98,10 @@ class PeakPool
 
     bool pruneTransients(const unsigned firstGoodIndex);
 
+    void mergeSplits(
+      const unsigned wheelDist,
+      const unsigned offset);
+
     Peak * repair(
       const Peak& peakHint,
       const PeakFncPtr& fptr,

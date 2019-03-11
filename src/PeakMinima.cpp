@@ -932,6 +932,8 @@ cout << "FRAC " << countSelected << " " <<
   Gap wheelGap;
   PeakMinima::markBogies(peaks, wheelGap);
 
+peaks.mergeSplits((wheelGap.lower + wheelGap.upper) / 2, offset);
+
   Gap shortGap;
   PeakMinima::markShortGaps(peaks, shortGap);
   PeakMinima::markLongGaps(peaks, wheelGap, shortGap.count);
