@@ -57,6 +57,24 @@ class PeakPool
     unsigned transientLimit;
 
 
+    void showSplit(
+      Piterator& pStart,
+      Piterator& pEnd,
+      const unsigned offset,
+      const string& text) const;
+
+    void collapseAndRemove(
+      const Piterator& pStart,
+      const Piterator& pEnd);
+
+    void collapseRange(
+      const Piterator& pStart,
+      const Piterator& pEnd);
+
+    void removeCandidates(
+      const Piterator& pStart,
+      const Piterator& pEnd);
+
     void printRepairedSegment(
       const string& text,
       const Bracket& bracketTop,

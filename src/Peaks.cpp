@@ -108,7 +108,10 @@ Piterator Peaks::collapse(
     (pit1 == peaks.begin() ? nullptr : &*std::prev(pit1));
 
   if (peak0 != nullptr)
+  {
     pit2->update(peak0);
+    peak0->logNextPeak(&* pit2);
+  }
 
   return peaks.erase(pit1, pit2);
 }

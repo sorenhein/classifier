@@ -130,64 +130,151 @@ void PeakPool::updateRepairedPeaks(Bracket& bracket)
 }
 
 
+void PeakPool::showSplit(
+  Piterator& pStart,
+  Piterator& pEnd,
+  const unsigned offset,
+  const string& text) const
+{
+  // Skip the first "peak" for now.
+  if (pStart == peaks->begin())
+    return;
+
+  cout << "Split? " << text << "\n";
+  cout << pStart->strHeaderQuality();
+  for (Piterator pp = pStart; pp != peaks->end() && pp != next(pEnd); pp++)
+    cout << pp->strQuality(offset);
+}
+
+
+void PeakPool::removeCandidates(
+  const Piterator& pStart,
+  const Piterator& pEnd)
+{
+  // Remove [pStart, pEnd).  Inefficient.  Could note for each 
+  // peak its candidate if applicable.
+  
+  PPLiterator pit = _candidates.begin();
+
+  while (pit != _candidates.end() &&
+      (* pit)->getIndex() < pStart->getIndex())
+    pit++;
+
+  if (pit == _candidates.end())
+    return;
+
+  
+  while (pit != _candidates.end() &&
+      (* pit)->getIndex() < pEnd->getIndex())
+    pit = _candidates.erase(pit);
+}
+
+
+void PeakPool::collapseAndRemove(
+  const Piterator& pStart,
+  const Piterator& pEnd)
+{
+  PeakPool::removeCandidates(pStart, pEnd);
+  peaks->collapse(pStart, pEnd);
+}
+
+
+void PeakPool::collapseRange(
+  const Piterator& pStart,
+  const Piterator& pEnd)
+{
+  // This collapse a range into a single peak in that range.
+  // The lowest of the minimum peaks is used.
+  // pStart and pEnd are minima.
+
+  Piterator pmin = pEnd;
+  for (Piterator pit = pStart; pit != pEnd; pit++)
+  {
+    if (pit->isCandidate() && pit->getValue() < pmin->getValue())
+      pmin = pit;
+  }
+
+  if (pmin == pStart)
+  {
+    if (next(pEnd) == peaks->end())
+      PeakPool::collapseAndRemove(next(pStart), pEnd);
+    else
+      PeakPool::collapseAndRemove(next(pStart), next(pEnd));
+  }
+  else if (pmin == pEnd)
+    PeakPool::collapseAndRemove(pStart, pEnd);
+  else
+  {
+    PeakPool::collapseAndRemove(pStart, pmin);
+
+    if (next(pEnd) == peaks->end())
+      PeakPool::collapseAndRemove(next(pmin), pEnd);
+    else
+      PeakPool::collapseAndRemove(next(pmin), next(pEnd));
+  }
+}
+
+
 void PeakPool::mergeSplits(
   const unsigned wheelDist,
   const unsigned offset)
 {
   // Look for peaks that are a lot closer than wheelDist.
   // These should probably have been merged.
-  //
-  // TODO
-  // * Stand-alone stretches with enough distance on both sides
-  //   -> A single, new peak.
-  //      May have extent if the levels are similar.
-  // * Stretch attached on one side to a selected peak
-  //   -> Eliminate.
-  //      May add to extent if the levels are similar.
-  // * Stretch attached on both sides.
-  //   -> For now this is flagged as an error.
-  //      Don't connect two selected peaks in this way.
 
-  const unsigned limit = wheelDist / 3;
+  const unsigned limit = wheelDist / 2;
 
   Piterator pStart = peaks->begin();
   Piterator pEnd = pStart;
 
-  for (Piterator pit = peaks->begin(); pit != peaks->end(); pit++)
+// cout << "MSPL limit " << limit << endl;
+  for (Piterator pit = pStart; pit != peaks->end(); pit++)
   {
     if (! pit->isCandidate())
       continue;
-    else if (! pit->isSelected() &&
-        pit->getIndex() - pStart->getIndex() <= limit)
+
+// cout << "pStart " << pStart->getIndex() + offset << ", pEnd " <<
+  // pEnd->getIndex() + offset << ", " << " pit " << pit->getIndex() + offset << endl;
+    if (pit->isSelected())
     {
-      // Extend the run.
+      // The stretch might extend beyond pit, but let's take stock.
+      if (pit->getIndex() - pStart->getIndex() <= limit)
+      {
+        if (pStart->isSelected())
+          PeakPool::showSplit(pStart, pit, offset, 
+            "MSPL Both select (OK??)");
+        else
+          PeakPool::showSplit(pStart, pit, offset, 
+            "MSPL Ending on select (OK)");
+      }
+      else if (pit->getIndex() - pEnd->getIndex() <= limit)
+        PeakPool::showSplit(pStart, pit, offset, 
+          "MSPL Ending on select (too long)");
+      else if (pStart != pEnd)
+      {
+        PeakPool::showSplit(pStart, pEnd, offset, 
+          "MSPL Ending before select (OK)");
+
+        PeakPool::collapseRange(pStart, pEnd);
+      }
+      
+      pStart = pit;
+      pEnd = pit;
+    }
+    else if (pit->getIndex() - pStart->getIndex() > limit)
+    {
+      if (pStart != pEnd)
+        PeakPool::showSplit(pStart, pEnd, offset, 
+          "MSPL Ending without select (OK)");
+
+      pStart = pit;
       pEnd = pit;
     }
     else
     {
-      // A selected peak or a jump ends all runs.
-      if (pStart != pEnd)
-      {
-        // It was a real run.
-        // TODO
-        cout << "Likely split peaks\n";
-        cout << pStart->strHeaderQuality();
-        for (Piterator pp = pStart; pp != next(pEnd); pp++)
-          cout << pp->strQuality(offset);
-      }
-      pStart = pit;
+      // Otherwise continue the stretch.
       pEnd = pit;
     }
-  }
-
-  if (pStart != pEnd)
-  {
-    // End run.
-    // TODO
-    cout << "Likely split peaks\n";
-    cout << pStart->strHeaderQuality();
-    for (Piterator pp = pStart; pp != next(pEnd); pp++)
-      cout << pp->strQuality(offset);
   }
 }
 
