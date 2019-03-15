@@ -242,7 +242,7 @@ void PeakPool::mergeSplits(
       {
         if (pStart->isSelected())
           PeakPool::showSplit(pStart, pit, offset, 
-            "MSPL Both select (OK??)");
+            "MSPL Both select (OK1??)");
         else
           PeakPool::showSplit(pStart, pit, offset, 
             "MSPL Ending on select (OK)");
@@ -250,12 +250,18 @@ void PeakPool::mergeSplits(
       else if (pit->getIndex() - pEnd->getIndex() <= limit)
         PeakPool::showSplit(pStart, pit, offset, 
           "MSPL Ending on select (too long)");
-      else if (pStart != pEnd)
+      else if (pStart != pEnd && ! pStart->isSelected())
       {
-        PeakPool::showSplit(pStart, pEnd, offset, 
-          "MSPL Ending before select (OK)");
-
-        PeakPool::collapseRange(pStart, pEnd);
+        if (pStart->isSelected())
+        {
+          PeakPool::showSplit(pStart, pit, offset, 
+            "MSPL Both select (OK2??)");
+        }
+        else
+        {
+          // Ending before selected peak.
+          PeakPool::collapseRange(pStart, pEnd);
+        }
       }
       
       pStart = pit;
@@ -264,8 +270,21 @@ void PeakPool::mergeSplits(
     else if (pit->getIndex() - pStart->getIndex() > limit)
     {
       if (pStart != pEnd)
-        PeakPool::showSplit(pStart, pEnd, offset, 
-          "MSPL Ending without select (OK)");
+      {
+        if (pStart->isSelected())
+        {
+          PeakPool::showSplit(pStart, pEnd, offset, 
+            "MSPL Ending without select (OK)");
+        }
+        else
+        {
+          PeakPool::showSplit(pStart, pEnd, offset, 
+            "MSPL Without any select (OK)");
+
+          // Starting and ending without selected peak.
+          PeakPool::collapseRange(pStart, pEnd);
+        }
+      }
 
       pStart = pit;
       pEnd = pit;

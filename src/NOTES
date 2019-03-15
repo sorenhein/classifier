@@ -3,6 +3,7 @@ Plan 2019-02-27
 Work on split peaks
 - Once bogie distance is determined, combine some peaks
 - But there could be so many that we end up combining p1 and p2?
+- Need to log extent of removed peaks as well
 
 - PeakPartial
   - Add more mid cars of length 1-4
