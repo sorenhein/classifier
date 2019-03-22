@@ -1,5 +1,9 @@
 Plan 2019-02-27
 ---------------
+In case of 0-0 wheel distance, relax requirements and avoid exception.
+
+Look at 2_32_N vs 3_32_N
+
 Work on split peaks
 - Once bogie distance is determined, combine some peaks
 - But there could be so many that we end up combining p1 and p2?
@@ -173,3 +177,7 @@ Overall algorithm
 * Simpson integration?
 * Deconvolution of a "wheel response"?
 * Move out code in driver and directories that is not used
+
+* Could have an average time delay or number of peaks missed by
+  a given sensor.  See DEU_32.docx
+* Missing a train type?  sensor07 #1 173201

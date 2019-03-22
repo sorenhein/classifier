@@ -145,6 +145,8 @@ void Regress::bestMatch(
   timers.stop(TIMER_REGRESS);
 
   sort(matches.begin(), matches.end());
+  bestAlign = matches.front();
+
 printMatches(db, matches);
 
   if (control.verboseRegressMatch)

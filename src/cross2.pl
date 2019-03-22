@@ -84,7 +84,6 @@ for my $k1 (sort keys %output)
     # $h .= ";" . $c[-1] . $d[-1] . "(" . $seen{$k1}{$k2} . ")";
     # $h .= ";" . $c[-1] . $d[-1] . "flip(" . $seen{$k1}{$k2} . ")";
     $h .= ";" . $c[0] . $d[0] . "(" . $seen{$k1}{$k2} . ")";
-    $h .= ";" . $c[0] . $d[0] . "flip(" . $seen{$k1}{$k2} . ")";
 
     for my $i (0 .. $#{$sum{$k1}{$k2}})
     {
@@ -124,11 +123,6 @@ for my $i (0 .. $mlen)
       my $s = sprintf(";%7.4f", $averages{$k1}{$k2}[$i]);
       $s =~ s/\./,/;
       print $fa $s;
-
-      @d = split /_/, $k2;
-      $s = sprintf(";%7.4f", -$averages{$k1}{$k2}[$mlen-$i]);
-      $s =~ s/\./,/;
-      print $fa $s;
     }
   }
   print $fa "\n";
@@ -141,7 +135,7 @@ for my $k1 (sort keys %output)
   for my $k2 (sort keys %{$output{$k1}})
   {
     my @d = split /_/, $k2;
-    my $fout = "$DIR/" . $c[-1] . $d[-1] . ".csv";
+    my $fout = "$DIR/" . $c[0] . $d[0] . ".csv";
 
     open my $fo, ">", $fout or die "Cannot open $: $!";
     for my $l (@{$output{$k1}{$k2}})

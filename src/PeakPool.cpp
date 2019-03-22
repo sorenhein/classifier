@@ -180,20 +180,10 @@ void PeakPool::collapseAndRemove(
 
 
 void PeakPool::collapseRange(
+  const Piterator& pmin,
   const Piterator& pStart,
   const Piterator& pEnd)
 {
-  // This collapse a range into a single peak in that range.
-  // The lowest of the minimum peaks is used.
-  // pStart and pEnd are minima.
-
-  Piterator pmin = pEnd;
-  for (Piterator pit = pStart; pit != pEnd; pit++)
-  {
-    if (pit->isCandidate() && pit->getValue() < pmin->getValue())
-      pmin = pit;
-  }
-
   if (pmin == pStart)
   {
     if (next(pEnd) == peaks->end())
@@ -212,6 +202,25 @@ void PeakPool::collapseRange(
     else
       PeakPool::collapseAndRemove(next(pmin), next(pEnd));
   }
+}
+
+
+void PeakPool::collapseRange(
+  const Piterator& pStart,
+  const Piterator& pEnd)
+{
+  // This collapse a range into a single peak in that range.
+  // The lowest of the minimum peaks is used.
+  // pStart and pEnd are minima.
+
+  Piterator pmin = pEnd;
+  for (Piterator pit = pStart; pit != pEnd; pit++)
+  {
+    if (pit->isCandidate() && pit->getValue() < pmin->getValue())
+      pmin = pit;
+  }
+
+  PeakPool::collapseRange(pmin, pStart, pEnd);
 }
 
 
@@ -244,13 +253,18 @@ void PeakPool::mergeSplits(
           PeakPool::showSplit(pStart, pit, offset, 
             "MSPL Both select (OK1??)");
         else
+        {
           PeakPool::showSplit(pStart, pit, offset, 
             "MSPL Ending on select (OK)");
+
+          // Ending on selected peak. Doesn't help!
+          // PeakPool::collapseRange(pit, pStart, pit);
+        }
       }
       else if (pit->getIndex() - pEnd->getIndex() <= limit)
         PeakPool::showSplit(pStart, pit, offset, 
           "MSPL Ending on select (too long)");
-      else if (pStart != pEnd && ! pStart->isSelected())
+      else if (pStart != pEnd)
       {
         if (pStart->isSelected())
         {
@@ -274,13 +288,13 @@ void PeakPool::mergeSplits(
         if (pStart->isSelected())
         {
           PeakPool::showSplit(pStart, pEnd, offset, 
-            "MSPL Ending without select (OK)");
+            "MSPL Starting on select (OK)");
+
+          // Keep pStart for sure.  Doesn't help!
+          // PeakPool::collapseRange(pStart, pStart, pEnd);
         }
         else
         {
-          PeakPool::showSplit(pStart, pEnd, offset, 
-            "MSPL Without any select (OK)");
-
           // Starting and ending without selected peak.
           PeakPool::collapseRange(pStart, pEnd);
         }

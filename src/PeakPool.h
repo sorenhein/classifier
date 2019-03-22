@@ -68,6 +68,11 @@ class PeakPool
       const Piterator& pEnd);
 
     void collapseRange(
+      const Piterator& pmin,
+      const Piterator& pStart,
+      const Piterator& pEnd);
+
+    void collapseRange(
       const Piterator& pStart,
       const Piterator& pEnd);
 

@@ -202,6 +202,8 @@ bool PeakMinima::guessNeighborDistance(
       dists.push_back(
         (*npit)->getIndex() - (*pit)->getIndex());
   }
+// cout << "Preparing to guess distance: Have " <<
+  // dists.size() << " vs. " << minCount << endl;
 
   if (dists.size() < minCount)
     return false;
@@ -210,6 +212,7 @@ bool PeakMinima::guessNeighborDistance(
   sort(dists.begin(), dists.end());
 
   const unsigned revisedMinCount = min(minCount, dists.size() / 4);
+// cout << "Revised count " << revisedMinCount << endl;
   PeakMinima::findFirstLargeRange(dists, gap, revisedMinCount);
   return true;
 }
