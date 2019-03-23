@@ -36,7 +36,6 @@ void dumpResiduals(
   Regress regress;
   vector<double> coeffs(order+1);
   double residuals;
-  vector<double> pos(numWheels, 0.);
   vector<PeakPos> posTrue;
 // const unsigned numTrue = db.lookupTrainNumber(trainTrue);
 // db.getPerfectPeaks(numTrue, posTrue);
@@ -53,14 +52,13 @@ void dumpResiduals(
 
     regress.specificMatch(times, db, ma, coeffs, residuals);
 
+    vector<double> pos(numWheels, 0.);
     for (unsigned i = 0; i < times.size(); i++)
     {
       const double t = times[i].time;
       const int j = ma.actualToRef[i];
-      if (j == -1)
-        continue;
-      
-      pos[j] = coeffs[0] + coeffs[1] * t + coeffs[2] * t * t;
+      if (j != -1) 
+        pos[j] = coeffs[0] + coeffs[1] * t + coeffs[2] * t * t;
     }
 
     db.getPerfectPeaks(ma.trainNo, posTrue);
