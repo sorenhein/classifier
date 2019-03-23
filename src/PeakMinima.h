@@ -109,6 +109,10 @@ class PeakMinima
       Gap& wheelGap) const;
 
 
+    bool guessBogieDistance(
+      PeakPool& peaks,
+      Gap& wheelGap) const;
+
     void markShortGapsOfSelects(
       PeakPool& peaks,
       const Gap& wheelGap) const;

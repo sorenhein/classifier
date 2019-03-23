@@ -1,9 +1,5 @@
 Plan 2019-02-27
 ---------------
-In case of 0-0 wheel distance, relax requirements and avoid exception.
-
-Look at 2_32_N vs 3_32_N
-
 Work on split peaks
 - Once bogie distance is determined, combine some peaks
 - But there could be so many that we end up combining p1 and p2?

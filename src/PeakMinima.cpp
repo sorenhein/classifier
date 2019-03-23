@@ -636,26 +636,43 @@ void PeakMinima::fixBogieOrphans(PeakPool& peaks) const
 }
 
 
-void PeakMinima::markBogies(
+bool PeakMinima::guessBogieDistance(
   PeakPool& peaks,
   Gap& wheelGap) const
 {
   // The wheel gap is only plausible if it hits a certain number of peaks.
   unsigned numGreat = peaks.candidates().count(&Peak::greatQuality);
 
-  if (! PeakMinima::guessNeighborDistance(peaks,
-      &PeakMinima::bothSelected, wheelGap, numGreat/4))
-  {
-    // This may happen when one side of the peak pair is so strong
-    // and different that the other side never gets picked up.
-    // Try again, and lower our standards to acceptable peak quality.
-    cout << "First attempt at wheel distance failed: " << numGreat << ".\n";
-    if (! PeakMinima::guessNeighborDistance(peaks,
-        &PeakMinima::bothPlausible, wheelGap, numGreat/4))
-    {
-      THROW(ERR_ALGO_NO_WHEEL_GAP, "Couldn't find wheel gap");
-    }
-  }
+  if (PeakMinima::guessNeighborDistance(peaks,
+        &PeakMinima::bothSelected, wheelGap, numGreat/4) &&
+      wheelGap.upper != 0)
+    return true;
+
+  // We may get here when one side of the peak pair is so strong
+  // and different that the other side never gets picked up.
+  // Try again, and lower our standards to acceptable peak quality.
+  cout << "First attempt at wheel distance failed: " << numGreat << ".\n";
+
+  if (PeakMinima::guessNeighborDistance(peaks,
+        &PeakMinima::bothPlausible, wheelGap, numGreat/4) &&
+      wheelGap.upper != 0)
+    return true;
+
+  if (PeakMinima::guessNeighborDistance(peaks,
+        &PeakMinima::bothPlausible, wheelGap, numGreat/8) &&
+      wheelGap.upper != 0)
+    return true;
+
+  return false;
+}
+
+
+void PeakMinima::markBogies(
+  PeakPool& peaks,
+  Gap& wheelGap) const
+{
+  if (! PeakMinima::guessBogieDistance(peaks, wheelGap))
+    THROW(ERR_ALGO_NO_WHEEL_GAP, "Couldn't find wheel gap");
 
   PeakMinima::printDists(wheelGap.lower, wheelGap.upper,
     "Guessing wheel distance");
@@ -684,7 +701,7 @@ void PeakMinima::markBogies(
   PeakMinima::printPeakQuality(bogieScale[1], "Right-wheel average");
 
   // Redo the distances using the new qualities (left and right peaks).
-  numGreat = peaks.candidates().count(&Peak::greatQuality);
+  const unsigned numGreat = peaks.candidates().count(&Peak::greatQuality);
 
   PeakMinima::guessNeighborDistance(peaks,
     &PeakMinima::bothSelected, wheelGap, numGreat/4);
