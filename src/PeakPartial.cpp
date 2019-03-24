@@ -586,7 +586,7 @@ void PeakPartial::getPeaks(
   // as possible.  Mostly the alignment will pick up on it anyway.
 
   PeakPartial::getPeaksFromUsed(bogieTypical, longTypical, 
-    carpos == CARPOSITION_INNER, peakPtrsUsed);
+    carpos == CARPOSITION_INNER_MULTI, peakPtrsUsed);
     // true, peakPtrsUsed);
     // TODO Switch back
 

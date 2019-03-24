@@ -152,7 +152,8 @@ string PeakSlots::str(const CarPosition carpos) const
   string cp;
   if (carpos == CARPOSITION_FIRST)
     cp = "FIRST ";
-  else if (carpos == CARPOSITION_INNER)
+  else if (carpos == CARPOSITION_INNER_SINGLE ||
+      carpos == CARPOSITION_INNER_MULTI)
     cp = "INNER ";
   else if (carpos == CARPOSITION_LAST)
     cp = "LAST  ";

@@ -416,6 +416,45 @@ cout << "Typical " << bogieTypical << ", " << longTypical << endl;
 
   range.split(peakPtrsUsedFlat, peakPtrsUsed, peakPtrsUnused);
 
+  if (carpos == CARPOSITION_INNER_MULTI)
+  {
+    // We started from the left, so we'll only return unused peaks
+    // up to the right end of the used peaks.
+
+/*
+cout << "MULTIUSED: " << peakPtrsUsed.size() << endl;
+cout << peakPtrsUsed.front()->strHeaderQuality();
+
+for (auto& p: peakPtrsUsed)
+  cout<< p->strQuality(offset);
+
+cout << "MULTIUNUSED: " << peakPtrsUnused.size() << endl;
+cout << peakPtrsUnused.front()->strHeaderQuality();
+
+for (auto& p: peakPtrsUnused)
+  cout<< p->strQuality(offset);
+  */
+
+  unsigned last = 0;
+  for (auto p: peakPtrsUsedFlat)
+  {
+    if (p)
+      last = p->getIndex();
+  }
+  if (last == 0)
+    return false;
+  else
+    peakPtrsUnused.erase_above(last);
+/*
+cout << "ERASE left " << peakPtrsUnused.size() << endl;
+cout << "AFTERERASE: " << peakPtrsUnused.size() << endl;
+cout << peakPtrsUnused.front()->strHeaderQuality();
+
+for (auto& p: peakPtrsUnused)
+  cout<< p->strQuality(offset);
+*/
+  }
+
   return true;
 }
 
@@ -424,7 +463,8 @@ string PeakRepair::prefix(const CarPosition carpos) const
 {
   if (carpos == CARPOSITION_FIRST)
     return "FIRST";
-  else if (carpos == CARPOSITION_INNER)
+  else if (carpos == CARPOSITION_INNER_SINGLE ||
+      carpos == CARPOSITION_INNER_MULTI)
     return "INNER";
   else if (carpos == CARPOSITION_LAST)
     return "LAST";

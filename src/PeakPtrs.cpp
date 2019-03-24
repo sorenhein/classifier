@@ -118,6 +118,19 @@ void PeakPtrs::erase_below(const unsigned limit)
 }
 
 
+void PeakPtrs::erase_above(const unsigned limit)
+{
+  for (PPLiterator it = peaks.begin(); it != peaks.end(); it++)
+  {
+    if ((* it)->getIndex() > limit)
+    {
+      peaks.erase(it, peaks.end());
+      return;
+    }
+  }
+}
+
+
 PPLiterator PeakPtrs::begin()
 {
   return peaks.begin();

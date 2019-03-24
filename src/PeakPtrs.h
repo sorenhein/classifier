@@ -49,6 +49,7 @@ class PeakPtrs
     PPLiterator erase(PPLiterator& it);
 
     void erase_below(const unsigned limit);
+    void erase_above(const unsigned limit);
 
     PPLiterator begin();
     PPLiterator end();
