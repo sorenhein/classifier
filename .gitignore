@@ -56,3 +56,4 @@ src/first/*.txt
 src/inner/*.txt
 src/last/*.txt
 src/cross/*.xlsx
+src/*.xlsx

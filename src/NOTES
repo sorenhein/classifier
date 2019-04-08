@@ -1,14 +1,23 @@
 Plan 2019-02-27
 ---------------
+- PeakPartial
+  - sensor27 has some last cars where there is a p3-p4 pair.
+    We could detect both at once.
+  - Look for traces with no warnings and
+    - Correct train, but score > 10, or
+    - Wrong train
+
+- PeakPartial
+  - So far we only detect mid cars with exactly 4 peaks, no partials
+  - Therefore we have a lot of mid partials
+
+  - Add more mid cars of length 1-4
+  - Later Unused, Hidden
+
 Work on split peaks
 - Once bogie distance is determined, combine some peaks
 - But there could be so many that we end up combining p1 and p2?
 - Need to log extent of removed peaks as well
-
-- PeakPartial
-  - Add more mid cars of length 1-4
-  - Add mid cars that are longer (then don't discard long peaks)
-  - Later Unused, Hidden
 
 Two candidates in locatePeak: Could well both be true if greatQuality.
 
@@ -176,4 +185,30 @@ Overall algorithm
 
 * Could have an average time delay or number of peaks missed by
   a given sensor.  See DEU_32.docx
-* Missing a train type?  sensor07 #1 173201
+
+* Missing a train type?  
+  - sensor07 #1  173201.  30 of 32(?) peaks.
+
+  - sensor27 #10 194415.  48 of 48(?) peaks.
+    ICE1_DEU_52_N, symmetric: Consider to add this
+
+Peak/car trouble in well-matching solutions:
+s03, 173935, #31, 26.11
+s07, 085335, #16,  0.28
+s10, 200750, #32,  2.47
+s19, 084253, #24,  0.83
+s27, 194725, #29,  1.73
+
+Peak/car trouble in poorly-matching but currect solutions:
+s03, 085719, #28,  37.16
+s04, 103039, # 8, 155.84
+s08, 202150, #49,  12.34
+s13, 083756, #17,  30.39
+s18, 094628, #29, 177.77
+s18, 185755, #30,   9.66
+s18, 063210, #35,  15.65
+s18, 075954, #42,  22.96
+s18, 174241, #47, 238.43
+s20, 102050, #41,   9.33
+s21, 094236, #46,  27.75
+

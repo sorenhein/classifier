@@ -351,7 +351,7 @@ PeakStructure::FindCarType PeakStructure::findPartialInnerCarByQuality(
 
   if (range.numGreat() <= 4 &&
       range.numGood() <= 6 &&
-      range.num() >= 10)
+      range.num() <= 10)
   {
 cout << "MIDMID\n";
     return PeakStructure::findPartialCarByQuality(models, 
