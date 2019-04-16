@@ -1,3 +1,11 @@
+Plan 2019-04-15
+---------------
+Align.cpp
+- Pass in a more elaborate alignment struct
+  - numFrontWheels as before, in case nothing else suits
+  - struct: noObs, noRef, flag
+  - One for the first, middle and last peak that we assume
+
 Plan 2019-02-27
 ---------------
 - PeakPartial

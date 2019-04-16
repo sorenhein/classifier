@@ -73,20 +73,6 @@ class Align
       const vector<PeakPos>& refPeaks,
       const vector<PeakPos>& scaledPeaks,
       const double peakScale,
-      Alignment& alignment) const;
-
-    void NeedlemanWunschNew(
-      const vector<PeakPos>& refPeaks,
-      const vector<PeakPos>& scaledPeaks,
-      const double peakScale,
-      const Imperfections& imperf,
-      const Shift& shift,
-      Alignment& alignment) const;
-
-    void NeedlemanWunschNewer(
-      const vector<PeakPos>& refPeaks,
-      const vector<PeakPos>& scaledPeaks,
-      const double peakScale,
       const Imperfections& imperf,
       const Shift& shift,
       Alignment& alignment) const;
