@@ -71,7 +71,10 @@ for my $file (@ARGV)
       {
         $stat[0]++;
         $stat[1] += $list{$c};
-        $stat[2] += $list{$c} if ($c =~ /R/);
+
+        next unless $c =~ /R/;
+        my $d = substr $c, 0, -1;
+        $stat[2] += $list{$c} if defined $list{$d};
       }
     }
   }

@@ -22,11 +22,7 @@ class CarModels
       CarDetect carAvg;
       CarPeaks peaksAvg;
 
-      // TODO Do we still need this?
-      CarPeaksNumbers peaksNumbers;
-  
       // TODO Do we still need this per gap?
-      CarDetectNumbers gapNumbers;
       unsigned number;
 
       void reset()
@@ -35,8 +31,6 @@ class CarModels
         peaksSum.reset();
         carAvg.reset();
         peaksAvg.reset();
-        peaksNumbers.reset();
-        gapNumbers.reset();
         number = 0;
       };
     };
