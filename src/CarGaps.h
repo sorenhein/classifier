@@ -45,6 +45,8 @@ class CarGaps
     unsigned rightBogieGap; // Zero if single wheel
     unsigned rightGap;
 
+    bool symmetryFlag;
+
     float relativeComponent(
       const unsigned a,
       const unsigned b) const;
@@ -114,6 +116,7 @@ class CarGaps
     bool hasLeftBogieGap() const;
     bool hasRightBogieGap() const;
     bool hasMidGap() const;
+    bool isSymmetric() const;
     bool isPartial() const;
 
     unsigned sidelobe(

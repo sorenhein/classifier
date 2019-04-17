@@ -16,6 +16,8 @@
 
 #define RESET_SIDE_GAP_TOLERANCE 10 // Samples
 
+#define COMPONENT_TOLERANCE 0.01f // 10%
+
 
 CarGaps::CarGaps()
 {
@@ -41,6 +43,8 @@ void CarGaps::reset()
   midGap = 0;
   rightBogieGap = 0;
   rightGap = 0;
+
+  symmetryFlag = false;
 }
 
 
@@ -182,6 +186,33 @@ void CarGaps::average(
     rightBogieGap /= cdn.numRightBogieGaps;
   if (cdn.numRightGaps)
     rightGap /= cdn.numRightGaps;
+
+  if (cdn.numLeftGaps &&
+      cdn.numMidGaps &&
+      cdn.numRightGaps &&
+      CarGaps::relativeComponent(leftGap, rightGap) < 
+        COMPONENT_TOLERANCE &&
+      CarGaps::relativeComponent(leftBogieGap, rightBogieGap) < 
+        COMPONENT_TOLERANCE)
+  {
+    // Complete, symmetric car.
+    symmetryFlag = true;
+
+    const unsigned endGap = 
+      (leftGap * cdn.numLeftGaps + rightGap * cdn.numRightGaps) / 
+      (cdn.numLeftGaps + cdn.numRightGaps);
+    leftGap = endGap;
+    rightGap = endGap;
+
+    const unsigned bogieGap =
+      (leftBogieGap * cdn.numLeftBogieGaps + 
+       rightBogieGap * cdn.numRightBogieGaps) /
+      (cdn.numLeftBogieGaps + cdn.numRightBogieGaps);
+    leftBogieGap = bogieGap;
+    rightBogieGap = bogieGap;
+  }
+  else
+    symmetryFlag = false;
 }
 
 
@@ -195,6 +226,28 @@ void CarGaps::average(const unsigned count)
   midGap /= count;
   rightBogieGap /= count;
   rightGap /= count;
+
+  if (leftGap > 0 &&
+      rightGap > 0 &&
+      CarGaps::relativeComponent(leftGap, rightGap) < 
+        COMPONENT_TOLERANCE &&
+      CarGaps::relativeComponent(leftBogieGap, rightBogieGap) < 
+        COMPONENT_TOLERANCE)
+  {
+    // Complete, symmetric car.
+    symmetryFlag = true;
+
+    const unsigned endGap = (leftGap + rightGap) / 2;
+    leftGap = endGap;
+    rightGap = endGap;
+
+    const unsigned bogieGap = (leftBogieGap + rightBogieGap) / 2;
+    leftBogieGap = bogieGap;
+    rightBogieGap = bogieGap;
+  }
+  else
+    symmetryFlag = false;
+
 }
 
 
@@ -304,6 +357,12 @@ bool CarGaps::hasRightBogieGap() const
 bool CarGaps::hasMidGap() const
 {
   return midGapSet;
+}
+
+
+bool CarGaps::isSymmetric() const
+{
+  return symmetryFlag;
 }
 
 

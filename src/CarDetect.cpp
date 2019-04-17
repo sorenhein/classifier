@@ -428,6 +428,16 @@ void CarDetect::distanceSymm(
   const bool partialFlag,
   MatchData& matchIn) const
 {
+  if (gaps.isSymmetric())
+  {
+    if (partialFlag)
+      matchIn.distance = gaps.distanceForGapInclusion(cref.gaps);
+    else
+      matchIn.distance = gaps.distanceForGapMatch(cref.gaps);
+    matchIn.reverseFlag = false;
+    return;
+  }
+
   float value1, value2;
   if (partialFlag)
   {
