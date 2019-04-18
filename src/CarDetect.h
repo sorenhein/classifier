@@ -101,10 +101,12 @@ class CarDetect
 
     const unsigned firstPeakMinus1() const;
     const unsigned lastPeakPlus1() const;
-    // TODO TMP
+
+    const unsigned getLeftGap() const;
     const unsigned getLeftBogieGap() const;
     const unsigned getMidGap() const;
     const unsigned getRightBogieGap() const;
+    const unsigned getRightGap() const;
 
     const CarPeaksPtr& getPeaksPtr() const;
 
@@ -116,6 +118,7 @@ class CarDetect
     bool hasRightBogieGap() const;
     bool hasMidGap() const;
 
+    bool isSymmetric() const;
     bool isPartial() const;
 
     void averageGaps(const CarDetectNumbers& cdn);
@@ -152,7 +155,11 @@ class CarDetect
     string strHeaderGaps() const;
     string strHeaderFull() const;
 
-    string strGaps(const unsigned no) const;
+    string strGaps(
+      const unsigned no,
+      const unsigned count = 0,
+      const bool containedFlag = false,
+      const unsigned containedIndex = 0) const;
 
     string strFull(
       const unsigned no,

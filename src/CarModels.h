@@ -10,6 +10,35 @@
 using namespace std;
 
 
+struct ModelData
+{
+  unsigned index;
+
+  bool fullFlag;
+  unsigned lenPP; // Length peak-to-peak, so excluding end gaps
+
+  bool gapLeftFlag;
+  unsigned gapLeft;
+
+  bool gapRightFlag;
+  unsigned gapRight;
+
+  bool containedFlag;
+  unsigned containedIndex;
+
+  bool symmetryFlag;
+
+  void reset()
+  {
+    fullFlag = false;
+    gapLeftFlag = false;
+    gapRightFlag = false;
+    containedFlag = false;
+    symmetryFlag = false;
+  };
+};
+
+
 class CarModels
 {
   private:
@@ -22,7 +51,8 @@ class CarModels
       CarDetect carAvg;
       CarPeaks peaksAvg;
 
-      // TODO Do we still need this per gap?
+      ModelData data;
+
       unsigned number;
 
       void reset()
@@ -31,11 +61,14 @@ class CarModels
         peaksSum.reset();
         carAvg.reset();
         peaksAvg.reset();
+        data.reset();
         number = 0;
       };
     };
 
     vector<CarModel> models;
+
+    void characterize();
 
     void average(const unsigned index);
 

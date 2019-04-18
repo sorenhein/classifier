@@ -8,6 +8,8 @@
 #include "Except.h"
 #include "errors.h"
 
+#define GREAT_CAR_DISTANCE 0.5f
+
 
 CarModels::CarModels()
 {
@@ -54,6 +56,61 @@ void CarModels::add(
 }
 
 
+void CarModels::characterize()
+{
+  for (auto& model: models)
+  {
+    const CarDetect& car = model.carAvg;
+    ModelData& data = model.data;
+
+    data.fullFlag = ! car.isPartial();
+    if (data.fullFlag)
+      data.lenPP = car.getLeftBogieGap() + car.getMidGap() + 
+        car.getRightBogieGap();
+
+    data.gapLeftFlag = car.hasLeftGap();
+    if (data.gapLeftFlag)
+      data.gapLeft = car.getLeftGap();
+
+    data.gapRightFlag = car.hasRightGap();
+    if (data.gapRightFlag)
+      data.gapRight = car.getRightGap();
+
+    data.containedFlag = false;
+
+    data.symmetryFlag = car.isSymmetric();
+  }
+
+  for (unsigned mno = 0; mno < models.size(); mno++)
+  {
+    CarModel& model = models[mno];
+    ModelData& data = model.data;
+
+    if (data.fullFlag)
+      continue;
+
+    for (unsigned p = 0; p < models.size(); p++)
+    {
+      if (p == mno)
+        continue;
+
+      const CarModel& modelOther = models[p];
+      if (! modelOther.data.fullFlag)
+        continue;
+
+      MatchData match;
+      modelOther.carAvg.distanceSymm(model.carAvg, true, match);
+      if (match.distance <= GREAT_CAR_DISTANCE)
+      {
+        data.containedFlag = true;
+        data.containedIndex = p;
+        break;
+      }
+    }
+  }
+}
+
+
 void CarModels::recalculate(const list<CarDetect>& cars)
 {
   for (auto& model: models)
@@ -70,6 +127,8 @@ void CarModels::recalculate(const list<CarDetect>& cars)
     else
       CarModels::add(car, car.index());
   }
+
+  CarModels::characterize();
 }
 
 
@@ -333,7 +392,8 @@ string CarModels::str() const
   for (auto& m: models)
   {
     if (m.number > 0)
-      ss << m.carAvg.strGaps(mno);
+      ss << m.carAvg.strGaps(mno, m.number, 
+        m.data.containedFlag, m.data.containedIndex);
     mno++;
   }
 

@@ -289,7 +289,11 @@ const bool CarDetect::isReversed() const
 }
 
 
-// TODO TMP
+const unsigned CarDetect::getLeftGap() const
+{
+  return gaps.leftGapValue();
+}
+
 
 const unsigned CarDetect::getLeftBogieGap() const
 {
@@ -306,6 +310,12 @@ const unsigned CarDetect::getMidGap() const
 const unsigned CarDetect::getRightBogieGap() const
 {
   return gaps.rightBogieGapValue();
+}
+
+
+const unsigned CarDetect::getRightGap() const
+{
+  return gaps.rightGapValue();
 }
 
 
@@ -396,6 +406,12 @@ bool CarDetect::hasRightBogieGap() const
 bool CarDetect::hasMidGap() const
 {
   return gaps.hasMidGap();
+}
+
+
+bool CarDetect::isSymmetric() const
+{
+  return gaps.isSymmetric();
 }
 
 
@@ -561,7 +577,7 @@ unsigned CarDetect::numFrontWheels() const
 
 string CarDetect::strHeaderGaps() const
 {
-  return gaps.strHeader(true) + "\n";
+  return gaps.strHeader(true) + " count  part\n";
 };
 
 
@@ -582,9 +598,20 @@ string CarDetect::strHeaderFull() const
 };
 
 
-string CarDetect::strGaps(const unsigned no) const
+string CarDetect::strGaps(
+  const unsigned no,
+  const unsigned count,
+  const bool containedFlag,
+  const unsigned containedIndex) const
 {
-  return gaps.str(no) + "\n";
+  stringstream ss;
+  ss << gaps.str(no) << setw(6) << count;
+  if (containedFlag)
+    ss << setw(6) << containedIndex;
+  else
+    ss << setw(6) << "-";
+
+  return ss.str() + "\n";
 }
 
 
