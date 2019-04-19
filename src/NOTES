@@ -6,6 +6,9 @@ Align.cpp
   - struct: noObs, noRef, flag
   - One for the first, middle and last peak that we assume
 
+ByGeometry in PeakStructure: Probably should check that there
+aren't two peaks in the middle with good spacing.
+
 Plan 2019-02-27
 ---------------
 - PeakPartial
