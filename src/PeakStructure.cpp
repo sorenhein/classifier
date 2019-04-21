@@ -6,6 +6,7 @@
 #include <sstream>
 
 #include "PeakStructure.h"
+#include "PeakPattern.h"
 #include "PeakRepair.h"
 #include "PeakProfile.h"
 #include "CarModels.h"
@@ -74,6 +75,9 @@ PeakStructure::PeakStructure()
   findCarFallbacks.push_back(
     { &PeakStructure::findCarByThreePeaks, 
       "by three peaks", 8});
+  findCarFallbacks.push_back(
+    { &PeakStructure::findCarByPattern, 
+      "by pattern", 8}); // TODO Should get own number
   
   hitSize = NUM_METHODS;
   hits.resize(NUM_METHODS);
@@ -622,6 +626,29 @@ PeakStructure::FindCarType PeakStructure::findCarByThreePeaks(
   range.fill(peaks);
 
   return findCarByGeometry(models, peaks, range, car);
+}
+
+
+PeakStructure::FindCarType PeakStructure::findCarByPattern(
+  const CarModels& models,
+  PeakPool& peaks,
+  PeakRange& range,
+  CarDetect& car) const
+{
+  if (range.isFirstCar() || range.isLastCar())
+    return FIND_CAR_NO_MATCH;
+
+  // TODO Also last car.
+
+  PeakPattern pattern;
+  list<PatternEntry> candidates;
+  if (! pattern.suggest(models, range, candidates))
+    return FIND_CAR_NO_MATCH;
+
+  UNUSED(models);
+  UNUSED(peaks);
+  UNUSED(car);
+  return FIND_CAR_NO_MATCH;
 }
 
 
