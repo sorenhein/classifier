@@ -38,6 +38,10 @@ void PeakRange::init(
   const PeakPtrs& candidates)
 {
   carAfter = cars.begin();
+
+  _carBeforePtr = nullptr;
+  _carAfterPtr = nullptr;
+
   source = PEAK_SOURCE_FIRST;
   start = candidates.firstIndex();
   endVal = candidates.lastIndex();
@@ -67,6 +71,7 @@ void PeakRange::shortenLeft(const CarDetect& car)
 {
   // Shorten the range on the left to make room for the new
   // car preceding it.  This does not change any carAfter values.
+  _carBeforePtr = &car;
   source = PEAK_SOURCE_INNER;
   start = car.endValue() + 1;
   leftGapPresent = car.hasRightGap();
@@ -80,6 +85,7 @@ void PeakRange::shortenRight(
 {
   // Shorten the range on the right to make room for the new
   // car following it.
+  _carAfterPtr = &car;
   carAfter = carIt;
   endVal = car.startValue() - 1;
   rightGapPresent = car.hasLeftGap();
@@ -90,6 +96,18 @@ void PeakRange::shortenRight(
 const CarListConstIter& PeakRange::carAfterIter() const
 {
   return carAfter;
+}
+
+
+CarDetect const * PeakRange::carBeforePtr() const
+{
+  return _carBeforePtr;
+}
+
+
+CarDetect const * PeakRange::carAfterPtr() const
+{
+  return _carAfterPtr;
 }
 
 

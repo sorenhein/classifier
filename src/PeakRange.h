@@ -23,6 +23,10 @@ class PeakRange
 
     // The car after the range
     CarListConstIter carAfter; 
+
+    CarDetect const * _carBeforePtr;
+    CarDetect const * _carAfterPtr;
+
     PeakSource source;
     unsigned start;
     unsigned endVal;
@@ -62,6 +66,10 @@ class PeakRange
       const list<CarDetect>::iterator& carIt);
 
     const CarListConstIter& carAfterIter() const;
+    CarDetect const * carBeforePtr() const;
+    CarDetect const * carAfterPtr() const;
+
+
     unsigned startValue() const;
     unsigned endValue() const;
     bool hasLeftGap() const;
