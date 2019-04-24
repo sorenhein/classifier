@@ -85,6 +85,7 @@ class CarDetect
     void logDistance(const float d);
 
     void logMatchData(const MatchData& match);
+    MatchData const * getMatchData() const;
 
     void operator += (const CarDetect& c2);
 

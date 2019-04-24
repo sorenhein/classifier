@@ -104,6 +104,7 @@ void CarModels::characterize()
       {
         data.containedFlag = true;
         data.containedIndex = p;
+        data.containedReverseFlag = match.reverseFlag;
         break;
       }
     }
@@ -216,6 +217,12 @@ void CarModels::getCar(
   const unsigned index) const
 {
   car = models[index].carAvg;
+}
+
+
+ModelData const * CarModels::getData(const unsigned index) const
+{
+  return &models[index].data;
 }
 
 

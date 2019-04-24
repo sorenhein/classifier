@@ -9,6 +9,7 @@
 using namespace std;
 
 class CarModels;
+class CarDetect;
 class PeakRange;
 
 
@@ -24,6 +25,22 @@ struct PatternEntry
 class PeakPattern
 {
   private:
+
+    enum RangeQuality
+    {
+      QUALITY_WHOLE_MODEL = 0,
+      QUALITY_SYMMETRY = 1,
+      QUALITY_GENERAL = 2,
+      QUALITY_NONE = 3
+    };
+
+    bool getRangeQuality(
+      const CarModels& models,
+      const PeakRange& range,
+      CarDetect const * carPtr,
+      const bool leftFlag,
+      RangeQuality& quality,
+      unsigned& gap) const;
 
 
   public:

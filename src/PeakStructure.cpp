@@ -658,13 +658,14 @@ CarListIter PeakStructure::updateRecords(
   CarModels& models,
   list<CarDetect>& cars)
 {
+  // TODO There is too much updating going on here.
+
   CarListIter newcit = cars.insert(range.carAfterIter(), car);
 
   if (newcit != cars.begin())
   {
     auto prevcit = prev(newcit);
-    const bool hasRight = prevcit->hasRightGap();
-    PeakStructure::fillPartialSides(* prev(newcit), * newcit);
+    PeakStructure::fillPartialSides(* prevcit, * newcit);
     if (prevcit->hasRightGap())
       PeakStructure::updateModels(models, * prevcit);
   }

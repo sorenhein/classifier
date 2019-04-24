@@ -25,6 +25,7 @@ struct ModelData
 
   bool containedFlag;
   unsigned containedIndex;
+  bool containedReverseFlag;
 
   bool symmetryFlag;
 
@@ -99,6 +100,8 @@ class CarModels
     void getCar(
       CarDetect& car,
       const unsigned index) const;
+
+    ModelData const * getData(const unsigned index) const;
 
     bool findDistance(
       const CarDetect& car,

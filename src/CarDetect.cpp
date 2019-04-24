@@ -121,6 +121,12 @@ void CarDetect::logMatchData(const MatchData& matchIn)
 }
 
 
+MatchData const * CarDetect::getMatchData() const
+{
+  return &match;
+}
+
+
 void CarDetect::makeLastTwoOfFourWheeler(
   const PeakRange& range,
   PeakPtrs& peakPtrsIn) // TODO should be const again
