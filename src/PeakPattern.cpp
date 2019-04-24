@@ -36,6 +36,9 @@ bool PeakPattern::getRangeQuality(
   RangeQuality& quality,
   unsigned& gap) const
 {
+  gap = 0;
+  quality = QUALITY_NONE;
+
   bool hasGap = (leftFlag ? range.hasLeftGap() : range.hasRightGap());
   if (hasGap)
   {
@@ -57,13 +60,27 @@ bool PeakPattern::getRangeQuality(
     return false;
   }
 
-  if ((leftFlag && data->gapRightFlag) ||
-      (! leftFlag && data->gapLeftFlag))
+  if (leftFlag)
   {
-    cout << "PeakPattern ERROR: Car should not have abutting gap\n";
-    return false;
+    if ((revFlag && data->gapLeftFlag) || 
+        (! revFlag && data->gapRightFlag))
+    {
+      cout << "PeakPattern left ERROR: Car should not have abutting gap\n";
+cout << data->str();
+      return false;
+    }
   }
-    
+  else
+  {
+    if ((revFlag && data->gapRightFlag) ||
+        (! revFlag && data->gapLeftFlag))
+    {
+      cout << "PeakPattern right ERROR: Car should not have abutting gap\n";
+cout << data->str();
+      return false;
+    }
+  }
+
   if (data->containedFlag)
   {
     if (revFlag)
@@ -121,6 +138,18 @@ bool PeakPattern::suggest(
   // If neither of them is given, give up
   // If both are given, particularly comfortable
   // Separate into one or more cars that might fit
+
+cout << "SUGGEST " << qualLeft << "-" << qualRight << ": " <<
+  gapLeft << ", " << gapRight << endl;
+
+  // If both are QUALITY_WHOLE_MODEL
+  //   Look for 1 or 2 whole cars to add up to length
+  // else if both are >= QUALITY_SYMMETRY
+  //   Similar
+  // else if both are >= QUALITY_GENERAL
+  //   Similar
+  // else
+  //   nothing to do
 
   UNUSED(candidates);
   return false;

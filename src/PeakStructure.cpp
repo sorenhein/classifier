@@ -635,7 +635,8 @@ PeakStructure::FindCarType PeakStructure::findCarByPattern(
   PeakRange& range,
   CarDetect& car) const
 {
-  if (range.isFirstCar() || range.isLastCar())
+  // if (range.isFirstCar() || range.isLastCar())
+  if (range.isFirstCar())
     return FIND_CAR_NO_MATCH;
 
   // TODO Also last car.

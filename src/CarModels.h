@@ -3,6 +3,7 @@
 
 #include <vector>
 #include <string>
+#include <sstream>
 
 #include "CarDetect.h"
 #include "CarPeaks.h"
@@ -36,6 +37,22 @@ struct ModelData
     gapRightFlag = false;
     containedFlag = false;
     symmetryFlag = false;
+  };
+
+  string str() const
+  {
+    stringstream ss;
+    ss << setw(12) << left << "index" << index << "\n" <<
+      setw(12) << "p-p length" << 
+        (fullFlag ? to_string(lenPP) : "-") << "\n" << 
+      setw(12) << "gap left" <<
+        (gapLeftFlag ? to_string(gapLeft) : "-") << "\n" << 
+      setw(12) << "gap right" <<
+        (gapRightFlag ? to_string(gapRight) : "-") << "\n" << 
+      setw(12) << "contained" <<
+        (containedFlag ? to_string(containedIndex) +
+          (containedReverseFlag ? "R" : "") : "-") << endl;
+    return ss.str();
   };
 };
 

@@ -9,6 +9,7 @@
 #include "errors.h"
 
 #define GREAT_CAR_DISTANCE 0.5f
+#define GOOD_CAR_DISTANCE 1.5f
 
 
 CarModels::CarModels()
@@ -100,7 +101,7 @@ void CarModels::characterize()
 
       MatchData match;
       modelOther.carAvg.distanceSymm(model.carAvg, true, match);
-      if (match.distance <= GREAT_CAR_DISTANCE)
+      if (match.distance <= GOOD_CAR_DISTANCE)
       {
         data.containedFlag = true;
         data.containedIndex = p;
