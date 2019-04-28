@@ -13,12 +13,21 @@ class CarDetect;
 class PeakRange;
 
 
+enum PatternType
+{
+  PATTERN_NO_BORDERS = 0,
+  PATTERN_SINGLE_SIDED = 1,
+  PATTERN_DOUBLE_SIDED = 2
+};
+
 struct PatternEntry
 {
   unsigned modelNo;
+  bool reverseFlag;
   bool abutLeftFlag;
   bool abutRightFlag;
   vector<unsigned> indices;
+  PatternType borders;
 };
 
 
@@ -42,6 +51,10 @@ class PeakPattern
       RangeQuality& quality,
       unsigned& gap) const;
 
+    CarDetect const * carBeforePtr;
+    CarDetect const * carAfterPtr;
+
+    bool guessNoBorders(list<PatternEntry>& candidates) const;
 
   public:
 
@@ -54,7 +67,7 @@ class PeakPattern
     bool suggest(
       const CarModels& models,
       const PeakRange& range,
-      list<PatternEntry>& candidates) const;
+      list<PatternEntry>& candidates);
 
 };
 

@@ -11,6 +11,10 @@
 
 #define UNUSED(x) ((void)(true ? 0 : ((x), void(), 0)))
 
+// If we try to interpolate an entire car, the end gap should not be
+// too large relative to the bogie gap.
+#define NO_BORDER_FACTOR 3.0f
+
 
 PeakPattern::PeakPattern()
 {
@@ -113,13 +117,65 @@ cout << data->str();
 }
 
 
+bool PeakPattern::guessNoBorders(list<PatternEntry>& candidates) const
+{
+  // This is a half-hearted try to fill in exactly one car of the 
+  // same type as its neighbors if those neighbors do not have any
+  // edge gaps at all.
+
+  if (! carBeforePtr || ! carAfterPtr)
+    return false;
+
+  if (carBeforePtr->index() != carAfterPtr->index())
+    return false;
+
+  if (! carBeforePtr->isSymmetric() || ! carAfterPtr->isSymmetric())
+    return false;
+
+  const CarPeaksPtr& peaksBefore = carBeforePtr->getPeaksPtr();
+  const CarPeaksPtr& peaksAfter = carAfterPtr->getPeaksPtr();
+
+  const unsigned bogieGap = carBeforePtr->getLeftBogieGap();
+  const unsigned avgLeftLeft = 
+    (peaksBefore.firstBogieLeftPtr->getIndex() +
+     peaksAfter.firstBogieLeftPtr->getIndex()) / 2;
+
+  // Disqualify if the resulting car is implausible.
+  if (avgLeftLeft - peaksBefore.secondBogieRightPtr->getIndex() >
+      NO_BORDER_FACTOR * bogieGap)
+    return false;
+
+  candidates.emplace_back(PatternEntry());
+  PatternEntry& pe = candidates.back();
+
+  pe.modelNo = carBeforePtr->index();
+  pe.reverseFlag = false;
+  pe.abutLeftFlag = false;
+  pe.abutRightFlag = false;
+
+  pe.indices.push_back(avgLeftLeft);
+  pe.indices.push_back((peaksBefore.firstBogieRightPtr->getIndex() +
+    peaksAfter.firstBogieRightPtr->getIndex()) / 2);
+  pe.indices.push_back((peaksBefore.secondBogieLeftPtr->getIndex() +
+    peaksAfter.secondBogieLeftPtr->getIndex()) / 2);
+  pe.indices.push_back((peaksBefore.secondBogieRightPtr->getIndex() +
+    peaksAfter.secondBogieRightPtr->getIndex()) / 2);
+
+  pe.borders = PATTERN_NO_BORDERS;
+
+cout << "NOBORDER\n";
+
+  return true;
+}
+
+
 bool PeakPattern::suggest(
   const CarModels& models,
   const PeakRange& range,
-  list<PatternEntry>& candidates) const
+  list<PatternEntry>& candidates)
 {
-  CarDetect const * carBeforePtr = range.carBeforePtr();
-  CarDetect const * carAfterPtr = range.carAfterPtr();
+  carBeforePtr = range.carBeforePtr();
+  carAfterPtr = range.carAfterPtr();
 
   if (! carBeforePtr && ! carAfterPtr)
     return false;
@@ -135,12 +191,19 @@ bool PeakPattern::suggest(
       false, qualRight, gapRight))
     qualRight = QUALITY_NONE;
 
+cout << "SUGGESTX " << qualLeft << "-" << qualRight << "\n";
+cout << "SUGGEST " << qualLeft << "-" << qualRight << ": " <<
+  gapLeft << ", " << gapRight << endl;
+
+  candidates.clear();
+
+  // TODO Actually never happens.  Does it work?  Delete?
+  if (qualLeft == QUALITY_NONE && qualRight == QUALITY_NONE)
+    return PeakPattern::guessNoBorders(candidates);
+
   // If neither of them is given, give up
   // If both are given, particularly comfortable
   // Separate into one or more cars that might fit
-
-cout << "SUGGEST " << qualLeft << "-" << qualRight << ": " <<
-  gapLeft << ", " << gapRight << endl;
 
   // If both are QUALITY_WHOLE_MODEL
   //   Look for 1 or 2 whole cars to add up to length
