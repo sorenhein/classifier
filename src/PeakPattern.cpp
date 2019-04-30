@@ -129,9 +129,7 @@ bool PeakPattern::guessNoBorders(list<PatternEntry>& candidates) const
   if (carBeforePtr->index() != carAfterPtr->index())
     return false;
 
-  if (! carBeforePtr->isSymmetric() || ! carAfterPtr->isSymmetric())
-    return false;
-
+  // We will not test for symmetry.
   const CarPeaksPtr& peaksBefore = carBeforePtr->getPeaksPtr();
   const CarPeaksPtr& peaksAfter = carAfterPtr->getPeaksPtr();
 
@@ -169,6 +167,54 @@ cout << "NOBORDER\n";
 }
 
 
+bool PeakPattern::guessLeft(
+  const CarModels& models,
+  const PeakRange& range,
+  const bool leftFlag,
+  const RangeQuality quality,
+  list<PatternEntry>& candidates) const
+{
+  UNUSED(models);
+  UNUSED(range);
+  UNUSED(leftFlag);
+  UNUSED(quality);
+  UNUSED(candidates);
+  return false;
+}
+
+
+bool PeakPattern::guessRight(
+  const CarModels& models,
+  const PeakRange& range,
+  const bool leftFlag,
+  const RangeQuality quality,
+  list<PatternEntry>& candidates) const
+{
+  UNUSED(models);
+  UNUSED(range);
+  UNUSED(leftFlag);
+  UNUSED(quality);
+  UNUSED(candidates);
+  return false;
+}
+
+
+bool PeakPattern::guessBoth(
+  const CarModels& models,
+  const PeakRange& range,
+  const RangeQuality qualLeft,
+  const RangeQuality qualRight,
+  list<PatternEntry>& candidates) const
+{
+  UNUSED(models);
+  UNUSED(range);
+  UNUSED(qualLeft);
+  UNUSED(qualRight);
+  UNUSED(candidates);
+  return false;
+}
+
+
 bool PeakPattern::suggest(
   const CarModels& models,
   const PeakRange& range,
@@ -197,24 +243,17 @@ cout << "SUGGEST " << qualLeft << "-" << qualRight << ": " <<
 
   candidates.clear();
 
-  // TODO Actually never happens.  Does it work?  Delete?
+  // TODO A lot of these seem to be misalignments of cars with peaks.
   if (qualLeft == QUALITY_NONE && qualRight == QUALITY_NONE)
     return PeakPattern::guessNoBorders(candidates);
-
-  // If neither of them is given, give up
-  // If both are given, particularly comfortable
-  // Separate into one or more cars that might fit
-
-  // If both are QUALITY_WHOLE_MODEL
-  //   Look for 1 or 2 whole cars to add up to length
-  // else if both are >= QUALITY_SYMMETRY
-  //   Similar
-  // else if both are >= QUALITY_GENERAL
-  //   Similar
-  // else
-  //   nothing to do
-
-  UNUSED(candidates);
-  return false;
+  else if (qualLeft == QUALITY_NONE)
+    return PeakPattern::guessRight(models, range, false, qualRight,
+      candidates);
+  else if (qualRight == QUALITY_NONE)
+    return PeakPattern::guessLeft(models, range, true, qualLeft,
+      candidates);
+  else
+    return PeakPattern::guessBoth(models, range, qualLeft, qualRight,
+      candidates);
 }
 

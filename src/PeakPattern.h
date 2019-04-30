@@ -56,6 +56,27 @@ class PeakPattern
 
     bool guessNoBorders(list<PatternEntry>& candidates) const;
 
+    bool guessLeft(
+      const CarModels& models,
+      const PeakRange& range,
+      const bool leftFlag,
+      const RangeQuality quality,
+      list<PatternEntry>& candidates) const;
+
+    bool guessRight(
+      const CarModels& models,
+      const PeakRange& range,
+      const bool leftFlag,
+      const RangeQuality quality,
+      list<PatternEntry>& candidates) const;
+
+    bool guessBoth(
+      const CarModels& models,
+      const PeakRange& range,
+      const RangeQuality qualLeft,
+      const RangeQuality qualRight,
+      list<PatternEntry>& candidates) const;
+
   public:
 
     PeakPattern();
