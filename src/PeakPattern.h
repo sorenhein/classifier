@@ -19,7 +19,8 @@ enum PatternType
 {
   PATTERN_NO_BORDERS = 0,
   PATTERN_SINGLE_SIDED = 1,
-  PATTERN_DOUBLE_SIDED = 2
+  PATTERN_DOUBLE_SIDED_SINGLE = 2,
+  PATTERN_DOUBLE_SIDED_DOUBLE = 3
 };
 
 struct PatternEntry
@@ -88,6 +89,16 @@ class PeakPattern
       unsigned& gap) const;
 
     void getFullModels(const CarModels& models);
+
+    bool findSingleModel(
+      const RangeQuality qualOverall,
+      const unsigned lenRange,
+      FullEntry const *& fep) const;
+
+    bool findDoubleModel(
+      const RangeQuality qualOverall,
+      const unsigned lenRange,
+      list<FullEntry const *>& feps) const;
 
     void fillFromModel(
       const CarModels& models,

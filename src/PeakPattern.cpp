@@ -276,6 +276,7 @@ void PeakPattern::fillFromModel(
   const bool symmetryFlag,
   const unsigned indexRangeLeft,
   const unsigned indexRangeRight,
+  const PatternType patternType,
   list<PatternEntry>& candidates) const
 {
   candidates.emplace_back(PatternEntry());
@@ -322,7 +323,7 @@ cout << "TTT attempting to put " << indexRangeLeft + * i <<
     pe2.indices[pi] = indexRangeLeft + * i;
   }
 
-  pe2.borders = PATTERN_DOUBLE_SIDED;
+  pe2.borders = patternType;
 
 cout << pe.str("SUGGEST-ZZ1rev");
 }
@@ -351,6 +352,61 @@ bool PeakPattern::guessRight(
   UNUSED(candidates);
   cout << "SUGGEST-ERR: guessRight\n";
   return false;
+}
+
+
+bool PeakPattern::findSingleModel(
+  const RangeQuality qualOverall,
+  const unsigned lenRange,
+  FullEntry const *& fep) const
+{
+  unsigned count = 0;
+  for (auto& fe: fullEntries)
+  {
+cout << "TTT comparing to model " << fe.index << ": lenPP " <<
+  fe.data->lenPP << ", " << fe.lenLo[qualOverall] << ", " <<
+  fe.lenHi[qualOverall] << endl;
+
+    if (lenRange >= fe.lenLo[qualOverall] &&
+        lenRange <= fe.lenHi[qualOverall])
+    {
+      count++;
+      fep = &fe;
+    }
+  }
+
+  if (count == 0)
+    return false;
+  else if (count >= 2)
+  {
+    cout << "SUGGEST-ERR: guessBoth several matches to single car\n";
+    return false;
+  }
+  else
+    return true;
+}
+
+
+bool PeakPattern::findDoubleModel(
+  const RangeQuality qualOverall,
+  const unsigned lenRange,
+  list<FullEntry const *>& feps) const
+{
+  feps.clear();
+  for (auto& fe1: fullEntries)
+  {
+    for (auto& fe2: fullEntries)
+    {
+      if (lenRange >= fe1.lenLo[qualOverall] + fe2.lenLo[qualOverall] &&
+          lenRange <= fe1.lenHi[qualOverall] + fe2.lenHi[qualOverall])
+      {
+        // We just fill out the first model which is then implicitly
+        // to the left (earlier in time) than the other one.
+        feps.push_back(&fe1);
+      }
+    }
+  }
+  return (feps.size() > 0);
 }
 
 
@@ -384,39 +440,31 @@ cout << "TTT actual abutting peaks: " <<
   const unsigned lenRange = indexRight - indexLeft;
 cout << "TTT looking for actual length " << lenRange << endl;
 
-  unsigned count = 0;
   FullEntry const * fep = nullptr;
-  for (auto& fe: fullEntries)
+  if (PeakPattern::findSingleModel(qualOverall, lenRange, fep))
   {
-cout << "TTT comparing to model " << fe.index << ": lenPP " <<
-  fe.data->lenPP << ", " << fe.lenLo[qualOverall] << ", " <<
-  fe.lenHi[qualOverall] << endl;
+    PeakPattern::fillFromModel(models, fep->index, 
+      fep->data->symmetryFlag, indexLeft, indexRight, 
+      PATTERN_DOUBLE_SIDED_SINGLE, candidates);
 
-    if (lenRange >= fe.lenLo[qualOverall] &&
-        lenRange <= fe.lenHi[qualOverall])
+    return true;
+  }
+
+  list<FullEntry const *> feps;
+  if (PeakPattern::findDoubleModel(qualOverall, lenRange, feps))
+  {
+cout << " TTT got double-models: " << feps.size() << endl;
+    for (auto fp: feps)
     {
-      count++;
-      fep = &fe;
+      PeakPattern::fillFromModel(models, fp->index, 
+        fp->data->symmetryFlag, indexLeft, indexRight, 
+        PATTERN_DOUBLE_SIDED_DOUBLE, candidates);
     }
-  }
 
-  if (count == 0)
-  {
-    // TODO Double car
-    cout << "SUGGEST-ERR: guessBoth no match to single car\n";
+    return true;
+  }
+  else
     return false;
-  }
-
-  if (count >= 2)
-  {
-    cout << "SUGGEST-ERR: guessBoth several matches to single car\n";
-    return false;
-  }
-
-  PeakPattern::fillFromModel(models, fep->index, 
-    fep->data->symmetryFlag, indexLeft, indexRight, candidates);
-
-  return true;
 }
 
 
