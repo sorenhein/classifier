@@ -243,22 +243,29 @@ void PeakPattern::getFullModels(const CarModels& models)
     if (! data->fullFlag)
       continue;
 
+cout << "TTT got model " << index << endl;
+cout << data->str();
+
     fullEntries.emplace_back(FullEntry());
     FullEntry& fe = fullEntries.back();
+    fe.data = data;
+    fe.index = index;
 
     // Three different qualities; only two used for now.
     fe.lenLo.resize(3);
     fe.lenHi.resize(3);
 
+    const unsigned len = data->lenPP + data->gapLeft + data->gapRight;
+
     fe.lenLo[QUALITY_WHOLE_MODEL] =
-      static_cast<unsigned>((1.f - LEN_FACTOR_GREAT) * data->lenPP);
+      static_cast<unsigned>((1.f - LEN_FACTOR_GREAT) * len);
     fe.lenHi[QUALITY_WHOLE_MODEL] =
-      static_cast<unsigned>((1.f + LEN_FACTOR_GREAT) * data->lenPP);
+      static_cast<unsigned>((1.f + LEN_FACTOR_GREAT) * len);
 
     fe.lenLo[QUALITY_SYMMETRY] = 
-      static_cast<unsigned>((1.f - LEN_FACTOR_GOOD) * data->lenPP);
+      static_cast<unsigned>((1.f - LEN_FACTOR_GOOD) * len);
     fe.lenHi[QUALITY_SYMMETRY] =
-      static_cast<unsigned>((1.f + LEN_FACTOR_GOOD) * data->lenPP);
+      static_cast<unsigned>((1.f + LEN_FACTOR_GOOD) * len);
   }
 }
 
@@ -300,7 +307,7 @@ cout << pe.str("SUGGEST-ZZ1");
 
   pe2.modelNo = indexModel;
   pe2.reverseFlag = true;
-  pe.abutLeftFlag = true;
+  pe2.abutLeftFlag = true;
   pe2.abutRightFlag = true;
   pe2.start = indexRangeLeft;
   pe2.end = indexRangeRight;
@@ -350,6 +357,10 @@ bool PeakPattern::guessBoth(
   const unsigned indexRight = 
     carAfterPtr->getPeaksPtr().firstBogieLeftPtr->getIndex() - gapRight;
 
+cout << "TTT actual abutting peaks: " <<
+    carBeforePtr->getPeaksPtr().secondBogieRightPtr->getIndex() << ", " <<
+    carAfterPtr->getPeaksPtr().firstBogieLeftPtr->getIndex() << "\n";
+
   if (indexRight <= indexLeft)
 
   {
@@ -360,16 +371,21 @@ bool PeakPattern::guessBoth(
   RangeQuality qualOverall = (qualLeft <= qualRight ? qualLeft : qualRight);
   if (qualOverall == QUALITY_GENERAL || qualOverall == QUALITY_NONE)
   {
-    cout << "SUGGEST-ERR: Unexpected quality\n";
+    cout << "SUGGEST-ERR: guessBoth unexpected quality\n";
     return false;
   }
 
   const unsigned lenRange = indexRight - indexLeft;
+cout << "TTT looking for actual length " << lenRange << endl;
 
   unsigned count = 0;
   FullEntry const * fep = nullptr;
   for (auto& fe: fullEntries)
   {
+cout << "TTT comparing to model " << fe.index << ": lenPP " <<
+  fe.data->lenPP << ", " << fe.lenLo[qualOverall] << ", " <<
+  fe.lenHi[qualOverall] << endl;
+
     if (lenRange >= fe.lenLo[qualOverall] &&
         lenRange <= fe.lenHi[qualOverall])
     {
@@ -391,7 +407,7 @@ bool PeakPattern::guessBoth(
     return false;
   }
 
-  PeakPattern::fillFromModel(models, fep->data->index, 
+  PeakPattern::fillFromModel(models, fep->index, 
     fep->data->symmetryFlag, indexLeft, indexRight, candidates);
 
   return true;

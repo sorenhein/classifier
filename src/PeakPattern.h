@@ -62,6 +62,7 @@ class PeakPattern
     struct FullEntry
     {
       ModelData const * data;
+      unsigned index;
 
       // Interval for different range qualities.
       vector<unsigned> lenLo;

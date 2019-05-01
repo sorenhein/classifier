@@ -13,6 +13,7 @@ using namespace std;
 
 struct ModelData
 {
+  // TODO Unused/unusable?
   unsigned index;
 
   bool fullFlag;
