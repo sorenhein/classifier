@@ -226,7 +226,7 @@ bool PeakPattern::guessNoBorders(list<PatternEntry>& candidates) const
   pe.borders = PATTERN_NO_BORDERS;
 
 cout << "NOBORDER\n";
-cout << pe.str("SUGGEST-YY5");
+cout << pe.strAbs("SUGGEST-YY5");
 
   return true;
 }
@@ -342,11 +342,11 @@ bool PeakPattern::fillFromModel(
 
   list<unsigned> carPoints;
   models.getCarPoints(indexModel, carPoints);
-  if (! PeakPattern::fillPoints(carPoints, false, 
-      (pe.abutLeftFlag ? indexRangeLeft : indexRangeRight), pe))
+  if (! PeakPattern::fillPoints(carPoints, 
+      (pe.abutLeftFlag ? indexRangeLeft : indexRangeRight), false, pe))
     return false;
 
-cout << pe.str("SUGGEST-ZZ1");
+cout << pe.strAbs("SUGGEST-ZZ1");
 
   // Two options if asymmetric.
   if (symmetryFlag)
@@ -363,11 +363,11 @@ cout << pe.str("SUGGEST-ZZ1");
   pe2.end = indexRangeRight;
   pe2.borders = patternType;
 
-  if (! PeakPattern::fillPoints(carPoints, true, 
-      (pe2.abutLeftFlag ? indexRangeLeft : indexRangeRight), pe2))
+  if (! PeakPattern::fillPoints(carPoints, 
+      (pe2.abutLeftFlag ? indexRangeLeft : indexRangeRight), true, pe2))
     return false;
 
-cout << pe.str("SUGGEST-ZZ1rev");
+cout << pe.strAbs("SUGGEST-ZZ1rev");
 
   return true;
 }

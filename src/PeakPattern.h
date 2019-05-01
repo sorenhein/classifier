@@ -35,7 +35,18 @@ struct PatternEntry
   vector<unsigned> indices;
   PatternType borders;
 
-  string str(const string& title) const
+  string strAbs(const string& title) const
+  {
+    stringstream ss;
+    ss << title << ": " <<
+      indices[0] << " - " <<
+      indices[1] << " - " <<
+      indices[2] << " - " <<
+      indices[3] << "\n";
+    return ss.str();
+  };
+
+  string strRel(const string& title) const
   {
     stringstream ss;
     ss << title << ": " <<
