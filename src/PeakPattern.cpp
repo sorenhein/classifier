@@ -171,7 +171,8 @@ bool PeakPattern::guessNoBorders(list<PatternEntry>& candidates) const
   {
     cout << "SUGGEST-ERR: guessNoBorders left gap way too small\n";
     cout << "SUGGEST-YY0: avgLL " << avgLeftLeft << 
-      " vs. " << peaksBefore.secondBogieRightPtr->getIndex() << endl;
+      " vs. " << peaksBefore.secondBogieRightPtr->getIndex() + offset << 
+      endl;
     return false;
   }
 
@@ -179,7 +180,7 @@ bool PeakPattern::guessNoBorders(list<PatternEntry>& candidates) const
   {
     cout << "SUGGEST-ERR: guessNoBorders right gap way too small\n";
     cout << "SUGGEST-YY1: avgRR " << avgRightRight << 
-      " vs. " << peaksAfter.firstBogieLeftPtr->getIndex() << endl;
+      " vs. " << peaksAfter.firstBogieLeftPtr->getIndex() + offset << endl;
     return false;
   }
 
@@ -226,7 +227,7 @@ bool PeakPattern::guessNoBorders(list<PatternEntry>& candidates) const
   pe.borders = PATTERN_NO_BORDERS;
 
 cout << "NOBORDER\n";
-cout << pe.strAbs("SUGGEST-YY5");
+cout << pe.strAbs("SUGGEST-YY5", offset);
 
   return true;
 }
@@ -346,7 +347,7 @@ bool PeakPattern::fillFromModel(
       (pe.abutLeftFlag ? indexRangeLeft : indexRangeRight), false, pe))
     return false;
 
-cout << pe.strAbs("SUGGEST-ZZ1");
+cout << pe.strAbs("SUGGEST-ZZ1", offset);
 
   // Two options if asymmetric.
   if (symmetryFlag)
@@ -367,7 +368,7 @@ cout << pe.strAbs("SUGGEST-ZZ1");
       (pe2.abutLeftFlag ? indexRangeLeft : indexRangeRight), true, pe2))
     return false;
 
-cout << pe.strAbs("SUGGEST-ZZ1rev");
+cout << pe.strAbs("SUGGEST-ZZ1rev", offset);
 
   return true;
 }
@@ -382,7 +383,8 @@ bool PeakPattern::guessLeft(
     carBeforePtr->getPeaksPtr().secondBogieRightPtr->getIndex() + gapLeft;
 
 cout << "TTT guessLeft actual abutting peak: " <<
-  carBeforePtr->getPeaksPtr().secondBogieRightPtr->getIndex() << "\n";
+  carBeforePtr->getPeaksPtr().secondBogieRightPtr->getIndex() + offset << 
+  "\n";
 
   if (qualLeft == QUALITY_GENERAL || qualLeft == QUALITY_NONE)
   {
@@ -416,7 +418,7 @@ bool PeakPattern::guessRight(
     carAfterPtr->getPeaksPtr().firstBogieLeftPtr->getIndex() - gapRight;
 
 cout << "TTT guessRight actual abutting peak: " <<
-  carAfterPtr->getPeaksPtr().firstBogieLeftPtr->getIndex() << "\n";
+  carAfterPtr->getPeaksPtr().firstBogieLeftPtr->getIndex() + offset << "\n";
 
   if (qualRight == QUALITY_GENERAL || qualRight == QUALITY_NONE)
   {
@@ -500,8 +502,9 @@ bool PeakPattern::guessBoth(
     carAfterPtr->getPeaksPtr().firstBogieLeftPtr->getIndex() - gapRight;
 
 cout << "TTT actual abutting peaks: " <<
-    carBeforePtr->getPeaksPtr().secondBogieRightPtr->getIndex() << ", " <<
-    carAfterPtr->getPeaksPtr().firstBogieLeftPtr->getIndex() << "\n";
+    carBeforePtr->getPeaksPtr().secondBogieRightPtr->getIndex() + offset <<
+    ", " <<
+    carAfterPtr->getPeaksPtr().firstBogieLeftPtr->getIndex() + offset << "\n";
 
   if (indexRight <= indexLeft)
 
@@ -551,8 +554,11 @@ cout << " TTT got double-models: " << feps.size() << endl;
 bool PeakPattern::suggest(
   const CarModels& models,
   const PeakRange& range,
+  const unsigned offsetIn,
   list<PatternEntry>& candidates)
 {
+  offset = offsetIn;
+
   carBeforePtr = range.carBeforePtr();
   carAfterPtr = range.carAfterPtr();
 

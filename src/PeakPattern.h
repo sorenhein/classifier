@@ -35,14 +35,16 @@ struct PatternEntry
   vector<unsigned> indices;
   PatternType borders;
 
-  string strAbs(const string& title) const
+  string strAbs(
+    const string& title,
+    const unsigned offset) const
   {
     stringstream ss;
     ss << title << ": " <<
-      indices[0] << " - " <<
-      indices[1] << " - " <<
-      indices[2] << " - " <<
-      indices[3] << "\n";
+      indices[0] + offset << " - " <<
+      indices[1] + offset<< " - " <<
+      indices[2] + offset<< " - " <<
+      indices[3] + offset<< "\n";
     return ss.str();
   };
 
@@ -81,6 +83,8 @@ class PeakPattern
       vector<unsigned> lenLo;
       vector<unsigned> lenHi;
     };
+
+    unsigned offset;
 
     CarDetect const * carBeforePtr;
     CarDetect const * carAfterPtr;
@@ -152,6 +156,7 @@ class PeakPattern
     bool suggest(
       const CarModels& models,
       const PeakRange& range,
+      const unsigned offset,
       list<PatternEntry>& candidates);
 
 };

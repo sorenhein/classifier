@@ -643,7 +643,7 @@ PeakStructure::FindCarType PeakStructure::findCarByPattern(
 
   PeakPattern pattern;
   list<PatternEntry> candidates;
-  if (! pattern.suggest(models, range, candidates))
+  if (! pattern.suggest(models, range, offset, candidates))
     return FIND_CAR_NO_MATCH;
 
   UNUSED(models);
