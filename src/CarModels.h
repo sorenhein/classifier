@@ -120,6 +120,10 @@ class CarModels
 
     ModelData const * getData(const unsigned index) const;
 
+    void getCarPoints(
+      const unsigned index,
+      list<unsigned>& carPoints) const;
+
     bool findDistance(
       const CarDetect& car,
       const bool partialFlag,

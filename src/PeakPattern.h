@@ -3,7 +3,9 @@
 
 #include <vector>
 #include <list>
+#include <sstream>
 
+#include "CarModels.h"
 #include "struct.h"
 
 using namespace std;
@@ -26,8 +28,22 @@ struct PatternEntry
   bool reverseFlag;
   bool abutLeftFlag;
   bool abutRightFlag;
+  unsigned start;
+  unsigned end;
   vector<unsigned> indices;
   PatternType borders;
+
+  string str(const string& title) const
+  {
+    stringstream ss;
+    ss << title << ": " <<
+      indices[0] - start << " - " <<
+      indices[1] - indices[0] << " - " <<
+      indices[2] - indices[1] << " - " <<
+      indices[3] - indices[2] << " - " <<
+      end - indices[3] << "\n";
+    return ss.str();
+  };
 };
 
 
@@ -43,6 +59,25 @@ class PeakPattern
       QUALITY_NONE = 3
     };
 
+    struct FullEntry
+    {
+      ModelData const * data;
+
+      // Interval for different range qualities.
+      vector<unsigned> lenLo;
+      vector<unsigned> lenHi;
+    };
+
+    CarDetect const * carBeforePtr;
+    CarDetect const * carAfterPtr;
+
+    RangeQuality qualLeft;
+    RangeQuality qualRight;
+    unsigned gapLeft;
+    unsigned gapRight;
+
+    vector<FullEntry> fullEntries;
+
     bool getRangeQuality(
       const CarModels& models,
       const PeakRange& range,
@@ -51,30 +86,30 @@ class PeakPattern
       RangeQuality& quality,
       unsigned& gap) const;
 
-    CarDetect const * carBeforePtr;
-    CarDetect const * carAfterPtr;
+    void getFullModels(const CarModels& models);
+
+    void fillFromModel(
+      const CarModels& models,
+      const unsigned indexModel,
+      const bool symmetryFlag,
+      const unsigned indexRangeLeft,
+      const unsigned indexRangeRight,
+      list<PatternEntry>& candidates) const;
 
     bool guessNoBorders(list<PatternEntry>& candidates) const;
 
     bool guessLeft(
       const CarModels& models,
       const PeakRange& range,
-      const bool leftFlag,
-      const RangeQuality quality,
       list<PatternEntry>& candidates) const;
 
     bool guessRight(
       const CarModels& models,
       const PeakRange& range,
-      const bool leftFlag,
-      const RangeQuality quality,
       list<PatternEntry>& candidates) const;
 
     bool guessBoth(
       const CarModels& models,
-      const PeakRange& range,
-      const RangeQuality qualLeft,
-      const RangeQuality qualRight,
       list<PatternEntry>& candidates) const;
 
   public:

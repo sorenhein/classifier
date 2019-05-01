@@ -226,6 +226,13 @@ ModelData const * CarModels::getData(const unsigned index) const
   return &models[index].data;
 }
 
+void CarModels::getCarPoints(
+  const unsigned index,
+  list<unsigned>& carPoints) const
+{
+  models[index].carAvg.getCarPoints(carPoints);
+}
+
 
 bool CarModels::findDistance(
   const CarDetect& car,
