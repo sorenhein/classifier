@@ -291,7 +291,7 @@ void PeakPattern::fillFromModel(
   list<unsigned> carPoints;
   models.getCarPoints(indexModel, carPoints);
 
-  for (auto i = next(carPoints.begin()); i != carPoints.end(); i++)
+  for (auto i = next(carPoints.begin()); i != prev(carPoints.end()); i++)
     pe.indices.push_back(indexRangeLeft + * i);
 
   pe.borders = PATTERN_DOUBLE_SIDED;
@@ -312,9 +312,15 @@ cout << pe.str("SUGGEST-ZZ1");
   pe2.start = indexRangeLeft;
   pe2.end = indexRangeRight;
 
+  pe2.indices.resize(4);
   unsigned pi = 3;
-  for (auto i = next(carPoints.begin()); i != carPoints.end(); i++, pi--)
+  for (auto i = next(carPoints.begin()); i != prev(carPoints.end()); 
+      i++, pi--)
+  {
+cout << "TTT attempting to put " << indexRangeLeft + * i << 
+  " at pe2[" << pi << "]" << endl;
     pe2.indices[pi] = indexRangeLeft + * i;
+  }
 
   pe2.borders = PATTERN_DOUBLE_SIDED;
 
