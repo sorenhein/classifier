@@ -270,7 +270,57 @@ cout << data->str();
 }
 
 
-void PeakPattern::fillFromModel(
+bool PeakPattern::fillPoints(
+  const list<unsigned>& carPoints,
+  const unsigned indexBase,
+  const bool reverseFlag,
+  PatternEntry& pe) const
+{
+  unsigned pi;
+  int incr;
+  if (reverseFlag)
+  {
+    pi = 3;
+    incr = -1;
+  }
+  else
+  {
+    pi = 0;
+    incr = 1;
+  }
+
+  if (pe.abutLeftFlag)
+  {
+    pe.indices.resize(4);
+
+    for (auto i = next(carPoints.begin()); i != prev(carPoints.end()); 
+        i++, pi += incr)
+      pe.indices[pi] = indexBase + * i;
+  }
+  else
+  {
+    const unsigned pointLast = carPoints.back();
+    const unsigned pointLastPeak = * prev(prev(carPoints.end()));
+    const unsigned pointFirstPeak = * next(carPoints.begin());
+
+    if (indexBase + pointFirstPeak <= pointLast)
+    {
+      cout << "TTT no room for left car\n";
+      return false;
+    }
+
+    pe.indices.resize(4);
+
+    for (auto i = next(carPoints.begin()); i != prev(carPoints.end()); 
+        i++, pi += incr)
+      pe.indices[pi] = indexBase + * i - pointLast;
+  }
+
+  return true;
+}
+
+
+bool PeakPattern::fillFromModel(
   const CarModels& models,
   const unsigned indexModel,
   const bool symmetryFlag,
@@ -284,74 +334,104 @@ void PeakPattern::fillFromModel(
 
   pe.modelNo = indexModel;
   pe.reverseFlag = false;
-  pe.abutLeftFlag = true;
-  pe.abutRightFlag = true;
+  pe.abutLeftFlag = (indexRangeLeft != 0);
+  pe.abutRightFlag = (indexRangeRight != 0);
   pe.start = indexRangeLeft;
   pe.end = indexRangeRight;
+  pe.borders = patternType;
 
   list<unsigned> carPoints;
   models.getCarPoints(indexModel, carPoints);
-
-  for (auto i = next(carPoints.begin()); i != prev(carPoints.end()); i++)
-    pe.indices.push_back(indexRangeLeft + * i);
-
-  pe.borders = PATTERN_DOUBLE_SIDED;
+  if (! PeakPattern::fillPoints(carPoints, false, 
+      (pe.abutLeftFlag ? indexRangeLeft : indexRangeRight), pe))
+    return false;
 
 cout << pe.str("SUGGEST-ZZ1");
 
   // Two options if asymmetric.
   if (symmetryFlag)
-    return;
+    return true;
 
   candidates.emplace_back(PatternEntry());
   PatternEntry& pe2 = candidates.back();
 
   pe2.modelNo = indexModel;
   pe2.reverseFlag = true;
-  pe2.abutLeftFlag = true;
-  pe2.abutRightFlag = true;
+  pe.abutLeftFlag = (indexRangeLeft != 0);
+  pe.abutRightFlag = (indexRangeRight != 0);
   pe2.start = indexRangeLeft;
   pe2.end = indexRangeRight;
-
-  pe2.indices.resize(4);
-  unsigned pi = 3;
-  for (auto i = next(carPoints.begin()); i != prev(carPoints.end()); 
-      i++, pi--)
-  {
-cout << "TTT attempting to put " << indexRangeLeft + * i << 
-  " at pe2[" << pi << "]" << endl;
-    pe2.indices[pi] = indexRangeLeft + * i;
-  }
-
   pe2.borders = patternType;
 
+  if (! PeakPattern::fillPoints(carPoints, true, 
+      (pe2.abutLeftFlag ? indexRangeLeft : indexRangeRight), pe2))
+    return false;
+
 cout << pe.str("SUGGEST-ZZ1rev");
+
+  return true;
 }
 
 
 bool PeakPattern::guessLeft(
   const CarModels& models,
-  const PeakRange& range,
   list<PatternEntry>& candidates) const
 {
-  UNUSED(models);
-  UNUSED(range);
-  UNUSED(candidates);
-  cout << "SUGGEST-ERR: guessLeft\n";
-  return false;
+  // Starting from the left, so open towards the end.
+  const unsigned indexLeft = 
+    carBeforePtr->getPeaksPtr().secondBogieRightPtr->getIndex() + gapLeft;
+
+cout << "TTT guessLeft actual abutting peak: " <<
+  carBeforePtr->getPeaksPtr().secondBogieRightPtr->getIndex() << "\n";
+
+  if (qualLeft == QUALITY_GENERAL || qualLeft == QUALITY_NONE)
+  {
+    cout << "SUGGEST-ERR: guessLeft unexpected quality\n";
+    return false;
+  }
+
+  for (auto& fe: fullEntries)
+  {
+cout << " TTT got left model: " << fe.index << endl;
+    PeakPattern::fillFromModel(models, fe.index, fe.data->symmetryFlag,
+      indexLeft, 0, PATTERN_SINGLE_SIDED_LEFT, candidates);
+  }
+
+  return (candidates.size() > 0);
 }
 
 
 bool PeakPattern::guessRight(
   const CarModels& models,
-  const PeakRange& range,
   list<PatternEntry>& candidates) const
 {
-  UNUSED(models);
-  UNUSED(range);
-  UNUSED(candidates);
-  cout << "SUGGEST-ERR: guessRight\n";
-  return false;
+  // Starting from the right, so open towards the beginning.
+  if (gapRight >= carAfterPtr->getPeaksPtr().firstBogieLeftPtr->getIndex())
+  {
+    cout << "SUGGEST-ERR: guessRight no room\n";
+    return false;
+  }
+
+  const unsigned indexRight = 
+    carAfterPtr->getPeaksPtr().firstBogieLeftPtr->getIndex() - gapRight;
+
+cout << "TTT guessRight actual abutting peak: " <<
+  carAfterPtr->getPeaksPtr().firstBogieLeftPtr->getIndex() << "\n";
+
+  if (qualRight == QUALITY_GENERAL || qualRight == QUALITY_NONE)
+  {
+    cout << "SUGGEST-ERR: guessRight unexpected quality\n";
+    return false;
+  }
+
+  for (auto& fe: fullEntries)
+  {
+cout << " TTT got right model: " << fe.index << endl;
+    PeakPattern::fillFromModel(models, fe.index, fe.data->symmetryFlag,
+      0, indexRight, PATTERN_SINGLE_SIDED_RIGHT, candidates);
+  }
+
+  return (candidates.size() > 0);
 }
 
 
@@ -504,9 +584,9 @@ cout << "SUGGEST " << qualLeft << "-" << qualRight << ": " <<
   PeakPattern::getFullModels(models);
 
   if (qualLeft == QUALITY_NONE)
-    return PeakPattern::guessRight(models, range, candidates);
+    return PeakPattern::guessRight(models, candidates);
   else if (qualRight == QUALITY_NONE)
-    return PeakPattern::guessLeft(models, range, candidates);
+    return PeakPattern::guessLeft(models, candidates);
   else
     return PeakPattern::guessBoth(models, candidates);
 }

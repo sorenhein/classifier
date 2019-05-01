@@ -18,9 +18,10 @@ class PeakRange;
 enum PatternType
 {
   PATTERN_NO_BORDERS = 0,
-  PATTERN_SINGLE_SIDED = 1,
-  PATTERN_DOUBLE_SIDED_SINGLE = 2,
-  PATTERN_DOUBLE_SIDED_DOUBLE = 3
+  PATTERN_SINGLE_SIDED_LEFT = 1,
+  PATTERN_SINGLE_SIDED_RIGHT = 2,
+  PATTERN_DOUBLE_SIDED_SINGLE = 3,
+  PATTERN_DOUBLE_SIDED_DOUBLE = 4
 };
 
 struct PatternEntry
@@ -100,24 +101,29 @@ class PeakPattern
       const unsigned lenRange,
       list<FullEntry const *>& feps) const;
 
-    void fillFromModel(
+    bool fillPoints(
+      const list<unsigned>& carPoints,
+      const unsigned indexBase,
+      const bool reverseFlag,
+      PatternEntry& pe) const;
+      
+    bool fillFromModel(
       const CarModels& models,
       const unsigned indexModel,
       const bool symmetryFlag,
       const unsigned indexRangeLeft,
       const unsigned indexRangeRight,
+      const PatternType patternType,
       list<PatternEntry>& candidates) const;
 
     bool guessNoBorders(list<PatternEntry>& candidates) const;
 
     bool guessLeft(
       const CarModels& models,
-      const PeakRange& range,
       list<PatternEntry>& candidates) const;
 
     bool guessRight(
       const CarModels& models,
-      const PeakRange& range,
       list<PatternEntry>& candidates) const;
 
     bool guessBoth(
