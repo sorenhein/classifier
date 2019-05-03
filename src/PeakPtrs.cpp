@@ -368,6 +368,19 @@ Peak const * PeakPtrs::locate(
 }
 
 
+#define UNUSED(x) ((void)(true ? 0 : ((x), void(), 0)))
+void PeakPtrs::getClosest(
+  const vector<unsigned>& indices,
+  vector<Peak *>& peaksClose,
+  unsigned& numClose) const
+{
+  // TODO
+  UNUSED(indices);
+  UNUSED(peaksClose);
+  UNUSED(numClose);
+}
+
+
 void PeakPtrs::fill(
   const unsigned start,
   const unsigned end,

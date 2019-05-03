@@ -411,7 +411,6 @@ PeakStructure::FindCarType PeakStructure::findCarByPeaks(
 
     peakPtrs.markup();
 
-
     return FIND_CAR_MATCH;
   }
   else
@@ -635,20 +634,29 @@ PeakStructure::FindCarType PeakStructure::findCarByPattern(
   PeakRange& range,
   CarDetect& car) const
 {
-  // if (range.isFirstCar() || range.isLastCar())
   if (range.isFirstCar())
     return FIND_CAR_NO_MATCH;
-
-  // TODO Also last car.
 
   PeakPattern pattern;
   list<PatternEntry> candidates;
   if (! pattern.suggest(models, range, offset, candidates))
     return FIND_CAR_NO_MATCH;
 
-  UNUSED(models);
-  UNUSED(peaks);
-  UNUSED(car);
+  // These can in general cover more time than the car we finde.
+  PeakPtrs peakPtrsUsed, peakPtrsUnused;
+  range.split(&Peak::goodPeakQuality, peakPtrsUsed, peakPtrsUnused);
+
+  if (! pattern.verify(candidates, peaks, peakPtrsUsed, peakPtrsUnused))
+    return FIND_CAR_NO_MATCH;
+
+  // If it worked, the used and unused peaks have been modified,
+  // and some peaks have disappeared from the union of the lists.
+  PeakRange rangeLocal;
+  rangeLocal.init(peakPtrsUsed);
+  car.makeFourWheeler(rangeLocal, peakPtrsUsed);
+  peakPtrsUsed.markup();
+  peakPtrsUnused.apply(&Peak::markdown);
+
   return FIND_CAR_NO_MATCH;
 }
 

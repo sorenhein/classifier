@@ -13,6 +13,7 @@ using namespace std;
 class CarModels;
 class CarDetect;
 class PeakRange;
+class PeakPool;
 
 
 enum PatternType
@@ -145,6 +146,29 @@ class PeakPattern
       const CarModels& models,
       list<PatternEntry>& candidates) const;
 
+    bool acceptable(
+      PatternEntry const * pep,
+      const vector<Peak *>& peaksClose,
+      const unsigned numClose) const;
+
+    bool recoverable(
+      const PeakPool& peaks,
+      const vector<unsigned>& indices,
+      const vector<Peak *>& peaksClose,
+      float& dist) const;
+
+    void recover(
+      const PeakPool& peaks,
+      const vector<unsigned>& indices,
+      const vector<Peak *>& peaksClose) const;
+
+    void update(
+      PatternEntry const * pep,
+      const vector<Peak *>& peaksClose,
+      PeakPtrs& peakPtrsUsed,
+      PeakPtrs& peakPtrsUnused) const;
+
+
   public:
 
     PeakPattern();
@@ -159,6 +183,11 @@ class PeakPattern
       const unsigned offset,
       list<PatternEntry>& candidates);
 
+    bool verify(
+      list<PatternEntry>& candidates,
+      PeakPool& peaks,
+      PeakPtrs& peakPtrsUsed,
+      PeakPtrs& peakPtrsUnused) const;
 };
 
 #endif

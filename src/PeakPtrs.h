@@ -101,6 +101,11 @@ class PeakPtrs
       const PeakFncPtr& fptr,
       unsigned& indexUsed) const;
 
+    void getClosest(
+      const vector<unsigned>& indices,
+      vector<Peak *>& peaksClose,
+      unsigned& numClose) const;
+
     void fill(
       const unsigned start,
       const unsigned end,

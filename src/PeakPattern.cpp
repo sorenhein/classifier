@@ -597,3 +597,98 @@ cout << "SUGGEST " << qualLeft << "-" << qualRight << ": " <<
     return PeakPattern::guessBoth(models, candidates);
 }
 
+
+bool PeakPattern::acceptable(
+  PatternEntry const * pep,
+  const vector<Peak *>& peaksClose,
+  const unsigned numClose) const
+{
+  UNUSED(pep);
+  UNUSED(peaksClose);
+  UNUSED(numClose);
+  return false;
+}
+
+
+bool PeakPattern::recoverable(
+  const PeakPool& peaks,
+  const vector<unsigned>& indices,
+  const vector<Peak *>& peaksClose,
+  float& dist) const
+{
+  UNUSED(peaks);
+  UNUSED(indices);
+  UNUSED(peaksClose);
+  UNUSED(dist);
+  return false;
+}
+
+
+void PeakPattern::recover(
+  const PeakPool& peaks,
+  const vector<unsigned>& indices,
+  const vector<Peak *>& peaksClose) const
+{
+  UNUSED(peaks);
+  UNUSED(indices);
+  UNUSED(peaksClose);
+}
+
+
+void PeakPattern::update(
+  PatternEntry const * pep,
+  const vector<Peak *>& peaksClose,
+  PeakPtrs& peakPtrsUsed,
+  PeakPtrs& peakPtrsUnused) const
+{
+  UNUSED(pep);
+  UNUSED(peaksClose);
+  UNUSED(peakPtrsUsed);
+  UNUSED(peakPtrsUnused);
+}
+
+
+bool PeakPattern::verify(
+  list<PatternEntry>& candidates,
+  PeakPool& peaks,
+  PeakPtrs& peakPtrsUsed,
+  PeakPtrs& peakPtrsUnused) const
+{
+  float distBest = numeric_limits<float>::max();
+  PatternEntry const * candBest = nullptr;
+  vector<Peak *> peaksBest;
+
+  for (auto& pe: candidates)
+  {
+    vector<Peak *> peaksClose;
+    unsigned numClose;
+    PatternEntry const * pep = &pe;
+
+    // TODO Write this method in PeakPtrs.cpp
+    peakPtrsUsed.getClosest(pe.indices, peaksClose, numClose);
+
+    if (! PeakPattern::acceptable(pep, peaksClose, numClose))
+      continue;
+
+    float dist;
+    if (! PeakPattern::recoverable(peaks, pe.indices, peaksClose, dist))
+      continue;
+
+    if (dist < distBest)
+    {
+      distBest = dist;
+      candBest = pep;
+      peaksBest = peaksClose;
+    }
+  }
+
+  if (candBest == nullptr)
+    return false;
+
+  PeakPattern::recover(peaks, candBest->indices, peaksBest);
+
+  PeakPattern::update(candBest, peaksBest, peakPtrsUsed, peakPtrsUnused);
+
+  return true;
+}
+
