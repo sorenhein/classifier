@@ -606,10 +606,28 @@ bool PeakPattern::acceptable(
   const vector<Peak const *>& peaksClose,
   const unsigned numClose) const
 {
-  UNUSED(pep);
-  UNUSED(peaksClose);
-  UNUSED(numClose);
-  return false;
+cout << "numCl " << numClose << endl;
+  if (numClose < 1)
+    return false;
+  else if (numClose >= 3)
+    return true;
+
+  // We can try to make something out of two peaks, but if they are
+  // both from the abutting side, then chances are that they're a single
+  // bogie and we didn't get the other bogie.
+
+  if (pep->abutLeftFlag && 
+      ! pep->abutRightFlag &&
+      peaksClose[2] == nullptr &&
+      peaksClose[3] == nullptr)
+    return false;
+  if (pep->abutRightFlag && 
+      ! pep->abutLeftFlag &&
+      peaksClose[0] == nullptr &&
+      peaksClose[1] == nullptr)
+    return false;
+  else
+    return true;
 }
 
 
@@ -674,6 +692,7 @@ bool PeakPattern::verify(
   PeakPtrs& peakPtrsUsed,
   PeakPtrs& peakPtrsUnused) const
 {
+  unsigned numCloseBest = numeric_limits<unsigned>::max();
   float distBest = numeric_limits<float>::max();
   PatternEntry const * candBest = nullptr;
   vector<Peak const *> peaksBest;
@@ -692,12 +711,20 @@ bool PeakPattern::verify(
 
     if (! PeakPattern::acceptable(pep, peaksClose, numClose))
       continue;
+cout << "ACCEPTABLE\n";
 
     float dist;
     if (! PeakPattern::recoverable(peaks, pe.indices, peaksClose, dist))
       continue;
 
-    if (dist < distBest)
+    if (numClose < numCloseBest)
+    {
+      numCloseBest = numClose;
+      distBest = dist;
+      candBest = pep;
+      peaksBest = peaksClose;
+    }
+    else if (numClose == numCloseBest && dist < distBest)
     {
       distBest = dist;
       candBest = pep;

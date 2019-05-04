@@ -414,6 +414,7 @@ void PeakPtrs::getClosest(
     }
   }
 
+  numClose = 0;
   for (unsigned i = 0; i < ni; i++)
     if (peaksClose[i] != nullptr)
       numClose++;
