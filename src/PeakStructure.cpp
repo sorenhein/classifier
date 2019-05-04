@@ -510,13 +510,6 @@ PeakStructure::FindCarType PeakStructure::findCarByGeometry(
           mno, match))
         continue;
       
-      if (! peakPtrsUsed.isFourWheeler(true))
-      {
-        cout << "WARNING: Peaks inconsistent with car #" <<
-          match.index << " found (distance " << match.distance << ")\n";
-        cout << range.strFull(offset) << endl;
-      }
-
       peakPtrsUsed.markup();
       peakPtrsUnused.apply(&Peak::markdown);
 

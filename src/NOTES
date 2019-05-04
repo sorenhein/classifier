@@ -5,7 +5,9 @@ Plan 2019-05-04
 * Loops in PeakStructure: Can stop sooner, perhaps
 * Do something about new, short cars
 * Apply Pattern also to longish first cars (complete ones)
-* Why does ThreePeaks find anything that Pattern doesn't?
+* Why does ThreePeaks find anything that Pattern/Geometry doesn't?
+  - PeakRepair doesn't actually try to repair
+  - Pattern: sensor03 #36 201953, quarter-bogie range a bit too small
 * Why -1 cars in quality.xlsx sometimes?
 
 Too many car types sometimes, s03 201953 #36
@@ -121,14 +123,6 @@ be used once) with good quality.
 There can be other intervening peaks.
 
 
-Individual cars
----------------
-
-May have missed peaks, e.g. 3-peak car
-- Go back in PeakPool
-- Selectively restore some peaks
-- Also applies, perhaps particularly, to first car
-
 Efficiency
 ----------
 
@@ -222,7 +216,7 @@ s10, 200750, #32,  2.47
 s19, 084253, #24,  0.83
 s27, 194725, #29,  1.73
 
-Peak/car trouble in poorly-matching but currect solutions:
+Peak/car trouble in poorly-matching but correct solutions:
 s03, 085719, #28,  37.16
 s04, 103039, # 8, 155.84
 s08, 202150, #49,  12.34
