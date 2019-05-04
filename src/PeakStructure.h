@@ -143,18 +143,6 @@ class PeakStructure
       PeakRange& range,
       CarDetect& car) const;
 
-    FindCarType findCarByLeveledPeaks(
-      const CarModels& models,
-      PeakPool& peaks,
-      PeakRange& range,
-      CarDetect& car) const;
-
-    FindCarType findCarByEmptyLast(
-      const CarModels& models,
-      PeakPool& peaks,
-      PeakRange& range,
-      CarDetect& car) const;
-
     FindCarType findCarByThreePeaks(
       const CarModels& models,
       PeakPool& peaks,

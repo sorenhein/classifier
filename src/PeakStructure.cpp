@@ -41,43 +41,46 @@ PeakStructure::PeakStructure()
 {
   PeakStructure::reset();
 
+  // 4 wheels, of which at least 2 are labeled as bogies.
   findCarFunctions.push_back(
     { &PeakStructure::findCarByOrder, 
       "by 1234 order", 0});
+
+  // Exactly 4 great peaks that look like a car.
   findCarFunctions.push_back(
     { &PeakStructure::findCarByGreatQuality, 
-      "by great quality", 2});
+      "by great quality", 1});
+
+  // Exactly 4 good peaks that look like a car.
   findCarFunctions.push_back(
     { &PeakStructure::findCarByGoodQuality, 
-      "by good quality", 3});
+      "by good quality", 2});
+
   findCarFunctions.push_back(
     { &PeakStructure::findCarByGeometry, 
-      "by geometry", 4});
+      "by geometry", 3});
+
+  // No great peaks at all.
   findCarFunctions.push_back(
     { &PeakStructure::findEmptyRange, 
-      "by emptiness", 5});
-  findCarFunctions.push_back(
-    { &PeakStructure::findCarByLeveledPeaks, 
-      "by leveled peaks", 6});
+      "by emptiness", 4});
+
 
   findCarFallbacks.push_back(
     { &PeakStructure::findPartialFirstCarByQuality, 
-      "first partial by quality", 1});
+      "first partial by quality", 5});
   findCarFallbacks.push_back(
     { &PeakStructure::findPartialLastCarByQuality, 
-      "last partial by quality", 9});
+      "last partial by quality", 6});
   findCarFallbacks.push_back(
     { &PeakStructure::findPartialInnerCarByQuality, 
-      "inner partial by quality", 7}); // TODO Should get own number
-  findCarFallbacks.push_back(
-    { &PeakStructure::findCarByEmptyLast, 
-      "by empty last", 7});
+      "inner partial by quality", 7});
   findCarFallbacks.push_back(
     { &PeakStructure::findCarByThreePeaks, 
       "by three peaks", 8});
   findCarFallbacks.push_back(
     { &PeakStructure::findCarByPattern, 
-      "by pattern", 8}); // TODO Should get own number
+      "by pattern", 9});
   
   hitSize = NUM_METHODS;
   hits.resize(NUM_METHODS);
@@ -534,54 +537,7 @@ PeakStructure::FindCarType PeakStructure::findEmptyRange(
   UNUSED(peaks);
   UNUSED(car);
 
-  if (range.looksEmpty())
-  {
-    range.getPeakPtrs().apply(&Peak::markdown);
-    return FIND_CAR_DOWNGRADE;
-  }
-  else
-    return FIND_CAR_NO_MATCH;
-}
-
-
-PeakStructure::FindCarType PeakStructure::findCarByLeveledPeaks(
-  const CarModels& models,
-  PeakPool& peaks,
-  PeakRange& range,
-  CarDetect& car) const
-{
-  // Here we use peak quality, so if we have 5 peaks with a spurious
-  // one in the middle (and if it's a new car geometry, so
-  // findCarByGeometry didn't find it), then the spurious peak will
-  // probably fail on peak quality as opposed to shape quality.
-  UNUSED(peaks);
-
-  PeakPtrs peakPtrsUsed, peakPtrsUnused;
-  range.split(&Peak::goodPeakQuality, peakPtrsUsed, peakPtrsUnused);
-
-  if (peakPtrsUsed.size() == 4 &&
-      PeakStructure::findCarByPeaks(models, range, peakPtrsUsed, car) ==
-        FIND_CAR_MATCH)
-  {
-    peakPtrsUnused.apply(&Peak::markdown);
-    return FIND_CAR_MATCH;
-  }
-  else
-    return FIND_CAR_NO_MATCH;
-}
-
-
-PeakStructure::FindCarType PeakStructure::findCarByEmptyLast(
-  const CarModels& models,
-  PeakPool& peaks,
-  PeakRange& range,
-  CarDetect& car) const
-{
-  UNUSED(models);
-  UNUSED(peaks);
-  UNUSED(car);
-
-  if (range.looksEmptyLast())
+  if (range.looksEmpty() || range.looksEmptyLast())
   {
     range.getPeakPtrs().apply(&Peak::markdown);
     return FIND_CAR_DOWNGRADE;
