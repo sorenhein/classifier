@@ -838,7 +838,7 @@ bool PeakPattern::verify(
     cout << "All 4 indices matched the first time\n";
     PeakPattern::update(&* pe4, peaksBest, peakPtrsUsed, peakPtrsUnused);
     // For now
-    return false;
+    return true;
   }
 
   // Try the 3's.
