@@ -116,7 +116,7 @@ class PeakPattern
       string str(const unsigned offset)
       {
         stringstream ss;
-        ss << target + offset << "(" <<
+        ss << target + offset << " (" <<
           lower + offset << "-" <<
           upper + offset << "), count " <<
           count << endl;

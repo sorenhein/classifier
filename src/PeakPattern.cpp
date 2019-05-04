@@ -984,7 +984,6 @@ bool PeakPattern::verify(
     none, singles, doubles);
 
   // Start with the 2's if that's all there is.
-  /*
   if (none.empty() && singles.empty() && ! doubles.empty())
   {
     if (PeakPattern::fixDoubles(peaks, doubles, peakPtrsUsed))
@@ -993,7 +992,6 @@ bool PeakPattern::verify(
         none, singles, doubles);
     }
   }
-  */
 
   // Try the 3's (original or 2's turned 3's) if there are no 4's.
   if (none.empty() && ! singles.empty())
