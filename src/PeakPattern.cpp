@@ -41,7 +41,6 @@ void PeakPattern::reset()
 
 bool PeakPattern::getRangeQuality(
   const CarModels& models,
-  const PeakRange& range,
   CarDetect const * carPtr,
   const bool leftFlag,
   RangeQuality& quality,
@@ -49,13 +48,6 @@ bool PeakPattern::getRangeQuality(
 {
   gap = 0;
   quality = QUALITY_NONE;
-
-  bool hasGap = (leftFlag ? range.hasLeftGap() : range.hasRightGap());
-  if (hasGap)
-  {
-    cout << "SUGGEST-ERR: Range already has gap\n";
-    return false;
-  }
 
   if (! carPtr)
   {
@@ -67,12 +59,6 @@ bool PeakPattern::getRangeQuality(
   const unsigned modelIndex = carPtr->getMatchData()->index;
   ModelData const * data = models.getData(modelIndex);
   const bool revFlag = carPtr->isReversed();
-
-  if (data->fullFlag)
-  {
-    cout << "SUGGEST-ERR: Car should not already be full\n";
-    return false;
-  }
 
   if (leftFlag)
   {
@@ -135,17 +121,10 @@ bool PeakPattern::guessNoBorders(list<PatternEntry>& candidates) const
   // edge gaps at all.
 
   if (! carBeforePtr || ! carAfterPtr)
-  {
-    cout << "SUGGEST-ERR: guessNoBorders one+ pointer is null\n";
     return false;
-  }
-
 
   if (carBeforePtr->index() != carAfterPtr->index())
-  {
-    cout << "SUGGEST-ERR: guessNoBorders cars are different\n";
     return false;
-  }
 
   // We will not test for symmetry.
   const CarPeaksPtr& peaksBefore = carBeforePtr->getPeaksPtr();
@@ -226,9 +205,6 @@ bool PeakPattern::guessNoBorders(list<PatternEntry>& candidates) const
 
   pe.borders = PATTERN_NO_BORDERS;
 
-cout << "NOBORDER\n";
-cout << pe.strAbs("SUGGEST-YY5", offset);
-
   return true;
 }
 
@@ -243,9 +219,6 @@ void PeakPattern::getFullModels(const CarModels& models)
     ModelData const * data = models.getData(index);
     if (! data->fullFlag)
       continue;
-
-cout << "TTT got model " << index << endl;
-cout << data->str();
 
     fullEntries.emplace_back(FullEntry());
     FullEntry& fe = fullEntries.back();
@@ -581,11 +554,11 @@ bool PeakPattern::suggest(
   }
 
 
-  if (! PeakPattern::getRangeQuality(models, range, carBeforePtr,
+  if (! PeakPattern::getRangeQuality(models, carBeforePtr,
       true, qualLeft, gapLeft))
     qualLeft = QUALITY_NONE;
 
-  if (! PeakPattern::getRangeQuality(models, range, carAfterPtr,
+  if (! PeakPattern::getRangeQuality(models, carAfterPtr,
       false, qualRight, gapRight))
     qualRight = QUALITY_NONE;
 
@@ -611,28 +584,28 @@ cout << "SUGGEST " << qualLeft << "-" << qualRight << ": " <<
 
 
 void PeakPattern::updateUnused(
-  PatternEntry const * pep,
+  const PatternEntry& pe,
   PeakPtrs& peakPtrsUnused) const
 {
-  if (pep->borders == PATTERN_NO_BORDERS ||
-      pep->borders == PATTERN_DOUBLE_SIDED_SINGLE)
+  if (pe.borders == PATTERN_NO_BORDERS ||
+      pe.borders == PATTERN_DOUBLE_SIDED_SINGLE)
   {
     // All the unused peaks are fair game.
 cout << "All unused peaks are OK\n";
   }
-  else if (pep->borders == PATTERN_SINGLE_SIDED_LEFT ||
-      (pep->borders == PATTERN_DOUBLE_SIDED_DOUBLE && pep->abutLeftFlag))
+  else if (pe.borders == PATTERN_SINGLE_SIDED_LEFT ||
+      (pe.borders == PATTERN_DOUBLE_SIDED_DOUBLE && pe.abutLeftFlag))
   {
     // Only keep unused peaks in range for later markdown.
-cout << "Erasing unused above " << pep->end << endl;
-    peakPtrsUnused.erase_above(pep->end);
+cout << "Erasing unused above " << pe.end << endl;
+    peakPtrsUnused.erase_above(pe.end);
   }
-  else if (pep->borders == PATTERN_SINGLE_SIDED_RIGHT ||
-      (pep->borders == PATTERN_DOUBLE_SIDED_DOUBLE && pep->abutRightFlag))
+  else if (pe.borders == PATTERN_SINGLE_SIDED_RIGHT ||
+      (pe.borders == PATTERN_DOUBLE_SIDED_DOUBLE && pe.abutRightFlag))
   {
     // Only keep unused peaks in range for later markdown.
-cout << "Erasing unused below " << pep->start << endl;
-    peakPtrsUnused.erase_below(pep->start);
+cout << "Erasing unused below " << pe.start << endl;
+    peakPtrsUnused.erase_below(pe.start);
   }
   else
   {
@@ -677,13 +650,12 @@ cout << "  erasing trailing " << (* pu)->getIndex() + offset << endl;
 
 
 void PeakPattern::update(
-  PatternEntry const * pep,
-  const vector<Peak const *>& peaksClose,
+  const NoneEntry& none,
   PeakPtrs& peakPtrsUsed,
   PeakPtrs& peakPtrsUnused) const
 {
-  PeakPattern::updateUnused(pep, peakPtrsUnused);
-  PeakPattern::updateUsed(peaksClose, peakPtrsUsed);
+  PeakPattern::updateUnused(none.pe, peakPtrsUnused);
+  PeakPattern::updateUsed(none.peaksBest, peakPtrsUsed);
 }
 
 
@@ -707,13 +679,14 @@ void PeakPattern::printClosest(
 void PeakPattern::examineCandidates(
   const PeakPtrs& peakPtrsUsed,
   list<PatternEntry>& candidates,
-  list<PatternEntry>::iterator& pe4,
-  vector<Peak const *>& peaksBest,
-  list<SingleEntry>& singles) const
+  NoneEntry& none,
+  list<SingleEntry>& singles,
+  list<DoubleEntry>& doubles) const
 {
   // Get the lie of the land.
   unsigned distBest = numeric_limits<unsigned>::max();
   singles.clear();
+  doubles.clear();
 
   for (auto pe = candidates.begin(); pe != candidates.end(); )
   {
@@ -724,24 +697,26 @@ void PeakPattern::examineCandidates(
 
     PeakPattern::printClosest(pe->indices, peaksClose);
 
-    // Get rid of the 1's and 0's.
     if (numClose <= 1)
     {
+      // Get rid of the 1's and 0's.
       pe = candidates.erase(pe);
       continue;
     }
-
-    if (numClose == 4)
-    {
-      if (dist < distBest)
-      {
-        pe4 = pe;
-        distBest = dist;
-        peaksBest = peaksClose;
-      }
-    }
+    else if (numClose == 2)
+      PeakPattern::addToDoubles(* pe, peaksClose, doubles);
     else if (numClose == 3)
       PeakPattern::addToSingles(pe->indices, peaksClose, singles);
+    else if (numClose == 4)
+    {
+      // Here we take the best one, whereas we take a more democratic
+      // approach for 2's and 3's.
+      if (dist < distBest)
+      {
+        distBest = dist;
+        PeakPattern::setNone(* pe, peaksClose, none);
+      }
+    }
 
     pe++;
   }
@@ -781,6 +756,90 @@ void PeakPattern::addToSingles(
 }
 
 
+void PeakPattern::addToDoubles(
+  const PatternEntry& pe,
+  const vector<Peak const *>& peaksClose,
+  list<DoubleEntry>& doubles) const 
+{
+  // We rely heavily on having exactly two nullptrs.
+  // TODO
+  const unsigned bogieQuarter =
+    (pe.indices[3] - pe.indices[2] + pe.indices[1] - pe.indices[0]) / 8;
+
+  doubles.emplace_back(DoubleEntry());
+  DoubleEntry& de = doubles.back();
+
+  bool seenFirstFlag = false;
+  bool seenSecondFlag = false;
+  unsigned i0 = numeric_limits<unsigned>::max();
+  unsigned i1 = numeric_limits<unsigned>::max();
+  for (unsigned i = 0; i < peaksClose.size(); i++)
+  {
+    if (peaksClose[i] == nullptr)
+    {
+      if (! seenFirstFlag)
+      {
+        de.first.target = pe.indices[i];
+        i0 = i;
+        seenFirstFlag = true;
+      }
+      else
+      {
+        de.second.target = pe.indices[i];
+        i1 = i;
+        seenSecondFlag = true;
+        break;
+      }
+    }
+  }
+
+  if (! seenSecondFlag)
+    return;
+
+  if (pe.borders == PATTERN_NO_BORDERS ||
+      pe.borders == PATTERN_DOUBLE_SIDED_SINGLE)
+  {
+    // All the unused peaks are fair game.
+  }
+  else if (pe.borders == PATTERN_SINGLE_SIDED_LEFT ||
+      (pe.borders == PATTERN_DOUBLE_SIDED_DOUBLE && pe.abutLeftFlag))
+  {
+    // Don't look open-ended from the left when the right bogie has
+    // no match at all.
+    if (i0 == 2 && i1 == 3)
+      return;
+  }
+  else if (pe.borders == PATTERN_SINGLE_SIDED_RIGHT ||
+      (pe.borders == PATTERN_DOUBLE_SIDED_DOUBLE && pe.abutRightFlag))
+  {
+    // Don't look open-ended from the right when the left bogie has
+    // no match at all.
+    if (i0 == 0 && i1 == 1)
+      return;
+  }
+
+  if (de.first.target < bogieQuarter)
+    de.first.lower = 0;
+  else
+    de.first.lower = de.first.target - bogieQuarter;
+
+  de.first.upper = de.first.target + bogieQuarter;
+
+  de.second.lower = de.second.target - bogieQuarter;
+  de.second.upper = de.second.target + bogieQuarter;
+}
+
+
+void PeakPattern::setNone(
+  PatternEntry& pe,
+  vector<Peak const *>& peaksBest,
+  NoneEntry& none) const
+{
+  none.pe = pe;
+  none.peaksBest = peaksBest;
+}
+
+
 void PeakPattern::condenseSingles(list<SingleEntry>& singles) const
 {
   for (auto se = singles.begin(); se != singles.end(); se++)
@@ -799,6 +858,30 @@ void PeakPattern::condenseSingles(list<SingleEntry>& singles) const
     }
   }
   singles.sort();
+}
+
+
+void PeakPattern::condenseDoubles(list<DoubleEntry>& doubles) const
+{
+  for (auto de = doubles.begin(); de != doubles.end(); de++)
+  {
+    de->count = 1;
+   
+    for (auto de2 = next(de); de2 != doubles.end(); )
+    {
+      if (de2->first.target >= de->first.lower && 
+          de2->first.target <= de->first.upper &&
+          de2->second.target >= de->second.lower &&
+          de2->second.target <= de->second.upper)
+      {
+        de->count++;
+        de2 = doubles.erase(de2);
+      }
+      else
+        de2++;
+    }
+  }
+  doubles.sort();
 }
 
 
@@ -837,6 +920,51 @@ for (auto s: singles)
 }
 
 
+bool PeakPattern::fixDoubles(
+  PeakPool& peaks,
+  list<DoubleEntry>& doubles,
+  PeakPtrs& peakPtrsUsed) const
+{
+cout << "Doubles before\n";
+for (auto d: doubles)
+  cout << d.str(offset);
+
+  PeakPattern::condenseDoubles(doubles);
+
+cout << "Doubles after\n";
+for (auto d: doubles)
+  cout << d.str(offset);
+
+  Peak peakHint;
+  for (auto& db: doubles)
+  {
+    peakHint.logPosition(db.first.target, db.first.lower, db.first.upper);
+    Peak * pptr = peaks.repair(peakHint, &Peak::goodQuality, offset);
+    if (pptr == nullptr)
+      continue;
+
+    cout << "Repaired target " << db.first.target + offset << " to " <<
+      pptr->getIndex() + offset << endl;
+
+    peakPtrsUsed.add(pptr);
+
+    peakHint.logPosition(db.second.target, db.second.lower, db.second.upper);
+    pptr = peaks.repair(peakHint, &Peak::goodQuality, offset);
+    if (pptr == nullptr)
+      continue;
+
+    cout << "Repaired target " << db.second.target + offset << " to " <<
+      pptr->getIndex() + offset << endl;
+
+    peakPtrsUsed.add(pptr);
+
+    return true;
+  }
+
+  return false;
+}
+
+
 bool PeakPattern::verify(
   list<PatternEntry>& candidates,
   PeakPool& peaks,
@@ -847,39 +975,44 @@ bool PeakPattern::verify(
   // for each candidate whether its missing peaks can be repaired, and
   // only then repair those peaks.  In PeakPool::repair it would indeed
   // be possible to do this.  But I'm going the easier way here for now.
-  // * Candidates with all 4 peaks win.
-  // * Then we see which peaks (singles) would conclude 3-peak candidates, 
-  //   and we try to repair those peaks in decreasing order of popularity.
-  // * Finally we may also look at the 2-peak candidates.
 
-  list<PatternEntry>::iterator pe4 = candidates.end();
+  NoneEntry none;
   list<SingleEntry> singles;
-  vector<Peak const *> peaksBest;
+  list<DoubleEntry> doubles;
 
-  PeakPattern::examineCandidates(peakPtrsUsed, candidates, pe4, 
-    peaksBest, singles);
+  PeakPattern::examineCandidates(peakPtrsUsed, candidates, 
+    none, singles, doubles);
 
-  // Try the 3's first.
-  if (pe4 == candidates.end() && ! singles.empty())
+  // Start with the 2's if that's all there is.
+  /*
+  if (none.empty() && singles.empty() && ! doubles.empty())
+  {
+    if (PeakPattern::fixDoubles(peaks, doubles, peakPtrsUsed))
+    {
+      PeakPattern::examineCandidates(peakPtrsUsed, candidates, 
+        none, singles, doubles);
+    }
+  }
+  */
+
+  // Try the 3's (original or 2's turned 3's) if there are no 4's.
+  if (none.empty() && ! singles.empty())
   {
     if (PeakPattern::fixSingles(peaks, singles, peakPtrsUsed))
     {
-      PeakPattern::examineCandidates(peakPtrsUsed, candidates, pe4, 
-          peaksBest, singles);
+      PeakPattern::examineCandidates(peakPtrsUsed, candidates,
+        none, singles, doubles);
     }
   }
 
-  // Try the 4's or the 3's-turned-4's.
-  if (pe4 != candidates.end())
+  // Try the 4's of various origins.
+  if (! none.empty())
   {
     cout << "Have all 4 indices now\n";
-    PeakPattern::update(&* pe4, peaksBest, peakPtrsUsed, peakPtrsUnused);
+    PeakPattern::update(none, peakPtrsUsed, peakPtrsUnused);
     return true;
   }
 
-  // Could also try the 2's.
-
-  cout << "Only 2's left now\n";
   return false;
 }
 

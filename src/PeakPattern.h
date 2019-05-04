@@ -85,6 +85,22 @@ class PeakPattern
       vector<unsigned> lenHi;
     };
 
+    struct NoneEntry
+    {
+      PatternEntry pe;
+      vector<Peak const *> peaksBest;
+
+      NoneEntry()
+      {
+        peaksBest.clear();
+      };
+
+      bool empty()
+      {
+        return peaksBest.empty();
+      };
+    };
+
     struct SingleEntry
     {
       unsigned target;
@@ -108,6 +124,27 @@ class PeakPattern
       };
     };
 
+    struct DoubleEntry
+    {
+      SingleEntry first;
+      SingleEntry second;
+      unsigned count;
+
+      bool operator < (const DoubleEntry& de2)
+      {
+        return (count < de2.count);
+      };
+
+      string str(const unsigned offset)
+      {
+        stringstream ss;
+        ss << first.str(offset) <<
+          second.str(offset) <<
+          "count " << count << endl;
+        return ss.str();
+      };
+    };
+
     unsigned offset;
 
     CarDetect const * carBeforePtr;
@@ -122,7 +159,6 @@ class PeakPattern
 
     bool getRangeQuality(
       const CarModels& models,
-      const PeakRange& range,
       CarDetect const * carPtr,
       const bool leftFlag,
       RangeQuality& quality,
@@ -170,7 +206,7 @@ class PeakPattern
       list<PatternEntry>& candidates) const;
 
     void updateUnused(
-      PatternEntry const * pep,
+      const PatternEntry& pe,
       PeakPtrs& peakPtrsUnused) const;
 
     void updateUsed(
@@ -178,8 +214,7 @@ class PeakPattern
       PeakPtrs& peakPtrsUsed) const;
 
     void update(
-      PatternEntry const * pep,
-      const vector<Peak const *>& peaksClose,
+      const NoneEntry& none,
       PeakPtrs& peakPtrsUsed,
       PeakPtrs& peakPtrsUnused) const;
 
@@ -190,20 +225,37 @@ class PeakPattern
     void examineCandidates(
       const PeakPtrs& peakPtrsUsed,
       list<PatternEntry>& candidates,
-      list<PatternEntry>::iterator& pe4,
+      NoneEntry& none,
+      list<SingleEntry>& singles,
+      list<DoubleEntry>& doubles) const;
+
+    void setNone(
+      PatternEntry& pe,
       vector<Peak const *>& peaksBest,
-      list<SingleEntry>& singles) const;
+      NoneEntry& none) const;
 
     void addToSingles(
       const vector<unsigned>& indices,
       const vector<Peak const *>& peaksClose,
       list<SingleEntry>& singles) const;
 
+    void addToDoubles(
+      const PatternEntry& pe,
+      const vector<Peak const *>& peaksClose,
+      list<DoubleEntry>& doubles) const;
+
     void condenseSingles(list<SingleEntry>& singles) const;
+
+    void condenseDoubles(list<DoubleEntry>& doubles) const;
 
     bool fixSingles(
       PeakPool& peaks,
       list<SingleEntry>& singles,
+      PeakPtrs& peakPtrsUsed) const;
+
+    bool fixDoubles(
+      PeakPool& peaks,
+      list<DoubleEntry>& doubles,
       PeakPtrs& peakPtrsUsed) const;
 
 
