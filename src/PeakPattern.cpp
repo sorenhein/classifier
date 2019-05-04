@@ -802,6 +802,41 @@ void PeakPattern::condenseSingles(list<SingleEntry>& singles) const
 }
 
 
+bool PeakPattern::fixSingles(
+  PeakPool& peaks,
+  list<SingleEntry>& singles,
+  PeakPtrs& peakPtrsUsed) const
+{
+cout << "Singles before\n";
+for (auto s: singles)
+  cout << s.str(offset);
+
+  PeakPattern::condenseSingles(singles);
+
+cout << "Singles after\n";
+for (auto s: singles)
+  cout << s.str(offset);
+
+  Peak peakHint;
+  for (auto& single: singles)
+  {
+    peakHint.logPosition(single.target, single.lower, single.upper);
+    Peak * pptr = peaks.repair(peakHint, &Peak::goodQuality, offset);
+
+    if (pptr == nullptr)
+      continue;
+
+    cout << "Repaired target " << single.target + offset << " to " <<
+      pptr->getIndex() + offset << endl;
+
+    peakPtrsUsed.add(pptr);
+    return true;
+  }
+
+  return false;
+}
+
+
 bool PeakPattern::verify(
   list<PatternEntry>& candidates,
   PeakPool& peaks,
@@ -835,40 +870,10 @@ bool PeakPattern::verify(
   // Try the 3's first.
   if (! singles.empty())
   {
-cout << "Singles before\n";
-for (auto s: singles)
-{
-  cout << s.target + offset << ", " << 
-    s.lower + offset << ", " << 
-    s.upper + offset << ", " <<
-    s.count << endl;
-}
-    PeakPattern::condenseSingles(singles);
-cout << "Singles after\n";
-for (auto s: singles)
-{
-  cout << s.target + offset << ", " << 
-    s.lower + offset << ", " << 
-    s.upper + offset << ", " <<
-    s.count << endl;
-}
-    Peak peakHint;
-    for (auto& single: singles)
+    if (PeakPattern::fixSingles(peaks, singles, peakPtrsUsed))
     {
-      peakHint.logPosition(single.target, single.lower, single.upper);
-      Peak * pptr = peaks.repair(peakHint, &Peak::goodQuality, offset);
-
-      if (pptr != nullptr)
-      {
-        cout << "Repaired target " << single.target + offset << " to " <<
-          pptr->getIndex() + offset << endl;
-
-        // Should have all 4 indices now.
-        peakPtrsUsed.add(pptr);
-        PeakPattern::examineCandidates(peakPtrsUsed, candidates, pe4, 
-            peaksBest, singles);
-        break;
-      }
+      PeakPattern::examineCandidates(peakPtrsUsed, candidates, pe4, 
+          peaksBest, singles);
     }
   }
 

@@ -96,6 +96,16 @@ class PeakPattern
       {
         return (count < se2.count);
       };
+
+      string str(const unsigned offset)
+      {
+        stringstream ss;
+        ss << target + offset << "(" <<
+          lower + offset << "-" <<
+          upper + offset << "), count " <<
+          count << endl;
+        return ss.str();
+      };
     };
 
     unsigned offset;
@@ -190,6 +200,11 @@ class PeakPattern
       list<SingleEntry>& singles) const;
 
     void condenseSingles(list<SingleEntry>& singles) const;
+
+    bool fixSingles(
+      PeakPool& peaks,
+      list<SingleEntry>& singles,
+      PeakPtrs& peakPtrsUsed) const;
 
 
   public:
