@@ -57,8 +57,8 @@ PeakStructure::PeakStructure()
       "by good quality", 2});
 
   findCarFunctions.push_back(
-    { &PeakStructure::findCarByGeometry, 
-      "by geometry", 3});
+    { &PeakStructure::findCarByPattern, 
+      "by pattern", 3});
 
   // No great peaks at all.
   findCarFunctions.push_back(
@@ -79,8 +79,8 @@ PeakStructure::PeakStructure()
     { &PeakStructure::findCarByThreePeaks, 
       "by three peaks", 8});
   findCarFallbacks.push_back(
-    { &PeakStructure::findCarByPattern, 
-      "by pattern", 9});
+    { &PeakStructure::findCarByGeometry, 
+      "by geometry", 9});
   
   hitSize = NUM_METHODS;
   hits.resize(NUM_METHODS);

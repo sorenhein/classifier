@@ -15,7 +15,7 @@ my $FORMAT_CSV = 1;
 
 my $REGRESS_THRESHOLD = 3.;
 
-my $NUM_EMPTY_FNC = 5;
+my $NUM_EMPTY_FNC = 4;
 my $NUM_LAST_FNC = 9;
 
 my @confusion;

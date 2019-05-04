@@ -72,6 +72,8 @@ void PeakPartial::recoverPeaks0011(vector<Peak const *>& peakPtrsUsed)
   unsigned iuNext;
   if (peakPtrsUsed[iu-1]->fantasticQuality())
     iuNext = iu-1;
+  else if (iu == 1)
+    return;
   else if (peakSlots.number() >= 3 && peakPtrsUsed[iu-2]->fantasticQuality())
     iuNext = iu-2;
   else

@@ -904,10 +904,14 @@ for (auto s: singles)
   for (auto& single: singles)
   {
     peakHint.logPosition(single.target, single.lower, single.upper);
-    Peak * pptr = peaks.repair(peakHint, &Peak::goodQuality, offset);
+    // Peak * pptr = peaks.repair(peakHint, &Peak::goodQuality, offset);
+    Peak * pptr = peaks.repair(peakHint, &Peak::acceptableQuality, offset);
 
     if (pptr == nullptr)
+    {
+      cout << "Failed repair target " << single.target + offset << "\n";
       continue;
+    }
 
     cout << "Repaired target " << single.target + offset << " to " <<
       pptr->getIndex() + offset << endl;
@@ -1017,8 +1021,7 @@ cout << "VERIFY1 " << ! none.empty() << ", " <<
     return true;
   }
 
-cout << "VERIFY2 " << ! none.empty() << ", " <<
-  singles.size() << ", " << doubles.size() << endl;
+cout << "VERIFY2 " << singles.size() << ", " << doubles.size() << endl;
 
   return false;
 }
