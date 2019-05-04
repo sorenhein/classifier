@@ -448,6 +448,7 @@ Peak * PeakPool::repairFromLower(
   // to the bracketing one with opposite polarity.  In the gap we put 
   // the intervening peak with maximum value.  This is quick and dirty.
   Piterator pmax;
+  Piterator ptopNew;
   Bracket bracketTmp;
 
   if (bracketLower.left.pit->isMinimum())
@@ -480,7 +481,7 @@ Peak * PeakPool::repairFromLower(
       return nullptr;
     }
 
-    auto ptopNew = peaks->insert(bracketTop.right.pit, * foundLowerIter);
+    ptopNew = peaks->insert(bracketTop.right.pit, * foundLowerIter);
     peaks->insert(ptopNew, * pmax);
   }
   else
@@ -512,14 +513,15 @@ Peak * PeakPool::repairFromLower(
       return nullptr;
     }
 
-    auto ptopNew = peaks->insert(bracketTop.right.pit, * foundLowerIter);
+    ptopNew = peaks->insert(bracketTop.right.pit, * foundLowerIter);
     peaks->insert(bracketTop.right.pit, * pmax);
   }
 
   PeakPool::updateRepairedPeaks(bracketTop);
+
   PeakPool::printRepairedSegment("Fixed top-level", bracketTop, offset);
 
-  return &* foundLowerIter;
+  return &* ptopNew;
 }
 
 

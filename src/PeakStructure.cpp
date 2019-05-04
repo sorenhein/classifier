@@ -654,10 +654,11 @@ PeakStructure::FindCarType PeakStructure::findCarByPattern(
   PeakRange rangeLocal;
   rangeLocal.init(peakPtrsUsed);
   car.makeFourWheeler(rangeLocal, peakPtrsUsed);
+
   peakPtrsUsed.markup();
   peakPtrsUnused.apply(&Peak::markdown);
 
-  return FIND_CAR_NO_MATCH;
+  return FIND_CAR_MATCH;
 }
 
 

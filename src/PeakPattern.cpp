@@ -340,18 +340,34 @@ bool PeakPattern::fillFromModel(
   const PatternType patternType,
   list<PatternEntry>& candidates) const
 {
+  list<unsigned> carPoints;
+  models.getCarPoints(indexModel, carPoints);
+
   PatternEntry pe;
 
   pe.modelNo = indexModel;
   pe.reverseFlag = false;
   pe.abutLeftFlag = (indexRangeLeft != 0);
   pe.abutRightFlag = (indexRangeRight != 0);
-  pe.start = indexRangeLeft;
-  pe.end = indexRangeRight;
+
+  if (pe.abutLeftFlag && pe.abutRightFlag)
+  {
+    pe.start = indexRangeLeft;
+    pe.end = indexRangeRight;
+  }
+  else if (pe.abutLeftFlag)
+  {
+    pe.start = indexRangeLeft;
+    pe.end = pe.start + carPoints.back();
+  }
+  else if (pe.abutRightFlag)
+  {
+    pe.start = indexRangeRight - carPoints.back();
+    pe.end = indexRangeRight;
+  }
+
   pe.borders = patternType;
 
-  list<unsigned> carPoints;
-  models.getCarPoints(indexModel, carPoints);
   if (! PeakPattern::fillPoints(carPoints, 
       (pe.abutLeftFlag ? indexRangeLeft : indexRangeRight), false, pe))
     return false;
@@ -397,7 +413,8 @@ cout << "TTT guessLeft actual abutting peak: " <<
 
   for (auto& fe: fullEntries)
   {
-cout << " TTT got left model: " << fe.index << endl;
+cout << " TTT got left model: " << fe.index << ", " <<
+  indexLeft << endl;
     PeakPattern::fillFromModel(models, fe.index, fe.data->symmetryFlag,
       indexLeft, 0, PATTERN_SINGLE_SIDED_LEFT, candidates);
   }
@@ -601,16 +618,80 @@ cout << "SUGGEST " << qualLeft << "-" << qualRight << ": " <<
 }
 
 
+void PeakPattern::updateUnused(
+  PatternEntry const * pep,
+  PeakPtrs& peakPtrsUnused) const
+{
+  if (pep->borders == PATTERN_NO_BORDERS ||
+      pep->borders == PATTERN_DOUBLE_SIDED_SINGLE)
+  {
+    // All the unused peaks are fair game.
+cout << "All unused peaks are OK\n";
+  }
+  else if (pep->borders == PATTERN_SINGLE_SIDED_LEFT ||
+      (pep->borders == PATTERN_DOUBLE_SIDED_DOUBLE && pep->abutLeftFlag))
+  {
+    // Only keep unused peaks in range for later markdown.
+cout << "Erasing unused above " << pep->end << endl;
+    peakPtrsUnused.erase_above(pep->end);
+  }
+  else if (pep->borders == PATTERN_SINGLE_SIDED_RIGHT ||
+      (pep->borders == PATTERN_DOUBLE_SIDED_DOUBLE && pep->abutRightFlag))
+  {
+    // Only keep unused peaks in range for later markdown.
+cout << "Erasing unused below " << pep->start << endl;
+    peakPtrsUnused.erase_below(pep->start);
+  }
+  else
+  {
+    cout << "ERROR: Unrecognized border type.\n";
+  }
+}
+
+
+void PeakPattern::updateUsed(
+  const vector<Peak const *>& peaksClose,
+  PeakPtrs& peakPtrsUsed) const
+{
+  // There may be some peaks that have to be moved.
+  auto pu = peakPtrsUsed.begin();
+  for (auto& peak: peaksClose)
+  {
+    const unsigned indexClose = peak->getIndex();
+cout << "Looking for " << indexClose + offset << "\n";
+    while (pu != peakPtrsUsed.end() && (* pu)->getIndex() < indexClose)
+    {
+cout << "  erasing " << (* pu)->getIndex() + offset << endl;
+      pu = peakPtrsUsed.erase(pu);
+    }
+
+    if (pu == peakPtrsUsed.end())
+      break;
+
+    // Preserve those peaks that are also in peaksClose.
+    if ((* pu)->getIndex() == indexClose)
+    {
+cout << "  found " << (* pu)->getIndex() + offset << endl;
+      pu = peakPtrsUsed.next(pu);
+    }
+  }
+
+  while (pu != peakPtrsUsed.end())
+  {
+cout << "  erasing trailing " << (* pu)->getIndex() + offset << endl;
+    pu = peakPtrsUsed.erase(pu);
+  }
+}
+
+
 void PeakPattern::update(
   PatternEntry const * pep,
   const vector<Peak const *>& peaksClose,
   PeakPtrs& peakPtrsUsed,
   PeakPtrs& peakPtrsUnused) const
 {
-  UNUSED(pep);
-  UNUSED(peaksClose);
-  UNUSED(peakPtrsUsed);
-  UNUSED(peakPtrsUnused);
+  PeakPattern::updateUnused(pep, peakPtrsUnused);
+  PeakPattern::updateUsed(peaksClose, peakPtrsUsed);
 }
 
 
@@ -802,9 +883,14 @@ for (auto s: singles)
         }
 
         cout << "Have all 4 indices now\n";
+cout << peakPtrsUsed.strQuality("used before", offset);
+cout << peakPtrsUnused.strQuality("unused before", offset);
+
         PeakPattern::update(&* pe4, peaksBest, peakPtrsUsed, peakPtrsUnused);
+cout << peakPtrsUsed.strQuality("used after", offset);
+cout << peakPtrsUnused.strQuality("unused after", offset);
         // For now
-        return false;
+        return true;
         break;
       }
     }

@@ -159,6 +159,14 @@ class PeakPattern
       const CarModels& models,
       list<PatternEntry>& candidates) const;
 
+    void updateUnused(
+      PatternEntry const * pep,
+      PeakPtrs& peakPtrsUnused) const;
+
+    void updateUsed(
+      const vector<Peak const *>& peaksClose,
+      PeakPtrs& peakPtrsUsed) const;
+
     void update(
       PatternEntry const * pep,
       const vector<Peak const *>& peaksClose,
