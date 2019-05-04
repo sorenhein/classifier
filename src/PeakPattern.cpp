@@ -859,16 +859,8 @@ bool PeakPattern::verify(
   PeakPattern::examineCandidates(peakPtrsUsed, candidates, pe4, 
     peaksBest, singles);
 
-  // Try the 4's.
-  if (pe4 != candidates.end())
-  {
-    cout << "All 4 indices matched the first time\n";
-    PeakPattern::update(&* pe4, peaksBest, peakPtrsUsed, peakPtrsUnused);
-    return true;
-  }
-
   // Try the 3's first.
-  if (! singles.empty())
+  if (pe4 == candidates.end() && ! singles.empty())
   {
     if (PeakPattern::fixSingles(peaks, singles, peakPtrsUsed))
     {
@@ -877,6 +869,7 @@ bool PeakPattern::verify(
     }
   }
 
+  // Try the 4's or the 3's-turned-4's.
   if (pe4 != candidates.end())
   {
     cout << "Have all 4 indices now\n";
