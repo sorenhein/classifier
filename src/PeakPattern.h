@@ -148,23 +148,23 @@ class PeakPattern
 
     bool acceptable(
       PatternEntry const * pep,
-      const vector<Peak *>& peaksClose,
+      const vector<Peak const *>& peaksClose,
       const unsigned numClose) const;
 
     bool recoverable(
       const PeakPool& peaks,
       const vector<unsigned>& indices,
-      const vector<Peak *>& peaksClose,
+      const vector<Peak const *>& peaksClose,
       float& dist) const;
 
     void recover(
       const PeakPool& peaks,
       const vector<unsigned>& indices,
-      const vector<Peak *>& peaksClose) const;
+      const vector<Peak const *>& peaksClose) const;
 
     void update(
       PatternEntry const * pep,
-      const vector<Peak *>& peaksClose,
+      const vector<Peak const *>& peaksClose,
       PeakPtrs& peakPtrsUsed,
       PeakPtrs& peakPtrsUnused) const;
 

@@ -600,7 +600,7 @@ cout << "SUGGEST " << qualLeft << "-" << qualRight << ": " <<
 
 bool PeakPattern::acceptable(
   PatternEntry const * pep,
-  const vector<Peak *>& peaksClose,
+  const vector<Peak const *>& peaksClose,
   const unsigned numClose) const
 {
   UNUSED(pep);
@@ -613,7 +613,7 @@ bool PeakPattern::acceptable(
 bool PeakPattern::recoverable(
   const PeakPool& peaks,
   const vector<unsigned>& indices,
-  const vector<Peak *>& peaksClose,
+  const vector<Peak const *>& peaksClose,
   float& dist) const
 {
   UNUSED(peaks);
@@ -627,7 +627,7 @@ bool PeakPattern::recoverable(
 void PeakPattern::recover(
   const PeakPool& peaks,
   const vector<unsigned>& indices,
-  const vector<Peak *>& peaksClose) const
+  const vector<Peak const *>& peaksClose) const
 {
   UNUSED(peaks);
   UNUSED(indices);
@@ -637,7 +637,7 @@ void PeakPattern::recover(
 
 void PeakPattern::update(
   PatternEntry const * pep,
-  const vector<Peak *>& peaksClose,
+  const vector<Peak const *>& peaksClose,
   PeakPtrs& peakPtrsUsed,
   PeakPtrs& peakPtrsUnused) const
 {
@@ -656,11 +656,11 @@ bool PeakPattern::verify(
 {
   float distBest = numeric_limits<float>::max();
   PatternEntry const * candBest = nullptr;
-  vector<Peak *> peaksBest;
+  vector<Peak const *> peaksBest;
 
   for (auto& pe: candidates)
   {
-    vector<Peak *> peaksClose;
+    vector<Peak const *> peaksClose;
     unsigned numClose;
     PatternEntry const * pep = &pe;
 

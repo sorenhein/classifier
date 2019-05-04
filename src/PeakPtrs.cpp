@@ -368,16 +368,55 @@ Peak const * PeakPtrs::locate(
 }
 
 
-#define UNUSED(x) ((void)(true ? 0 : ((x), void(), 0)))
 void PeakPtrs::getClosest(
   const vector<unsigned>& indices,
-  vector<Peak *>& peaksClose,
+  vector<Peak const *>& peaksClose,
   unsigned& numClose) const
 {
-  // TODO
-  UNUSED(indices);
-  UNUSED(peaksClose);
-  UNUSED(numClose);
+  const unsigned ni = indices.size();
+  peaksClose.resize(indices.size(), nullptr);
+
+  if (ni != 4)
+    return;
+
+  // Roughly a bogie gap.
+  const unsigned yardstick = 
+    (indices[1] - indices[0] + indices[3] - indices[2]) / 2;
+
+  auto pit = peaks.begin();
+  vector<unsigned> dist;
+  dist.resize(ni, numeric_limits<unsigned>::max());
+
+  for (unsigned i = 0; i < ni; i++)
+  {
+    const unsigned iindex = indices[i];
+    unsigned pindex = 0, d;
+    while (pit != peaks.end() && (pindex = (* pit)->getIndex()) < iindex)
+    {
+      d = iindex - pindex;
+      if (d < yardstick && d < dist[i])
+      {
+        peaksClose[i] = * pit;
+        dist[i] = d;
+      }
+      pit++;
+    }
+
+    if (pit == peaks.end())
+      continue;
+
+    d = pindex - iindex;
+    if (d < yardstick && d < dist[i])
+    {
+      peaksClose[i] = * pit;
+      dist[i] = d;
+      pit++;
+    }
+  }
+
+  for (unsigned i = 0; i < ni; i++)
+    if (peaksClose[i] != nullptr)
+      numClose++;
 }
 
 
