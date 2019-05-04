@@ -380,9 +380,9 @@ void PeakPtrs::getClosest(
   if (ni != 4)
     return;
 
-  // Roughly a bogie gap.
+  // Roughly half a bogie gap.
   const unsigned yardstick = 
-    (indices[1] - indices[0] + indices[3] - indices[2]) / 2;
+    (indices[1] - indices[0] + indices[3] - indices[2]) / 4;
 
   auto pit = peaks.begin();
   vector<unsigned> dist;

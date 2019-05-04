@@ -123,7 +123,7 @@ class PeakPattern
     bool findSingleModel(
       const RangeQuality qualOverall,
       const unsigned lenRange,
-      FullEntry const *& fep) const;
+      list<FullEntry const *>& feps) const;
 
     bool findDoubleModel(
       const RangeQuality qualOverall,

@@ -460,9 +460,8 @@ cout << " TTT got right model: " << fe.index << endl;
 bool PeakPattern::findSingleModel(
   const RangeQuality qualOverall,
   const unsigned lenRange,
-  FullEntry const *& fep) const
+  list<FullEntry const *>& feps) const
 {
-  unsigned count = 0;
   for (auto& fe: fullEntries)
   {
 cout << "TTT comparing to model " << fe.index << ": lenPP " <<
@@ -472,20 +471,11 @@ cout << "TTT comparing to model " << fe.index << ": lenPP " <<
     if (lenRange >= fe.lenLo[qualOverall] &&
         lenRange <= fe.lenHi[qualOverall])
     {
-      count++;
-      fep = &fe;
+      feps.push_back(&fe);
     }
   }
 
-  if (count == 0)
-    return false;
-  else if (count >= 2)
-  {
-    cout << "SUGGEST-ERR: guessBoth several matches to single car\n";
-    return false;
-  }
-  else
-    return true;
+  return (feps.size() > 0);
 }
 
 
@@ -543,17 +533,19 @@ cout << "TTT actual abutting peaks: " <<
   const unsigned lenRange = indexRight - indexLeft;
 cout << "TTT looking for actual length " << lenRange << endl;
 
-  FullEntry const * fep = nullptr;
-  if (PeakPattern::findSingleModel(qualOverall, lenRange, fep))
+  list<FullEntry const *> feps;
+  if (PeakPattern::findSingleModel(qualOverall, lenRange, feps))
   {
-    PeakPattern::fillFromModel(models, fep->index, 
-      fep->data->symmetryFlag, indexLeft, indexRight, 
-      PATTERN_DOUBLE_SIDED_SINGLE, candidates);
+    for (auto fp: feps)
+    {
+      PeakPattern::fillFromModel(models, fp->index, 
+        fp->data->symmetryFlag, indexLeft, indexRight, 
+        PATTERN_DOUBLE_SIDED_SINGLE, candidates);
+    }
 
     return true;
   }
 
-  list<FullEntry const *> feps;
   if (PeakPattern::findDoubleModel(qualOverall, lenRange, feps))
   {
 cout << " TTT got double-models: " << feps.size() << endl;
@@ -837,12 +829,10 @@ bool PeakPattern::verify(
   {
     cout << "All 4 indices matched the first time\n";
     PeakPattern::update(&* pe4, peaksBest, peakPtrsUsed, peakPtrsUnused);
-    // For now
     return true;
   }
 
-  // Try the 3's.
-  Peak * pptr = nullptr;
+  // Try the 3's first.
   if (! singles.empty())
   {
 cout << "Singles before\n";
@@ -866,8 +856,9 @@ for (auto s: singles)
     for (auto& single: singles)
     {
       peakHint.logPosition(single.target, single.lower, single.upper);
-      if ((pptr = peaks.repair(peakHint, &Peak::goodQuality, offset)) != 
-          nullptr)
+      Peak * pptr = peaks.repair(peakHint, &Peak::goodQuality, offset);
+
+      if (pptr != nullptr)
       {
         cout << "Repaired target " << single.target + offset << " to " <<
           pptr->getIndex() + offset << endl;
@@ -876,24 +867,16 @@ for (auto s: singles)
         peakPtrsUsed.add(pptr);
         PeakPattern::examineCandidates(peakPtrsUsed, candidates, pe4, 
             peaksBest, singles);
-        if (pe4 == candidates.end())
-        {
-          cout << "ERROR: Still no complete match\n";
-          return false;
-        }
-
-        cout << "Have all 4 indices now\n";
-cout << peakPtrsUsed.strQuality("used before", offset);
-cout << peakPtrsUnused.strQuality("unused before", offset);
-
-        PeakPattern::update(&* pe4, peaksBest, peakPtrsUsed, peakPtrsUnused);
-cout << peakPtrsUsed.strQuality("used after", offset);
-cout << peakPtrsUnused.strQuality("unused after", offset);
-        // For now
-        return true;
         break;
       }
     }
+  }
+
+  if (pe4 != candidates.end())
+  {
+    cout << "Have all 4 indices now\n";
+    PeakPattern::update(&* pe4, peaksBest, peakPtrsUsed, peakPtrsUnused);
+    return true;
   }
 
   // Could also try the 2's.
