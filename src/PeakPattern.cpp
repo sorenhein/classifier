@@ -277,26 +277,25 @@ bool PeakPattern::fillPoints(
   const bool reverseFlag,
   PatternEntry& pe) const
 {
-  unsigned pi;
-  int incr;
-  if (reverseFlag)
-  {
-    pi = 3;
-    incr = -1;
-  }
-  else
-  {
-    pi = 0;
-    incr = 1;
-  }
-
   if (pe.abutLeftFlag)
   {
     pe.indices.resize(4);
 
-    for (auto i = next(carPoints.begin()); i != prev(carPoints.end()); 
-        i++, pi += incr)
-      pe.indices[pi] = indexBase + * i;
+    if (! reverseFlag)
+    {
+      unsigned pi = 0;
+      for (auto i = next(carPoints.begin()); i != prev(carPoints.end()); 
+          i++, pi++)
+        pe.indices[pi] = indexBase + * i;
+    }
+    else
+    {
+      const unsigned pointLast = carPoints.back();
+      unsigned pi = 3;
+      for (auto i = next(carPoints.begin()); i != prev(carPoints.end()); 
+          i++, pi--)
+        pe.indices[pi] = indexBase + pointLast - * i;
+    }
   }
   else
   {
@@ -312,9 +311,20 @@ bool PeakPattern::fillPoints(
 
     pe.indices.resize(4);
 
-    for (auto i = next(carPoints.begin()); i != prev(carPoints.end()); 
-        i++, pi += incr)
-      pe.indices[pi] = indexBase + * i - pointLast;
+    if (! reverseFlag)
+    {
+      unsigned pi = 0;
+      for (auto i = next(carPoints.begin()); i != prev(carPoints.end()); 
+          i++, pi++)
+        pe.indices[pi] = indexBase + * i - pointLast;
+    }
+    else
+    {
+      unsigned pi = 3;
+      for (auto i = next(carPoints.begin()); i != prev(carPoints.end()); 
+          i++, pi--)
+        pe.indices[pi] = indexBase - * i;
+    }
   }
 
   return true;
@@ -330,8 +340,7 @@ bool PeakPattern::fillFromModel(
   const PatternType patternType,
   list<PatternEntry>& candidates) const
 {
-  candidates.emplace_back(PatternEntry());
-  PatternEntry& pe = candidates.back();
+  PatternEntry pe;
 
   pe.modelNo = indexModel;
   pe.reverseFlag = false;
@@ -347,26 +356,20 @@ bool PeakPattern::fillFromModel(
       (pe.abutLeftFlag ? indexRangeLeft : indexRangeRight), false, pe))
     return false;
 
+  candidates.emplace_back(pe);
 cout << pe.strAbs("SUGGEST-ZZ1", offset);
 
   // Two options if asymmetric.
   if (symmetryFlag)
     return true;
 
-  candidates.emplace_back(PatternEntry());
-  PatternEntry& pe2 = candidates.back();
-
-  pe2.modelNo = indexModel;
-  pe2.reverseFlag = true;
-  pe.abutLeftFlag = (indexRangeLeft != 0);
-  pe.abutRightFlag = (indexRangeRight != 0);
-  pe2.start = indexRangeLeft;
-  pe2.end = indexRangeRight;
-  pe2.borders = patternType;
+  pe.reverseFlag = true;
 
   if (! PeakPattern::fillPoints(carPoints, 
-      (pe2.abutLeftFlag ? indexRangeLeft : indexRangeRight), true, pe2))
+      (pe.abutLeftFlag ? indexRangeLeft : indexRangeRight), true, pe))
     return false;
+
+  candidates.emplace_back(pe);
 
 cout << pe.strAbs("SUGGEST-ZZ1rev", offset);
 
@@ -648,6 +651,23 @@ void PeakPattern::update(
 }
 
 
+void PeakPattern::printClosest(
+  const vector<unsigned>& indices,
+  const vector<Peak const *>& peaksClose) const
+{
+  cout << "printClosest\n";
+  for (unsigned i = 0; i < indices.size(); i++)
+  {
+    cout << setw(4) << left << i <<
+      setw(8) << right << indices[i] + offset <<
+      setw(8) << 
+        (peaksClose[i] ? to_string(peaksClose[i]->getIndex() + offset) : 
+          "-") << 
+        endl;
+  }
+}
+
+
 bool PeakPattern::verify(
   list<PatternEntry>& candidates,
   PeakPool& peaks,
@@ -666,6 +686,9 @@ bool PeakPattern::verify(
 
     // TODO Write this method in PeakPtrs.cpp
     peakPtrsUsed.getClosest(pe.indices, peaksClose, numClose);
+
+    // TMP
+    PeakPattern::printClosest(pe.indices, peaksClose);
 
     if (! PeakPattern::acceptable(pep, peaksClose, numClose))
       continue;

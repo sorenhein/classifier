@@ -168,6 +168,10 @@ class PeakPattern
       PeakPtrs& peakPtrsUsed,
       PeakPtrs& peakPtrsUnused) const;
 
+    void printClosest(
+      const vector<unsigned>& indices,
+      const vector<Peak const *>& peaksClose) const;
+
 
   public:
 

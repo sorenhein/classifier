@@ -1,6 +1,8 @@
 It seems that many of the NOBORDER flags are mis-alignments of cars
 to gaps.
 
+Too many car types sometimes, s03 201953 #36
+
 Plan 2019-04-15
 ---------------
 Align.cpp
