@@ -104,7 +104,8 @@ class PeakPtrs
     void getClosest(
       const vector<unsigned>& indices,
       vector<Peak const *>& peaksClose,
-      unsigned& numClose) const;
+      unsigned& numClose,
+      unsigned& distance) const;
 
     void fill(
       const unsigned start,

@@ -601,61 +601,6 @@ cout << "SUGGEST " << qualLeft << "-" << qualRight << ": " <<
 }
 
 
-bool PeakPattern::acceptable(
-  PatternEntry const * pep,
-  const vector<Peak const *>& peaksClose,
-  const unsigned numClose) const
-{
-cout << "numCl " << numClose << endl;
-  if (numClose < 1)
-    return false;
-  else if (numClose >= 3)
-    return true;
-
-  // We can try to make something out of two peaks, but if they are
-  // both from the abutting side, then chances are that they're a single
-  // bogie and we didn't get the other bogie.
-
-  if (pep->abutLeftFlag && 
-      ! pep->abutRightFlag &&
-      peaksClose[2] == nullptr &&
-      peaksClose[3] == nullptr)
-    return false;
-  if (pep->abutRightFlag && 
-      ! pep->abutLeftFlag &&
-      peaksClose[0] == nullptr &&
-      peaksClose[1] == nullptr)
-    return false;
-  else
-    return true;
-}
-
-
-bool PeakPattern::recoverable(
-  const PeakPool& peaks,
-  const vector<unsigned>& indices,
-  const vector<Peak const *>& peaksClose,
-  float& dist) const
-{
-  UNUSED(peaks);
-  UNUSED(indices);
-  UNUSED(peaksClose);
-  UNUSED(dist);
-  return false;
-}
-
-
-void PeakPattern::recover(
-  const PeakPool& peaks,
-  const vector<unsigned>& indices,
-  const vector<Peak const *>& peaksClose) const
-{
-  UNUSED(peaks);
-  UNUSED(indices);
-  UNUSED(peaksClose);
-}
-
-
 void PeakPattern::update(
   PatternEntry const * pep,
   const vector<Peak const *>& peaksClose,
@@ -686,59 +631,188 @@ void PeakPattern::printClosest(
 }
 
 
+void PeakPattern::examineCandidates(
+  const PeakPtrs& peakPtrsUsed,
+  list<PatternEntry>& candidates,
+  list<PatternEntry>::iterator& pe4,
+  vector<Peak const *>& peaksBest,
+  list<SingleEntry>& singles) const
+{
+  // Get the lie of the land.
+  unsigned distBest = numeric_limits<unsigned>::max();
+  singles.clear();
+
+  for (auto pe = candidates.begin(); pe != candidates.end(); )
+  {
+    vector<Peak const *> peaksClose;
+    unsigned numClose;
+    unsigned dist;
+    peakPtrsUsed.getClosest(pe->indices, peaksClose, numClose, dist);
+
+    PeakPattern::printClosest(pe->indices, peaksClose);
+
+    // Get rid of the 1's and 0's.
+    if (numClose <= 1)
+    {
+      pe = candidates.erase(pe);
+      continue;
+    }
+
+    if (numClose == 4)
+    {
+      if (dist < distBest)
+      {
+        pe4 = pe;
+        distBest = dist;
+        peaksBest = peaksClose;
+      }
+    }
+    else if (numClose == 3)
+      PeakPattern::addToSingles(pe->indices, peaksClose, singles);
+
+    pe++;
+  }
+}
+
+
+void PeakPattern::addToSingles(
+  const vector<unsigned>& indices,
+  const vector<Peak const *>& peaksClose,
+  list<SingleEntry>& singles) const 
+{
+  // We rely heavily on having exactly one nullptr.
+  unsigned bogieQuarter;
+  if (peaksClose[0] == nullptr || peaksClose[1] == nullptr)
+    bogieQuarter = (indices[3] - indices[2]) / 4;
+  else
+    bogieQuarter = (indices[1] - indices[0]) / 4;
+
+  singles.emplace_back(SingleEntry());
+  SingleEntry& se = singles.back();
+
+  for (unsigned i = 0; i < peaksClose.size(); i++)
+  {
+    if (peaksClose[i] == nullptr)
+    {
+      se.target = indices[i];
+      break;
+    }
+  }
+
+  if (se.target < bogieQuarter)
+    se.lower = 0;
+  else
+    se.lower = se.target - bogieQuarter;
+
+  se.upper = se.target + bogieQuarter;
+}
+
+
+void PeakPattern::condenseSingles(list<SingleEntry>& singles) const
+{
+  for (auto se = singles.begin(); se != singles.end(); se++)
+  {
+    se->count = 1;
+   
+    for (auto se2 = next(se); se2 != singles.end(); )
+    {
+      if (se2->target >= se->lower && se2->target <= se->upper)
+      {
+        se->count++;
+        se2 = singles.erase(se2);
+      }
+      else
+        se2++;
+    }
+  }
+  singles.sort();
+}
+
+
 bool PeakPattern::verify(
   list<PatternEntry>& candidates,
   PeakPool& peaks,
   PeakPtrs& peakPtrsUsed,
   PeakPtrs& peakPtrsUnused) const
 {
-  unsigned numCloseBest = numeric_limits<unsigned>::max();
-  float distBest = numeric_limits<float>::max();
-  PatternEntry const * candBest = nullptr;
+  // Probably the best way to do this is to check (non-destructively)
+  // for each candidate whether its missing peaks can be repaired, and
+  // only then repair those peaks.  In PeakPool::repair it would indeed
+  // be possible to do this.  But I'm going the easier way here for now.
+  // * Candidates with all 4 peaks win.
+  // * Then we see which peaks (singles) would conclude 3-peak candidates, 
+  //   and we try to repair those peaks in decreasing order of popularity.
+  // * Finally we may also look at the 2-peak candidates.
+
+  list<PatternEntry>::iterator pe4 = candidates.end();
+  list<SingleEntry> singles;
   vector<Peak const *> peaksBest;
 
-  for (auto& pe: candidates)
+  PeakPattern::examineCandidates(peakPtrsUsed, candidates, pe4, 
+    peaksBest, singles);
+
+  // Try the 4's.
+  if (pe4 != candidates.end())
   {
-    vector<Peak const *> peaksClose;
-    unsigned numClose;
-    PatternEntry const * pep = &pe;
+    cout << "All 4 indices matched the first time\n";
+    PeakPattern::update(&* pe4, peaksBest, peakPtrsUsed, peakPtrsUnused);
+    // For now
+    return false;
+  }
 
-    // TODO Write this method in PeakPtrs.cpp
-    peakPtrsUsed.getClosest(pe.indices, peaksClose, numClose);
-
-    // TMP
-    PeakPattern::printClosest(pe.indices, peaksClose);
-
-    if (! PeakPattern::acceptable(pep, peaksClose, numClose))
-      continue;
-cout << "ACCEPTABLE\n";
-
-    float dist;
-    if (! PeakPattern::recoverable(peaks, pe.indices, peaksClose, dist))
-      continue;
-
-    if (numClose < numCloseBest)
+  // Try the 3's.
+  Peak * pptr = nullptr;
+  if (! singles.empty())
+  {
+cout << "Singles before\n";
+for (auto s: singles)
+{
+  cout << s.target + offset << ", " << 
+    s.lower + offset << ", " << 
+    s.upper + offset << ", " <<
+    s.count << endl;
+}
+    PeakPattern::condenseSingles(singles);
+cout << "Singles after\n";
+for (auto s: singles)
+{
+  cout << s.target + offset << ", " << 
+    s.lower + offset << ", " << 
+    s.upper + offset << ", " <<
+    s.count << endl;
+}
+    Peak peakHint;
+    for (auto& single: singles)
     {
-      numCloseBest = numClose;
-      distBest = dist;
-      candBest = pep;
-      peaksBest = peaksClose;
-    }
-    else if (numClose == numCloseBest && dist < distBest)
-    {
-      distBest = dist;
-      candBest = pep;
-      peaksBest = peaksClose;
+      peakHint.logPosition(single.target, single.lower, single.upper);
+      if ((pptr = peaks.repair(peakHint, &Peak::goodQuality, offset)) != 
+          nullptr)
+      {
+        cout << "Repaired target " << single.target + offset << " to " <<
+          pptr->getIndex() + offset << endl;
+
+        // Should have all 4 indices now.
+        peakPtrsUsed.add(pptr);
+        PeakPattern::examineCandidates(peakPtrsUsed, candidates, pe4, 
+            peaksBest, singles);
+        if (pe4 == candidates.end())
+        {
+          cout << "ERROR: Still no complete match\n";
+          return false;
+        }
+
+        cout << "Have all 4 indices now\n";
+        PeakPattern::update(&* pe4, peaksBest, peakPtrsUsed, peakPtrsUnused);
+        // For now
+        return false;
+        break;
+      }
     }
   }
 
-  if (candBest == nullptr)
-    return false;
+  // Could also try the 2's.
 
-  PeakPattern::recover(peaks, candBest->indices, peaksBest);
-
-  PeakPattern::update(candBest, peaksBest, peakPtrsUsed, peakPtrsUnused);
-
-  return true;
+  cout << "Only 2's left now\n";
+  return false;
 }
 

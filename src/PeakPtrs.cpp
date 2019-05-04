@@ -371,7 +371,8 @@ Peak const * PeakPtrs::locate(
 void PeakPtrs::getClosest(
   const vector<unsigned>& indices,
   vector<Peak const *>& peaksClose,
-  unsigned& numClose) const
+  unsigned& numClose,
+  unsigned& distance) const
 {
   const unsigned ni = indices.size();
   peaksClose.resize(indices.size(), nullptr);
@@ -415,9 +416,15 @@ void PeakPtrs::getClosest(
   }
 
   numClose = 0;
+  distance = 0;
   for (unsigned i = 0; i < ni; i++)
-    if (peaksClose[i] != nullptr)
-      numClose++;
+  {
+    if (peaksClose[i] == nullptr)
+      continue;
+
+    numClose++;
+    distance += dist[i] * dist[i];
+  }
 }
 
 

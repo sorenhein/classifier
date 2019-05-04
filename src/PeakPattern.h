@@ -85,6 +85,19 @@ class PeakPattern
       vector<unsigned> lenHi;
     };
 
+    struct SingleEntry
+    {
+      unsigned target;
+      unsigned lower;
+      unsigned upper;
+      unsigned count;
+
+      bool operator < (const SingleEntry& se2)
+      {
+        return (count < se2.count);
+      };
+    };
+
     unsigned offset;
 
     CarDetect const * carBeforePtr;
@@ -146,22 +159,6 @@ class PeakPattern
       const CarModels& models,
       list<PatternEntry>& candidates) const;
 
-    bool acceptable(
-      PatternEntry const * pep,
-      const vector<Peak const *>& peaksClose,
-      const unsigned numClose) const;
-
-    bool recoverable(
-      const PeakPool& peaks,
-      const vector<unsigned>& indices,
-      const vector<Peak const *>& peaksClose,
-      float& dist) const;
-
-    void recover(
-      const PeakPool& peaks,
-      const vector<unsigned>& indices,
-      const vector<Peak const *>& peaksClose) const;
-
     void update(
       PatternEntry const * pep,
       const vector<Peak const *>& peaksClose,
@@ -171,6 +168,20 @@ class PeakPattern
     void printClosest(
       const vector<unsigned>& indices,
       const vector<Peak const *>& peaksClose) const;
+
+    void examineCandidates(
+      const PeakPtrs& peakPtrsUsed,
+      list<PatternEntry>& candidates,
+      list<PatternEntry>::iterator& pe4,
+      vector<Peak const *>& peaksBest,
+      list<SingleEntry>& singles) const;
+
+    void addToSingles(
+      const vector<unsigned>& indices,
+      const vector<Peak const *>& peaksClose,
+      list<SingleEntry>& singles) const;
+
+    void condenseSingles(list<SingleEntry>& singles) const;
 
 
   public:
