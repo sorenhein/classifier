@@ -80,6 +80,13 @@ bool PeakPtrs::add(Peak * peak)
       return true;
     }
   }
+
+  if (peaks.empty() || pindex > peaks.back()->getIndex())
+  {
+    peaks.push_back(peak);
+    return true;
+  }
+
   return false;
 }
 

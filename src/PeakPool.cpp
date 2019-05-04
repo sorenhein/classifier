@@ -346,8 +346,7 @@ bool PeakPool::peakFixable(
     return true;
   else
   {
-    cout << 
-      foundIter->strQualityWhole(text + " not repairable", offset);
+    cout << peak.strQualityWhole(text + " not repairable", offset);
     return false;
   }
 }

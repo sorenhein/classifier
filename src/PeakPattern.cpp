@@ -983,6 +983,12 @@ bool PeakPattern::verify(
   PeakPattern::examineCandidates(peakPtrsUsed, candidates, 
     none, singles, doubles);
 
+  if (candidates.empty())
+    return false;
+
+cout << "VERIFY1 " << ! none.empty() << ", " <<
+  singles.size() << ", " << doubles.size() << endl;
+
   // Start with the 2's if that's all there is.
   if (none.empty() && singles.empty() && ! doubles.empty())
   {
@@ -1010,6 +1016,9 @@ bool PeakPattern::verify(
     PeakPattern::update(none, peakPtrsUsed, peakPtrsUnused);
     return true;
   }
+
+cout << "VERIFY2 " << ! none.empty() << ", " <<
+  singles.size() << ", " << doubles.size() << endl;
 
   return false;
 }

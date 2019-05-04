@@ -1,5 +1,10 @@
-It seems that many of the NOBORDER flags are mis-alignments of cars
-to gaps.
+Plan 2019-05-04
+---------------
+* Eliminate as many VERIFY2's as reasonably possible
+  - Could be insufficient quality (*, not **) of reconstructed peak
+  - Other reasons?
+* Reduce number of recognizers
+* If some last's can't be done, then note this for regresser
 
 Too many car types sometimes, s03 201953 #36
 
