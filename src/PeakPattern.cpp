@@ -729,11 +729,9 @@ void PeakPattern::addToSingles(
   list<SingleEntry>& singles) const 
 {
   // We rely heavily on having exactly one nullptr.
-  unsigned bogieQuarter;
-  if (peaksClose[0] == nullptr || peaksClose[1] == nullptr)
-    bogieQuarter = (indices[3] - indices[2]) / 4;
-  else
-    bogieQuarter = (indices[1] - indices[0]) / 4;
+  // Singles are generally quite likely, so we permit more range.
+  const unsigned bogieThird =
+    (indices[3] - indices[2] + indices[1] - indices[0]) / 6;
 
   singles.emplace_back(SingleEntry());
   SingleEntry& se = singles.back();
@@ -747,12 +745,12 @@ void PeakPattern::addToSingles(
     }
   }
 
-  if (se.target < bogieQuarter)
+  if (se.target < bogieThird)
     se.lower = 0;
   else
-    se.lower = se.target - bogieQuarter;
+    se.lower = se.target - bogieThird;
 
-  se.upper = se.target + bogieQuarter;
+  se.upper = se.target + bogieThird;
 }
 
 
@@ -903,8 +901,9 @@ for (auto s: singles)
   Peak peakHint;
   for (auto& single: singles)
   {
+    // Once we have 3 peaks, chances are good that we're right.
+    // So we lower our peak quality standard.
     peakHint.logPosition(single.target, single.lower, single.upper);
-    // Peak * pptr = peaks.repair(peakHint, &Peak::goodQuality, offset);
     Peak * pptr = peaks.repair(peakHint, &Peak::acceptableQuality, offset);
 
     if (pptr == nullptr)

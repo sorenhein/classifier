@@ -199,6 +199,9 @@ bool PeakPartial::dominates(const PeakPartial& p2) const
   if (p2.numUsed == 0)
     return true;
 
+  if (numUsed == 4 && p2.numUsed < 4)
+    return true;
+
   // This is a bunch of heuristics followed by the actual rule.
 
   if (p2.numUsed <= 2 && numUsed > p2.numUsed)
