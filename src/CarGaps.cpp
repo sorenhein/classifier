@@ -299,7 +299,7 @@ unsigned CarGaps::getGap(
     else if (peakNo == 0)
       return (skippedFlag ? 0 : leftGap);
     else if (peakNo == 1)
-      return leftBogieGap + (skippedFlag ? leftGap : 0);
+      return leftBogieGap + (skippedFlag ? 2 * leftGap : 0);
     else if (peakNo == 2)
       return midGap + (skippedFlag ? leftBogieGap : 0);
     else if (peakNo == 3)
@@ -319,7 +319,7 @@ unsigned CarGaps::getGap(
     else if (peakNo == 3)
       return (skippedFlag ? 0 : rightGap);
     else if (peakNo == 2)
-      return rightBogieGap + (skippedFlag ? rightGap : 0);
+      return rightBogieGap + (skippedFlag ? 2 * rightGap : 0);
     else if (peakNo == 1)
       return midGap + (skippedFlag ? rightBogieGap : 0);
     else if (peakNo == 0)

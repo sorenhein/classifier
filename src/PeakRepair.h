@@ -38,7 +38,7 @@ class PeakRepair
 
 
     void init(
-      const unsigned msize,
+      const CarModels& models,
       const unsigned start);
 
     bool add(

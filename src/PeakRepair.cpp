@@ -12,7 +12,7 @@
 #define REPAIR_TOL 0.1f
 
 // 1.2x is a normal range for short cars, plus a bit of buffer.
-#define BOGIE_GENERAL_FACTOR 0.3f
+#define BOGIE_GENERAL_FACTOR 0.4f
 
 #define UNUSED(x) ((void)(true ? 0 : ((x), void(), 0)))
 
@@ -35,13 +35,16 @@ void PeakRepair::reset()
 
 
 void PeakRepair::init(
-  const unsigned msize,
+  const CarModels& models,
   const unsigned start)
 {
   partialData.clear();
 
-  for (unsigned i = 0; i < msize; i++)
+  for (unsigned i = 0; i < models.size(); i++)
   {
+    if (models.empty(i))
+      continue;
+
     for (bool b: {false, true})
     {
       partialData.emplace_back(PeakPartial());
@@ -346,7 +349,9 @@ cout << "indexSingle " << indexSingle + offset <<
   else
   {
     // Not sure.
-    cout << "Give up on " << peakHint.strQuality(offset);
+    cout << "Give up on\n";
+    cout << innerPeakExpect - delta << " - " << innerPeakExpect + delta << "\n";
+    cout << outerPeakExpect - delta << " - " << outerPeakExpect + delta << "\n";
     return;
   }
 
@@ -394,8 +399,6 @@ bool PeakRepair::edgeCar(
 {
   offset = offsetIn;
 
-  PeakRepair::init(models.size(), range.endValue());
-
   RepairRange repairRange;
   list<unsigned> peakOrder;
   if (carpos == CARPOSITION_FIRST)
@@ -403,6 +406,8 @@ bool PeakRepair::edgeCar(
     repairRange.start = range.endValue();
     repairRange.end = 0;
     repairRange.leftDirection = true;
+
+    PeakRepair::init(models, repairRange.start);
 
     peakOrder.insert(peakOrder.end(), {3, 2, 1, 0});
   }
@@ -412,6 +417,8 @@ bool PeakRepair::edgeCar(
     repairRange.start = range.startValue();
     repairRange.end = range.endValue();
     repairRange.leftDirection = false;
+
+    PeakRepair::init(models, repairRange.start);
 
     peakOrder.insert(peakOrder.end(), {0, 1, 2, 3});
   }
@@ -543,20 +550,6 @@ for (auto& p: peakPtrsUnused)
     // We started from the left, so we'll only return unused peaks
     // up to the right end of the used peaks.
 
-/*
-cout << "MULTIUSED: " << peakPtrsUsed.size() << endl;
-cout << peakPtrsUsed.front()->strHeaderQuality();
-
-for (auto& p: peakPtrsUsed)
-  cout<< p->strQuality(offset);
-
-cout << "MULTIUNUSED: " << peakPtrsUnused.size() << endl;
-cout << peakPtrsUnused.front()->strHeaderQuality();
-
-for (auto& p: peakPtrsUnused)
-  cout<< p->strQuality(offset);
-  */
-
   unsigned last = 0;
   for (auto p: peakPtrsUsedFlat)
   {
@@ -567,14 +560,6 @@ for (auto& p: peakPtrsUnused)
     return false;
   else
     peakPtrsUnused.erase_above(last);
-/*
-cout << "ERASE left " << peakPtrsUnused.size() << endl;
-cout << "AFTERERASE: " << peakPtrsUnused.size() << endl;
-cout << peakPtrsUnused.front()->strHeaderQuality();
-
-for (auto& p: peakPtrsUnused)
-  cout<< p->strQuality(offset);
-*/
   }
 
   return true;

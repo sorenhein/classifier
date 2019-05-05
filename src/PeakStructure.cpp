@@ -41,7 +41,7 @@ PeakStructure::PeakStructure()
 {
   PeakStructure::reset();
 
-  // 4 wheels, of which at least 2 are labeled as bogies.
+  // 4 wheels, of which at least 2 are labeled as bogies (ideally 1234).
   findCarFunctions.push_back(
     { &PeakStructure::findCarByOrder, 
       "by 1234 order", 0});
@@ -56,6 +56,7 @@ PeakStructure::PeakStructure()
     { &PeakStructure::findCarByGoodQuality, 
       "by good quality", 2});
 
+  // Car-sized gaps based on existing models.
   findCarFunctions.push_back(
     { &PeakStructure::findCarByPattern, 
       "by pattern", 3});
@@ -75,9 +76,6 @@ PeakStructure::PeakStructure()
   findCarFallbacks.push_back(
     { &PeakStructure::findPartialInnerCarByQuality, 
       "inner partial by quality", 7});
-  findCarFallbacks.push_back(
-    { &PeakStructure::findCarByThreePeaks, 
-      "by three peaks", 8});
   findCarFallbacks.push_back(
     { &PeakStructure::findCarByGeometry, 
       "by geometry", 9});
@@ -537,43 +535,6 @@ PeakStructure::FindCarType PeakStructure::findEmptyRange(
   }
   else
     return FIND_CAR_NO_MATCH;
-}
-
-
-PeakStructure::FindCarType PeakStructure::findCarByThreePeaks(
-  const CarModels& models,
-  PeakPool& peaks,
-  PeakRange& range,
-  CarDetect& car) const
-{
-  if (range.numGood() != 3)
-    // TODO For now.
-    // Could also take first or last 3 of a large range.
-    // s04, 065516 has two three-wheel cars next to each other.
-    return FIND_CAR_NO_MATCH;
-  else if (range.isFirstCar())
-    // TODO For now, as these are unusually error-prone.
-    return FIND_CAR_NO_MATCH;
-
-  PeakPtrs peakPtrsUsed, peakPtrsUnused;
-  range.split(&Peak::goodQuality, peakPtrsUsed, peakPtrsUnused);
-
-  MatchData match;
-  Peak peakHint;
-  if (! models.matchesPartial(peakPtrsUsed, GREAT_CAR_DISTANCE,
-      match, peakHint))
-    return FIND_CAR_NO_MATCH;
-
-  cout << "\nHint for repair:\n";
-  cout << peakHint.strHeaderQuality();
-  cout << peakHint.strQuality(offset) << "\n";
-
-  if (! peaks.repair(peakHint, &Peak::goodQuality, offset))
-    return FIND_CAR_NO_MATCH;
-
-  range.fill(peaks);
-
-  return findCarByGeometry(models, peaks, range, car);
 }
 
 

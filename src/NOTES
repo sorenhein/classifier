@@ -1,13 +1,11 @@
-Plan 2019-05-04
+Plan 2019-05-05
 ---------------
-* If some last's can't be done, then note this for regresser
-* Do something about new, short cars
-* Why does ThreePeaks find anything that Pattern/Geometry doesn't?
-  - PeakRepair doesn't actually try to repair
-  - Pattern: sensor03 #36 201953, quarter-bogie range a bit too small
 * Why -1 cars in quality.xlsx sometimes?
+* Too many car types sometimes, s03 201953 #36
+* Do more about new, short cars in Geometry
 
-Too many car types sometimes, s03 201953 #36
+* If some last's can't be done, then note this for regresser
+
 
 Plan 2019-04-15
 ---------------

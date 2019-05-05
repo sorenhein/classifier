@@ -302,24 +302,6 @@ bool CarModels::matchesDistance(
 }
 
 
-bool CarModels::matchesPartial(
-  const PeakPtrs& peakPtrs,
-  const float& limit,
-  MatchData& match,
-  Peak& peakCand) const
-{
-  if (peakPtrs.size() != 3)
-    THROW(ERR_NO_PEAKS, "No model to print");
-
-  for (auto& m: models)
-  {
-    if (m.carAvg.distancePartialSymm(peakPtrs, limit, match, peakCand))
-      return true;
-  }
-  return false;
-}
-
-
 bool CarModels::rightBogiePlausible(const CarDetect& car) const
 {
   for (auto& m: models)

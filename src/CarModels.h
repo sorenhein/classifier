@@ -149,12 +149,6 @@ class CarModels
       const unsigned index,
       MatchData& match) const;
 
-    bool matchesPartial(
-      const PeakPtrs& peakPtrs,
-      const float& limit,
-      MatchData& match,
-      Peak& peakCand) const;
-
     bool rightBogiePlausible(const CarDetect& car) const;
     bool sideGapsPlausible(const CarDetect& car) const;
     bool twoWheelerPlausible(const CarDetect& car) const;
