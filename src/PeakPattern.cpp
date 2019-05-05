@@ -553,7 +553,6 @@ bool PeakPattern::suggest(
     return false;
   }
 
-
   if (! PeakPattern::getRangeQuality(models, carBeforePtr,
       true, qualLeft, gapLeft))
     qualLeft = QUALITY_NONE;
@@ -760,7 +759,6 @@ void PeakPattern::addToDoubles(
   list<DoubleEntry>& doubles) const 
 {
   // We rely heavily on having exactly two nullptrs.
-  // TODO
   const unsigned bogieQuarter =
     (pe.indices[3] - pe.indices[2] + pe.indices[1] - pe.indices[0]) / 8;
 
@@ -1018,6 +1016,14 @@ cout << "VERIFY1 " << ! none.empty() << ", " <<
     cout << "Have all 4 indices now\n";
     PeakPattern::update(none, peakPtrsUsed, peakPtrsUnused);
     return true;
+  }
+
+  if (candidates.front().borders == PATTERN_SINGLE_SIDED_RIGHT &&
+      ! singles.empty() &&
+      singles.front().target < 500)
+  {
+    // We don't need to flag the difficult first cars here.
+    return false;
   }
 
 cout << "VERIFY2 " << singles.size() << ", " << doubles.size() << endl;

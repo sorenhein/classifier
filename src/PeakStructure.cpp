@@ -583,9 +583,6 @@ PeakStructure::FindCarType PeakStructure::findCarByPattern(
   PeakRange& range,
   CarDetect& car) const
 {
-  if (range.isFirstCar())
-    return FIND_CAR_NO_MATCH;
-
   PeakPattern pattern;
   list<PatternEntry> candidates;
   if (! pattern.suggest(models, range, offset, candidates))
