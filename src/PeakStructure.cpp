@@ -694,55 +694,66 @@ bool PeakStructure::loopOverMethods(
   PeakPool& peaks,
   list<FncGroup>& findCarMethods)
 {
+  if (ranges.empty())
+    return false;
+
   CarDetect car;
-
-  bool changeFlag = true;
   bool anyChangeFlag = false;
-  while (changeFlag && ! ranges.empty())
+
+  auto rit = ranges.begin();
+  auto ritFirstAfterChange = ranges.begin();
+  while (true)
   {
-    changeFlag = false;
-    auto rit = ranges.begin();
-    while (rit != ranges.end())
+    PeakRange& range = * rit;
+    cout << "Range: " << range.strFull(offset);
+
+    // Set up some useful stuff for all recognizers.
+    range.fill(peaks);
+
+    FindCarType findFlag = FIND_CAR_SIZE;
+    for (auto& fgroup: findCarMethods)
     {
-      PeakRange& range = * rit;
-
-      cout << "Range: " << range.strFull(offset);
-
-      // Set up some useful stuff for all recognizers.
-      range.fill(peaks);
-
-      FindCarType findFlag = FIND_CAR_SIZE;
-      for (auto& fgroup: findCarMethods)
+      findFlag = (this->* fgroup.fptr)(models, peaks, range, car);
+      if (findFlag != FIND_CAR_NO_MATCH)
       {
-        findFlag = (this->* fgroup.fptr)(models, peaks, range, car);
-        if (findFlag != FIND_CAR_NO_MATCH)
-        {
-          cout << "Hit " << fgroup.name << "\n";
-          cout << range.strFull(offset);
-          hits[fgroup.number]++;
-          changeFlag = true;
-          anyChangeFlag = true;
-          break;
-        }
+        cout << "Hit " << fgroup.name << endl;
+        cout << range.strFull(offset);
+        hits[fgroup.number]++;
+        anyChangeFlag = true;
+        break;
       }
-
-      if (findFlag == FIND_CAR_NO_MATCH)
-      {
-        rit++;
-        continue;
-      }
-
-      CarListIter newcit;
-      if (findFlag == FIND_CAR_MATCH ||
-          findFlag == FIND_CAR_PARTIAL)
-        newcit = PeakStructure::updateRecords(range, car, models, cars);
-
-      rit = PeakStructure::updateRanges(newcit, rit, findFlag);
-
-      PeakStructure::printWheelCount(peaks, "Counting");
-      PeakStructure::printCars(cars, "after range");
-      PeakStructure::printCarStats(models, "after range");
     }
+
+    if (findFlag == FIND_CAR_NO_MATCH)
+    {
+      rit++;
+      if (rit == ranges.end())
+        rit = ranges.begin();
+
+      // If we've gone full circle, there's nothing more to be had.
+      if (rit == ritFirstAfterChange)
+        break;
+      else
+        continue;
+    }
+
+    CarListIter newcit;
+    if (findFlag == FIND_CAR_MATCH ||
+        findFlag == FIND_CAR_PARTIAL)
+      newcit = PeakStructure::updateRecords(range, car, models, cars);
+
+    rit = PeakStructure::updateRanges(newcit, rit, findFlag);
+
+    PeakStructure::printWheelCount(peaks, "Counting");
+    PeakStructure::printCars(cars, "after range");
+    PeakStructure::printCarStats(models, "after range");
+
+    if (ranges.empty())
+      break;
+    else if (rit == ranges.end())
+      rit = ranges.begin();
+
+    ritFirstAfterChange = rit;
   }
   return anyChangeFlag;
 }
@@ -805,12 +816,19 @@ void PeakStructure::markCars(
   for (unsigned i = 0; i < NUM_METHODS; i++)
     hits[i] = 0;
 
+  bool firstFlag = true;
   while (true)
   {
+cout << "Starting meta-loop" << endl;
     if (! PeakStructure::loopOverMethods(models, cars, peaks, 
-          findCarFunctions) &&
-        ! PeakStructure::loopOverMethods(models, cars, peaks, 
-          findCarFallbacks))
+        findCarFunctions) && ! firstFlag)
+      break;
+
+    if (firstFlag)
+      firstFlag = false;
+
+    if (! PeakStructure::loopOverMethods(models, cars, peaks, 
+        findCarFallbacks))
       break;
   }
 

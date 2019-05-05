@@ -256,7 +256,7 @@ void PeakPartial::recoverPeaks1010(vector<Peak const *>& peakPtrsUsed)
 
   // Look backward from p2.
   const unsigned num12 = PeakPartial::recoverPeak(
-    0.3f, 0.5f, true, iu2, iu0+1, iu2, peakPtrsUsed, pptr, indexUsed);
+    0.3f, 0.5f, false, iu2, iu0+1, iu2, peakPtrsUsed, pptr, indexUsed);
 
   if (num12 > 1)
   {
@@ -357,8 +357,10 @@ void PeakPartial::recoverPeaks1100(vector<Peak const *>& peakPtrsUsed)
   for (unsigned iu = comps[1].indexUsed+1; iu < peakPtrsUsed.size()-1; iu++)
   {
     // TODO Don't have to be consecutive.
-    if (! peakPtrsUsed[iu]->greatQuality() ||
-        ! peakPtrsUsed[iu+1]->greatQuality())
+    // if (! peakPtrsUsed[iu]->greatQuality() ||
+        // ! peakPtrsUsed[iu+1]->greatQuality())
+    if (! peakPtrsUsed[iu]->goodQuality() ||
+        ! peakPtrsUsed[iu+1]->goodQuality())
       continue;
 
     const unsigned dhi = peakPtrsUsed[iu+1]->getIndex() -

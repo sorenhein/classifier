@@ -1,10 +1,7 @@
 Plan 2019-05-04
 ---------------
-* Eliminate as many VERIFY2's as reasonably possible
 * If some last's can't be done, then note this for regresser
-* Loops in PeakStructure: Can stop sooner, perhaps
 * Do something about new, short cars
-* Apply Pattern also to longish first cars (complete ones)
 * Why does ThreePeaks find anything that Pattern/Geometry doesn't?
   - PeakRepair doesn't actually try to repair
   - Pattern: sensor03 #36 201953, quarter-bogie range a bit too small
@@ -167,14 +164,6 @@ Maybe transients can be reduced with filter padding as in filtfilt.
 
 2018-07-17
 ----------
-* Some _N and _R trains are almost impossible to separate
-  - ICE4_DEU_28 is probably symmetric, in fact?
-  - ICE2_DEU_48 ditto?
-  - ICE1_old_CHE_56 ditto? [delete?]
-  - ICE4_DEU_28 and ICET_DEU_28 have extremely similar ratios
-
-* In doc, make the comments from Train axles.xlsx
-
 Visual          OK
 mingw           OK
 gcc
