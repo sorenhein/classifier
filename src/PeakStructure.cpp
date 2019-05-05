@@ -819,7 +819,6 @@ void PeakStructure::markCars(
   bool firstFlag = true;
   while (true)
   {
-cout << "Starting meta-loop" << endl;
     if (! PeakStructure::loopOverMethods(models, cars, peaks, 
         findCarFunctions) && ! firstFlag)
       break;

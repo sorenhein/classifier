@@ -598,6 +598,15 @@ void PeakPtrs::markup()
 }
 
 
+void PeakPtrs::sort()
+{
+  peaks.sort([](Peak *& pp1, Peak *& pp2) -> bool
+    {
+      return pp1->getIndex() < pp2->getIndex();
+    });
+}
+
+
 string PeakPtrs::strQuality(
   const string& text,
   const unsigned offset,

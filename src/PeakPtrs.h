@@ -128,6 +128,8 @@ class PeakPtrs
 
     void markup();
 
+    void sort();
+
     void flattenCar(CarPeaksPtr& carPeaksPtr);
 
     void flatten(vector<Peak const *>& flattened);

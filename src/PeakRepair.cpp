@@ -11,6 +11,9 @@
 
 #define REPAIR_TOL 0.1f
 
+// 1.2x is a normal range for short cars, plus a bit of buffer.
+#define BOGIE_GENERAL_FACTOR 0.3f
+
 #define UNUSED(x) ((void)(true ? 0 : ((x), void(), 0)))
 
 
@@ -255,6 +258,131 @@ bool PeakRepair::getDominantModel(PeakPartial& dominantModel) const
 }
 
 
+void PeakRepair::repairFourth(
+  const CarPosition carpos,
+  const PeakRange& range,
+  PeakPool& peaks,
+  PeakPtrs& peakPtrsUsed,
+  PeakPtrs& peakPtrsUnused) const
+{
+cout << "repairFourth " << carpos << ", " << peakPtrsUsed.size()  << endl;
+  // TODO For now.
+  if (carpos != CARPOSITION_INNER_SINGLE)
+    return;
+
+  vector<unsigned> pp;
+  for (auto& ptr: peakPtrsUsed)
+  {
+    if (ptr)
+      pp.push_back(ptr->getIndex());
+  }
+
+  const unsigned d10 = pp[1] - pp[0];
+  const unsigned d21 = pp[2] - pp[1];
+
+  bool leftBogieFlag;
+  if (d10 < d21)
+    leftBogieFlag = true;
+  else 
+    leftBogieFlag = false;
+
+  unsigned indexSingle;
+  unsigned dBogie;
+  unsigned dEdgeCertain;
+  unsigned dEdgeOther;
+  unsigned outerPeakExpect;
+  unsigned innerPeakExpect;
+  unsigned peakNo;
+
+  if (leftBogieFlag)
+  {
+    // Assume that 0 and 1 belong together in a bogie.
+    indexSingle = pp[2];
+    dBogie = d10;
+    dEdgeCertain = pp[0] - range.startValue();
+    dEdgeOther = range.endValue() - indexSingle;
+    outerPeakExpect = range.endValue() - dEdgeCertain;
+    innerPeakExpect = outerPeakExpect - dBogie;
+  }
+  else
+  {
+    // Assume that 1 and 2 belong together in a bogie.
+    indexSingle = pp[0];
+    dBogie = d21;
+    dEdgeCertain = range.endValue() - pp[2];
+    dEdgeOther = indexSingle - range.startValue();
+    outerPeakExpect = range.startValue() + dEdgeCertain;
+    innerPeakExpect = outerPeakExpect + dBogie;
+  }
+
+  unsigned delta = static_cast<unsigned>(BOGIE_GENERAL_FACTOR * dBogie);
+  Peak peakHint;
+
+cout << "indexSingle " << indexSingle + offset << 
+  "\nrange " << range.startValue() + offset << 
+    " - " << range.endValue() + offset << 
+  "\ndBogie " << dBogie << 
+  "\nEdgeCertain " << dEdgeCertain << 
+  "\ndEdgeOther " << dEdgeOther << 
+  "\ninnerPeakExpect " << innerPeakExpect + offset << 
+  "\nouterPeakExpect " << outerPeakExpect + offset << 
+  "\ndelta " << delta << endl << endl;
+  if (indexSingle >= outerPeakExpect - delta &&
+      indexSingle <= outerPeakExpect + delta)
+  {
+    // Expect the missing peak to be in the inward direction.
+    peakHint.logPosition(innerPeakExpect,
+      innerPeakExpect - delta, innerPeakExpect + delta);
+    peakNo = (leftBogieFlag ? 2 : 1);
+  }
+  else if (indexSingle >= innerPeakExpect - delta &&
+      indexSingle <= innerPeakExpect + delta)
+  {
+    // Expect the missing peak to be in the outward direction.
+    peakHint.logPosition(outerPeakExpect,
+      outerPeakExpect - delta, outerPeakExpect + delta);
+    peakNo = (leftBogieFlag ? 3 : 0);
+  }
+  else
+  {
+    // Not sure.
+    cout << "Give up on " << peakHint.strQuality(offset);
+    return;
+  }
+
+  cout << "Look for " << peakHint.strQuality(offset) << endl;
+  Peak * pptr = peaks.repair(peakHint, &Peak::goodQuality, offset);
+  if (pptr)
+  {
+    cout << "INNER REPAIR: " << pptr->strQuality(offset) << endl;
+
+    for (auto p = peakPtrsUsed.begin(); p != peakPtrsUsed.end(); p++)
+    {
+      if (* p == nullptr)
+      {
+        * p = pptr;
+        break;
+      }
+    }
+
+    peakPtrsUsed.sort();
+
+    // Remove from Unused if needed
+    for (auto p = peakPtrsUnused.begin(); p != peakPtrsUnused.end(); )
+    {
+      if (*p == pptr)
+        p = peakPtrsUnused.erase(p);
+      else
+        p++;
+    }
+  }
+  else
+  {
+    cout << "NO INNER REPAIR" << endl;
+  }
+}
+
+
 bool PeakRepair::edgeCar(
   const CarModels& models,
   const unsigned offsetIn,
@@ -280,7 +408,7 @@ bool PeakRepair::edgeCar(
   }
   else
   {
-    // Both for inner and left car.
+    // Both for inner and right-facing (left) car.
     repairRange.start = range.startValue();
     repairRange.end = range.endValue();
     repairRange.leftDirection = false;
@@ -335,63 +463,6 @@ cout << "NODOM" << PeakRepair::prefix(carpos) << "\n";
   superModel.makeCodes(peakPtrsUsed, offset);
   superModel.printSituation(carpos);
 
-/*
-  if (superModel.count() == 4)
-    cout << "WARNREPAIR: Full car (dominant)\n";
-  else
-  {
-    for (unsigned peakNo = 0; peakNo < 4; peakNo++)
-    {
-      if (superModel.hasPeak(peakNo) || ! superModel.hasRange(peakNo))
-        continue;
-
-      // Is there almost a peak that fits already?
-      Peak * pptr;
-      unsigned lower, upper;
-      if (superModel.getRange(peakNo, lower, upper))
-      {
-        unsigned indexUsed;
-        peakPtrsUsed.locate(lower, upper, (lower+upper)/2,
-          &Peak::always, indexUsed);
-        
-        if (pptr)
-        {
-          cout << "WARNREPAIR: Found use for peak\n";
-          superModel.registerPtr(peakNo, pptr, indexUsed);
-          continue;
-        }
-      } 
-
-      // See if we could complete the peak.
-      Peak peakHint;
-      superModel.getPeak(peakNo, peakHint);
-
-      pptr = peaks.repair(peakHint, &Peak::goodQuality, offset);
-      if (pptr)
-      {
-        cout << "WARNREPAIR: " << superModel.strTarget(peakNo, offset) <<
-          " fixable\n";
-        
-        // Add to superModel.
-        superModel.registerPtr(peakNo, pptr);
-
-        // Remove from Unused if needed
-        for (auto p = peakPtrsUnused.begin(); p != peakPtrsUnused.end(); )
-        {
-          if (*p == pptr)
-            p = peakPtrsUnused.erase(p);
-          else
-            p++;
-        }
-      }
-    }
-  }
-*/
-UNUSED(peaks);
-
-  // May have changed.
-  // superModel.makeCodes(peakPtrsUsed, offset);
-
   // Get some typical model data.
   unsigned bogieTypical, longTypical;
   models.getTypical(bogieTypical, longTypical);
@@ -414,7 +485,58 @@ cout << "Typical " << bogieTypical << ", " << longTypical << endl;
       cout<< p->strQuality(offset);
   }
 
+  unsigned count = 0;
+  for (auto& p: peakPtrsUsedFlat)
+    if (p)
+      count++;
+
   range.split(peakPtrsUsedFlat, peakPtrsUsed, peakPtrsUnused);
+
+cout << "TRY " << count << endl;
+  if (count == 3)
+  {
+    // Try to repair the fourth peak.
+    if (peakPtrsUsed.size() != 3)
+      cout << "ERROR\n";
+
+cout << "USED BEFORE: " << peakPtrsUsed.size() << endl;
+cout << peakPtrsUsed.front()->strHeaderQuality();
+
+for (auto& p: peakPtrsUsed)
+  if (p)
+    cout<< p->strQuality(offset);
+
+if (peakPtrsUnused.size())
+{
+cout << "UNUSED BEFORE: " << peakPtrsUnused.size() << endl;
+cout << peakPtrsUnused.front()->strHeaderQuality();
+
+for (auto& p: peakPtrsUnused)
+  if (p)
+    cout<< p->strQuality(offset);
+}
+
+    PeakRepair::repairFourth(carpos, range, peaks, 
+      peakPtrsUsed, peakPtrsUnused);
+
+cout << "USED AFTER: " << peakPtrsUsed.size() << endl;
+cout << peakPtrsUsed.front()->strHeaderQuality();
+
+for (auto& p: peakPtrsUsed)
+  if (p)
+    cout<< p->strQuality(offset);
+
+if (peakPtrsUnused.size())
+{
+cout << "UNUSED AFTER: " << peakPtrsUnused.size() << endl;
+cout << peakPtrsUnused.front()->strHeaderQuality();
+
+for (auto& p: peakPtrsUnused)
+  if (p)
+    cout<< p->strQuality(offset);
+}
+
+  }
 
   if (carpos == CARPOSITION_INNER_MULTI)
   {

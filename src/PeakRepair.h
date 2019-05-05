@@ -67,6 +67,13 @@ class PeakRepair
 
     string prefix(CarPosition carpos) const;
 
+    void repairFourth(
+      const CarPosition carpos,
+      const PeakRange& range,
+      PeakPool& peaks,
+      PeakPtrs& peakPtrsUsed,
+      PeakPtrs& peakPtrsUnused) const;
+
 
   public:
 
