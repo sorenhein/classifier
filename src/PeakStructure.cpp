@@ -674,6 +674,7 @@ bool PeakStructure::loopOverMethods(
     FindCarType findFlag = FIND_CAR_SIZE;
     for (auto& fgroup: findCarMethods)
     {
+      cout << "Try " << fgroup.name << endl;
       findFlag = (this->* fgroup.fptr)(models, peaks, range, car);
       if (findFlag != FIND_CAR_NO_MATCH)
       {

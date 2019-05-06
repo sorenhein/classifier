@@ -1,10 +1,42 @@
 Plan 2019-05-05
 ---------------
 * Why -1 cars in quality.xlsx sometimes?
-* Too many car types sometimes, s03 201953 #36
-* Do more about new, short cars in Geometry
 
-* If some last's can't be done, then note this for regresser
+* Too many car types sometimes, s03 201953 #36
+
+* Don't print out the long peak lists anymore
+
+* Do more about new, short cars in Geometry
+* Order: Simples, mids, lasts, firsts.  
+  - Back to simples as soon as something hits.  
+  - Why do we need empty at all?
+
+* Try to avoid geometry.  It may find spurious matches in the middle.
+  - Count how many really need it.
+  - See about moving them to Pattern.
+
+* Do (force) the middles.
+
+* Then do the same for lasts.
+  - If some last's can't be done, then note this for regresser
+
+* In the end, do the firsts.
+
+
+Further:
+
+* Extents?
+* Getting bogie distance right?
+* 3-wheelers?
+* Letting regress know if last is messed up
+* Noise filtering
+
+Vision:
+
+* Deconvolution
+  - tau of trail
+  - speed of train
+  - physics of switch
 
 
 Plan 2019-04-15
@@ -20,20 +52,6 @@ aren't two peaks in the middle with good spacing.
 
 Plan 2019-02-27
 ---------------
-- PeakPartial
-  - sensor27 has some last cars where there is a p3-p4 pair.
-    We could detect both at once.
-  - Look for traces with no warnings and
-    - Correct train, but score > 10, or
-    - Wrong train
-
-- PeakPartial
-  - So far we only detect mid cars with exactly 4 peaks, no partials
-  - Therefore we have a lot of mid partials
-
-  - Add more mid cars of length 1-4
-  - Later Unused, Hidden
-
 Work on split peaks
 - Once bogie distance is determined, combine some peaks
 - But there could be so many that we end up combining p1 and p2?
@@ -41,18 +59,9 @@ Work on split peaks
 
 Two candidates in locatePeak: Could well both be true if greatQuality.
 
-Are there last cars where we don't remove trailing unused peaks?
-
 Look at the ones with no left-over PeakPtrsUsed: repair.
 Also the ones with incomplete PeakPtrsUsed repair can be repaired.
 (s23 #33)
-
-Make PeakRepair more general for internal cars as well
-- Not quite as aggressive about recognizing anything as a car
-- Peaks should generally be there, although they may be hidden
-- Start on first cars up to perhaps 8 peaks
-- Don't mark down peaks in front of the interior car, may be 
-  a partial first car
 
 Also:
 - Use extent (later on)
@@ -84,7 +93,7 @@ Also:
 * 3-wheel cars not just in 3-packs, but start or end of range
   Can utilize knowledge, e.g. 1-3-4
 
-* Time profile, speed up
+* Time profile of recognizers etc., speed up
 
 
 The regression is odd: Different penalties in first and second stage?
@@ -159,6 +168,7 @@ Maybe transients can be reduced with filter padding as in filtfilt.
 * And for peak extraction
 
 * Clean up driver.cpp
+* Move out ckmeans code
 
 2018-07-17
 ----------
