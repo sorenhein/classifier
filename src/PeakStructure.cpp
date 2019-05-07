@@ -680,7 +680,8 @@ bool PeakStructure::loopOverMethods(
       {
         cout << "Hit " << fgroup.name << endl;
         cout << range.strFull(offset);
-        hits[fgroup.number]++;
+        if (findFlag != FIND_CAR_PARTIAL || range.isFirstCar())
+          hits[fgroup.number]++;
         anyChangeFlag = true;
         break;
       }

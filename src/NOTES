@@ -1,7 +1,5 @@
 Plan 2019-05-05
 ---------------
-* Why -1 cars in quality.xlsx sometimes?
-
 * Too many car types sometimes, s03 201953 #36
 
 * Don't print out the long peak lists anymore
@@ -9,7 +7,6 @@ Plan 2019-05-05
 * Do more about new, short cars in Geometry
 * Order: Simples, mids, lasts, firsts.  
   - Back to simples as soon as something hits.  
-  - Why do we need empty at all?
 
 * Try to avoid geometry.  It may find spurious matches in the middle.
   - Count how many really need it.
@@ -226,3 +223,5 @@ s18, 174241, #47, 238.43
 s20, 102050, #41,   9.33
 s21, 094236, #46,  27.75
 
+
+Write a detector of unused class methods.
