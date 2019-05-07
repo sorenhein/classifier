@@ -45,9 +45,6 @@ class PeakStructure
     };
 
 
-    list<FncGroup> findCarFunctions;
-    list<FncGroup> findCarFallbacks;
-
     vector<list<FncGroup>> findMethods;
 
     list<PeakRange> ranges;

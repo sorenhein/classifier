@@ -18,11 +18,7 @@
 #define GREAT_CAR_DISTANCE 0.5f
 
 #define NUM_METHODS 10
-
-static unsigned hitSize;
-
 #define NUM_METHOD_GROUPS 6
-static unsigned hitMethodSize;
 
 
 struct WheelSpec
@@ -44,64 +40,29 @@ PeakStructure::PeakStructure()
 {
   PeakStructure::reset();
 
-  // 4 wheels, of which at least 2 are labeled as bogies (ideally 1234).
-  findCarFunctions.push_back(
-    { &PeakStructure::findCarByOrder, 
-      "by 1234 order", 0});
-
-  // Exactly 4 great peaks that look like a car.
-  findCarFunctions.push_back(
-    { &PeakStructure::findCarByGreatQuality, 
-      "by great quality", 1});
-
-  // Exactly 4 good peaks that look like a car.
-  findCarFunctions.push_back(
-    { &PeakStructure::findCarByGoodQuality, 
-      "by good quality", 2});
-
-  // Car-sized gaps based on existing models.
-  findCarFunctions.push_back(
-    { &PeakStructure::findCarByPattern, 
-      "by pattern", 3});
-
-  // No great peaks at all.
-  findCarFunctions.push_back(
-    { &PeakStructure::findEmptyRange, 
-      "by emptiness", 4});
-
-
-  findCarFallbacks.push_back(
-    { &PeakStructure::findPartialFirstCarByQuality, 
-      "first partial by quality", 5});
-  findCarFallbacks.push_back(
-    { &PeakStructure::findPartialLastCarByQuality, 
-      "last partial by quality", 6});
-  findCarFallbacks.push_back(
-    { &PeakStructure::findPartialInnerCarByQuality, 
-      "inner partial by quality", 7});
-  findCarFallbacks.push_back(
-    { &PeakStructure::findCarByGeometry, 
-      "by geometry", 9});
-
-
   findMethods.resize(NUM_METHOD_GROUPS);
 
+  // 4 wheels, of which at least 2 are labeled as bogies (ideally 1234).
   findMethods[0].push_back(
     { &PeakStructure::findCarByOrder, 
       "by 1234 order", 0});
 
+  // Exactly 4 great peaks that look like a car.
   findMethods[1].push_back(
     { &PeakStructure::findCarByGreatQuality, 
       "by great quality", 1});
 
+  // Exactly 4 good peaks that look like a car.
   findMethods[1].push_back(
     { &PeakStructure::findCarByGoodQuality, 
       "by good quality", 2});
 
+  // Car-sized gaps based on existing models.
   findMethods[1].push_back(
     { &PeakStructure::findCarByPattern, 
       "by pattern", 3});
 
+  // No great peaks at all.
   findMethods[1].push_back(
     { &PeakStructure::findEmptyRange, 
       "by emptiness", 4});
@@ -122,7 +83,7 @@ PeakStructure::PeakStructure()
     { &PeakStructure::findCarByGeometry, 
       "by geometry", 9});
   
-  hitSize = NUM_METHODS;
+  // hitSize = NUM_METHODS;
   hits.resize(NUM_METHODS);
 }
 
@@ -821,20 +782,28 @@ void PeakStructure::markCars(
   for (unsigned i = 0; i < NUM_METHODS; i++)
     hits[i] = 0;
 
-  bool firstFlag = true;
   while (true)
   {
-    if (! PeakStructure::loopOverMethods(models, cars, peaks, 
-        findCarFunctions) && ! firstFlag)
-      break;
+    bool foundFlag = false;
+    for (unsigned mg = 0; mg < NUM_METHOD_GROUPS; mg++)
+    {
+      bool loopFlag = PeakStructure::loopOverMethods(models, cars, peaks, 
+          findMethods[mg]);
+      if (loopFlag)
+        foundFlag = true;
+      if (ranges.empty())
+        break;
+      if (mg > 0 && loopFlag)
+      {
+        // Go back as soon as a method group hits.
+        break;
+      }
+    }
 
-    if (firstFlag)
-      firstFlag = false;
-
-    if (! PeakStructure::loopOverMethods(models, cars, peaks, 
-        findCarFallbacks))
+    if (! foundFlag || ranges.empty())
       break;
   }
+
 
   PeakStructure::fixSpuriousInterPeaks(cars, peaks);
 
