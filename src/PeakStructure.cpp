@@ -21,6 +21,9 @@
 
 static unsigned hitSize;
 
+#define NUM_METHOD_GROUPS 6
+static unsigned hitMethodSize;
+
 
 struct WheelSpec
 {
@@ -77,6 +80,45 @@ PeakStructure::PeakStructure()
     { &PeakStructure::findPartialInnerCarByQuality, 
       "inner partial by quality", 7});
   findCarFallbacks.push_back(
+    { &PeakStructure::findCarByGeometry, 
+      "by geometry", 9});
+
+
+  findMethods.resize(NUM_METHOD_GROUPS);
+
+  findMethods[0].push_back(
+    { &PeakStructure::findCarByOrder, 
+      "by 1234 order", 0});
+
+  findMethods[1].push_back(
+    { &PeakStructure::findCarByGreatQuality, 
+      "by great quality", 1});
+
+  findMethods[1].push_back(
+    { &PeakStructure::findCarByGoodQuality, 
+      "by good quality", 2});
+
+  findMethods[1].push_back(
+    { &PeakStructure::findCarByPattern, 
+      "by pattern", 3});
+
+  findMethods[1].push_back(
+    { &PeakStructure::findEmptyRange, 
+      "by emptiness", 4});
+
+  findMethods[2].push_back(
+    { &PeakStructure::findPartialInnerCarByQuality, 
+      "inner partial by quality", 7});
+
+  findMethods[3].push_back(
+    { &PeakStructure::findPartialLastCarByQuality, 
+      "last partial by quality", 6});
+
+  findMethods[4].push_back(
+    { &PeakStructure::findPartialFirstCarByQuality, 
+      "first partial by quality", 5});
+
+  findMethods[5].push_back(
     { &PeakStructure::findCarByGeometry, 
       "by geometry", 9});
   
