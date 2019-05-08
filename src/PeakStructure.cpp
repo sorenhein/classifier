@@ -782,10 +782,13 @@ void PeakStructure::markCars(
   for (unsigned i = 0; i < NUM_METHODS; i++)
     hits[i] = 0;
 
+  // The first group only needs to be run once.
+  PeakStructure::loopOverMethods(models, cars, peaks, findMethods[0]);
+
   while (true)
   {
     bool foundFlag = false;
-    for (unsigned mg = 0; mg < NUM_METHOD_GROUPS; mg++)
+    for (unsigned mg = 1; mg < NUM_METHOD_GROUPS; mg++)
     {
       bool loopFlag = PeakStructure::loopOverMethods(models, cars, peaks, 
           findMethods[mg]);
@@ -793,7 +796,7 @@ void PeakStructure::markCars(
         foundFlag = true;
       if (ranges.empty())
         break;
-      if (mg > 0 && loopFlag)
+      if (mg > 1 && loopFlag)
       {
         // Go back as soon as a method group hits.
         break;
