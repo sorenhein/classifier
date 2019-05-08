@@ -366,6 +366,11 @@ cout << "fillFromModel: " << pe.abutLeftFlag << ", " <<
   indexRangeLeft << ", " <<
   indexRangeRight << endl;
 
+  // TODO Find a better way to detect this.
+  if (* next(carPoints.begin()) != 0)
+  {
+    // This is a somewhat indirect measure of whether the car has
+    // a front gap.
   if (! PeakPattern::fillPoints(carPoints, 
       (pe.abutLeftFlag ? indexRangeLeft : indexRangeRight), false, pe))
     return false;
@@ -376,7 +381,12 @@ cout << pe.strAbs("SUGGEST-ZZ1", offset);
   // Two options if asymmetric.
   if (symmetryFlag)
     return true;
+  }
+  else
+    cout << "skip due to lead zero\n";
 
+  if (* prev(prev(carPoints.end())) != 0)
+  {
   pe.reverseFlag = true;
 
   if (! PeakPattern::fillPoints(carPoints, 
@@ -386,6 +396,10 @@ cout << pe.strAbs("SUGGEST-ZZ1", offset);
   candidates.emplace_back(pe);
 
 cout << pe.strAbs("SUGGEST-ZZ1rev", offset);
+  }
+  else
+    cout << "skip due to trail zero\n";
+
 
   return true;
 }
@@ -401,7 +415,7 @@ bool PeakPattern::guessLeft(
 
 cout << "TTT guessLeft actual abutting peak: " <<
   carBeforePtr->getPeaksPtr().secondBogieRightPtr->getIndex() + offset << 
-  "\n";
+  ", gapLeft " << gapLeft << "\n";
 
   if (qualLeft == QUALITY_GENERAL || qualLeft == QUALITY_NONE)
   {
@@ -412,7 +426,7 @@ cout << "TTT guessLeft actual abutting peak: " <<
   for (auto& fe: fullEntries)
   {
 cout << " TTT got left model: " << fe.index << ", " <<
-  indexLeft << endl;
+  indexLeft + offset << endl;
     PeakPattern::fillFromModel(models, fe.index, fe.data->symmetryFlag,
       indexLeft, 0, PATTERN_SINGLE_SIDED_LEFT, candidates);
   }
@@ -607,10 +621,23 @@ cout << "SUGGEST " << qualLeft << "-" << qualRight << ": " <<
 cout << "Both was not successful, now looking at one-sided\n";
   PeakPattern::getFullModels(models, false);
 
-  if (qualLeft == QUALITY_NONE)
-    return PeakPattern::guessRight(models, candidates);
-  else
-    return PeakPattern::guessLeft(models, candidates);
+  // Add both!
+  bool okFlag = false;
+  if (qualLeft != QUALITY_NONE)
+  {
+cout << "Trying left\n";
+    if (PeakPattern::guessLeft(models, candidates))
+      okFlag = true;
+  }
+
+  if (qualRight != QUALITY_NONE)
+  {
+cout << "Trying right\n";
+    if (PeakPattern::guessRight(models, candidates))
+      okFlag = true;
+  }
+
+  return okFlag;
 }
 
 

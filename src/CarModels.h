@@ -45,7 +45,7 @@ struct ModelData
     stringstream ss;
     ss << setw(12) << left << "index" << index << "\n" <<
       setw(12) << "p-p length" << 
-        (fullFlag ? to_string(lenPP) : "-") << "\n" << 
+        lenPP << "\n" << 
       setw(12) << "gap left" <<
         (gapLeftFlag ? to_string(gapLeft) : "-") << "\n" << 
       setw(12) << "gap right" <<

@@ -65,7 +65,8 @@ void CarModels::characterize()
     ModelData& data = model.data;
 
     data.fullFlag = ! car.isPartial();
-    if (data.fullFlag)
+
+    if (car.hasLeftBogieGap() && car.hasMidGap() && car.hasRightBogieGap())
       data.lenPP = car.getLeftBogieGap() + car.getMidGap() + 
         car.getRightBogieGap();
 
