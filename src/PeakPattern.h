@@ -164,7 +164,9 @@ class PeakPattern
       RangeQuality& quality,
       unsigned& gap) const;
 
-    void getFullModels(const CarModels& models);
+    void getFullModels(
+      const CarModels& models,
+      const bool fullFlag);
 
     bool findSingleModel(
       const RangeQuality qualOverall,

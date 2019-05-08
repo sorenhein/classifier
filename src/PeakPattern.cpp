@@ -62,7 +62,8 @@ bool PeakPattern::getRangeQuality(
   // The previous car could be contained in a whole car.
   if (data->containedFlag)
   {
-cout << "Car is contained in " << data->containedIndex << endl;
+cout << "Car " <<
+  modelIndex << " is contained in " << data->containedIndex << endl;
     modelIndex = data->containedIndex;
     modelFlipFlag = data->containedReverseFlag;
     data = models.getData(modelIndex);
@@ -216,15 +217,24 @@ bool PeakPattern::guessNoBorders(list<PatternEntry>& candidates) const
 }
 
 
-void PeakPattern::getFullModels(const CarModels& models)
+void PeakPattern::getFullModels(
+  const CarModels& models,
+  const bool fullFlag)
 {
+  fullEntries.clear();
+
   for (unsigned index = 0; index < models.size(); index++)
   {
     if (models.empty(index))
       continue;
 
     ModelData const * data = models.getData(index);
-    if (! data->fullFlag)
+    if (! fullFlag)
+    {
+      if (data->containedFlag)
+        continue;
+    }
+    else if (! data->fullFlag)
       continue;
 
     fullEntries.emplace_back(FullEntry());
@@ -586,21 +596,21 @@ cout << "SUGGEST " << qualLeft << "-" << qualRight << ": " <<
   if (qualLeft == QUALITY_NONE && qualRight == QUALITY_NONE)
     return PeakPattern::guessNoBorders(candidates);
 
-  PeakPattern::getFullModels(models);
+  if (qualLeft != QUALITY_NONE && qualRight != QUALITY_NONE)
+  {
+    // Get full models that may fill up this bounded range.
+    PeakPattern::getFullModels(models, true);
+    if (PeakPattern::guessBoth(models, candidates))
+      return true;
+  }
+
+cout << "Both was not successful, now looking at one-sided\n";
+  PeakPattern::getFullModels(models, false);
 
   if (qualLeft == QUALITY_NONE)
     return PeakPattern::guessRight(models, candidates);
-  else if (qualRight == QUALITY_NONE)
-    return PeakPattern::guessLeft(models, candidates);
-  else if (PeakPattern::guessBoth(models, candidates))
-    return true;
   else
-  {
-    cout << "EXPERIMENTAL\n";
-    // return false;
-    // Left instead?
     return PeakPattern::guessLeft(models, candidates);
-  }
 }
 
 
