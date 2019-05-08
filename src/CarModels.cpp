@@ -185,9 +185,10 @@ void CarModels::average(const unsigned index)
 
 void CarModels::getTypical(
   unsigned& bogieTypical,
-  unsigned& longTypical) const
+  unsigned& longTypical,
+  unsigned& sideTypical) const
 {
-  vector<unsigned> bogies, longs;
+  vector<unsigned> bogies, longs, sides;
 
   for (auto& m: models)
   {
@@ -200,6 +201,11 @@ void CarModels::getTypical(
 
       if (m.carAvg.hasMidGap())
         longs.push_back(m.carAvg.getMidGap());
+
+      if (m.carAvg.hasLeftGap())
+        sides.push_back(m.carAvg.getLeftGap());
+      if (m.carAvg.hasRightGap())
+        sides.push_back(m.carAvg.getRightGap());
     }
   }
 
@@ -210,6 +216,15 @@ void CarModels::getTypical(
   unsigned nl = longs.size() / 2;
   nth_element(longs.begin(), longs.begin() + nl, longs.end());
   longTypical = longs[nl];
+
+  unsigned ns = sides.size() / 2;
+  if (ns)
+  {
+    nth_element(sides.begin(), sides.begin() + ns, sides.end());
+    sideTypical = sides[nl];
+  }
+  else
+    sideTypical = 0;
 }
 
 

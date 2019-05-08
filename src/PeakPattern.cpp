@@ -55,19 +55,36 @@ bool PeakPattern::getRangeQuality(
     return false;
   }
 
-  // The previous car could be contained in a whole car.
-  const unsigned modelIndex = carPtr->getMatchData()->index;
+  unsigned modelIndex = carPtr->getMatchData()->index;
   ModelData const * data = models.getData(modelIndex);
-  const bool revFlag = carPtr->isReversed();
+  bool modelFlipFlag = false;
+
+  // The previous car could be contained in a whole car.
+  if (data->containedFlag)
+  {
+cout << "Car is contained in " << data->containedIndex << endl;
+    modelIndex = data->containedIndex;
+    modelFlipFlag = data->containedReverseFlag;
+    data = models.getData(modelIndex);
+  }
+
+
+  // const bool revFlag = carPtr->isReversed();
+  const bool revFlag = carPtr->isReversed() ^
+      modelFlipFlag;
+
+cout << "getRangeQuality:\n";
+cout << data->str() << endl;
+cout << "car:\n";
+cout << carPtr->strFull(99, offset) << endl;
 
   if (leftFlag)
   {
     if ((revFlag && data->gapLeftFlag) || 
         (! revFlag && data->gapRightFlag))
     {
-      cout << "SUGGEST-ERR: Left car should not have abutting gap\n";
+      cout << "SUGGEST-WARN: Left car should not have abutting gap?\n";
       cout << data->str();
-      return false;
     }
   }
   else
@@ -75,22 +92,12 @@ bool PeakPattern::getRangeQuality(
     if ((revFlag && data->gapRightFlag) ||
         (! revFlag && data->gapLeftFlag))
     {
-      cout << "SUGGEST-ERR: Right car should not have abutting gap\n";
+      cout << "SUGGEST-WARN: Right car should not have abutting gap?\n";
       cout << data->str();
-      return false;
     }
   }
 
-  if (data->containedFlag)
-  {
-    if (revFlag)
-      gap = (leftFlag ? data->gapRight : data->gapLeft);
-    else
-      gap = (leftFlag ? data->gapLeft : data->gapRight);
-
-    quality = QUALITY_WHOLE_MODEL;
-  }
-  else if ((leftFlag && revFlag && data->gapRightFlag) ||
+  if ((leftFlag && revFlag && data->gapRightFlag) ||
        (! leftFlag && ! revFlag && data->gapRightFlag))
   {
     gap = data->gapRight;
@@ -225,6 +232,9 @@ void PeakPattern::getFullModels(const CarModels& models)
     fe.data = data;
     fe.index = index;
 
+cout << "getFullModels: Got index " << index << endl;
+cout << data->str() << endl;
+
     // Three different qualities; only two used for now.
     fe.lenLo.resize(3);
     fe.lenHi.resize(3);
@@ -340,6 +350,11 @@ bool PeakPattern::fillFromModel(
   }
 
   pe.borders = patternType;
+
+cout << "fillFromModel: " << pe.abutLeftFlag << ", " <<
+  pe.abutRightFlag << "," <<
+  indexRangeLeft << ", " <<
+  indexRangeRight << endl;
 
   if (! PeakPattern::fillPoints(carPoints, 
       (pe.abutLeftFlag ? indexRangeLeft : indexRangeRight), false, pe))
@@ -577,8 +592,15 @@ cout << "SUGGEST " << qualLeft << "-" << qualRight << ": " <<
     return PeakPattern::guessRight(models, candidates);
   else if (qualRight == QUALITY_NONE)
     return PeakPattern::guessLeft(models, candidates);
+  else if (PeakPattern::guessBoth(models, candidates))
+    return true;
   else
-    return PeakPattern::guessBoth(models, candidates);
+  {
+    cout << "EXPERIMENTAL\n";
+    // return false;
+    // Left instead?
+    return PeakPattern::guessLeft(models, candidates);
+  }
 }
 
 

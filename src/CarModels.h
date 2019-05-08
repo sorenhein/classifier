@@ -113,7 +113,8 @@ class CarModels
 
     void getTypical(
       unsigned& bogieTypical,
-      unsigned& longTypical) const;
+      unsigned& longTypical,
+      unsigned& sideTypical) const;
 
     void getCar(
       CarDetect& car,

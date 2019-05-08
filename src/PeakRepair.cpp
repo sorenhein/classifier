@@ -471,9 +471,11 @@ cout << "NODOM" << PeakRepair::prefix(carpos) << "\n";
   superModel.printSituation(carpos);
 
   // Get some typical model data.
-  unsigned bogieTypical, longTypical;
-  models.getTypical(bogieTypical, longTypical);
-cout << "Typical " << bogieTypical << ", " << longTypical << endl;
+  unsigned bogieTypical, longTypical, sideTypical;
+  models.getTypical(bogieTypical, longTypical, sideTypical);
+cout << "Typical " << bogieTypical << ", " << 
+  longTypical << ", " <<
+  sideTypical << endl;
 
   // Fill out Used with the peaks actually used.
 
