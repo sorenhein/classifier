@@ -62,7 +62,7 @@ bool PeakPattern::getRangeQuality(
   unsigned modelIndex = carPtr->getMatchData()->index;
   ModelData const * data = models.getData(modelIndex);
 
-  // The previous car could be contained in a whole car.
+  // The abutting car could be contained in a whole car.
   if (data->containedFlag)
   {
     modelFlipFlag = data->containedReverseFlag;
@@ -70,36 +70,31 @@ bool PeakPattern::getRangeQuality(
     data = models.getData(modelIndex);
   }
 
+  if (! data->gapLeftFlag && ! data->gapRightFlag)
+    return false;
+
   // Two flips would make a regular order.
   const bool revFlag = carPtr->isReversed() ^ modelFlipFlag;
 
-cout << "getRangeQuality:\n";
-cout << data->str() << endl;
-cout << "car:\n";
-cout << carPtr->strFull(99, offset) << endl;
-
   if (data->gapRightFlag && leftFlag == revFlag)
-  // if ((leftFlag && revFlag && data->gapRightFlag) ||
-       // (! leftFlag && ! revFlag && data->gapRightFlag))
   {
-    // So either left reversed or right unreversed.
     gap = data->gapRight;
-    quality = QUALITY_SYMMETRY;
+    quality = QUALITY_WHOLE_MODEL;
   }
   else if (data->gapLeftFlag && leftFlag != revFlag)
-  // else if ((leftFlag && ! revFlag && data->gapLeftFlag) ||
-           // (! leftFlag && revFlag && data->gapLeftFlag))
   {
-    // So either left unreversed or right reversed.
     gap = data->gapLeft;
+    quality = QUALITY_WHOLE_MODEL;
+  }
+  else if (data->gapRightFlag)
+  {
+    gap = data->gapRight;
     quality = QUALITY_SYMMETRY;
   }
   else
   {
-    // TODO Go by general gap
-    // quality = QUALITY_GENERAL;
-    cout << "SUGGEST-ERR: No general gap (yet?)\n";
-    return false;
+    gap = data->gapLeft;
+    quality = QUALITY_SYMMETRY;
   }
 
   return true;
