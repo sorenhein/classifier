@@ -35,6 +35,15 @@ PeakPattern::~PeakPattern()
 
 void PeakPattern::reset()
 {
+  carBeforePtr = nullptr;
+  carAfterPtr = nullptr;
+
+  qualLeft = QUALITY_NONE;
+  qualRight = QUALITY_NONE;
+
+  gapLeft = 0;
+  gapRight = 0;
+
   fullEntries.clear();
 }
 
@@ -46,67 +55,42 @@ bool PeakPattern::getRangeQuality(
   RangeQuality& quality,
   unsigned& gap) const
 {
-  gap = 0;
-  quality = QUALITY_NONE;
-
   if (! carPtr)
-  {
-    cout << "SUGGEST-ERR: Expected non-null car pointer\n";
     return false;
-  }
 
+  bool modelFlipFlag = false;
   unsigned modelIndex = carPtr->getMatchData()->index;
   ModelData const * data = models.getData(modelIndex);
-  bool modelFlipFlag = false;
 
   // The previous car could be contained in a whole car.
   if (data->containedFlag)
   {
-cout << "Car " <<
-  modelIndex << " is contained in " << data->containedIndex << endl;
-    modelIndex = data->containedIndex;
     modelFlipFlag = data->containedReverseFlag;
+    modelIndex = data->containedIndex;
     data = models.getData(modelIndex);
   }
 
-
-  // const bool revFlag = carPtr->isReversed();
-  const bool revFlag = carPtr->isReversed() ^
-      modelFlipFlag;
+  // Two flips would make a regular order.
+  const bool revFlag = carPtr->isReversed() ^ modelFlipFlag;
 
 cout << "getRangeQuality:\n";
 cout << data->str() << endl;
 cout << "car:\n";
 cout << carPtr->strFull(99, offset) << endl;
 
-  if (leftFlag)
+  if (data->gapRightFlag && leftFlag == revFlag)
+  // if ((leftFlag && revFlag && data->gapRightFlag) ||
+       // (! leftFlag && ! revFlag && data->gapRightFlag))
   {
-    if ((revFlag && data->gapLeftFlag) || 
-        (! revFlag && data->gapRightFlag))
-    {
-      cout << "SUGGEST-WARN: Left car should not have abutting gap?\n";
-      cout << data->str();
-    }
-  }
-  else
-  {
-    if ((revFlag && data->gapRightFlag) ||
-        (! revFlag && data->gapLeftFlag))
-    {
-      cout << "SUGGEST-WARN: Right car should not have abutting gap?\n";
-      cout << data->str();
-    }
-  }
-
-  if ((leftFlag && revFlag && data->gapRightFlag) ||
-       (! leftFlag && ! revFlag && data->gapRightFlag))
-  {
+    // So either left reversed or right unreversed.
     gap = data->gapRight;
     quality = QUALITY_SYMMETRY;
   }
-  else if ((leftFlag && ! revFlag && data->gapLeftFlag) ||
-           (! leftFlag && revFlag && data->gapLeftFlag))
+  else if (data->gapLeftFlag && leftFlag != revFlag)
+  // else if ((leftFlag && ! revFlag && data->gapLeftFlag) ||
+           // (! leftFlag && revFlag && data->gapLeftFlag))
   {
+    // So either left unreversed or right reversed.
     gap = data->gapLeft;
     quality = QUALITY_SYMMETRY;
   }
@@ -117,6 +101,34 @@ cout << carPtr->strFull(99, offset) << endl;
     cout << "SUGGEST-ERR: No general gap (yet?)\n";
     return false;
   }
+
+  return true;
+}
+
+
+bool PeakPattern::setGlobals(
+  const CarModels& models,
+  const PeakRange& range,
+  const unsigned offsetIn)
+{
+  carBeforePtr = range.carBeforePtr();
+  carAfterPtr = range.carAfterPtr();
+
+  if (! carBeforePtr && ! carAfterPtr)
+    return false;
+
+  offset = offsetIn;
+
+  if (! PeakPattern::getRangeQuality(models, carBeforePtr,
+      true, qualLeft, gapLeft))
+    qualLeft = QUALITY_NONE;
+
+  if (! PeakPattern::getRangeQuality(models, carAfterPtr,
+      false, qualRight, gapRight))
+    qualRight = QUALITY_NONE;
+
+cout << "setGlobals: " << qualLeft << "-" << qualRight << ": " <<
+  gapLeft << ", " << gapRight << endl;
 
   return true;
 }
@@ -973,28 +985,8 @@ bool PeakPattern::locate(
   PeakPtrs& peakPtrsUsed,
   PeakPtrs& peakPtrsUnused)
 {
-  offset = offsetIn;
-
-  carBeforePtr = range.carBeforePtr();
-  carAfterPtr = range.carAfterPtr();
-
-  if (! carBeforePtr && ! carAfterPtr)
-  {
-    cout << "SUGGEST-ERR: Entire range\n";
+  if (! PeakPattern::setGlobals(models, range, offsetIn))
     return false;
-  }
-
-  if (! PeakPattern::getRangeQuality(models, carBeforePtr,
-      true, qualLeft, gapLeft))
-    qualLeft = QUALITY_NONE;
-
-  if (! PeakPattern::getRangeQuality(models, carAfterPtr,
-      false, qualRight, gapRight))
-    qualRight = QUALITY_NONE;
-
-cout << "SUGGESTX " << qualLeft << "-" << qualRight << "\n";
-cout << "SUGGEST " << qualLeft << "-" << qualRight << ": " <<
-  gapLeft << ", " << gapRight << endl;
 
   list<PatternEntry> candidates;
   candidates.clear();

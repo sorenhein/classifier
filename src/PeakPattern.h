@@ -164,6 +164,11 @@ class PeakPattern
       RangeQuality& quality,
       unsigned& gap) const;
 
+    bool setGlobals(
+      const CarModels& models,
+      const PeakRange& range,
+      const unsigned offsetIn);
+
     void getFullModels(
       const CarModels& models,
       const bool fullFlag);
