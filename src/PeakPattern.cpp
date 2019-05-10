@@ -409,6 +409,9 @@ bool PeakPattern::guessLeft(
   const CarModels& models,
   list<PatternEntry>& candidates) const
 {
+  if (carBeforePtr == nullptr)
+    return false;
+
   // Starting from the left, so open towards the end.
   const unsigned indexLeft = 
     carBeforePtr->getPeaksPtr().secondBogieRightPtr->getIndex() + gapLeft;
@@ -439,6 +442,9 @@ bool PeakPattern::guessRight(
   const CarModels& models,
   list<PatternEntry>& candidates) const
 {
+  if (carAfterPtr == nullptr)
+    return false;
+
   // Starting from the right, so open towards the beginning.
   if (gapRight >= carAfterPtr->getPeaksPtr().firstBogieLeftPtr->getIndex())
   {
@@ -572,72 +578,6 @@ cout << " TTT got double-models: " << feps.size() << endl;
   }
   else
     return false;
-}
-
-
-bool PeakPattern::suggest(
-  const CarModels& models,
-  const PeakRange& range,
-  const unsigned offsetIn,
-  list<PatternEntry>& candidates)
-{
-  offset = offsetIn;
-
-  carBeforePtr = range.carBeforePtr();
-  carAfterPtr = range.carAfterPtr();
-
-  if (! carBeforePtr && ! carAfterPtr)
-  {
-    cout << "SUGGEST-ERR: Entire range\n";
-    return false;
-  }
-
-  if (! PeakPattern::getRangeQuality(models, carBeforePtr,
-      true, qualLeft, gapLeft))
-    qualLeft = QUALITY_NONE;
-
-  if (! PeakPattern::getRangeQuality(models, carAfterPtr,
-      false, qualRight, gapRight))
-    qualRight = QUALITY_NONE;
-
-cout << "SUGGESTX " << qualLeft << "-" << qualRight << "\n";
-cout << "SUGGEST " << qualLeft << "-" << qualRight << ": " <<
-  gapLeft << ", " << gapRight << endl;
-
-  candidates.clear();
-
-  // TODO A lot of these seem to be misalignments of cars with peaks.
-  if (qualLeft == QUALITY_NONE && qualRight == QUALITY_NONE)
-    return PeakPattern::guessNoBorders(candidates);
-
-  if (qualLeft != QUALITY_NONE && qualRight != QUALITY_NONE)
-  {
-    // Get full models that may fill up this bounded range.
-    PeakPattern::getFullModels(models, true);
-    if (PeakPattern::guessBoth(models, candidates))
-      return true;
-  }
-
-cout << "Both was not successful, now looking at one-sided\n";
-  PeakPattern::getFullModels(models, false);
-
-  // Add both!
-  bool okFlag = false;
-  if (qualLeft != QUALITY_NONE)
-  {
-cout << "Trying left\n";
-    if (PeakPattern::guessLeft(models, candidates))
-      okFlag = true;
-  }
-
-  if (qualRight != QUALITY_NONE)
-  {
-cout << "Trying right\n";
-    if (PeakPattern::guessRight(models, candidates))
-      okFlag = true;
-  }
-
-  return okFlag;
 }
 
 
@@ -1025,12 +965,80 @@ for (auto d: doubles)
 }
 
 
-bool PeakPattern::verify(
-  list<PatternEntry>& candidates,
+bool PeakPattern::locate(
+  const CarModels& models,
   PeakPool& peaks,
+  const PeakRange& range,
+  const unsigned offsetIn,
   PeakPtrs& peakPtrsUsed,
-  PeakPtrs& peakPtrsUnused) const
+  PeakPtrs& peakPtrsUnused)
 {
+  offset = offsetIn;
+
+  carBeforePtr = range.carBeforePtr();
+  carAfterPtr = range.carAfterPtr();
+
+  if (! carBeforePtr && ! carAfterPtr)
+  {
+    cout << "SUGGEST-ERR: Entire range\n";
+    return false;
+  }
+
+  if (! PeakPattern::getRangeQuality(models, carBeforePtr,
+      true, qualLeft, gapLeft))
+    qualLeft = QUALITY_NONE;
+
+  if (! PeakPattern::getRangeQuality(models, carAfterPtr,
+      false, qualRight, gapRight))
+    qualRight = QUALITY_NONE;
+
+cout << "SUGGESTX " << qualLeft << "-" << qualRight << "\n";
+cout << "SUGGEST " << qualLeft << "-" << qualRight << ": " <<
+  gapLeft << ", " << gapRight << endl;
+
+  list<PatternEntry> candidates;
+  candidates.clear();
+
+  // TODO A lot of these seem to be misalignments of cars with peaks.
+  bool candFlag = false;
+  if (qualLeft == QUALITY_NONE && qualRight == QUALITY_NONE)
+  {
+    if (PeakPattern::guessNoBorders(candidates))
+      candFlag = true;
+  }
+
+  if (!candFlag && qualLeft != QUALITY_NONE && qualRight != QUALITY_NONE)
+  {
+    // Get full models that may fill up this bounded range.
+    PeakPattern::getFullModels(models, true);
+    if (PeakPattern::guessBoth(models, candidates))
+      candFlag = true;
+  }
+
+  if (! candFlag)
+  {
+cout << "Both was not successful, now looking at one-sided\n";
+  PeakPattern::getFullModels(models, false);
+
+  // Add both!
+  if (qualLeft != QUALITY_NONE)
+  {
+cout << "Trying left\n";
+    if (PeakPattern::guessLeft(models, candidates))
+      candFlag = true;
+  }
+
+  if (qualRight != QUALITY_NONE)
+  {
+cout << "Trying right\n";
+    if (PeakPattern::guessRight(models, candidates))
+      candFlag = true;
+  }
+  }
+
+  if (! candFlag)
+    return false;
+
   // Probably the best way to do this is to check (non-destructively)
   // for each candidate whether its missing peaks can be repaired, and
   // only then repair those peaks.  In PeakPool::repair it would indeed

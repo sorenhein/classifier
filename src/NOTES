@@ -7,6 +7,8 @@ Plan 2019-05-08
   - Geometry should only hit middles of ranges
 * Maybe the same for last cars (which should be complete)
 
+* Move the range.split out of each method into the overall loop?
+
 PeakPattern:
 
 * First priority is "both"

@@ -269,17 +269,13 @@ class PeakPattern
 
     void reset();
 
-    bool suggest(
+    bool locate(
       const CarModels& models,
-      const PeakRange& range,
-      const unsigned offset,
-      list<PatternEntry>& candidates);
-
-    bool verify(
-      list<PatternEntry>& candidates,
       PeakPool& peaks,
+      const PeakRange& range,
+      const unsigned offsetIn,
       PeakPtrs& peakPtrsUsed,
-      PeakPtrs& peakPtrsUnused) const;
+      PeakPtrs& peakPtrsUnused);
 };
 
 #endif

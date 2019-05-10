@@ -547,16 +547,17 @@ PeakStructure::FindCarType PeakStructure::findCarByPattern(
   PeakRange& range,
   CarDetect& car) const
 {
-  PeakPattern pattern;
-  list<PatternEntry> candidates;
-  if (! pattern.suggest(models, range, offset, candidates))
-    return FIND_CAR_NO_MATCH;
-
-  // These can in general cover more time than the car we finde.
+  // These can in general cover more time than the car we find.
   PeakPtrs peakPtrsUsed, peakPtrsUnused;
   range.split(&Peak::goodPeakQuality, peakPtrsUsed, peakPtrsUnused);
 
-  if (! pattern.verify(candidates, peaks, peakPtrsUsed, peakPtrsUnused))
+  PeakPattern pattern;
+  // list<PatternEntry> candidates;
+  // if (! pattern.suggest(models, range, offset, candidates))
+    // return FIND_CAR_NO_MATCH;
+
+  if (! pattern.locate(models, peaks, range, offset,
+      peakPtrsUsed, peakPtrsUnused))
     return FIND_CAR_NO_MATCH;
 
   // If it worked, the used and unused peaks have been modified,
