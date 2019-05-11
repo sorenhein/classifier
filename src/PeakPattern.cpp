@@ -961,6 +961,7 @@ bool PeakPattern::locate(
       return false;
   }
 
+  // First try filling the entire range with 1-2 cards.
   if (qualBest != QUALITY_GENERAL || qualBest == QUALITY_NONE)
   {
     PeakPattern::getActiveModels(models, true);
@@ -978,38 +979,24 @@ bool PeakPattern::locate(
       return true;
   }
 
-
-  bool candFlag = false;
-  if (! candFlag)
-  {
-cout << "Both was not successful, now looking at one-sided\n";
+  // Then try to fill up from the left or right.
   PeakPattern::getActiveModels(models, false);
 
-  // Add both!
   if (qualLeft != QUALITY_NONE)
   {
-cout << "Trying left\n";
-    if (PeakPattern::guessLeft(models))
-      candFlag = true;
+    if (PeakPattern::guessLeft(models) &&
+        PeakPattern::fix(peaks, peakPtrsUsed, peakPtrsUnused))
+      return true;
   }
 
   if (qualRight != QUALITY_NONE)
   {
-cout << "Trying right\n";
-    if (PeakPattern::guessRight(models))
-      candFlag = true;
+    if (PeakPattern::guessRight(models) &&
+        PeakPattern::fix(peaks, peakPtrsUsed, peakPtrsUnused))
+      return true;
   }
-  }
 
-  if (! candFlag)
-    return false;
-
-  // Probably the best way to do this is to check (non-destructively)
-  // for each candidate whether its missing peaks can be repaired, and
-  // only then repair those peaks.  In PeakPool::repair it would indeed
-  // be possible to do this.  But I'm going the easier way here for now.
-
-  return PeakPattern::fix(peaks, peakPtrsUsed, peakPtrsUnused);
+  return false;
 }
 
 
