@@ -44,7 +44,12 @@ void PeakPattern::reset()
   gapLeft = 0;
   gapRight = 0;
 
-  fullEntries.clear();
+  indexLeft = 0;
+  indexRight = 0;
+  lenRange = 0;
+
+  activeEntries.clear();
+  candidates.clear();
 }
 
 
@@ -122,18 +127,32 @@ bool PeakPattern::setGlobals(
       false, qualRight, gapRight))
     qualRight = QUALITY_NONE;
 
+  if (carBeforePtr)
+    indexLeft = carBeforePtr->
+      getPeaksPtr().secondBogieRightPtr->getIndex() + gapLeft;
+
+  if (carAfterPtr)
+  indexRight = carAfterPtr->
+    getPeaksPtr().firstBogieLeftPtr->getIndex() - gapRight;
+
+  if (indexRight > 0 && indexRight <= indexLeft)
+    return false;
+
+  lenRange = indexRight - indexLeft;
+
 cout << "setGlobals: " << qualLeft << "-" << qualRight << ": " <<
-  gapLeft << ", " << gapRight << endl;
+  gapLeft << ", " << gapRight << ", interval " <<
+  indexLeft << " - " << indexRight << ", length " << lenRange << endl;
 
   return true;
 }
 
 
-void PeakPattern::getFullModels(
+void PeakPattern::getActiveModels(
   const CarModels& models,
   const bool fullFlag)
 {
-  fullEntries.clear();
+  activeEntries.clear();
 
   for (unsigned index = 0; index < models.size(); index++)
   {
@@ -149,28 +168,28 @@ void PeakPattern::getFullModels(
     else if (! data->fullFlag)
       continue;
 
-    fullEntries.emplace_back(FullEntry());
-    FullEntry& fe = fullEntries.back();
-    fe.data = data;
-    fe.index = index;
+    activeEntries.emplace_back(ActiveEntry());
+    ActiveEntry& ae = activeEntries.back();
+    ae.data = data;
+    ae.index = index;
 
-cout << "getFullModels: Got index " << index << endl;
+cout << "getActiveModels: Got index " << index << endl;
 cout << data->str() << endl;
 
     // Three different qualities; only two used for now.
-    fe.lenLo.resize(3);
-    fe.lenHi.resize(3);
+    ae.lenLo.resize(3);
+    ae.lenHi.resize(3);
 
     const unsigned len = data->lenPP + data->gapLeft + data->gapRight;
 
-    fe.lenLo[QUALITY_WHOLE_MODEL] =
+    ae.lenLo[QUALITY_WHOLE_MODEL] =
       static_cast<unsigned>((1.f - LEN_FACTOR_GREAT) * len);
-    fe.lenHi[QUALITY_WHOLE_MODEL] =
+    ae.lenHi[QUALITY_WHOLE_MODEL] =
       static_cast<unsigned>((1.f + LEN_FACTOR_GREAT) * len);
 
-    fe.lenLo[QUALITY_SYMMETRY] = 
+    ae.lenLo[QUALITY_SYMMETRY] = 
       static_cast<unsigned>((1.f - LEN_FACTOR_GOOD) * len);
-    fe.lenHi[QUALITY_SYMMETRY] =
+    ae.lenHi[QUALITY_SYMMETRY] =
       static_cast<unsigned>((1.f + LEN_FACTOR_GOOD) * len);
   }
 }
@@ -392,14 +411,55 @@ bool PeakPattern::guessNoBorders()
 }
 
 
+bool PeakPattern::guessBoth(const CarModels& models)
+{
+  RangeQuality qualBest = (qualLeft <= qualRight ? qualLeft : qualRight);
+  if (qualBest == QUALITY_GENERAL || qualBest == QUALITY_NONE)
+    return false;
+
+cout << "guessBoth: Examining " <<
+  indexLeft + offset << " - " << 
+  indexRight + offset << 
+  ", length " << lenRange << endl;
+
+  candidates.clear();
+  list<ActiveEntry const *> aeps;
+
+  if (PeakPattern::findSingleModel(qualBest, aeps))
+  {
+    for (auto ap: aeps)
+    {
+      PeakPattern::fillFromModel(models, ap->index, 
+        ap->data->symmetryFlag, indexLeft, indexRight, 
+        PATTERN_DOUBLE_SIDED_SINGLE);
+    }
+
+    return true;
+  }
+
+  if (PeakPattern::findDoubleModel(qualBest, aeps))
+  {
+cout << " TTT got double-models: " << aeps.size() << endl;
+    for (auto ap: aeps)
+    {
+      PeakPattern::fillFromModel(models, ap->index, 
+        ap->data->symmetryFlag, indexLeft, indexRight, 
+        PATTERN_DOUBLE_SIDED_DOUBLE);
+    }
+
+    return true;
+  }
+  else
+    return false;
+}
+
+
 bool PeakPattern::guessLeft(const CarModels& models)
 {
   if (carBeforePtr == nullptr)
     return false;
 
   // Starting from the left, so open towards the end.
-  const unsigned indexLeft = 
-    carBeforePtr->getPeaksPtr().secondBogieRightPtr->getIndex() + gapLeft;
 
 cout << "TTT guessLeft actual abutting peak: " <<
   carBeforePtr->getPeaksPtr().secondBogieRightPtr->getIndex() + offset << 
@@ -411,11 +471,11 @@ cout << "TTT guessLeft actual abutting peak: " <<
     return false;
   }
 
-  for (auto& fe: fullEntries)
+  for (auto& ae: activeEntries)
   {
-cout << " TTT got left model: " << fe.index << ", " <<
+cout << " TTT got left model: " << ae.index << ", " <<
   indexLeft + offset << endl;
-    PeakPattern::fillFromModel(models, fe.index, fe.data->symmetryFlag,
+    PeakPattern::fillFromModel(models, ae.index, ae.data->symmetryFlag,
       indexLeft, 0, PATTERN_SINGLE_SIDED_LEFT);
   }
 
@@ -435,9 +495,6 @@ bool PeakPattern::guessRight(const CarModels& models)
     return false;
   }
 
-  const unsigned indexRight = 
-    carAfterPtr->getPeaksPtr().firstBogieLeftPtr->getIndex() - gapRight;
-
 cout << "TTT guessRight actual abutting peak: " <<
   carAfterPtr->getPeaksPtr().firstBogieLeftPtr->getIndex() + offset << "\n";
 
@@ -447,10 +504,10 @@ cout << "TTT guessRight actual abutting peak: " <<
     return false;
   }
 
-  for (auto& fe: fullEntries)
+  for (auto& ae: activeEntries)
   {
-cout << " TTT got right model: " << fe.index << endl;
-    PeakPattern::fillFromModel(models, fe.index, fe.data->symmetryFlag,
+cout << " TTT got right model: " << ae.index << endl;
+    PeakPattern::fillFromModel(models, ae.index, ae.data->symmetryFlag,
       0, indexRight, PATTERN_SINGLE_SIDED_RIGHT);
   }
 
@@ -460,105 +517,44 @@ cout << " TTT got right model: " << fe.index << endl;
 
 bool PeakPattern::findSingleModel(
   const RangeQuality qualOverall,
-  const unsigned lenRange,
-  list<FullEntry const *>& feps) const
+  list<ActiveEntry const *>& aeps) const
 {
-  for (auto& fe: fullEntries)
+  for (auto& ae: activeEntries)
   {
-cout << "TTT comparing to model " << fe.index << ": lenPP " <<
-  fe.data->lenPP << ", " << fe.lenLo[qualOverall] << ", " <<
-  fe.lenHi[qualOverall] << endl;
+cout << "TTT comparing to single model " << ae.index << ": lenPP " <<
+  ae.data->lenPP << ", overall " << ae.lenLo[qualOverall] << " - " <<
+  ae.lenHi[qualOverall] << endl;
 
-    if (lenRange >= fe.lenLo[qualOverall] &&
-        lenRange <= fe.lenHi[qualOverall])
+    if (lenRange >= ae.lenLo[qualOverall] &&
+        lenRange <= ae.lenHi[qualOverall])
     {
-      feps.push_back(&fe);
+      aeps.push_back(&ae);
     }
   }
 
-  return (feps.size() > 0);
+  return (aeps.size() > 0);
 }
 
 
 bool PeakPattern::findDoubleModel(
   const RangeQuality qualOverall,
-  const unsigned lenRange,
-  list<FullEntry const *>& feps) const
+  list<ActiveEntry const *>& aeps) const
 {
-  feps.clear();
-  for (auto& fe1: fullEntries)
+  aeps.clear();
+  for (auto& ae1: activeEntries)
   {
-    for (auto& fe2: fullEntries)
+    for (auto& ae2: activeEntries)
     {
-      if (lenRange >= fe1.lenLo[qualOverall] + fe2.lenLo[qualOverall] &&
-          lenRange <= fe1.lenHi[qualOverall] + fe2.lenHi[qualOverall])
+      if (lenRange >= ae1.lenLo[qualOverall] + ae2.lenLo[qualOverall] &&
+          lenRange <= ae1.lenHi[qualOverall] + ae2.lenHi[qualOverall])
       {
         // We just fill out the first model which is then implicitly
         // to the left (earlier in time) than the other one.
-        feps.push_back(&fe1);
+        aeps.push_back(&ae1);
       }
     }
   }
-  return (feps.size() > 0);
-}
-
-
-bool PeakPattern::guessBoth(const CarModels& models)
-{
-  const unsigned indexLeft = 
-    carBeforePtr->getPeaksPtr().secondBogieRightPtr->getIndex() + gapLeft;
-  const unsigned indexRight = 
-    carAfterPtr->getPeaksPtr().firstBogieLeftPtr->getIndex() - gapRight;
-
-cout << "TTT actual abutting peaks: " <<
-    carBeforePtr->getPeaksPtr().secondBogieRightPtr->getIndex() + offset <<
-    ", " <<
-    carAfterPtr->getPeaksPtr().firstBogieLeftPtr->getIndex() + offset << "\n";
-
-  if (indexRight <= indexLeft)
-
-  {
-    cout << "SUGGEST-ERR: guessBoth no range\n";
-    return false;
-  }
-
-  RangeQuality qualOverall = (qualLeft <= qualRight ? qualLeft : qualRight);
-  if (qualOverall == QUALITY_GENERAL || qualOverall == QUALITY_NONE)
-  {
-    cout << "SUGGEST-ERR: guessBoth unexpected quality\n";
-    return false;
-  }
-
-  const unsigned lenRange = indexRight - indexLeft;
-cout << "TTT looking for actual length " << lenRange << endl;
-
-  list<FullEntry const *> feps;
-  if (PeakPattern::findSingleModel(qualOverall, lenRange, feps))
-  {
-    for (auto fp: feps)
-    {
-      PeakPattern::fillFromModel(models, fp->index, 
-        fp->data->symmetryFlag, indexLeft, indexRight, 
-        PATTERN_DOUBLE_SIDED_SINGLE);
-    }
-
-    return true;
-  }
-
-  if (PeakPattern::findDoubleModel(qualOverall, lenRange, feps))
-  {
-cout << " TTT got double-models: " << feps.size() << endl;
-    for (auto fp: feps)
-    {
-      PeakPattern::fillFromModel(models, fp->index, 
-        fp->data->symmetryFlag, indexLeft, indexRight, 
-        PATTERN_DOUBLE_SIDED_DOUBLE);
-    }
-
-    return true;
-  }
-  else
-    return false;
+  return (aeps.size() > 0);
 }
 
 
@@ -1024,19 +1020,19 @@ bool PeakPattern::locate(
       return false;
   }
 
-  bool candFlag = false;
-  if (!candFlag && qualLeft != QUALITY_NONE && qualRight != QUALITY_NONE)
+  if (qualLeft != QUALITY_NONE && qualRight != QUALITY_NONE)
   {
     // Get full models that may fill up this bounded range.
-    PeakPattern::getFullModels(models, true);
+    PeakPattern::getActiveModels(models, true);
     if (PeakPattern::guessBoth(models))
-      candFlag = true;
+      return PeakPattern::fix(peaks, peakPtrsUsed, peakPtrsUnused);
   }
 
+  bool candFlag = false;
   if (! candFlag)
   {
 cout << "Both was not successful, now looking at one-sided\n";
-  PeakPattern::getFullModels(models, false);
+  PeakPattern::getActiveModels(models, false);
 
   // Add both!
   if (qualLeft != QUALITY_NONE)

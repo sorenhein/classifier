@@ -75,7 +75,7 @@ class PeakPattern
       QUALITY_NONE = 3
     };
 
-    struct FullEntry
+    struct ActiveEntry
     {
       ModelData const * data;
       unsigned index;
@@ -145,6 +145,7 @@ class PeakPattern
       };
     };
 
+
     unsigned offset;
 
     CarDetect const * carBeforePtr;
@@ -154,8 +155,11 @@ class PeakPattern
     RangeQuality qualRight;
     unsigned gapLeft;
     unsigned gapRight;
+    unsigned indexLeft;
+    unsigned indexRight;
+    unsigned lenRange;
 
-    vector<FullEntry> fullEntries;
+    vector<ActiveEntry> activeEntries;
 
     list<PatternEntry> candidates;
 
@@ -172,19 +176,17 @@ class PeakPattern
       const PeakRange& range,
       const unsigned offsetIn);
 
-    void getFullModels(
+    void getActiveModels(
       const CarModels& models,
       const bool fullFlag);
 
     bool findSingleModel(
       const RangeQuality qualOverall,
-      const unsigned lenRange,
-      list<FullEntry const *>& feps) const;
+      list<ActiveEntry const *>& aeps) const; 
 
     bool findDoubleModel(
       const RangeQuality qualOverall,
-      const unsigned lenRange,
-      list<FullEntry const *>& feps) const;
+      list<ActiveEntry const *>& aeps) const;
 
     bool fillPoints(
       const list<unsigned>& carPoints,
