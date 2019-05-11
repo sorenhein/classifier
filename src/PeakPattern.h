@@ -180,10 +180,6 @@ class PeakPattern
       const CarModels& models,
       const bool fullFlag);
 
-    bool findSingleModel(
-      const RangeQuality qualOverall,
-      list<ActiveEntry const *>& aeps) const; 
-
     bool findDoubleModel(
       const RangeQuality qualOverall,
       list<ActiveEntry const *>& aeps) const;
@@ -203,6 +199,8 @@ class PeakPattern
       const PatternType patternType);
 
     bool guessNoBorders();
+
+    bool guessBothSingle(const CarModels& models);
 
     bool guessLeft( const CarModels& models);
 

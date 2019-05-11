@@ -425,6 +425,10 @@ cout << "guessBoth: Examining " <<
   candidates.clear();
   list<ActiveEntry const *> aeps;
 
+  if (PeakPattern::guessBothSingle(models))
+    return true;
+
+  /*
   if (PeakPattern::findSingleModel(qualBest, aeps))
   {
     for (auto ap: aeps)
@@ -436,6 +440,7 @@ cout << "guessBoth: Examining " <<
 
     return true;
   }
+  */
 
   if (PeakPattern::findDoubleModel(qualBest, aeps))
   {
@@ -515,24 +520,35 @@ cout << " TTT got right model: " << ae.index << endl;
 }
 
 
-bool PeakPattern::findSingleModel(
-  const RangeQuality qualOverall,
-  list<ActiveEntry const *>& aeps) const
+bool PeakPattern::guessBothSingle(const CarModels& models)
 {
+  RangeQuality qualBest = (qualLeft <= qualRight ? qualLeft : qualRight);
+  if (qualBest == QUALITY_GENERAL || qualBest == QUALITY_NONE)
+    return false;
+
+  candidates.clear();
+
+cout << "guessBothSingle: Examining " <<
+  indexLeft + offset << " - " << 
+  indexRight + offset << 
+  ", length " << lenRange << endl;
+
   for (auto& ae: activeEntries)
   {
-cout << "TTT comparing to single model " << ae.index << ": lenPP " <<
-  ae.data->lenPP << ", overall " << ae.lenLo[qualOverall] << " - " <<
-  ae.lenHi[qualOverall] << endl;
-
-    if (lenRange >= ae.lenLo[qualOverall] &&
-        lenRange <= ae.lenHi[qualOverall])
+    if (lenRange >= ae.lenLo[qualBest] &&
+        lenRange <= ae.lenHi[qualBest])
     {
-      aeps.push_back(&ae);
+cout << "guessBothSingle: got single model " << ae.index << ": lenPP " <<
+  ae.data->lenPP << ", overall " << ae.lenLo[qualBest] << " - " <<
+  ae.lenHi[qualBest] << endl;
+
+      PeakPattern::fillFromModel(models, ae.index, 
+        ae.data->symmetryFlag, indexLeft, indexRight, 
+        PATTERN_DOUBLE_SIDED_SINGLE);
     }
   }
 
-  return (aeps.size() > 0);
+  return (! candidates.empty());
 }
 
 
