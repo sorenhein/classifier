@@ -159,6 +159,7 @@ class PeakPattern
 
     list<PatternEntry> candidates;
 
+
     bool getRangeQuality(
       const CarModels& models,
       CarDetect const * carPtr,

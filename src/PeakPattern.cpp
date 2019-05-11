@@ -129,101 +129,6 @@ cout << "setGlobals: " << qualLeft << "-" << qualRight << ": " <<
 }
 
 
-bool PeakPattern::guessNoBorders()
-{
-  // This is a half-hearted try to fill in exactly one car of the 
-  // same type as its neighbors if those neighbors do not have any
-  // edge gaps at all.
-
-  if (! carBeforePtr || ! carAfterPtr)
-    return false;
-
-  if (carBeforePtr->index() != carAfterPtr->index())
-    return false;
-
-  // We will not test for symmetry.
-  const CarPeaksPtr& peaksBefore = carBeforePtr->getPeaksPtr();
-  const CarPeaksPtr& peaksAfter = carAfterPtr->getPeaksPtr();
-
-  const unsigned bogieGap = carBeforePtr->getLeftBogieGap();
-
-  const unsigned avgLeftLeft = 
-    (peaksBefore.firstBogieLeftPtr->getIndex() +
-     peaksAfter.firstBogieLeftPtr->getIndex()) / 2;
-  const unsigned avgLeftRight =
-    (peaksBefore.firstBogieRightPtr->getIndex() +
-     peaksAfter.firstBogieRightPtr->getIndex()) / 2;
-  const unsigned avgRightLeft =
-    (peaksBefore.secondBogieLeftPtr->getIndex() +
-     peaksAfter.secondBogieLeftPtr->getIndex()) / 2;
-  const unsigned avgRightRight =
-    (peaksBefore.secondBogieRightPtr->getIndex() +
-     peaksAfter.secondBogieRightPtr->getIndex()) / 2;
-
-  // Disqualify if the resulting car is implausible.
-  if (avgLeftLeft < peaksBefore.secondBogieRightPtr->getIndex())
-  {
-    cout << "SUGGEST-ERR: guessNoBorders left gap way too small\n";
-    cout << "SUGGEST-YY0: avgLL " << avgLeftLeft << 
-      " vs. " << peaksBefore.secondBogieRightPtr->getIndex() + offset << 
-      endl;
-    return false;
-  }
-
-  if (avgRightRight > peaksAfter.firstBogieLeftPtr->getIndex())
-  {
-    cout << "SUGGEST-ERR: guessNoBorders right gap way too small\n";
-    cout << "SUGGEST-YY1: avgRR " << avgRightRight << 
-      " vs. " << peaksAfter.firstBogieLeftPtr->getIndex() + offset << endl;
-    return false;
-  }
-
-  const unsigned delta = 
-    avgLeftLeft - peaksBefore.secondBogieRightPtr->getIndex();
-
-  if (delta > NO_BORDER_FACTOR * bogieGap)
-  {
-    cout << "SUGGEST-ERR: guessNoBorders cars are different vs bogie\n";
-    cout << "SUGGEST-YY2: gap " << delta << " vs. " << bogieGap << endl;
-    return false;
-  }
-
-  if (delta < SMALL_BORDER_FACTOR * bogieGap)
-  {
-    cout << "SUGGEST-ERR: guessNoBorders left gap tiny\n";
-    cout << "SUGGEST-YY3: gap " << delta << " vs. " << bogieGap << endl;
-    return false;
-  }
-
-  const unsigned mid = carBeforePtr->getMidGap();
-  if (delta > mid)
-  {
-    cout << "SUGGEST-ERR: guessNoBorders cars are different vs mid gap\n";
-    cout << "SUGGEST-YY4: gap " << delta << " vs. " << mid << endl;
-    return false;
-  }
-
-  candidates.emplace_back(PatternEntry());
-  PatternEntry& pe = candidates.back();
-
-  pe.modelNo = carBeforePtr->index();
-  pe.reverseFlag = false;
-  pe.abutLeftFlag = false;
-  pe.abutRightFlag = false;
-  pe.start = avgLeftLeft - delta/2;
-  pe.end = (peaksAfter.firstBogieLeftPtr->getIndex() - avgRightRight) / 2;
-
-  pe.indices.push_back(avgLeftLeft);
-  pe.indices.push_back(avgLeftRight);
-  pe.indices.push_back(avgRightLeft);
-  pe.indices.push_back(avgRightRight);
-
-  pe.borders = PATTERN_NO_BORDERS;
-
-  return true;
-}
-
-
 void PeakPattern::getFullModels(
   const CarModels& models,
   const bool fullFlag)
@@ -406,6 +311,82 @@ cout << pe.strAbs("SUGGEST-ZZ1rev", offset);
   else
     cout << "skip due to trail zero\n";
 
+
+  return true;
+}
+
+
+bool PeakPattern::guessNoBorders()
+{
+  // This is a half-hearted try to fill in exactly one car of the 
+  // same type as its neighbors if those neighbors do not have any
+  // edge gaps at all.
+
+  if (! carBeforePtr || ! carAfterPtr)
+    return false;
+
+  if (carBeforePtr->index() != carAfterPtr->index())
+    return false;
+
+  // We will not test for symmetry.
+  const CarPeaksPtr& peaksBefore = carBeforePtr->getPeaksPtr();
+  const CarPeaksPtr& peaksAfter = carAfterPtr->getPeaksPtr();
+
+  const unsigned avgLeftLeft = 
+    (peaksBefore.firstBogieLeftPtr->getIndex() +
+     peaksAfter.firstBogieLeftPtr->getIndex()) / 2;
+  const unsigned avgLeftRight =
+    (peaksBefore.firstBogieRightPtr->getIndex() +
+     peaksAfter.firstBogieRightPtr->getIndex()) / 2;
+  const unsigned avgRightLeft =
+    (peaksBefore.secondBogieLeftPtr->getIndex() +
+     peaksAfter.secondBogieLeftPtr->getIndex()) / 2;
+  const unsigned avgRightRight =
+    (peaksBefore.secondBogieRightPtr->getIndex() +
+     peaksAfter.secondBogieRightPtr->getIndex()) / 2;
+
+  // Disqualify if the resulting car is implausible.
+  if (avgLeftLeft < peaksBefore.secondBogieRightPtr->getIndex())
+    return false;
+
+  if (avgRightRight > peaksAfter.firstBogieLeftPtr->getIndex())
+    return false;
+
+  const unsigned delta = 
+    avgLeftLeft - peaksBefore.secondBogieRightPtr->getIndex();
+
+  const unsigned bogieGap = carBeforePtr->getLeftBogieGap();
+
+  // It is implausible for the intra-car gap to be too large.
+  if (delta > NO_BORDER_FACTOR * bogieGap)
+    return false;
+
+  // It is implausible for the intra-car gap to be tiny.
+  if (delta < SMALL_BORDER_FACTOR * bogieGap)
+    return false;
+
+  // It is implausible for the intra-car gap to exceed a mid gap.
+  const unsigned mid = carBeforePtr->getMidGap();
+  if (delta > mid)
+    return false;
+
+  candidates.clear();
+  candidates.emplace_back(PatternEntry());
+  PatternEntry& pe = candidates.back();
+
+  pe.modelNo = carBeforePtr->index();
+  pe.reverseFlag = false;
+  pe.abutLeftFlag = false;
+  pe.abutRightFlag = false;
+  pe.start = avgLeftLeft - delta/2;
+  pe.end = (peaksAfter.firstBogieLeftPtr->getIndex() - avgRightRight) / 2;
+
+  pe.indices.push_back(avgLeftLeft);
+  pe.indices.push_back(avgLeftRight);
+  pe.indices.push_back(avgRightLeft);
+  pe.indices.push_back(avgRightRight);
+
+  pe.borders = PATTERN_NO_BORDERS;
 
   return true;
 }
@@ -1032,16 +1013,18 @@ bool PeakPattern::locate(
   if (! PeakPattern::setGlobals(models, range, offsetIn))
     return false;
 
-  candidates.clear();
-
-  // TODO A lot of these seem to be misalignments of cars with peaks.
-  bool candFlag = false;
   if (qualLeft == QUALITY_NONE && qualRight == QUALITY_NONE)
   {
-    if (PeakPattern::guessNoBorders())
-      candFlag = true;
+  // TODO A lot of these seem to be misalignments of cars with peaks.
+  // So it's not clear that we should recognize them.
+    if (PeakPattern::guessNoBorders() &&
+        PeakPattern::fix(peaks, peakPtrsUsed, peakPtrsUnused))
+      return true;
+    else
+      return false;
   }
 
+  bool candFlag = false;
   if (!candFlag && qualLeft != QUALITY_NONE && qualRight != QUALITY_NONE)
   {
     // Get full models that may fill up this bounded range.
@@ -1079,60 +1062,6 @@ cout << "Trying right\n";
   // only then repair those peaks.  In PeakPool::repair it would indeed
   // be possible to do this.  But I'm going the easier way here for now.
 
-return PeakPattern::fix(peaks, peakPtrsUsed, peakPtrsUnused);
-  /*
-  NoneEntry none;
-  list<SingleEntry> singles;
-  list<DoubleEntry> doubles;
-
-  PeakPattern::examineCandidates(peakPtrsUsed, candidates, 
-    none, singles, doubles);
-
-  if (candidates.empty())
-    return false;
-
-cout << "VERIFY1 " << ! none.empty() << ", " <<
-  singles.size() << ", " << doubles.size() << endl;
-
-  // Start with the 2's if that's all there is.
-  if (none.empty() && singles.empty() && ! doubles.empty())
-  {
-    if (PeakPattern::fixDoubles(peaks, doubles, peakPtrsUsed))
-    {
-      PeakPattern::examineCandidates(peakPtrsUsed, candidates, 
-        none, singles, doubles);
-    }
-  }
-
-  // Try the 3's (original or 2's turned 3's) if there are no 4's.
-  if (none.empty() && ! singles.empty())
-  {
-    if (PeakPattern::fixSingles(peaks, singles, peakPtrsUsed))
-    {
-      PeakPattern::examineCandidates(peakPtrsUsed, candidates,
-        none, singles, doubles);
-    }
-  }
-
-  // Try the 4's of various origins.
-  if (! none.empty())
-  {
-    cout << "Have all 4 indices now\n";
-    PeakPattern::update(none, peakPtrsUsed, peakPtrsUnused);
-    return true;
-  }
-
-  if (candidates.front().borders == PATTERN_SINGLE_SIDED_RIGHT &&
-      ! singles.empty() &&
-      singles.front().target < 500)
-  {
-    // We don't need to flag the difficult first cars here.
-    return false;
-  }
-
-cout << "VERIFY2 " << singles.size() << ", " << doubles.size() << endl;
-
-  return false;
-  */
+  return PeakPattern::fix(peaks, peakPtrsUsed, peakPtrsUnused);
 }
 
