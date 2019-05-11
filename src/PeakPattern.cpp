@@ -129,7 +129,7 @@ cout << "setGlobals: " << qualLeft << "-" << qualRight << ": " <<
 }
 
 
-bool PeakPattern::guessNoBorders(list<PatternEntry>& candidates) const
+bool PeakPattern::guessNoBorders()
 {
   // This is a half-hearted try to fill in exactly one car of the 
   // same type as its neighbors if those neighbors do not have any
@@ -337,8 +337,7 @@ bool PeakPattern::fillFromModel(
   const bool symmetryFlag,
   const unsigned indexRangeLeft,
   const unsigned indexRangeRight,
-  const PatternType patternType,
-  list<PatternEntry>& candidates) const
+  const PatternType patternType)
 {
   list<unsigned> carPoints;
   models.getCarPoints(indexModel, carPoints);
@@ -412,9 +411,7 @@ cout << pe.strAbs("SUGGEST-ZZ1rev", offset);
 }
 
 
-bool PeakPattern::guessLeft(
-  const CarModels& models,
-  list<PatternEntry>& candidates) const
+bool PeakPattern::guessLeft(const CarModels& models)
 {
   if (carBeforePtr == nullptr)
     return false;
@@ -438,16 +435,14 @@ cout << "TTT guessLeft actual abutting peak: " <<
 cout << " TTT got left model: " << fe.index << ", " <<
   indexLeft + offset << endl;
     PeakPattern::fillFromModel(models, fe.index, fe.data->symmetryFlag,
-      indexLeft, 0, PATTERN_SINGLE_SIDED_LEFT, candidates);
+      indexLeft, 0, PATTERN_SINGLE_SIDED_LEFT);
   }
 
   return (candidates.size() > 0);
 }
 
 
-bool PeakPattern::guessRight(
-  const CarModels& models,
-  list<PatternEntry>& candidates) const
+bool PeakPattern::guessRight(const CarModels& models)
 {
   if (carAfterPtr == nullptr)
     return false;
@@ -475,7 +470,7 @@ cout << "TTT guessRight actual abutting peak: " <<
   {
 cout << " TTT got right model: " << fe.index << endl;
     PeakPattern::fillFromModel(models, fe.index, fe.data->symmetryFlag,
-      0, indexRight, PATTERN_SINGLE_SIDED_RIGHT, candidates);
+      0, indexRight, PATTERN_SINGLE_SIDED_RIGHT);
   }
 
   return (candidates.size() > 0);
@@ -527,9 +522,7 @@ bool PeakPattern::findDoubleModel(
 }
 
 
-bool PeakPattern::guessBoth(
-  const CarModels& models,
-  list<PatternEntry>& candidates) const
+bool PeakPattern::guessBoth(const CarModels& models)
 {
   const unsigned indexLeft = 
     carBeforePtr->getPeaksPtr().secondBogieRightPtr->getIndex() + gapLeft;
@@ -565,7 +558,7 @@ cout << "TTT looking for actual length " << lenRange << endl;
     {
       PeakPattern::fillFromModel(models, fp->index, 
         fp->data->symmetryFlag, indexLeft, indexRight, 
-        PATTERN_DOUBLE_SIDED_SINGLE, candidates);
+        PATTERN_DOUBLE_SIDED_SINGLE);
     }
 
     return true;
@@ -578,7 +571,7 @@ cout << " TTT got double-models: " << feps.size() << endl;
     {
       PeakPattern::fillFromModel(models, fp->index, 
         fp->data->symmetryFlag, indexLeft, indexRight, 
-        PATTERN_DOUBLE_SIDED_DOUBLE, candidates);
+        PATTERN_DOUBLE_SIDED_DOUBLE);
     }
 
     return true;
@@ -683,10 +676,9 @@ void PeakPattern::printClosest(
 
 void PeakPattern::examineCandidates(
   const PeakPtrs& peakPtrsUsed,
-  list<PatternEntry>& candidates,
   NoneEntry& none,
   list<SingleEntry>& singles,
-  list<DoubleEntry>& doubles) const
+  list<DoubleEntry>& doubles)
 {
   // Get the lie of the land.
   unsigned distBest = numeric_limits<unsigned>::max();
@@ -972,6 +964,63 @@ for (auto d: doubles)
 }
 
 
+bool PeakPattern::fix(
+  PeakPool& peaks,
+  PeakPtrs& peakPtrsUsed,
+  PeakPtrs& peakPtrsUnused)
+{
+  NoneEntry none;
+  list<SingleEntry> singles;
+  list<DoubleEntry> doubles;
+
+  PeakPattern::examineCandidates(peakPtrsUsed, none, singles, doubles);
+
+  if (candidates.empty())
+    return false;
+
+cout << "VERIFY1 " << ! none.empty() << ", " <<
+  singles.size() << ", " << doubles.size() << endl;
+
+  // Start with the 2's if that's all there is.
+  if (none.empty() && singles.empty() && ! doubles.empty())
+  {
+    if (PeakPattern::fixDoubles(peaks, doubles, peakPtrsUsed))
+    {
+      PeakPattern::examineCandidates(peakPtrsUsed, none, singles, doubles);
+    }
+  }
+
+  // Try the 3's (original or 2's turned 3's) if there are no 4's.
+  if (none.empty() && ! singles.empty())
+  {
+    if (PeakPattern::fixSingles(peaks, singles, peakPtrsUsed))
+    {
+      PeakPattern::examineCandidates(peakPtrsUsed, none, singles, doubles);
+    }
+  }
+
+  // Try the 4's of various origins.
+  if (! none.empty())
+  {
+    cout << "Have all 4 indices now\n";
+    PeakPattern::update(none, peakPtrsUsed, peakPtrsUnused);
+    return true;
+  }
+
+  if (candidates.front().borders == PATTERN_SINGLE_SIDED_RIGHT &&
+      ! singles.empty() &&
+      singles.front().target < 500)
+  {
+    // We don't need to flag the difficult first cars here.
+    return false;
+  }
+
+cout << "VERIFY2 " << singles.size() << ", " << doubles.size() << endl;
+
+  return false;
+}
+
+
 bool PeakPattern::locate(
   const CarModels& models,
   PeakPool& peaks,
@@ -983,14 +1032,13 @@ bool PeakPattern::locate(
   if (! PeakPattern::setGlobals(models, range, offsetIn))
     return false;
 
-  list<PatternEntry> candidates;
   candidates.clear();
 
   // TODO A lot of these seem to be misalignments of cars with peaks.
   bool candFlag = false;
   if (qualLeft == QUALITY_NONE && qualRight == QUALITY_NONE)
   {
-    if (PeakPattern::guessNoBorders(candidates))
+    if (PeakPattern::guessNoBorders())
       candFlag = true;
   }
 
@@ -998,7 +1046,7 @@ bool PeakPattern::locate(
   {
     // Get full models that may fill up this bounded range.
     PeakPattern::getFullModels(models, true);
-    if (PeakPattern::guessBoth(models, candidates))
+    if (PeakPattern::guessBoth(models))
       candFlag = true;
   }
 
@@ -1011,14 +1059,14 @@ cout << "Both was not successful, now looking at one-sided\n";
   if (qualLeft != QUALITY_NONE)
   {
 cout << "Trying left\n";
-    if (PeakPattern::guessLeft(models, candidates))
+    if (PeakPattern::guessLeft(models))
       candFlag = true;
   }
 
   if (qualRight != QUALITY_NONE)
   {
 cout << "Trying right\n";
-    if (PeakPattern::guessRight(models, candidates))
+    if (PeakPattern::guessRight(models))
       candFlag = true;
   }
   }
@@ -1031,6 +1079,8 @@ cout << "Trying right\n";
   // only then repair those peaks.  In PeakPool::repair it would indeed
   // be possible to do this.  But I'm going the easier way here for now.
 
+return PeakPattern::fix(peaks, peakPtrsUsed, peakPtrsUnused);
+  /*
   NoneEntry none;
   list<SingleEntry> singles;
   list<DoubleEntry> doubles;
@@ -1083,5 +1133,6 @@ cout << "VERIFY1 " << ! none.empty() << ", " <<
 cout << "VERIFY2 " << singles.size() << ", " << doubles.size() << endl;
 
   return false;
+  */
 }
 

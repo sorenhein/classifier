@@ -157,6 +157,8 @@ class PeakPattern
 
     vector<FullEntry> fullEntries;
 
+    list<PatternEntry> candidates;
+
     bool getRangeQuality(
       const CarModels& models,
       CarDetect const * carPtr,
@@ -195,22 +197,15 @@ class PeakPattern
       const bool symmetryFlag,
       const unsigned indexRangeLeft,
       const unsigned indexRangeRight,
-      const PatternType patternType,
-      list<PatternEntry>& candidates) const;
+      const PatternType patternType);
 
-    bool guessNoBorders(list<PatternEntry>& candidates) const;
+    bool guessNoBorders();
 
-    bool guessLeft(
-      const CarModels& models,
-      list<PatternEntry>& candidates) const;
+    bool guessLeft( const CarModels& models);
 
-    bool guessRight(
-      const CarModels& models,
-      list<PatternEntry>& candidates) const;
+    bool guessRight(const CarModels& models);
 
-    bool guessBoth(
-      const CarModels& models,
-      list<PatternEntry>& candidates) const;
+    bool guessBoth(const CarModels& models);
 
     void updateUnused(
       const PatternEntry& pe,
@@ -231,10 +226,9 @@ class PeakPattern
 
     void examineCandidates(
       const PeakPtrs& peakPtrsUsed,
-      list<PatternEntry>& candidates,
       NoneEntry& none,
       list<SingleEntry>& singles,
-      list<DoubleEntry>& doubles) const;
+      list<DoubleEntry>& doubles);
 
     void setNone(
       PatternEntry& pe,
@@ -264,6 +258,11 @@ class PeakPattern
       PeakPool& peaks,
       list<DoubleEntry>& doubles,
       PeakPtrs& peakPtrsUsed) const;
+
+    bool fix(
+      PeakPool& peaks,
+      PeakPtrs& peakPtrsUsed,
+      PeakPtrs& peakPtrsUnused);
 
 
   public:
