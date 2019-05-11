@@ -507,26 +507,21 @@ void PeakPattern::updateUnused(
       pe.borders == PATTERN_DOUBLE_SIDED_SINGLE)
   {
     // All the unused peaks are fair game.
-cout << "All unused peaks are OK\n";
   }
   else if (pe.borders == PATTERN_SINGLE_SIDED_LEFT ||
       (pe.borders == PATTERN_DOUBLE_SIDED_DOUBLE && pe.abutLeftFlag))
   {
     // Only keep unused peaks in range for later markdown.
-cout << "Erasing unused above " << pe.end << endl;
     peakPtrsUnused.erase_above(pe.end);
   }
   else if (pe.borders == PATTERN_SINGLE_SIDED_RIGHT ||
       (pe.borders == PATTERN_DOUBLE_SIDED_DOUBLE && pe.abutRightFlag))
   {
     // Only keep unused peaks in range for later markdown.
-cout << "Erasing unused below " << pe.start << endl;
     peakPtrsUnused.erase_below(pe.start);
   }
   else
-  {
     cout << "ERROR: Unrecognized border type.\n";
-  }
 }
 
 
@@ -539,29 +534,20 @@ void PeakPattern::updateUsed(
   for (auto& peak: peaksClose)
   {
     const unsigned indexClose = peak->getIndex();
-cout << "Looking for " << indexClose + offset << "\n";
     while (pu != peakPtrsUsed.end() && (* pu)->getIndex() < indexClose)
-    {
-cout << "  erasing " << (* pu)->getIndex() + offset << endl;
       pu = peakPtrsUsed.erase(pu);
-    }
 
     if (pu == peakPtrsUsed.end())
       break;
 
     // Preserve those peaks that are also in peaksClose.
     if ((* pu)->getIndex() == indexClose)
-    {
-cout << "  found " << (* pu)->getIndex() + offset << endl;
       pu = peakPtrsUsed.next(pu);
-    }
   }
 
+  // Erase trailing peaks.
   while (pu != peakPtrsUsed.end())
-  {
-cout << "  erasing trailing " << (* pu)->getIndex() + offset << endl;
     pu = peakPtrsUsed.erase(pu);
-  }
 }
 
 
@@ -575,66 +561,13 @@ void PeakPattern::update(
 }
 
 
-void PeakPattern::printClosest(
-  const vector<unsigned>& indices,
-  const vector<Peak const *>& peaksClose) const
+void PeakPattern::setNone(
+  PatternEntry& pe,
+  vector<Peak const *>& peaksBest,
+  NoneEntry& none) const
 {
-  cout << "printClosest\n";
-  for (unsigned i = 0; i < indices.size(); i++)
-  {
-    cout << setw(4) << left << i <<
-      setw(8) << right << indices[i] + offset <<
-      setw(8) << 
-        (peaksClose[i] ? to_string(peaksClose[i]->getIndex() + offset) : 
-          "-") << 
-        endl;
-  }
-}
-
-
-void PeakPattern::examineCandidates(
-  const PeakPtrs& peakPtrsUsed,
-  NoneEntry& none,
-  list<SingleEntry>& singles,
-  list<DoubleEntry>& doubles)
-{
-  // Get the lie of the land.
-  unsigned distBest = numeric_limits<unsigned>::max();
-  singles.clear();
-  doubles.clear();
-
-  for (auto pe = candidates.begin(); pe != candidates.end(); )
-  {
-    vector<Peak const *> peaksClose;
-    unsigned numClose;
-    unsigned dist;
-    peakPtrsUsed.getClosest(pe->indices, peaksClose, numClose, dist);
-
-    PeakPattern::printClosest(pe->indices, peaksClose);
-
-    if (numClose <= 1)
-    {
-      // Get rid of the 1's and 0's.
-      pe = candidates.erase(pe);
-      continue;
-    }
-    else if (numClose == 2)
-      PeakPattern::addToDoubles(* pe, peaksClose, doubles);
-    else if (numClose == 3)
-      PeakPattern::addToSingles(pe->indices, peaksClose, singles);
-    else if (numClose == 4)
-    {
-      // Here we take the best one, whereas we take a more democratic
-      // approach for 2's and 3's.
-      if (dist < distBest)
-      {
-        distBest = dist;
-        PeakPattern::setNone(* pe, peaksClose, none);
-      }
-    }
-
-    pe++;
-  }
+  none.pe = pe;
+  none.peaksBest = peaksBest;
 }
 
 
@@ -742,13 +675,49 @@ void PeakPattern::addToDoubles(
 }
 
 
-void PeakPattern::setNone(
-  PatternEntry& pe,
-  vector<Peak const *>& peaksBest,
-  NoneEntry& none) const
+void PeakPattern::examineCandidates(
+  const PeakPtrs& peakPtrsUsed,
+  NoneEntry& none,
+  list<SingleEntry>& singles,
+  list<DoubleEntry>& doubles)
 {
-  none.pe = pe;
-  none.peaksBest = peaksBest;
+  // Get the lie of the land.
+  unsigned distBest = numeric_limits<unsigned>::max();
+  singles.clear();
+  doubles.clear();
+
+  for (auto pe = candidates.begin(); pe != candidates.end(); )
+  {
+    vector<Peak const *> peaksClose;
+    unsigned numClose;
+    unsigned dist;
+    peakPtrsUsed.getClosest(pe->indices, peaksClose, numClose, dist);
+
+    PeakPattern::strClosest(pe->indices, peaksClose);
+
+    if (numClose == 4)
+    {
+      // Here we take the best one, whereas we take a more democratic
+      // approach for 2's and 3's.
+      if (dist < distBest)
+      {
+        distBest = dist;
+        PeakPattern::setNone(* pe, peaksClose, none);
+      }
+    }
+    else if (numClose == 3)
+      PeakPattern::addToSingles(pe->indices, peaksClose, singles);
+    else if (numClose == 2)
+      PeakPattern::addToDoubles(* pe, peaksClose, doubles);
+    else if (numClose <= 1)
+    {
+      // Get rid of the 1's and 0's.
+      pe = candidates.erase(pe);
+      continue;
+    }
+
+    pe++;
+  }
 }
 
 
@@ -797,40 +766,55 @@ void PeakPattern::condenseDoubles(list<DoubleEntry>& doubles) const
 }
 
 
+void PeakPattern::fixOnePeak(
+  const string& text,
+  const unsigned target,
+  const unsigned lower,
+  const unsigned upper,
+  PeakPool& peaks,
+  Peak *& pptr) const
+{
+  Peak peakHint;
+  peakHint.logPosition(target, lower, upper);
+  pptr = peaks.repair(peakHint, &Peak::acceptableQuality, offset);
+
+  if (pptr == nullptr)
+  {
+    cout << text << ": Failed repair target " << target + offset << "\n";
+  }
+  else
+  {
+    cout << text << ": Repaired target " << target + offset << " to " <<
+      pptr->getIndex() + offset << endl;
+  }
+}
+
+
 bool PeakPattern::fixSingles(
   PeakPool& peaks,
   list<SingleEntry>& singles,
   PeakPtrs& peakPtrsUsed) const
 {
-cout << "Singles before\n";
-for (auto s: singles)
-  cout << s.str(offset);
-
   PeakPattern::condenseSingles(singles);
 
-cout << "Singles after\n";
+cout << "Condensed singles\n";
 for (auto s: singles)
   cout << s.str(offset);
 
-  Peak peakHint;
+  Peak * pptr;
   for (auto& single: singles)
   {
     // Once we have 3 peaks, chances are good that we're right.
     // So we lower our peak quality standard.
-    peakHint.logPosition(single.target, single.lower, single.upper);
-    Peak * pptr = peaks.repair(peakHint, &Peak::acceptableQuality, offset);
 
-    if (pptr == nullptr)
+    PeakPattern::fixOnePeak("fixSingles",
+      single.target, single.lower, single.upper, peaks, pptr);
+
+    if (pptr != nullptr)
     {
-      cout << "Failed repair target " << single.target + offset << "\n";
-      continue;
+      peakPtrsUsed.add(pptr);
+      return true;
     }
-
-    cout << "Repaired target " << single.target + offset << " to " <<
-      pptr->getIndex() + offset << endl;
-
-    peakPtrsUsed.add(pptr);
-    return true;
   }
 
   return false;
@@ -842,40 +826,32 @@ bool PeakPattern::fixDoubles(
   list<DoubleEntry>& doubles,
   PeakPtrs& peakPtrsUsed) const
 {
-cout << "Doubles before\n";
-for (auto d: doubles)
-  cout << d.str(offset);
-
   PeakPattern::condenseDoubles(doubles);
 
-cout << "Doubles after\n";
+cout << "Condensed doubles\n";
 for (auto d: doubles)
   cout << d.str(offset);
 
-  Peak peakHint;
+  Peak * pptr;
   for (auto& db: doubles)
   {
-    peakHint.logPosition(db.first.target, db.first.lower, db.first.upper);
-    Peak * pptr = peaks.repair(peakHint, &Peak::goodQuality, offset);
-    if (pptr == nullptr)
-      continue;
+    // We could end up fixing only one of the two, in which case
+    // we should arguably unroll the change.
 
-    cout << "Repaired target " << db.first.target + offset << " to " <<
-      pptr->getIndex() + offset << endl;
+    PeakPattern::fixOnePeak("fixDoubles 1",
+      db.first.target, db.first.lower, db.first.upper, peaks, pptr);
 
-    peakPtrsUsed.add(pptr);
+    if (pptr != nullptr)
+      peakPtrsUsed.add(pptr);
 
-    peakHint.logPosition(db.second.target, db.second.lower, db.second.upper);
-    pptr = peaks.repair(peakHint, &Peak::goodQuality, offset);
-    if (pptr == nullptr)
-      continue;
+    PeakPattern::fixOnePeak("fixDoubles 2",
+      db.second.target, db.second.lower, db.second.upper, peaks, pptr);
 
-    cout << "Repaired target " << db.second.target + offset << " to " <<
-      pptr->getIndex() + offset << endl;
-
-    peakPtrsUsed.add(pptr);
-
-    return true;
+    if (pptr != nullptr)
+    {
+      peakPtrsUsed.add(pptr);
+      return true;
+    }
   }
 
   return false;
@@ -896,14 +872,13 @@ bool PeakPattern::fix(
   if (candidates.empty())
     return false;
 
-cout << "VERIFY1 " << ! none.empty() << ", " <<
-  singles.size() << ", " << doubles.size() << endl;
-
   // Start with the 2's if that's all there is.
   if (none.empty() && singles.empty() && ! doubles.empty())
   {
     if (PeakPattern::fixDoubles(peaks, doubles, peakPtrsUsed))
     {
+      // TODO This is quite inefficient, as we actually know the
+      // changes we made.  But we just reexamine for now.
       PeakPattern::examineCandidates(peakPtrsUsed, none, singles, doubles);
     }
   }
@@ -912,28 +887,15 @@ cout << "VERIFY1 " << ! none.empty() << ", " <<
   if (none.empty() && ! singles.empty())
   {
     if (PeakPattern::fixSingles(peaks, singles, peakPtrsUsed))
-    {
       PeakPattern::examineCandidates(peakPtrsUsed, none, singles, doubles);
-    }
   }
 
   // Try the 4's of various origins.
   if (! none.empty())
   {
-    cout << "Have all 4 indices now\n";
     PeakPattern::update(none, peakPtrsUsed, peakPtrsUnused);
     return true;
   }
-
-  if (candidates.front().borders == PATTERN_SINGLE_SIDED_RIGHT &&
-      ! singles.empty() &&
-      singles.front().target < 500)
-  {
-    // We don't need to flag the difficult first cars here.
-    return false;
-  }
-
-cout << "VERIFY2 " << singles.size() << ", " << doubles.size() << endl;
 
   return false;
 }
@@ -1026,6 +988,25 @@ string PeakPattern::strGlobals() const
     setw(10) << left << "indices " << 
       indexLeft + offset << " - " << indexRight + offset <<  "\n" <<
     setw(10) << left << "length " << lenRange << endl;
+  return ss.str();
+}
+
+
+string PeakPattern::strClosest(
+  const vector<unsigned>& indices,
+  const vector<Peak const *>& peaksClose) const
+{
+  stringstream ss;
+  ss << "Closest indices\n";
+  for (unsigned i = 0; i < indices.size(); i++)
+  {
+    ss << setw(4) << left << i <<
+      setw(8) << right << indices[i] + offset <<
+      setw(8) << 
+        (peaksClose[i] ? to_string(peaksClose[i]->getIndex() + offset) : 
+          "-") << 
+        endl;
+  }
   return ss.str();
 }
 

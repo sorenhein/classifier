@@ -218,7 +218,6 @@ class PeakPattern
 
     bool guessRight(const CarModels& models);
 
-
     void updateUnused(
       const PatternEntry& pe,
       PeakPtrs& peakPtrsUnused) const;
@@ -231,16 +230,6 @@ class PeakPattern
       const NoneEntry& none,
       PeakPtrs& peakPtrsUsed,
       PeakPtrs& peakPtrsUnused) const;
-
-    void printClosest(
-      const vector<unsigned>& indices,
-      const vector<Peak const *>& peaksClose) const;
-
-    void examineCandidates(
-      const PeakPtrs& peakPtrsUsed,
-      NoneEntry& none,
-      list<SingleEntry>& singles,
-      list<DoubleEntry>& doubles);
 
     void setNone(
       PatternEntry& pe,
@@ -257,9 +246,23 @@ class PeakPattern
       const vector<Peak const *>& peaksClose,
       list<DoubleEntry>& doubles) const;
 
+    void examineCandidates(
+      const PeakPtrs& peakPtrsUsed,
+      NoneEntry& none,
+      list<SingleEntry>& singles,
+      list<DoubleEntry>& doubles);
+
     void condenseSingles(list<SingleEntry>& singles) const;
 
     void condenseDoubles(list<DoubleEntry>& doubles) const;
+
+    void fixOnePeak(
+      const string& text,
+      const unsigned target,
+      const unsigned lower,
+      const unsigned upper,
+      PeakPool& peaks,
+      Peak *& pptr) const;
 
     bool fixSingles(
       PeakPool& peaks,
@@ -278,6 +281,11 @@ class PeakPattern
 
     string strQuality(const RangeQuality& qual) const;
     string strGlobals() const;
+
+    string strClosest(
+      const vector<unsigned>& indices,
+      const vector<Peak const *>& peaksClose) const;
+
 
 
   public:
