@@ -153,6 +153,8 @@ class PeakPattern
 
     RangeQuality qualLeft;
     RangeQuality qualRight;
+    RangeQuality qualBest;
+    RangeQuality qualWorst;
     unsigned gapLeft;
     unsigned gapRight;
     unsigned indexLeft;
@@ -180,10 +182,6 @@ class PeakPattern
       const CarModels& models,
       const bool fullFlag);
 
-    bool findDoubleModel(
-      const RangeQuality qualOverall,
-      list<ActiveEntry const *>& aeps) const;
-
     bool fillPoints(
       const list<unsigned>& carPoints,
       const unsigned indexBase,
@@ -201,12 +199,13 @@ class PeakPattern
     bool guessNoBorders();
 
     bool guessBothSingle(const CarModels& models);
+    bool guessBothDouble(const CarModels& models);
+    bool guessBoth(const CarModels& models);
 
     bool guessLeft( const CarModels& models);
 
     bool guessRight(const CarModels& models);
 
-    bool guessBoth(const CarModels& models);
 
     void updateUnused(
       const PatternEntry& pe,

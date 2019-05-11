@@ -40,6 +40,8 @@ void PeakPattern::reset()
 
   qualLeft = QUALITY_NONE;
   qualRight = QUALITY_NONE;
+  qualBest = QUALITY_NONE;
+  qualWorst = QUALITY_NONE;
 
   gapLeft = 0;
   gapRight = 0;
@@ -126,6 +128,9 @@ bool PeakPattern::setGlobals(
   if (! PeakPattern::getRangeQuality(models, carAfterPtr,
       false, qualRight, gapRight))
     qualRight = QUALITY_NONE;
+
+  qualBest = (qualLeft <= qualRight ? qualLeft : qualRight);
+  qualWorst = (qualLeft <= qualRight ? qualRight : qualLeft);
 
   if (carBeforePtr)
     indexLeft = carBeforePtr->
@@ -411,9 +416,60 @@ bool PeakPattern::guessNoBorders()
 }
 
 
+bool PeakPattern::guessBothSingle(const CarModels& models)
+{
+  for (auto& ae: activeEntries)
+  {
+    if (lenRange >= ae.lenLo[qualBest] &&
+        lenRange <= ae.lenHi[qualBest])
+    {
+cout << "guessBothSingle: got single model " << ae.index << ": lenPP " <<
+  ae.data->lenPP << ", overall " << ae.lenLo[qualBest] << " - " <<
+  ae.lenHi[qualBest] << endl;
+
+      PeakPattern::fillFromModel(models, ae.index, 
+        ae.data->symmetryFlag, indexLeft, indexRight, 
+        PATTERN_DOUBLE_SIDED_SINGLE);
+    }
+  }
+
+  return (! candidates.empty());
+}
+
+
+bool PeakPattern::guessBothDouble(const CarModels& models)
+{
+  for (auto& ae1: activeEntries)
+  {
+    for (auto& ae2: activeEntries)
+    {
+      if (lenRange >= ae1.lenLo[qualBest] + ae2.lenLo[qualBest] &&
+          lenRange <= ae1.lenHi[qualBest] + ae2.lenHi[qualBest])
+      {
+        // We just fill out the first model which is then implicitly
+        // to the left (earlier in time) than the other one.
+        // TODO Look first left, then right
+
+cout << "guessBothDouble: got model " << ae1.index << ": lenPP " <<
+  ae1.data->lenPP << ", overall " << ae1.lenLo[qualBest] << " - " <<
+  ae1.lenHi[qualBest] << endl;
+cout << "      +        : got model " << ae2.index << ": lenPP " <<
+  ae2.data->lenPP << ", overall " << ae2.lenLo[qualBest] << " - " <<
+  ae2.lenHi[qualBest] << endl;
+
+        PeakPattern::fillFromModel(models, ae1.index, 
+          ae1.data->symmetryFlag, indexLeft, indexRight, 
+          PATTERN_DOUBLE_SIDED_DOUBLE);
+      }
+    }
+  }
+
+  return (! candidates.empty());
+}
+
+
 bool PeakPattern::guessBoth(const CarModels& models)
 {
-  RangeQuality qualBest = (qualLeft <= qualRight ? qualLeft : qualRight);
   if (qualBest == QUALITY_GENERAL || qualBest == QUALITY_NONE)
     return false;
 
@@ -427,21 +483,13 @@ cout << "guessBoth: Examining " <<
 
   if (PeakPattern::guessBothSingle(models))
     return true;
+  else if (PeakPattern::guessBothDouble(models))
+    return true;
+  else
+    return false;
+
 
   /*
-  if (PeakPattern::findSingleModel(qualBest, aeps))
-  {
-    for (auto ap: aeps)
-    {
-      PeakPattern::fillFromModel(models, ap->index, 
-        ap->data->symmetryFlag, indexLeft, indexRight, 
-        PATTERN_DOUBLE_SIDED_SINGLE);
-    }
-
-    return true;
-  }
-  */
-
   if (PeakPattern::findDoubleModel(qualBest, aeps))
   {
 cout << " TTT got double-models: " << aeps.size() << endl;
@@ -456,6 +504,7 @@ cout << " TTT got double-models: " << aeps.size() << endl;
   }
   else
     return false;
+    */
 }
 
 
@@ -517,60 +566,6 @@ cout << " TTT got right model: " << ae.index << endl;
   }
 
   return (candidates.size() > 0);
-}
-
-
-bool PeakPattern::guessBothSingle(const CarModels& models)
-{
-  RangeQuality qualBest = (qualLeft <= qualRight ? qualLeft : qualRight);
-  if (qualBest == QUALITY_GENERAL || qualBest == QUALITY_NONE)
-    return false;
-
-  candidates.clear();
-
-cout << "guessBothSingle: Examining " <<
-  indexLeft + offset << " - " << 
-  indexRight + offset << 
-  ", length " << lenRange << endl;
-
-  for (auto& ae: activeEntries)
-  {
-    if (lenRange >= ae.lenLo[qualBest] &&
-        lenRange <= ae.lenHi[qualBest])
-    {
-cout << "guessBothSingle: got single model " << ae.index << ": lenPP " <<
-  ae.data->lenPP << ", overall " << ae.lenLo[qualBest] << " - " <<
-  ae.lenHi[qualBest] << endl;
-
-      PeakPattern::fillFromModel(models, ae.index, 
-        ae.data->symmetryFlag, indexLeft, indexRight, 
-        PATTERN_DOUBLE_SIDED_SINGLE);
-    }
-  }
-
-  return (! candidates.empty());
-}
-
-
-bool PeakPattern::findDoubleModel(
-  const RangeQuality qualOverall,
-  list<ActiveEntry const *>& aeps) const
-{
-  aeps.clear();
-  for (auto& ae1: activeEntries)
-  {
-    for (auto& ae2: activeEntries)
-    {
-      if (lenRange >= ae1.lenLo[qualOverall] + ae2.lenLo[qualOverall] &&
-          lenRange <= ae1.lenHi[qualOverall] + ae2.lenHi[qualOverall])
-      {
-        // We just fill out the first model which is then implicitly
-        // to the left (earlier in time) than the other one.
-        aeps.push_back(&ae1);
-      }
-    }
-  }
-  return (aeps.size() > 0);
 }
 
 
