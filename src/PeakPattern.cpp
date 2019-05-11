@@ -295,36 +295,25 @@ bool PeakPattern::fillFromModel(
 
   pe.borders = patternType;
 
+  const unsigned indexBase = 
+     (pe.abutLeftFlag ? indexRangeLeft : indexRangeRight);
+
   if (car.hasLeftGap())
   {
-  if (! PeakPattern::fillPoints(carPoints, 
-      (pe.abutLeftFlag ? indexRangeLeft : indexRangeRight), false, pe))
-    return false;
+    if (PeakPattern::fillPoints(carPoints, indexBase, false, pe))
+      candidates.emplace_back(pe);
+  }
 
-  candidates.emplace_back(pe);
-cout << pe.strAbs("SUGGEST-ZZ1", offset);
-
-  // Two options if asymmetric.
   if (symmetryFlag)
     return true;
-  }
-  else
-    cout << "skip due to lead zero\n";
 
   if (car.hasRightGap())
   {
-  pe.reverseFlag = true;
+    pe.reverseFlag = true;
 
-  if (! PeakPattern::fillPoints(carPoints, 
-      (pe.abutLeftFlag ? indexRangeLeft : indexRangeRight), true, pe))
-    return false;
-
-  candidates.emplace_back(pe);
-
-cout << pe.strAbs("SUGGEST-ZZ1rev", offset);
+    if (PeakPattern::fillPoints(carPoints, indexBase, true, pe))
+      candidates.emplace_back(pe);
   }
-  else
-    cout << "skip due to trail zero\n";
 
   return true;
 }
