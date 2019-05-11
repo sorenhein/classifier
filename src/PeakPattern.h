@@ -83,6 +83,17 @@ class PeakPattern
       // Interval for different range qualities.
       vector<unsigned> lenLo;
       vector<unsigned> lenHi;
+
+      string strShort(
+        const string& title,
+        const RangeQuality& qual) const
+      {
+        stringstream ss;
+        ss << title << ": model " << index <<
+          ", len peak-peak " << data->lenPP <<
+          ", len range " << lenLo[qual] << " - " << lenHi[qual] << endl;
+        return ss.str();
+      };
     };
 
     struct NoneEntry
@@ -264,6 +275,9 @@ class PeakPattern
       PeakPool& peaks,
       PeakPtrs& peakPtrsUsed,
       PeakPtrs& peakPtrsUnused);
+
+    string strQuality(const RangeQuality& qual) const;
+    string strGlobals() const;
 
 
   public:

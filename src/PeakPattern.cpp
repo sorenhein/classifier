@@ -145,9 +145,7 @@ bool PeakPattern::setGlobals(
 
   lenRange = indexRight - indexLeft;
 
-cout << "setGlobals: " << qualLeft << "-" << qualRight << ": " <<
-  gapLeft << ", " << gapRight << ", interval " <<
-  indexLeft << " - " << indexRight << ", length " << lenRange << endl;
+cout << PeakPattern::strGlobals();
 
   return true;
 }
@@ -232,11 +230,9 @@ bool PeakPattern::fillPoints(
     const unsigned pointLastPeak = * prev(prev(carPoints.end()));
     const unsigned pointFirstPeak = * next(carPoints.begin());
 
+    // Fail if no room for left car.
     if (indexBase + pointFirstPeak <= pointLast)
-    {
-      cout << "TTT no room for left car\n";
       return false;
-    }
 
     pe.indices.resize(4);
 
@@ -418,19 +414,12 @@ bool PeakPattern::guessNoBorders()
 
 bool PeakPattern::guessBothSingle(const CarModels& models)
 {
-cout << "guessBothSingle: Examining " <<
-  indexLeft + offset << " - " << 
-  indexRight + offset << 
-  ", length " << lenRange << endl;
-
   for (auto& ae: activeEntries)
   {
     if (lenRange >= ae.lenLo[qualBest] &&
         lenRange <= ae.lenHi[qualBest])
     {
-cout << "guessBothSingle: got single model " << ae.index << ": lenPP " <<
-  ae.data->lenPP << ", overall " << ae.lenLo[qualBest] << " - " <<
-  ae.lenHi[qualBest] << endl;
+cout << ae.strShort("guessBothSingle", qualBest);
 
       PeakPattern::fillFromModel(models, ae.index, 
         ae.data->symmetryFlag, indexLeft, indexRight, 
@@ -446,10 +435,7 @@ bool PeakPattern::guessBothDouble(
   const CarModels& models,
   const bool leftFlag)
 {
-cout << "guessBothSingle, left " << leftFlag << ": Examining " <<
-  indexLeft + offset << " - " << 
-  indexRight + offset << 
-  ", length " << lenRange << endl;
+  candidates.clear();
 
   for (auto& ae1: activeEntries)
   {
@@ -458,12 +444,10 @@ cout << "guessBothSingle, left " << leftFlag << ": Examining " <<
       if (lenRange >= ae1.lenLo[qualBest] + ae2.lenLo[qualBest] &&
           lenRange <= ae1.lenHi[qualBest] + ae2.lenHi[qualBest])
       {
-cout << "guessBothDouble: got model " << ae1.index << ": lenPP " <<
-  ae1.data->lenPP << ", overall " << ae1.lenLo[qualBest] << " - " <<
-  ae1.lenHi[qualBest] << endl;
-cout << "      +        : got model " << ae2.index << ": lenPP " <<
-  ae2.data->lenPP << ", overall " << ae2.lenLo[qualBest] << " - " <<
-  ae2.lenHi[qualBest] << endl;
+cout << ae1.strShort("guessBothDouble 1, left " + to_string(leftFlag),
+  qualBest);
+cout << ae2.strShort("guessBothDouble 2, left " + to_string(leftFlag),
+  qualBest);
 
         if (leftFlag)
           PeakPattern::fillFromModel(models, ae1.index, 
@@ -479,29 +463,6 @@ cout << "      +        : got model " << ae2.index << ": lenPP " <<
 
   return (! candidates.empty());
 }
-
-
-/*
-bool PeakPattern::guessBoth(const CarModels& models)
-{
-  if (qualBest == QUALITY_GENERAL || qualBest == QUALITY_NONE)
-    return false;
-
-cout << "guessBoth: Examining " <<
-  indexLeft + offset << " - " << 
-  indexRight + offset << 
-  ", length " << lenRange << endl;
-
-  candidates.clear();
-
-  if (PeakPattern::guessBothSingle(models))
-    return true;
-  else if (PeakPattern::guessBothDouble(models))
-    return true;
-  else
-    return false;
-}
-*/
 
 
 bool PeakPattern::guessLeft(const CarModels& models)
@@ -1031,22 +992,19 @@ bool PeakPattern::locate(
   {
     PeakPattern::getActiveModels(models, true);
 
-    if (guessBothSingle(models) ||
-        guessBothDouble(models, true) ||
-        guessBothDouble(models, false))
+    // Note that guessBothDouble(true) could generate candidates
+    // which aren't fitted.  So we can't return the fix value no
+    // matter what, and we only return true if it fits.
+    if (guessBothSingle(models))
       return PeakPattern::fix(peaks, peakPtrsUsed, peakPtrsUnused);
+    else if (guessBothDouble(models, true) &&
+        PeakPattern::fix(peaks, peakPtrsUsed, peakPtrsUnused))
+      return true;
+    else if (guessBothDouble(models, false) &&
+        PeakPattern::fix(peaks, peakPtrsUsed, peakPtrsUnused))
+      return true;
   }
 
-
-  /*
-  if (qualLeft != QUALITY_NONE && qualRight != QUALITY_NONE)
-  {
-    // Get full models that may fill up this bounded range.
-    PeakPattern::getActiveModels(models, true);
-    if (PeakPattern::guessBoth(models))
-      return PeakPattern::fix(peaks, peakPtrsUsed, peakPtrsUnused);
-  }
-  */
 
   bool candFlag = false;
   if (! candFlag)
@@ -1079,5 +1037,35 @@ cout << "Trying right\n";
   // be possible to do this.  But I'm going the easier way here for now.
 
   return PeakPattern::fix(peaks, peakPtrsUsed, peakPtrsUnused);
+}
+
+
+string PeakPattern::strQuality(const RangeQuality& qual) const
+{
+  if (qual == QUALITY_WHOLE_MODEL)
+    return "WHOLE";
+  else if (qual == QUALITY_SYMMETRY)
+    return "SYMMETRY";
+  else if (qual == QUALITY_GENERAL)
+    return "GENERAL";
+  else
+    return "(none)";
+}
+
+
+string PeakPattern::strGlobals() const
+{
+  stringstream ss;
+  ss << "PeakPattern globals:\n" << 
+    setw(10) << left << "qualLeft " << 
+      PeakPattern::strQuality(qualLeft) << "\n" <<
+    setw(10) << left << "qualRight " << 
+      PeakPattern::strQuality(qualRight) << "\n" <<
+    setw(10) << left << "gapLeft " << gapLeft << "\n" <<
+    setw(10) << left << "gapRight " << gapLeft << "\n" <<
+    setw(10) << left << "indices " << 
+      indexLeft + offset << " - " << indexRight + offset <<  "\n" <<
+    setw(10) << left << "length " << lenRange << endl;
+  return ss.str();
 }
 
