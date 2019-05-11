@@ -264,6 +264,9 @@ bool PeakPattern::fillFromModel(
   const unsigned indexRangeRight,
   const PatternType patternType)
 {
+  CarDetect car;
+  models.getCar(car, indexModel);
+
   list<unsigned> carPoints;
   models.getCarPoints(indexModel, carPoints);
 
@@ -292,16 +295,8 @@ bool PeakPattern::fillFromModel(
 
   pe.borders = patternType;
 
-cout << "fillFromModel: " << pe.abutLeftFlag << ", " <<
-  pe.abutRightFlag << "," <<
-  indexRangeLeft << ", " <<
-  indexRangeRight << endl;
-
-  // TODO Find a better way to detect this.
-  if (* next(carPoints.begin()) != 0)
+  if (car.hasLeftGap())
   {
-    // This is a somewhat indirect measure of whether the car has
-    // a front gap.
   if (! PeakPattern::fillPoints(carPoints, 
       (pe.abutLeftFlag ? indexRangeLeft : indexRangeRight), false, pe))
     return false;
@@ -316,7 +311,7 @@ cout << pe.strAbs("SUGGEST-ZZ1", offset);
   else
     cout << "skip due to lead zero\n";
 
-  if (* prev(prev(carPoints.end())) != 0)
+  if (car.hasRightGap())
   {
   pe.reverseFlag = true;
 
@@ -330,7 +325,6 @@ cout << pe.strAbs("SUGGEST-ZZ1rev", offset);
   }
   else
     cout << "skip due to trail zero\n";
-
 
   return true;
 }
