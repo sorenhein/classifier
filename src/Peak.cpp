@@ -540,6 +540,13 @@ bool Peak::acceptableQuality() const
 }
 
 
+bool Peak::borderlineQuality() const
+{
+  // TODO #define
+  return (qualityShape <= 1.00f);
+}
+
+
 bool Peak::goodPeakQuality() const
 {
   // TODO #define

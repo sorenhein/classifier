@@ -197,6 +197,7 @@ class Peak
     bool greatQuality() const;
     bool goodQuality() const;
     bool acceptableQuality() const;
+    bool borderlineQuality() const;
 
     bool goodPeakQuality() const;
 

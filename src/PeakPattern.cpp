@@ -776,7 +776,8 @@ void PeakPattern::fixOnePeak(
 {
   Peak peakHint;
   peakHint.logPosition(target, lower, upper);
-  pptr = peaks.repair(peakHint, &Peak::acceptableQuality, offset);
+  // pptr = peaks.repair(peakHint, &Peak::acceptableQuality, offset);
+  pptr = peaks.repair(peakHint, &Peak::borderlineQuality, offset);
 
   if (pptr == nullptr)
   {
