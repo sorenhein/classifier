@@ -450,57 +450,47 @@ cout << ae2.strShort("guessBothDouble 2, left " + to_string(leftFlag),
 
 bool PeakPattern::guessLeft(const CarModels& models)
 {
+  // Starting from the left, so open towards the end.
+
   if (carBeforePtr == nullptr)
     return false;
 
-  // Starting from the left, so open towards the end.
-
-cout << "TTT guessLeft actual abutting peak: " <<
-  carBeforePtr->getPeaksPtr().secondBogieRightPtr->getIndex() + offset << 
-  ", gapLeft " << gapLeft << "\n";
-
   if (qualLeft == QUALITY_GENERAL || qualLeft == QUALITY_NONE)
-  {
-    cout << "SUGGEST-ERR: guessLeft unexpected quality\n";
     return false;
-  }
+
+  candidates.clear();
 
   for (auto& ae: activeEntries)
   {
-cout << " TTT got left model: " << ae.index << ", " <<
-  indexLeft + offset << endl;
+cout << ae.strShort("guessLeft", qualLeft);
+
     PeakPattern::fillFromModel(models, ae.index, ae.data->symmetryFlag,
       indexLeft, 0, PATTERN_SINGLE_SIDED_LEFT);
   }
 
-  return (candidates.size() > 0);
+  return (! candidates.empty());
 }
 
 
 bool PeakPattern::guessRight(const CarModels& models)
 {
+  // Starting from the right, so open towards the beginning.
+
   if (carAfterPtr == nullptr)
     return false;
 
-  // Starting from the right, so open towards the beginning.
-  if (gapRight >= carAfterPtr->getPeaksPtr().firstBogieLeftPtr->getIndex())
-  {
-    cout << "SUGGEST-ERR: guessRight no room\n";
-    return false;
-  }
-
-cout << "TTT guessRight actual abutting peak: " <<
-  carAfterPtr->getPeaksPtr().firstBogieLeftPtr->getIndex() + offset << "\n";
-
   if (qualRight == QUALITY_GENERAL || qualRight == QUALITY_NONE)
-  {
-    cout << "SUGGEST-ERR: guessRight unexpected quality\n";
     return false;
-  }
+
+  if (gapRight >= carAfterPtr->getPeaksPtr().firstBogieLeftPtr->getIndex())
+    return false;
+
+  candidates.clear();
 
   for (auto& ae: activeEntries)
   {
-cout << " TTT got right model: " << ae.index << endl;
+cout << ae.strShort("guessRight", qualLeft);
+
     PeakPattern::fillFromModel(models, ae.index, ae.data->symmetryFlag,
       0, indexRight, PATTERN_SINGLE_SIDED_RIGHT);
   }
