@@ -18,7 +18,7 @@
 #define GREAT_CAR_DISTANCE 0.5f
 
 #define NUM_METHODS 10
-#define NUM_METHOD_GROUPS 6
+#define NUM_METHOD_GROUPS 5
 
 
 struct WheelSpec
@@ -72,18 +72,13 @@ PeakStructure::PeakStructure()
       "inner partial by quality", 7});
 
   findMethods[3].push_back(
-    { &PeakStructure::findPartialLastCarByQuality, 
-      "last partial by quality", 6});
-
-  findMethods[4].push_back(
     { &PeakStructure::findPartialFirstCarByQuality, 
       "first partial by quality", 5});
 
-  findMethods[5].push_back(
+  findMethods[4].push_back(
     { &PeakStructure::findCarByGeometry, 
       "by geometry", 9});
   
-  // hitSize = NUM_METHODS;
   hits.resize(NUM_METHODS);
 }
 
@@ -376,30 +371,6 @@ cout << "MIDMULTI\n";
 }
 
 
-PeakStructure::FindCarType PeakStructure::findPartialLastCarByQuality(
-  const CarModels& models,
-  PeakPool& peaks,
-  PeakRange& range,
-  CarDetect& car) const
-{
-  if (! range.isLastCar())
-    return FIND_CAR_NO_MATCH;
-
-  if (range.numGreat() > 4 ||
-      range.numGood() > 6 || 
-      range.num() > 10)
-    return FIND_CAR_NO_MATCH;
-
-  // TODO Should the previous car then actively become the last one?
-  if (range.numGood() == 0)
-    return FIND_CAR_DOWNGRADE;
-
-cout << "LASTLAST\n";
-  return PeakStructure::findPartialCarByQuality(models, 
-      &Peak::goodQuality, CARPOSITION_LAST, peaks, range, car);
-}
-
-
 PeakStructure::FindCarType PeakStructure::findCarByPeaks(
   const CarModels& models,
   const PeakRange& range,
@@ -552,13 +523,13 @@ PeakStructure::FindCarType PeakStructure::findCarByPattern(
   range.split(&Peak::goodPeakQuality, peakPtrsUsed, peakPtrsUnused);
 
   PeakPattern pattern;
-  // list<PatternEntry> candidates;
-  // if (! pattern.suggest(models, range, offset, candidates))
-    // return FIND_CAR_NO_MATCH;
-
   if (! pattern.locate(models, peaks, range, offset,
       peakPtrsUsed, peakPtrsUnused))
     return FIND_CAR_NO_MATCH;
+
+cout << "findCarByPattern:\n";
+cout << peakPtrsUsed.strQuality("Used", offset);
+cout << peakPtrsUnused.strQuality("Unused", offset);
 
   // If it worked, the used and unused peaks have been modified,
   // and some peaks have disappeared from the union of the lists.
@@ -567,6 +538,7 @@ PeakStructure::FindCarType PeakStructure::findCarByPattern(
   car.makeFourWheeler(rangeLocal, peakPtrsUsed);
 
   peakPtrsUsed.markup();
+cout << peakPtrsUsed.strQuality("Used after markup", offset);
   peakPtrsUnused.apply(&Peak::markdown);
 
   return FIND_CAR_MATCH;

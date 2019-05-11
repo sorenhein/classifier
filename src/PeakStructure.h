@@ -100,12 +100,6 @@ class PeakStructure
       PeakRange& range,
       CarDetect& car) const;
 
-    FindCarType findPartialLastCarByQuality(
-      const CarModels& models,
-      PeakPool& peaks,
-      PeakRange& range,
-      CarDetect& car) const;
-
     FindCarType findCarByPeaks(
       const CarModels& models,
       const PeakRange& range,

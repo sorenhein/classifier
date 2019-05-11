@@ -693,7 +693,7 @@ void PeakPattern::examineCandidates(
     unsigned dist;
     peakPtrsUsed.getClosest(pe->indices, peaksClose, numClose, dist);
 
-    PeakPattern::strClosest(pe->indices, peaksClose);
+    cout << PeakPattern::strClosest(pe->indices, peaksClose);
 
     if (numClose == 4)
     {
@@ -776,7 +776,6 @@ void PeakPattern::fixOnePeak(
 {
   Peak peakHint;
   peakHint.logPosition(target, lower, upper);
-  // pptr = peaks.repair(peakHint, &Peak::acceptableQuality, offset);
   pptr = peaks.repair(peakHint, &Peak::borderlineQuality, offset);
 
   if (pptr == nullptr)
@@ -794,7 +793,8 @@ void PeakPattern::fixOnePeak(
 bool PeakPattern::fixSingles(
   PeakPool& peaks,
   list<SingleEntry>& singles,
-  PeakPtrs& peakPtrsUsed) const
+  PeakPtrs& peakPtrsUsed,
+  PeakPtrs& peakPtrsUnused) const
 {
   PeakPattern::condenseSingles(singles);
 
@@ -814,6 +814,7 @@ for (auto s: singles)
     if (pptr != nullptr)
     {
       peakPtrsUsed.add(pptr);
+      peakPtrsUnused.remove(pptr);
       return true;
     }
   }
@@ -825,7 +826,8 @@ for (auto s: singles)
 bool PeakPattern::fixDoubles(
   PeakPool& peaks,
   list<DoubleEntry>& doubles,
-  PeakPtrs& peakPtrsUsed) const
+  PeakPtrs& peakPtrsUsed,
+  PeakPtrs& peakPtrsUnused) const
 {
   PeakPattern::condenseDoubles(doubles);
 
@@ -851,6 +853,7 @@ for (auto d: doubles)
     if (pptr != nullptr)
     {
       peakPtrsUsed.add(pptr);
+      peakPtrsUnused.remove(pptr);
       return true;
     }
   }
@@ -876,7 +879,8 @@ bool PeakPattern::fix(
   // Start with the 2's if that's all there is.
   if (none.empty() && singles.empty() && ! doubles.empty())
   {
-    if (PeakPattern::fixDoubles(peaks, doubles, peakPtrsUsed))
+    if (PeakPattern::fixDoubles(peaks, doubles, 
+        peakPtrsUsed, peakPtrsUnused))
     {
       // TODO This is quite inefficient, as we actually know the
       // changes we made.  But we just reexamine for now.
@@ -887,7 +891,8 @@ bool PeakPattern::fix(
   // Try the 3's (original or 2's turned 3's) if there are no 4's.
   if (none.empty() && ! singles.empty())
   {
-    if (PeakPattern::fixSingles(peaks, singles, peakPtrsUsed))
+    if (PeakPattern::fixSingles(peaks, singles, 
+        peakPtrsUsed, peakPtrsUnused))
       PeakPattern::examineCandidates(peakPtrsUsed, none, singles, doubles);
   }
 

@@ -267,12 +267,14 @@ class PeakPattern
     bool fixSingles(
       PeakPool& peaks,
       list<SingleEntry>& singles,
-      PeakPtrs& peakPtrsUsed) const;
+      PeakPtrs& peakPtrsUsed,
+      PeakPtrs& peakPtrsUnused) const;
 
     bool fixDoubles(
       PeakPool& peaks,
       list<DoubleEntry>& doubles,
-      PeakPtrs& peakPtrsUsed) const;
+      PeakPtrs& peakPtrsUsed,
+      PeakPtrs& peakPtrsUnused) const;
 
     bool fix(
       PeakPool& peaks,

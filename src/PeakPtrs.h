@@ -39,6 +39,7 @@ class PeakPtrs
       Peak * const peak);
 
     bool add(Peak * peak);
+    bool remove(Peak const * peak);
 
     void insert(
       PPLiterator& it,

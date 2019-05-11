@@ -91,6 +91,24 @@ bool PeakPtrs::add(Peak * peak)
 }
 
 
+bool PeakPtrs::remove(Peak const * peak)
+{
+  const unsigned pindex = peak->getIndex();
+  for (auto it = peaks.begin(); it != peaks.end(); it++)
+  {
+    const unsigned index = (* it)->getIndex();
+    if (index == pindex)
+    {
+      peaks.erase(it);
+      return true;
+    }
+    else if (index > pindex)
+      return false;
+  }
+  return false;
+}
+
+
 void PeakPtrs::insert(
   PPLiterator& it,
   Peak * peak)
