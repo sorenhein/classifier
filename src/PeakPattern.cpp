@@ -806,6 +806,25 @@ cout << "Adjusted " << p << " goal from " <<
 }
 
 
+void PeakPattern::processMessage(
+  const string& origin,
+  const string& verb,
+  const unsigned target,
+  Peak *& pptr) const
+{
+  if (pptr == nullptr)
+  {
+    cout << origin << ": Failed target " << verb << " " <<
+      target + offset << "\n";
+  }
+  else
+  {
+    cout << origin << ": Target " << verb << " " <<
+      target + offset << " to " << pptr->getIndex() + offset << endl;
+  }
+}
+
+
 void PeakPattern::reviveOnePeak(
   const string& text,
   const SingleEntry& single,
@@ -816,41 +835,35 @@ void PeakPattern::reviveOnePeak(
   pptr = peakPtrsUnused.locate(single.lower, single.upper, single.target,
     &Peak::borderlineQuality, indexUsed);
 
-  if (pptr == nullptr)
-  {
-    cout << text << ": Failed revive target " << 
-      single.target + offset << "\n";
-  }
-  else
-  {
-    cout << text << ": Revived target " << 
-      single.target + offset << " to " <<
-      pptr->getIndex() + offset << endl;
-  }
+  PeakPattern::processMessage(text, "revive", single.target, pptr);
 }
 
 
 void PeakPattern::fixOnePeak(
   const string& text,
-  const unsigned target,
-  const unsigned lower,
-  const unsigned upper,
+  const SingleEntry& single,
   PeakPool& peaks,
   Peak *& pptr) const
 {
   Peak peakHint;
-  peakHint.logPosition(target, lower, upper);
+  peakHint.logPosition(single.target, single.lower, single.upper);
   pptr = peaks.repair(peakHint, &Peak::borderlineQuality, offset);
 
+  PeakPattern::processMessage(text, "repair", single.target, pptr);
+}
+
+
+void PeakPattern::processOnePeak(
+  const string& origin,
+  const SingleEntry& single,
+  PeakPtrs& peakPtrsUnused,
+  PeakPool& peaks,
+  Peak *& pptr) const
+{
+  PeakPattern::reviveOnePeak(origin, single, peakPtrsUnused, pptr);
+
   if (pptr == nullptr)
-  {
-    cout << text << ": Failed repair target " << target + offset << "\n";
-  }
-  else
-  {
-    cout << text << ": Repaired target " << target + offset << " to " <<
-      pptr->getIndex() + offset << endl;
-  }
+    PeakPattern::fixOnePeak("fixSingles", single, peaks, pptr);
 }
 
 
@@ -872,13 +885,8 @@ for (auto s: singles)
     // Once we have 3 peaks, chances are good that we're right.
     // So we lower our peak quality standard.
 
-    PeakPattern::reviveOnePeak("fixSingles", single, peakPtrsUnused, pptr);
-
-    if (pptr == nullptr)
-    {
-      PeakPattern::fixOnePeak("fixSingles",
-        single.target, single.lower, single.upper, peaks, pptr);
-    }
+    PeakPattern::processOnePeak("fixSingles", single, 
+      peakPtrsUnused, peaks, pptr);
 
     if (pptr != nullptr)
     {
@@ -912,8 +920,7 @@ for (auto d: doubles)
     // We could end up fixing only one of the two, in which case
     // we should arguably unroll the change.
 
-    PeakPattern::fixOnePeak("fixDoubles 1",
-      db.first.target, db.first.lower, db.first.upper, peaks, pptr);
+    PeakPattern::fixOnePeak("fixDoubles 1", db.first, peaks, pptr);
 
     if (pptr != nullptr)
     {
@@ -923,8 +930,7 @@ cout << "fixDoubles 1 before add/remove" << endl;
 cout << "fixDoubles 1 after add/remove" << endl;
     }
 
-    PeakPattern::fixOnePeak("fixDoubles 2",
-      db.second.target, db.second.lower, db.second.upper, peaks, pptr);
+    PeakPattern::fixOnePeak("fixDoubles 2", db.second, peaks, pptr);
 
     if (pptr != nullptr)
     {
