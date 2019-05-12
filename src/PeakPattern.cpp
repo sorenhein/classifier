@@ -920,7 +920,8 @@ for (auto d: doubles)
     // We could end up fixing only one of the two, in which case
     // we should arguably unroll the change.
 
-    PeakPattern::fixOnePeak("fixDoubles 1", db.first, peaks, pptr);
+    PeakPattern::processOnePeak("fixDoubles 1", db.first, 
+      peakPtrsUnused, peaks, pptr);
 
     if (pptr != nullptr)
     {
@@ -930,7 +931,8 @@ cout << "fixDoubles 1 before add/remove" << endl;
 cout << "fixDoubles 1 after add/remove" << endl;
     }
 
-    PeakPattern::fixOnePeak("fixDoubles 2", db.second, peaks, pptr);
+    PeakPattern::processOnePeak("fixDoubles 2", db.second, 
+      peakPtrsUnused, peaks, pptr);
 
     if (pptr != nullptr)
     {
@@ -1020,6 +1022,9 @@ bool PeakPattern::locate(
     else
       return false;
   }
+
+cout << peakPtrsUsed.strQuality("Used", offset);
+cout << peakPtrsUnused.strQuality("Unused", offset);
 
   // First try filling the entire range with 1-2 cards.
   if (rangeData.qualBest != QUALITY_GENERAL || 
