@@ -7,6 +7,7 @@
 
 #include "PeakStructure.h"
 #include "PeakPattern.h"
+#include "PeakShort.h"
 #include "PeakRepair.h"
 #include "PeakProfile.h"
 #include "CarModels.h"
@@ -66,6 +67,11 @@ PeakStructure::PeakStructure()
   findMethods[1].push_back(
     { &PeakStructure::findEmptyRange, 
       "by emptiness", 4});
+
+  // Short inner cars.
+  findMethods[1].push_back(
+    { &PeakStructure::findInnerCarByShort, 
+      "by short", 6});
 
   findMethods[2].push_back(
     { &PeakStructure::findPartialInnerCarByQuality, 
@@ -524,6 +530,38 @@ PeakStructure::FindCarType PeakStructure::findCarByPattern(
 
   PeakPattern pattern;
   if (! pattern.locate(models, peaks, range, offset,
+      peakPtrsUsed, peakPtrsUnused))
+    return FIND_CAR_NO_MATCH;
+
+// cout << "findCarByPattern:\n";
+// cout << peakPtrsUsed.strQuality("Used", offset);
+// cout << peakPtrsUnused.strQuality("Unused", offset);
+
+  // If it worked, the used and unused peaks have been modified,
+  // and some peaks have disappeared from the union of the lists.
+  PeakRange rangeLocal;
+  rangeLocal.init(peakPtrsUsed);
+  car.makeFourWheeler(rangeLocal, peakPtrsUsed);
+
+  peakPtrsUsed.markup();
+  peakPtrsUnused.apply(&Peak::markdown);
+
+  return FIND_CAR_MATCH;
+}
+
+
+PeakStructure::FindCarType PeakStructure::findInnerCarByShort(
+  const CarModels& models,
+  PeakPool& peaks,
+  PeakRange& range,
+  CarDetect& car) const
+{
+  // These can in general cover more time than the car we find.
+  PeakPtrs peakPtrsUsed, peakPtrsUnused;
+  range.split(&Peak::goodPeakQuality, peakPtrsUsed, peakPtrsUnused);
+
+  PeakShort shorts;
+  if (! shorts.locate(models, peaks, range, offset,
       peakPtrsUsed, peakPtrsUnused))
     return FIND_CAR_NO_MATCH;
 

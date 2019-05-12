@@ -23,6 +23,7 @@ SOURCE_FILES    =               \
                 PeakRange.cpp   \
                 PeakRepair.cpp  \
                 PeakSeeds.cpp   \
+                PeakShort.cpp   \
                 PeakSlots.cpp   \
                 PeakStats.cpp   \
                 PeakStructure.cpp \
