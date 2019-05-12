@@ -806,6 +806,30 @@ cout << "Adjusted " << p << " goal from " <<
 }
 
 
+void PeakPattern::reviveOnePeak(
+  const string& text,
+  const SingleEntry& single,
+  PeakPtrs& peakPtrsUnused,
+  Peak *& pptr) const
+{
+  unsigned indexUsed;
+  pptr = peakPtrsUnused.locate(single.lower, single.upper, single.target,
+    &Peak::borderlineQuality, indexUsed);
+
+  if (pptr == nullptr)
+  {
+    cout << text << ": Failed revive target " << 
+      single.target + offset << "\n";
+  }
+  else
+  {
+    cout << text << ": Revived target " << 
+      single.target + offset << " to " <<
+      pptr->getIndex() + offset << endl;
+  }
+}
+
+
 void PeakPattern::fixOnePeak(
   const string& text,
   const unsigned target,
@@ -848,8 +872,13 @@ for (auto s: singles)
     // Once we have 3 peaks, chances are good that we're right.
     // So we lower our peak quality standard.
 
-    PeakPattern::fixOnePeak("fixSingles",
-      single.target, single.lower, single.upper, peaks, pptr);
+    PeakPattern::reviveOnePeak("fixSingles", single, peakPtrsUnused, pptr);
+
+    if (pptr == nullptr)
+    {
+      PeakPattern::fixOnePeak("fixSingles",
+        single.target, single.lower, single.upper, peaks, pptr);
+    }
 
     if (pptr != nullptr)
     {

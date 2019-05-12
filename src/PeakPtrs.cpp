@@ -352,7 +352,7 @@ PPLciterator PeakPtrs::prev(
 }
 
 
-Peak const * PeakPtrs::locate(
+Peak * PeakPtrs::locate(
   const unsigned lower,
   const unsigned upper,
   const unsigned hint,
@@ -375,9 +375,12 @@ Peak const * PeakPtrs::locate(
     if (index >= lower && index <= upper)
     {
       num++;
-      if ((index >= hint && index - hint < dist) ||
-          (index < hint && hint - index < dist))
+      const unsigned distNew = 
+        (index >= hint ? index - hint : hint - index);
+
+      if (distNew < dist)
       {
+        dist = distNew;
         indexUsed = i;
         ptr = peak;
       }

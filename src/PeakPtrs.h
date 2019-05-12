@@ -95,7 +95,7 @@ class PeakPtrs
       const bool exclFlag = true) const;
 
 
-    Peak const * locate(
+    Peak * locate(
       const unsigned lower,
       const unsigned upper,
       const unsigned hint,

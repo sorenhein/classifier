@@ -238,6 +238,12 @@ class PeakPattern
 
     void readjust(list<SingleEntry>& singles);
 
+    void reviveOnePeak(
+      const string& text,
+      const SingleEntry& single,
+      PeakPtrs& peakPtrsUnused,
+      Peak *& pptr) const;
+      
     void fixOnePeak(
       const string& text,
       const unsigned target,
