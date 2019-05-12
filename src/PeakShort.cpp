@@ -60,6 +60,9 @@ void PeakShort::getShorty(const CarModels& models)
 {
   models.getTypical(bogieTypical, longTypical, sideTypical);
 
+  if (sideTypical == 0)
+    sideTypical = bogieTypical;
+
   lenTypical = 2 * (sideTypical + bogieTypical) + longTypical;
   lenShortLo = static_cast<unsigned>(SHORT_FACTOR * lenTypical);
   lenShortHi = static_cast<unsigned>(LONG_FACTOR * lenTypical);
@@ -88,11 +91,6 @@ bool PeakShort::locate(
       rangeData.lenRange <= lenShortHi)
   {
     cout << "SHORT seen " << rangeData.lenRange << " in " <<
-      lenShortLo << " - " << lenShortHi << "\n";
-  }
-  else
-  {
-    cout << "SHORT missed " << rangeData.lenRange << " in " <<
       lenShortLo << " - " << lenShortHi << "\n";
   }
 

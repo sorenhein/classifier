@@ -22,7 +22,8 @@ enum PatternType
   PATTERN_SINGLE_SIDED_LEFT = 1,
   PATTERN_SINGLE_SIDED_RIGHT = 2,
   PATTERN_DOUBLE_SIDED_SINGLE = 3,
-  PATTERN_DOUBLE_SIDED_DOUBLE = 4
+  PATTERN_DOUBLE_SIDED_SINGLE_SHORT = 4,
+  PATTERN_DOUBLE_SIDED_DOUBLE = 5
 };
 
 struct PatternEntry
@@ -43,9 +44,9 @@ struct PatternEntry
     stringstream ss;
     ss << title << ": " <<
       indices[0] + offset << " - " <<
-      indices[1] + offset<< " - " <<
-      indices[2] + offset<< " - " <<
-      indices[3] + offset<< "\n";
+      indices[1] + offset << " - " <<
+      indices[2] + offset << " - " <<
+      indices[3] + offset << "\n";
     return ss.str();
   };
 
@@ -91,16 +92,17 @@ class PeakPattern
     struct NoneEntry
     {
       PatternEntry pe;
-      vector<Peak const *> peaksBest;
+      vector<Peak const *> peaksClose;
+      bool emptyFlag;
 
       NoneEntry()
       {
-        peaksBest.clear();
+        emptyFlag = true;
       };
 
       bool empty()
       {
-        return peaksBest.empty();
+        return emptyFlag;
       };
     };
 
@@ -158,6 +160,8 @@ class PeakPattern
 
     vector<ActiveEntry> activeEntries;
 
+    vector<Peak const *> peaksClose;
+
     list<PatternEntry> candidates;
 
 
@@ -187,6 +191,7 @@ class PeakPattern
     bool guessNoBorders();
 
     bool guessBothSingle(const CarModels& models);
+    bool guessBothSingleShort(const CarModels& models);
     bool guessBothDouble(
       const CarModels& models, 
       const bool leftFlag);
@@ -200,8 +205,9 @@ class PeakPattern
       PeakPtrs& peakPtrsUnused) const;
 
     void updateUsed(
-      const vector<Peak const *>& peaksClose,
-      PeakPtrs& peakPtrsUsed) const;
+      const vector<Peak const *>& peaksClosest,
+      PeakPtrs& peakPtrsUsed,
+      PeakPtrs& peakPtrsUnused) const;
 
     void update(
       const NoneEntry& none,
@@ -210,17 +216,14 @@ class PeakPattern
 
     void setNone(
       PatternEntry& pe,
-      vector<Peak const *>& peaksBest,
       NoneEntry& none) const;
 
     void addToSingles(
       const vector<unsigned>& indices,
-      const vector<Peak const *>& peaksClose,
       list<SingleEntry>& singles) const;
 
     void addToDoubles(
       const PatternEntry& pe,
-      const vector<Peak const *>& peaksClose,
       list<DoubleEntry>& doubles) const;
 
     void examineCandidates(
@@ -232,6 +235,8 @@ class PeakPattern
     void condenseSingles(list<SingleEntry>& singles) const;
 
     void condenseDoubles(list<DoubleEntry>& doubles) const;
+
+    void readjust(list<SingleEntry>& singles);
 
     void fixOnePeak(
       const string& text,
@@ -256,11 +261,11 @@ class PeakPattern
     bool fix(
       PeakPool& peaks,
       PeakPtrs& peakPtrsUsed,
-      PeakPtrs& peakPtrsUnused);
+      PeakPtrs& peakPtrsUnused,
+      const bool flexibleFlag = false);
 
     string strClosest(
-      const vector<unsigned>& indices,
-      const vector<Peak const *>& peaksClose) const;
+      const vector<unsigned>& indices) const;
 
 
 

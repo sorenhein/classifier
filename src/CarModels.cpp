@@ -222,7 +222,7 @@ void CarModels::getTypical(
   if (ns)
   {
     nth_element(sides.begin(), sides.begin() + ns, sides.end());
-    sideTypical = sides[nl];
+    sideTypical = sides[ns];
   }
   else
     sideTypical = 0;

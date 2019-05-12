@@ -21,6 +21,10 @@
 #define LEN_FACTOR_GREAT 0.05f
 #define LEN_FACTOR_GOOD 0.10f
 
+// Expect a short car to be within these factors of a typical car.
+#define SHORT_FACTOR 0.5f
+#define LONG_FACTOR 0.9f
+
 
 PeakPattern::PeakPattern()
 {
@@ -95,7 +99,18 @@ cout << data->str() << endl;
     ae.lenLo.resize(3);
     ae.lenHi.resize(3);
 
-    const unsigned len = data->lenPP + data->gapLeft + data->gapRight;
+    unsigned len;
+    if (data->gapLeft == 0)
+    {
+      if (data->gapRight == 0)
+        cout << "getActiveModels ERROR: No gaps\n";
+
+      len = data->lenPP + data->gapLeft + 2 * data->gapRight;
+    }
+    else if (data->gapRight == 0)
+      len = data->lenPP + 2 * data->gapLeft + data->gapRight;
+    else
+      len = data->lenPP + data->gapLeft + data->gapRight;
 
     ae.lenLo[QUALITY_WHOLE_MODEL] =
       static_cast<unsigned>((1.f - LEN_FACTOR_GREAT) * len);
@@ -326,6 +341,50 @@ cout << ae.strShort("guessBothSingle", rangeData.qualBest);
 }
 
 
+bool PeakPattern::guessBothSingleShort(const CarModels& models)
+{
+  if (rangeData.qualLeft == QUALITY_GENERAL || 
+      rangeData.qualLeft == QUALITY_NONE)
+    return false;
+
+  unsigned bogieTypical, longTypical, sideTypical;
+  models.getTypical(bogieTypical, longTypical, sideTypical);
+  if (sideTypical == 0)
+    sideTypical = bogieTypical;
+
+  unsigned lenTypical = 2 * (sideTypical + bogieTypical) + longTypical;
+  unsigned lenShortLo = static_cast<unsigned>(SHORT_FACTOR * lenTypical);
+  unsigned lenShortHi = static_cast<unsigned>(LONG_FACTOR * lenTypical);
+
+  if (rangeData.lenRange < lenShortLo ||
+      rangeData.lenRange > lenShortHi)
+    return false;
+
+  PatternEntry pe;
+  pe.modelNo = 0; // Doesn't matter
+  pe.reverseFlag = false;
+  pe.abutLeftFlag = true;
+  pe.abutRightFlag = true;
+  pe.start = rangeData.indexLeft;
+  pe.end = rangeData.indexRight;
+  pe.borders = PATTERN_DOUBLE_SIDED_SINGLE_SHORT;
+
+  // Guess that particularly the middle part is shorter in a short car.
+  list<unsigned> carPoints;
+  carPoints.push_back(0);
+  carPoints.push_back(sideTypical);
+  carPoints.push_back(sideTypical + bogieTypical);
+  carPoints.push_back(rangeData.lenRange - sideTypical - bogieTypical);
+  carPoints.push_back(rangeData.lenRange - sideTypical);
+  carPoints.push_back(rangeData.lenRange);
+
+  if (PeakPattern::fillPoints(carPoints, pe.start, false, pe))
+      candidates.emplace_back(pe);
+
+  return (! candidates.empty());
+}
+
+
 bool PeakPattern::guessBothDouble(
   const CarModels& models,
   const bool leftFlag)
@@ -408,7 +467,7 @@ bool PeakPattern::guessRight(const CarModels& models)
 
   for (auto& ae: activeEntries)
   {
-cout << ae.strShort("guessRight", rangeData.qualLeft);
+cout << ae.strShort("guessRight", rangeData.qualRight);
 
     PeakPattern::fillFromModel(models, ae.index, ae.data->symmetryFlag,
       0, rangeData.indexRight, PATTERN_SINGLE_SIDED_RIGHT);
@@ -423,7 +482,8 @@ void PeakPattern::updateUnused(
   PeakPtrs& peakPtrsUnused) const
 {
   if (pe.borders == PATTERN_NO_BORDERS ||
-      pe.borders == PATTERN_DOUBLE_SIDED_SINGLE)
+      pe.borders == PATTERN_DOUBLE_SIDED_SINGLE ||
+      pe.borders == PATTERN_DOUBLE_SIDED_SINGLE_SHORT)
   {
     // All the unused peaks are fair game.
   }
@@ -445,16 +505,23 @@ void PeakPattern::updateUnused(
 
 
 void PeakPattern::updateUsed(
-  const vector<Peak const *>& peaksClose,
-  PeakPtrs& peakPtrsUsed) const
+  const vector<Peak const *>& peaksClosest,
+  PeakPtrs& peakPtrsUsed,
+  PeakPtrs& peakPtrsUnused) const
 {
   // There may be some peaks that have to be moved.
   auto pu = peakPtrsUsed.begin();
-  for (auto& peak: peaksClose)
+  for (auto& peak: peaksClosest)
   {
+    if (peak == nullptr)
+      continue;
+
     const unsigned indexClose = peak->getIndex();
     while (pu != peakPtrsUsed.end() && (* pu)->getIndex() < indexClose)
+    {
+      peakPtrsUnused.add(* pu);
       pu = peakPtrsUsed.erase(pu);
+    }
 
     if (pu == peakPtrsUsed.end())
       break;
@@ -466,7 +533,10 @@ void PeakPattern::updateUsed(
 
   // Erase trailing peaks.
   while (pu != peakPtrsUsed.end())
+  {
+    peakPtrsUnused.add(* pu);
     pu = peakPtrsUsed.erase(pu);
+  }
 }
 
 
@@ -475,24 +545,23 @@ void PeakPattern::update(
   PeakPtrs& peakPtrsUsed,
   PeakPtrs& peakPtrsUnused) const
 {
+  PeakPattern::updateUsed(none.peaksClose, peakPtrsUsed, peakPtrsUnused);
   PeakPattern::updateUnused(none.pe, peakPtrsUnused);
-  PeakPattern::updateUsed(none.peaksBest, peakPtrsUsed);
 }
 
 
 void PeakPattern::setNone(
   PatternEntry& pe,
-  vector<Peak const *>& peaksBest,
   NoneEntry& none) const
 {
   none.pe = pe;
-  none.peaksBest = peaksBest;
+  none.peaksClose = peaksClose;
+  none.emptyFlag = false;
 }
 
 
 void PeakPattern::addToSingles(
   const vector<unsigned>& indices,
-  const vector<Peak const *>& peaksClose,
   list<SingleEntry>& singles) const 
 {
   // We rely heavily on having exactly one nullptr.
@@ -523,7 +592,6 @@ void PeakPattern::addToSingles(
 
 void PeakPattern::addToDoubles(
   const PatternEntry& pe,
-  const vector<Peak const *>& peaksClose,
   list<DoubleEntry>& doubles) const 
 {
   // We rely heavily on having exactly two nullptrs.
@@ -561,7 +629,8 @@ void PeakPattern::addToDoubles(
     return;
 
   if (pe.borders == PATTERN_NO_BORDERS ||
-      pe.borders == PATTERN_DOUBLE_SIDED_SINGLE)
+      pe.borders == PATTERN_DOUBLE_SIDED_SINGLE ||
+      pe.borders == PATTERN_DOUBLE_SIDED_SINGLE_SHORT)
   {
     // All the unused peaks are fair game.
   }
@@ -607,12 +676,11 @@ void PeakPattern::examineCandidates(
 
   for (auto pe = candidates.begin(); pe != candidates.end(); )
   {
-    vector<Peak const *> peaksClose;
     unsigned numClose;
     unsigned dist;
     peakPtrsUsed.getClosest(pe->indices, peaksClose, numClose, dist);
 
-    cout << PeakPattern::strClosest(pe->indices, peaksClose);
+    cout << PeakPattern::strClosest(pe->indices);
 
     if (numClose == 4)
     {
@@ -621,13 +689,13 @@ void PeakPattern::examineCandidates(
       if (dist < distBest)
       {
         distBest = dist;
-        PeakPattern::setNone(* pe, peaksClose, none);
+        PeakPattern::setNone(* pe, none);
       }
     }
     else if (numClose == 3)
-      PeakPattern::addToSingles(pe->indices, peaksClose, singles);
+      PeakPattern::addToSingles(pe->indices, singles);
     else if (numClose == 2)
-      PeakPattern::addToDoubles(* pe, peaksClose, doubles);
+      PeakPattern::addToDoubles(* pe, doubles);
     else if (numClose <= 1)
     {
       // Get rid of the 1's and 0's.
@@ -685,6 +753,59 @@ void PeakPattern::condenseDoubles(list<DoubleEntry>& doubles) const
 }
 
 
+void PeakPattern::readjust(list<SingleEntry>& singles)
+{
+  // This applies for a short car where we got three peaks.
+  // Probably the fourth peak is at a predictable bogie distance
+  // which we can better estimate now.
+
+  if (candidates.size() != 1 || singles.size() != 1)
+    return;
+
+  unsigned p, target;
+  if (peaksClose[0] == nullptr)
+  {
+    p = 0;
+    target = peaksClose[1]->getIndex() -
+      (peaksClose[3]->getIndex() - peaksClose[2]->getIndex());
+  }
+  else if (peaksClose[1] == nullptr)
+  {
+    p = 1;
+    target = peaksClose[0]->getIndex() +
+      (peaksClose[3]->getIndex() - peaksClose[2]->getIndex());
+  }
+  else if (peaksClose[2] == nullptr)
+  {
+    p = 2;
+    target = peaksClose[3]->getIndex() -
+      (peaksClose[1]->getIndex() - peaksClose[0]->getIndex());
+  }
+  else if (peaksClose[3] == nullptr)
+  {
+    p = 3;
+    target = peaksClose[2]->getIndex() +
+      (peaksClose[1]->getIndex() - peaksClose[0]->getIndex());
+  }
+  else
+    return;
+
+  SingleEntry& single = singles.front();
+  const unsigned delta = target - single.target;
+
+cout << "Adjusted " << p << " goal from " << 
+  single.target + offset << " to " <<
+  target + offset << " (" << single.lower + offset + delta << " - " << 
+  single.upper + offset + delta << ")\n";
+
+  single.target = target;
+  single.lower += delta;
+  single.upper += delta;
+
+  candidates.front().indices[p] = target;
+}
+
+
 void PeakPattern::fixOnePeak(
   const string& text,
   const unsigned target,
@@ -732,8 +853,10 @@ for (auto s: singles)
 
     if (pptr != nullptr)
     {
+cout << "fixSingles before add/remove" << endl;
       peakPtrsUsed.add(pptr);
       peakPtrsUnused.remove(pptr);
+cout << "fixSingles after add/remove" << endl;
       return true;
     }
   }
@@ -764,15 +887,22 @@ for (auto d: doubles)
       db.first.target, db.first.lower, db.first.upper, peaks, pptr);
 
     if (pptr != nullptr)
+    {
+cout << "fixDoubles 1 before add/remove" << endl;
       peakPtrsUsed.add(pptr);
+      peakPtrsUnused.remove(pptr);
+cout << "fixDoubles 1 after add/remove" << endl;
+    }
 
     PeakPattern::fixOnePeak("fixDoubles 2",
       db.second.target, db.second.lower, db.second.upper, peaks, pptr);
 
     if (pptr != nullptr)
     {
+cout << "fixDoubles 2 before add/remove" << endl;
       peakPtrsUsed.add(pptr);
       peakPtrsUnused.remove(pptr);
+cout << "fixDoubles 2 after add/remove" << endl;
       return true;
     }
   }
@@ -784,7 +914,8 @@ for (auto d: doubles)
 bool PeakPattern::fix(
   PeakPool& peaks,
   PeakPtrs& peakPtrsUsed,
-  PeakPtrs& peakPtrsUnused)
+  PeakPtrs& peakPtrsUnused,
+  bool flexibleFlag)
 {
   NoneEntry none;
   list<SingleEntry> singles;
@@ -803,13 +934,19 @@ bool PeakPattern::fix(
     {
       // TODO This is quite inefficient, as we actually know the
       // changes we made.  But we just reexamine for now.
+cout << "Re-examining after fixDoubles" << endl;
       PeakPattern::examineCandidates(peakPtrsUsed, none, singles, doubles);
+cout << "Re-examined after fixDoubles" << endl;
     }
   }
 
   // Try the 3's (original or 2's turned 3's) if there are no 4's.
   if (none.empty() && ! singles.empty())
   {
+    // This happens in a short inner car.
+    if (flexibleFlag)
+      PeakPattern::readjust(singles);
+
     if (PeakPattern::fixSingles(peaks, singles, 
         peakPtrsUsed, peakPtrsUnused))
       PeakPattern::examineCandidates(peakPtrsUsed, none, singles, doubles);
@@ -858,12 +995,19 @@ bool PeakPattern::locate(
     // Note that guessBothDouble(true) could generate candidates
     // which aren't fitted.  So we can't return the fix value no
     // matter what, and we only return true if it fits.
-    if (guessBothSingle(models))
+    // The short one is not strictly model-based, but it fits well
+    // into the code.
+    if (PeakPattern::guessBothSingle(models))
       return PeakPattern::fix(peaks, peakPtrsUsed, peakPtrsUnused);
-    else if (guessBothDouble(models, true) &&
+    else if (PeakPattern::guessBothSingleShort(models))
+    {
+cout << "TRYING SHORT\n";
+      return PeakPattern::fix(peaks, peakPtrsUsed, peakPtrsUnused, true);
+    }
+    else if (PeakPattern::guessBothDouble(models, true) &&
         PeakPattern::fix(peaks, peakPtrsUsed, peakPtrsUnused))
       return true;
-    else if (guessBothDouble(models, false) &&
+    else if (PeakPattern::guessBothDouble(models, false) &&
         PeakPattern::fix(peaks, peakPtrsUsed, peakPtrsUnused))
       return true;
   }
@@ -889,9 +1033,7 @@ bool PeakPattern::locate(
 }
 
 
-string PeakPattern::strClosest(
-  const vector<unsigned>& indices,
-  const vector<Peak const *>& peaksClose) const
+string PeakPattern::strClosest(const vector<unsigned>& indices) const
 {
   stringstream ss;
   ss << "Closest indices\n";

@@ -74,6 +74,9 @@ bool PeakPtrs::add(Peak * peak)
   const unsigned pindex = peak->getIndex();
   for (auto it = peaks.begin(); it != peaks.end(); it++)
   {
+    if ((* it)->getIndex() == pindex)
+      return true;
+
     if ((* it)->getIndex() > pindex)
     {
       peaks.insert(it, peak);
@@ -400,7 +403,8 @@ void PeakPtrs::getClosest(
   unsigned& distance) const
 {
   const unsigned ni = indices.size();
-  peaksClose.resize(indices.size(), nullptr);
+  peaksClose.clear();
+  peaksClose.resize(ni, nullptr);
 
   if (ni != 4)
     return;
@@ -439,6 +443,19 @@ void PeakPtrs::getClosest(
       pit++;
     }
   }
+
+  // Eliminate doubles.
+  for (unsigned i = 0; i+1 < ni; i++)
+  {
+    if (peaksClose[i] == peaksClose[i+1] && peaksClose[i] != nullptr)
+    {
+      if (dist[i] <= dist[i+1])
+        peaksClose[i+1] = nullptr;
+      else
+        peaksClose[i] = nullptr;
+    }
+  }
+
 
   numClose = 0;
   distance = 0;
