@@ -67,14 +67,6 @@ class PeakPattern
 {
   private:
 
-    enum RangeQuality
-    {
-      QUALITY_WHOLE_MODEL = 0,
-      QUALITY_SYMMETRY = 1,
-      QUALITY_GENERAL = 2,
-      QUALITY_NONE = 3
-    };
-
     struct ActiveEntry
     {
       ModelData const * data;
@@ -162,27 +154,12 @@ class PeakPattern
     CarDetect const * carBeforePtr;
     CarDetect const * carAfterPtr;
 
-    RangeQuality qualLeft;
-    RangeQuality qualRight;
-    RangeQuality qualBest;
-    RangeQuality qualWorst;
-    unsigned gapLeft;
-    unsigned gapRight;
-    unsigned indexLeft;
-    unsigned indexRight;
-    unsigned lenRange;
+    RangeData rangeData;
 
     vector<ActiveEntry> activeEntries;
 
     list<PatternEntry> candidates;
 
-
-    bool getRangeQuality(
-      const CarModels& models,
-      CarDetect const * carPtr,
-      const bool leftFlag,
-      RangeQuality& quality,
-      unsigned& gap) const;
 
     bool setGlobals(
       const CarModels& models,
@@ -280,9 +257,6 @@ class PeakPattern
       PeakPool& peaks,
       PeakPtrs& peakPtrsUsed,
       PeakPtrs& peakPtrsUnused);
-
-    string strQuality(const RangeQuality& qual) const;
-    string strGlobals() const;
 
     string strClosest(
       const vector<unsigned>& indices,

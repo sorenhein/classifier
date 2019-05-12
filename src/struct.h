@@ -5,6 +5,7 @@
 #include <vector>
 #include <iostream>
 #include <fstream>
+#include <sstream>
 
 using namespace std;
 
@@ -370,6 +371,73 @@ enum CarPosition
   CARPOSITION_INNER_MULTI = 2,
   CARPOSITION_LAST = 3,
   CARPOSITION_SIZE = 4
+};
+
+enum RangeQuality
+{
+  QUALITY_WHOLE_MODEL = 0,
+  QUALITY_SYMMETRY = 1,
+  QUALITY_GENERAL = 2,
+  QUALITY_NONE = 3
+};
+
+struct RangeData
+{
+  RangeQuality qualLeft;
+  RangeQuality qualRight;
+  RangeQuality qualBest;
+  RangeQuality qualWorst;
+
+  unsigned gapLeft;
+  unsigned gapRight;
+  unsigned indexLeft;
+  unsigned indexRight;
+  unsigned lenRange;
+
+  RangeData()
+  {
+    qualLeft = QUALITY_NONE;
+    qualRight = QUALITY_NONE;
+    qualBest = QUALITY_NONE;
+    qualWorst = QUALITY_NONE;
+
+    gapLeft = 0;
+    gapRight = 0;
+
+    indexLeft = 0;
+    indexRight = 0;
+    lenRange = 0;
+  };
+
+  string strQuality(const RangeQuality qual) const
+  {
+    if (qual == QUALITY_WHOLE_MODEL)
+      return "WHOLE";
+    else if (qual == QUALITY_SYMMETRY)
+      return "SYMMETRY";
+    else if (qual == QUALITY_GENERAL)
+      return "GENERAL";
+    else
+      return "(none)";
+  };
+
+  string str(
+    const string& title,
+    const unsigned offset) const
+  {
+    stringstream ss;
+    ss << title << "\n" <<
+      setw(10) << left << "qualLeft " <<
+        RangeData::strQuality(qualLeft) << "\n" <<
+      setw(10) << left << "qualRight " <<
+        RangeData::strQuality(qualRight) << "\n" <<
+      setw(10) << left << "gapLeft " << gapLeft << "\n" <<
+      setw(10) << left << "gapRight " << gapLeft << "\n" <<
+      setw(10) << left << "indices " <<
+        indexLeft + offset << " - " << indexRight + offset <<  "\n" <<
+      setw(10) << left << "length " << lenRange << endl;
+    return ss.str();
+  };
 };
 
 #endif

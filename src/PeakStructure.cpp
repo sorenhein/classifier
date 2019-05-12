@@ -527,9 +527,9 @@ PeakStructure::FindCarType PeakStructure::findCarByPattern(
       peakPtrsUsed, peakPtrsUnused))
     return FIND_CAR_NO_MATCH;
 
-cout << "findCarByPattern:\n";
-cout << peakPtrsUsed.strQuality("Used", offset);
-cout << peakPtrsUnused.strQuality("Unused", offset);
+// cout << "findCarByPattern:\n";
+// cout << peakPtrsUsed.strQuality("Used", offset);
+// cout << peakPtrsUnused.strQuality("Unused", offset);
 
   // If it worked, the used and unused peaks have been modified,
   // and some peaks have disappeared from the union of the lists.
@@ -538,7 +538,6 @@ cout << peakPtrsUnused.strQuality("Unused", offset);
   car.makeFourWheeler(rangeLocal, peakPtrsUsed);
 
   peakPtrsUsed.markup();
-cout << peakPtrsUsed.strQuality("Used after markup", offset);
   peakPtrsUnused.apply(&Peak::markdown);
 
   return FIND_CAR_MATCH;

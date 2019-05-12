@@ -38,73 +38,8 @@ void PeakPattern::reset()
   carBeforePtr = nullptr;
   carAfterPtr = nullptr;
 
-  qualLeft = QUALITY_NONE;
-  qualRight = QUALITY_NONE;
-  qualBest = QUALITY_NONE;
-  qualWorst = QUALITY_NONE;
-
-  gapLeft = 0;
-  gapRight = 0;
-
-  indexLeft = 0;
-  indexRight = 0;
-  lenRange = 0;
-
   activeEntries.clear();
   candidates.clear();
-}
-
-
-bool PeakPattern::getRangeQuality(
-  const CarModels& models,
-  CarDetect const * carPtr,
-  const bool leftFlag,
-  RangeQuality& quality,
-  unsigned& gap) const
-{
-  if (! carPtr)
-    return false;
-
-  bool modelFlipFlag = false;
-  unsigned modelIndex = carPtr->getMatchData()->index;
-  ModelData const * data = models.getData(modelIndex);
-
-  // The abutting car could be contained in a whole car.
-  if (data->containedFlag)
-  {
-    modelFlipFlag = data->containedReverseFlag;
-    modelIndex = data->containedIndex;
-    data = models.getData(modelIndex);
-  }
-
-  if (! data->gapLeftFlag && ! data->gapRightFlag)
-    return false;
-
-  // Two flips would make a regular order.
-  const bool revFlag = carPtr->isReversed() ^ modelFlipFlag;
-
-  if (data->gapRightFlag && leftFlag == revFlag)
-  {
-    gap = data->gapRight;
-    quality = QUALITY_WHOLE_MODEL;
-  }
-  else if (data->gapLeftFlag && leftFlag != revFlag)
-  {
-    gap = data->gapLeft;
-    quality = QUALITY_WHOLE_MODEL;
-  }
-  else if (data->gapRightFlag)
-  {
-    gap = data->gapRight;
-    quality = QUALITY_SYMMETRY;
-  }
-  else
-  {
-    gap = data->gapLeft;
-    quality = QUALITY_SYMMETRY;
-  }
-
-  return true;
 }
 
 
@@ -116,38 +51,15 @@ bool PeakPattern::setGlobals(
   carBeforePtr = range.carBeforePtr();
   carAfterPtr = range.carAfterPtr();
 
-  if (! carBeforePtr && ! carAfterPtr)
-    return false;
-
   offset = offsetIn;
 
-  if (! PeakPattern::getRangeQuality(models, carBeforePtr,
-      true, qualLeft, gapLeft))
-    qualLeft = QUALITY_NONE;
-
-  if (! PeakPattern::getRangeQuality(models, carAfterPtr,
-      false, qualRight, gapRight))
-    qualRight = QUALITY_NONE;
-
-  qualBest = (qualLeft <= qualRight ? qualLeft : qualRight);
-  qualWorst = (qualLeft <= qualRight ? qualRight : qualLeft);
-
-  if (carBeforePtr)
-    indexLeft = carBeforePtr->
-      getPeaksPtr().secondBogieRightPtr->getIndex() + gapLeft;
-
-  if (carAfterPtr)
-  indexRight = carAfterPtr->
-    getPeaksPtr().firstBogieLeftPtr->getIndex() - gapRight;
-
-  if (indexRight > 0 && indexRight <= indexLeft)
+  if (range.characterize(models, rangeData))
+  {
+    cout << rangeData.str("Range globals", offset);
+    return true;
+  }
+  else
     return false;
-
-  lenRange = indexRight - indexLeft;
-
-cout << PeakPattern::strGlobals();
-
-  return true;
 }
 
 
@@ -399,13 +311,13 @@ bool PeakPattern::guessBothSingle(const CarModels& models)
 {
   for (auto& ae: activeEntries)
   {
-    if (lenRange >= ae.lenLo[qualBest] &&
-        lenRange <= ae.lenHi[qualBest])
+    if (rangeData.lenRange >= ae.lenLo[rangeData.qualBest] &&
+        rangeData.lenRange <= ae.lenHi[rangeData.qualBest])
     {
-cout << ae.strShort("guessBothSingle", qualBest);
+cout << ae.strShort("guessBothSingle", rangeData.qualBest);
 
       PeakPattern::fillFromModel(models, ae.index, 
-        ae.data->symmetryFlag, indexLeft, indexRight, 
+        ae.data->symmetryFlag, rangeData.indexLeft, rangeData.indexRight, 
         PATTERN_DOUBLE_SIDED_SINGLE);
     }
   }
@@ -424,21 +336,25 @@ bool PeakPattern::guessBothDouble(
   {
     for (auto& ae2: activeEntries)
     {
-      if (lenRange >= ae1.lenLo[qualBest] + ae2.lenLo[qualBest] &&
-          lenRange <= ae1.lenHi[qualBest] + ae2.lenHi[qualBest])
+      if (rangeData.lenRange >= 
+          ae1.lenLo[rangeData.qualBest] + ae2.lenLo[rangeData.qualBest] &&
+          rangeData.lenRange <= 
+          ae1.lenHi[rangeData.qualBest] + ae2.lenHi[rangeData.qualBest])
       {
 cout << ae1.strShort("guessBothDouble 1, left " + to_string(leftFlag),
-  qualBest);
+  rangeData.qualBest);
 cout << ae2.strShort("guessBothDouble 2, left " + to_string(leftFlag),
-  qualBest);
+  rangeData.qualBest);
 
         if (leftFlag)
           PeakPattern::fillFromModel(models, ae1.index, 
-            ae1.data->symmetryFlag, indexLeft, indexRight, 
+            ae1.data->symmetryFlag, 
+            rangeData.indexLeft, rangeData.indexRight, 
             PATTERN_DOUBLE_SIDED_DOUBLE);
         else
           PeakPattern::fillFromModel(models, ae2.index, 
-            ae2.data->symmetryFlag, indexLeft, indexRight, 
+            ae2.data->symmetryFlag, 
+            rangeData.indexLeft, rangeData.indexRight, 
             PATTERN_DOUBLE_SIDED_DOUBLE);
       }
     }
@@ -455,17 +371,18 @@ bool PeakPattern::guessLeft(const CarModels& models)
   if (carBeforePtr == nullptr)
     return false;
 
-  if (qualLeft == QUALITY_GENERAL || qualLeft == QUALITY_NONE)
+  if (rangeData.qualLeft == QUALITY_GENERAL || 
+      rangeData.qualLeft == QUALITY_NONE)
     return false;
 
   candidates.clear();
 
   for (auto& ae: activeEntries)
   {
-cout << ae.strShort("guessLeft", qualLeft);
+cout << ae.strShort("guessLeft", rangeData.qualLeft);
 
     PeakPattern::fillFromModel(models, ae.index, ae.data->symmetryFlag,
-      indexLeft, 0, PATTERN_SINGLE_SIDED_LEFT);
+      rangeData.indexLeft, 0, PATTERN_SINGLE_SIDED_LEFT);
   }
 
   return (! candidates.empty());
@@ -479,20 +396,22 @@ bool PeakPattern::guessRight(const CarModels& models)
   if (carAfterPtr == nullptr)
     return false;
 
-  if (qualRight == QUALITY_GENERAL || qualRight == QUALITY_NONE)
+  if (rangeData.qualRight == QUALITY_GENERAL || 
+      rangeData.qualRight == QUALITY_NONE)
     return false;
 
-  if (gapRight >= carAfterPtr->getPeaksPtr().firstBogieLeftPtr->getIndex())
+  if (rangeData.gapRight >= 
+      carAfterPtr->getPeaksPtr().firstBogieLeftPtr->getIndex())
     return false;
 
   candidates.clear();
 
   for (auto& ae: activeEntries)
   {
-cout << ae.strShort("guessRight", qualLeft);
+cout << ae.strShort("guessRight", rangeData.qualLeft);
 
     PeakPattern::fillFromModel(models, ae.index, ae.data->symmetryFlag,
-      0, indexRight, PATTERN_SINGLE_SIDED_RIGHT);
+      0, rangeData.indexRight, PATTERN_SINGLE_SIDED_RIGHT);
   }
 
   return (candidates.size() > 0);
@@ -918,7 +837,8 @@ bool PeakPattern::locate(
   if (! PeakPattern::setGlobals(models, range, offsetIn))
     return false;
 
-  if (qualLeft == QUALITY_NONE && qualRight == QUALITY_NONE)
+  if (rangeData.qualLeft == QUALITY_NONE && 
+      rangeData.qualRight == QUALITY_NONE)
   {
   // TODO A lot of these seem to be misalignments of cars with peaks.
   // So it's not clear that we should recognize them.
@@ -930,7 +850,8 @@ bool PeakPattern::locate(
   }
 
   // First try filling the entire range with 1-2 cards.
-  if (qualBest != QUALITY_GENERAL || qualBest == QUALITY_NONE)
+  if (rangeData.qualBest != QUALITY_GENERAL || 
+      rangeData.qualBest == QUALITY_NONE)
   {
     PeakPattern::getActiveModels(models, true);
 
@@ -950,14 +871,14 @@ bool PeakPattern::locate(
   // Then try to fill up from the left or right.
   PeakPattern::getActiveModels(models, false);
 
-  if (qualLeft != QUALITY_NONE)
+  if (rangeData.qualLeft != QUALITY_NONE)
   {
     if (PeakPattern::guessLeft(models) &&
         PeakPattern::fix(peaks, peakPtrsUsed, peakPtrsUnused))
       return true;
   }
 
-  if (qualRight != QUALITY_NONE)
+  if (rangeData.qualRight != QUALITY_NONE)
   {
     if (PeakPattern::guessRight(models) &&
         PeakPattern::fix(peaks, peakPtrsUsed, peakPtrsUnused))
@@ -965,36 +886,6 @@ bool PeakPattern::locate(
   }
 
   return false;
-}
-
-
-string PeakPattern::strQuality(const RangeQuality& qual) const
-{
-  if (qual == QUALITY_WHOLE_MODEL)
-    return "WHOLE";
-  else if (qual == QUALITY_SYMMETRY)
-    return "SYMMETRY";
-  else if (qual == QUALITY_GENERAL)
-    return "GENERAL";
-  else
-    return "(none)";
-}
-
-
-string PeakPattern::strGlobals() const
-{
-  stringstream ss;
-  ss << "PeakPattern globals:\n" << 
-    setw(10) << left << "qualLeft " << 
-      PeakPattern::strQuality(qualLeft) << "\n" <<
-    setw(10) << left << "qualRight " << 
-      PeakPattern::strQuality(qualRight) << "\n" <<
-    setw(10) << left << "gapLeft " << gapLeft << "\n" <<
-    setw(10) << left << "gapRight " << gapLeft << "\n" <<
-    setw(10) << left << "indices " << 
-      indexLeft + offset << " - " << indexRight + offset <<  "\n" <<
-    setw(10) << left << "length " << lenRange << endl;
-  return ss.str();
 }
 
 

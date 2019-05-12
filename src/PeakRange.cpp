@@ -6,6 +6,7 @@
 #include <sstream>
 
 #include "PeakRange.h"
+#include "CarModels.h"
 #include "CarDetect.h"
 
 
@@ -64,6 +65,102 @@ void PeakRange::fill(PeakPool& peaks)
   // Set up some useful stuff for all recognizers.
   peaks.candidates().fill(start, endVal, peakPtrs, peakIters);
   profile.make(peakPtrs, source);
+}
+
+
+bool PeakRange::getQuality(
+  const CarModels& models,
+  CarDetect const * carPtr,
+  const bool leftFlag,
+  RangeQuality& quality,
+  unsigned& gap) const
+{
+  if (! carPtr)
+    return false;
+
+  bool modelFlipFlag = false;
+  unsigned modelIndex = carPtr->getMatchData()->index;
+  ModelData const * data = models.getData(modelIndex);
+
+  // The abutting car could be contained in a whole car.
+  if (data->containedFlag)
+  {
+    modelFlipFlag = data->containedReverseFlag;
+    modelIndex = data->containedIndex;
+    data = models.getData(modelIndex);
+  }
+
+  if (! data->gapLeftFlag && ! data->gapRightFlag)
+    return false;
+
+  // Two flips would make a regular order.
+  const bool revFlag = carPtr->isReversed() ^ modelFlipFlag;
+
+  if (data->gapRightFlag && leftFlag == revFlag)
+  {
+    gap = data->gapRight;
+    quality = QUALITY_WHOLE_MODEL;
+  }
+  else if (data->gapLeftFlag && leftFlag != revFlag)
+  {
+    gap = data->gapLeft;
+    quality = QUALITY_WHOLE_MODEL;
+  }
+  else if (data->gapRightFlag)
+  {
+    gap = data->gapRight;
+    quality = QUALITY_SYMMETRY;
+  }
+  else
+  {
+    gap = data->gapLeft;
+    quality = QUALITY_SYMMETRY;
+  }
+
+  return true;
+}
+
+
+bool PeakRange::characterize(
+  const CarModels& models,
+  RangeData& rdata) const
+{
+  if (! _carBeforePtr && ! _carAfterPtr)
+    return false;
+
+  if (! PeakRange::getQuality(models, _carBeforePtr,
+      true, rdata.qualLeft, rdata.gapLeft))
+    rdata.qualLeft = QUALITY_NONE;
+
+  if (! PeakRange::getQuality(models, _carAfterPtr,
+      false, rdata.qualRight, rdata.gapRight))
+    rdata.qualRight = QUALITY_NONE;
+
+  rdata.qualBest = (rdata.qualLeft <= rdata.qualRight ? 
+    rdata.qualLeft : rdata.qualRight);
+  rdata.qualWorst = (rdata.qualLeft <= rdata.qualRight ? 
+    rdata.qualRight : rdata.qualLeft);
+
+  if (_carBeforePtr)
+    rdata.indexLeft = _carBeforePtr->
+      getPeaksPtr().secondBogieRightPtr->getIndex() + rdata.gapLeft;
+
+  if (_carAfterPtr)
+  {
+    const unsigned i = rdata.indexRight = _carAfterPtr->
+      getPeaksPtr().firstBogieLeftPtr->getIndex();
+    if (rdata.gapRight > i)
+      return false;
+    else
+      rdata.indexRight = i - rdata.gapRight;
+  }
+
+  if (rdata.indexRight > 0 && rdata.indexRight <= rdata.indexLeft)
+    return false;
+
+  rdata.lenRange = rdata.indexRight - rdata.indexLeft;
+
+  return true;
 }
 
 

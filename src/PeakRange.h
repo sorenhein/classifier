@@ -11,6 +11,7 @@
 
 using namespace std;
 
+class CarModels;
 class CarDetect;
 
 typedef list<CarDetect>::iterator CarListIter;
@@ -38,6 +39,14 @@ class PeakRange
     PeakIterList peakIters;
     PeakPtrs peakPtrs;
     PeakProfile profile;
+
+
+    bool getQuality(
+      const CarModels& models,
+      CarDetect const * carPtr,
+      const bool leftFlag,
+      RangeQuality& quality,
+      unsigned& gap) const;
     
 
   public:
@@ -59,6 +68,10 @@ class PeakRange
 
     void fill(PeakPool& peaks);
 
+    bool characterize(
+      const CarModels& models,
+      RangeData& rdata) const;
+
     void shortenLeft(const CarDetect& car);
 
     void shortenRight(
@@ -68,7 +81,6 @@ class PeakRange
     const CarListConstIter& carAfterIter() const;
     CarDetect const * carBeforePtr() const;
     CarDetect const * carAfterPtr() const;
-
 
     unsigned startValue() const;
     unsigned endValue() const;
