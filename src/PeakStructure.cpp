@@ -19,7 +19,7 @@
 #define GREAT_CAR_DISTANCE 0.5f
 
 #define NUM_METHODS 10
-#define NUM_METHOD_GROUPS 5
+#define NUM_METHOD_GROUPS 4
 
 
 struct WheelSpec
@@ -74,14 +74,10 @@ PeakStructure::PeakStructure()
       "by short", 6});
 
   findMethods[2].push_back(
-    { &PeakStructure::findPartialInnerCarByQuality, 
-      "inner partial by quality", 7});
-
-  findMethods[3].push_back(
     { &PeakStructure::findPartialFirstCarByQuality, 
       "first partial by quality", 5});
 
-  findMethods[4].push_back(
+  findMethods[3].push_back(
     { &PeakStructure::findCarByGeometry, 
       "by geometry", 9});
   
@@ -346,34 +342,6 @@ PeakStructure::FindCarType PeakStructure::findPartialFirstCarByQuality(
 
   return PeakStructure::findPartialCarByQuality(models, 
       &Peak::goodQuality, CARPOSITION_FIRST, peaks, range, car);
-}
-
-
-PeakStructure::FindCarType PeakStructure::findPartialInnerCarByQuality(
-  const CarModels& models,
-  PeakPool& peaks,
-  PeakRange& range,
-  CarDetect& car) const
-{
-  if (range.isFirstCar() || range.isLastCar())
-    return FIND_CAR_NO_MATCH;
-
-  if (range.numGreat() <= 4 &&
-      range.numGood() <= 6 &&
-      range.num() <= 10)
-  {
-cout << "MIDMID\n";
-    return PeakStructure::findPartialCarByQuality(models, 
-        &Peak::goodQuality, CARPOSITION_INNER_SINGLE, peaks, range, car);
-  }
-  else if (range.numGreat() > 4)
-  {
-cout << "MIDMULTI\n";
-    return PeakStructure::findPartialCarByQuality(models, 
-        &Peak::goodQuality, CARPOSITION_INNER_MULTI, peaks, range, car);
-  }
-  else
-    return FIND_CAR_NO_MATCH;
 }
 
 

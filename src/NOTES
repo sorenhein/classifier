@@ -1,6 +1,7 @@
-Shorts
-------
-Fix len underflows
+In Pattern, add last-car short detection
+- Can more or less by used-peak differences
+- Find the bogies
+- Look for the missing bogies
 
 
 Plan 2019-05-08
@@ -13,12 +14,7 @@ Plan 2019-05-08
 * Maybe the same for last cars (which should be complete)
 
 * Move the range.split out of each method into the overall loop?
-
-PeakPattern:
-
-* First priority is "both"
-* If that doesn't work, try "left" if available, including asymmetry
-* Then "right"
+* Move empty up before pattern
 
 
 Plan 2019-05-05

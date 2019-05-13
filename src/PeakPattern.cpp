@@ -1035,15 +1035,12 @@ cout << peakPtrsUnused.strQuality("Unused", offset);
     // Note that guessBothDouble(true) could generate candidates
     // which aren't fitted.  So we can't return the fix value no
     // matter what, and we only return true if it fits.
-    // The short one is not strictly model-based, but it fits well
-    // into the code.
+
+    // The short one is not model-based, but it fits well here.
     if (PeakPattern::guessBothSingle(models))
       return PeakPattern::fix(peaks, peakPtrsUsed, peakPtrsUnused);
     else if (PeakPattern::guessBothSingleShort(models))
-    {
-cout << "TRYING SHORT\n";
       return PeakPattern::fix(peaks, peakPtrsUsed, peakPtrsUnused, true);
-    }
     else if (PeakPattern::guessBothDouble(models, true) &&
         PeakPattern::fix(peaks, peakPtrsUsed, peakPtrsUnused))
       return true;
@@ -1052,7 +1049,7 @@ cout << "TRYING SHORT\n";
       return true;
   }
 
-  // Then try to fill up from the left or right.
+  // Then try to fill up with known models from the left or right.
   PeakPattern::getActiveModels(models, false);
 
   if (rangeData.qualLeft != QUALITY_NONE)
