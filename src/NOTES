@@ -8,20 +8,15 @@ Plan 2019-05-08
 ---------------
 * Pattern should catch *all* model matches
   - At least for mid cars
-  - Therefore mid cars in its current form should not be needed
-  - Instead it should detect new models, especially short ones
   - Geometry should only hit middles of ranges
 * Maybe the same for last cars (which should be complete)
 
 * Move the range.split out of each method into the overall loop?
-* Move empty up before pattern
 
 
 Plan 2019-05-05
 ---------------
 * Too many car types sometimes, s03 201953 #36
-
-* Don't print out the long peak lists anymore
 
 * Do more about new, short cars in Geometry
 * Order: Simples, mids, lasts, firsts.  

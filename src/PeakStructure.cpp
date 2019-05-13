@@ -58,15 +58,15 @@ PeakStructure::PeakStructure()
     { &PeakStructure::findCarByGoodQuality, 
       "by good quality", 2});
 
-  // Car-sized gaps based on existing models.
-  findMethods[1].push_back(
-    { &PeakStructure::findCarByPattern, 
-      "by pattern", 3});
-
   // No great peaks at all.
   findMethods[1].push_back(
     { &PeakStructure::findEmptyRange, 
       "by emptiness", 4});
+
+  // Car-sized gaps based on existing models.
+  findMethods[1].push_back(
+    { &PeakStructure::findCarByPattern, 
+      "by pattern", 3});
 
   // Short inner cars.
   findMethods[1].push_back(
@@ -456,6 +456,21 @@ PeakStructure::FindCarType PeakStructure::findCarByGeometry(
           mno, match))
         continue;
       
+RangeData rdata;
+if (range.characterize(models, rdata))
+{
+  if (rdata.qualLeft == QUALITY_NONE)
+  {
+    if (rdata.qualRight == QUALITY_NONE)
+      cout << "GEOM_OPEN\n";
+    else
+      cout << "GEOM_LASTISH\n";
+  }
+  else if (rdata.qualRight == QUALITY_NONE)
+    cout << "GEOM_FIRSTISH\n";
+  else
+    cout << "GEOM_MIDDLE\n";
+}
       peakPtrsUsed.markup();
       peakPtrsUnused.apply(&Peak::markdown);
 
