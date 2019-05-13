@@ -150,6 +150,13 @@ class PeakPattern
       };
     };
 
+    struct SpacingEntry
+    {
+      Peak const * peakLeft;
+      Peak const * peakRight;
+      unsigned dist;
+    };
+
 
     unsigned offset;
 
@@ -163,6 +170,8 @@ class PeakPattern
     vector<Peak const *> peaksClose;
 
     list<PatternEntry> candidates;
+
+    list<SpacingEntry> spacings;
 
 
     bool setGlobals(
@@ -280,6 +289,8 @@ class PeakPattern
       PeakPtrs& peakPtrsUsed,
       PeakPtrs& peakPtrsUnused,
       const bool flexibleFlag = false);
+
+    void getSpacings(PeakPtrs& peakPtrsUsed);
 
     string strClosest(
       const vector<unsigned>& indices) const;

@@ -1,3 +1,6 @@
+Move the typical numbers into private storage in Pattern.
+Also use for spacing detection.
+
 In Pattern, add last-car short detection
 - Can more or less by used-peak differences
 - Find the bogies

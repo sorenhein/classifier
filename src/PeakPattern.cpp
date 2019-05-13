@@ -1000,6 +1000,15 @@ cout << "Re-examined after fixDoubles" << endl;
 }
 
 
+void PeakPattern::getSpacings(PeakPtrs& peakPtrsUsed)
+{
+  for (auto pit = peakPtrsUsed.begin(); pit != prev(peakPtrsUsed.end()); 
+      pit++)
+  {
+  }
+}
+
+
 bool PeakPattern::locate(
   const CarModels& models,
   PeakPool& peaks,
@@ -1065,6 +1074,12 @@ cout << peakPtrsUnused.strQuality("Unused", offset);
         PeakPattern::fix(peaks, peakPtrsUsed, peakPtrsUnused))
       return true;
   }
+
+  if (peakPtrsUsed.size() <= 2)
+    return false;
+
+  // Make an attempt to find short cars without a model.
+  PeakPattern::getSpacings(peakPtrsUsed);
 
   return false;
 }
