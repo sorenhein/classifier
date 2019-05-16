@@ -155,10 +155,27 @@ class PeakPattern
       Peak const * peakLeft;
       Peak const * peakRight;
       unsigned dist;
+      float numBogies; // dist relative to a typical bogie
+      PeakQuality qualityLower; // Lower of the two
+
+      string str(const unsigned offset)
+      {
+        stringstream ss;
+        ss << "Spacing " <<
+          peakLeft->getIndex() + offset << " - " <<
+          peakRight->getIndex() + offset << ", bogies " <<
+          setw(5) << fixed << setprecision(2) << numBogies << ", q " <<
+          qualityLower << endl;
+        return ss.str();
+      };
     };
 
 
     unsigned offset;
+
+    unsigned bogieTypical;
+    unsigned longTypical;
+    unsigned sideTypical;
 
     CarDetect const * carBeforePtr;
     CarDetect const * carAfterPtr;
@@ -200,7 +217,7 @@ class PeakPattern
     bool guessNoBorders();
 
     bool guessBothSingle(const CarModels& models);
-    bool guessBothSingleShort(const CarModels& models);
+    bool guessBothSingleShort();
     bool guessBothDouble(
       const CarModels& models, 
       const bool leftFlag);

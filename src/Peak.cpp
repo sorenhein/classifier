@@ -351,6 +351,27 @@ float Peak::getArea(const Peak& p2) const
 }
 
 
+PeakQuality Peak::getQualityWhole() const
+{
+  // This is the quality component that includes the level.
+  // It is not the overall quality that combined the component quality
+  // and the shape quality.
+
+  if (qualityPeak <= 0.10f)
+    return PEAK_QUALITY_FANTASTIC;
+  if (qualityPeak <= 0.30f)
+    return PEAK_QUALITY_GREAT;
+  if (qualityPeak <= 0.50f)
+    return PEAK_QUALITY_GOOD;
+  if (qualityPeak <= 0.75f)
+    return PEAK_QUALITY_ACCEPTABLE;
+  if (qualityPeak <= 1.00f)
+    return PEAK_QUALITY_BORDERLINE;
+  else
+    return PEAK_QUALITY_POOR;
+}
+
+
 float Peak::getQualityShape() const
 {
   return qualityShape;

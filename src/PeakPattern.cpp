@@ -57,6 +57,10 @@ bool PeakPattern::setGlobals(
 
   offset = offsetIn;
 
+  models.getTypical(bogieTypical, longTypical, sideTypical);
+  if (sideTypical == 0)
+    sideTypical = bogieTypical;
+
   if (range.characterize(models, rangeData))
   {
     cout << rangeData.str("Range globals", offset);
@@ -341,16 +345,16 @@ cout << ae.strShort("guessBothSingle", rangeData.qualBest);
 }
 
 
-bool PeakPattern::guessBothSingleShort(const CarModels& models)
+bool PeakPattern::guessBothSingleShort()
 {
   if (rangeData.qualLeft == QUALITY_GENERAL || 
       rangeData.qualLeft == QUALITY_NONE)
     return false;
 
-  unsigned bogieTypical, longTypical, sideTypical;
-  models.getTypical(bogieTypical, longTypical, sideTypical);
-  if (sideTypical == 0)
-    sideTypical = bogieTypical;
+  // unsigned bogieTypical, longTypical, sideTypical;
+  // models.getTypical(bogieTypical, longTypical, sideTypical);
+  // if (sideTypical == 0)
+    // sideTypical = bogieTypical;
 
   unsigned lenTypical = 2 * (sideTypical + bogieTypical) + longTypical;
   unsigned lenShortLo = static_cast<unsigned>(SHORT_FACTOR * lenTypical);
@@ -1005,6 +1009,17 @@ void PeakPattern::getSpacings(PeakPtrs& peakPtrsUsed)
   for (auto pit = peakPtrsUsed.begin(); pit != prev(peakPtrsUsed.end()); 
       pit++)
   {
+    spacings.emplace_back(SpacingEntry());
+    SpacingEntry& se = spacings.back();
+
+    se.peakLeft = * pit;
+    se.peakRight = * next(pit);
+    se.dist = se.peakRight->getIndex() - se.peakLeft->getIndex();
+    se.numBogies = (bogieTypical == 0 ? 1.f : 
+      se.dist / static_cast<float>(bogieTypical));
+    const PeakQuality pqL = se.peakLeft->getQualityWhole();
+    const PeakQuality pqR = se.peakRight->getQualityWhole();
+    se.qualityLower = (pqL >= pqR ? pqL : pqR);
   }
 }
 
@@ -1048,7 +1063,7 @@ cout << peakPtrsUnused.strQuality("Unused", offset);
     // The short one is not model-based, but it fits well here.
     if (PeakPattern::guessBothSingle(models))
       return PeakPattern::fix(peaks, peakPtrsUsed, peakPtrsUnused);
-    else if (PeakPattern::guessBothSingleShort(models))
+    else if (PeakPattern::guessBothSingleShort())
       return PeakPattern::fix(peaks, peakPtrsUsed, peakPtrsUnused, true);
     else if (PeakPattern::guessBothDouble(models, true) &&
         PeakPattern::fix(peaks, peakPtrsUsed, peakPtrsUnused))
@@ -1080,6 +1095,11 @@ cout << peakPtrsUnused.strQuality("Unused", offset);
 
   // Make an attempt to find short cars without a model.
   PeakPattern::getSpacings(peakPtrsUsed);
+
+  for (auto& sit: spacings)
+  {
+    cout << sit.str(offset);
+  }
 
   return false;
 }

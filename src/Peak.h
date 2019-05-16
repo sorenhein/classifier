@@ -159,6 +159,7 @@ class Peak
       const Peak& p2,
       const PeakParam param) const;
 
+    PeakQuality getQualityWhole() const; // Component, not overall
     float getQualityShape() const; // TODO Delete later
 
     bool isCandidate() const;
