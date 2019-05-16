@@ -115,6 +115,8 @@ void SegActive::highpass(vector<float>& integrand)
   // The filter is run forwards and backwards in order to
   // get linear phase (like in Python's filtfilt, but without
   // the padding or other clever stuff).
+  // from scipy import signal
+  // signal.butter(5, 0.005, btype='high')
 
   const unsigned order = 5;
 
