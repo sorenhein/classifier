@@ -222,9 +222,27 @@ class PeakPattern
       const CarModels& models, 
       const bool leftFlag);
 
-    bool guessLeft( const CarModels& models);
+    bool guessLeft(const CarModels& models);
 
     bool guessRight(const CarModels& models);
+
+    bool guessAndFixShort(
+      const bool leftFlag,
+      const unsigned indexFirst,
+      const unsigned indexLast,
+      PeakPool& peaks,
+      PeakPtrs& peakPtrsUsed,
+      PeakPtrs& peakPtrsUnused) const;
+
+    bool guessAndFixShortLeft(
+      PeakPool& peaks,
+      PeakPtrs& peakPtrsUsed,
+      PeakPtrs& peakPtrsUnused) const;
+
+    bool guessAndFixShortRight(
+      PeakPool& peaks,
+      PeakPtrs& peakPtrsUsed,
+      PeakPtrs& peakPtrsUnused) const;
 
     void updateUnused(
       const PatternEntry& pe,

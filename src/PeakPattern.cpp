@@ -52,6 +52,9 @@ bool PeakPattern::setGlobals(
   const PeakRange& range,
   const unsigned offsetIn)
 {
+  if (models.size() == 0)
+    return false;
+
   carBeforePtr = range.carBeforePtr();
   carAfterPtr = range.carAfterPtr();
 
@@ -1024,6 +1027,56 @@ void PeakPattern::getSpacings(PeakPtrs& peakPtrsUsed)
 }
 
 
+bool PeakPattern::guessAndFixShort(
+  const bool leftFlag,
+  const unsigned indexFirst,
+  const unsigned indexLast,
+  PeakPool& peaks,
+  PeakPtrs& peakPtrsUsed,
+  PeakPtrs& peakPtrsUnused) const
+{
+cout << "PPINDEX " << indexLast - indexFirst + 1 << endl;
+
+  UNUSED(leftFlag);
+  UNUSED(indexFirst);
+  UNUSED(indexLast);
+  UNUSED(peaks);
+  UNUSED(peakPtrsUsed);
+  UNUSED(peakPtrsUnused);
+
+  return false;
+}
+
+
+bool PeakPattern::guessAndFixShortLeft(
+  PeakPool& peaks,
+  PeakPtrs& peakPtrsUsed,
+  PeakPtrs& peakPtrsUnused) const
+{
+  if (rangeData.qualLeft == QUALITY_NONE)
+    return false;
+
+  const unsigned ss = spacings.size();
+  return PeakPattern::guessAndFixShort(
+    true, 0, (ss > 4 ? 4 : ss-1), peaks, peakPtrsUsed, peakPtrsUnused);
+}
+
+
+bool PeakPattern::guessAndFixShortRight(
+  PeakPool& peaks,
+  PeakPtrs& peakPtrsUsed,
+  PeakPtrs& peakPtrsUnused) const
+{
+  if (rangeData.qualRight == QUALITY_NONE || 
+      (rangeData.qualLeft != QUALITY_NONE && peakPtrsUsed.size() <= 6))
+    return false;
+
+  const unsigned ss = spacings.size();
+  return PeakPattern::guessAndFixShort(
+    false, (ss <= 4 ? 0 : ss-4), ss, peaks, peakPtrsUsed, peakPtrsUnused);
+}
+
+
 bool PeakPattern::locate(
   const CarModels& models,
   PeakPool& peaks,
@@ -1093,12 +1146,21 @@ cout << peakPtrsUnused.strQuality("Unused", offset);
   if (peakPtrsUsed.size() <= 2)
     return false;
 
-  // Make an attempt to find short cars without a model.
-  PeakPattern::getSpacings(peakPtrsUsed);
-
-  for (auto& sit: spacings)
+  if (rangeData.qualBest != QUALITY_GENERAL || 
+      rangeData.qualBest == QUALITY_NONE)
   {
-    cout << sit.str(offset);
+    // Make an attempt to find short cars without a model.
+    PeakPattern::getSpacings(peakPtrsUsed);
+
+    for (auto& sit: spacings)
+      cout << sit.str(offset);
+
+    if (PeakPattern::guessAndFixShortLeft(peaks, 
+        peakPtrsUsed, peakPtrsUnused))
+      return true;
+    if (PeakPattern::guessAndFixShortRight(peaks, 
+        peakPtrsUsed, peakPtrsUnused))
+      return true;
   }
 
   return false;
