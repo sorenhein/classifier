@@ -1221,8 +1221,9 @@ cout << peakPtrsUnused.strQuality("Unused", offset);
     // The short one is not model-based, but it fits well here.
     if (PeakPattern::guessBothSingle(models))
       return PeakPattern::fix(peaks, peakPtrsUsed, peakPtrsUnused);
-    else if (PeakPattern::guessBothSingleShort())
-      return PeakPattern::fix(peaks, peakPtrsUsed, peakPtrsUnused, true);
+    else if (PeakPattern::guessBothSingleShort() &&
+        PeakPattern::fix(peaks, peakPtrsUsed, peakPtrsUnused, true))
+      return true;
     else if (PeakPattern::guessBothDouble(models, true) &&
         PeakPattern::fix(peaks, peakPtrsUsed, peakPtrsUnused))
       return true;
