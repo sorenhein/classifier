@@ -990,7 +990,12 @@ cout << "Re-examined after fixDoubles" << endl;
   {
     // This happens in a short inner car.
     if (flexibleFlag)
+    {
       PeakPattern::readjust(singles);
+      if (candidates.front().indices[0] < rangeData.indexLeft ||
+          candidates.front().indices[3] > rangeData.indexRight)
+        return false;
+    }
 
     if (PeakPattern::fixSingles(peaks, singles, 
         peakPtrsUsed, peakPtrsUnused))
@@ -1037,7 +1042,7 @@ bool PeakPattern::plausibleCar(
 {
   const float bogieRatio = 
     spacings[index1].numBogies / spacings[index2].numBogies;
-  if (bogieRatio < 0.7f || bogieRatio > 1.4f)
+  if (bogieRatio < 0.67f || bogieRatio > 1.5f)
   {
 cout << "FAIL on bogie ratio: " << bogieRatio << "\n";
     return false;

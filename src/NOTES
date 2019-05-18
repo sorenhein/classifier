@@ -1,10 +1,35 @@
-Move the typical numbers into private storage in Pattern.
-Also use for spacing detection.
+Warnings:
 
-In Pattern, add last-car short detection
-- Can more or less by used-peak differences
-- Find the bogies
-- Look for the missing bogies
+- first
+  - 1 could use pattern
+  - 1 spurious
+  - 1 poor slope, can't repair whole car
+  - 1 pattern error?  turns off?
+  - 1 bad hit of 1234 as 12-12?
+  - 1 could match short partial?
+- mid
+  - 2 match all models before trying to fix?
+  - 2 guess partial cars with only 2 peaks better
+  - 1 poor slope
+  - 1 match in pattern even without borders
+- last
+  - 1 why repair, not revive?
+  - 1 12-s-34-s
+  - 1 s-12-34
+  - 1 match in pattern even without borders
+  - 1 2-34
+
+No-warning errors
+- 6: 2_32_N over T_28_N
+- 1: T_28_N over 2_32_N
+- 4: 4_48_N over 4_48_R
+
+Bad gaps
+- 17: long = 0
+- 11: short longs
+-  1: 11.5 out of 14 cars
+-  1: 12 out of 14 cars
+-  1: 60 out of 56 peaks?
 
 
 Plan 2019-05-08
