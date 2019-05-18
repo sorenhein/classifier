@@ -1020,10 +1020,53 @@ void PeakPattern::getSpacings(PeakPtrs& peakPtrsUsed)
     se.dist = se.peakRight->getIndex() - se.peakLeft->getIndex();
     se.numBogies = (bogieTypical == 0 ? 1.f : 
       se.dist / static_cast<float>(bogieTypical));
+    // TODO #define
+    se.bogieLikeFlag = (se.numBogies >= 0.7f && se.numBogies <= 1.75f);
     const PeakQuality pqL = se.peakLeft->getQualityWhole();
     const PeakQuality pqR = se.peakRight->getQualityWhole();
     se.qualityLower = (pqL >= pqR ? pqL : pqR);
   }
+}
+
+
+bool PeakPattern::plausibleCar(
+  const bool leftFlag,
+  const unsigned index1,
+  const unsigned index2) const
+{
+  const float bogieRatio = 
+    spacings[index1].numBogies / spacings[index2].numBogies;
+  if (bogieRatio < 0.7f || bogieRatio > 1.4f)
+  {
+cout << "FAIL on bogie ratio: " << bogieRatio << "\n";
+    return false;
+  }
+
+  const float bogieAvg = static_cast<float>(
+    (spacings[index1].dist + spacings[index2].dist)) / 2.f;
+  const unsigned mid = spacings[index2].peakLeft->getIndex() -
+    spacings[index1].peakRight->getIndex();
+  const float midRatio = static_cast<float>(mid) / bogieAvg;
+  if (midRatio < 1.2f || midRatio > 10.f)
+  {
+cout << "FAIL on mid ratio\n";
+    return false;
+  }
+
+  unsigned gap;
+  if (leftFlag)
+    gap = spacings[index1].peakLeft->getIndex() - rangeData.indexLeft;
+  else
+    gap = rangeData.indexRight - spacings[index2].peakRight->getIndex();
+  const float gapRatio = static_cast<float>(gap) / bogieAvg;
+  if (gapRatio < 0.3f || gapRatio > 2.f)
+  {
+cout << "FAIL on gap ratio: gap " << gap << endl;
+    return false;
+  }
+
+  // TODO Also check quality in some cases
+  return true;
 }
 
 
@@ -1035,7 +1078,47 @@ bool PeakPattern::guessAndFixShort(
   PeakPtrs& peakPtrsUsed,
   PeakPtrs& peakPtrsUnused) const
 {
-cout << "PPINDEX " << indexLast - indexFirst + 1 << endl;
+  const unsigned numSpaces = indexLast + 1 - indexFirst;
+cout << "PPINDEX " << numSpaces << endl;
+
+  if (numSpaces == 3)
+  {
+    if (spacings[indexFirst].bogieLikeFlag &&
+        spacings[indexLast].bogieLikeFlag &&
+        spacings[indexFirst].qualityLower <= PEAK_QUALITY_ACCEPTABLE &&
+        spacings[indexLast].qualityLower <= PEAK_QUALITY_ACCEPTABLE)
+    {
+      if (PeakPattern::plausibleCar(leftFlag, indexFirst, indexLast))
+      {
+        NoneEntry none;
+        none.peaksClose.push_back(spacings[indexFirst].peakLeft);
+        none.peaksClose.push_back(spacings[indexFirst].peakRight);
+        none.peaksClose.push_back(spacings[indexLast].peakLeft);
+        none.peaksClose.push_back(spacings[indexLast].peakRight);
+
+        if (rangeData.gapLeft)
+        {
+          none.pe.borders = (rangeData.gapRight ?
+            PATTERN_DOUBLE_SIDED_SINGLE_SHORT :
+            PATTERN_SINGLE_SIDED_LEFT);
+        }
+        else
+          none.pe.borders = PATTERN_SINGLE_SIDED_RIGHT;
+
+        none.pe.start = spacings[indexFirst].peakLeft->getIndex();
+        none.pe.end = spacings[indexLast].peakRight->getIndex();
+
+cout << "PPINDEX 3: Accept " <<
+  none.peaksClose[0]->getIndex() + offset << ", " <<
+  none.peaksClose[1]->getIndex() + offset << ", " <<
+  none.peaksClose[2]->getIndex() + offset << ", " <<
+  none.peaksClose[3]->getIndex() + offset << endl;
+
+        PeakPattern::update(none, peakPtrsUsed, peakPtrsUnused);
+        return true;
+      }
+    }
+  }
 
   UNUSED(leftFlag);
   UNUSED(indexFirst);
@@ -1073,7 +1156,7 @@ bool PeakPattern::guessAndFixShortRight(
 
   const unsigned ss = spacings.size();
   return PeakPattern::guessAndFixShort(
-    false, (ss <= 4 ? 0 : ss-4), ss, peaks, peakPtrsUsed, peakPtrsUnused);
+    false, (ss <= 4 ? 0 : ss-4), ss-1, peaks, peakPtrsUsed, peakPtrsUnused);
 }
 
 

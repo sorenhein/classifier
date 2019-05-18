@@ -156,6 +156,7 @@ class PeakPattern
       Peak const * peakRight;
       unsigned dist;
       float numBogies; // dist relative to a typical bogie
+      bool bogieLikeFlag;
       PeakQuality qualityLower; // Lower of the two
 
       string str(const unsigned offset)
@@ -165,7 +166,8 @@ class PeakPattern
           peakLeft->getIndex() + offset << " - " <<
           peakRight->getIndex() + offset << ", bogies " <<
           setw(5) << fixed << setprecision(2) << numBogies << ", q " <<
-          qualityLower << endl;
+          qualityLower << ", like " << 
+          bogieLikeFlag << endl;
         return ss.str();
       };
     };
@@ -188,7 +190,7 @@ class PeakPattern
 
     list<PatternEntry> candidates;
 
-    list<SpacingEntry> spacings;
+    vector<SpacingEntry> spacings;
 
 
     bool setGlobals(
@@ -225,6 +227,11 @@ class PeakPattern
     bool guessLeft(const CarModels& models);
 
     bool guessRight(const CarModels& models);
+
+    bool plausibleCar(
+      const bool leftFlag,
+      const unsigned index1,
+      const unsigned index2) const;
 
     bool guessAndFixShort(
       const bool leftFlag,
