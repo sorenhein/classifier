@@ -170,8 +170,9 @@ bool PeakPattern::fillPoints(
 
     pe.indices.resize(4);
 
-    if (! reverseFlag)
+    if (reverseFlag)
     {
+      // The car has a right gap, so we don't need to flip it.
       unsigned pi = 0;
       for (auto i = next(carPoints.begin()); i != prev(carPoints.end()); 
           i++, pi++)

@@ -846,7 +846,7 @@ void PeakMinima::markLongGapsOfSelects(
   for (PPLiterator cit = cbegin; cit != prev(cend); cit++)
   {
     Peak * cand = * cit;
-    if (! cand->isRightWheel() || cand->isRightBogie())
+    if (! cand->isWheel() || cand->isRightBogie())
       continue;
 
     PPLiterator ncit = candidates.next(cit, &Peak::isSelected);
@@ -854,7 +854,11 @@ void PeakMinima::markLongGapsOfSelects(
       break;
 
     Peak * nextCand = * ncit;
-    if (! nextCand->isLeftWheel())
+    if (! nextCand->isWheel())
+      continue;
+
+    // Tolerate left-left or right-right.
+    if (! cand->isRightWheel() && ! nextCand->isLeftWheel())
       continue;
 
     if (cand->matchesGap(* nextCand, longGap))
@@ -867,11 +871,19 @@ void PeakMinima::markLongGapsOfSelects(
         continue;
 
       if (! (* ppcit)->isBogie())
+      {
         (* ppcit)->markBogie(BOGIE_LEFT);
+        (* cit)->markBogie(BOGIE_LEFT);
+        (* cit)->markWheel(WHEEL_RIGHT);
+      }
 
       PPLiterator nncit = candidates.next(ncit, &Peak::isRightWheel);
-      if (nncit != cend && ! (* nncit)->isBogie())
+      if (nncit != cend)
+      {
+        (* ncit)->markBogie(BOGIE_RIGHT);
+        (* ncit)->markWheel(WHEEL_LEFT);
         (* nncit)->markBogie(BOGIE_RIGHT);
+      }
     }
   }
 }
