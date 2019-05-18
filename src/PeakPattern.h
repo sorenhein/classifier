@@ -233,6 +233,13 @@ class PeakPattern
       const unsigned index1,
       const unsigned index2) const;
 
+    void fixShort(
+      const string& text,
+      const unsigned indexFirst,
+      const unsigned indexLast,
+      PeakPtrs& peakPtrsUsed,
+      PeakPtrs& peakPtrsUnused) const;
+
     bool guessAndFixShort(
       const bool leftFlag,
       const unsigned indexFirst,

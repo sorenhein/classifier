@@ -1070,6 +1070,41 @@ cout << "FAIL on gap ratio: gap " << gap << endl;
 }
 
 
+void PeakPattern::fixShort(
+  const string& text,
+  const unsigned indexFirst,
+  const unsigned indexLast,
+  PeakPtrs& peakPtrsUsed,
+  PeakPtrs& peakPtrsUnused) const
+{
+  NoneEntry none;
+  none.peaksClose.push_back(spacings[indexFirst].peakLeft);
+  none.peaksClose.push_back(spacings[indexFirst].peakRight);
+  none.peaksClose.push_back(spacings[indexLast].peakLeft);
+  none.peaksClose.push_back(spacings[indexLast].peakRight);
+
+  if (rangeData.gapLeft)
+  {
+    none.pe.borders = (rangeData.gapRight ?
+      PATTERN_DOUBLE_SIDED_SINGLE_SHORT :
+      PATTERN_SINGLE_SIDED_LEFT);
+  }
+  else
+    none.pe.borders = PATTERN_SINGLE_SIDED_RIGHT;
+
+  none.pe.start = spacings[indexFirst].peakLeft->getIndex();
+  none.pe.end = spacings[indexLast].peakRight->getIndex();
+
+cout << text << ": " <<
+  none.peaksClose[0]->getIndex() + offset << ", " <<
+  none.peaksClose[1]->getIndex() + offset << ", " <<
+  none.peaksClose[2]->getIndex() + offset << ", " <<
+  none.peaksClose[3]->getIndex() + offset << endl;
+
+  PeakPattern::update(none, peakPtrsUsed, peakPtrsUnused);
+}
+
+
 bool PeakPattern::guessAndFixShort(
   const bool leftFlag,
   const unsigned indexFirst,
@@ -1090,42 +1125,29 @@ cout << "PPINDEX " << numSpaces << endl;
     {
       if (PeakPattern::plausibleCar(leftFlag, indexFirst, indexLast))
       {
-        NoneEntry none;
-        none.peaksClose.push_back(spacings[indexFirst].peakLeft);
-        none.peaksClose.push_back(spacings[indexFirst].peakRight);
-        none.peaksClose.push_back(spacings[indexLast].peakLeft);
-        none.peaksClose.push_back(spacings[indexLast].peakRight);
-
-        if (rangeData.gapLeft)
-        {
-          none.pe.borders = (rangeData.gapRight ?
-            PATTERN_DOUBLE_SIDED_SINGLE_SHORT :
-            PATTERN_SINGLE_SIDED_LEFT);
-        }
-        else
-          none.pe.borders = PATTERN_SINGLE_SIDED_RIGHT;
-
-        none.pe.start = spacings[indexFirst].peakLeft->getIndex();
-        none.pe.end = spacings[indexLast].peakRight->getIndex();
-
-cout << "PPINDEX 3: Accept " <<
-  none.peaksClose[0]->getIndex() + offset << ", " <<
-  none.peaksClose[1]->getIndex() + offset << ", " <<
-  none.peaksClose[2]->getIndex() + offset << ", " <<
-  none.peaksClose[3]->getIndex() + offset << endl;
-
-        PeakPattern::update(none, peakPtrsUsed, peakPtrsUnused);
+        PeakPattern::fixShort("PPINDEX 3", indexFirst, indexLast,
+          peakPtrsUsed, peakPtrsUnused);
+        return true;
+      }
+    }
+  }
+  else if (numSpaces == 4)
+  {
+    if (spacings[indexFirst].bogieLikeFlag &&
+        spacings[indexLast].bogieLikeFlag &&
+        spacings[indexFirst].qualityLower <= PEAK_QUALITY_ACCEPTABLE &&
+        spacings[indexLast].qualityLower <= PEAK_QUALITY_ACCEPTABLE)
+    {
+      if (PeakPattern::plausibleCar(leftFlag, indexFirst, indexLast))
+      {
+        PeakPattern::fixShort("PPINDEX 4", indexFirst, indexLast,
+          peakPtrsUsed, peakPtrsUnused);
         return true;
       }
     }
   }
 
-  UNUSED(leftFlag);
-  UNUSED(indexFirst);
-  UNUSED(indexLast);
   UNUSED(peaks);
-  UNUSED(peakPtrsUsed);
-  UNUSED(peakPtrsUnused);
 
   return false;
 }

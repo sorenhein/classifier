@@ -158,7 +158,8 @@ class PeakStructure
       CarModels& models,
       list<CarDetect>& cars,
       PeakPool& peaks,
-      list<FncGroup>& findCarMethods);
+      const list<FncGroup>& findCarMethods,
+      const bool onceFlag);
 
     void fixSpuriousInterPeaks(
       const list<CarDetect>& cars,

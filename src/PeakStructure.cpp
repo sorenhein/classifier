@@ -649,7 +649,8 @@ bool PeakStructure::loopOverMethods(
   CarModels& models,
   list<CarDetect>& cars,
   PeakPool& peaks,
-  list<FncGroup>& findCarMethods)
+  const list<FncGroup>& findCarMethods,
+  const bool onceFlag)
 {
   if (ranges.empty())
     return false;
@@ -708,6 +709,8 @@ bool PeakStructure::loopOverMethods(
     PeakStructure::printCarStats(models, "after range");
 
     if (ranges.empty())
+      break;
+    else if (onceFlag)
       break;
     else if (rit == ranges.end())
       rit = ranges.begin();
@@ -776,7 +779,7 @@ void PeakStructure::markCars(
     hits[i] = 0;
 
   // The first group only needs to be run once.
-  PeakStructure::loopOverMethods(models, cars, peaks, findMethods[0]);
+  PeakStructure::loopOverMethods(models, cars, peaks, findMethods[0], false);
 
   while (true)
   {
@@ -784,7 +787,7 @@ void PeakStructure::markCars(
     for (unsigned mg = 1; mg < NUM_METHOD_GROUPS; mg++)
     {
       bool loopFlag = PeakStructure::loopOverMethods(models, cars, peaks, 
-          findMethods[mg]);
+          findMethods[mg], mg == 3); // As little geometry as possible
       if (loopFlag)
         foundFlag = true;
       if (ranges.empty())
