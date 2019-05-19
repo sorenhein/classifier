@@ -127,20 +127,42 @@ void PeakMinima::makeSteps(
       sit = steps.erase(sit, nsit);
   }
 
-cout << "NEWCOLLAPSE\n";
-for (auto& s: steps)
-  cout << s.index << ";" << s.count << ";" << s.cumul << endl;
+// cout << "NEWCOLLAPSE\n";
+// for (auto& s: steps)
+  // cout << s.index << ";" << s.count << ";" << s.cumul << endl;
+}
+
+
+void PeakMinima::summarizePiece(PieceEntry& pe) const
+{
+  pe.modality = 0;
+  pe.summary.cumul = 0;
+  for (auto& de: pe.extrema)
+  {
+    if (de.direction == 1)
+    {
+      pe.modality++;
+      if (de.cumul > pe.summary.cumul)
+      {
+        pe.summary.index = de.index;
+        pe.summary.cumul = de.cumul;
+      }
+    }
+  }
 }
 
 
 void PeakMinima::makePieces(
   const list<DistEntry>& steps,
-  list<PieceEntry>& pieces) const
+  list<PieceEntry>& pieces,
+  DistEntry& summary) const
 {
   // Segment the steps into pieces where the cumulative value reaches
   // all the way down to zero.  Split each piece into extrema.
   
   pieces.clear();
+  summary.cumul = 0;
+
   for (auto sit = steps.begin(); sit != steps.end(); )
   {
     auto nsit = sit;
@@ -153,7 +175,6 @@ void PeakMinima::makePieces(
     // We've got a piece at [sit, nsit).
     pieces.emplace_back(PieceEntry());
     PieceEntry& pe = pieces.back();
-    pe.modality = 0;
     pe.extrema.clear();
 
     for (auto it = sit; it != nsit; it++)
@@ -163,23 +184,22 @@ void PeakMinima::makePieces(
       const bool rightUp = 
         (next(it) == sit ? false : (it->cumul < next(it)->cumul));
 
-      if (leftUp && ! rightUp)
-      {
-        pe.modality++;
-        pe.extrema.emplace_back(DistEntry());
-        DistEntry& de = pe.extrema.back();
-        de.index = it->index;
-        de.direction = 1;
-        de.cumul = it->cumul;
-      }
-      else if (! leftUp && rightUp)
-      {
-        pe.extrema.emplace_back(DistEntry());
-        DistEntry& de = pe.extrema.back();
-        de.index = it->index;
-        de.direction = -1;
-        de.cumul = it->cumul;
-      }
+      if (leftUp == rightUp)
+        continue;
+
+      pe.extrema.emplace_back(DistEntry());
+      DistEntry& de = pe.extrema.back();
+      de.index = it->index;
+      de.cumul = it->cumul;
+      de.direction = (leftUp ? 1 : -1);
+    }
+
+    PeakMinima::summarizePiece(pe);
+
+    if (pe.summary.cumul > summary.cumul)
+    {
+      summary.index = pe.summary.index;
+      summary.cumul = pe.summary.cumul;
     }
 
     if (nsit == steps.end())
@@ -187,16 +207,223 @@ void PeakMinima::makePieces(
     else
       sit = next(nsit);
   }
-
-cout << "PIECES\n";
-for (auto& p: pieces)
-{
-  cout << "Modality " << p.modality << "\n";
-  for (auto& e: p.extrema)
-    cout << "index " << e.index << ", " <<
-      (e.direction == 1 ? "MAX" : "min") << ", " <<
-      e.cumul << endl;
 }
+
+
+void PeakMinima::eraseSmallPieces(
+  list<PieceEntry>& pieces,
+  DistEntry& summary) const
+{
+  const int limit = static_cast<unsigned>(0.25f * summary.cumul);
+  for (auto pit = pieces.begin(); pit != pieces.end(); )
+  {
+    if (pit->summary.cumul <= limit)
+      pit = pieces.erase(pit);
+    else
+      pit++;
+  }
+}
+
+
+void PeakMinima::eraseSmallMaxima(
+  list<PieceEntry>& pieces,
+  DistEntry& summary) const
+{
+  const int limit = static_cast<unsigned>(0.25f * summary.cumul);
+  for (auto pit = pieces.begin(); pit != pieces.end(); pit++)
+  {
+    if (pit->modality == 1)
+      continue;
+
+    for (auto eit = pit->extrema.begin(); eit != pit->extrema.end(); )
+    {
+      if (eit->direction == -1)
+        eit++;
+      else if (eit->cumul <= limit)
+      {
+        // Keep the lowest minimum if there is a choice.
+        if (next(eit) == pit->extrema.end() ||
+            (eit != pit->extrema.begin() &&
+            prev(eit)->cumul > next(eit)->cumul))
+          eit = prev(eit);
+
+        eit = pit->extrema.erase(eit);
+        eit = pit->extrema.erase(eit);
+      }
+      else
+        eit++;
+    }
+  }
+}
+
+
+void PeakMinima::splitPieces(list<PieceEntry>& pieces) const
+{
+  for (auto pit = pieces.begin(); pit != pieces.end(); )
+  {
+    if (pit->modality == 1)
+    {
+      pit++;
+      continue;
+    }
+
+cout << "PM pit " << pit->summary.index << endl;
+
+    for (auto eit = pit->extrema.begin(); eit != pit->extrema.end(); )
+    {
+      if (next(eit) == pit->extrema.end())
+      {
+        pit++;
+cout << "pit now " << pit->summary.index << endl;
+        break;
+      }
+      else if (eit->direction == -1)
+      {
+        eit++;
+        continue;
+      }
+
+      auto nneit = next(next(eit));
+      if (static_cast<unsigned>(1.21f * eit->index) >= nneit->index)
+      {
+cout << "OVERLAP " << eit->index << endl;
+        eit++;
+        continue;
+      }
+
+cout << "PMSPLIT" << endl;
+
+      // Copy the entry to begin with.  newpit precedes pit now.
+      auto newpit = pieces.emplace(pit, * pit);
+
+      // Stop newpit at eit.
+      for (auto neweit = newpit->extrema.begin();
+          neweit != newpit->extrema.end(); neweit++)
+      {
+        if (neweit->index == eit->index)
+        {
+          newpit->extrema.erase(next(neweit), newpit->extrema.end());
+          break;
+        }
+      }
+
+      // Begin pit at nneit.
+      for (auto neweit = pit->extrema.begin();
+          neweit != pit->extrema.end(); neweit++)
+      {
+        if (neweit->index == nneit->index)
+        {
+          pit->extrema.erase(pit->extrema.begin(), neweit);
+          break;
+        }
+      }
+
+      PeakMinima::summarizePiece(* newpit);
+      PeakMinima::summarizePiece(* pit);
+      break;
+    }
+  }
+cout << "DONE" << endl;
+}
+
+
+bool PeakMinima::setGap(
+  const PieceEntry& piece,
+  Gap& gap) const
+{
+  if (piece.modality != 1)
+    return false;
+
+  const unsigned p = (piece.summary.indexHi == 0 ? piece.summary.index :
+    (piece.summary.index + piece.summary.indexHi) / 2);
+
+  gap.lower = static_cast<unsigned>(p * SLIDING_LOWER);
+  gap.upper = static_cast<unsigned>(p * SLIDING_UPPER);
+  gap.count = piece.summary.cumul;
+  return true;
+}
+
+
+bool PeakMinima::tripartite(
+  const list<PieceEntry>& pieces,
+  Gap& wheelGap,
+  Gap& shortGap,
+  Gap& longGap) const
+{
+  if (pieces.size() != 3)
+    return false;
+
+  auto pit = pieces.begin();
+  if (! PeakMinima::setGap(* pit, wheelGap))
+    return false;
+
+  pit++;
+  if (! PeakMinima::setGap(* pit, shortGap))
+    return false;
+
+  pit++;
+  return PeakMinima::setGap(* pit, longGap);
+}
+
+
+void PeakMinima::unjitterPieces(list<PieceEntry>& pieces) const
+{
+  for (auto& piece: pieces)
+  {
+    if (piece.modality == 1)
+      continue;
+
+    const int limitNoise = 
+      static_cast<unsigned>(0.25f * piece.summary.cumul);
+    const int limitLow = 
+      static_cast<unsigned>(0.75f * piece.summary.cumul);
+
+    for (auto eit = piece.extrema.begin(); eit != piece.extrema.end(); )
+    {
+cout << "General " << eit->index << ", " << eit->cumul << endl;
+      if (eit->direction == -1)
+        eit++;
+      else if (eit->cumul <= limitNoise)
+      {
+cout << "Noise " << eit->index << ", " << eit->cumul << endl;
+        // Keep the lowest minimum if there is a choice.
+        if (next(eit) == piece.extrema.end() ||
+            (eit != piece.extrema.begin() &&
+            prev(eit)->cumul > next(eit)->cumul))
+          eit = prev(eit);
+
+        eit = piece.extrema.erase(eit);
+        eit = piece.extrema.erase(eit);
+      }
+      else if (eit->cumul <= limitLow)
+      {
+cout << "Low " << eit->index << ", " << eit->cumul << endl;
+        unsigned delta;
+        if (next(eit) == piece.extrema.end() ||
+            (eit != piece.extrema.begin() &&
+            prev(eit)->cumul > next(eit)->cumul))
+        {
+          delta = eit->cumul - prev(eit)->cumul;
+          eit = prev(eit);
+        }
+        else
+          delta = eit->cumul - next(eit)->cumul;
+
+        if (delta <= 2)
+        {
+          eit = piece.extrema.erase(eit);
+          eit = piece.extrema.erase(eit);
+        }
+        else
+        {
+          eit++;
+          eit++;
+        }
+      }
+      else
+        eit++;
+    }
+  }
 }
 
 
@@ -1130,13 +1357,6 @@ void PeakMinima::mark(
 {
   offset = offsetIn;
 
-vector<unsigned> dists;
-PeakMinima::makeDistances(peaks, &Peak::acceptableQuality, dists);
-list<DistEntry> steps;
-PeakMinima::makeSteps(dists, steps);
-list<PieceEntry> pieces;
-PeakMinima::makePieces(steps, pieces);
-
   PeakMinima::markSinglePeaks(peaks, peakCenters);
 
 unsigned countAll = peaks.candidates().size();
@@ -1144,6 +1364,35 @@ unsigned countSelected = peaks.candidates().count(&Peak::isSelected);
 cout << "FRAC " << countSelected << " " << 
   countAll << " " <<
   fixed << setprecision(2) << 100. * countSelected / countAll << endl;
+
+vector<unsigned> dists;
+PeakMinima::makeDistances(peaks, &Peak::acceptableQuality, dists);
+list<DistEntry> steps;
+PeakMinima::makeSteps(dists, steps);
+list<PieceEntry> pieces;
+DistEntry summary;
+PeakMinima::makePieces(steps, pieces, summary);
+PeakMinima::eraseSmallPieces(pieces, summary);
+PeakMinima::eraseSmallMaxima(pieces, summary);
+
+cout << "PIECES before split\n";
+for (auto& p: pieces)
+  cout << p.str();
+cout << endl;
+
+PeakMinima::splitPieces(pieces);
+
+
+// PeakMinima::unjitterPieces(pieces);
+cout << "PIECES after split\n";
+for (auto& p: pieces)
+  cout << p.str();
+cout << endl;
+
+Gap wheelGapNew, shortGapNew, longGapNew;
+bool threeFlag = false;
+if (PeakMinima::tripartite(pieces, wheelGapNew, shortGapNew, longGapNew))
+  threeFlag = true;
 
   Gap wheelGap;
   PeakMinima::markBogies(peaks, wheelGap);
@@ -1158,24 +1407,71 @@ peaks.mergeSplits((wheelGap.lower + wheelGap.upper) / 2, offset);
 
 cout << peaks.candidates().strQuality(
   "All selected peaks at end of PeakMinima", offset, &Peak::isSelected);
-  
-cout << wheelGap.str("PM bogie") << " " <<
-  shortGap.str("PM short") << " " <<
-  longGap.str("PM long") << "\n";
-if (wheelGap.upper == 0)
-  cout << "PM ERROR wheel 0\n";
-else if (shortGap.upper == 0)
-  cout << "PM ERROR short 0\n";
-else if (longGap.upper == 0)
-  cout << "PM ERROR long 0\n";
-else if (shortGap.upper < wheelGap.upper)
-  cout << "PM ERROR short < bogie\n";
-else if (longGap.lower < shortGap.upper)
-  cout << "PM ERROR long < short\n";
-else if (longGap.lower < wheelGap.upper)
-  cout << "PM ERROR long < wheel\n";
+
+if (threeFlag)
+{
+  cout << setw(8) << left << "RM Gap" <<
+    setw(16) << right << "old" << " " <<
+    setw(16) << right << "new" << "\n";
+
+  cout << setw(8) << left << "bogie" <<
+    setw(16) << wheelGap.str() << " " <<
+    setw(16) << wheelGapNew.str() <<
+    (wheelGap == wheelGapNew ? "" : " DIFF ") << 
+    (wheelGap.isZero() ? " ZERO " : "") <<
+    "\n";
+  cout << setw(8) << left << "short" <<
+    setw(16) << shortGap.str() << " " <<
+    setw(16) << shortGapNew.str() <<
+    (shortGap == shortGapNew ? "" : " DIFF ") << 
+    (shortGap.isZero() ? " ZERO " : "") <<
+    (shortGap == wheelGap ? " OLD-OVER " : "") <<
+    "\n";
+  cout << setw(8) << left << "long" <<
+    setw(16) << longGap.str() << " " <<
+    setw(16) << longGapNew.str() <<
+    (longGap == longGapNew ? "" : " DIFF ") << 
+    (longGap.isZero() ? " ZERO " : "") <<
+    (longGap == shortGap ? " OLD-OVER " : "") <<
+    "\n\n";
+}
 else
-  cout << "PM not obviously flawed\n";
+{
+  cout << setw(8) << left << "RM Gap" <<
+    setw(16) << right << "old" << "\n";
+
+  cout << setw(8) << left << "bogie" <<
+    setw(16) << wheelGap.str() << "\n";
+  cout << setw(8) << left << "short" <<
+    setw(16) << shortGap.str() << "\n";
+  cout << setw(8) << left << "long" <<
+    setw(16) << longGap.str() << "\n\n";
+}
+  
+
+bool goodFlag = true;
+if (wheelGap.isZero() || shortGap.isZero() || longGap.isZero())
+  goodFlag = false;
+else if (longGap == shortGap)
+  goodFlag = false;
+
+if (threeFlag)
+{
+  if (goodFlag)
+    cout << "QM good -> good (" <<
+      (wheelGap == wheelGapNew ? "" : "1") <<
+      (shortGap == shortGapNew ? "" : "2") <<
+      (longGap == longGapNew ? "" : "3") << ")\n\n";
+  else
+    cout << "QM good -> bad\n\n";
+}
+else
+{
+  cout << (goodFlag ? "QM bad -> good" : "QM bad -> bad") << "\n\n";
+}
+
+
+
 }
 
 

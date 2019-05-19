@@ -26,6 +26,7 @@ class PeakMinima
     struct DistEntry
     {
       unsigned index;
+      unsigned indexHi; // Sometimes set to denote a range
       int direction;
       unsigned origin;
       int count;
@@ -40,7 +41,19 @@ class PeakMinima
     struct PieceEntry
     {
       unsigned modality; // Unimodal, bimodel etc.
+      DistEntry summary;
       list<DistEntry> extrema;
+
+      string str()
+      {
+        stringstream ss;
+        ss << "Modality " << modality << "\n";
+        for (auto& e: extrema)
+          ss << "index " << e.index << ", " <<
+          (e.direction == 1 ? "MAX" : "min") << ", " <<
+          e.cumul << "\n";
+        return ss.str();
+      };
     };
 
 
@@ -56,9 +69,35 @@ class PeakMinima
       const vector<unsigned>& dists,
       list<DistEntry>& steps) const;
 
+    void summarizePiece(PieceEntry& pe) const;
+
     void makePieces(
       const list<DistEntry>& steps,
-      list<PieceEntry>& pieces) const;
+      list<PieceEntry>& pieces,
+      DistEntry& summary) const;
+
+    void eraseSmallPieces(
+      list<PieceEntry>& pieces,
+      DistEntry& summary) const;
+
+    void eraseSmallMaxima(
+      list<PieceEntry>& pieces,
+      DistEntry& summary) const;
+
+    void splitPieces(list<PieceEntry>& pieces) const;
+
+    bool setGap(
+      const PieceEntry& piece,
+      Gap& gap) const;
+
+    bool tripartite(
+      const list<PieceEntry>& pieces,
+      Gap& wheelGap,
+      Gap& shortGap,
+      Gap& longGap) const;
+
+    void unjitterPieces(list<PieceEntry>& pieces) const;
+
 
     void findFirstLargeRange(
       const vector<unsigned>& dists,

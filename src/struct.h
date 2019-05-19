@@ -353,14 +353,25 @@ struct Gap
     count = 0;
   };
 
-  string str(const string& title) const
+  string str() const
   {
     stringstream ss;
-    ss << setw(8) << title <<
+    ss << 
       setw(4) << lower << " - " <<
-      setw(4) << upper << ", # " <<
-      setw(2) << count;
+      setw(4) << upper << " (" <<
+      setw(2) << count << ")";
     return ss.str();
+  };
+
+  bool operator == (const Gap& g2) const
+  {
+    // This really tests overlap and not equality.
+    return (lower <= g2.upper && g2.lower <= upper);
+  };
+
+  bool isZero() const
+  {
+    return (upper == 0);
   };
 };
 
