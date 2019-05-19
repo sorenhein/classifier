@@ -31,6 +31,175 @@ void PeakMinima::reset()
 }
 
 
+void PeakMinima::makeDistances(
+  const PeakPool& peaks,
+  const PeakFncPtr& fptr,
+  vector<unsigned>& dists) const
+{
+  // Make list of distances between neighbors for which fptr
+  // evaluates to true.
+  dists.clear();
+
+  const PeakPtrs& candidates = peaks.candidatesConst();
+  PPLciterator cbegin = candidates.cbegin();
+  PPLciterator cend = candidates.cend();
+  PPLciterator npit;
+
+  for (PPLciterator pit = cbegin; pit != cend; pit = npit)
+  {
+    if (! ((* pit)->* fptr)())
+    {
+      npit = next(pit);
+      continue;
+    }
+
+    npit = candidates.next(pit, &Peak::isSelected);
+    if (npit == cend)
+      break;
+
+    if (! ((* npit)->* fptr)())
+      continue;
+
+    // At least one should also be selected.
+    if (! (* pit)->isSelected() && ! (* npit)->isSelected())
+      continue;
+
+    dists.push_back((* npit)->getIndex() - (* pit)->getIndex());
+  }
+}
+
+
+void PeakMinima::makeSteps(
+  const vector<unsigned>& dists,
+  list<DistEntry>& steps) const
+{
+  // We consider a sliding window with range +/- 10% relative to its
+  // center.  We want to find the first maximum (i.e. the value at which
+  // the count of distances in dists within the range reaches a local
+  // maximum).  This is a somewhat rough way to find the lowest
+  // "cluster" of values.
+
+  // If an entry in dists is d, then it creates two DistEntry values.
+  // One is at 0.9 * d and is a +1, and one is a -1 at 1.1 * d.
+
+  steps.clear();
+  for (auto d: dists)
+  {
+    steps.emplace_back(DistEntry());
+    DistEntry& de1 = steps.back();
+    de1.index = static_cast<unsigned>(SLIDING_LOWER * d);
+    de1.direction = 1;
+    de1.origin = d;
+
+    steps.emplace_back(DistEntry());
+    DistEntry& de2 = steps.back();
+    de2.index = static_cast<unsigned>(SLIDING_UPPER * d);
+    de2.direction = -1;
+    de2.origin = d;
+  }
+
+  if (steps.size() == 0)
+    return;
+
+  steps.sort();
+
+  // Collapse those steps that have the same index.
+  int cumul = 0;
+  for (auto sit = steps.begin(); sit != steps.end(); )
+  {
+    sit->count = 0;
+    auto nsit = sit;
+    do
+    {
+      sit->count += nsit->direction;
+      nsit++;
+    }
+    while (nsit != steps.end() && nsit->index == sit->index);
+
+    cumul += sit->count;
+    sit->cumul = cumul;
+
+    // Skip the occasional zero count as well (canceling out).
+    if (sit->count)
+      sit++;
+
+    if (sit != nsit) 
+      sit = steps.erase(sit, nsit);
+  }
+
+cout << "NEWCOLLAPSE\n";
+for (auto& s: steps)
+  cout << s.index << ";" << s.count << ";" << s.cumul << endl;
+}
+
+
+void PeakMinima::makePieces(
+  const list<DistEntry>& steps,
+  list<PieceEntry>& pieces) const
+{
+  // Segment the steps into pieces where the cumulative value reaches
+  // all the way down to zero.  Split each piece into extrema.
+  
+  pieces.clear();
+  for (auto sit = steps.begin(); sit != steps.end(); )
+  {
+    auto nsit = sit;
+    do
+    {
+      nsit++;
+    }
+    while (nsit != steps.end() && nsit->cumul != 0);
+
+    // We've got a piece at [sit, nsit).
+    pieces.emplace_back(PieceEntry());
+    PieceEntry& pe = pieces.back();
+    pe.modality = 0;
+    pe.extrema.clear();
+
+    for (auto it = sit; it != nsit; it++)
+    {
+      const bool leftUp = 
+        (it == sit ? true : (it->cumul > prev(it)->cumul));
+      const bool rightUp = 
+        (next(it) == sit ? false : (it->cumul < next(it)->cumul));
+
+      if (leftUp && ! rightUp)
+      {
+        pe.modality++;
+        pe.extrema.emplace_back(DistEntry());
+        DistEntry& de = pe.extrema.back();
+        de.index = it->index;
+        de.direction = 1;
+        de.cumul = it->cumul;
+      }
+      else if (! leftUp && rightUp)
+      {
+        pe.extrema.emplace_back(DistEntry());
+        DistEntry& de = pe.extrema.back();
+        de.index = it->index;
+        de.direction = -1;
+        de.cumul = it->cumul;
+      }
+    }
+
+    if (nsit == steps.end())
+      break;
+    else
+      sit = next(nsit);
+  }
+
+cout << "PIECES\n";
+for (auto& p: pieces)
+{
+  cout << "Modality " << p.modality << "\n";
+  for (auto& e: p.extrema)
+    cout << "index " << e.index << ", " <<
+      (e.direction == 1 ? "MAX" : "min") << ", " <<
+      e.cumul << endl;
+}
+}
+
+
 void PeakMinima::findFirstLargeRange(
   const vector<unsigned>& dists,
   Gap& gap,
@@ -44,18 +213,6 @@ void PeakMinima::findFirstLargeRange(
 
   // If an entry in dists is d, then it creates two DistEntry values.
   // One is at 0.9 * d and is a +1, and one is a -1 at 1.1 * d.
-
-  struct DistEntry
-  {
-    unsigned index;
-    int direction;
-    unsigned origin;
-
-    bool operator < (const DistEntry& de2)
-    {
-      return (index < de2.index);
-    };
-  };
 
   vector<DistEntry> steps;
   for (auto d: dists)
@@ -90,8 +247,27 @@ cout << "\n";
   unsigned bestLowerValue = 0;
   int count = 0;
   unsigned dindex = steps.size();
-
   unsigned i = 0;
+
+cout << "STEPS\n";
+while (i < dindex)
+{
+  // There could be several entries at the same index.
+  const unsigned step = steps[i].index;
+  unsigned upperValue = 0;
+  while (i < dindex && steps[i].index == step)
+  {
+      count += steps[i].direction;
+    // Note one origin (the +1 ones all have the same origin).
+    if (steps[i].direction == 1)
+      upperValue = steps[i].origin;
+    i++;
+  }
+  cout << step << ";" << count << "\n";
+}
+
+  count = 0;
+  i = 0;
   while (i < dindex)
   {
     // There could be several entries at the same index.
@@ -105,6 +281,7 @@ cout << "\n";
         upperValue = steps[i].origin;
       i++;
     }
+cout << step << ";" << count << "\n";
 
     if (count > bestCount)
     {
@@ -892,10 +1069,10 @@ void PeakMinima::markLongGapsOfSelects(
 void PeakMinima::markLongGaps(
   PeakPool& peaks,
   const Gap& wheelGap,
-  const unsigned shortGapCount)
+  const unsigned shortGapCount,
+  Gap& longGap)
 {
   // Look for intra-car (long) gaps.
-  Gap longGap;
   PeakMinima::guessLongGapDistance(peaks, shortGapCount, longGap);
 
   PeakMinima::printDists(longGap.lower, longGap.upper, "Guessing long gap");
@@ -953,6 +1130,13 @@ void PeakMinima::mark(
 {
   offset = offsetIn;
 
+vector<unsigned> dists;
+PeakMinima::makeDistances(peaks, &Peak::acceptableQuality, dists);
+list<DistEntry> steps;
+PeakMinima::makeSteps(dists, steps);
+list<PieceEntry> pieces;
+PeakMinima::makePieces(steps, pieces);
+
   PeakMinima::markSinglePeaks(peaks, peakCenters);
 
 unsigned countAll = peaks.candidates().size();
@@ -968,10 +1152,30 @@ peaks.mergeSplits((wheelGap.lower + wheelGap.upper) / 2, offset);
 
   Gap shortGap;
   PeakMinima::markShortGaps(peaks, shortGap);
-  PeakMinima::markLongGaps(peaks, wheelGap, shortGap.count);
+
+  Gap longGap;
+  PeakMinima::markLongGaps(peaks, wheelGap, shortGap.count, longGap);
 
 cout << peaks.candidates().strQuality(
   "All selected peaks at end of PeakMinima", offset, &Peak::isSelected);
+  
+cout << wheelGap.str("PM bogie") << " " <<
+  shortGap.str("PM short") << " " <<
+  longGap.str("PM long") << "\n";
+if (wheelGap.upper == 0)
+  cout << "PM ERROR wheel 0\n";
+else if (shortGap.upper == 0)
+  cout << "PM ERROR short 0\n";
+else if (longGap.upper == 0)
+  cout << "PM ERROR long 0\n";
+else if (shortGap.upper < wheelGap.upper)
+  cout << "PM ERROR short < bogie\n";
+else if (longGap.lower < shortGap.upper)
+  cout << "PM ERROR long < short\n";
+else if (longGap.lower < wheelGap.upper)
+  cout << "PM ERROR long < wheel\n";
+else
+  cout << "PM not obviously flawed\n";
 }
 
 

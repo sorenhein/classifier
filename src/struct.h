@@ -352,6 +352,16 @@ struct Gap
     upper = 0;
     count = 0;
   };
+
+  string str(const string& title) const
+  {
+    stringstream ss;
+    ss << setw(8) << title <<
+      setw(4) << lower << " - " <<
+      setw(4) << upper << ", # " <<
+      setw(2) << count;
+    return ss.str();
+  };
 };
 
 struct MatchData

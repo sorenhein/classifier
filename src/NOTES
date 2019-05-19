@@ -27,40 +27,23 @@ No-warning errors
 Bad gaps
 - 17: long = 0
 - 11: short longs
+
+Odd lengths
 -  1: 11.5 out of 14 cars
 -  1: 12 out of 14 cars
 -  1: 60 out of 56 peaks?
 
+1. Look at alternatives for initial gap detection
+2. Look at signal quality and filtfilt
+3. Fix more patterns to be able to turn off geometry except for first
+4. Also detect first in pattern?
+
 
 Plan 2019-05-08
 ---------------
-* Pattern should catch *all* model matches
-  - At least for mid cars
-  - Geometry should only hit middles of ranges
-* Maybe the same for last cars (which should be complete)
-
 * Move the range.split out of each method into the overall loop?
 
-
-Plan 2019-05-05
----------------
 * Too many car types sometimes, s03 201953 #36
-
-* Do more about new, short cars in Geometry
-* Order: Simples, mids, lasts, firsts.  
-  - Back to simples as soon as something hits.  
-
-* Try to avoid geometry.  It may find spurious matches in the middle.
-  - Count how many really need it.
-  - See about moving them to Pattern.
-
-* Do (force) the middles.
-
-* Then do the same for lasts.
-  - If some last's can't be done, then note this for regresser
-
-* In the end, do the firsts.
-
 
 Further:
 

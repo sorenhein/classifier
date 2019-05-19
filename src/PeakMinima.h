@@ -23,8 +23,42 @@ class PeakMinima
       const Peak * p1, 
       const Peak * p2) const;
 
+    struct DistEntry
+    {
+      unsigned index;
+      int direction;
+      unsigned origin;
+      int count;
+      int cumul;
+
+      bool operator < (const DistEntry& de2)
+      {
+        return (index < de2.index);
+      };
+    };
+
+    struct PieceEntry
+    {
+      unsigned modality; // Unimodal, bimodel etc.
+      list<DistEntry> extrema;
+    };
+
+
     unsigned offset;
 
+
+    void makeDistances(
+      const PeakPool& peaks,
+      const PeakFncPtr& fptr,
+      vector<unsigned>& dists) const;
+
+    void makeSteps(
+      const vector<unsigned>& dists,
+      list<DistEntry>& steps) const;
+
+    void makePieces(
+      const list<DistEntry>& steps,
+      list<PieceEntry>& pieces) const;
 
     void findFirstLargeRange(
       const vector<unsigned>& dists,
@@ -138,7 +172,8 @@ class PeakMinima
     void markLongGaps(
       PeakPool& peaks,
       const Gap& wheelGap,
-      const unsigned shortGapCount);
+      const unsigned shortGapCount,
+      Gap& longGap);
 
 
     void printPeakQuality(
