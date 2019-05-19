@@ -249,6 +249,7 @@ void PeakMinima::eraseSmallMaxima(
 
         eit = pit->extrema.erase(eit);
         eit = pit->extrema.erase(eit);
+        pit->modality--;
       }
       else
         eit++;
@@ -373,31 +374,15 @@ void PeakMinima::unjitterPieces(list<PieceEntry>& pieces) const
     if (piece.modality == 1)
       continue;
 
-    const int limitNoise = 
-      static_cast<unsigned>(0.25f * piece.summary.cumul);
     const int limitLow = 
       static_cast<unsigned>(0.75f * piece.summary.cumul);
 
     for (auto eit = piece.extrema.begin(); eit != piece.extrema.end(); )
     {
-cout << "General " << eit->index << ", " << eit->cumul << endl;
       if (eit->direction == -1)
         eit++;
-      else if (eit->cumul <= limitNoise)
-      {
-cout << "Noise " << eit->index << ", " << eit->cumul << endl;
-        // Keep the lowest minimum if there is a choice.
-        if (next(eit) == piece.extrema.end() ||
-            (eit != piece.extrema.begin() &&
-            prev(eit)->cumul > next(eit)->cumul))
-          eit = prev(eit);
-
-        eit = piece.extrema.erase(eit);
-        eit = piece.extrema.erase(eit);
-      }
       else if (eit->cumul <= limitLow)
       {
-cout << "Low " << eit->index << ", " << eit->cumul << endl;
         unsigned delta;
         if (next(eit) == piece.extrema.end() ||
             (eit != piece.extrema.begin() &&
@@ -413,6 +398,7 @@ cout << "Low " << eit->index << ", " << eit->cumul << endl;
         {
           eit = piece.extrema.erase(eit);
           eit = piece.extrema.erase(eit);
+          piece.modality--;
         }
         else
         {
@@ -1383,7 +1369,8 @@ cout << endl;
 PeakMinima::splitPieces(pieces);
 
 
-// PeakMinima::unjitterPieces(pieces);
+PeakMinima::unjitterPieces(pieces);
+
 cout << "PIECES after split\n";
 for (auto& p: pieces)
   cout << p.str();
@@ -1467,7 +1454,15 @@ if (threeFlag)
 }
 else
 {
-  cout << (goodFlag ? "QM bad -> good" : "QM bad -> bad") << "\n\n";
+  if (goodFlag)
+  {
+    cout << "QM bad -> good\n\n";
+for (auto& p: pieces)
+  cout << p.str();
+cout << endl;
+  }
+  else
+  cout << "QM bad -> bad\n\n";
 }
 
 

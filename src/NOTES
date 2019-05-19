@@ -1,3 +1,10 @@
+Gap detection in PeakMinima:
+
+- 19-18-19 with close indices -> extent
+- 29-28-30 is the same
+- 14-10-11 is 14, as +/- 1, no matter the level
+
+
 Warnings:
 
 - first
