@@ -49,7 +49,8 @@ class PeakMinima
         stringstream ss;
         ss << "Modality " << modality << "\n";
         for (auto& e: extrema)
-          ss << "index " << e.index << ", " <<
+          ss << "index " << e.index << 
+          (e.indexHi == 0 ? "" : "-" + to_string(e.indexHi)) << ", " <<
           (e.direction == 1 ? "MAX" : "min") << ", " <<
           e.cumul << "\n";
         return ss.str();

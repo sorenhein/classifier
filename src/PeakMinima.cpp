@@ -380,6 +380,58 @@ void PeakMinima::unjitterPieces(list<PieceEntry>& pieces) const
     if (piece.modality == 1)
       continue;
 
+    for (auto eit = piece.extrema.begin(); eit != piece.extrema.end(); )
+    {
+      if (eit->direction == 1)
+      {
+        eit++;
+        continue;
+      }
+
+      auto pit = prev(eit);
+      auto nit = next(eit);
+      const unsigned a = pit->cumul; // Max
+      const unsigned b = eit->cumul; // Min
+      const unsigned c = nit->cumul; // Max
+      const bool leftHighFlag = (a >= c);
+      const unsigned m = (leftHighFlag ? c : a);
+      if (m < 4 && m - b > 2)
+      {
+        eit++;
+        continue;
+      }
+
+      // So now we've got a dip of 1-2 below the lowest maximum
+      // which is at least 4.
+
+      const unsigned M = (leftHighFlag ? a : c);
+      unsigned limit = static_cast<unsigned>(0.1f * M);
+      if (limit == 0)
+        limit = 1;
+
+cout << "UNJITTER\n";
+
+      if (leftHighFlag)
+      {
+        if (M-m <= limit)
+          pit->indexHi = nit->index;
+      }
+      else
+      {
+        eit = pit;
+        if (M-m <= limit)
+        {
+          nit->indexHi = nit->index;
+          nit->index = pit->index;
+        }
+      }
+
+      eit = piece.extrema.erase(eit);
+      eit = piece.extrema.erase(eit);
+      piece.modality--;
+    }
+
+    /*
     const int limitLow = 
       static_cast<unsigned>(0.75f * piece.summary.cumul);
 
@@ -415,6 +467,7 @@ void PeakMinima::unjitterPieces(list<PieceEntry>& pieces) const
       else
         eit++;
     }
+    */
   }
 }
 
@@ -1367,17 +1420,17 @@ PeakMinima::makePieces(steps, pieces, summary);
 PeakMinima::eraseSmallPieces(pieces, summary);
 PeakMinima::eraseSmallMaxima(pieces, summary);
 
-cout << "PIECES before split\n";
+PeakMinima::splitPieces(pieces);
+
+
+cout << "PIECES before unjitter\n";
 for (auto& p: pieces)
   cout << p.str();
 cout << endl;
 
-PeakMinima::splitPieces(pieces);
-
-
 PeakMinima::unjitterPieces(pieces);
 
-cout << "PIECES after split\n";
+cout << "PIECES after unjitter\n";
 for (auto& p: pieces)
   cout << p.str();
 cout << endl;
