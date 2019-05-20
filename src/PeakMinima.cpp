@@ -260,6 +260,11 @@ void PeakMinima::eraseSmallMaxima(
 
 void PeakMinima::splitPieces(list<PieceEntry>& pieces) const
 {
+  // Split if two consecutive maxima are not within +/- 10%.
+  // Also split if there's a fairly sharp dip:  Either side must be
+  // >= 4 and the bottom must be less than half of the smallest
+  // neighbor.
+
   for (auto pit = pieces.begin(); pit != pieces.end(); )
   {
     if (pit->modality == 1)
@@ -268,14 +273,11 @@ void PeakMinima::splitPieces(list<PieceEntry>& pieces) const
       continue;
     }
 
-cout << "PM pit " << pit->summary.index << endl;
-
     for (auto eit = pit->extrema.begin(); eit != pit->extrema.end(); )
     {
       if (next(eit) == pit->extrema.end())
       {
         pit++;
-cout << "pit now " << pit->summary.index << endl;
         break;
       }
       else if (eit->direction == -1)
@@ -287,12 +289,17 @@ cout << "pit now " << pit->summary.index << endl;
       auto nneit = next(next(eit));
       if (static_cast<unsigned>(1.21f * eit->index) >= nneit->index)
       {
-cout << "OVERLAP " << eit->index << endl;
-        eit++;
-        continue;
-      }
-
+        const unsigned a = eit->cumul;
+        const unsigned b = next(eit)->cumul;
+        const unsigned c = nneit->cumul;
+        if (a <= 3 || c <= 3 || 2*b >= a || 2*b >= c)
+        {
+          eit++;
+          continue;
+        }
+        else
 cout << "PMSPLIT" << endl;
+      }
 
       // Copy the entry to begin with.  newpit precedes pit now.
       auto newpit = pieces.emplace(pit, * pit);
@@ -324,7 +331,6 @@ cout << "PMSPLIT" << endl;
       break;
     }
   }
-cout << "DONE" << endl;
 }
 
 
@@ -1457,13 +1463,19 @@ else
   if (goodFlag)
   {
     cout << "QM bad -> good\n\n";
+
+  }
+  else
+    cout << "QM bad -> bad\n\n";
+}
+
 for (auto& p: pieces)
   cout << p.str();
 cout << endl;
-  }
-  else
-  cout << "QM bad -> bad\n\n";
-}
+cout << "QQQ ";
+for (auto& p: pieces)
+  cout << p.modality;
+cout << " \n";
 
 
 
