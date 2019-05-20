@@ -1,13 +1,11 @@
 Gap detection in PeakMinima:
 
-Improve unjitter:
+* 111: Check the counts and numbers for plausibility
+  - Ideally 2:1:1
+  - long should be longer than the others
+  - mid should be closer to short than long
 
-- 19-18-19 with close indices -> extent
-- 29-28-30 is the same
-- 14-10-11 is 14, as +/- 1, no matter the level
-- 625(5)-694(4)-720(5) is probably a split?  Actually no
 
-- 111: We'll assume these are good
 - 11
   - Could be bogie-long, short-long (9/28) or something else (13/8)
     including perhaps three-wheelers

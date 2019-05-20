@@ -521,6 +521,7 @@ cout << "\n";
   unsigned dindex = steps.size();
   unsigned i = 0;
 
+/*
 cout << "STEPS\n";
 while (i < dindex)
 {
@@ -537,6 +538,7 @@ while (i < dindex)
   }
   cout << step << ";" << count << "\n";
 }
+*/
 
   count = 0;
   i = 0;
