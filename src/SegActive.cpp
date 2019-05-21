@@ -116,7 +116,7 @@ void SegActive::highpass(vector<float>& integrand)
   // get linear phase (like in Python's filtfilt, but without
   // the padding or other clever stuff).
   // from scipy import signal
-  // signal.butter(5, 0.005, btype='high')
+  // num, denom = signal.butter(5, 0.005, btype='high')
 
   const unsigned order = 5;
 
@@ -139,6 +139,36 @@ void SegActive::highpass(vector<float>& integrand)
     4.8005009469355944,
     -0.9504376817056966
   };
+
+  // TODO
+  // Run lowpass, integration, highpass and then twice
+  // Can we combine integration and highpass?
+  // Can we them do them in single precision?
+  // lowpass filter
+  // num, denom = signal.butter(5, 0.04, btype = 'low')
+
+  // num is also 8.0423564219711682e-07 * (1, 5, 10, 10, 5, 1)
+  /*
+  const vector<double> num
+  {
+    8.0423564219711682e-07,
+    4.0211782109855839e-06,
+    8.0423564219711678e-06,
+    8.0423564219711678e-06,
+    4.0211782109855839e-06,
+    8.0423564219711682e-07
+  };
+
+  const vector<double> denom
+  {
+    1., 
+    -4.5934213998076876,
+    8.4551152235101341,
+   -7.7949183180444468,
+   3.5989027680539127, 
+   -0.6656525381713611
+  };
+  */
 
   const unsigned ls = integrand.size();
   vector<double> forward(ls);
