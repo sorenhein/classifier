@@ -66,6 +66,7 @@ def get_user_input(curr, limit, rawlist):
 
 def run_filter(b, a, x, text):
   energy0 = sum(i * i for i in x)
+  # y = signal.filtfilt(b, a, x, method="gust")
   y = signal.filtfilt(b, a, x)
   energy1 = sum(i * i for i in y)
   print(text + ": Energy " + str(round(energy0, 2)) + 

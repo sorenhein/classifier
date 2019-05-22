@@ -13,6 +13,106 @@
 extern Timers timers;
 
 
+// Fifth-order high-pass Butterworth filter with low cut-off.
+// The filter is run forwards and backwards in order to
+// get linear phase (like in Python's filtfilt, but without
+// the padding or other clever stuff).  It eliminates slow/DC
+// components.
+//
+// from scipy import signal
+// num, denom = signal.butter(5, 0.005, btype='high')
+// numpy.set_printoptions(precision=16)
+
+const unsigned order = 5;
+
+const vector<double> numNoDC
+{
+  0.9749039346036602,
+  -4.8745196730183009,
+  9.7490393460366018,
+  -9.7490393460366018,
+  4.8745196730183009,
+  -0.9749039346036602
+};
+
+const vector<double> denomNoDC
+{
+  1.,
+  -4.9491681155566063,
+  9.7979620071891631,
+  -9.698857155930046,
+  4.8005009469355944,
+  -0.9504376817056966
+};
+
+const vector<double> numNoDCFloat
+{
+  0.9749039346036602,
+  -4.8745196730183009,
+  9.7490393460366018,
+  -9.7490393460366018,
+  4.8745196730183009,
+  -0.9749039346036602
+};
+
+const vector<double> denomNoDCFloat
+{
+  1.,
+  -4.9491681155566063,
+  9.7979620071891631,
+  -9.698857155930046,
+  4.8005009469355944,
+  -0.9504376817056966
+};
+
+// Fifth-order low-pass Butterworth filter.  Eliminates
+// high frequencies which probably contribute to jitter and drift.
+//
+// num, denom = signal.butter(5, 0.04, btype = 'low')
+
+// num is also 8.0423564219711682e-07 * (1, 5, 10, 10, 5, 1)
+
+const vector<double> numNoHF
+{
+  8.0423564219711682e-07,
+  4.0211782109855839e-06,
+  8.0423564219711678e-06,
+  8.0423564219711678e-06,
+  4.0211782109855839e-06,
+  8.0423564219711682e-07
+};
+
+const vector<double> denomNoHF
+{
+  1., 
+  -4.5934213998076876,
+  8.4551152235101341,
+ -7.7949183180444468,
+ 3.5989027680539127, 
+ -0.6656525381713611
+};
+
+const vector<double> numNoHFFloat
+{
+  8.0423564219711682e-07,
+  4.0211782109855839e-06,
+  8.0423564219711678e-06,
+  8.0423564219711678e-06,
+  4.0211782109855839e-06,
+  8.0423564219711682e-07
+};
+
+const vector<double> denomNoHFFloat
+{
+  1., 
+  -4.5934213998076876,
+  8.4551152235101341,
+ -7.7949183180444468,
+ 3.5989027680539127, 
+ -0.6656525381713611
+};
+
+
 SegActive::SegActive()
 {
 }
@@ -25,6 +125,14 @@ SegActive::~SegActive()
 
 void SegActive::reset()
 {
+}
+
+
+void SegActive::doubleToFloat(const vector<double>& samples)
+{
+  samplesFloat.resize(samples.size());
+  for (unsigned i = 0; i < samples.size(); i++)
+    samplesFloat[i] = static_cast<float>(samples[i]);
 }
 
 
@@ -47,129 +155,72 @@ void SegActive::integrate(
 }
 
 
-void SegActive::compensateSpeed()
-{
-  // TODO Try highpass instead!!
-
-  // The acceleration noise generates a random walk in the speed.
-  // We attempt to correct for this with a rough lowpass filter.
-
-  const unsigned filterWidth = 1001;
-  const unsigned filterMid = (filterWidth-1) >> 1;
-
-  const unsigned ls = synthSpeed.size();
-  if (ls <= filterWidth)
-  {
-    cout << "CAN'T COMPENSATE\n";
-    return;
-  }
-
-  vector<float> newSpeed(ls);
-
-  float runningSum = 0.f;
-  for (unsigned i = 0; i < filterWidth; i++)
-    runningSum += synthSpeed[i];
-
-  for (unsigned i = filterMid; i < ls - filterMid; i++)
-  {
-    newSpeed[i] = runningSum / filterWidth;
-    if (i+1 < ls - filterMid)
-      runningSum += synthSpeed[i + filterMid + 1] -
-        synthSpeed[i - filterMid];
-  }
-
-  const float step0 = (newSpeed[filterMid] - synthSpeed[0]) /
-    filterMid;
-
-  for (unsigned i = 0; i < filterMid; i++)
-    newSpeed[i] = newSpeed[filterMid];
-
-  const float step1 = 
-    (synthSpeed[ls-1] - newSpeed[ls-filterMid-1]) / filterMid;
-
-  for (unsigned i = ls - filterMid; i < ls; i++)
-    newSpeed[i] = synthSpeed[ls-1] - step1 * (ls-1-i);
-  
-  for (unsigned i = 0; i < ls; i++)
-    synthSpeed[i] -= newSpeed[i];
-}
-
-
-void SegActive::integrateFloat()
+void SegActive::integrateFloat(
+  const vector<float>& integrand,
+  vector<float>& result) const
 {
   // Integrate speed into position.
-  // synthPos is then in 0.1 mm.
+  // result is then in 0.1 mm.
 
   const float factor = 100.f / static_cast<float>(SAMPLE_RATE);
 
-  synthPos[0] = factor * synthSpeed[0];
+  result[0] = factor * integrand[0];
 
-  for (unsigned i = 1; i < synthPos.size(); i++)
-    synthPos[i] = synthPos[i-1] + factor * synthSpeed[i];
+  for (unsigned i = 1; i < result.size(); i++)
+    result[i] = result[i-1] + factor * integrand[i];
 }
 
 
-void SegActive::highpass(vector<float>& integrand)
+void SegActive::filterFloat(
+  const vector<float>& num,
+  const vector<float>& denom,
+  vector<float>& integrand)
 {
-  // Fifth-order high-pass Butterworth filter with low cut-off.
-  // The filter is run forwards and backwards in order to
-  // get linear phase (like in Python's filtfilt, but without
-  // the padding or other clever stuff).
-  // from scipy import signal
-  // num, denom = signal.butter(5, 0.005, btype='high')
+  const unsigned ls = integrand.size();
+  vector<float> forward(ls);
 
-  const unsigned order = 5;
+  vector<float> state(order+1);
+  for (unsigned i = 0; i < order+1; i++)
+    state[i] = 0.;
 
-  const vector<double> num
+  for (unsigned i = 0; i < ls; i++)
   {
-    0.9749039346036602,
-    -4.8745196730183009,
-    9.7490393460366018,
-    -9.7490393460366018,
-    4.8745196730183009,
-    -0.9749039346036602
-  };
+    forward[i] = num[0] * integrand[i] + state[0];
 
-  const vector<double> denom
+    for (unsigned j = 0; j < order; j++)
+    {
+      state[j] = num[j+1] * integrand[i] - 
+        denom[j+1] * forward[i] + state[j+1];
+    }
+  }
+
+  vector<float> backward(ls);
+  for (unsigned i = 0; i < order+1; i++)
+    state[i] = 0.;
+
+  for (unsigned i = 0; i < ls; i++)
   {
-    1.,
-    -4.9491681155566063,
-    9.7979620071891631,
-    -9.698857155930046,
-    4.8005009469355944,
-    -0.9504376817056966
-  };
+    const unsigned irev = ls-1-i;
 
-  // TODO
-  // Run lowpass, integration, highpass and then twice
-  // Can we combine integration and highpass?
-  // Can we them do them in single precision?
-  // lowpass filter
-  // num, denom = signal.butter(5, 0.04, btype = 'low')
+    backward[irev] = num[0] * forward[irev] + state[0];
 
-  // num is also 8.0423564219711682e-07 * (1, 5, 10, 10, 5, 1)
-  /*
-  const vector<double> num
-  {
-    8.0423564219711682e-07,
-    4.0211782109855839e-06,
-    8.0423564219711678e-06,
-    8.0423564219711678e-06,
-    4.0211782109855839e-06,
-    8.0423564219711682e-07
-  };
+    for (unsigned j = 0; j < order; j++)
+    {
+      state[j] = num[j+1] * forward[irev] - 
+        denom[j+1] * backward[irev] + state[j+1];
+    }
+  }
 
-  const vector<double> denom
-  {
-    1., 
-    -4.5934213998076876,
-    8.4551152235101341,
-   -7.7949183180444468,
-   3.5989027680539127, 
-   -0.6656525381713611
-  };
-  */
+  for (unsigned i = 0; i < ls; i++)
+    integrand[i] = backward[i];
+}
 
+
+void SegActive::highpass(
+  const vector<double>& num,
+  const vector<double>& denom,
+  vector<float>& integrand)
+{
   const unsigned ls = integrand.size();
   vector<double> forward(ls);
 
@@ -222,14 +273,17 @@ bool SegActive::detect(
   writeInterval.len = active.first + active.len - 
     writeInterval.first;
 
+  // SegActive::doubleToFloat(samples);
+  // SegActive::highpass(numNoHF, denomNoHF, samplesFloat);
+
   synthSpeed.resize(writeInterval.len);
   synthPos.resize(writeInterval.len);
 
   SegActive::integrate(samples, active);
-  SegActive::highpass(synthSpeed);
+  SegActive::highpass(numNoDC, denomNoDC, synthSpeed);
 
-  SegActive::integrateFloat();
-  SegActive::highpass(synthPos);
+  SegActive::integrateFloat(synthSpeed, synthPos);
+  SegActive::highpass(numNoDC, denomNoDC, synthPos);
 
   timers.stop(TIMER_CONDITION);
 
