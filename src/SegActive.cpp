@@ -180,7 +180,6 @@ void SegActive::filterFloat(
     }
   }
 
-  vector<float> backward(ls);
   for (unsigned i = 0; i < order+1; i++)
     state[i] = 0.;
 
@@ -188,17 +187,14 @@ void SegActive::filterFloat(
   {
     const unsigned irev = ls-1-i;
 
-    backward[irev] = num[0] * forward[irev] + state[0];
+    integrand[irev] = num[0] * forward[irev] + state[0];
 
     for (unsigned j = 0; j < order; j++)
     {
       state[j] = num[j+1] * forward[irev] - 
-        denom[j+1] * backward[irev] + state[j+1];
+        denom[j+1] * integrand[irev] + state[j+1];
     }
   }
-
-  for (unsigned i = 0; i < ls; i++)
-    integrand[i] = backward[i];
 }
 
 
@@ -272,7 +268,11 @@ bool SegActive::detect(
   SegActive::highpass(numNoDC, denomNoDC, synthSpeed);
 
   SegActive::integrateFloat(synthSpeed, false, 0, active.len, synthPos);
+
   SegActive::highpass(numNoDC, denomNoDC, synthPos);
+
+  // SegActive::filterFloat(numNoDCFloat, denomNoDCFloat, synthSpeed);
+  // SegActive::filterFloat(numNoDCFloat, denomNoDCFloat, synthPos);
 
   timers.stop(TIMER_CONDITION);
 
