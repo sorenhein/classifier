@@ -602,7 +602,6 @@ cout << "PEAKPOOL\n";
 cout << peaks.strCounts();
 }
 
-
 void PeakDetect::logPeakStats(
   const vector<PeakPos>& posTrue,
   const string& trainTrue,

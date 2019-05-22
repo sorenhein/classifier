@@ -45,24 +45,24 @@ const vector<double> denomNoDC
   -0.9504376817056966
 };
 
-const vector<double> numNoDCFloat
+const vector<float> numNoDCFloat
 {
-  0.9749039346036602,
-  -4.8745196730183009,
-  9.7490393460366018,
-  -9.7490393460366018,
-  4.8745196730183009,
-  -0.9749039346036602
+  0.9749039346036602f,
+  -4.8745196730183009f,
+  9.7490393460366018f,
+  -9.7490393460366018f,
+  4.8745196730183009f,
+  -0.9749039346036602f
 };
 
-const vector<double> denomNoDCFloat
+const vector<float> denomNoDCFloat
 {
   1.,
-  -4.9491681155566063,
-  9.7979620071891631,
-  -9.698857155930046,
-  4.8005009469355944,
-  -0.9504376817056966
+  -4.9491681155566063f,
+  9.7979620071891631f,
+  -9.698857155930046f,
+  4.8005009469355944f,
+  -0.9504376817056966f
 };
 
 // Fifth-order low-pass Butterworth filter.  Eliminates
@@ -92,24 +92,24 @@ const vector<double> denomNoHF
  -0.6656525381713611
 };
 
-const vector<double> numNoHFFloat
+const vector<float> numNoHFFloat
 {
-  8.0423564219711682e-07,
-  4.0211782109855839e-06,
-  8.0423564219711678e-06,
-  8.0423564219711678e-06,
-  4.0211782109855839e-06,
-  8.0423564219711682e-07
+  8.0423564219711682e-07f,
+  4.0211782109855839e-06f,
+  8.0423564219711678e-06f,
+  8.0423564219711678e-06f,
+  4.0211782109855839e-06f,
+  8.0423564219711682e-07f
 };
 
-const vector<double> denomNoHFFloat
+const vector<float> denomNoHFFloat
 {
-  1., 
-  -4.5934213998076876,
-  8.4551152235101341,
- -7.7949183180444468,
- 3.5989027680539127, 
- -0.6656525381713611
+  1.f, 
+  -4.5934213998076876f,
+  8.4551152235101341f,
+ -7.7949183180444468f,
+ 3.5989027680539127f, 
+ -0.6656525381713611f
 };
 
 
@@ -225,7 +225,6 @@ void SegActive::highpass(
     }
   }
 
-cout << "Starting backward loop" << endl;
   vector<double> backward(ls);
   for (unsigned i = 0; i < order+1; i++)
     state[i] = 0.;
@@ -264,7 +263,9 @@ bool SegActive::detect(
   synthPos.resize(writeInterval.len);
 
   SegActive::doubleToFloat(samples, accelFloat);
-  // SegActive::highpass(numNoHF, denomNoHF, accelFloat);
+
+  SegActive::filterFloat(numNoHFFloat, denomNoHFFloat, accelFloat);
+
   SegActive::integrateFloat(accelFloat, true, 
     active.first, active.len, synthSpeed);
 

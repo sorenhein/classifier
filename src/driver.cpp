@@ -154,6 +154,10 @@ if (! control.pickTrainString.empty() &&
         trace.write(control);
 
         trace.getTrace(times, numFrontWheels);
+        // TODO Kludge.  Should be in PeakDetect or so.
+        if (imperf.numSkipsOfSeen > 0)
+          numFrontWheels = 4 - imperf.numSkipsOfSeen;
+
         align.bestMatches(times, numFrontWheels, imperf,
           db, country, 10, control, matchesAlign);
 
