@@ -158,6 +158,8 @@ void SegActive::integrate(
 void SegActive::integrateFloat(
   const vector<float>& integrand,
   const bool a2vFlag,
+  const unsigned startIndex,
+  const unsigned len,
   vector<float>& result) const
 {
   // If acceleration -> speed: Speed is in 0.01 m/s.
@@ -166,10 +168,10 @@ void SegActive::integrateFloat(
   const float factor =
     (a2vFlag ? 100.f * G_FORCE / SAMPLE_RATE : 100.f / SAMPLE_RATE);
 
-  result[0] = factor * integrand[0];
+  result[0] = factor * integrand[startIndex];
 
-  for (unsigned i = 1; i < result.size(); i++)
-    result[i] = result[i-1] + factor * integrand[i];
+  for (unsigned i = 1; i < len; i++)
+    result[i] = result[i-1] + factor * integrand[startIndex + i];
 }
 
 
@@ -272,8 +274,9 @@ bool SegActive::detect(
   timers.start(TIMER_CONDITION);
 
   writeInterval.first = active.first;
-  writeInterval.len = active.first + active.len - 
-    writeInterval.first;
+  // writeInterval.len = active.first + active.len - 
+    // writeInterval.first;
+  writeInterval.len = active.len;
 
   // SegActive::doubleToFloat(samples);
   // SegActive::highpass(numNoHF, denomNoHF, samplesFloat);
@@ -281,10 +284,11 @@ bool SegActive::detect(
   synthSpeed.resize(writeInterval.len);
   synthPos.resize(writeInterval.len);
 
+  // SegActive::integrateFloat(samplesFloat, active);
   SegActive::integrate(samples, active);
   SegActive::highpass(numNoDC, denomNoDC, synthSpeed);
 
-  SegActive::integrateFloat(synthSpeed, false, synthPos);
+  SegActive::integrateFloat(synthSpeed, false, 0, active.len, synthPos);
   SegActive::highpass(numNoDC, denomNoDC, synthPos);
 
   timers.stop(TIMER_CONDITION);

@@ -35,6 +35,8 @@ class SegActive
     void integrateFloat(
       const vector<float>& integrand,
       const bool a2vflag, // true if accel->speed, false if speed->pos
+      const unsigned startIndex,
+      const unsigned len,
       vector<float>& result) const;
 
     void filterFloat(
