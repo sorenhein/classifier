@@ -128,30 +128,12 @@ void SegActive::reset()
 }
 
 
-void SegActive::doubleToFloat(const vector<double>& samples)
+void SegActive::doubleToFloat(
+  const vector<double>& samples,
+  vector<float>& samplesFloat)
 {
-  samplesFloat.resize(samples.size());
   for (unsigned i = 0; i < samples.size(); i++)
     samplesFloat[i] = static_cast<float>(samples[i]);
-}
-
-
-void SegActive::integrate(
-  const vector<double>& samples,
-  const Interval& aint)
-{
-  // Integrate acceleration into speed.
-  // synthSpeed is then in 0.01 m/s.
-  const float factor = 100.f *
-    static_cast<float>(G_FORCE / SAMPLE_RATE);
-
-  synthSpeed[aint.first - writeInterval.first] = 
-    factor * static_cast<float>(samples[aint.first]);
-
-  for (unsigned i = aint.first+1; i < aint.first + aint.len; i++)
-    synthSpeed[i - writeInterval.first] = 
-      synthSpeed[i - writeInterval.first - 1] + 
-      factor * static_cast<float>(samples[i]);
 }
 
 
@@ -243,6 +225,7 @@ void SegActive::highpass(
     }
   }
 
+cout << "Starting backward loop" << endl;
   vector<double> backward(ls);
   for (unsigned i = 0; i < order+1; i++)
     state[i] = 0.;
@@ -274,18 +257,17 @@ bool SegActive::detect(
   timers.start(TIMER_CONDITION);
 
   writeInterval.first = active.first;
-  // writeInterval.len = active.first + active.len - 
-    // writeInterval.first;
   writeInterval.len = active.len;
 
-  // SegActive::doubleToFloat(samples);
-  // SegActive::highpass(numNoHF, denomNoHF, samplesFloat);
-
+  accelFloat.resize(samples.size());
   synthSpeed.resize(writeInterval.len);
   synthPos.resize(writeInterval.len);
 
-  // SegActive::integrateFloat(samplesFloat, active);
-  SegActive::integrate(samples, active);
+  SegActive::doubleToFloat(samples, accelFloat);
+  // SegActive::highpass(numNoHF, denomNoHF, accelFloat);
+  SegActive::integrateFloat(accelFloat, true, 
+    active.first, active.len, synthSpeed);
+
   SegActive::highpass(numNoDC, denomNoDC, synthSpeed);
 
   SegActive::integrateFloat(synthSpeed, false, 0, active.len, synthPos);

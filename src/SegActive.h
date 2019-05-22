@@ -17,7 +17,7 @@ class SegActive
 {
   private:
 
-    vector<float> samplesFloat;
+    vector<float> accelFloat;
     vector<float> synthSpeed;
     vector<float> synthPos;
     vector<float> synthPeaks;
@@ -26,11 +26,9 @@ class SegActive
 
     PeakDetect peakDetect;
 
-    void doubleToFloat(const vector<double>& samples);
-
-    void integrate(
+    void doubleToFloat(
       const vector<double>& samples,
-      const Interval& active);
+      vector<float>& samplesFloat);
 
     void integrateFloat(
       const vector<float>& integrand,
