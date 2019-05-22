@@ -51,6 +51,11 @@ Odd lengths
 4. Also detect first in pattern?
 
 
+Close results < 3.00: Look at residuals to decide (automate).
+
+Try Simpson integration (like a low-pass filter?)
+
+
 Plan 2019-05-08
 ---------------
 * Move the range.split out of each method into the overall loop?
