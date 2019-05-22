@@ -8,7 +8,7 @@
 #include "Timers.h"
 #include "write.h"
 
-#define SAMPLE_RATE 2000.
+#define SAMPLE_RATE 2000.f
 
 extern Timers timers;
 
@@ -157,12 +157,14 @@ void SegActive::integrate(
 
 void SegActive::integrateFloat(
   const vector<float>& integrand,
+  const bool a2vFlag,
   vector<float>& result) const
 {
-  // Integrate speed into position.
-  // result is then in 0.1 mm.
+  // If acceleration -> speed: Speed is in 0.01 m/s.
+  // If speed -> position: Position is in 0.1 mm.
 
-  const float factor = 100.f / static_cast<float>(SAMPLE_RATE);
+  const float factor =
+    (a2vFlag ? 100.f * G_FORCE / SAMPLE_RATE : 100.f / SAMPLE_RATE);
 
   result[0] = factor * integrand[0];
 
@@ -282,7 +284,7 @@ bool SegActive::detect(
   SegActive::integrate(samples, active);
   SegActive::highpass(numNoDC, denomNoDC, synthSpeed);
 
-  SegActive::integrateFloat(synthSpeed, synthPos);
+  SegActive::integrateFloat(synthSpeed, false, synthPos);
   SegActive::highpass(numNoDC, denomNoDC, synthPos);
 
   timers.stop(TIMER_CONDITION);

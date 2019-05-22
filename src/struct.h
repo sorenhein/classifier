@@ -10,7 +10,7 @@
 using namespace std;
 
 
-#define G_FORCE 9.8
+#define G_FORCE 9.8f
 
 
 struct Control
