@@ -23,7 +23,7 @@ extern Timers timers;
 // num, denom = signal.butter(5, 0.005, btype='high')
 // numpy.set_printoptions(precision=16)
 
-const unsigned order = 5;
+// const unsigned order = 5;
 
 const vector<double> numNoDC
 {
@@ -165,6 +165,7 @@ void SegActive::filterFloat(
   const unsigned ls = integrand.size();
   vector<float> forward(ls);
 
+  const unsigned order = num.size()-1;
   vector<float> state(order+1);
   for (unsigned i = 0; i < order+1; i++)
     state[i] = 0.;
@@ -206,6 +207,7 @@ void SegActive::highpass(
   const unsigned ls = integrand.size();
   vector<double> forward(ls);
 
+  const unsigned order = num.size()-1;
   vector<double> state(order+1);
   for (unsigned i = 0; i < order+1; i++)
     state[i] = 0.;
@@ -271,6 +273,12 @@ bool SegActive::detect(
 
   SegActive::highpass(numNoDC, denomNoDC, synthPos);
 
+  // TODO Ideas:
+  // - Get out of doubles in highpass(), use filterFloat
+  // - Combine integration with a highpass filter.
+  //   Note that the filter is run twice, so it will also integrate twice.
+  //   Therefore it ought to combine three function calls.
+  //
   // SegActive::filterFloat(numNoDCFloat, denomNoDCFloat, synthSpeed);
   // SegActive::filterFloat(numNoDCFloat, denomNoDCFloat, synthPos);
 
