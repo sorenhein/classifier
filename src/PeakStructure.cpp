@@ -420,6 +420,8 @@ PeakStructure::FindCarType PeakStructure::findCarByGeometry(
   PeakRange& range,
   CarDetect& car) const
 {
+return FIND_CAR_NO_MATCH;
+
   CarDetect carModel;
   list<unsigned> carPoints;
   PeakPtrs peakPtrsUsed, peakPtrsUnused;
