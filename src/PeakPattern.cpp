@@ -851,11 +851,13 @@ void PeakPattern::fixOnePeak(
   const string& text,
   const SingleEntry& single,
   PeakPool& peaks,
-  Peak *& pptr) const
+  Peak *& pptr,
+  const bool forceFlag) const
 {
   Peak peakHint;
   peakHint.logPosition(single.target, single.lower, single.upper);
-  pptr = peaks.repair(peakHint, &Peak::borderlineQuality, offset);
+  pptr = peaks.repair(peakHint, &Peak::borderlineQuality, offset,
+    forceFlag);
 
   PeakPattern::processMessage(text, "repair", single.target, pptr);
 }
@@ -866,12 +868,13 @@ void PeakPattern::processOnePeak(
   const SingleEntry& single,
   PeakPtrs& peakPtrsUnused,
   PeakPool& peaks,
-  Peak *& pptr) const
+  Peak *& pptr,
+  const bool forceFlag) const
 {
   PeakPattern::reviveOnePeak(origin, single, peakPtrsUnused, pptr);
 
   if (pptr == nullptr)
-    PeakPattern::fixOnePeak("fixSingles", single, peaks, pptr);
+    PeakPattern::fixOnePeak("fixSingles", single, peaks, pptr, forceFlag);
 }
 
 
@@ -879,7 +882,8 @@ bool PeakPattern::fixSingles(
   PeakPool& peaks,
   list<SingleEntry>& singles,
   PeakPtrs& peakPtrsUsed,
-  PeakPtrs& peakPtrsUnused) const
+  PeakPtrs& peakPtrsUnused,
+  const bool forceFlag) const
 {
   PeakPattern::condenseSingles(singles);
 
@@ -894,7 +898,7 @@ for (auto s: singles)
     // So we lower our peak quality standard.
 
     PeakPattern::processOnePeak("fixSingles", single, 
-      peakPtrsUnused, peaks, pptr);
+      peakPtrsUnused, peaks, pptr, forceFlag);
 
     if (pptr != nullptr)
     {
@@ -914,7 +918,8 @@ bool PeakPattern::fixDoubles(
   PeakPool& peaks,
   list<DoubleEntry>& doubles,
   PeakPtrs& peakPtrsUsed,
-  PeakPtrs& peakPtrsUnused) const
+  PeakPtrs& peakPtrsUnused,
+  const bool forceFlag) const
 {
   PeakPattern::condenseDoubles(doubles);
 
@@ -929,7 +934,7 @@ for (auto d: doubles)
     // we should arguably unroll the change.
 
     PeakPattern::processOnePeak("fixDoubles 1", db.first, 
-      peakPtrsUnused, peaks, pptr);
+      peakPtrsUnused, peaks, pptr, forceFlag);
 
     if (pptr != nullptr)
     {
@@ -940,7 +945,7 @@ cout << "fixDoubles 1 after add/remove" << endl;
     }
 
     PeakPattern::processOnePeak("fixDoubles 2", db.second, 
-      peakPtrsUnused, peaks, pptr);
+      peakPtrsUnused, peaks, pptr, forceFlag);
 
     if (pptr != nullptr)
     {
@@ -960,7 +965,8 @@ bool PeakPattern::fix(
   PeakPool& peaks,
   PeakPtrs& peakPtrsUsed,
   PeakPtrs& peakPtrsUnused,
-  bool flexibleFlag)
+  const bool forceFlag,
+  const bool flexibleFlag)
 {
   NoneEntry none;
   list<SingleEntry> singles;
@@ -975,7 +981,7 @@ bool PeakPattern::fix(
   if (none.empty() && singles.empty() && ! doubles.empty())
   {
     if (PeakPattern::fixDoubles(peaks, doubles, 
-        peakPtrsUsed, peakPtrsUnused))
+        peakPtrsUsed, peakPtrsUnused, forceFlag))
     {
       // TODO This is quite inefficient, as we actually know the
       // changes we made.  But we just reexamine for now.
@@ -998,7 +1004,7 @@ cout << "Re-examined after fixDoubles" << endl;
     }
 
     if (PeakPattern::fixSingles(peaks, singles, 
-        peakPtrsUsed, peakPtrsUnused))
+        peakPtrsUsed, peakPtrsUnused, forceFlag))
       PeakPattern::examineCandidates(peakPtrsUsed, none, singles, doubles);
   }
 
@@ -1226,7 +1232,7 @@ cout << peakPtrsUnused.strQuality("Unused", offset);
 
     // The short one is not model-based, but it fits well here.
     if (PeakPattern::guessBothSingle(models))
-      return PeakPattern::fix(peaks, peakPtrsUsed, peakPtrsUnused);
+      return PeakPattern::fix(peaks, peakPtrsUsed, peakPtrsUnused, true);
     else if (PeakPattern::guessBothSingleShort() &&
         PeakPattern::fix(peaks, peakPtrsUsed, peakPtrsUnused, true))
       return true;

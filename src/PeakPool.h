@@ -93,18 +93,21 @@ class PeakPool
       const Bracket& bracket,
       const bool nextSkipFlag,
       const string &text,
-      const unsigned offset) const;
+      const unsigned offset,
+      const bool forceFlag) const;
 
     Peak * repairTopLevel(
       Piterator& foundIter,
       const PeakFncPtr& fptr,
-      const unsigned offset);
+      const unsigned offset,
+      const bool forceFlag);
 
     Peak * repairFromLower(
       Peaks& listLower,
       Piterator& foundIter,
       const PeakFncPtr& fptr,
-      const unsigned offset);
+      const unsigned offset,
+      const bool forceFlag);
 
 
   public:
@@ -128,7 +131,8 @@ class PeakPool
     Peak * repair(
       const Peak& peakHint,
       const PeakFncPtr& fptr,
-      const unsigned offset); // offset is TMP
+      const unsigned offset,
+      const bool forceFlag = false); // offset is TMP
 
 
     void makeCandidates();

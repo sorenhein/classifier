@@ -312,31 +312,36 @@ class PeakPattern
       const string& text,
       const SingleEntry& single,
       PeakPool& peaks,
-      Peak *& pptr) const;
+      Peak *& pptr,
+      const bool forceFlag) const;
 
     void processOnePeak(
       const string& origin,
       const SingleEntry& single,
       PeakPtrs& peakPtrsUnused,
       PeakPool& peaks,
-      Peak *& pptr) const;
+      Peak *& pptr,
+      const bool forceFlag) const;
 
     bool fixSingles(
       PeakPool& peaks,
       list<SingleEntry>& singles,
       PeakPtrs& peakPtrsUsed,
-      PeakPtrs& peakPtrsUnused) const;
+      PeakPtrs& peakPtrsUnused,
+      const bool forceFlag) const;
 
     bool fixDoubles(
       PeakPool& peaks,
       list<DoubleEntry>& doubles,
       PeakPtrs& peakPtrsUsed,
-      PeakPtrs& peakPtrsUnused) const;
+      PeakPtrs& peakPtrsUnused,
+      const bool forceFlag) const;
 
     bool fix(
       PeakPool& peaks,
       PeakPtrs& peakPtrsUsed,
       PeakPtrs& peakPtrsUnused,
+      const bool forceFlag = false,
       const bool flexibleFlag = false);
 
     void getSpacings(PeakPtrs& peakPtrsUsed);

@@ -318,7 +318,8 @@ bool PeakPool::peakFixable(
   const Bracket& bracket,
   const bool nextSkipFlag,
   const string& text,
-  const unsigned offset) const
+  const unsigned offset,
+  const bool forceFlag) const
 {
   // bracket      max             max
   // foundIter           min
@@ -342,7 +343,7 @@ bool PeakPool::peakFixable(
 
   peak.calcQualities(averages);
 
-  if ((peak.* fptr)())
+  if (forceFlag || (peak.* fptr)())
     return true;
   else
   {
@@ -355,7 +356,8 @@ bool PeakPool::peakFixable(
 Peak * PeakPool::repairTopLevel(
   Piterator& foundIter,
   const PeakFncPtr& fptr,
-  const unsigned offset)
+  const unsigned offset,
+  const bool forceFlag)
 {
   // Peak exists but is not good enough, perhaps because of 
   // neighboring spurious peaks.  To salvage the peak we'll have
@@ -375,7 +377,7 @@ Peak * PeakPool::repairTopLevel(
 
   // We make a trial run to ensure the quality if we clean up.
   if (! PeakPool::peakFixable(foundIter, fptr, bracketInnerMax, 
-      true, "Top-level peak", offset))
+      true, "Top-level peak", offset, forceFlag))
   {
     PeakPool::printRepairedSegment("Top-level bracket",
       bracketInnerMax, offset);
@@ -422,7 +424,8 @@ Peak * PeakPool::repairFromLower(
   Peaks& listLower,
   Piterator& foundLowerIter,
   const PeakFncPtr& fptr,
-  const unsigned offset)
+  const unsigned offset,
+  const bool forceFlag)
 {
   // There is a lower list, in which foundLowerIter was found.
   // There is the top list, pointed to by peaks, which we may modify.
@@ -473,7 +476,7 @@ Peak * PeakPool::repairFromLower(
     bracketTmp.right.pit = next(foundLowerIter);
 
     if (! PeakPool::peakFixable(foundLowerIter, fptr, bracketTmp, 
-        false, "Lower-level peak", offset))
+        false, "Lower-level peak", offset, forceFlag))
     {
       PeakPool::printRepairedSegment("Lower-level bracket", 
         bracketTmp, offset);
@@ -505,7 +508,7 @@ Peak * PeakPool::repairFromLower(
     bracketTmp.right.pit = pmax;
 
     if (! PeakPool::peakFixable(foundLowerIter, fptr, bracketTmp, 
-        false, "Lower-level peak", offset))
+        false, "Lower-level peak", offset, forceFlag))
     {
       PeakPool::printRepairedSegment("Lower-level bracket", 
         bracketTmp, offset);
@@ -527,7 +530,8 @@ Peak * PeakPool::repairFromLower(
 Peak * PeakPool::repair(
   const Peak& peakHint,
   const PeakFncPtr& fptr,
-  const unsigned offset)
+  const unsigned offset,
+  const bool forceFlag)
 {
   const unsigned pindex = peakHint.getIndex();
   if (pindex < transientLimit)
@@ -552,12 +556,13 @@ Peak * PeakPool::repair(
     {
       // Peak exists, but may need to be sharpened by removing
       // surrounding peaks.
-      return PeakPool::repairTopLevel(foundIter, fptr, offset);
+      return PeakPool::repairTopLevel(foundIter, fptr, offset, forceFlag);
     }
     else
     {
       // Peak only exists in earlier list and might be resurrected.
-      return PeakPool::repairFromLower(* liter, foundIter, fptr, offset);
+      return PeakPool::repairFromLower(* liter, foundIter, fptr, offset,
+        forceFlag);
     }
   }
 

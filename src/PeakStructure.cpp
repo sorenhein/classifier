@@ -433,7 +433,6 @@ PeakStructure::FindCarType PeakStructure::findCarByPattern(
 {
   // These can in general cover more time than the car we find.
   PeakPtrs peakPtrsUsed, peakPtrsUnused;
-  // range.split(&Peak::goodPeakQuality, peakPtrsUsed, peakPtrsUnused);
   range.split(&Peak::goodQuality, peakPtrsUsed, peakPtrsUnused);
 
   PeakPattern pattern;
