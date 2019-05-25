@@ -19,7 +19,7 @@
 #define GREAT_CAR_DISTANCE 0.5f
 
 #define NUM_METHODS 10
-#define NUM_METHOD_GROUPS 4
+#define NUM_METHOD_GROUPS 3
 
 
 struct WheelSpec
@@ -68,19 +68,10 @@ PeakStructure::PeakStructure()
     { &PeakStructure::findCarByPattern, 
       "by pattern", 3});
 
-  // Short inner cars.
-  findMethods[1].push_back(
-    { &PeakStructure::findInnerCarByShort, 
-      "by short", 6});
-
   findMethods[2].push_back(
     { &PeakStructure::findPartialFirstCarByQuality, 
       "first partial by quality", 5});
 
-  findMethods[3].push_back(
-    { &PeakStructure::findCarByGeometry, 
-      "by geometry", 9});
-  
   hits.resize(NUM_METHODS);
 }
 
@@ -414,75 +405,6 @@ PeakStructure::FindCarType PeakStructure::findCarByGoodQuality(
 }
 
 
-PeakStructure::FindCarType PeakStructure::findCarByGeometry(
-  const CarModels& models,
-  PeakPool& peaks,
-  PeakRange& range,
-  CarDetect& car) const
-{
-return FIND_CAR_NO_MATCH;
-
-  CarDetect carModel;
-  list<unsigned> carPoints;
-  PeakPtrs peakPtrsUsed, peakPtrsUnused;
-  MatchData match;
-  PeakRange rangeLocal;
-
-  for (unsigned mno = 0; mno < models.size(); mno++)
-  {
-    if (models.empty(mno))
-      continue;
-
-    models.getCar(carModel, mno);
-
-    // 6 elements: Left edge, 4 wheels, right edge.
-    carModel.getCarPoints(carPoints);
-
-    for (auto pit: range)
-    {
-      if (! (* pit)->goodQuality())
-        continue;
-
-      // pit corresponds to the first wheel.
-      if (! peaks.getClosest(carPoints, &Peak::goodQuality, pit, 4,
-          peakPtrsUsed, peakPtrsUnused))
-        continue;
-
-      // We deal with the edges later.
-      rangeLocal.init(peakPtrsUsed);
-      car.makeFourWheeler(rangeLocal, peakPtrsUsed);
-      if (! models.gapsPlausible(car))
-        continue;
-      
-      if (! models.matchesDistance(car, GOOD_CAR_DISTANCE, true, 
-          mno, match))
-        continue;
-      
-RangeData rdata;
-if (range.characterize(models, rdata))
-{
-  if (rdata.qualLeft == QUALITY_NONE)
-  {
-    if (rdata.qualRight == QUALITY_NONE)
-      cout << "GEOM_OPEN\n";
-    else
-      cout << "GEOM_LASTISH\n";
-  }
-  else if (rdata.qualRight == QUALITY_NONE)
-    cout << "GEOM_FIRSTISH\n";
-  else
-    cout << "GEOM_MIDDLE\n";
-}
-      peakPtrsUsed.markup();
-      peakPtrsUnused.apply(&Peak::markdown);
-
-      return FIND_CAR_MATCH;
-    }
-  }
-  return FIND_CAR_NO_MATCH;
-}
-
-
 PeakStructure::FindCarType PeakStructure::findEmptyRange(
   const CarModels& models,
   PeakPool& peaks,
@@ -511,42 +433,11 @@ PeakStructure::FindCarType PeakStructure::findCarByPattern(
 {
   // These can in general cover more time than the car we find.
   PeakPtrs peakPtrsUsed, peakPtrsUnused;
-  range.split(&Peak::goodPeakQuality, peakPtrsUsed, peakPtrsUnused);
+  // range.split(&Peak::goodPeakQuality, peakPtrsUsed, peakPtrsUnused);
+  range.split(&Peak::goodQuality, peakPtrsUsed, peakPtrsUnused);
 
   PeakPattern pattern;
   if (! pattern.locate(models, peaks, range, offset,
-      peakPtrsUsed, peakPtrsUnused))
-    return FIND_CAR_NO_MATCH;
-
-// cout << "findCarByPattern:\n";
-// cout << peakPtrsUsed.strQuality("Used", offset);
-// cout << peakPtrsUnused.strQuality("Unused", offset);
-
-  // If it worked, the used and unused peaks have been modified,
-  // and some peaks have disappeared from the union of the lists.
-  PeakRange rangeLocal;
-  rangeLocal.init(peakPtrsUsed);
-  car.makeFourWheeler(rangeLocal, peakPtrsUsed);
-
-  peakPtrsUsed.markup();
-  peakPtrsUnused.apply(&Peak::markdown);
-
-  return FIND_CAR_MATCH;
-}
-
-
-PeakStructure::FindCarType PeakStructure::findInnerCarByShort(
-  const CarModels& models,
-  PeakPool& peaks,
-  PeakRange& range,
-  CarDetect& car) const
-{
-  // These can in general cover more time than the car we find.
-  PeakPtrs peakPtrsUsed, peakPtrsUnused;
-  range.split(&Peak::goodPeakQuality, peakPtrsUsed, peakPtrsUnused);
-
-  PeakShort shorts;
-  if (! shorts.locate(models, peaks, range, offset,
       peakPtrsUsed, peakPtrsUnused))
     return FIND_CAR_NO_MATCH;
 

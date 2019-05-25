@@ -118,12 +118,6 @@ class PeakStructure
       PeakRange& range,
       CarDetect& car) const;
 
-    FindCarType findCarByGeometry(
-      const CarModels& models,
-      PeakPool& peaks,
-      PeakRange& range,
-      CarDetect& car) const;
-
     FindCarType findEmptyRange(
       const CarModels& models,
       PeakPool& peaks,
@@ -131,12 +125,6 @@ class PeakStructure
       CarDetect& car) const;
 
     FindCarType findCarByPattern(
-      const CarModels& models,
-      PeakPool& peaks,
-      PeakRange& range,
-      CarDetect& car) const;
-
-    FindCarType findInnerCarByShort(
       const CarModels& models,
       PeakPool& peaks,
       PeakRange& range,

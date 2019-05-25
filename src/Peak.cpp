@@ -181,12 +181,18 @@ void Peak::annotate(const Peak * peakPrev)
 }
 
 
-float Peak::calcQualityPeak(const Peak& scale) const
+float Peak::calcQualityLevel(const Peak& scale) const
 {
   // level is supposed to be negative.  Large negative peaks are OK.
   const float vdiff = (value > scale.value ?
     (value - scale.value) / scale.value : 0.f);
 
+  return vdiff * vdiff;
+}
+
+
+float Peak::calcQualityPeak(const Peak& scale) const
+{
   // Ranges are always positive
   const float vrange1 = (left.range < scale.left.range ?
     (left.range - scale.left.range) / scale.left.range : 0.f);
@@ -201,7 +207,7 @@ float Peak::calcQualityPeak(const Peak& scale) const
     scale.right.gradient;
 
   return
-    vdiff * vdiff +
+    Peak::calcQualityLevel(scale) + 
     vrange1 * vrange1 +
     vrange2 * vrange2 +
     vgrad1 * vgrad1 +
@@ -243,8 +249,10 @@ float Peak::calcQualityShape(const Peak& scale) const
 
 void Peak::calcQualities(const Peak& scale)
 {
+  // TODO One day this should be simplified.
   qualityPeak = Peak::calcQualityPeak(scale);
   qualityShape = Peak::calcQualityShape(scale);
+  qualityWhole = qualityShape + Peak::calcQualityLevel(scale);
 }
 
 
@@ -353,19 +361,21 @@ float Peak::getArea(const Peak& p2) const
 
 PeakQuality Peak::getQualityWhole() const
 {
-  // This is the quality component that includes the level.
+  // This is a quality component that includes the level.
   // It is not the overall quality that combined the component quality
   // and the shape quality.
+  // One day the qualities should be simplified.  For now, this is
+  // the peak quality + a level component.
 
-  if (qualityPeak <= 0.10f)
+  if (qualityWhole <= 0.10f)
     return PEAK_QUALITY_FANTASTIC;
-  if (qualityPeak <= 0.30f)
+  if (qualityWhole <= 0.30f)
     return PEAK_QUALITY_GREAT;
-  if (qualityPeak <= 0.50f)
+  if (qualityWhole <= 0.50f)
     return PEAK_QUALITY_GOOD;
-  if (qualityPeak <= 0.75f)
+  if (qualityWhole <= 0.75f)
     return PEAK_QUALITY_ACCEPTABLE;
-  if (qualityPeak <= 1.00f)
+  if (qualityWhole <= 1.00f)
     return PEAK_QUALITY_BORDERLINE;
   else
     return PEAK_QUALITY_POOR;

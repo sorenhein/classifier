@@ -75,6 +75,7 @@ class Peak
 
     float qualityPeak;
     float qualityShape;
+    float qualityWhole;
 
     bool selectFlag;
 
@@ -101,6 +102,7 @@ class Peak
       unsigned& issue,
       bool& flag) const;
 
+    float calcQualityLevel(const Peak& scale) const;
     float calcQualityPeak(const Peak& scale) const;
     float calcQualityShape(const Peak& scale) const;
 

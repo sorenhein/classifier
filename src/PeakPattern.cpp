@@ -1126,8 +1126,8 @@ cout << "PPINDEX " << numSpaces << endl;
   {
     if (spacings[indexFirst].bogieLikeFlag &&
         spacings[indexLast].bogieLikeFlag &&
-        spacings[indexFirst].qualityLower <= PEAK_QUALITY_ACCEPTABLE &&
-        spacings[indexLast].qualityLower <= PEAK_QUALITY_ACCEPTABLE)
+        spacings[indexFirst].qualityLower <= PEAK_QUALITY_GOOD &&
+        spacings[indexLast].qualityLower <= PEAK_QUALITY_GOOD)
     {
       if (PeakPattern::plausibleCar(leftFlag, indexFirst, indexLast))
       {
@@ -1141,8 +1141,8 @@ cout << "PPINDEX " << numSpaces << endl;
   {
     if (spacings[indexFirst].bogieLikeFlag &&
         spacings[indexLast].bogieLikeFlag &&
-        spacings[indexFirst].qualityLower <= PEAK_QUALITY_ACCEPTABLE &&
-        spacings[indexLast].qualityLower <= PEAK_QUALITY_ACCEPTABLE)
+        spacings[indexFirst].qualityLower <= PEAK_QUALITY_GOOD &&
+        spacings[indexLast].qualityLower <= PEAK_QUALITY_GOOD)
     {
       if (PeakPattern::plausibleCar(leftFlag, indexFirst, indexLast))
       {
@@ -1214,9 +1214,9 @@ bool PeakPattern::locate(
 cout << peakPtrsUsed.strQuality("Used", offset);
 cout << peakPtrsUnused.strQuality("Unused", offset);
 
-  // First try filling the entire range with 1-2 cards.
-  if (rangeData.qualBest != QUALITY_GENERAL || 
-      rangeData.qualBest == QUALITY_NONE)
+  // First try filling the entire range with 1-2 cars.
+  if (rangeData.qualBest != QUALITY_GENERAL && 
+      rangeData.qualBest != QUALITY_NONE)
   {
     PeakPattern::getActiveModels(models, true);
 
@@ -1258,8 +1258,8 @@ cout << peakPtrsUnused.strQuality("Unused", offset);
   if (peakPtrsUsed.size() <= 2)
     return false;
 
-  if (rangeData.qualBest != QUALITY_GENERAL || 
-      rangeData.qualBest == QUALITY_NONE)
+  if (rangeData.qualBest != QUALITY_GENERAL && 
+      rangeData.qualBest != QUALITY_NONE)
   {
     // Make an attempt to find short cars without a model.
     PeakPattern::getSpacings(peakPtrsUsed);
