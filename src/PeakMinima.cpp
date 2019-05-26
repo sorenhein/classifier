@@ -1029,50 +1029,14 @@ void PeakMinima::markBogiesOfSelects(
     if (! (cand->* fptr)() || cand->isWheel())
       continue;
 
-    // Don't really need bothSelected then.  Test first one above.
-    // PPLiterator nextIter = candidates.next(cit, &Peak::isSelected);
     PPLiterator nextIter = candidates.next(cit, fptr);
     if (nextIter == cend)
       break;
 
     Peak * nextCand = * nextIter;
       
-    // At least one should also be selected.
-    if (! cand->isSelected() && ! nextCand->isSelected())
-      continue;
-
     if (cand->matchesGap(* nextCand, wheelGap))
       PeakMinima::markWheelPair(* cand, * nextCand, "");
-  }
-}
-
-
-void PeakMinima::markBogiesOfUnpaired(
-  PeakPool& peaks,
-  const Gap& wheelGap) const
-{
-  PeakPtrs& candidates = peaks.candidates();
-  PPLiterator cbegin = candidates.begin();
-  PPLiterator cend = candidates.end();
-
-  for (auto cit = cbegin; cit != cend; cit++)
-  {
-    if (! (* cit)->acceptableQuality())
-      continue;
-
-    // If the first one is of acceptable quality, find the first
-    // such successor.  There could be poorer peaks in between.
-    PPLiterator ncit = candidates.next(cit, &Peak::acceptableQuality);
-    if (ncit == cend)
-      break;
-
-    // If they are both set already, move on.
-    if ((* cit)->isSelected() && (* ncit)->isSelected())
-      continue;
-
-    // If the distance is right, we lower our quality requirements.
-    if ((* cit)->matchesGap(** ncit, wheelGap))
-      PeakMinima::markWheelPair(** cit, ** ncit, "Adding");
   }
 }
 
@@ -1140,10 +1104,6 @@ void PeakMinima::markBogies(
   PeakMinima::markBogiesOfSelects(peaks, &Peak::acceptableQuality, 
     wheelGap);
 
-  // Look for unpaired wheels where there is a nearby peak that is
-  // not too bad.  If there is a spurious peak in between, we'll fail...
-  PeakMinima::markBogiesOfUnpaired(peaks, wheelGap);
-
   vector<Peak> bogieScale;
   makeBogieAverages(peaks, bogieScale);
 
@@ -1173,8 +1133,6 @@ void PeakMinima::markBogies(
   // Mark more bogies with the refined peak qualities.
   PeakMinima::markBogiesOfSelects(peaks, &Peak::acceptableQuality,
     wheelGap);
-
-  PeakMinima::markBogiesOfUnpaired(peaks, wheelGap);
 
   cout << peaks.candidates().strQuality(
     "All peaks again using left/right scales", offset);

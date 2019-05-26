@@ -187,10 +187,6 @@ class PeakMinima
       const PeakFncPtr& fptr,
       const Gap& wheelGap) const;
 
-    void markBogiesOfUnpaired(
-      PeakPool& peaks,
-      const Gap& wheelGap) const;
-
     void fixBogieOrphans(PeakPool& peaks) const;
 
     void markBogies(
