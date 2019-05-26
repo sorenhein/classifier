@@ -184,6 +184,7 @@ class PeakMinima
 
     void markBogiesOfSelects(
       PeakPool& peaks,
+      const PeakFncPtr& fptr,
       const Gap& wheelGap) const;
 
     void markBogiesOfUnpaired(
@@ -198,8 +199,8 @@ class PeakMinima
       const list<PieceEntry>& pieces) const;
 
 
-    bool guessBogieDistance(
-      PeakPool& peaks,
+    void guessBogieDistance(
+      const list<PieceEntry>& pieces,
       Gap& wheelGap) const;
 
     void markShortGapsOfSelects(

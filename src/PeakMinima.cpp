@@ -1015,6 +1015,7 @@ void PeakMinima::markSinglePeaks(
 
 void PeakMinima::markBogiesOfSelects(
   PeakPool& peaks,
+  const PeakFncPtr& fptr,
   const Gap& wheelGap) const
 {
   PeakPtrs& candidates = peaks.candidates();
@@ -1025,20 +1026,23 @@ void PeakMinima::markBogiesOfSelects(
   for (auto cit = cbegin; cit != prev(cend); cit++)
   {
     Peak * cand = * cit;
-    if (cand->isWheel())
+    if (! (cand->* fptr)() || cand->isWheel())
       continue;
 
     // Don't really need bothSelected then.  Test first one above.
-    PPLiterator nextIter = candidates.next(cit, &Peak::isSelected);
+    // PPLiterator nextIter = candidates.next(cit, &Peak::isSelected);
+    PPLiterator nextIter = candidates.next(cit, fptr);
     if (nextIter == cend)
       break;
+
     Peak * nextCand = * nextIter;
       
-    if (PeakMinima::bothSelected(cand, nextCand))
-    {
-      if (cand->matchesGap(* nextCand, wheelGap))
-        PeakMinima::markWheelPair(* cand, * nextCand, "");
-    }
+    // At least one should also be selected.
+    if (! cand->isSelected() && ! nextCand->isSelected())
+      continue;
+
+    if (cand->matchesGap(* nextCand, wheelGap))
+      PeakMinima::markWheelPair(* cand, * nextCand, "");
   }
 }
 
@@ -1107,34 +1111,19 @@ void PeakMinima::fixBogieOrphans(PeakPool& peaks) const
 }
 
 
-bool PeakMinima::guessBogieDistance(
-  PeakPool& peaks,
+void PeakMinima::guessBogieDistance(
+  const list<PieceEntry>& pieces,
   Gap& wheelGap) const
 {
-  // The wheel gap is only plausible if it hits a certain number of peaks.
-  unsigned numGreat = peaks.candidates().count(&Peak::greatQuality);
+  const DistEntry& dist = pieces.front().extrema.front();
+  const unsigned index = (dist.indexHi == 0 ? dist.index :
+    (dist.index + dist.indexHi) / 2);
+  
 
-  if (PeakMinima::guessNeighborDistance(peaks,
-        &PeakMinima::bothSelected, wheelGap, numGreat/4) &&
-      wheelGap.upper != 0)
-    return true;
-
-  // We may get here when one side of the peak pair is so strong
-  // and different that the other side never gets picked up.
-  // Try again, and lower our standards to acceptable peak quality.
-  cout << "First attempt at wheel distance failed: " << numGreat << ".\n";
-
-  if (PeakMinima::guessNeighborDistance(peaks,
-        &PeakMinima::bothPlausible, wheelGap, numGreat/4) &&
-      wheelGap.upper != 0)
-    return true;
-
-  if (PeakMinima::guessNeighborDistance(peaks,
-        &PeakMinima::bothPlausible, wheelGap, numGreat/8) &&
-      wheelGap.upper != 0)
-    return true;
-
-  return false;
+  // TODO #define
+  const unsigned delta = static_cast<unsigned>(0.1f * index);
+  wheelGap.lower = index - delta;
+  wheelGap.upper = index + delta;
 }
 
 
@@ -1143,24 +1132,13 @@ void PeakMinima::markBogies(
   Gap& wheelGap,
   const list<PieceEntry>& pieces) const
 {
-  // if (! PeakMinima::guessBogieDistance(peaks, wheelGap))
-    // THROW(ERR_ALGO_NO_WHEEL_GAP, "Couldn't find wheel gap");
-
-  const DistEntry& dist = pieces.front().extrema.front();
-  const unsigned index = (dist.indexHi == 0 ? dist.index :
-    (dist.index + dist.indexHi) / 2);
-  /* */
-
-  // TODO #define
-  const unsigned delta = static_cast<unsigned>(0.1f * index);
-  wheelGap.lower = index - delta;
-  wheelGap.upper = index + delta;
-  /* */
+  PeakMinima::guessBogieDistance(pieces, wheelGap);
 
   PeakMinima::printDists(wheelGap.lower, wheelGap.upper,
     "Guessing wheel distance");
 
-  PeakMinima::markBogiesOfSelects(peaks, wheelGap);
+  PeakMinima::markBogiesOfSelects(peaks, &Peak::acceptableQuality, 
+    wheelGap);
 
   // Look for unpaired wheels where there is a nearby peak that is
   // not too bad.  If there is a spurious peak in between, we'll fail...
@@ -1193,7 +1171,8 @@ void PeakMinima::markBogies(
     "Guessing new wheel distance");
 
   // Mark more bogies with the refined peak qualities.
-  PeakMinima::markBogiesOfSelects(peaks, wheelGap);
+  PeakMinima::markBogiesOfSelects(peaks, &Peak::acceptableQuality,
+    wheelGap);
 
   PeakMinima::markBogiesOfUnpaired(peaks, wheelGap);
 
@@ -1401,7 +1380,8 @@ void PeakMinima::markLongGaps(
 
   // Some peaks might have become good enough to lead to cars,
   // so we re-label.  First we look again for bogies.
-  PeakMinima::markBogiesOfSelects(peaks, wheelGap);
+  PeakMinima::markBogiesOfSelects(peaks, &Peak::acceptableQuality,
+    wheelGap);
   PeakMinima::markLongGapsOfSelects(peaks, longGap);
 
   cout << peaks.candidates().strQuality("peaks with all four wheels", 
