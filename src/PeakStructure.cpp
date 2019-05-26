@@ -216,6 +216,8 @@ PeakStructure::FindCarType PeakStructure::findCarByOrder(
       // We deal with the edges later.
       rangeLocal.init(peakPtrsUsed);
       car.makeFourWheeler(rangeLocal, peakPtrsUsed);
+      if (! car.midGapPlausible())
+        continue;
 
       peakPtrsUsed.markup();
 

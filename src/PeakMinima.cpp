@@ -1424,6 +1424,11 @@ void PeakMinima::markShortGaps(
 
   PeakMinima::guessDistance(* pptr, shortGap);
 
+  /*
+  PeakMinima::guessNeighborDistance(peaks,
+    &PeakMinima::formBogieGap, shortGap);
+    */
+
   PeakMinima::printDists(shortGap.lower, shortGap.upper,
     "Guessing short gap");
 
