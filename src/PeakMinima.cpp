@@ -294,6 +294,48 @@ void PeakMinima::splitPiece(
 }
 
 
+bool PeakMinima::splitPieceOnDip(
+  list<PieceEntry>& pieces,
+  list<PieceEntry>::iterator pit) const
+{
+  // Split if two consecutive maxima are not within +/- 10%.
+  // Also split if there's a fairly sharp dip:  Either side must be
+  // >= 4 and the bottom must be less than half of the smallest
+  // neighbor.
+
+  for (auto eit = pit->extrema.begin(); eit != pit->extrema.end(); )
+  {
+    if (next(eit) == pit->extrema.end())
+      break;
+    else if (eit->direction == -1)
+    {
+      eit++;
+      continue;
+    }
+
+    auto nneit = next(next(eit));
+    if (static_cast<unsigned>(1.21f * eit->index) >= nneit->index)
+    {
+      // Next one is not too far away.
+      const unsigned a = eit->cumul;
+      const unsigned b = next(eit)->cumul;
+      const unsigned c = nneit->cumul;
+      if (a <= 3 || c <= 3 || 2*b >= a || 2*b >= c)
+      {
+        // The cumul values do not make for a convincing split.
+
+        eit++;
+        continue;
+      }
+    }
+
+    PeakMinima::splitPiece(pieces, pit, eit->index, nneit->index);
+    return true;
+  }
+  return false;
+}
+
+
 void PeakMinima::splitPieces(list<PieceEntry>& pieces) const
 {
   for (auto pit = pieces.begin(); pit != pieces.end(); )
@@ -304,44 +346,7 @@ void PeakMinima::splitPieces(list<PieceEntry>& pieces) const
       continue;
     }
 
-    // Split if two consecutive maxima are not within +/- 10%.
-    // Also split if there's a fairly sharp dip:  Either side must be
-    // >= 4 and the bottom must be less than half of the smallest
-    // neighbor.
-
-    bool splitFlag = false;
-    for (auto eit = pit->extrema.begin(); eit != pit->extrema.end(); )
-    {
-      if (next(eit) == pit->extrema.end())
-        break;
-      else if (eit->direction == -1)
-      {
-        eit++;
-        continue;
-      }
-
-      auto nneit = next(next(eit));
-      if (static_cast<unsigned>(1.21f * eit->index) >= nneit->index)
-      {
-        // Next one is not too far away.
-        const unsigned a = eit->cumul;
-        const unsigned b = next(eit)->cumul;
-        const unsigned c = nneit->cumul;
-        if (a <= 3 || c <= 3 || 2*b >= a || 2*b >= c)
-        {
-          // The cumul values do not make for a convincing split.
-
-          eit++;
-          continue;
-        }
-      }
-
-      splitFlag = true;
-      PeakMinima::splitPiece(pieces, pit, eit->index, nneit->index);
-      break;
-    }
-
-    if (splitFlag)
+    if (PeakMinima::splitPieceOnDip(pieces, pit))
       continue;
 
     // Split if the overall piece is too long, even though there
@@ -379,10 +384,12 @@ void PeakMinima::splitPieces(list<PieceEntry>& pieces) const
       indexPrev = eit->index;
     }
 
-    cout << "Would like to split on " << indexPrevBest << " to " <<
-      indexBest << endl;
+    PeakMinima::splitPiece(pieces, pit, indexPrevBest, indexBest);
 
-    pit++;
+    // cout << "Would like to split on " << indexPrevBest << " to " <<
+      // indexBest << endl;
+
+    // pit++;
   }
 }
 

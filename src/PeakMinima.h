@@ -91,6 +91,10 @@ class PeakMinima
       const unsigned indexLeft,
       const unsigned indexRight) const;
 
+    bool splitPieceOnDip(
+      list<PieceEntry>& pieces,
+      list<PieceEntry>::iterator pit) const;
+
     void splitPieces(list<PieceEntry>& pieces) const;
 
     bool setGap(
