@@ -44,7 +44,7 @@ class PeakMinima
       DistEntry summary;
       list<DistEntry> extrema;
 
-      string str()
+      string str() const
       {
         stringstream ss;
         ss << "Modality " << modality << "\n";
@@ -220,8 +220,13 @@ class PeakMinima
       PeakPool& peaks,
       const Gap& wheelGap) const;
 
+    bool hasStragglerBogies(
+      const PieceEntry& piece,
+      Gap& wheelGap) const;
+
     void markShortGaps(
       PeakPool& peaks,
+      Gap& wheelGap,
       Gap& shortGap);
 
 
