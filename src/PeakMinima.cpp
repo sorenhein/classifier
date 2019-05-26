@@ -1425,6 +1425,27 @@ void PeakMinima::markLongGaps(
 }
 
 
+void PeakMinima::makePieces(
+  const PeakPool& peaks,
+  list<PieceEntry>& pieces) const
+{
+  vector<unsigned> dists;
+  PeakMinima::makeDistances(peaks, &Peak::acceptableQuality, dists);
+
+  list<DistEntry> steps;
+  PeakMinima::makeSteps(dists, steps);
+
+  DistEntry summary;
+  PeakMinima::makePieces(steps, pieces, summary);
+  PeakMinima::eraseSmallPieces(pieces, summary);
+  PeakMinima::eraseSmallMaxima(pieces, summary);
+
+  PeakMinima::splitPieces(pieces);
+
+  PeakMinima::unjitterPieces(pieces);
+}
+
+
 void PeakMinima::mark(
   PeakPool& peaks,
   const vector<Peak>& peakCenters,
@@ -1440,6 +1461,9 @@ cout << "FRAC " << countSelected << " " <<
   countAll << " " <<
   fixed << setprecision(2) << 100. * countSelected / countAll << endl;
 
+  list<PieceEntry> pieces;
+  PeakMinima::makePieces(peaks, pieces);
+/*
 vector<unsigned> dists;
 PeakMinima::makeDistances(peaks, &Peak::acceptableQuality, dists);
 list<DistEntry> steps;
@@ -1469,6 +1493,7 @@ cout << "PIECES after unjitter\n";
 for (auto& p: pieces)
   cout << p.str();
 cout << endl;
+*/
 
 Gap wheelGapNew, shortGapNew, longGapNew;
 bool threeFlag = false;

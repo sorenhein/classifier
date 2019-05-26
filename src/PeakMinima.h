@@ -229,6 +229,10 @@ class PeakMinima
       const unsigned shortGapCount,
       Gap& longGap);
 
+    void makePieces(
+      const PeakPool& peaks,
+      list<PieceEntry>& pieces) const;
+
 
     void printPeakQuality(
       const Peak& peak,
