@@ -64,6 +64,7 @@ class PeakMinima
     void makeDistances(
       const PeakPool& peaks,
       const PeakFncPtr& fptr,
+      const CandFncPtr& exptr,
       vector<unsigned>& dists) const;
 
     void makeSteps(
@@ -127,7 +128,15 @@ class PeakMinima
       const Peak * p1,
       const Peak * p2) const;
 
+    bool formBogie(
+      const Peak * p1,
+      const Peak * p2) const;
+
     bool formBogieGap(
+      const Peak * p1,
+      const Peak * p2) const;
+
+    bool never(
       const Peak * p1,
       const Peak * p2) const;
 
@@ -227,8 +236,9 @@ class PeakMinima
       const unsigned shortGapCount,
       Gap& longGap);
 
-    void makePieces(
+    void makePieceList(
       const PeakPool& peaks,
+      const CandFncPtr& exptr,
       list<PieceEntry>& pieces) const;
 
 

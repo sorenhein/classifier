@@ -13,6 +13,8 @@
 #define SLIDING_LOWER 0.9f
 #define SLIDING_UPPER 1.1f
 
+#define UNUSED(x) ((void)(true ? 0 : ((x), void(), 0)))
+
 
 PeakMinima::PeakMinima()
 {
@@ -34,6 +36,7 @@ void PeakMinima::reset()
 void PeakMinima::makeDistances(
   const PeakPool& peaks,
   const PeakFncPtr& fptr,
+  const CandFncPtr& exptr,
   vector<unsigned>& dists) const
 {
   // Make list of distances between neighbors for which fptr
@@ -59,6 +62,9 @@ void PeakMinima::makeDistances(
 
     // At least one should also be selected.
     if (! (* pit)->isSelected() && ! (* npit)->isSelected())
+      continue;
+
+    if ((this->* exptr)(* pit, * npit))
       continue;
 
     dists.push_back((* npit)->getIndex() - (* pit)->getIndex());
@@ -648,11 +654,29 @@ bool PeakMinima::bothPlausible(
 }
 
 
+bool PeakMinima::formBogie(
+  const Peak * p1,
+  const Peak * p2) const
+{
+  return (p1->isLeftWheel() && p2->isRightWheel());
+}
+
+
 bool PeakMinima::formBogieGap(
   const Peak * p1,
   const Peak * p2) const
 {
   return (p1->isRightWheel() && p2->isLeftWheel());
+}
+
+
+bool PeakMinima::never(
+  const Peak * p1,
+  const Peak * p2) const
+{
+  UNUSED(p1);
+  UNUSED(p2);
+  return false;
 }
 
 
@@ -1121,6 +1145,7 @@ void PeakMinima::markBogies(
   PeakMinima::printPeakQuality(bogieScale[0], "Left-wheel average");
   PeakMinima::printPeakQuality(bogieScale[1], "Right-wheel average");
 
+/* */
   // Redo the distances using the new qualities (left and right peaks).
   const unsigned numGreat = peaks.candidates().count(&Peak::greatQuality);
 
@@ -1136,6 +1161,7 @@ void PeakMinima::markBogies(
 
   cout << peaks.candidates().strQuality(
     "All peaks again using left/right scales", offset);
+/* */
 }
 
 
@@ -1367,12 +1393,13 @@ void PeakMinima::markLongGaps(
 }
 
 
-void PeakMinima::makePieces(
+void PeakMinima::makePieceList(
   const PeakPool& peaks,
+  const CandFncPtr& exptr,
   list<PieceEntry>& pieces) const
 {
   vector<unsigned> dists;
-  PeakMinima::makeDistances(peaks, &Peak::acceptableQuality, dists);
+  PeakMinima::makeDistances(peaks, &Peak::acceptableQuality, exptr, dists);
 
   list<DistEntry> steps;
   PeakMinima::makeSteps(dists, steps);
@@ -1404,7 +1431,7 @@ cout << "FRAC " << countSelected << " " <<
   fixed << setprecision(2) << 100. * countSelected / countAll << endl;
 
   list<PieceEntry> pieces;
-  PeakMinima::makePieces(peaks, pieces);
+  PeakMinima::makePieceList(peaks, &PeakMinima::never, pieces);
 
 Gap wheelGapNew, shortGapNew, longGapNew;
 bool threeFlag = false;
