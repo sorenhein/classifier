@@ -194,9 +194,14 @@ class PeakMinima
     void markBogiesOfSelects(
       PeakPool& peaks,
       const PeakFncPtr& fptr,
-      const Gap& wheelGap) const;
+      const Gap& wheelGap,
+      Gap& actualGap) const;
 
     void fixBogieOrphans(PeakPool& peaks) const;
+
+    void updateGap(
+      Gap& gap,
+      const Gap& actualGap) const;
 
     void markBogies(
       PeakPool& peaks,
@@ -207,6 +212,10 @@ class PeakMinima
     void guessBogieDistance(
       const list<PieceEntry>& pieces,
       Gap& wheelGap) const;
+
+    void guessDistance(
+      const PieceEntry& piece,
+      Gap& gap) const;
 
     void markShortGapsOfSelects(
       PeakPool& peaks,

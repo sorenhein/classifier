@@ -1046,11 +1046,15 @@ void PeakMinima::markSinglePeaks(
 void PeakMinima::markBogiesOfSelects(
   PeakPool& peaks,
   const PeakFncPtr& fptr,
-  const Gap& wheelGap) const
+  const Gap& wheelGap,
+  Gap& actualGap) const
 {
   PeakPtrs& candidates = peaks.candidates();
   PPLiterator cbegin = candidates.begin();
   PPLiterator cend = candidates.end();
+
+  actualGap.lower = numeric_limits<unsigned>::max();
+  actualGap.upper = 0;
 
   // Here we mark bogies where both peaks are already selected.
   for (auto cit = cbegin; cit != prev(cend); cit++)
@@ -1066,8 +1070,21 @@ void PeakMinima::markBogiesOfSelects(
     Peak * nextCand = * nextIter;
       
     if (cand->matchesGap(* nextCand, wheelGap))
+    {
       PeakMinima::markWheelPair(* cand, * nextCand, "");
+      
+      const unsigned dist = nextCand->getIndex() - cand->getIndex();
+      if (dist < actualGap.lower)
+        actualGap.lower = dist;
+      if (dist > actualGap.upper)
+        actualGap.upper = dist;
+    }
   }
+
+  if (actualGap.lower == numeric_limits<unsigned>::max())
+    actualGap.lower = wheelGap.lower;
+  if (actualGap.upper == 0)
+    actualGap.upper = wheelGap.upper;
 }
 
 
@@ -1109,6 +1126,12 @@ void PeakMinima::guessBogieDistance(
   const list<PieceEntry>& pieces,
   Gap& wheelGap) const
 {
+  if (pieces.size() == 1)
+  {
+    PeakMinima::guessDistance(pieces.front(), wheelGap);
+    return;
+  }
+
   const PieceEntry& piece1 = pieces.front();
   const PieceEntry& piece2 = * next(pieces.begin());
   PieceEntry const * pptr;
@@ -1122,13 +1145,41 @@ void PeakMinima::guessBogieDistance(
   else
     pptr = &piece1;
 
-  const unsigned index = (pptr->summary.indexHi == 0 ?
-    pptr->summary.index :
-    (pptr->summary.index + pptr->summary.indexHi) / 2);
+  PeakMinima::guessDistance(* pptr, wheelGap);
+}
 
-  wheelGap.lower = static_cast<unsigned>(index / SLIDING_UPPER) - 1;
-  wheelGap.upper = static_cast<unsigned>(index * SLIDING_UPPER) + 1;
-  wheelGap.count = pptr->summary.cumul;
+
+void PeakMinima::guessDistance(
+  const PieceEntry& piece,
+  Gap& gap) const
+{
+  const unsigned index = (piece.summary.indexHi == 0 ?
+    piece.summary.index :
+    (piece.summary.index + piece.summary.indexHi) / 2);
+
+  gap.lower = static_cast<unsigned>(index / SLIDING_UPPER) - 1;
+  gap.upper = static_cast<unsigned>(index * SLIDING_UPPER) + 1;
+  gap.count = piece.summary.cumul;
+}
+
+
+void PeakMinima::updateGap(
+  Gap& gap,
+  const Gap& actualGap) const
+{
+  // actualGap may be narrower.
+  const unsigned mid = (actualGap.lower + actualGap.upper) / 2;
+  if (actualGap.upper <= static_cast<unsigned>(1.21f * actualGap.lower))
+  {
+    // Re-center.
+    gap.lower = static_cast<unsigned>(mid / 1.1f) - 1;
+    gap.upper = static_cast<unsigned>(mid * 1.1f) + 1;
+  }
+  else
+  {
+    gap.lower = actualGap.lower;
+    gap.upper = actualGap.upper;
+  }
 }
 
 
@@ -1147,8 +1198,18 @@ void PeakMinima::markBogies(
   PeakMinima::printDists(wheelGap.lower, wheelGap.upper,
     "Guessing wheel distance");
 
+  Gap actualGap;
   PeakMinima::markBogiesOfSelects(peaks, &Peak::acceptableQuality, 
-    wheelGap);
+    wheelGap, actualGap);
+
+  PeakMinima::printDists(actualGap.lower, actualGap.upper,
+    "Got actual wheel distance");
+
+  // actualGap may be narrower.  We use this to re-center.
+  PeakMinima::updateGap(wheelGap, actualGap);
+
+  PeakMinima::printDists(wheelGap.lower, wheelGap.upper,
+    "Wheel distance now");
 
   vector<Peak> bogieScale;
   makeBogieAverages(peaks, bogieScale);
@@ -1158,7 +1219,15 @@ void PeakMinima::markBogies(
 
   // Redo the marks with the new qualities.
   PeakMinima::markBogiesOfSelects(peaks, &Peak::acceptableQuality, 
-    wheelGap);
+    wheelGap, actualGap);
+
+  PeakMinima::printDists(actualGap.lower, actualGap.upper,
+    "Got actual wheel distance after recalculating");
+
+  PeakMinima::updateGap(wheelGap, actualGap);
+
+  PeakMinima::printDists(wheelGap.lower, wheelGap.upper,
+    "Wheel distance after recalculating");
 
   // Some halves of bogies may have been downgraded.
   PeakMinima::fixBogieOrphans(peaks);
@@ -1247,25 +1316,41 @@ bool PeakMinima::hasStragglerBogies(
   const unsigned wlo = static_cast<unsigned>(wheelGap.lower / 1.1f);
   const unsigned whi = static_cast<unsigned>(wheelGap.upper * 1.1f);
 
-  if (phi >= wlo && phi <= wheelGap.lower)
+cout << "trying index " << p << ", " << plo << "-" << phi << endl;
+cout << "wheel gap " << wheelGap.lower << "-" << wheelGap.upper << endl;
+cout << "wheel tol " << wlo << "-" << whi << endl;
+
+  if (plo <= wheelGap.upper && wheelGap.lower <= phi)
+  {
+    if (plo < wheelGap.lower)
+      wheelGap.lower = plo;
+    if (phi > wheelGap.upper)
+      wheelGap.upper = phi;
+cout << "Regrade branch 0: overlap\n";
+  }
+  else if (phi >= wlo && phi <= wheelGap.lower)
   {
     // Extend on the low end.
     wheelGap.lower = phi - 1;
+cout << "Regrade branch 1\n";
   }
   else if (plo >= wheelGap.upper && plo <= whi)
   {
     // Extend on the high end.
     wheelGap.upper = plo + 1;
+cout << "Regrade branch 2\n";
   }
   else if (plo >= wlo && plo <= wheelGap.lower)
   {
     // Extend on the low end.
     wheelGap.lower = plo - 1;
+cout << "Regrade branch 3\n";
   }
   else if (phi >= wheelGap.upper && phi <= whi)
   {
     // Extend on the high end.
     wheelGap.upper = phi + 1;
+cout << "Regrade branch 4\n";
   }
   else
     return false;
@@ -1282,26 +1367,69 @@ void PeakMinima::markShortGaps(
   list<PieceEntry> pieces;
   PeakMinima::makePieceList(peaks, &PeakMinima::formBogie, pieces);
 
+  PieceEntry const * pptr = nullptr;
+  Gap actualGap;
+  const unsigned wlo = static_cast<unsigned>(wheelGap.lower / 1.1f);
+  const unsigned whi = static_cast<unsigned>
+    (1.5f * (wheelGap.lower + wheelGap.upper) / 2.);
+
+  if (pieces.size() == 0)
+    THROW(ERR_NO_PEAKS, "Piece list for short gaps is empty");
+
+  unsigned i = 0;
+  for (auto pit = pieces.begin(); pit != pieces.end(); pit++, i++)
+  {
+    if (pit->summary.index < wlo)
+    {
+      // Most likely a small piece that was rejected relative to the
+      // largest piece (bogie gaps), but now this large piece is gone.
+      cout << "markShortGaps: Skipping an initial low piece\n";
+      cout << "wheelGap count " << wheelGap.count << endl;
+      cout << "skip count: " << pit->summary.cumul << endl;
+    }
+    else if (i+3 <= pieces.size() &&
+      PeakMinima::hasStragglerBogies(* pit, wheelGap))
+    {
+      // Only regrade if there are pieces left for short and long gaps.
+      cout << "Regrading some bogies\n";
+      PeakMinima::markBogiesOfSelects(peaks, &Peak::acceptableQuality, 
+        wheelGap, actualGap);
+    }
+    else if (i+3 <= pieces.size() &&
+        pit->summary.index < whi &&
+        pit->summary.cumul <= static_cast<int>(wheelGap.count / 4))
+    {
+      // Most likely a small piece with valid bogie differences for
+      // short cars.
+      // TODO Exploit this as well.
+      cout << "markShortGaps: Skipping an initial high piece\n";
+      cout << "wheelGap count " << wheelGap.count << endl;
+      cout << "skip count: " << pit->summary.cumul << endl;
+    }
+    else
+    {
+      pptr = &* pit;
+      break;
+    }
+  }
+
+  if (pptr == nullptr)
+    THROW(ERR_NO_PEAKS, "Piece list has no short gaps");
+
   cout << "For short gaps\n";
   for (auto& piece: pieces)
     cout << piece.str();
   cout << "\n";
 
-  if (PeakMinima::hasStragglerBogies(pieces.front(), wheelGap))
-  {
-    cout << "Regrading some bogies\n";
 
-    PeakMinima::markBogiesOfSelects(peaks, &Peak::acceptableQuality, 
-      wheelGap);
-  }
-
-
-  // Look for inter-car short gaps.
-  PeakMinima::guessNeighborDistance(peaks,
-    &PeakMinima::formBogieGap, shortGap);
+  PeakMinima::guessDistance(* pptr, shortGap);
 
   PeakMinima::printDists(shortGap.lower, shortGap.upper,
     "Guessing short gap");
+
+  if (shortGap.upper == 0)
+    THROW(ERR_NO_PEAKS, "Short gap is zero");
+
 
   // Mark short gaps (between cars).
   PeakMinima::markShortGapsOfSelects(peaks, shortGap);
@@ -1428,8 +1556,9 @@ void PeakMinima::markLongGaps(
 
   // Some peaks might have become good enough to lead to cars,
   // so we re-label.  First we look again for bogies.
+  Gap actualGap;
   PeakMinima::markBogiesOfSelects(peaks, &Peak::acceptableQuality,
-    wheelGap);
+    wheelGap, actualGap);
   PeakMinima::markLongGapsOfSelects(peaks, longGap);
 
   cout << peaks.candidates().strQuality("peaks with all four wheels", 
