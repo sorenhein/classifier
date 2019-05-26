@@ -336,6 +336,47 @@ bool PeakMinima::splitPieceOnDip(
 }
 
 
+bool PeakMinima::splitPieceOnGap(
+  list<PieceEntry>& pieces,
+  list<PieceEntry>::iterator pit) const
+{
+  // Split if the overall piece is too long, even though there
+  // was no obvious dip on which to split.  Choose the position
+  // with the largest relative gap.
+
+  const unsigned pitStart = pit->extrema.front().index;
+  const unsigned pitStop = static_cast<unsigned>(1.21f * pitStart);
+
+  if (pit->extrema.back().index <= pitStop)
+    return false;
+
+  float factorMax = 0.f;
+  unsigned indexPrev = pitStart;
+  unsigned indexPrevBest = 0;
+  unsigned indexBest = 0;
+
+  for (auto eit = next(pit->extrema.begin()); 
+      eit != pit->extrema.end(); eit++)
+  {
+    if (eit->direction == -1)
+      continue;
+
+    float factor = eit->index / static_cast<float>(indexPrev);
+    if (factor > factorMax)
+    {
+      indexPrevBest = indexPrev;
+      indexBest = eit->index;
+      factorMax = factor;
+    }
+
+    indexPrev = eit->index;
+  }
+
+  PeakMinima::splitPiece(pieces, pit, indexPrevBest, indexBest);
+  return true;
+}
+
+
 void PeakMinima::splitPieces(list<PieceEntry>& pieces) const
 {
   for (auto pit = pieces.begin(); pit != pieces.end(); )
@@ -349,47 +390,10 @@ void PeakMinima::splitPieces(list<PieceEntry>& pieces) const
     if (PeakMinima::splitPieceOnDip(pieces, pit))
       continue;
 
-    // Split if the overall piece is too long, even though there
-    // was no obvious dip on which to split.  Choose the position
-    // with the largest relative gap.
-
-    const unsigned pitStart = pit->extrema.front().index;
-    const unsigned pitStop = static_cast<unsigned>(1.21f * pitStart);
-
-    if (pit->extrema.back().index <= pitStop)
-    {
-      pit++;
+    if (PeakMinima::splitPieceOnGap(pieces, pit))
       continue;
-    }
 
-    float factorMax = 0.f;
-    unsigned indexPrev = pitStart;
-    unsigned indexPrevBest = 0;
-    unsigned indexBest = 0;
-
-    for (auto eit = next(pit->extrema.begin()); 
-        eit != pit->extrema.end(); eit++)
-    {
-      if (eit->direction == -1)
-        continue;
-
-      float factor = eit->index / static_cast<float>(indexPrev);
-      if (factor > factorMax)
-      {
-        indexPrevBest = indexPrev;
-        indexBest = eit->index;
-        factorMax = factor;
-      }
-
-      indexPrev = eit->index;
-    }
-
-    PeakMinima::splitPiece(pieces, pit, indexPrevBest, indexBest);
-
-    // cout << "Would like to split on " << indexPrevBest << " to " <<
-      // indexBest << endl;
-
-    // pit++;
+    pit++;
   }
 }
 
