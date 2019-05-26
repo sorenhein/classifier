@@ -574,7 +574,7 @@ bool Peak::acceptableQuality() const
 bool Peak::borderlineQuality() const
 {
   // TODO #define
-  return (qualityShape <= 1.00f);
+  return (qualityShape <= 1.25f);
 }
 
 

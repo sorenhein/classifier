@@ -1128,7 +1128,22 @@ bool PeakPattern::guessAndFixShort(
   const unsigned numSpaces = indexLast + 1 - indexFirst;
 cout << "PPINDEX " << numSpaces << endl;
 
-  if (numSpaces == 3)
+  if (numSpaces == 2)
+  {
+    // TODO Could extend
+    /*
+    if (rangeData.qualWorst != QUALITY_GENERAL && 
+        rangeData.qualWorst != QUALITY_NONE)
+    {
+      cout << "PPDOUBLE 2\n";
+    }
+    else
+    {
+      cout << "PPSINGLE 2\n";
+    }
+    */
+  }
+  else if (numSpaces == 3)
   {
     if (spacings[indexFirst].bogieLikeFlag &&
         spacings[indexLast].bogieLikeFlag &&

@@ -258,6 +258,42 @@ void PeakMinima::eraseSmallMaxima(
 }
 
 
+void PeakMinima::splitPiece(
+  list<PieceEntry>& pieces,
+  list<PieceEntry>::iterator pit,
+  const unsigned indexLeft,
+  const unsigned indexRight) const
+{
+  // Copy the entry to begin with.  newpit precedes pit now.
+  auto newpit = pieces.emplace(pit, * pit);
+
+  // Stop newpit at eit.
+  for (auto neweit = newpit->extrema.begin();
+      neweit != newpit->extrema.end(); neweit++)
+  {
+    if (neweit->index == indexLeft)
+    {
+      newpit->extrema.erase(next(neweit), newpit->extrema.end());
+      break;
+    }
+  }
+
+  // Begin pit at nneit.
+  for (auto neweit = pit->extrema.begin();
+      neweit != pit->extrema.end(); neweit++)
+  {
+    if (neweit->index == indexRight)
+    {
+      pit->extrema.erase(pit->extrema.begin(), neweit);
+      break;
+    }
+  }
+
+  PeakMinima::summarizePiece(* newpit);
+  PeakMinima::summarizePiece(* pit);
+}
+
+
 void PeakMinima::splitPieces(list<PieceEntry>& pieces) const
 {
   // Split if two consecutive maxima are not within +/- 10%.
@@ -289,6 +325,7 @@ void PeakMinima::splitPieces(list<PieceEntry>& pieces) const
       auto nneit = next(next(eit));
       if (static_cast<unsigned>(1.21f * eit->index) >= nneit->index)
       {
+        // Next one is not too far away.
         const unsigned a = eit->cumul;
         const unsigned b = next(eit)->cumul;
         const unsigned c = nneit->cumul;
@@ -297,79 +334,12 @@ void PeakMinima::splitPieces(list<PieceEntry>& pieces) const
           eit++;
           continue;
         }
-        else
-cout << "PMSPLIT" << endl;
       }
 
-      // Copy the entry to begin with.  newpit precedes pit now.
-      auto newpit = pieces.emplace(pit, * pit);
-
-      // Stop newpit at eit.
-      for (auto neweit = newpit->extrema.begin();
-          neweit != newpit->extrema.end(); neweit++)
-      {
-        if (neweit->index == eit->index)
-        {
-          newpit->extrema.erase(next(neweit), newpit->extrema.end());
-          break;
-        }
-      }
-
-      // Begin pit at nneit.
-      for (auto neweit = pit->extrema.begin();
-          neweit != pit->extrema.end(); neweit++)
-      {
-        if (neweit->index == nneit->index)
-        {
-          pit->extrema.erase(pit->extrema.begin(), neweit);
-          break;
-        }
-      }
-
-      PeakMinima::summarizePiece(* newpit);
-      PeakMinima::summarizePiece(* pit);
+      PeakMinima::splitPiece(pieces, pit, eit->index, nneit->index);
       break;
     }
   }
-}
-
-
-bool PeakMinima::setGap(
-  const PieceEntry& piece,
-  Gap& gap) const
-{
-  if (piece.modality != 1)
-    return false;
-
-  const unsigned p = (piece.summary.indexHi == 0 ? piece.summary.index :
-    (piece.summary.index + piece.summary.indexHi) / 2);
-
-  gap.lower = static_cast<unsigned>(p * SLIDING_LOWER);
-  gap.upper = static_cast<unsigned>(p * SLIDING_UPPER);
-  gap.count = piece.summary.cumul;
-  return true;
-}
-
-
-bool PeakMinima::tripartite(
-  const list<PieceEntry>& pieces,
-  Gap& wheelGap,
-  Gap& shortGap,
-  Gap& longGap) const
-{
-  if (pieces.size() != 3)
-    return false;
-
-  auto pit = pieces.begin();
-  if (! PeakMinima::setGap(* pit, wheelGap))
-    return false;
-
-  pit++;
-  if (! PeakMinima::setGap(* pit, shortGap))
-    return false;
-
-  pit++;
-  return PeakMinima::setGap(* pit, longGap);
 }
 
 
@@ -413,6 +383,7 @@ cout << "UNJITTER\n";
 
       if (leftHighFlag)
       {
+        // Keep a memory of the right maximum in this maximum.
         if (M-m <= limit)
           pit->indexHi = nit->index;
       }
@@ -421,6 +392,7 @@ cout << "UNJITTER\n";
         eit = pit;
         if (M-m <= limit)
         {
+          // Keep a memory of the left maximum in this maximum.
           nit->indexHi = nit->index;
           nit->index = pit->index;
         }
@@ -430,45 +402,46 @@ cout << "UNJITTER\n";
       eit = piece.extrema.erase(eit);
       piece.modality--;
     }
-
-    /*
-    const int limitLow = 
-      static_cast<unsigned>(0.75f * piece.summary.cumul);
-
-    for (auto eit = piece.extrema.begin(); eit != piece.extrema.end(); )
-    {
-      if (eit->direction == -1)
-        eit++;
-      else if (eit->cumul <= limitLow)
-      {
-        unsigned delta;
-        if (next(eit) == piece.extrema.end() ||
-            (eit != piece.extrema.begin() &&
-            prev(eit)->cumul > next(eit)->cumul))
-        {
-          delta = eit->cumul - prev(eit)->cumul;
-          eit = prev(eit);
-        }
-        else
-          delta = eit->cumul - next(eit)->cumul;
-
-        if (delta <= 2)
-        {
-          eit = piece.extrema.erase(eit);
-          eit = piece.extrema.erase(eit);
-          piece.modality--;
-        }
-        else
-        {
-          eit++;
-          eit++;
-        }
-      }
-      else
-        eit++;
-    }
-    */
   }
+}
+
+
+bool PeakMinima::setGap(
+  const PieceEntry& piece,
+  Gap& gap) const
+{
+  if (piece.modality != 1)
+    return false;
+
+  const unsigned p = (piece.summary.indexHi == 0 ? piece.summary.index :
+    (piece.summary.index + piece.summary.indexHi) / 2);
+
+  gap.lower = static_cast<unsigned>(p * SLIDING_LOWER);
+  gap.upper = static_cast<unsigned>(p * SLIDING_UPPER);
+  gap.count = piece.summary.cumul;
+  return true;
+}
+
+
+bool PeakMinima::tripartite(
+  const list<PieceEntry>& pieces,
+  Gap& wheelGap,
+  Gap& shortGap,
+  Gap& longGap) const
+{
+  if (pieces.size() != 3)
+    return false;
+
+  auto pit = pieces.begin();
+  if (! PeakMinima::setGap(* pit, wheelGap))
+    return false;
+
+  pit++;
+  if (! PeakMinima::setGap(* pit, shortGap))
+    return false;
+
+  pit++;
+  return PeakMinima::setGap(* pit, longGap);
 }
 
 
@@ -1421,6 +1394,11 @@ DistEntry summary;
 PeakMinima::makePieces(steps, pieces, summary);
 PeakMinima::eraseSmallPieces(pieces, summary);
 PeakMinima::eraseSmallMaxima(pieces, summary);
+
+cout << "PIECES before split\n";
+for (auto& p: pieces)
+  cout << p.str();
+cout << endl;
 
 PeakMinima::splitPieces(pieces);
 
