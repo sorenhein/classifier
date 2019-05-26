@@ -296,11 +296,6 @@ void PeakMinima::splitPiece(
 
 void PeakMinima::splitPieces(list<PieceEntry>& pieces) const
 {
-  // Split if two consecutive maxima are not within +/- 10%.
-  // Also split if there's a fairly sharp dip:  Either side must be
-  // >= 4 and the bottom must be less than half of the smallest
-  // neighbor.
-
   for (auto pit = pieces.begin(); pit != pieces.end(); )
   {
     if (pit->modality == 1)
@@ -309,13 +304,16 @@ void PeakMinima::splitPieces(list<PieceEntry>& pieces) const
       continue;
     }
 
+    // Split if two consecutive maxima are not within +/- 10%.
+    // Also split if there's a fairly sharp dip:  Either side must be
+    // >= 4 and the bottom must be less than half of the smallest
+    // neighbor.
+
+    bool splitFlag = false;
     for (auto eit = pit->extrema.begin(); eit != pit->extrema.end(); )
     {
       if (next(eit) == pit->extrema.end())
-      {
-        pit++;
         break;
-      }
       else if (eit->direction == -1)
       {
         eit++;
@@ -331,14 +329,60 @@ void PeakMinima::splitPieces(list<PieceEntry>& pieces) const
         const unsigned c = nneit->cumul;
         if (a <= 3 || c <= 3 || 2*b >= a || 2*b >= c)
         {
+          // The cumul values do not make for a convincing split.
+
           eit++;
           continue;
         }
       }
 
+      splitFlag = true;
       PeakMinima::splitPiece(pieces, pit, eit->index, nneit->index);
       break;
     }
+
+    if (splitFlag)
+      continue;
+
+    // Split if the overall piece is too long, even though there
+    // was no obvious dip on which to split.  Choose the position
+    // with the largest relative gap.
+
+    const unsigned pitStart = pit->extrema.front().index;
+    const unsigned pitStop = static_cast<unsigned>(1.21f * pitStart);
+
+    if (pit->extrema.back().index <= pitStop)
+    {
+      pit++;
+      continue;
+    }
+
+    float factorMax = 0.f;
+    unsigned indexPrev = pitStart;
+    unsigned indexPrevBest = 0;
+    unsigned indexBest = 0;
+
+    for (auto eit = next(pit->extrema.begin()); 
+        eit != pit->extrema.end(); eit++)
+    {
+      if (eit->direction == -1)
+        continue;
+
+      float factor = eit->index / static_cast<float>(indexPrev);
+      if (factor > factorMax)
+      {
+        indexPrevBest = indexPrev;
+        indexBest = eit->index;
+        factorMax = factor;
+      }
+
+      indexPrev = eit->index;
+    }
+
+    cout << "Would like to split on " << indexPrevBest << " to " <<
+      indexBest << endl;
+
+    pit++;
   }
 }
 
