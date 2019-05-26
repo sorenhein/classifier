@@ -53,12 +53,9 @@ void PeakMinima::makeDistances(
       continue;
     }
 
-    npit = candidates.next(pit, &Peak::isSelected);
+    npit = candidates.next(pit, fptr);
     if (npit == cend)
       break;
-
-    if (! ((* npit)->* fptr)())
-      continue;
 
     // At least one should also be selected.
     if (! (* pit)->isSelected() && ! (* npit)->isSelected())
@@ -1040,12 +1037,7 @@ void PeakMinima::markBogiesOfSelects(
     if (PeakMinima::bothSelected(cand, nextCand))
     {
       if (cand->matchesGap(* nextCand, wheelGap))
-      {
-        if (cand->isWheel())
-          THROW(ERR_NO_PEAKS, "Triple bogie?!");
-
         PeakMinima::markWheelPair(* cand, * nextCand, "");
-      }
     }
   }
 }
@@ -1148,10 +1140,22 @@ bool PeakMinima::guessBogieDistance(
 
 void PeakMinima::markBogies(
   PeakPool& peaks,
-  Gap& wheelGap) const
+  Gap& wheelGap,
+  const list<PieceEntry>& pieces) const
 {
-  if (! PeakMinima::guessBogieDistance(peaks, wheelGap))
-    THROW(ERR_ALGO_NO_WHEEL_GAP, "Couldn't find wheel gap");
+  // if (! PeakMinima::guessBogieDistance(peaks, wheelGap))
+    // THROW(ERR_ALGO_NO_WHEEL_GAP, "Couldn't find wheel gap");
+
+  const DistEntry& dist = pieces.front().extrema.front();
+  const unsigned index = (dist.indexHi == 0 ? dist.index :
+    (dist.index + dist.indexHi) / 2);
+  /* */
+
+  // TODO #define
+  const unsigned delta = static_cast<unsigned>(0.1f * index);
+  wheelGap.lower = index - delta;
+  wheelGap.upper = index + delta;
+  /* */
 
   PeakMinima::printDists(wheelGap.lower, wheelGap.upper,
     "Guessing wheel distance");
@@ -1463,37 +1467,6 @@ cout << "FRAC " << countSelected << " " <<
 
   list<PieceEntry> pieces;
   PeakMinima::makePieces(peaks, pieces);
-/*
-vector<unsigned> dists;
-PeakMinima::makeDistances(peaks, &Peak::acceptableQuality, dists);
-list<DistEntry> steps;
-PeakMinima::makeSteps(dists, steps);
-list<PieceEntry> pieces;
-DistEntry summary;
-PeakMinima::makePieces(steps, pieces, summary);
-PeakMinima::eraseSmallPieces(pieces, summary);
-PeakMinima::eraseSmallMaxima(pieces, summary);
-
-cout << "PIECES before split\n";
-for (auto& p: pieces)
-  cout << p.str();
-cout << endl;
-
-PeakMinima::splitPieces(pieces);
-
-
-cout << "PIECES before unjitter\n";
-for (auto& p: pieces)
-  cout << p.str();
-cout << endl;
-
-PeakMinima::unjitterPieces(pieces);
-
-cout << "PIECES after unjitter\n";
-for (auto& p: pieces)
-  cout << p.str();
-cout << endl;
-*/
 
 Gap wheelGapNew, shortGapNew, longGapNew;
 bool threeFlag = false;
@@ -1501,7 +1474,7 @@ if (PeakMinima::tripartite(pieces, wheelGapNew, shortGapNew, longGapNew))
   threeFlag = true;
 
   Gap wheelGap;
-  PeakMinima::markBogies(peaks, wheelGap);
+  PeakMinima::markBogies(peaks, wheelGap, pieces);
 
 peaks.mergeSplits((wheelGap.lower + wheelGap.upper) / 2, offset);
 

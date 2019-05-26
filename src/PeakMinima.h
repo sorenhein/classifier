@@ -194,7 +194,8 @@ class PeakMinima
 
     void markBogies(
       PeakPool& peaks,
-      Gap& wheelGap) const;
+      Gap& wheelGap,
+      const list<PieceEntry>& pieces) const;
 
 
     bool guessBogieDistance(
