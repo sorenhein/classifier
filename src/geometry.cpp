@@ -4,6 +4,7 @@
 
 #include "Database.h"
 #include "Regress.h"
+#include "geometry.h"
 
 using namespace std;
 
@@ -58,7 +59,8 @@ void dumpResiduals(
       const double t = times[i].time;
       const int j = ma.actualToRef[i];
       if (j != -1) 
-        pos[j] = coeffs[0] + coeffs[1] * t + coeffs[2] * t * t;
+        pos[static_cast<unsigned>(j)] = 
+          coeffs[0] + coeffs[1] * t + coeffs[2] * t * t;
     }
 
     db.getPerfectPeaks(ma.trainNo, posTrue);

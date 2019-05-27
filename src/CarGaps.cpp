@@ -2,6 +2,7 @@
 #include <iomanip>
 #include <sstream>
 #include <limits>
+#include <math.h>
 
 #include "CarGaps.h"
 #include "PeakPtrs.h"

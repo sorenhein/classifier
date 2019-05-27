@@ -23,7 +23,7 @@ void Except::print(ostream& flog) const
   flog << "Exception thrown in " << file << 
       ", function " << function << 
       ", line number " << line << endl;
-  flog << "Code " << code << endl;
+  flog << "Code " << static_cast<unsigned>(code) << endl;
   flog << message << endl;
 }
 
