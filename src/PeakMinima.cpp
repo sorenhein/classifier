@@ -4,6 +4,7 @@
 #include <algorithm>
 #include <fstream>
 #include <sstream>
+#include <cmath>
 
 #include "Peak.h"
 #include "PeakMinima.h"
@@ -218,7 +219,7 @@ void PeakMinima::eraseSmallPieces(
   list<PieceEntry>& pieces,
   DistEntry& summary) const
 {
-  const int limit = static_cast<unsigned>(0.25f * summary.cumul);
+  const int limit = static_cast<int>(0.25f * summary.cumul);
   for (auto pit = pieces.begin(); pit != pieces.end(); )
   {
     if (pit->summary.cumul <= limit)
@@ -233,7 +234,7 @@ void PeakMinima::eraseSmallMaxima(
   list<PieceEntry>& pieces,
   DistEntry& summary) const
 {
-  const int limit = static_cast<unsigned>(0.25f * summary.cumul);
+  const int limit = static_cast<int>(0.25f * summary.cumul);
   for (auto pit = pieces.begin(); pit != pieces.end(); pit++)
   {
     if (pit->modality == 1)
@@ -322,9 +323,9 @@ bool PeakMinima::splitPieceOnDip(
         SLIDING_UPPER_SQ * eit->index) >= nneit->index)
     {
       // Next one is not too far away.
-      const unsigned a = eit->cumul;
-      const unsigned b = next(eit)->cumul;
-      const unsigned c = nneit->cumul;
+      const int a = eit->cumul;
+      const int b = next(eit)->cumul;
+      const int c = nneit->cumul;
       if (a <= 3 || c <= 3 || 2*b >= a || 2*b >= c)
       {
         // The cumul values do not make for a convincing split.
@@ -421,11 +422,11 @@ void PeakMinima::unjitterPieces(list<PieceEntry>& pieces) const
 
       auto pit = prev(eit);
       auto nit = next(eit);
-      const unsigned a = pit->cumul; // Max
-      const unsigned b = eit->cumul; // Min
-      const unsigned c = nit->cumul; // Max
+      const int a = pit->cumul; // Max
+      const int b = eit->cumul; // Min
+      const int c = nit->cumul; // Max
       const bool leftHighFlag = (a >= c);
-      const unsigned m = (leftHighFlag ? c : a);
+      const int m = (leftHighFlag ? c : a);
       if (m < 4 && m - b > 2)
       {
         eit++;
@@ -435,8 +436,8 @@ void PeakMinima::unjitterPieces(list<PieceEntry>& pieces) const
       // So now we've got a dip of 1-2 below the lowest maximum
       // which is at least 4.
 
-      const unsigned M = (leftHighFlag ? a : c);
-      unsigned limit = static_cast<unsigned>(0.1f * M);
+      const int M = (leftHighFlag ? a : c);
+      int limit = static_cast<int>(0.1f * M);
       if (limit == 0)
         limit = 1;
 
@@ -482,7 +483,7 @@ bool PeakMinima::setGap(
   // But we generally get the stragglers later.
   gap.lower = static_cast<unsigned>(p / SLIDING_UPPER);
   gap.upper = static_cast<unsigned>(p * SLIDING_UPPER);
-  gap.count = piece.summary.cumul;
+  gap.count = static_cast<unsigned>(piece.summary.cumul);
   return true;
 }
 
@@ -637,7 +638,7 @@ while (i < dindex)
   const unsigned mid = (bestLowerValue + bestUpperValue) / 2;
   gap.lower = static_cast<unsigned>(mid * SLIDING_LOWER);
   gap.upper = static_cast<unsigned>(mid * SLIDING_UPPER);
-  gap.count = bestCount;
+  gap.count = static_cast<unsigned>(bestCount);
 }
 
 
@@ -717,7 +718,8 @@ bool PeakMinima::guessNeighborDistance(
   // Guess their distance range.
   sort(dists.begin(), dists.end());
 
-  const unsigned revisedMinCount = min(minCount, dists.size() / 4);
+  const unsigned l = dists.size() / 4;
+  const unsigned revisedMinCount = min(minCount, l);
 // cout << "Revised count " << revisedMinCount << endl;
   PeakMinima::findFirstLargeRange(dists, gap, revisedMinCount);
   return true;
@@ -1159,7 +1161,7 @@ void PeakMinima::guessDistance(
 
   gap.lower = static_cast<unsigned>(index / SLIDING_UPPER) - 1;
   gap.upper = static_cast<unsigned>(index * SLIDING_UPPER) + 1;
-  gap.count = piece.summary.cumul;
+  gap.count = static_cast<unsigned>(piece.summary.cumul);
 }
 
 
@@ -1634,10 +1636,10 @@ cout << "FRAC " << countSelected << " " <<
   if (pieces.empty())
     THROW(ERR_NO_PEAKS, "Piece list is empty");
 
-Gap wheelGapNew, shortGapNew, longGapNew;
-bool threeFlag = false;
-if (PeakMinima::tripartite(pieces, wheelGapNew, shortGapNew, longGapNew))
-  threeFlag = true;
+  Gap wheelGapNew, shortGapNew, longGapNew;
+  bool threeFlag = false;
+  if (PeakMinima::tripartite(pieces, wheelGapNew, shortGapNew, longGapNew))
+    threeFlag = true;
 
   Gap wheelGap;
   PeakMinima::markBogies(peaks, wheelGap, pieces);

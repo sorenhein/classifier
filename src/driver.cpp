@@ -144,7 +144,7 @@ if (! control.pickTrainString.empty() &&
       const double speedTrue = traceDB.lookupTrueSpeed(fname);
       const int trainNoTrue = db.lookupTrainNumber(trainTrue);
       vector<PeakPos> posTrue;
-      db.getPerfectPeaks(trainNoTrue, posTrue);
+      db.getPerfectPeaks(static_cast<unsigned>(trainNoTrue), posTrue);
       
       try
       {
@@ -178,7 +178,8 @@ if (! control.pickTrainString.empty() &&
         {
           const string s = sensor + "/" + traceDB.lookupTime(fname);
           dumpResiduals(times, db, order, matchesAlign, s, trainTrue, 
-            control.pickTrainString, db.axleCount(trainNoTrue));
+            control.pickTrainString, 
+            db.axleCount(static_cast<unsigned>(trainNoTrue)));
         }
 
         traceDB.log(fname, matchesAlign, times.size());
@@ -331,7 +332,7 @@ unsigned lookupMatchRank(
   const vector<Alignment>& matches,
   const string& tag)
 {
-  const unsigned tno = db.lookupTrainNumber(tag);
+  const unsigned tno = static_cast<unsigned>(db.lookupTrainNumber(tag));
   for (unsigned i = 0; i < matches.size(); i++)
   {
     if (matches[i].trainNo == tno)

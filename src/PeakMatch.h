@@ -39,7 +39,7 @@ class PeakMatch
       const double speed,
       vector<PeakTime>& timesTrue) const;
 
-    bool advance(list<PeakWrapper>::const_iterator& peak) const;
+    bool advance(list<PeakWrapper>::iterator& peak) const;
 
     double simpleScore(
       const vector<PeakTime>& timesTrue,

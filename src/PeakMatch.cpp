@@ -2,6 +2,7 @@
 #include <iostream>
 #include <iomanip>
 #include <sstream>
+#include <limits>
 
 #include "PeakMatch.h"
 
@@ -55,7 +56,7 @@ void PeakMatch::pos2time(
 }
 
 
-bool PeakMatch::advance(list<PeakWrapper>::const_iterator& peak) const
+bool PeakMatch::advance(list<PeakWrapper>::iterator& peak) const
 {
   while (peak != peaksWrapped.end() && ! peak->peakPtr->isSelected())
     peak++;
@@ -157,7 +158,7 @@ double PeakMatch::simpleScore(
     {
       if (dabs < peakBest->bestDistance)
       {
-        peakBest->match = tno;
+        peakBest->match = static_cast<int>(tno);
         peakBest->bestDistance = dabs;
       }
       trueMatches[tno] = peakBest->peakPtr;
@@ -374,7 +375,7 @@ void PeakMatch::logPeakStats(
         else
           peakStats.logSeenHit(PEAK_SEEN_CORE);
 
-        seenTrue[m]++;
+        seenTrue[static_cast<unsigned>(m)]++;
         seen++;
       }
       else

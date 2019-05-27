@@ -4,6 +4,7 @@
 #include <algorithm>
 #include <fstream>
 #include <sstream>
+#include <cmath>
 
 #include "PeakDetect.h"
 #include "PeakSeeds.h"
