@@ -268,7 +268,8 @@ void PeakRepair::repairFourth(
   PeakPtrs& peakPtrsUsed,
   PeakPtrs& peakPtrsUnused) const
 {
-cout << "repairFourth " << carpos << ", " << peakPtrsUsed.size()  << endl;
+cout << "repairFourth " << static_cast<unsigned>(carpos) << ", " << 
+  peakPtrsUsed.size()  << endl;
   // TODO For now.
   if (carpos != CARPOSITION_INNER_SINGLE)
     return;

@@ -1,6 +1,8 @@
 #include <iostream>
 #include <iomanip>
 #include <sstream>
+#include <limits>
+#include <math.h>
 
 #include "Peaks.h"
 

@@ -2,6 +2,7 @@
 #include <iomanip>
 #include <fstream>
 #include <sstream>
+#include <limits>
 #include <math.h>
 
 #include "SegQuiet.h"

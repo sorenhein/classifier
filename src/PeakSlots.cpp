@@ -37,7 +37,8 @@ void PeakSlots::log(
 {
   PeakSlots::reset();
 
-  peakCode = (pk0 ? 8 : 0) | (pk1 ? 4 : 0) | (pk2 ? 2 : 0) | (pk3 ? 1 : 0);
+  peakCode = (pk0 ? 8u : 0u) | (pk1 ? 4u : 0u) | 
+    (pk2 ? 2u : 0u) | (pk3 ? 1u : 0u);
 
   //      p0      p1      p2      p3
   //   i4 >|< i3 >|<  i2 >|<  i1 >|<  i0

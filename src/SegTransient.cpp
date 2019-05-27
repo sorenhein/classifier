@@ -529,8 +529,8 @@ string SegTransient::strCSV() const
 {
   stringstream ss;
   ss << 
-    status << SEPARATOR <<
-    transientType << SEPARATOR <<
+    static_cast<unsigned>(status) << SEPARATOR <<
+    static_cast<unsigned>(transientType) << SEPARATOR <<
     firstBuildupSample << SEPARATOR <<
     buildupLength << SEPARATOR <<
     fixed << setprecision(2) << buildupStart << SEPARATOR <<
