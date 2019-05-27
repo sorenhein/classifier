@@ -166,7 +166,7 @@ class PeakPattern
           peakLeft->getIndex() + offset << " - " <<
           peakRight->getIndex() + offset << ", bogies " <<
           setw(5) << fixed << setprecision(2) << numBogies << ", q " <<
-          qualityLower << ", like " << 
+          static_cast<unsigned>(qualityLower) << ", like " << 
           bogieLikeFlag << endl;
         return ss.str();
       };

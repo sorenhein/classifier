@@ -251,7 +251,7 @@ void PeakPool::mergeSplits(
       {
         if (pStart->isSelected())
           PeakPool::showSplit(pStart, pit, offset, 
-            "MSPL Both select (OK1??)");
+            "MSPL Both select (OK1?)");
         else
         {
           PeakPool::showSplit(pStart, pit, offset, 
@@ -269,7 +269,7 @@ void PeakPool::mergeSplits(
         if (pStart->isSelected())
         {
           PeakPool::showSplit(pStart, pit, offset, 
-            "MSPL Both select (OK2??)");
+            "MSPL Both select (OK2?)");
         }
         else
         {

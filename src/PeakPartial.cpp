@@ -2,6 +2,7 @@
 #include <iomanip>
 #include <fstream>
 #include <sstream>
+#include <limits>
 
 #include "PeakPartial.h"
 #include "Peak.h"

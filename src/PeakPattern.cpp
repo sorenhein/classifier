@@ -408,9 +408,11 @@ bool PeakPattern::guessBothDouble(
           rangeData.lenRange <= 
           ae1.lenHi[rangeData.qualBest] + ae2.lenHi[rangeData.qualBest])
       {
-cout << ae1.strShort("guessBothDouble 1, left " + to_string(leftFlag),
+cout << ae1.strShort("guessBothDouble 1, left " + 
+  to_string(static_cast<unsigned>(leftFlag)),
   rangeData.qualBest);
-cout << ae2.strShort("guessBothDouble 2, left " + to_string(leftFlag),
+cout << ae2.strShort("guessBothDouble 2, left " + 
+  to_string(static_cast<unsigned>(leftFlag)),
   rangeData.qualBest);
 
         if (leftFlag)
@@ -887,9 +889,9 @@ bool PeakPattern::fixSingles(
 {
   PeakPattern::condenseSingles(singles);
 
-cout << "Condensed singles\n";
-for (auto s: singles)
-  cout << s.str(offset);
+  cout << "Condensed singles\n";
+  for (auto s: singles)
+    cout << s.str(offset);
 
   Peak * pptr;
   for (auto& single: singles)
@@ -923,9 +925,9 @@ bool PeakPattern::fixDoubles(
 {
   PeakPattern::condenseDoubles(doubles);
 
-cout << "Condensed doubles\n";
-for (auto d: doubles)
-  cout << d.str(offset);
+  cout << "Condensed doubles\n";
+  for (auto d: doubles)
+    cout << d.str(offset);
 
   Peak * pptr;
   for (auto& db: doubles)
