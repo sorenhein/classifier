@@ -1207,7 +1207,7 @@ bool readBinaryTrace(
   samples.resize(filesize/4);
 
   fin.read(reinterpret_cast<char *>(samples.data()),
-    samples.size() * sizeof(float));
+    static_cast<long int>(samples.size() * sizeof(float)));
   fin.close();
   return true;
 
