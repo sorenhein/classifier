@@ -175,7 +175,7 @@ string TraceDB::lookupTrueTrain(const string& fname) const
   if (it == entries.end())
   {
     cout << "File truth for " << basename << " not logged\n";
-    return false;
+    return "";
   }
 
   return it->second.trainTruth.trainName;
@@ -189,7 +189,7 @@ double TraceDB::lookupTrueSpeed(const string& fname) const
   if (it == entries.end())
   {
     cout << "File truth for " << basename << " not logged\n";
-    return false;
+    return 0.;
   }
 
   return it->second.trainTruth.speed;

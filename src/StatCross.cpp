@@ -144,13 +144,13 @@ void StatCross::printQuality() const
   for (auto& it: nameMap)
   {
     const unsigned i = it.second;
-    numPerfect += countCross[i][i];
-    numUndirected += countCross[i][i];
+    numPerfect += static_cast<unsigned>(countCross[i][i]);
+    numUndirected += static_cast<unsigned>(countCross[i][i]);
 
     for (auto& it2: nameMap)
     {
       const unsigned j = it2.second;
-      numAll += countCross[i][j];
+      numAll += static_cast<unsigned>(countCross[i][j]);
     }
 
     const string n = it.first;
@@ -171,7 +171,7 @@ void StatCross::printQuality() const
       continue;
 
     const unsigned j = itr->second;
-    numUndirected += countCross[i][j];
+    numUndirected += static_cast<unsigned>(countCross[i][j]);
   }
 
   if (numAll == 0)

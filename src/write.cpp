@@ -34,7 +34,7 @@ void writeBinary(
 
   ofstream fout(name, std::ios::out | std::ios::binary);
   fout.write(reinterpret_cast<const char *>(sequence.data()),
-    sequence.size() * sizeof(float));
+    static_cast<long int>(sequence.size() * sizeof(float)));
   fout.close();
 }
 
