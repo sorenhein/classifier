@@ -32,16 +32,6 @@
 extern Timers timers;
 
 
-const vector<vector<Align::OverallShift>> likelyShifts =
-{
-  { {0, 0} },
-  { {3, 0}, {7, 0}, {2, 0}, {6, 0}, {4, 1},         {0, 1} },
-  { {2, 0}, {6, 0}, {1, 0}, {5, 0}, {3, 1}, {2, 1}, {0, 2} },
-  { {1, 0}, {5, 0}, {0, 0}, {4, 0}, {2, 1}, {1, 1} },
-  { {0, 0}, {4, 0} }
-};
-
-
 Align::Align()
 {
 }
@@ -300,17 +290,18 @@ void Align::estimateMotion(
   double tEnd = times.back().time - tOffset;
 
   const double lpeff = lp - shift.firstRefNo;
-  const double lteff = lt - shift.firstTimeNo -
+  const double lteff = static_cast<int>(lt) - 
+    static_cast<int>(shift.firstTimeNo) -
     shift.firstHalfNetInsert - shift.secondHalfNetInsert;
 
   const double tpos0 = 
-    shift.firstTimeNo + 
+    static_cast<int>(shift.firstTimeNo) + 
     shift.firstHalfNetInsert +
     static_cast<double>(posLeft - shift.firstRefNo) * 
       (lteff - 1.) / (lpeff - 1.);
 
   const double tpos1 = 
-    shift.firstTimeNo + 
+    static_cast<int>(shift.firstTimeNo) + 
     shift.firstHalfNetInsert +
     static_cast<double>(posLeft + 1 - shift.firstRefNo) * 
       (lteff - 1.) / (lpeff - 1.);
@@ -481,12 +472,13 @@ bool Align::betterSimpleScore(
   const Shift& cNew = candidates[index];
   const Shift& cOld = candidates[bestIndex];
 
-  const int dNew = (cNew.firstRefNo >= cNew.firstTimeNo ?
-    cNew.firstRefNo - cNew.firstTimeNo :
-    -static_cast<int>(cNew.firstTimeNo - cNew.firstRefNo));
-  const int dOld = (cOld.firstRefNo >= cOld.firstTimeNo ?
-    cOld.firstRefNo - cOld.firstTimeNo :
-    -static_cast<int>(cOld.firstTimeNo - cOld.firstRefNo));
+  const int frn = static_cast<int>(cNew.firstRefNo);
+  const int ftn = static_cast<int>(cNew.firstTimeNo);
+  const int dNew = frn - ftn;
+
+  const int ofrn = static_cast<int>(cOld.firstRefNo);
+  const int oftn = static_cast<int>(cOld.firstTimeNo);
+  const int dOld = oftn - oftn;
 
   if (dNew != dOld)
     return (score > bestScore);
@@ -541,6 +533,15 @@ void Align::scalePeaks(
 
   // TODO Make this more general:  Also net adds in 1st/2nd halves.
   // Impacts estimateMotion
+
+  const vector<vector<Align::OverallShift>> likelyShifts =
+  {
+    { {0, 0} },
+    { {3, 0}, {7, 0}, {2, 0}, {6, 0}, {4, 1},         {0, 1} },
+    { {2, 0}, {6, 0}, {1, 0}, {5, 0}, {3, 1}, {2, 1}, {0, 2} },
+    { {1, 0}, {5, 0}, {0, 0}, {4, 0}, {2, 1}, {1, 1} },
+    { {0, 0}, {4, 0} }
+  };
 
   const unsigned lt = times.size();
   const unsigned lp = refPeaks.size();
@@ -627,14 +628,15 @@ void Align::bestMatches(
   for (auto& refTrain: db)
   {
     const int refTrainNo = db.lookupTrainNumber(refTrain);
+    const unsigned refTrainNoU = static_cast<unsigned>(refTrainNo);
 
-    if (Align::countTooDifferent(times, db.axleCount(refTrainNo)))
+    if (Align::countTooDifferent(times, db.axleCount(refTrainNoU)))
       continue;
 
-    if (! db.trainIsInCountry(refTrainNo, country))
+    if (! db.trainIsInCountry(refTrainNoU, country))
       continue;
 
-    db.getPerfectPeaks(refTrainNo, refPeaks);
+    db.getPerfectPeaks(refTrainNoU, refPeaks);
 
     const double trainLength = refPeaks.back().pos - refPeaks.front().pos;
     Shift shift;
@@ -651,7 +653,7 @@ void Align::bestMatches(
     const double peakScale = 200. * 200. / (trainLength * trainLength);
 
     matches.push_back(Alignment());
-    matches.back().trainNo = refTrainNo;
+    matches.back().trainNo = refTrainNoU;
 // cout << "ALIGN train " << refTrain << " scale " << 
   // shift.firstRefNo << "-" << 
   // shift.firstTimeNo << ", " << 
