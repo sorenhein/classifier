@@ -1,6 +1,7 @@
 #include <iostream>
 #include <iomanip>
 #include <sstream>
+#include <limits>
 
 #include "CarDetect.h"
 #include "PeakRange.h"
@@ -265,7 +266,7 @@ void CarDetect::reverse()
 }
 
 
-const unsigned CarDetect::startValue() const
+unsigned CarDetect::startValue() const
 {
   if (start > 0)
     return start;
@@ -274,7 +275,7 @@ const unsigned CarDetect::startValue() const
 }
 
 
-const unsigned CarDetect::endValue() const
+unsigned CarDetect::endValue() const
 {
   if (end > 0)
     return end;
@@ -283,49 +284,49 @@ const unsigned CarDetect::endValue() const
 }
 
 
-const unsigned CarDetect::index() const
+unsigned CarDetect::index() const
 {
   return match.index;
 }
 
 
-const bool CarDetect::isReversed() const
+bool CarDetect::isReversed() const
 {
   return match.reverseFlag;
 }
 
 
-const unsigned CarDetect::getLeftGap() const
+unsigned CarDetect::getLeftGap() const
 {
   return gaps.leftGapValue();
 }
 
 
-const unsigned CarDetect::getLeftBogieGap() const
+unsigned CarDetect::getLeftBogieGap() const
 {
   return gaps.leftBogieGapValue();
 }
 
 
-const unsigned CarDetect::getMidGap() const
+unsigned CarDetect::getMidGap() const
 {
   return gaps.midGapValue();
 }
 
 
-const unsigned CarDetect::getRightBogieGap() const
+unsigned CarDetect::getRightBogieGap() const
 {
   return gaps.rightBogieGapValue();
 }
 
 
-const unsigned CarDetect::getRightGap() const
+unsigned CarDetect::getRightGap() const
 {
   return gaps.rightGapValue();
 }
 
 
-const unsigned CarDetect::firstPeakMinus1() const
+unsigned CarDetect::firstPeakMinus1() const
 {
   if (peaksPtr.firstBogieLeftPtr == nullptr)
     return 0;
@@ -335,7 +336,7 @@ const unsigned CarDetect::firstPeakMinus1() const
 }
 
 
-const unsigned CarDetect::lastPeakPlus1() const
+unsigned CarDetect::lastPeakPlus1() const
 {
   if (peaksPtr.secondBogieRightPtr)
     return peaksPtr.secondBogieRightPtr->getIndex() + 1;
@@ -584,7 +585,7 @@ unsigned CarDetect::numFrontWheels() const
 string CarDetect::strHeaderGaps() const
 {
   return gaps.strHeader(true) + " count  part\n";
-};
+}
 
 
 string CarDetect::strHeaderFull() const
@@ -601,7 +602,7 @@ string CarDetect::strHeaderFull() const
     setw(6) << "dist" << 
     endl;
   return ss.str();
-};
+}
 
 
 string CarDetect::strGaps(

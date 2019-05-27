@@ -95,19 +95,19 @@ class CarDetect
 
     void reverse();
 
-    const unsigned startValue() const;
-    const unsigned endValue() const;
-    const unsigned index() const;
-    const bool isReversed() const;
+    unsigned startValue() const;
+    unsigned endValue() const;
+    unsigned index() const;
+    bool isReversed() const;
 
-    const unsigned firstPeakMinus1() const;
-    const unsigned lastPeakPlus1() const;
+    unsigned firstPeakMinus1() const;
+    unsigned lastPeakPlus1() const;
 
-    const unsigned getLeftGap() const;
-    const unsigned getLeftBogieGap() const;
-    const unsigned getMidGap() const;
-    const unsigned getRightBogieGap() const;
-    const unsigned getRightGap() const;
+    unsigned getLeftGap() const;
+    unsigned getLeftBogieGap() const;
+    unsigned getMidGap() const;
+    unsigned getRightBogieGap() const;
+    unsigned getRightGap() const;
 
     const CarPeaksPtr& getPeaksPtr() const;
 

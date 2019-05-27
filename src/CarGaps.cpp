@@ -1,6 +1,7 @@
 #include <iostream>
 #include <iomanip>
 #include <sstream>
+#include <limits>
 
 #include "CarGaps.h"
 #include "PeakPtrs.h"
@@ -494,7 +495,7 @@ float CarGaps::distancePartialBest(
   Peak& peakCand) const
 {
   // The gaps for inner distances (excluding car ends) must exist.
-  if (! leftBogieGapSet || ! midGapSet && ! rightBogieGapSet)
+  if (! leftBogieGapSet || ! midGapSet || ! rightBogieGapSet)
     return numeric_limits<float>::max();
 
   // The seen gaps that we're trying to match to the car gaps.

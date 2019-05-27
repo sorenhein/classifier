@@ -478,7 +478,7 @@ bool Align::betterSimpleScore(
 
   const int ofrn = static_cast<int>(cOld.firstRefNo);
   const int oftn = static_cast<int>(cOld.firstTimeNo);
-  const int dOld = oftn - oftn;
+  const int dOld = ofrn - oftn;
 
   if (dNew != dOld)
     return (score > bestScore);
