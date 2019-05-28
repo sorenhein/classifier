@@ -469,7 +469,7 @@ unsigned PeakPartial::recoverPeak(
   unsigned num = 0;
   for (unsigned iu = iuStart; iu < iuEnd; iu++)
   {
-    pptr = PeakPartial::closePeak(smallFactor, largeFactor, upFlag,
+    pptr = PeakPartial::closePeakDual(smallFactor, largeFactor, upFlag,
       peakPtrsUsed, iuRef, iu);
     
     if (pptr)

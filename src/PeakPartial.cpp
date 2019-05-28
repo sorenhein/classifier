@@ -526,7 +526,7 @@ Peak const * PeakPartial::closePeak(
 }
 
 
-Peak const * PeakPartial::closePeak(
+Peak const * PeakPartial::closePeakDual(
   const float& smallFactor,
   const float& largeFactor,
   const bool upFlag,

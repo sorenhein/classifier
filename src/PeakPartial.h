@@ -126,7 +126,7 @@ class PeakPartial
       const unsigned iuKnown,
       const unsigned iuCand) const;
 
-    Peak const * closePeak(
+    Peak const * closePeakDual(
       const float& smallFactor,
       const float& largeFactor,
       const bool upFlag,

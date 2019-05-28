@@ -211,9 +211,10 @@ Maybe transients can be reduced with filter padding as in filtfilt.
 
 2018-07-17
 ----------
-Visual          OK
-mingw           OK
-gcc
+Visual          OK 2019-05-28
+gcc             OK 2019-05-28
+
+mingw           OK 2018-07-17
 Mac gcc
 Mac clang
 Linux

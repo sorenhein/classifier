@@ -146,7 +146,7 @@ double Clusters::log(
   sort(xtemp.begin(), xtemp.end());
 
   // Specific number of clusters.
-  const bool ret = Clusters::logVector(xtemp, l, numClusters);
+  const double ret = Clusters::logVector(xtemp, l, numClusters);
   // free(x);
   return ret;
 }
