@@ -481,12 +481,27 @@ bool Peak::isWheel() const
 }
 
 
-bool Peak::partiallySelectedBogie(const Peak& peak2) const
+bool Peak::areBogie(const Peak& peak2) const
 {
-  if (! selectFlag && ! peak2.selectFlag)
-    return false;
-  else
-    return (Peak::isLeftWheel() && peak2.isRightWheel());
+  return (Peak::isLeftWheel() && peak2.isRightWheel());
+}
+
+
+bool Peak::arePartiallySelected(const Peak& peak2) const
+{
+  return (selectFlag || peak2.selectFlag);
+}
+
+
+bool Peak::arePartiallySelectedBogie(const Peak& peak2) const
+{
+  return (Peak::arePartiallySelected(peak2) && Peak::areBogie(peak2));
+}
+
+
+bool Peak::arentPartiallySelectedBogie(const Peak& peak2) const
+{
+  return (Peak::arePartiallySelected(peak2) && ! Peak::areBogie(peak2));
 }
 
 

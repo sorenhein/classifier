@@ -181,7 +181,10 @@ class Peak
     bool isRightWheel() const;
     bool isWheel() const;
 
-    bool partiallySelectedBogie(const Peak& peak2) const;
+    bool areBogie(const Peak& peak2) const;
+    bool arePartiallySelected(const Peak& peak2) const;
+    bool arePartiallySelectedBogie(const Peak& peak2) const;
+    bool arentPartiallySelectedBogie(const Peak& peak2) const;
 
     void markdown();
 

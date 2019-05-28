@@ -61,12 +61,6 @@ class PeakMinima
     unsigned offset;
 
 
-    void makeDistances(
-      const PeakPool& peaks,
-      const PeakFncPtr& fptr,
-      const CandFncPtr& exptr,
-      vector<unsigned>& dists) const;
-
     void makeSteps(
       const vector<unsigned>& dists,
       list<DistEntry>& steps) const;
@@ -252,7 +246,7 @@ class PeakMinima
 
     void makePieceList(
       const PeakPool& peaks,
-      const CandFncPtr& exptr,
+      const PeakPairFncPtr& includePtr,
       list<PieceEntry>& pieces) const;
 
 

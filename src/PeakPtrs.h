@@ -138,7 +138,7 @@ class PeakPtrs
     void makeDistances(
       const PeakFncPtr& fptr1, // true of left peak
       const PeakFncPtr& fptr2, // true of right peak
-      const PeakPairFncPtr& excludePtr, // false of peak pair
+      const PeakPairFncPtr& pairPtr, // true of peak pair
       vector<unsigned>& distances) const;
 
     string strQuality(

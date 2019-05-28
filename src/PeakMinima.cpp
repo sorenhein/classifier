@@ -35,45 +35,6 @@ void PeakMinima::reset()
 }
 
 
-void PeakMinima::makeDistances(
-  const PeakPool& peaks,
-  const PeakFncPtr& fptr,
-  const CandFncPtr& exptr,
-  vector<unsigned>& dists) const
-{
-  // Make list of distances between neighbors for which fptr
-  // evaluates to true.
-  dists.clear();
-
-  const PeakPtrs& candidates = peaks.candidatesConst();
-  PPLciterator cbegin = candidates.cbegin();
-  PPLciterator cend = candidates.cend();
-  PPLciterator npit;
-
-  for (PPLciterator pit = cbegin; pit != cend; pit = npit)
-  {
-    if (! ((* pit)->* fptr)())
-    {
-      npit = next(pit);
-      continue;
-    }
-
-    npit = candidates.next(pit, fptr);
-    if (npit == cend)
-      break;
-
-    // At least one should also be selected.
-    if (! (* pit)->isSelected() && ! (* npit)->isSelected())
-      continue;
-
-    if ((this->* exptr)(* pit, * npit))
-      continue;
-
-    dists.push_back((* npit)->getIndex() - (* pit)->getIndex());
-  }
-}
-
-
 void PeakMinima::makeSteps(
   const vector<unsigned>& dists,
   list<DistEntry>& steps) const
@@ -1367,7 +1328,8 @@ void PeakMinima::markShortGaps(
   Gap& shortGap)
 {
   list<PieceEntry> pieces;
-  PeakMinima::makePieceList(peaks, &PeakMinima::formBogie, pieces);
+  PeakMinima::makePieceList(peaks,
+    &Peak::arentPartiallySelectedBogie, pieces);
 
   PieceEntry const * pptr = nullptr;
   Gap actualGap;
@@ -1595,11 +1557,15 @@ void PeakMinima::markLongGaps(
 
 void PeakMinima::makePieceList(
   const PeakPool& peaks,
-  const CandFncPtr& exptr,
+  const PeakPairFncPtr& includePtr,
   list<PieceEntry>& pieces) const
 {
   vector<unsigned> dists;
-  PeakMinima::makeDistances(peaks, &Peak::acceptableQuality, exptr, dists);
+  peaks.candidatesConst().makeDistances(
+    &Peak::acceptableQuality,
+    &Peak::acceptableQuality,
+    includePtr,
+    dists);
 
   list<DistEntry> steps;
   PeakMinima::makeSteps(dists, steps);
@@ -1631,7 +1597,7 @@ cout << "FRAC " << countSelected << " " <<
   fixed << setprecision(2) << 100. * countSelected / countAll << endl;
 
   list<PieceEntry> pieces;
-  PeakMinima::makePieceList(peaks, &PeakMinima::never, pieces);
+  PeakMinima::makePieceList(peaks, &Peak::arePartiallySelected, pieces);
 
   if (pieces.empty())
     THROW(ERR_NO_PEAKS, "Piece list is empty");
