@@ -1,9 +1,0 @@
-foreach i (../data/control/sensors/sensor0?.txt)
-  set bn = `basename $i`
-  echo $bn >> overview.txt
-  ./driver -c $i > $bn
-  grep "No good" $bn | wc >> overview.txt
-  grep "Except" $bn | wc >> overview.txt
-  grep "File" $bn | wc >> overview.txt
-  cat peakstats.txt >> overview.txt
-end

@@ -36,6 +36,7 @@
 *.csv
 src/*.txt
 src/output/*.txt
+src/Debug/*
 
 *.ipch
 *.db
