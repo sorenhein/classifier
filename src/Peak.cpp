@@ -481,6 +481,15 @@ bool Peak::isWheel() const
 }
 
 
+bool Peak::partiallySelectedBogie(const Peak& peak2) const
+{
+  if (! selectFlag && ! peak2.selectFlag)
+    return false;
+  else
+    return (Peak::isLeftWheel() && peak2.isRightWheel());
+}
+
+
 void Peak::markdown()
 {
   Peak::markNoBogie();

@@ -12,6 +12,7 @@ using namespace std;
 class Peak;
 typedef void (Peak::*PeakRunFncPtr)();
 typedef bool (Peak::*PeakFncPtr)() const;
+typedef bool (Peak::*PeakPairFncPtr)(const Peak& peak2) const;
 typedef vector<Peak *> PeakPtrVector;
 
 
@@ -179,6 +180,8 @@ class Peak
     bool isLeftWheel() const;
     bool isRightWheel() const;
     bool isWheel() const;
+
+    bool partiallySelectedBogie(const Peak& peak2) const;
 
     void markdown();
 

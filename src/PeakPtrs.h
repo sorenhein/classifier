@@ -135,7 +135,11 @@ class PeakPtrs
 
     void flatten(vector<Peak const *>& flattened);
 
-    void select(const vector<Peak *>& flattened);
+    void makeDistances(
+      const PeakFncPtr& fptr1, // true of left peak
+      const PeakFncPtr& fptr2, // true of right peak
+      const PeakPairFncPtr& excludePtr, // false of peak pair
+      vector<unsigned>& distances) const;
 
     string strQuality(
       const string& text,

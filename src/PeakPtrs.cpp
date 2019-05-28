@@ -614,6 +614,36 @@ void PeakPtrs::flatten(vector<Peak const *>& flattened)
 }
 
 
+void PeakPtrs::makeDistances(
+  const PeakFncPtr& fptr1, // true of left peak
+  const PeakFncPtr& fptr2, // true of right peak
+  const PeakPairFncPtr& excludePtr, // false of peak pair
+  vector<unsigned>& distances) const
+{
+  PPLciterator npit;
+  for (PPLciterator pit = peaks.cbegin(); pit != peaks.cend(); )
+  {
+    if (! ((* pit)->* fptr1)())
+    {
+      pit++;
+      continue;
+    }
+
+    npit = PeakPtrs::next(pit, fptr2);
+    if (npit == peaks.cend())
+      return;
+
+    if (((* pit)->* excludePtr)(** npit))
+    {
+      pit++;
+      continue;
+    }
+
+    distances.push_back((* npit)->getIndex() - (* pit)->getIndex());
+  }
+}
+
+
 void PeakPtrs::apply(const PeakRunFncPtr& fptr)
 {
   for (auto& peak: peaks)
