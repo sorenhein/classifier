@@ -294,16 +294,13 @@ const DistEntry& PeakPiece::summary() const
 
 bool PeakPiece::getGap(Gap& gap) const
 {
-  if (_modality != 1)
-    return false;
-
   const unsigned p = (_summary.indexHi == 0 ?
     _summary.index : (_summary.index + _summary.indexHi) / 2);
 
   // It's not a given that this is the right centering.
   // But we generally get the stragglers later.
-  gap.lower = static_cast<unsigned>(p / SLIDING_UPPER);
-  gap.upper = static_cast<unsigned>(p * SLIDING_UPPER);
+  gap.lower = static_cast<unsigned>(p / SLIDING_UPPER) - 1;
+  gap.upper = static_cast<unsigned>(p * SLIDING_UPPER) + 1;
   gap.count = static_cast<unsigned>(_summary.cumul);
   return true;
 }

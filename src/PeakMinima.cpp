@@ -193,7 +193,7 @@ void PeakMinima::makePieces(
 
 void PeakMinima::eraseSmallPieces(
   list<PieceEntryOld>& piecesOld,
-  DistEntry& summaryOld) const
+  DistEntry& summaryOld)
 {
   const int limit = static_cast<int>(0.25f * summaryOld.cumul);
   for (auto pit = piecesOld.begin(); pit != piecesOld.end(); )
@@ -203,12 +203,20 @@ void PeakMinima::eraseSmallPieces(
     else
       pit++;
   }
+
+  for (auto pit = pieces.begin(); pit != pieces.end(); )
+  {
+    if (pit->summary().cumul <= limit)
+      pit = pieces.erase(pit);
+    else
+      pit++;
+  }
 }
 
 
 void PeakMinima::eraseSmallMaxima(
   list<PieceEntryOld>& piecesOld,
-  DistEntry& summaryOld) const
+  DistEntry& summaryOld)
 {
   const int limit = static_cast<int>(0.25f * summaryOld.cumul);
   for (auto pit = piecesOld.begin(); pit != piecesOld.end(); pit++)
@@ -236,6 +244,9 @@ void PeakMinima::eraseSmallMaxima(
         eit++;
     }
   }
+
+  for (auto pit = pieces.begin(); pit != pieces.end(); pit++)
+    pit->eraseSmallMaxima(limit);
 }
 
 
@@ -360,7 +371,7 @@ bool PeakMinima::splitPieceOnGap(
 }
 
 
-void PeakMinima::splitPieces(list<PieceEntryOld>& piecesOld) const
+void PeakMinima::splitPieces(list<PieceEntryOld>& piecesOld)
 {
   for (auto pit = piecesOld.begin(); pit != piecesOld.end(); )
   {
@@ -378,10 +389,37 @@ void PeakMinima::splitPieces(list<PieceEntryOld>& piecesOld) const
 
     pit++;
   }
+
+  unsigned indexLeft;
+  unsigned indexRight;
+  for (auto pit = pieces.begin(); pit != pieces.end(); )
+  {
+    if (pit->modality() == 1)
+    {
+      pit++;
+      continue;
+    }
+
+    if (pit->splittableOnDip(indexLeft, indexRight))
+    {
+      auto newpit = pieces.emplace(pit, * pit);
+      pit->splitOnIndices(indexLeft, indexRight, * newpit);
+      continue;
+    }
+
+    if (pit->splittableOnGap(indexLeft, indexRight))
+    {
+      auto newpit = pieces.emplace(pit, * pit);
+      pit->splitOnIndices(indexLeft, indexRight, * newpit);
+      continue;
+    }
+
+    pit++;
+  }
 }
 
 
-void PeakMinima::unjitterPieces(list<PieceEntryOld>& piecesOld) const
+void PeakMinima::unjitterPieces(list<PieceEntryOld>& piecesOld)
 {
   for (auto& piece: piecesOld)
   {
@@ -441,6 +479,9 @@ cout << "UNJITTER\n";
       piece.modality--;
     }
   }
+
+  for (auto& piece: pieces)
+    piece.unjitter();
 }
 
 
@@ -1107,6 +1148,25 @@ void PeakMinima::guessBogieDistance(
   if (piecesOld.size() == 1)
   {
     PeakMinima::guessDistance(piecesOld.front(), wheelGap);
+
+Gap wheelGapNew;
+pieces.front().getGap(wheelGapNew);
+if (wheelGap.lower != wheelGapNew.lower ||
+    wheelGap.upper != wheelGapNew.upper ||
+    wheelGap.count != wheelGapNew.count)
+{
+  cout << "DIFFERENT GAPS 1:\n";
+  cout << setw(8) << left << "GBD Gap" <<
+    setw(16) << right << "old" << " " <<
+    setw(16) << right << "new" << "\n";
+
+  cout << setw(8) << left << "bogie" <<
+    setw(16) << wheelGap.str() << " " <<
+    setw(16) << wheelGapNew.str() <<
+    (wheelGap == wheelGapNew ? "" : " DIFF ") << 
+    (wheelGap.isZero() ? " ZERO " : "") <<
+    "\n";
+}
     return;
   }
 
@@ -1124,6 +1184,42 @@ void PeakMinima::guessBogieDistance(
     pptr = &piece1;
 
   PeakMinima::guessDistance(* pptr, wheelGap);
+
+
+  const PeakPiece& piece1New = pieces.front();
+  const PeakPiece& piece2New = * next(pieces.begin());
+  PeakPiece const * pptrNew;
+
+  if (piece2New.summary().cumul >= 3 * piece1New.summary().cumul / 2 &&
+      piece2New.summary().index <= 2 * piece2New.summary().index)
+  {
+    // Assume that the first piece is spurious.
+    pptrNew = &piece2New;
+  }
+  else
+    pptrNew = &piece1New;
+
+Gap wheelGapNew;
+  pptrNew->getGap(wheelGapNew);
+if (wheelGap.lower != wheelGapNew.lower ||
+    wheelGap.upper != wheelGapNew.upper ||
+    wheelGap.count != wheelGapNew.count)
+{
+  cout << "DIFFERENT GAPS 2:\n";
+  cout << setw(8) << left << "GBD Gap" <<
+    setw(16) << right << "old" << " " <<
+    setw(16) << right << "new" << "\n";
+
+  cout << setw(8) << left << "bogie" <<
+    setw(16) << wheelGap.str() << " " <<
+    setw(16) << wheelGapNew.str() <<
+    (wheelGap == wheelGapNew ? "" : " DIFF ") << 
+    (wheelGap.isZero() ? " ZERO " : "") <<
+    "\n";
+}
+
+
+
 }
 
 

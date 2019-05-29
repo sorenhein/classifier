@@ -63,11 +63,11 @@ class PeakMinima
 
     void eraseSmallPieces(
       list<PieceEntryOld>& pieces,
-      DistEntry& summaryOld) const;
+      DistEntry& summaryOld);
 
     void eraseSmallMaxima(
       list<PieceEntryOld>& pieces,
-      DistEntry& summaryOld) const;
+      DistEntry& summaryOld);
 
     void splitPiece(
       list<PieceEntryOld>& pieces,
@@ -83,7 +83,7 @@ class PeakMinima
       list<PieceEntryOld>& pieces,
       list<PieceEntryOld>::iterator pit) const;
 
-    void splitPieces(list<PieceEntryOld>& pieces) const;
+    void splitPieces(list<PieceEntryOld>& pieces);
 
     bool setGap(
       const PieceEntryOld& piece,
@@ -95,7 +95,7 @@ class PeakMinima
       Gap& shortGap,
       Gap& longGap) const;
 
-    void unjitterPieces(list<PieceEntryOld>& pieces) const;
+    void unjitterPieces(list<PieceEntryOld>& pieces);
 
 
     void findFirstLargeRange(
