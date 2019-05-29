@@ -402,15 +402,16 @@ void PeakMinima::splitPieces(list<PieceEntryOld>& piecesOld)
 
     if (pit->splittableOnDip(indexLeft, indexRight))
     {
+      // Copy the entry to begin with.  newpit precedes pit now.
       auto newpit = pieces.emplace(pit, * pit);
-      pit->splitOnIndices(indexLeft, indexRight, * newpit);
+      newpit->splitOnIndices(indexLeft, indexRight, * pit);
       continue;
     }
 
     if (pit->splittableOnGap(indexLeft, indexRight))
     {
       auto newpit = pieces.emplace(pit, * pit);
-      pit->splitOnIndices(indexLeft, indexRight, * newpit);
+      newpit->splitOnIndices(indexLeft, indexRight, * pit);
       continue;
     }
 
