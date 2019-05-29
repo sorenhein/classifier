@@ -54,39 +54,13 @@ class PeakMinima
       const vector<unsigned>& dists,
       list<DistEntry>& steps) const;
 
-    void summarizePiece(PieceEntryOld& pe) const;
-
     void makePieces(const list<DistEntry>& steps);
 
     void eraseSmallPieces();
 
     void eraseSmallMaxima();
 
-    void splitPiece(
-      list<PieceEntryOld>& pieces,
-      list<PieceEntryOld>::iterator pit,
-      const unsigned indexLeft,
-      const unsigned indexRight) const;
-
-    bool splitPieceOnDip(
-      list<PieceEntryOld>& pieces,
-      list<PieceEntryOld>::iterator pit) const;
-
-    bool splitPieceOnGap(
-      list<PieceEntryOld>& pieces,
-      list<PieceEntryOld>::iterator pit) const;
-
     void splitPieces();
-
-    bool setGap(
-      const PieceEntryOld& piece,
-      Gap& gap) const;
-
-    bool tripartite(
-      const list<PieceEntryOld>& pieces,
-      Gap& wheelGap,
-      Gap& shortGap,
-      Gap& longGap) const;
 
     void unjitterPieces();
 
@@ -96,31 +70,9 @@ class PeakMinima
       Gap& gap,
       const unsigned lowerCount = 0) const;
 
-    bool bothSelected(
-      const Peak * p1,
-      const Peak * p2) const;
-
-    bool bothPlausible(
-      const Peak * p1,
-      const Peak * p2) const;
-
-    bool formBogie(
-      const Peak * p1,
-      const Peak * p2) const;
-
     bool formBogieGap(
       const Peak * p1,
       const Peak * p2) const;
-
-    bool never(
-      const Peak * p1,
-      const Peak * p2) const;
-
-    bool guessNeighborDistance(
-      const PeakPool& peaks,
-      const CandFncPtr fptr,
-      Gap& gap,
-      const unsigned minCount = 0) const;
 
     void markWheelPair(
       Peak& p1,

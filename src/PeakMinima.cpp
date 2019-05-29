@@ -99,25 +99,6 @@ void PeakMinima::makeSteps(
 }
 
 
-void PeakMinima::summarizePiece(PieceEntryOld& pe) const
-{
-  pe.modality = 0;
-  pe.summary.cumul = 0;
-  for (auto& de: pe.extrema)
-  {
-    if (de.direction == 1)
-    {
-      pe.modality++;
-      if (de.cumul > pe.summary.cumul)
-      {
-        pe.summary.index = de.index;
-        pe.summary.cumul = de.cumul;
-      }
-    }
-  }
-}
-
-
 void PeakMinima::makePieces(const list<DistEntry>& steps)
 {
   // Segment the steps into pieces where the cumulative value reaches
@@ -192,127 +173,6 @@ void PeakMinima::eraseSmallMaxima()
 }
 
 
-void PeakMinima::splitPiece(
-  list<PieceEntryOld>& piecesOld,
-  list<PieceEntryOld>::iterator pit,
-  const unsigned indexLeft,
-  const unsigned indexRight) const
-{
-  // Copy the entry to begin with.  newpit precedes pit now.
-  auto newpit = piecesOld.emplace(pit, * pit);
-
-  // Stop newpit at eit.
-  for (auto neweit = newpit->extrema.begin();
-      neweit != newpit->extrema.end(); neweit++)
-  {
-    if (neweit->index == indexLeft)
-    {
-      newpit->extrema.erase(next(neweit), newpit->extrema.end());
-      break;
-    }
-  }
-
-  // Begin pit at nneit.
-  for (auto neweit = pit->extrema.begin();
-      neweit != pit->extrema.end(); neweit++)
-  {
-    if (neweit->index == indexRight)
-    {
-      pit->extrema.erase(pit->extrema.begin(), neweit);
-      break;
-    }
-  }
-
-  PeakMinima::summarizePiece(* newpit);
-  PeakMinima::summarizePiece(* pit);
-}
-
-
-bool PeakMinima::splitPieceOnDip(
-  list<PieceEntryOld>& piecesOld,
-  list<PieceEntryOld>::iterator pit) const
-{
-  // Split if two consecutive maxima are not within +/- 10%.
-  // Also split if there's a fairly sharp dip:  Either side must be
-  // >= 4 and the bottom must be less than half of the smallest
-  // neighbor.
-
-  for (auto eit = pit->extrema.begin(); eit != pit->extrema.end(); )
-  {
-    if (next(eit) == pit->extrema.end())
-      break;
-    else if (eit->direction == -1)
-    {
-      eit++;
-      continue;
-    }
-
-    auto nneit = next(next(eit));
-    if (static_cast<unsigned>(
-        SLIDING_UPPER_SQ * eit->index) >= nneit->index)
-    {
-      // Next one is not too far away.
-      const int a = eit->cumul;
-      const int b = next(eit)->cumul;
-      const int c = nneit->cumul;
-      if (a <= 3 || c <= 3 || 2*b >= a || 2*b >= c)
-      {
-        // The cumul values do not make for a convincing split.
-
-        eit++;
-        continue;
-      }
-    }
-
-    PeakMinima::splitPiece(piecesOld, pit, eit->index, nneit->index);
-    return true;
-  }
-  return false;
-}
-
-
-bool PeakMinima::splitPieceOnGap(
-  list<PieceEntryOld>& piecesOld,
-  list<PieceEntryOld>::iterator pit) const
-{
-  // Split if the overall piece is too long, even though there
-  // was no obvious dip on which to split.  Choose the position
-  // with the largest relative gap.
-
-  const unsigned pitStart = pit->extrema.front().index;
-  const unsigned pitStop = static_cast<unsigned>(
-    SLIDING_UPPER_SQ * pitStart);
-
-  if (pit->extrema.back().index <= pitStop)
-    return false;
-
-  float factorMax = 0.f;
-  unsigned indexPrev = pitStart;
-  unsigned indexPrevBest = 0;
-  unsigned indexBest = 0;
-
-  for (auto eit = next(pit->extrema.begin()); 
-      eit != pit->extrema.end(); eit++)
-  {
-    if (eit->direction == -1)
-      continue;
-
-    float factor = eit->index / static_cast<float>(indexPrev);
-    if (factor > factorMax)
-    {
-      indexPrevBest = indexPrev;
-      indexBest = eit->index;
-      factorMax = factor;
-    }
-
-    indexPrev = eit->index;
-  }
-
-  PeakMinima::splitPiece(piecesOld, pit, indexPrevBest, indexBest);
-  return true;
-}
-
-
 void PeakMinima::splitPieces()
 {
   unsigned indexLeft;
@@ -349,48 +209,6 @@ void PeakMinima::unjitterPieces()
 {
   for (auto& piece: pieces)
     piece.unjitter();
-}
-
-
-bool PeakMinima::setGap(
-  const PieceEntryOld& piece,
-  Gap& gap) const
-{
-  if (piece.modality != 1)
-    return false;
-
-  const unsigned p = (piece.summary.indexHi == 0 ?
-    piece.summary.index :
-    (piece.summary.index + piece.summary.indexHi) / 2);
-
-  // It's not a given that this is the right centering.
-  // But we generally get the stragglers later.
-  gap.lower = static_cast<unsigned>(p / SLIDING_UPPER);
-  gap.upper = static_cast<unsigned>(p * SLIDING_UPPER);
-  gap.count = static_cast<unsigned>(piece.summary.cumul);
-  return true;
-}
-
-
-bool PeakMinima::tripartite(
-  const list<PieceEntryOld>& piecesOld,
-  Gap& wheelGap,
-  Gap& shortGap,
-  Gap& longGap) const
-{
-  if (piecesOld.size() != 3)
-    return false;
-
-  auto pit = piecesOld.begin();
-  if (! PeakMinima::setGap(* pit, wheelGap))
-    return false;
-
-  pit++;
-  if (! PeakMinima::setGap(* pit, shortGap))
-    return false;
-
-  pit++;
-  return PeakMinima::setGap(* pit, longGap);
 }
 
 
@@ -526,87 +344,11 @@ while (i < dindex)
 }
 
 
-bool PeakMinima::bothSelected(
-  const Peak * p1,
-  const Peak * p2) const
-{
-  return (p1->isSelected() && p2->isSelected());
-}
-
-
-bool PeakMinima::bothPlausible(
-  const Peak * p1,
-  const Peak * p2) const
-{
-  if (! p1->isSelected() && ! p2->isSelected())
-    return false;
-
-  return (p1->acceptableQuality() && p2->acceptableQuality());
-}
-
-
-bool PeakMinima::formBogie(
-  const Peak * p1,
-  const Peak * p2) const
-{
-  return (p1->isLeftWheel() && p2->isRightWheel());
-}
-
-
 bool PeakMinima::formBogieGap(
   const Peak * p1,
   const Peak * p2) const
 {
   return (p1->isRightWheel() && p2->isLeftWheel());
-}
-
-
-bool PeakMinima::never(
-  const Peak * p1,
-  const Peak * p2) const
-{
-  UNUSED(p1);
-  UNUSED(p2);
-  return false;
-}
-
-
-bool PeakMinima::guessNeighborDistance(
-  const PeakPool& peaks,
-  const CandFncPtr fptr,
-  Gap& gap,
-  const unsigned minCount) const
-{
-  // Make list of distances between neighbors for which fptr
-  // evaluates to true.
-  vector<unsigned> dists;
-  const PeakPtrs& candidates = peaks.candidatesConst();
-  PPLciterator cbegin = candidates.cbegin();
-  PPLciterator cend = candidates.cend();
-  for (PPLciterator pit = cbegin; pit != cend; pit++)
-  {
-    PPLciterator npit = candidates.next(pit, &Peak::isSelected);
-    if (npit == cend)
-      break;
-
-    if ((this->* fptr)(* pit, * npit))
-      dists.push_back(
-        (*npit)->getIndex() - (*pit)->getIndex());
-  }
-// cout << "Preparing to guess distance: Have " <<
-  // dists.size() << " vs. " << minCount << endl;
-
-  if (dists.size() < minCount)
-    return false;
-
-  // Guess their distance range.
-  sort(dists.begin(), dists.end());
-
-  const unsigned l = dists.size() / 4;
-  const unsigned revisedMinCount = min(minCount, l);
-// cout << "Revised count " << revisedMinCount << endl;
-  PeakMinima::findFirstLargeRange(dists, gap, revisedMinCount);
-  return true;
 }
 
 
@@ -1303,11 +1045,6 @@ void PeakMinima::markShortGaps(
 
   PeakMinima::guessDistance(* pptr, shortGap);
 
-  /*
-  PeakMinima::guessNeighborDistance(peaks,
-    &PeakMinima::formBogieGap, shortGap);
-    */
-
   PeakMinima::printDists(shortGap.lower, shortGap.upper,
     "Guessing short gap");
 
@@ -1509,7 +1246,6 @@ cout << "FRAC " << countSelected << " " <<
   countAll << " " <<
   fixed << setprecision(2) << 100. * countSelected / countAll << endl;
 
-  // list<PieceEntryOld> piecesOld;
   PeakMinima::makePieceList(peaks, &Peak::arePartiallySelected);
 
   if (pieces.empty())
@@ -1517,10 +1253,6 @@ cout << "FRAC " << countSelected << " " <<
 
   Gap wheelGapNew, shortGapNew, longGapNew;
   bool threeFlag = false;
-  /*
-  if (PeakMinima::tripartite(piecesOld, wheelGapNew, shortGapNew, longGapNew))
-    threeFlag = true;
-    */
 
   Gap wheelGap;
   PeakMinima::markBogies(peaks, wheelGap);
