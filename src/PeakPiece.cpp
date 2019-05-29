@@ -46,7 +46,13 @@ bool PeakPiece::operator < (const unsigned limit) const
 }
 
 
-void PeakPiece::copySummary(const PeakPiece& piece2)
+bool PeakPiece::operator > (const unsigned limit) const
+{
+  return (_summary.cumul > static_cast<int>(limit));
+}
+
+
+void PeakPiece::copySummaryFrom(const PeakPiece& piece2)
 {
   _summary = piece2._summary;
 }
@@ -277,6 +283,12 @@ void PeakPiece::unjitter()
 unsigned PeakPiece::modality() const
 {
   return _modality;
+}
+
+
+const DistEntry& PeakPiece::summary() const
+{
+  return _summary;
 }
 
 

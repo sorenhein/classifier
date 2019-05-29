@@ -20,9 +20,6 @@ class PeakPiece
     list<DistEntry> _extrema;
 
 
-    void summarize();
-
-
   public:
 
     PeakPiece();
@@ -37,8 +34,11 @@ class PeakPiece
       const int direction);
 
     bool operator < (const unsigned limit) const;
+    bool operator > (const unsigned limit) const;
 
-    void copySummary(const PeakPiece& piece2);
+    void copySummaryFrom(const PeakPiece& piece2);
+
+    void summarize();
 
     void eraseSmallMaxima(const unsigned limit);
 
@@ -58,6 +58,7 @@ class PeakPiece
     void unjitter();
 
     unsigned modality() const;
+    const DistEntry& summary() const;
     bool getGap(Gap& gap) const;
 
     string str() const;

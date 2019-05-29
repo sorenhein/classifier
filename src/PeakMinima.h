@@ -6,6 +6,7 @@
 #include <string>
 
 #include "PeakPool.h"
+#include "PeakPiece.h"
 
 #include "struct.h"
 
@@ -42,6 +43,9 @@ class PeakMinima
       };
     };
 
+    list<PeakPiece> pieces;
+    DistEntry summary;
+
 
     unsigned offset;
 
@@ -55,15 +59,15 @@ class PeakMinima
     void makePieces(
       const list<DistEntry>& steps,
       list<PieceEntryOld>& pieces,
-      DistEntry& summary) const;
+      DistEntry& summaryOld);
 
     void eraseSmallPieces(
       list<PieceEntryOld>& pieces,
-      DistEntry& summary) const;
+      DistEntry& summaryOld) const;
 
     void eraseSmallMaxima(
       list<PieceEntryOld>& pieces,
-      DistEntry& summary) const;
+      DistEntry& summaryOld) const;
 
     void splitPiece(
       list<PieceEntryOld>& pieces,
@@ -232,7 +236,7 @@ class PeakMinima
     void makePieceList(
       const PeakPool& peaks,
       const PeakPairFncPtr& includePtr,
-      list<PieceEntryOld>& pieces) const;
+      list<PieceEntryOld>& pieces);
 
 
     void printPeakQuality(
