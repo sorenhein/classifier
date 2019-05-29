@@ -35,6 +35,7 @@ void PeakPiece::logExtremum(
   _extrema.emplace_back(DistEntry());
   DistEntry& de = _extrema.back();
   de.index = index;
+  de.indexHi = 0;
   de.cumul = cumul;
   de.direction = direction;
 }
@@ -98,6 +99,7 @@ void PeakPiece::summarize()
       if (de.cumul > _summary.cumul)
       {
         _summary.index = de.index;
+        _summary.indexHi = de.indexHi;
         _summary.cumul = de.cumul;
       }
     }

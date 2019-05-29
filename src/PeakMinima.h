@@ -56,18 +56,11 @@ class PeakMinima
 
     void summarizePiece(PieceEntryOld& pe) const;
 
-    void makePieces(
-      const list<DistEntry>& steps,
-      list<PieceEntryOld>& pieces,
-      DistEntry& summaryOld);
+    void makePieces(const list<DistEntry>& steps);
 
-    void eraseSmallPieces(
-      list<PieceEntryOld>& pieces,
-      DistEntry& summaryOld);
+    void eraseSmallPieces();
 
-    void eraseSmallMaxima(
-      list<PieceEntryOld>& pieces,
-      DistEntry& summaryOld);
+    void eraseSmallMaxima();
 
     void splitPiece(
       list<PieceEntryOld>& pieces,
@@ -83,7 +76,7 @@ class PeakMinima
       list<PieceEntryOld>& pieces,
       list<PieceEntryOld>::iterator pit) const;
 
-    void splitPieces(list<PieceEntryOld>& pieces);
+    void splitPieces();
 
     bool setGap(
       const PieceEntryOld& piece,
@@ -95,7 +88,7 @@ class PeakMinima
       Gap& shortGap,
       Gap& longGap) const;
 
-    void unjitterPieces(list<PieceEntryOld>& pieces);
+    void unjitterPieces();
 
 
     void findFirstLargeRange(
@@ -188,14 +181,13 @@ class PeakMinima
 
     void markBogies(
       PeakPool& peaks,
-      Gap& wheelGap,
-      const list<PieceEntryOld>& pieces) const;
+      Gap& wheelGap) const;
 
 
     void guessBogieDistance(Gap& wheelGap) const;
 
     void guessDistance(
-      const PieceEntryOld& piece,
+      const PeakPiece& piece,
       Gap& gap) const;
 
     void markShortGapsOfSelects(
@@ -211,7 +203,7 @@ class PeakMinima
       const Gap& wheelGap) const;
 
     bool hasStragglerBogies(
-      const PieceEntryOld& piece,
+      const PeakPiece& piece,
       Gap& wheelGap) const;
 
     void markShortGaps(
@@ -233,8 +225,7 @@ class PeakMinima
 
     void makePieceList(
       const PeakPool& peaks,
-      const PeakPairFncPtr& includePtr,
-      list<PieceEntryOld>& pieces);
+      const PeakPairFncPtr& includePtr);
 
 
     void printPeakQuality(

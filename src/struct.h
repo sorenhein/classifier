@@ -476,6 +476,13 @@ struct DistEntry
   {
     return (index < de2.index);
   };
+
+  string str() const
+  {
+    stringstream ss;
+    ss << "index " << index << "(" << indexHi << ")";
+    return ss.str();
+  };
 };
 
 
