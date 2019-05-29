@@ -17,11 +17,11 @@ Peaks.obj: Peaks.h Peak.h struct.h
 PeakDetect.obj: PeakDetect.h Peak.h struct.h PeakPool.h Peaks.h PeakPtrs.h
 PeakDetect.obj: CarPeaks.h PeakStructure.h CarDetect.h CarGaps.h PeakRange.h
 PeakDetect.obj: PeakProfile.h CarModels.h PeakSeeds.h PeakMinima.h
-PeakDetect.obj: PeakMatch.h PeakStats.h Except.h errors.h
+PeakDetect.obj: PeakPiece.h PeakMatch.h PeakStats.h Except.h errors.h
 PeakMatch.obj: PeakMatch.h Peak.h struct.h PeakPool.h Peaks.h PeakPtrs.h
 PeakMatch.obj: CarPeaks.h PeakStats.h Except.h errors.h
 PeakMinima.obj: Peak.h struct.h PeakMinima.h PeakPool.h Peaks.h PeakPtrs.h
-PeakMinima.obj: CarPeaks.h Except.h errors.h
+PeakMinima.obj: CarPeaks.h PeakPiece.h Except.h errors.h
 PeakPattern.obj: PeakPattern.h CarModels.h CarDetect.h CarGaps.h Peak.h
 PeakPattern.obj: struct.h CarPeaks.h PeakRange.h PeakProfile.h PeakPool.h
 PeakPattern.obj: Peaks.h PeakPtrs.h
@@ -29,6 +29,8 @@ PeakPartial.obj: PeakPartial.h Peak.h struct.h PeakSlots.h PeakPtrs.h
 PeakPartial.obj: CarPeaks.h
 PeakPartialUsed.obj: PeakPartial.h Peak.h struct.h PeakSlots.h PeakPtrs.h
 PeakPartialUsed.obj: CarPeaks.h
+PeakPiece.obj: PeakPiece.h struct.h
+PeakPieces.obj: Peak.h struct.h
 PeakPool.obj: PeakPool.h Peaks.h Peak.h struct.h PeakPtrs.h CarPeaks.h
 PeakProfile.obj: PeakProfile.h struct.h Peak.h PeakPtrs.h CarPeaks.h Except.h
 PeakProfile.obj: errors.h
