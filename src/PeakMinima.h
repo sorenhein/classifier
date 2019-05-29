@@ -6,7 +6,7 @@
 #include <string>
 
 #include "PeakPool.h"
-#include "PeakPiece.h"
+#include "PeakPieces.h"
 
 #include "struct.h"
 
@@ -45,6 +45,8 @@ class PeakMinima
 
     list<PeakPiece> pieces;
     DistEntry summary;
+
+    PeakPieces peakPieces;
 
 
     unsigned offset;

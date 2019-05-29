@@ -4,6 +4,7 @@
 
 #include "PeakPieces.h"
 #include "Peak.h"
+#include "Except.h"
 
 #define SLIDING_LOWER 0.9f
 #define SLIDING_UPPER 1.1f
@@ -149,7 +150,7 @@ void PeakPieces::eraseSmallPieces()
 
   for (auto pit = pieces.begin(); pit != pieces.end(); )
   {
-    if (pit->summary().cumul <= limit)
+    if (* pit <= limit)
       pit = pieces.erase(pit);
     else
       pit++;
@@ -229,7 +230,7 @@ bool PeakPieces::empty() const
 }
 
 
-void PeakPieces::guessBogieDistance(Gap& wheelGap) const
+void PeakPieces::guessBogieGap(Gap& wheelGap) const
 {
   if (pieces.size() == 1)
   {
@@ -251,16 +252,66 @@ void PeakPieces::guessBogieDistance(Gap& wheelGap) const
 }
 
 
-void PeakPieces::guessShortDistance(
+void PeakPieces::guessShortGap(
   Gap& wheelGap,
-  Gap& shortGap) const
+  Gap& shortGap,
+  bool& wheelGapNewFlag) const
 {
-  UNUSED(wheelGap);
-  UNUSED(shortGap);
+  PeakPiece const * pptr = nullptr;
+  Gap actualGap;
+  const unsigned wlo = static_cast<unsigned>(wheelGap.lower / 1.1f);
+  const unsigned whi = static_cast<unsigned>
+    (1.5f * (wheelGap.lower + wheelGap.upper) / 2.);
+
+  if (pieces.empty())
+    THROW(ERR_NO_PEAKS, "Piece list for short gaps is empty");
+
+  wheelGapNewFlag = false;
+  unsigned i = 0;
+  for (auto pit = pieces.begin(); pit != pieces.end(); pit++, i++)
+  {
+    if (pit->summary().index < wlo)
+    {
+      // Most likely a small piece that was rejected relative to the
+      // largest piece (bogie gaps), but now this large piece is gone.
+      cout << "markShortGaps: Skipping an initial low piece\n";
+      cout << "wheelGap count " << wheelGap.count << endl;
+      cout << "skip count: " << pit->summary().cumul << endl;
+    }
+    else if (i+3 <= pieces.size() && pit->extend(wheelGap))
+    {
+      // Only regrade if there are pieces left for short and long gaps.
+      cout << "Extending wheelGap\n";
+      wheelGapNewFlag = true;
+    }
+    else if (i+3 <= pieces.size() &&
+        pit->summary().index < whi &&
+        pit->summary().cumul <= static_cast<int>(wheelGap.count / 4))
+    {
+      // Most likely a small piece with valid bogie differences for
+      // short cars.
+      // TODO Exploit this as well.
+      cout << "markShortGaps: Skipping an initial high piece\n";
+      cout << "wheelGap count " << wheelGap.count << endl;
+      cout << "skip count: " << pit->summary().cumul << endl;
+    }
+    else
+    {
+      pptr = &* pit;
+      break;
+    }
+  }
+
+  if (pptr == nullptr)
+    THROW(ERR_NO_PEAKS, "Piece list has no short gaps");
+
+  cout << PeakPieces::str("For short gaps");
+
+  pptr->getGap(shortGap);
 }
 
 
-void PeakPieces::guessLongDistance(
+void PeakPieces::guessLongGap(
   Gap& wheelGap,
   Gap& shortGap,
   Gap& longGap) const

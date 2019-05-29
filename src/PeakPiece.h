@@ -34,6 +34,7 @@ class PeakPiece
       const int direction);
 
     bool operator < (const unsigned limit) const;
+    bool operator <= (const unsigned limit) const;
     bool operator > (const unsigned limit) const;
 
     void copySummaryFrom(const PeakPiece& piece2);
@@ -56,6 +57,8 @@ class PeakPiece
       unsigned& indexRight) const;
 
     void unjitter();
+
+    bool extend(Gap& wheelGap) const;
 
     unsigned modality() const;
     const DistEntry& summary() const;

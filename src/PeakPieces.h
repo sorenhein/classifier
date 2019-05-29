@@ -49,13 +49,14 @@ class PeakPieces
 
     bool empty() const;
 
-    void guessBogieDistance(Gap& wheelGap) const;
+    void guessBogieGap(Gap& wheelGap) const;
 
-    void guessShortDistance(
+    void guessShortGap(
       Gap& wheelGap,
-      Gap& shortGap) const;
+      Gap& shortGap,
+      bool& wheelGapNewFlag) const;
 
-    void guessLongDistance(
+    void guessLongGap(
       Gap& wheelGap,
       Gap& shortGap,
       Gap& longGap) const;

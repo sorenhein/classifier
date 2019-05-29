@@ -928,6 +928,8 @@ cout << "trying index " << p << ", " << plo << "-" << phi << endl;
 cout << "wheel gap " << wheelGap.lower << "-" << wheelGap.upper << endl;
 cout << "wheel tol " << wlo << "-" << whi << endl;
 
+  // TODO Remember to increase the count as well
+
   if (plo <= wheelGap.upper && wheelGap.lower <= phi)
   {
     if (plo < wheelGap.lower)
@@ -1214,6 +1216,9 @@ void PeakMinima::makePieceList(
   PeakMinima::splitPieces();
 
   PeakMinima::unjitterPieces();
+
+
+  peakPieces.make(dists);
 }
 
 

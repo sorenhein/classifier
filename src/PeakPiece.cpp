@@ -3,6 +3,7 @@
 #include <sstream>
 
 #include "PeakPiece.h"
+#include "Except.h"
 
 #define SLIDING_LOWER 0.9f
 #define SLIDING_UPPER 1.1f
@@ -44,6 +45,12 @@ void PeakPiece::logExtremum(
 bool PeakPiece::operator < (const unsigned limit) const
 {
   return (_summary.cumul < static_cast<int>(limit));
+}
+
+
+bool PeakPiece::operator <= (const unsigned limit) const
+{
+  return (_summary.cumul <= static_cast<int>(limit));
 }
 
 
@@ -220,6 +227,59 @@ bool PeakPiece::splittableOnGap(
     indexPrev = eit->index;
   }
 
+  return true;
+}
+
+
+bool PeakPiece::extend(Gap& wheelGap) const
+{
+  const unsigned p = _summary.index;
+  const unsigned plo = static_cast<unsigned>(p / 1.1f);
+  const unsigned phi = static_cast<unsigned>(p * 1.1f);
+    
+  const unsigned wlo = static_cast<unsigned>(wheelGap.lower / 1.1f);
+  const unsigned whi = static_cast<unsigned>(wheelGap.upper * 1.1f);
+
+cout << "trying index " << p << ", " << plo << "-" << phi << endl;
+cout << "wheel gap " << wheelGap.lower << "-" << wheelGap.upper << endl;
+cout << "wheel tol " << wlo << "-" << whi << endl;
+
+  if (plo <= wheelGap.upper && wheelGap.lower <= phi)
+  {
+    if (plo < wheelGap.lower)
+      wheelGap.lower = plo;
+    if (phi > wheelGap.upper)
+      wheelGap.upper = phi;
+cout << "Regrade branch 0: overlap\n";
+  }
+  else if (phi >= wlo && phi <= wheelGap.lower)
+  {
+    // Extend on the low end.
+    wheelGap.lower = phi - 1;
+cout << "Regrade branch 1\n";
+  }
+  else if (plo >= wheelGap.upper && plo <= whi)
+  {
+    // Extend on the high end.
+    wheelGap.upper = plo + 1;
+cout << "Regrade branch 2\n";
+  }
+  else if (plo >= wlo && plo <= wheelGap.lower)
+  {
+    // Extend on the low end.
+    wheelGap.lower = plo - 1;
+cout << "Regrade branch 3\n";
+  }
+  else if (phi >= wheelGap.upper && phi <= whi)
+  {
+    // Extend on the high end.
+    wheelGap.upper = phi + 1;
+cout << "Regrade branch 4\n";
+  }
+  else
+    return false;
+
+  wheelGap.count += _summary.cumul;
   return true;
 }
 
