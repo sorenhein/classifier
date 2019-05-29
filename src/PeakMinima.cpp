@@ -772,20 +772,6 @@ void PeakMinima::guessBogieDistance(Gap& wheelGap) const
 }
 
 
-void PeakMinima::guessDistance(
-  const PeakPiece& piece,
-  Gap& gap) const
-{
-  const unsigned index = (piece.summary().indexHi == 0 ?
-    piece.summary().index :
-    (piece.summary().index + piece.summary().indexHi) / 2);
-
-  gap.lower = static_cast<unsigned>(index / SLIDING_UPPER) - 1;
-  gap.upper = static_cast<unsigned>(index * SLIDING_UPPER) + 1;
-  gap.count = static_cast<unsigned>(piece.summary().cumul);
-}
-
-
 void PeakMinima::updateGap(
   Gap& gap,
   const Gap& actualGap) const
@@ -1043,7 +1029,7 @@ void PeakMinima::markShortGaps(
   cout << "\n";
 
 
-  PeakMinima::guessDistance(* pptr, shortGap);
+  pptr->getGap(shortGap);
 
   PeakMinima::printDists(shortGap.lower, shortGap.upper,
     "Guessing short gap");
