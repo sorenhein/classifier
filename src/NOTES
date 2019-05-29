@@ -1,3 +1,7 @@
+PeakPiece:
+Do we need summary(), modality()?
+
+
 Gap detection in PeakMinima:
 
 * 111: Check the counts and numbers for plausibility

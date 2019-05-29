@@ -1142,85 +1142,25 @@ void PeakMinima::fixBogieOrphans(PeakPool& peaks) const
 }
 
 
-void PeakMinima::guessBogieDistance(
-  const list<PieceEntryOld>& piecesOld,
-  Gap& wheelGap) const
+void PeakMinima::guessBogieDistance(Gap& wheelGap) const
 {
-  if (piecesOld.size() == 1)
+  if (pieces.size() == 1)
   {
-    PeakMinima::guessDistance(piecesOld.front(), wheelGap);
-
-Gap wheelGapNew;
-pieces.front().getGap(wheelGapNew);
-if (wheelGap.lower != wheelGapNew.lower ||
-    wheelGap.upper != wheelGapNew.upper ||
-    wheelGap.count != wheelGapNew.count)
-{
-  cout << "DIFFERENT GAPS 1:\n";
-  cout << setw(8) << left << "GBD Gap" <<
-    setw(16) << right << "old" << " " <<
-    setw(16) << right << "new" << "\n";
-
-  cout << setw(8) << left << "bogie" <<
-    setw(16) << wheelGap.str() << " " <<
-    setw(16) << wheelGapNew.str() <<
-    (wheelGap == wheelGapNew ? "" : " DIFF ") << 
-    (wheelGap.isZero() ? " ZERO " : "") <<
-    "\n";
-}
+    pieces.front().getGap(wheelGap);
     return;
   }
 
-  const PieceEntryOld& piece1 = piecesOld.front();
-  const PieceEntryOld& piece2 = * next(piecesOld.begin());
-  PieceEntryOld const * pptr;
+  const PeakPiece& piece1 = pieces.front();
+  const PeakPiece& piece2 = * next(pieces.begin());
 
-  if (piece2.summary.cumul >= 3 * piece1.summary.cumul / 2 &&
-      piece2.summary.index <= 2 * piece2.summary.index)
+  if (piece2.summary().cumul >= 3 * piece1.summary().cumul / 2 &&
+      piece2.summary().index <= 2 * piece2.summary().index)
   {
     // Assume that the first piece is spurious.
-    pptr = &piece2;
+    piece2.getGap(wheelGap);
   }
   else
-    pptr = &piece1;
-
-  PeakMinima::guessDistance(* pptr, wheelGap);
-
-
-  const PeakPiece& piece1New = pieces.front();
-  const PeakPiece& piece2New = * next(pieces.begin());
-  PeakPiece const * pptrNew;
-
-  if (piece2New.summary().cumul >= 3 * piece1New.summary().cumul / 2 &&
-      piece2New.summary().index <= 2 * piece2New.summary().index)
-  {
-    // Assume that the first piece is spurious.
-    pptrNew = &piece2New;
-  }
-  else
-    pptrNew = &piece1New;
-
-Gap wheelGapNew;
-  pptrNew->getGap(wheelGapNew);
-if (wheelGap.lower != wheelGapNew.lower ||
-    wheelGap.upper != wheelGapNew.upper ||
-    wheelGap.count != wheelGapNew.count)
-{
-  cout << "DIFFERENT GAPS 2:\n";
-  cout << setw(8) << left << "GBD Gap" <<
-    setw(16) << right << "old" << " " <<
-    setw(16) << right << "new" << "\n";
-
-  cout << setw(8) << left << "bogie" <<
-    setw(16) << wheelGap.str() << " " <<
-    setw(16) << wheelGapNew.str() <<
-    (wheelGap == wheelGapNew ? "" : " DIFF ") << 
-    (wheelGap.isZero() ? " ZERO " : "") <<
-    "\n";
-}
-
-
-
+    piece1.getGap(wheelGap);
 }
 
 
@@ -1268,7 +1208,7 @@ void PeakMinima::markBogies(
     cout << piece.str();
   cout << "\n";
 
-  PeakMinima::guessBogieDistance(piecesOld, wheelGap);
+  PeakMinima::guessBogieDistance(wheelGap);
 
   PeakMinima::printDists(wheelGap.lower, wheelGap.upper,
     "Guessing wheel distance");
@@ -1711,30 +1651,8 @@ cout << "FRAC " << countSelected << " " <<
   list<PieceEntryOld> piecesOld;
   PeakMinima::makePieceList(peaks, &Peak::arePartiallySelected, piecesOld);
 
-  if (piecesOld.empty())
+  if (pieces.empty())
     THROW(ERR_NO_PEAKS, "Piece list is empty");
-
-cout << "Old-style pieces\n";
-for (auto& p: piecesOld)
-  cout << p.str();
-cout << endl;
-cout << "QQQ ";
-for (auto& p: piecesOld)
-  cout << p.modality;
-cout << " \n";
-
-cout << "New-style pieces\n";
-for (auto& p: pieces)
-  cout << p.str();
-cout << endl;
-cout << "QQQ ";
-for (auto& p: pieces)
-  cout << p.modality();
-cout << " \n";
-
-
-
-
 
   Gap wheelGapNew, shortGapNew, longGapNew;
   bool threeFlag = false;

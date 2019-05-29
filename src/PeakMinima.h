@@ -192,9 +192,7 @@ class PeakMinima
       const list<PieceEntryOld>& pieces) const;
 
 
-    void guessBogieDistance(
-      const list<PieceEntryOld>& pieces,
-      Gap& wheelGap) const;
+    void guessBogieDistance(Gap& wheelGap) const;
 
     void guessDistance(
       const PieceEntryOld& piece,
