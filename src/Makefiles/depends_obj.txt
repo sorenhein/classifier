@@ -73,7 +73,7 @@ Trace.obj: PeakProfile.h CarModels.h Timers.h Timer.h read.h
 TraceDB.obj: TraceDB.h struct.h Database.h Clusters.h Align.h Except.h
 TraceDB.obj: errors.h read.h
 args.obj: args.h struct.h
-geometry.obj: Database.h Clusters.h struct.h Regress.h
+geometry.obj: Database.h Clusters.h struct.h Regress.h geometry.h
 print.obj: print.h Database.h Clusters.h struct.h
 read.obj: Database.h Clusters.h struct.h TraceDB.h read.h
 write.obj: write.h struct.h

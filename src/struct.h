@@ -463,4 +463,20 @@ struct RangeData
   };
 };
 
+struct DistEntry
+{
+  unsigned index;
+  unsigned indexHi; // Sometimes set to denote a range
+  int direction;
+  unsigned origin;
+  int count;
+  int cumul;
+
+  bool operator < (const DistEntry& de2)
+  {
+    return (index < de2.index);
+  };
+};
+
+
 #endif

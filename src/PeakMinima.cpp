@@ -99,7 +99,7 @@ void PeakMinima::makeSteps(
 }
 
 
-void PeakMinima::summarizePiece(PieceEntry& pe) const
+void PeakMinima::summarizePiece(PieceEntryOld& pe) const
 {
   pe.modality = 0;
   pe.summary.cumul = 0;
@@ -120,7 +120,7 @@ void PeakMinima::summarizePiece(PieceEntry& pe) const
 
 void PeakMinima::makePieces(
   const list<DistEntry>& steps,
-  list<PieceEntry>& pieces,
+  list<PieceEntryOld>& pieces,
   DistEntry& summary) const
 {
   // Segment the steps into pieces where the cumulative value reaches
@@ -139,8 +139,8 @@ void PeakMinima::makePieces(
     while (nsit != steps.end() && nsit->cumul != 0);
 
     // We've got a piece at [sit, nsit).
-    pieces.emplace_back(PieceEntry());
-    PieceEntry& pe = pieces.back();
+    pieces.emplace_back(PieceEntryOld());
+    PieceEntryOld& pe = pieces.back();
     pe.extrema.clear();
 
     for (auto it = sit; it != nsit; it++)
@@ -177,7 +177,7 @@ void PeakMinima::makePieces(
 
 
 void PeakMinima::eraseSmallPieces(
-  list<PieceEntry>& pieces,
+  list<PieceEntryOld>& pieces,
   DistEntry& summary) const
 {
   const int limit = static_cast<int>(0.25f * summary.cumul);
@@ -192,7 +192,7 @@ void PeakMinima::eraseSmallPieces(
 
 
 void PeakMinima::eraseSmallMaxima(
-  list<PieceEntry>& pieces,
+  list<PieceEntryOld>& pieces,
   DistEntry& summary) const
 {
   const int limit = static_cast<int>(0.25f * summary.cumul);
@@ -225,8 +225,8 @@ void PeakMinima::eraseSmallMaxima(
 
 
 void PeakMinima::splitPiece(
-  list<PieceEntry>& pieces,
-  list<PieceEntry>::iterator pit,
+  list<PieceEntryOld>& pieces,
+  list<PieceEntryOld>::iterator pit,
   const unsigned indexLeft,
   const unsigned indexRight) const
 {
@@ -261,8 +261,8 @@ void PeakMinima::splitPiece(
 
 
 bool PeakMinima::splitPieceOnDip(
-  list<PieceEntry>& pieces,
-  list<PieceEntry>::iterator pit) const
+  list<PieceEntryOld>& pieces,
+  list<PieceEntryOld>::iterator pit) const
 {
   // Split if two consecutive maxima are not within +/- 10%.
   // Also split if there's a fairly sharp dip:  Either side must be
@@ -304,8 +304,8 @@ bool PeakMinima::splitPieceOnDip(
 
 
 bool PeakMinima::splitPieceOnGap(
-  list<PieceEntry>& pieces,
-  list<PieceEntry>::iterator pit) const
+  list<PieceEntryOld>& pieces,
+  list<PieceEntryOld>::iterator pit) const
 {
   // Split if the overall piece is too long, even though there
   // was no obvious dip on which to split.  Choose the position
@@ -345,7 +345,7 @@ bool PeakMinima::splitPieceOnGap(
 }
 
 
-void PeakMinima::splitPieces(list<PieceEntry>& pieces) const
+void PeakMinima::splitPieces(list<PieceEntryOld>& pieces) const
 {
   for (auto pit = pieces.begin(); pit != pieces.end(); )
   {
@@ -366,7 +366,7 @@ void PeakMinima::splitPieces(list<PieceEntry>& pieces) const
 }
 
 
-void PeakMinima::unjitterPieces(list<PieceEntry>& pieces) const
+void PeakMinima::unjitterPieces(list<PieceEntryOld>& pieces) const
 {
   for (auto& piece: pieces)
   {
@@ -430,7 +430,7 @@ cout << "UNJITTER\n";
 
 
 bool PeakMinima::setGap(
-  const PieceEntry& piece,
+  const PieceEntryOld& piece,
   Gap& gap) const
 {
   if (piece.modality != 1)
@@ -450,7 +450,7 @@ bool PeakMinima::setGap(
 
 
 bool PeakMinima::tripartite(
-  const list<PieceEntry>& pieces,
+  const list<PieceEntryOld>& pieces,
   Gap& wheelGap,
   Gap& shortGap,
   Gap& longGap) const
@@ -1086,7 +1086,7 @@ void PeakMinima::fixBogieOrphans(PeakPool& peaks) const
 
 
 void PeakMinima::guessBogieDistance(
-  const list<PieceEntry>& pieces,
+  const list<PieceEntryOld>& pieces,
   Gap& wheelGap) const
 {
   if (pieces.size() == 1)
@@ -1095,9 +1095,9 @@ void PeakMinima::guessBogieDistance(
     return;
   }
 
-  const PieceEntry& piece1 = pieces.front();
-  const PieceEntry& piece2 = * next(pieces.begin());
-  PieceEntry const * pptr;
+  const PieceEntryOld& piece1 = pieces.front();
+  const PieceEntryOld& piece2 = * next(pieces.begin());
+  PieceEntryOld const * pptr;
 
   if (piece2.summary.cumul >= 3 * piece1.summary.cumul / 2 &&
       piece2.summary.index <= 2 * piece2.summary.index)
@@ -1113,7 +1113,7 @@ void PeakMinima::guessBogieDistance(
 
 
 void PeakMinima::guessDistance(
-  const PieceEntry& piece,
+  const PieceEntryOld& piece,
   Gap& gap) const
 {
   const unsigned index = (piece.summary.indexHi == 0 ?
@@ -1149,7 +1149,7 @@ void PeakMinima::updateGap(
 void PeakMinima::markBogies(
   PeakPool& peaks,
   Gap& wheelGap,
-  const list<PieceEntry>& pieces) const
+  const list<PieceEntryOld>& pieces) const
 {
   cout << "For bogie gaps\n";
   for (const auto& piece: pieces)
@@ -1269,7 +1269,7 @@ void PeakMinima::markShortGapsOfUnpaired(
 
 
 bool PeakMinima::hasStragglerBogies(
-  const PieceEntry& piece,
+  const PieceEntryOld& piece,
   Gap& wheelGap) const
 {
   const unsigned p = piece.summary.index;
@@ -1327,11 +1327,11 @@ void PeakMinima::markShortGaps(
   Gap& wheelGap,
   Gap& shortGap)
 {
-  list<PieceEntry> pieces;
+  list<PieceEntryOld> pieces;
   PeakMinima::makePieceList(peaks,
     &Peak::arentPartiallySelectedBogie, pieces);
 
-  PieceEntry const * pptr = nullptr;
+  PieceEntryOld const * pptr = nullptr;
   Gap actualGap;
   const unsigned wlo = static_cast<unsigned>(wheelGap.lower / 1.1f);
   const unsigned whi = static_cast<unsigned>
@@ -1558,7 +1558,7 @@ void PeakMinima::markLongGaps(
 void PeakMinima::makePieceList(
   const PeakPool& peaks,
   const PeakPairFncPtr& includePtr,
-  list<PieceEntry>& pieces) const
+  list<PieceEntryOld>& pieces) const
 {
   vector<unsigned> dists;
   peaks.candidatesConst().makeDistances(
@@ -1596,7 +1596,7 @@ cout << "FRAC " << countSelected << " " <<
   countAll << " " <<
   fixed << setprecision(2) << 100. * countSelected / countAll << endl;
 
-  list<PieceEntry> pieces;
+  list<PieceEntryOld> pieces;
   PeakMinima::makePieceList(peaks, &Peak::arePartiallySelected, pieces);
 
   if (pieces.empty())

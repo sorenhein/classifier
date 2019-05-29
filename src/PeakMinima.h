@@ -23,22 +23,7 @@ class PeakMinima
       const Peak * p1, 
       const Peak * p2) const;
 
-    struct DistEntry
-    {
-      unsigned index;
-      unsigned indexHi; // Sometimes set to denote a range
-      int direction;
-      unsigned origin;
-      int count;
-      int cumul;
-
-      bool operator < (const DistEntry& de2)
-      {
-        return (index < de2.index);
-      };
-    };
-
-    struct PieceEntry
+    struct PieceEntryOld
     {
       unsigned modality; // Unimodal, bimodel etc.
       DistEntry summary;
@@ -65,48 +50,48 @@ class PeakMinima
       const vector<unsigned>& dists,
       list<DistEntry>& steps) const;
 
-    void summarizePiece(PieceEntry& pe) const;
+    void summarizePiece(PieceEntryOld& pe) const;
 
     void makePieces(
       const list<DistEntry>& steps,
-      list<PieceEntry>& pieces,
+      list<PieceEntryOld>& pieces,
       DistEntry& summary) const;
 
     void eraseSmallPieces(
-      list<PieceEntry>& pieces,
+      list<PieceEntryOld>& pieces,
       DistEntry& summary) const;
 
     void eraseSmallMaxima(
-      list<PieceEntry>& pieces,
+      list<PieceEntryOld>& pieces,
       DistEntry& summary) const;
 
     void splitPiece(
-      list<PieceEntry>& pieces,
-      list<PieceEntry>::iterator pit,
+      list<PieceEntryOld>& pieces,
+      list<PieceEntryOld>::iterator pit,
       const unsigned indexLeft,
       const unsigned indexRight) const;
 
     bool splitPieceOnDip(
-      list<PieceEntry>& pieces,
-      list<PieceEntry>::iterator pit) const;
+      list<PieceEntryOld>& pieces,
+      list<PieceEntryOld>::iterator pit) const;
 
     bool splitPieceOnGap(
-      list<PieceEntry>& pieces,
-      list<PieceEntry>::iterator pit) const;
+      list<PieceEntryOld>& pieces,
+      list<PieceEntryOld>::iterator pit) const;
 
-    void splitPieces(list<PieceEntry>& pieces) const;
+    void splitPieces(list<PieceEntryOld>& pieces) const;
 
     bool setGap(
-      const PieceEntry& piece,
+      const PieceEntryOld& piece,
       Gap& gap) const;
 
     bool tripartite(
-      const list<PieceEntry>& pieces,
+      const list<PieceEntryOld>& pieces,
       Gap& wheelGap,
       Gap& shortGap,
       Gap& longGap) const;
 
-    void unjitterPieces(list<PieceEntry>& pieces) const;
+    void unjitterPieces(list<PieceEntryOld>& pieces) const;
 
 
     void findFirstLargeRange(
@@ -200,15 +185,15 @@ class PeakMinima
     void markBogies(
       PeakPool& peaks,
       Gap& wheelGap,
-      const list<PieceEntry>& pieces) const;
+      const list<PieceEntryOld>& pieces) const;
 
 
     void guessBogieDistance(
-      const list<PieceEntry>& pieces,
+      const list<PieceEntryOld>& pieces,
       Gap& wheelGap) const;
 
     void guessDistance(
-      const PieceEntry& piece,
+      const PieceEntryOld& piece,
       Gap& gap) const;
 
     void markShortGapsOfSelects(
@@ -224,7 +209,7 @@ class PeakMinima
       const Gap& wheelGap) const;
 
     bool hasStragglerBogies(
-      const PieceEntry& piece,
+      const PieceEntryOld& piece,
       Gap& wheelGap) const;
 
     void markShortGaps(
@@ -247,7 +232,7 @@ class PeakMinima
     void makePieceList(
       const PeakPool& peaks,
       const PeakPairFncPtr& includePtr,
-      list<PieceEntry>& pieces) const;
+      list<PieceEntryOld>& pieces) const;
 
 
     void printPeakQuality(

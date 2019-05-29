@@ -17,6 +17,7 @@ SOURCE_FILES    =               \
                 PeakPattern.cpp \
                 PeakPartial.cpp \
                 PeakPartialUsed.cpp \
+                PeakPiece.cpp   \
                 PeakPool.cpp    \
                 PeakProfile.cpp \
                 PeakPtrs.cpp    \
