@@ -20,61 +20,16 @@ class PeakMinima
 {
   private:
 
-    typedef bool (PeakMinima::*CandFncPtr)(
-      const Peak * p1, 
-      const Peak * p2) const;
-
-    struct PieceEntryOld
-    {
-      unsigned modality; // Unimodal, bimodel etc.
-      DistEntry summary;
-      list<DistEntry> extrema;
-
-      string str() const
-      {
-        stringstream ss;
-        ss << "Modality " << modality << "\n";
-        for (auto& e: extrema)
-          ss << "index " << e.index << 
-          (e.indexHi == 0 ? "" : "-" + to_string(e.indexHi)) << ", " <<
-          (e.direction == 1 ? "MAX" : "min") << ", " <<
-          e.cumul << "\n";
-        return ss.str();
-      };
-    };
-
-    list<PeakPiece> pieces;
-    DistEntry summary;
-
     PeakPieces peakPieces;
 
 
     unsigned offset;
 
 
-    void makeSteps(
-      const vector<unsigned>& dists,
-      list<DistEntry>& steps) const;
-
-    void makePieces(const list<DistEntry>& steps);
-
-    void eraseSmallPieces();
-
-    void eraseSmallMaxima();
-
-    void splitPieces();
-
-    void unjitterPieces();
-
-
     void findFirstLargeRange(
       const vector<unsigned>& dists,
       Gap& gap,
       const unsigned lowerCount = 0) const;
-
-    bool formBogieGap(
-      const Peak * p1,
-      const Peak * p2) const;
 
     void markWheelPair(
       Peak& p1,
@@ -137,8 +92,6 @@ class PeakMinima
       PeakPool& peaks,
       Gap& wheelGap);
 
-
-    void guessBogieDistance(Gap& wheelGap) const;
 
     void markShortGapsOfSelects(
       PeakPool& peaks,
