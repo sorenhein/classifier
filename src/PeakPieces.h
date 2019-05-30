@@ -54,9 +54,15 @@ class PeakPieces
     bool extendBogieGap(Gap& wheelGap) const;
 
     void guessShortGap(
+      const Gap& wheelGap,
+      Gap& shortGap) const;
+
+    /*
+    void guessShortGap(
       Gap& wheelGap,
       Gap& shortGap,
       bool& wheelGapNewFlag) const;
+      */
 
     void guessLongGap(
       Gap& wheelGap,

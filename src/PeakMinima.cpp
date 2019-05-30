@@ -996,11 +996,15 @@ void PeakMinima::markShortGaps(
 {
   PeakMinima::makePieceList(peaks, &Peak::arentPartiallySelectedBogie);
 
+  peakPieces.guessShortGap(wheelGap, shortGap);
+
+  /*
   PeakPiece const * pptr = nullptr;
   Gap actualGap;
   const unsigned wlo = static_cast<unsigned>(wheelGap.lower / 1.1f);
-  const unsigned whi = static_cast<unsigned>
-    (1.5f * (wheelGap.lower + wheelGap.upper) / 2.);
+  const unsigned whi = static_cast<unsigned>(wheelGap.upper * 1.1f);
+  // const unsigned whi = static_cast<unsigned>
+    // (1.5f * (wheelGap.lower + wheelGap.upper) / 2.);
 
   if (pieces.size() == 0)
     THROW(ERR_NO_PEAKS, "Piece list for short gaps is empty");
@@ -1008,6 +1012,14 @@ void PeakMinima::markShortGaps(
   unsigned i = 0;
   for (auto pit = pieces.begin(); pit != pieces.end(); pit++, i++)
   {
+    if (pit->summary().index > whi)
+    {
+      pptr = &* pit;
+      break;
+    }
+    */
+
+    /*
     if (pit->summary().index < wlo)
     {
       // Most likely a small piece that was rejected relative to the
@@ -1040,10 +1052,13 @@ void PeakMinima::markShortGaps(
       pptr = &* pit;
       break;
     }
+    */
+  /*
   }
 
   if (pptr == nullptr)
     THROW(ERR_NO_PEAKS, "Piece list has no short gaps");
+    */
 
   cout << "For short gaps\n";
   for (auto& piece: pieces)
@@ -1051,7 +1066,7 @@ void PeakMinima::markShortGaps(
   cout << "\n";
 
 
-  pptr->getGap(shortGap);
+  // pptr->getGap(shortGap);
 
   PeakMinima::printDists(shortGap.lower, shortGap.upper,
     "Guessing short gap");

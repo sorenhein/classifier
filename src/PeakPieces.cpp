@@ -296,6 +296,48 @@ bool PeakPieces::extendBogieGap(Gap& wheelGap) const
 
 
 void PeakPieces::guessShortGap(
+  const Gap& wheelGap,
+  Gap& shortGap) const
+{
+  if (pieces.size() == 1)
+  {
+    // Could be too short!
+    pieces.front().getGap(shortGap);
+    return;
+  }
+
+  const PeakPiece& piece1 = pieces.front();
+  const PeakPiece& piece2 = * next(pieces.begin());
+
+cout << "GUESS-SHORT-GAP\n";
+cout << wheelGap.str() << "\n";
+cout << "piece1\n" << piece1.str();
+cout << "piece2\n" << piece2.str() << "\n";
+
+  if (piece1.summary().index < wheelGap.upper)
+  {
+    // The first piece is way too short.
+    // Actually the second piece could also be dicey, but we'll
+    // improve this general selection later.
+    piece2.getGap(shortGap);
+  }
+  else if (piece1.summary().index >= 3 * wheelGap.upper / 2 ||
+      piece2.summary().cumul < 2 * piece1.summary().cumul ||
+      piece2.summary().index > 2 * piece2.summary().index)
+  {
+    // piece1 is well enough separated, or piece2 is unattractive.
+    piece1.getGap(shortGap);
+  }
+  else
+  {
+    // Assume that the first piece is spurious.
+    piece2.getGap(shortGap);
+  }
+}
+
+
+/*
+void PeakPieces::guessShortGap(
   Gap& wheelGap,
   Gap& shortGap,
   bool& wheelGapNewFlag) const
@@ -352,6 +394,7 @@ void PeakPieces::guessShortGap(
 
   pptr->getGap(shortGap);
 }
+*/
 
 
 void PeakPieces::guessLongGap(
