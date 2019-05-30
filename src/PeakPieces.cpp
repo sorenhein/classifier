@@ -309,11 +309,6 @@ void PeakPieces::guessShortGap(
   const PeakPiece& piece1 = pieces.front();
   const PeakPiece& piece2 = * next(pieces.begin());
 
-cout << "GUESS-SHORT-GAP\n";
-cout << wheelGap.str() << "\n";
-cout << "piece1\n" << piece1.str();
-cout << "piece2\n" << piece2.str() << "\n";
-
   if (piece1.summary().index < wheelGap.upper)
   {
     // The first piece is way too short.
@@ -334,67 +329,6 @@ cout << "piece2\n" << piece2.str() << "\n";
     piece2.getGap(shortGap);
   }
 }
-
-
-/*
-void PeakPieces::guessShortGap(
-  Gap& wheelGap,
-  Gap& shortGap,
-  bool& wheelGapNewFlag) const
-{
-  PeakPiece const * pptr = nullptr;
-  Gap actualGap;
-  const unsigned wlo = static_cast<unsigned>(wheelGap.lower / 1.1f);
-  const unsigned whi = static_cast<unsigned>
-    (1.5f * (wheelGap.lower + wheelGap.upper) / 2.);
-
-  if (pieces.empty())
-    THROW(ERR_NO_PEAKS, "Piece list for short gaps is empty");
-
-  wheelGapNewFlag = false;
-  unsigned i = 0;
-  for (auto pit = pieces.begin(); pit != pieces.end(); pit++, i++)
-  {
-    if (pit->summary().index < wlo)
-    {
-      // Most likely a small piece that was rejected relative to the
-      // largest piece (bogie gaps), but now this large piece is gone.
-      cout << "markShortGaps: Skipping an initial low piece\n";
-      cout << "wheelGap count " << wheelGap.count << endl;
-      cout << "skip count: " << pit->summary().cumul << endl;
-    }
-    else if (i+3 <= pieces.size() && pit->extend(wheelGap))
-    {
-      // Only regrade if there are pieces left for short and long gaps.
-      cout << "Extending wheelGap\n";
-      wheelGapNewFlag = true;
-    }
-    else if (i+3 <= pieces.size() &&
-        pit->summary().index < whi &&
-        pit->summary().cumul <= static_cast<int>(wheelGap.count / 4))
-    {
-      // Most likely a small piece with valid bogie differences for
-      // short cars.
-      // TODO Exploit this as well.
-      cout << "markShortGaps: Skipping an initial high piece\n";
-      cout << "wheelGap count " << wheelGap.count << endl;
-      cout << "skip count: " << pit->summary().cumul << endl;
-    }
-    else
-    {
-      pptr = &* pit;
-      break;
-    }
-  }
-
-  if (pptr == nullptr)
-    THROW(ERR_NO_PEAKS, "Piece list has no short gaps");
-
-  cout << PeakPieces::str("For short gaps");
-
-  pptr->getGap(shortGap);
-}
-*/
 
 
 void PeakPieces::guessLongGap(

@@ -796,12 +796,10 @@ void PeakMinima::markBogies(
   PeakPool& peaks,
   Gap& wheelGap)
 {
-  cout << "For bogie gaps\n";
-  for (const auto& piece: pieces)
-    cout << piece.str() << piece.summary().str() << endl;
-  cout << "\n";
+  cout << peakPieces.str("For bogie gaps");
 
-  PeakMinima::guessBogieDistance(wheelGap);
+  peakPieces.guessBogieGap(wheelGap);
+  // PeakMinima::guessBogieDistance(wheelGap);
 
   PeakMinima::printDists(wheelGap.lower, wheelGap.upper,
     "Guessing wheel distance");
@@ -933,62 +931,6 @@ void PeakMinima::markShortGapsOfUnpaired(
 }
 
 
-bool PeakMinima::hasStragglerBogies(
-  const PeakPiece& piece,
-  Gap& wheelGap) const
-{
-  const unsigned p = piece.summary().index;
-  const unsigned plo = static_cast<unsigned>(p / 1.1f);
-  const unsigned phi = static_cast<unsigned>(p * 1.1f);
-    
-  const unsigned wlo = static_cast<unsigned>(wheelGap.lower / 1.1f);
-  const unsigned whi = static_cast<unsigned>(wheelGap.upper * 1.1f);
-
-cout << "trying index " << p << ", " << plo << "-" << phi << endl;
-cout << "wheel gap " << wheelGap.lower << "-" << wheelGap.upper << endl;
-cout << "wheel tol " << wlo << "-" << whi << endl;
-
-  // TODO Remember to increase the count as well
-
-  if (plo <= wheelGap.upper && wheelGap.lower <= phi)
-  {
-    if (plo < wheelGap.lower)
-      wheelGap.lower = plo;
-    if (phi > wheelGap.upper)
-      wheelGap.upper = phi;
-cout << "Regrade branch 0: overlap\n";
-  }
-  else if (phi >= wlo && phi <= wheelGap.lower)
-  {
-    // Extend on the low end.
-    wheelGap.lower = phi - 1;
-cout << "Regrade branch 1\n";
-  }
-  else if (plo >= wheelGap.upper && plo <= whi)
-  {
-    // Extend on the high end.
-    wheelGap.upper = plo + 1;
-cout << "Regrade branch 2\n";
-  }
-  else if (plo >= wlo && plo <= wheelGap.lower)
-  {
-    // Extend on the low end.
-    wheelGap.lower = plo - 1;
-cout << "Regrade branch 3\n";
-  }
-  else if (phi >= wheelGap.upper && phi <= whi)
-  {
-    // Extend on the high end.
-    wheelGap.upper = phi + 1;
-cout << "Regrade branch 4\n";
-  }
-  else
-    return false;
-
-  return true;
-}
-
-
 void PeakMinima::markShortGaps(
   PeakPool& peaks,
   Gap& wheelGap,
@@ -998,82 +940,13 @@ void PeakMinima::markShortGaps(
 
   peakPieces.guessShortGap(wheelGap, shortGap);
 
-  /*
-  PeakPiece const * pptr = nullptr;
-  Gap actualGap;
-  const unsigned wlo = static_cast<unsigned>(wheelGap.lower / 1.1f);
-  const unsigned whi = static_cast<unsigned>(wheelGap.upper * 1.1f);
-  // const unsigned whi = static_cast<unsigned>
-    // (1.5f * (wheelGap.lower + wheelGap.upper) / 2.);
-
-  if (pieces.size() == 0)
-    THROW(ERR_NO_PEAKS, "Piece list for short gaps is empty");
-
-  unsigned i = 0;
-  for (auto pit = pieces.begin(); pit != pieces.end(); pit++, i++)
-  {
-    if (pit->summary().index > whi)
-    {
-      pptr = &* pit;
-      break;
-    }
-    */
-
-    /*
-    if (pit->summary().index < wlo)
-    {
-      // Most likely a small piece that was rejected relative to the
-      // largest piece (bogie gaps), but now this large piece is gone.
-      cout << "markShortGaps: Skipping an initial low piece\n";
-      cout << "wheelGap count " << wheelGap.count << endl;
-      cout << "skip count: " << pit->summary().cumul << endl;
-    }
-    else if (i+3 <= pieces.size() &&
-      PeakMinima::hasStragglerBogies(* pit, wheelGap))
-    {
-      // Only regrade if there are pieces left for short and long gaps.
-      cout << "Regrading some bogies\n";
-      PeakMinima::markBogiesOfSelects(peaks, &Peak::acceptableQuality, 
-        wheelGap, actualGap);
-    }
-    else if (i+3 <= pieces.size() &&
-        pit->summary().index < whi &&
-        pit->summary().cumul <= static_cast<int>(wheelGap.count / 4))
-    {
-      // Most likely a small piece with valid bogie differences for
-      // short cars.
-      // TODO Exploit this as well.
-      cout << "markShortGaps: Skipping an initial high piece\n";
-      cout << "wheelGap count " << wheelGap.count << endl;
-      cout << "skip count: " << pit->summary().cumul << endl;
-    }
-    else
-    {
-      pptr = &* pit;
-      break;
-    }
-    */
-  /*
-  }
-
-  if (pptr == nullptr)
-    THROW(ERR_NO_PEAKS, "Piece list has no short gaps");
-    */
-
-  cout << "For short gaps\n";
-  for (auto& piece: pieces)
-    cout << piece.str();
-  cout << "\n";
-
-
-  // pptr->getGap(shortGap);
+  cout << peakPieces.str("For short gaps");
 
   PeakMinima::printDists(shortGap.lower, shortGap.upper,
     "Guessing short gap");
 
   if (shortGap.upper == 0)
     THROW(ERR_NO_PEAKS, "Short gap is zero");
-
 
   // Mark short gaps (between cars).
   PeakMinima::markShortGapsOfSelects(peaks, shortGap);
@@ -1274,7 +1147,7 @@ cout << "FRAC " << countSelected << " " <<
 
   PeakMinima::makePieceList(peaks, &Peak::arePartiallySelected);
 
-  if (pieces.empty())
+  if (peakPieces.empty())
     THROW(ERR_NO_PEAKS, "Piece list is empty");
 
   Gap wheelGapNew, shortGapNew, longGapNew;
@@ -1362,16 +1235,8 @@ else
     cout << "QM bad -> bad\n\n";
 }
 
-for (auto& p: pieces)
-  cout << p.str();
-cout << endl;
-cout << "QQQ ";
-for (auto& p: pieces)
-  cout << p.modality();
-cout << " \n";
-
-
-
+  cout << peakPieces.str("end");
+  cout << peakPieces.strModality("QQQ");
 }
 
 

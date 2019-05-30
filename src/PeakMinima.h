@@ -152,10 +152,6 @@ class PeakMinima
       PeakPool& peaks,
       const Gap& wheelGap) const;
 
-    bool hasStragglerBogies(
-      const PeakPiece& piece,
-      Gap& wheelGap) const;
-
     void markShortGaps(
       PeakPool& peaks,
       Gap& wheelGap,
