@@ -252,6 +252,49 @@ void PeakPieces::guessBogieGap(Gap& wheelGap) const
 }
 
 
+bool PeakPieces::extendBogieGap(Gap& wheelGap) const
+{
+  if (pieces.empty())
+    THROW(ERR_NO_PEAKS, "Piece list for bogie extension is empty");
+
+  const unsigned wlo = static_cast<unsigned>(wheelGap.lower / 1.1f);
+  const unsigned whi = static_cast<unsigned>
+    (1.5f * (wheelGap.lower + wheelGap.upper) / 2.);
+
+  unsigned i = 0;
+  bool ret = false;
+  for (auto pit = pieces.begin(); pit != pieces.end(); pit++, i++)
+  {
+    if (pit->summary().index < wlo)
+    {
+      // Most likely a small piece that was rejected relative to the
+      // largest piece (bogie gaps), but now this large piece is gone.
+      cout << "markShortGaps: Skipping an initial low piece\n";
+      cout << "wheelGap count " << wheelGap.count << endl;
+      cout << "skip count: " << pit->summary().cumul << endl;
+    }
+    else if (i+3 <= pieces.size() && pit->extend(wheelGap))
+    {
+      // Only regrade if there are pieces left for short and long gaps.
+      cout << "Extending wheelGap\n";
+      ret = true;
+    }
+    else if (i+3 <= pieces.size() &&
+        pit->summary().index < whi &&
+        pit->summary().cumul <= static_cast<int>(wheelGap.count / 4))
+    {
+      // Most likely a small piece with valid bogie differences for
+      // short cars.
+      // TODO Exploit this as well.
+      cout << "markShortGaps: Skipping an initial high piece\n";
+      cout << "wheelGap count " << wheelGap.count << endl;
+      cout << "skip count: " << pit->summary().cumul << endl;
+    }
+  }
+  return ret;
+}
+
+
 void PeakPieces::guessShortGap(
   Gap& wheelGap,
   Gap& shortGap,

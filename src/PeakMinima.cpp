@@ -794,7 +794,7 @@ void PeakMinima::updateGap(
 
 void PeakMinima::markBogies(
   PeakPool& peaks,
-  Gap& wheelGap) const
+  Gap& wheelGap)
 {
   cout << "For bogie gaps\n";
   for (const auto& piece: pieces)
@@ -836,6 +836,26 @@ void PeakMinima::markBogies(
 
   PeakMinima::printDists(wheelGap.lower, wheelGap.upper,
     "Wheel distance after recalculating");
+
+
+  // Redo the pieces.
+  PeakMinima::makePieceList(peaks, &Peak::arePartiallySelected);
+
+  // Look at nearby pieces in order to catch near-misses.
+  if (peakPieces.extendBogieGap(wheelGap))
+  {
+    cout << "Extended the bogie distance\n";
+    PeakMinima::markBogiesOfSelects(peaks, &Peak::acceptableQuality, 
+      wheelGap, actualGap);
+
+    PeakMinima::updateGap(wheelGap, actualGap);
+
+    PeakMinima::printDists(wheelGap.lower, wheelGap.upper,
+      "Final wheel distance");
+  }
+  else
+    cout << "No near misses for bogie distance\n";
+
 
   // Some halves of bogies may have been downgraded.
   PeakMinima::fixBogieOrphans(peaks);

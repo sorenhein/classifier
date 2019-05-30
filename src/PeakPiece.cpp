@@ -247,34 +247,39 @@ cout << "wheel tol " << wlo << "-" << whi << endl;
   if (plo <= wheelGap.upper && wheelGap.lower <= phi)
   {
     if (plo < wheelGap.lower)
+    {
       wheelGap.lower = plo;
+cout << "REGRADE branch 0: overlap lo\n";
+    }
     if (phi > wheelGap.upper)
+    {
       wheelGap.upper = phi;
-cout << "Regrade branch 0: overlap\n";
+cout << "REGRADE branch 0: overlap hi\n";
+    }
   }
   else if (phi >= wlo && phi <= wheelGap.lower)
   {
     // Extend on the low end.
     wheelGap.lower = phi - 1;
-cout << "Regrade branch 1\n";
+cout << "REGRADE branch 1\n";
   }
   else if (plo >= wheelGap.upper && plo <= whi)
   {
     // Extend on the high end.
     wheelGap.upper = plo + 1;
-cout << "Regrade branch 2\n";
+cout << "REGRADE branch 2\n";
   }
   else if (plo >= wlo && plo <= wheelGap.lower)
   {
     // Extend on the low end.
     wheelGap.lower = plo - 1;
-cout << "Regrade branch 3\n";
+cout << "REGRADE branch 3\n";
   }
   else if (phi >= wheelGap.upper && phi <= whi)
   {
     // Extend on the high end.
     wheelGap.upper = phi + 1;
-cout << "Regrade branch 4\n";
+cout << "REGRADE branch 4\n";
   }
   else
     return false;
