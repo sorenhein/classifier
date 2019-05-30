@@ -124,7 +124,8 @@ class PeakMinima
 
     void makePieceList(
       const PeakPool& peaks,
-      const PeakPairFncPtr& includePtr);
+      const PeakPairFncPtr& includePtr,
+      const unsigned smallPieceLimit = 0);
 
 
     void printPeakQuality(

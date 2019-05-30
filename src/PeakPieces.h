@@ -27,7 +27,7 @@ class PeakPieces
 
     void makePieces();
 
-    void eraseSmallPieces();
+    void eraseSmallPieces(const unsigned smallPieceLimit);
 
     void eraseSmallMaxima();
 
@@ -35,6 +35,18 @@ class PeakPieces
 
     void unjitter();
 
+    bool selectShortAmongTwo(
+      const PeakPiece& piece1,
+      const PeakPiece& piece2,
+      const Gap& wheelGap,
+      Gap& shortGap) const;
+
+    bool selectShortAmongThree(
+      const PeakPiece& piece1,
+      const PeakPiece& piece2,
+      const PeakPiece& piece3,
+      const Gap& wheelGap,
+      Gap& shortGap) const;
 
 
   public:
@@ -45,7 +57,9 @@ class PeakPieces
 
     void reset();
 
-    void make(const vector<unsigned>& distances);
+    void make(
+      const vector<unsigned>& distances,
+      const unsigned smallPieceLimit = 0);
 
     bool empty() const;
 
@@ -56,13 +70,6 @@ class PeakPieces
     void guessShortGap(
       const Gap& wheelGap,
       Gap& shortGap) const;
-
-    /*
-    void guessShortGap(
-      Gap& wheelGap,
-      Gap& shortGap,
-      bool& wheelGapNewFlag) const;
-      */
 
     void guessLongGap(
       Gap& wheelGap,

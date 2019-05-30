@@ -144,9 +144,12 @@ void PeakPieces::makePieces()
 }
 
 
-void PeakPieces::eraseSmallPieces()
+void PeakPieces::eraseSmallPieces(const unsigned smallPieceLimit)
 {
-  const int limit = static_cast<int>(0.25f * summary.cumul);
+  const unsigned basis = 
+    (smallPieceLimit > 0 ? smallPieceLimit : summary.cumul);
+
+  const int limit = static_cast<int>(0.25f * basis);
 
   for (auto pit = pieces.begin(); pit != pieces.end(); )
   {
@@ -206,7 +209,9 @@ void PeakPieces::unjitter()
 }
 
 
-void PeakPieces::make(const vector<unsigned>& distances)
+void PeakPieces::make(
+  const vector<unsigned>& distances,
+  const unsigned smallPieceLimit)
 {
   PeakPieces::makeSteps(distances);
 
@@ -214,7 +219,7 @@ void PeakPieces::make(const vector<unsigned>& distances)
 
   PeakPieces::makePieces();
 
-  PeakPieces::eraseSmallPieces();
+  PeakPieces::eraseSmallPieces(smallPieceLimit);
 
   PeakPieces::eraseSmallMaxima();
 
@@ -263,6 +268,9 @@ bool PeakPieces::extendBogieGap(Gap& wheelGap) const
 
   unsigned i = 0;
   bool ret = false;
+
+  // This is a mess concerning the count.
+  const unsigned origCount = wheelGap.count;
   for (auto pit = pieces.begin(); pit != pieces.end(); pit++, i++)
   {
     if (pit->summary().index < wlo)
@@ -291,7 +299,98 @@ bool PeakPieces::extendBogieGap(Gap& wheelGap) const
       cout << "skip count: " << pit->summary().cumul << endl;
     }
   }
+
+  // sigh
+  if (ret)
+    wheelGap.count -= origCount;
+
   return ret;
+}
+
+
+bool PeakPieces::selectShortAmongTwo(
+  const PeakPiece& piece1,
+  const PeakPiece& piece2,
+  const Gap& wheelGap,
+  Gap& shortGap) const
+{
+  if (piece1.apart(piece2, 2.0f))
+  {
+    // piece2 is probably the long gap.
+    piece1.getGap(shortGap);
+  }
+  else if (piece1.oftener(piece2, 2.0f))
+  {
+    // piece1 is much more frequent.
+    piece1.getGap(shortGap);
+  }
+  else if (piece1.oftener(wheelGap, 0.4f))
+  {
+    // piece1 has enough count to be credible on its own.
+    piece1.getGap(shortGap);
+  }
+  else if (piece2.oftener(piece1, 2.0f))
+  {
+    // piece2 is much more frequent.
+    piece2.getGap(shortGap);
+  }
+  else if (! piece1.apart(piece2, 1.5f))
+  {
+    // Reasonably close, so use both.
+    piece1.getCombinedGap(piece2, shortGap);
+  }
+  else if (piece1.oftener(piece2, 1.5f))
+  {
+    // piece1 is somewhat separated in both index and count.
+    piece1.getGap(shortGap);
+  }
+  else if (piece2.oftener(piece1, 1.5f))
+  {
+    // piece2 is somewhat separated in both index and count.
+    piece2.getGap(shortGap);
+  }
+  else
+  {
+    // Just pick the shorter one.
+    piece1.getGap(shortGap);
+  }
+  return true;
+}
+
+
+bool PeakPieces::selectShortAmongThree(
+  const PeakPiece& piece1,
+  const PeakPiece& piece2,
+  const PeakPiece& piece3,
+  const Gap& wheelGap,
+  Gap& shortGap) const
+{
+  if (piece2.apart(piece3, 2.0f))
+  {
+    // piece3 is probably the long piece.
+    return PeakPieces::selectShortAmongTwo(piece1, piece2, 
+     wheelGap, shortGap);
+  }
+  else if (piece1.oftener(piece2, 1.5f) &&
+      piece1.apart(piece3, 2.0f))
+  {
+    // piece2 can probably be ignored for now, and
+    // piece3 is the long piece after all.
+    return PeakPieces::selectShortAmongTwo(piece1, piece3, 
+      wheelGap, shortGap);
+  }
+  else if (piece2.oftener(piece3, 2.0f))
+  {
+    // price3 is probably not really the long piece.
+    return PeakPieces::selectShortAmongTwo(piece1, piece2, 
+      wheelGap, shortGap);
+  }
+  else
+  {
+    // Just pick the shorter one.
+    piece1.getGap(shortGap);
+  }
+  return true;
 }
 
 
@@ -299,34 +398,56 @@ void PeakPieces::guessShortGap(
   const Gap& wheelGap,
   Gap& shortGap) const
 {
-  if (pieces.size() == 1)
+  const unsigned lp = pieces.size();
+
+  // Skip over any early pieces that are way too short.
+  auto pit = pieces.begin();
+  unsigned c = 0;
+  const unsigned whi = static_cast<unsigned>(1.1f * wheelGap.upper);
+  while (pit != pieces.end() && pit->summary().index < whi)
   {
-    // Could be too short!
+    pit++;
+    c++;
+  }
+
+  if (c == lp)
+    THROW(ERR_NO_PEAKS, "No long-enough short pieces");
+
+  if (c+1 == lp)
+  {
+    // A single piece, so it will have to do.
     pieces.front().getGap(shortGap);
     return;
   }
 
-  const PeakPiece& piece1 = pieces.front();
-  const PeakPiece& piece2 = * next(pieces.begin());
+  if (c+2 == lp)
+  {
+    if (PeakPieces::selectShortAmongTwo(* pit, * next(pit), 
+        wheelGap, shortGap))
+      return;
+    else
+    {
+      cout << PeakPieces::str("ERROR2");
+      cout << "wheel gap " << wheelGap.str() << "\n\n";
+      THROW(ERR_NO_PEAKS, "Confusing short pieces among two");
+    }
+  }
 
-  if (piece1.summary().index < wheelGap.upper)
+  if (c+3 <= lp)
   {
-    // The first piece is way too short.
-    // Actually the second piece could also be dicey, but we'll
-    // improve this general selection later.
-    piece2.getGap(shortGap);
-  }
-  else if (piece1.summary().index >= 3 * wheelGap.upper / 2 ||
-      piece2.summary().cumul < 2 * piece1.summary().cumul ||
-      piece2.summary().index > 2 * piece2.summary().index)
-  {
-    // piece1 is well enough separated, or piece2 is unattractive.
-    piece1.getGap(shortGap);
-  }
-  else
-  {
-    // Assume that the first piece is spurious.
-    piece2.getGap(shortGap);
+    // Choose among the first three.
+    const PeakPiece& piece1 = * pit;
+    const PeakPiece& piece2 = * next(pit);
+    const PeakPiece& piece3 = * next(next(pit));
+    if (PeakPieces::selectShortAmongThree(piece1, piece2, piece3, 
+        wheelGap, shortGap))
+      return;
+    else
+    {
+      cout << PeakPieces::str("ERROR");
+      cout << "wheel gap " << wheelGap.str() << "\n\n";
+      THROW(ERR_NO_PEAKS, "Confusing short pieces among three");
+    }
   }
 }
 
@@ -346,9 +467,13 @@ string PeakPieces::str(const string& text) const
 {
   stringstream ss;
   ss << text << "\n";
+  if (pieces.empty())
+    return ss.str();
+
+  ss << pieces.front().strHeader();
   for (auto& p: pieces)
-    cout << p.str();
-  cout << endl;
+    ss << p.str();
+  ss << endl;
   return ss.str();
 }
 

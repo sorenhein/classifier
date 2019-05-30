@@ -37,6 +37,18 @@ class PeakPiece
     bool operator <= (const unsigned limit) const;
     bool operator > (const unsigned limit) const;
 
+    bool apart(
+      const PeakPiece& piece2,
+      const float factor) const;
+
+    bool oftener(
+      const PeakPiece& piece2,
+      const float factor) const;
+
+    bool oftener(
+      const Gap& gap,
+      const float factor) const;
+
     void copySummaryFrom(const PeakPiece& piece2);
 
     void summarize();
@@ -62,8 +74,14 @@ class PeakPiece
 
     unsigned modality() const;
     const DistEntry& summary() const;
+
     bool getGap(Gap& gap) const;
 
+    void getCombinedGap(
+      const PeakPiece& piece2,
+      Gap& gap) const;
+
+    string strHeader() const;
     string str() const;
 
 };

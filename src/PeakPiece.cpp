@@ -60,6 +60,32 @@ bool PeakPiece::operator > (const unsigned limit) const
 }
 
 
+bool PeakPiece::apart(
+  const PeakPiece& piece2,
+  const float factor) const
+{
+  return (piece2._summary.index >= 
+    static_cast<unsigned>(factor * _summary.index));
+}
+
+
+bool PeakPiece::oftener(
+  const PeakPiece& piece2,
+  const float factor) const
+{
+  return (_summary.cumul >= 
+    static_cast<int>(factor * piece2._summary.cumul));
+}
+
+
+bool PeakPiece::oftener(
+  const Gap& gap,
+  const float factor) const
+{
+  return (_summary.cumul >= static_cast<int>(factor * gap.count));
+}
+
+
 void PeakPiece::copySummaryFrom(const PeakPiece& piece2)
 {
   _summary = piece2._summary;
@@ -373,15 +399,50 @@ bool PeakPiece::getGap(Gap& gap) const
 }
 
 
+void PeakPiece::getCombinedGap(
+  const PeakPiece& piece2,
+  Gap& gap) const
+{
+  const unsigned p1 = (_summary.indexHi == 0 ?
+    _summary.index : (_summary.index + _summary.indexHi) / 2);
+  const unsigned p2 = (piece2._summary.indexHi == 0 ?
+    piece2._summary.index : 
+    (piece2._summary.index + piece2._summary.indexHi) / 2);
+
+  const unsigned p = (p1 + p2) / 2;
+
+  gap.lower = static_cast<unsigned>(p / SLIDING_UPPER) - 1;
+  gap.upper = static_cast<unsigned>(p * SLIDING_UPPER) + 1;
+  gap.count = static_cast<unsigned>(_summary.cumul);
+}
+
+
+string PeakPiece::strHeader() const
+{
+  stringstream ss;
+  ss <<
+    setw(6) << left << "extr" <<
+    setw(6) << right << "index" <<
+    setw(6) << "indHi" <<
+    setw(6) << "pol" <<
+    setw(6) << "cumul" << endl;
+  return ss.str();
+}
+
+
 string PeakPiece::str() const
 {
   stringstream ss;
-  ss << "Modality " << _modality << "\n";
+  unsigned i = 0;
   for (auto& e: _extrema)
-    ss << "index " << e.index <<
-    (e.indexHi == 0 ? "" : "-" + to_string(e.indexHi)) << ", " <<
-    (e.direction == 1 ? "MAX" : "min") << ", " <<
-    e.cumul << "\n";
+  {
+    ss << setw(6) << left << i << 
+      setw(6) << right << e.index <<
+      setw(6) << (e.indexHi == 0 ? "-" : to_string(e.indexHi)) <<
+      setw(6) << (e.direction == 1 ? "+" : "-") <<
+      setw(6) << e.cumul << "\n";
+    i++;
+  }
   return ss.str();
 }
 

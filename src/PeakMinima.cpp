@@ -593,21 +593,24 @@ void PeakMinima::markBogies(
 
   peakPieces.guessBogieGap(wheelGap);
 
-  PeakMinima::printDists(wheelGap.lower, wheelGap.upper,
-    "Guessing wheel distance");
+  cout << "Guessing wheel distance " << wheelGap.str() << "\n";
+  // PeakMinima::printDists(wheelGap.lower, wheelGap.upper,
+    // "Guessing wheel distance");
 
   Gap actualGap;
   PeakMinima::markBogiesOfSelects(peaks, &Peak::acceptableQuality, 
     wheelGap, actualGap);
 
-  PeakMinima::printDists(actualGap.lower, actualGap.upper,
-    "Got actual wheel distance");
+  cout << "Got actual wheel distance " << actualGap.str() << "\n";
+  // PeakMinima::printDists(actualGap.lower, actualGap.upper,
+    // "Got actual wheel distance");
 
   // actualGap may be narrower.  We use this to re-center.
   PeakMinima::updateGap(wheelGap, actualGap);
 
-  PeakMinima::printDists(wheelGap.lower, wheelGap.upper,
-    "Wheel distance now");
+  cout << "Wheel distance now " << wheelGap.str() << "\n";
+  // PeakMinima::printDists(wheelGap.lower, wheelGap.upper,
+    // "Wheel distance now");
 
   vector<Peak> bogieScale;
   makeBogieAverages(peaks, bogieScale);
@@ -619,13 +622,16 @@ void PeakMinima::markBogies(
   PeakMinima::markBogiesOfSelects(peaks, &Peak::acceptableQuality, 
     wheelGap, actualGap);
 
-  PeakMinima::printDists(actualGap.lower, actualGap.upper,
-    "Got actual wheel distance after recalculating");
+  cout << "Got actual wheel distance after recalculating " << 
+    actualGap.str() << "\n";
+  // PeakMinima::printDists(actualGap.lower, actualGap.upper,
+    // "Got actual wheel distance after recalculating");
 
   PeakMinima::updateGap(wheelGap, actualGap);
 
-  PeakMinima::printDists(wheelGap.lower, wheelGap.upper,
-    "Wheel distance after recalculating");
+  cout << "Wheel distance after recalculating " << wheelGap.str() << "\n";
+  // PeakMinima::printDists(wheelGap.lower, wheelGap.upper,
+    // "Wheel distance after recalculating");
 
 
   // Redo the pieces.
@@ -635,13 +641,22 @@ void PeakMinima::markBogies(
   if (peakPieces.extendBogieGap(wheelGap))
   {
     cout << "Extended the bogie distance\n";
+  cout << "Got wheel distance after extending " << 
+    wheelGap.str() << "\n";
+    actualGap.count = 0;
     PeakMinima::markBogiesOfSelects(peaks, &Peak::acceptableQuality, 
       wheelGap, actualGap);
 
+  cout << "Got wheel distance after remarking " << 
+    wheelGap.str() << "\n";
+  cout << "Got actual wheel distance after extending " << 
+    actualGap.str() << "\n";
+
     PeakMinima::updateGap(wheelGap, actualGap);
 
-    PeakMinima::printDists(wheelGap.lower, wheelGap.upper,
-      "Final wheel distance");
+    cout << "Final wheel distance " << wheelGap.str() << "\n";
+    // PeakMinima::printDists(wheelGap.lower, wheelGap.upper,
+      // "Final wheel distance");
   }
   else
     cout << "No near misses for bogie distance\n";
@@ -728,7 +743,10 @@ void PeakMinima::markShortGaps(
   Gap& wheelGap,
   Gap& shortGap)
 {
-  PeakMinima::makePieceList(peaks, &Peak::arentPartiallySelectedBogie);
+  // The basis for eliminating small pieces would in general be different,
+  // so for consistency we go back to the original value.
+  PeakMinima::makePieceList(peaks, &Peak::arentPartiallySelectedBogie,
+    wheelGap.count);
 
   peakPieces.guessShortGap(wheelGap, shortGap);
 
@@ -897,7 +915,8 @@ void PeakMinima::markLongGaps(
 
 void PeakMinima::makePieceList(
   const PeakPool& peaks,
-  const PeakPairFncPtr& includePtr)
+  const PeakPairFncPtr& includePtr,
+  const unsigned smallPieceLimit)
 {
   vector<unsigned> dists;
   peaks.candidatesConst().makeDistances(
@@ -906,7 +925,7 @@ void PeakMinima::makePieceList(
     includePtr,
     dists);
 
-  peakPieces.make(dists);
+  peakPieces.make(dists, smallPieceLimit);
 }
 
 
