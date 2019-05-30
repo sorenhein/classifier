@@ -157,8 +157,7 @@ void PeakPieces::eraseSmallPieces(const unsigned smallPieceLimit)
       pit = pieces.erase(pit);
     else
       pit++;
-  }
-}
+  } }
 
 
 void PeakPieces::eraseSmallMaxima()
@@ -219,11 +218,11 @@ void PeakPieces::make(
 
   PeakPieces::makePieces();
 
-  PeakPieces::eraseSmallPieces(smallPieceLimit);
+  PeakPieces::split();
 
   PeakPieces::eraseSmallMaxima();
 
-  PeakPieces::split();
+  PeakPieces::eraseSmallPieces(smallPieceLimit);
 
   PeakPieces::unjitter();
 }

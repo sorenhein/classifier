@@ -113,6 +113,8 @@ void PeakPiece::eraseSmallMaxima(const unsigned limit)
       eit = _extrema.erase(eit);
       eit = _extrema.erase(eit);
       _modality--;
+      if (_modality == 1)
+        return;
     }
     else
       eit++;
