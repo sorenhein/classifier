@@ -811,87 +811,19 @@ void PeakMinima::markLongGapsOfSelects(
   for (PPLiterator cit = cbegin; cit != prev(cend); cit++)
   {
     Peak * cand = * cit;
-
-
-    // TMP
-    bool selectNew = false;
     if (! cand->isRightWheel() || cand->isRightBogie())
-    {
-      // TODO The test for isRightBogie should not really be necessary
-      // once we almost always get the long gap right.
-      // Remains false, continue
-    }
-    else
-    {
-      PPLiterator ncitNew = candidates.next(cit, &Peak::isSelected);
-      if (ncitNew == cend)
-      {
-        // break;
-      }
-      else
-      {
-        Peak * nextCandNew = * ncitNew;
-        if (! nextCandNew->isLeftWheel())
-        {
-          // continue
-        }
-        else if (cand->matchesGap(* nextCandNew, longGap))
-          selectNew = true;
-      }
-    }
-
-
-
-
-
-    if (! cand->isWheel() || cand->isRightBogie())
-    {
-      if (selectNew)
-      {
-        if (! cand->isWheel())
-          cout << "DIVERGENCE 1a\n";
-        else if (cand->isRightBogie())
-          cout << "DIVERGENCE 1b\n";
-        else
-          cout << "DIVERGENCE 1c\n";
-        cout << cand->strQuality(offset);
-      }
       continue;
-    }
 
     PPLiterator ncit = candidates.next(cit, &Peak::isSelected);
     if (ncit == cend)
-    {
-      if (selectNew)
-        cout << "DIVERGENCE 2\n";
       break;
-    }
 
     Peak * nextCand = * ncit;
-    if (! nextCand->isWheel())
-    {
-      if (selectNew)
-        cout << "DIVERGENCE 3\n";
+    if (! nextCand->isLeftWheel())
       continue;
-    }
 
-    // Tolerate left-left or right-right.
-    if (! cand->isRightWheel() && ! nextCand->isLeftWheel())
+    if (cand->matchesGap(* nextCand, longGap))
     {
-      if (selectNew)
-        cout << "DIVERGENCE 4\n";
-      continue;
-    }
-
-    // if (cand->matchesGap(* nextCand, longGap))
-    if (selectNew)
-    {
-      if (! selectNew)
-      {
-        cout << "DIVERGENCE 5\n";
-        cout << cand->strQuality(offset);
-        cout << nextCand->strQuality(offset);
-      }
       PeakMinima::markBogieLongGap(* cand, * nextCand, "");
 
       // Neighboring wheels may not have bogies yet, so we mark them.
