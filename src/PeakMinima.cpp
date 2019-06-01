@@ -35,150 +35,10 @@ void PeakMinima::reset()
 }
 
 
-void PeakMinima::findFirstLargeRange(
-  const vector<unsigned>& dists,
-  Gap& gap,
-  const unsigned lowerCount) const
-{
-  // We consider a sliding window with range +/- 10% relative to its
-  // center.  We want to find the first maximum (i.e. the value at which
-  // the count of distances in dists within the range reaches a local
-  // maximum).  This is a somewhat rough way to find the lowest
-  // "cluster" of values.
-
-  // If an entry in dists is d, then it creates two DistEntry values.
-  // One is at 0.9 * d and is a +1, and one is a -1 at 1.1 * d.
-
-  vector<DistEntry> steps;
-  for (auto d: dists)
-  {
-    steps.emplace_back(DistEntry());
-    DistEntry& de1 = steps.back();
-    de1.index = static_cast<unsigned>(SLIDING_LOWER * d);
-    de1.direction = 1;
-    de1.origin = d;
-
-    steps.emplace_back(DistEntry());
-    DistEntry& de2 = steps.back();
-    de2.index = static_cast<unsigned>(SLIDING_UPPER * d);
-    de2.direction = -1;
-    de2.origin = d;
-  }
-
-  sort(steps.begin(), steps.end());
-
-/*
-cout << "STEPS\n";
-for (auto s: steps)
-{
-  cout << s.index << ";" << s.direction << "\n";
-}
-cout << "\n";
-*/
-
-  int bestCount = 0;
-  unsigned bestValue = 0;
-  unsigned bestUpperValue = 0;
-  unsigned bestLowerValue = 0;
-  int count = 0;
-  unsigned dindex = steps.size();
-  unsigned i = 0;
-
-/*
-cout << "STEPS\n";
-while (i < dindex)
-{
-  // There could be several entries at the same index.
-  const unsigned step = steps[i].index;
-  unsigned upperValue = 0;
-  while (i < dindex && steps[i].index == step)
-  {
-      count += steps[i].direction;
-    // Note one origin (the +1 ones all have the same origin).
-    if (steps[i].direction == 1)
-      upperValue = steps[i].origin;
-    i++;
-  }
-  cout << step << ";" << count << "\n";
-}
-*/
-
-  count = 0;
-  i = 0;
-  while (i < dindex)
-  {
-    // There could be several entries at the same index.
-    const unsigned step = steps[i].index;
-    unsigned upperValue = 0;
-    while (i < dindex && steps[i].index == step)
-    {
-      count += steps[i].direction;
-      // Note one origin (the +1 ones all have the same origin).
-      if (steps[i].direction == 1)
-        upperValue = steps[i].origin;
-      i++;
-    }
-// cout << step << ";" << count << "\n";
-
-    if (count > bestCount)
-    {
-      bestCount = count;
-      bestValue = step;
-      bestUpperValue = upperValue;
-
-      if (i == dindex)
-        THROW(ERR_NO_PEAKS, "Does not come back to zero");
-
-      // Locate the first of the following -1's and use its origin
-      // (which will be lower than upperValue).
-      unsigned j = i;
-      while (j < dindex && steps[j].direction == 1)
-        j++;
-
-      if (j == dindex || steps[j].direction == 1)
-        THROW(ERR_NO_PEAKS, "Does not come back to zero");
-
-      bestLowerValue = steps[j].origin;
-    }
-    else if (bestCount > 0 && count == 0)
-    {
-      if (bestCount < static_cast<int>(lowerCount))
-      {
-        // Don't take a "small" maximum - start over instead.  
-        // The caller decides the minimum size of the local maximum.  
-        // We should probably be more discerning.
-        bestCount = 0;
-        bestUpperValue = 0;
-        bestLowerValue = 0;
-      }
-      else
-        break;
-    }
-  }
-
-  // So now we have a range of values that are all equally good from
-  // the point of view of covering as many steps as possible +/- 10%.
-  // We make a useful interval out of this.
-
-  const unsigned mid = (bestLowerValue + bestUpperValue) / 2;
-  gap.lower = static_cast<unsigned>(mid * SLIDING_LOWER);
-  gap.upper = static_cast<unsigned>(mid * SLIDING_UPPER);
-  gap.count = static_cast<unsigned>(bestCount);
-}
-
-
 void PeakMinima::markWheelPair(
   Peak& p1,
-  Peak& p2,
-  const string& text) const
+  Peak& p2) const
 {
-  if (text != "")
-    PeakMinima::printRange(p1.getIndex(), p2.getIndex(),
-      text + " wheel pair at");
-    
-  p1.select();
-  p2.select();
-
   p1.markWheel(WHEEL_LEFT);
   p2.markWheel(WHEEL_RIGHT);
 }
@@ -307,33 +167,6 @@ void PeakMinima::reseedLongGapsUsingQuality(
       cand->markNoWheel();
     }
   }
-}
-
-
-void PeakMinima::makeWheelAverage(
-  const PeakPool& peaks,
-  Peak& wheel) const
-{
-  // TODO This and the next two methods could become a single PeakPool
-  // method with an array of fptrs as argument.
-  wheel.reset();
-
-  unsigned count = 0;
-  const PeakPtrs& candidates = peaks.candidatesConst();
-  PPLciterator cbegin = candidates.cbegin();
-  PPLciterator cend = candidates.cend();
-  for (PPLciterator cit = cbegin; cit != cend; cit++)
-  {
-    Peak const * cand = * cit;
-    if (cand->isSelected())
-    {
-      wheel += * cand;
-      count++;
-    }
-  }
-
-  if (count)
-    wheel /= count;
 }
 
 
@@ -474,7 +307,7 @@ void PeakMinima::markBogiesOfSelects(
       
     if (cand->matchesGap(* nextCand, wheelGap))
     {
-      PeakMinima::markWheelPair(* cand, * nextCand, "");
+      PeakMinima::markWheelPair(* cand, * nextCand);
       
       const unsigned dist = nextCand->getIndex() - cand->getIndex();
       actualGap.update(dist);
@@ -733,37 +566,6 @@ void PeakMinima::markShortGaps(
 }
 
 
-void PeakMinima::guessLongGapDistance(
-  const PeakPool& peaks,
-  const unsigned shortGapCount,
-  Gap& longGap) const
-{
-  vector<unsigned> dists;
-  const PeakPtrs & candidates = peaks.candidatesConst();
-  PPLciterator cbegin = candidates.cbegin();
-  PPLciterator cend = candidates.cend();
-
-  for (PPLciterator cit = cbegin; cit != prev(cend); cit++)
-  {
-    Peak * cand = * cit;
-    if (! cand->isRightWheel() || cand->isRightBogie())
-      continue;
-
-    PPLciterator ncit = candidates.next(cit, &Peak::isSelected);
-    if (ncit == cend)
-      break;
-
-    Peak * nextCand = * ncit;
-    if (nextCand->isLeftWheel())
-      dists.push_back(nextCand->getIndex() - cand->getIndex());
-  }
-  sort(dists.begin(), dists.end());
-
-  // Guess the intra-car gap.
-  PeakMinima::findFirstLargeRange(dists, longGap, shortGapCount / 2);
-}
-
-
 unsigned PeakMinima::makeLabelsConsistent(
   PeakPool& peaks,
   const PeakFncPtr& wptr1,
@@ -909,14 +711,6 @@ void PeakMinima::markLongGaps(
   else
     THROW(ERR_NO_PEAKS, "New long gap fails");
 
-
-/*
-  // Look for intra-car (long) gaps.
-  PeakMinima::guessLongGapDistance(peaks, shortGapCount, longGap);
-
-  PeakMinima::printDists(longGap.lower, longGap.upper, "Guessing long gap");
-
-*/
   // Label intra-car gaps (within cars).
   PeakMinima::markGapsOfSelects(peaks,
     &Peak::isRightWheelNonrightBogie, &Peak::isLeftWheelNonleftBogie,
@@ -957,7 +751,6 @@ void PeakMinima::markLongGaps(
   PeakMinima::printPeakQuality(bogies[3], "Right bogie, right wheel avg");
 
   // Redo the distances using the new qualities (all four peaks).
-  // PeakMinima::guessLongGapDistance(peaks, shortGapCount, longGap);
 
   if (peakPieces.guessGaps(wheelGap, shortGap, longGap))
   {

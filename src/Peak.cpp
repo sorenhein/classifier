@@ -451,6 +451,7 @@ bool Peak::always() const
 
 void Peak::markWheel(const WheelType wheelType)
 {
+  selectFlag = true;
   wheelFlag = true;
   wheelSide = wheelType;
 }

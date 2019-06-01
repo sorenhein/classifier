@@ -27,15 +27,9 @@ class PeakMinima
     unsigned offset;
 
 
-    void findFirstLargeRange(
-      const vector<unsigned>& dists,
-      Gap& gap,
-      const unsigned lowerCount = 0) const;
-
     void markWheelPair(
       Peak& p1,
-      Peak& p2,
-      const string& text) const;
+      Peak& p2) const;
 
     void markBogieShortGap(
       Peak& p1,
@@ -55,10 +49,6 @@ class PeakMinima
       PeakPool& peaks,
       const vector<Peak>& longGapScale) const;
 
-    void makeWheelAverage(
-      const PeakPool& peaks,
-      Peak& wheel) const;
-
     void makeBogieAverages(
       const PeakPool& peaks,
       vector<Peak>& wheels) const;
@@ -71,12 +61,12 @@ class PeakMinima
       PeakPool& peaks,
       const vector<Peak>& peakCenters) const;
 
-
     void markBogiesOfSelects(
       PeakPool& peaks,
       const PeakFncPtr& fptr,
       const Gap& wheelGap,
       Gap& actualGap) const;
+
 
     void fixBogieOrphans(PeakPool& peaks) const;
 
@@ -97,6 +87,18 @@ class PeakMinima
       const MinFncPtr& fptrMark,
       const Gap& gap) const;
 
+    void markShortGaps(
+      PeakPool& peaks,
+      Gap& wheelGap,
+      Gap& shortGap);
+
+    void markGapsOfSelects(
+      PeakPool& peaks,
+      const PeakFncPtr& fptr1,
+      const PeakFncPtr& fptr2,
+      const MinFncPtr& fptrMark,
+      const Gap& wheelGap) const;
+
     unsigned makeLabelsConsistent(
       PeakPool& peaks,
       const PeakFncPtr& wptr1,
@@ -106,24 +108,6 @@ class PeakMinima
       const BogieType bogieMatchLeft,
       const BogieType bogieMatchRight,
       const Gap& gap) const;
-
-    void markGapsOfSelects(
-      PeakPool& peaks,
-      const PeakFncPtr& fptr1,
-      const PeakFncPtr& fptr2,
-      const MinFncPtr& fptrMark,
-      const Gap& wheelGap) const;
-
-    void markShortGaps(
-      PeakPool& peaks,
-      Gap& wheelGap,
-      Gap& shortGap);
-
-
-    void guessLongGapDistance(
-      const PeakPool& peaks,
-      const unsigned shortGapCount,
-      Gap& gap) const;
 
     void markLongGaps(
       PeakPool& peaks,
@@ -137,6 +121,7 @@ class PeakMinima
       const PeakFncPtr& fptr2,
       const PeakPairFncPtr& includePtr,
       const unsigned smallPieceLimit = 0);
+
 
 
     void printPeakQuality(
