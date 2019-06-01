@@ -10,6 +10,9 @@
 #if defined(__CYGWIN__)
   #include "dirent/dirent.h"
 #elif defined(_WIN32)
+  #ifndef NOMINMAX
+    #define NOMINMAX
+  #endif
   #include "dirent/dirent.h"
   #include <windows.h>
   #include "Shlwapi.h"

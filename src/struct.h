@@ -6,6 +6,7 @@
 #include <iostream>
 #include <fstream>
 #include <sstream>
+#include <limits>
 
 using namespace std;
 
@@ -348,7 +349,12 @@ struct Gap
 
   Gap()
   {
-    lower = 0;
+    Gap::reset();
+  };
+
+  void reset()
+  {
+    lower = std::numeric_limits<unsigned>::max();
     upper = 0;
     count = 0;
   };
