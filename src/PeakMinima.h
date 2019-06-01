@@ -101,6 +101,16 @@ class PeakMinima
       PeakPool& peaks,
       const Gap& wheelGap) const;
 
+    unsigned makeLabelsConsistent(
+      PeakPool& peaks,
+      const PeakFncPtr& wptr1,
+      const PeakFncPtr& wptr2,
+      const PeakFncPtr& bptrLeft,
+      const PeakFncPtr& bptrRight,
+      const BogieType bogieMatchLeft,
+      const BogieType bogieMatchRight,
+      const Gap& gap) const;
+
     void markLongGapsOfSelects(
       PeakPool& peaks,
       const Gap& wheelGap) const;

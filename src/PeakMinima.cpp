@@ -801,6 +801,89 @@ void PeakMinima::guessLongGapDistance(
 }
 
 
+unsigned PeakMinima::makeLabelsConsistent(
+  PeakPool& peaks,
+  const PeakFncPtr& wptr1,
+  const PeakFncPtr& wptr2,
+  const PeakFncPtr& bptrLeft, 
+  const PeakFncPtr& bptrRight, 
+  const BogieType bogieMatchLeft,
+  const BogieType bogieMatchRight,
+  const Gap& gap) const
+{
+  // Left-right wheels within range should have consistent bogie labels.
+  //
+  // wptr1: First wheel type (must match)
+  // wptr2: Second wheel type (must match)
+  // bptr1: Mismatch to isLeftBogie (diagnostics only)
+  // bptr2: Mismatch to isRightBogie (diagnostics only)
+  // bogieMatchLeft: 
+  //
+  //                    bogie gap       other gap
+  //                    ---------       ---------
+  // wptr1              isLeftWheel     isRightWheel
+  // wptr2              isRightWheel    isLeftWheel
+  // bptrLeft           isRightBogie    isLeftBogie
+  // bptrRight          isLeftBogie     isRightBogie
+  // bogieMatchLeft     BOGIE_LEFT      BOGIE_RIGHT
+  // bogieMatchRight    BOGIE_RIGHT     BOGIE_LEFT
+
+  unsigned count = 0;
+  PeakPtrs& candidates = peaks.candidates();
+  PPLiterator cbegin = candidates.begin();
+  PPLiterator cend = candidates.end();
+  for (PPLiterator cit = cbegin; cit != prev(cend); cit++)
+  {
+    Peak * cand = * cit;
+    if (! (cand->* wptr1)())
+      continue;
+
+    PPLiterator ncit = candidates.next(cit, &Peak::isSelected);
+    if (ncit == cend)
+      break;
+
+    Peak * nextCand = * ncit;
+    if (! (nextCand->* wptr2)())
+      continue;
+
+    if (! cand->matchesGap(* nextCand, gap))
+      continue;
+
+    if (cand->isLeftBogie())
+    {
+      if (! nextCand->isBogie())
+      {
+        nextCand->markBogie(bogieMatchLeft);
+        count++;
+      }
+      else if ((nextCand->* bptrLeft)())
+        cout << "WARNING: Mismatch in bogies (1)\n";
+    }
+    else if (cand->isRightBogie())
+    {
+      if (! nextCand->isBogie())
+      {
+        nextCand->markBogie(bogieMatchRight);
+        count++;
+      }
+      else if ((nextCand->* bptrRight)())
+        cout << "WARNING: Mismatch in bogies (2)\n";
+    }
+    else if (nextCand->isLeftBogie())
+    {
+      cand->markBogie(bogieMatchLeft);
+      count++;
+    }
+    else if (nextCand->isRightBogie())
+    {
+      cand->markBogie(bogieMatchRight);
+      count++;
+    }
+  }
+  return count;
+}
+
+
 void PeakMinima::markLongGapsOfSelects(
   PeakPool& peaks,
   const Gap& longGap) const
@@ -823,18 +906,7 @@ void PeakMinima::markLongGapsOfSelects(
       continue;
 
     if (cand->matchesGap(* nextCand, longGap))
-    {
       PeakMinima::markBogieLongGap(* cand, * nextCand, "");
-
-      // Neighboring wheels may not have bogies yet, so we mark them.
-      PPLiterator ppcit = candidates.prev(cit, &Peak::isLeftWheel);
-      if (ppcit != cend && ! (* ppcit)->isBogie())
-        (* ppcit)->markBogie(BOGIE_LEFT);
-
-      PPLiterator nncit = candidates.next(ncit, &Peak::isRightWheel);
-      if (nncit != cend && ! (* nncit)->isBogie())
-        (* ncit)->markBogie(BOGIE_RIGHT);
-    }
   }
 }
 
@@ -892,6 +964,19 @@ void PeakMinima::markLongGaps(
 
   // Mark more bogies with the refined peak qualities.
   PeakMinima::markLongGapsOfSelects(peaks, longGap);
+
+  // This is probably correct, but happens very rarely:
+  // Three times in sensor19, otherwise never.
+  /*
+  const unsigned n = PeakMinima::makeLabelsConsistent(
+    peaks,
+    &Peak::isRightWheel, &Peak::isLeftWheel,
+    &Peak::isLeftBogie, &Peak::isRightBogie,
+    BOGIE_RIGHT, BOGIE_LEFT,
+    longGap);
+  if (n)
+    cout << "MADE CONSISTENT " << n << "\n";
+  */
 
   // Store the average peaks for later reference.
   peaks.logAverages(bogies);
