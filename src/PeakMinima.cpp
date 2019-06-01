@@ -198,8 +198,8 @@ void PeakMinima::markBogieLongGap(
   Peak& p1,
   Peak& p2) const
 {
-  p1.markBogie(BOGIE_LEFT);
-  p2.markBogie(BOGIE_RIGHT);
+  p1.markBogieAndWheel(BOGIE_LEFT, WHEEL_RIGHT);
+  p2.markBogieAndWheel(BOGIE_RIGHT, WHEEL_LEFT);
 }
 
 
@@ -556,23 +556,17 @@ void PeakMinima::markBogies(
   peakPieces.guessBogieGap(wheelGap);
 
   cout << "Guessing wheel distance " << wheelGap.str() << "\n";
-  // PeakMinima::printDists(wheelGap.lower, wheelGap.upper,
-    // "Guessing wheel distance");
 
   Gap actualGap;
   PeakMinima::markBogiesOfSelects(peaks, &Peak::acceptableQuality, 
     wheelGap, actualGap);
 
   cout << "Got actual wheel distance " << actualGap.str() << "\n";
-  // PeakMinima::printDists(actualGap.lower, actualGap.upper,
-    // "Got actual wheel distance");
 
   // actualGap may be narrower.  We use this to re-center.
   PeakMinima::updateGap(wheelGap, actualGap);
 
   cout << "Wheel distance now " << wheelGap.str() << "\n";
-  // PeakMinima::printDists(wheelGap.lower, wheelGap.upper,
-    // "Wheel distance now");
 
   vector<Peak> bogieScale;
   makeBogieAverages(peaks, bogieScale);
@@ -586,14 +580,10 @@ void PeakMinima::markBogies(
 
   cout << "Got actual wheel distance after recalculating " << 
     actualGap.str() << "\n";
-  // PeakMinima::printDists(actualGap.lower, actualGap.upper,
-    // "Got actual wheel distance after recalculating");
 
   PeakMinima::updateGap(wheelGap, actualGap);
 
   cout << "Wheel distance after recalculating " << wheelGap.str() << "\n";
-  // PeakMinima::printDists(wheelGap.lower, wheelGap.upper,
-    // "Wheel distance after recalculating");
 
 
   // Redo the pieces.
@@ -617,8 +607,6 @@ void PeakMinima::markBogies(
     PeakMinima::updateGap(wheelGap, actualGap);
 
     cout << "Final wheel distance " << wheelGap.str() << "\n";
-    // PeakMinima::printDists(wheelGap.lower, wheelGap.upper,
-      // "Final wheel distance");
   }
   else
     cout << "No near misses for bogie distance\n";
@@ -637,35 +625,52 @@ void PeakMinima::markBogies(
 }
 
 
-void PeakMinima::markShortGapsOfUnpaired(
+unsigned PeakMinima::markByDistance(
   PeakPool& peaks,
-  const Gap& shortGap) const
+  const PeakFncPtr& fptr1,
+  const PeakFncPtr& fptr2,
+  const PeakFncPtr& qptr,
+  const MinFncPtr& fptrMark,
+  const Gap& gap) const
 {
+  //            bogie           short                   long
+  //            -----           -----                   ----
+  // fptr1                      isRightWheel            isRightWheel
+  // fptr2                      isLeftWheel             isLeftWheel
+  // qptr                       greatQuality            greatQuality
+  // fptrMark                   markBogieShortGap       markBogieLongGap
+  // gap                        shortGap                longGap
+
+  unsigned count = 0;
   PeakPtrs& candidates = peaks.candidates();
   PPLiterator cbegin = candidates.begin();
   PPLiterator cend = candidates.end();
 
   for (PPLiterator cit = cbegin; cit != prev(cend); cit++)
   {
+    // This is only for consecutive peaks.
     Peak * cand = * cit;
     PPLiterator ncit = next(cit);
     Peak * nextCand = * ncit;
 
     // If neither is set, or both are set, there is nothing to repair.
-    if (cand->isRightWheel() == nextCand->isLeftWheel())
+    if ((cand->* fptr1)() == (nextCand->* fptr2)())
       continue;
 
-    if (! cand->matchesGap(* nextCand, shortGap))
+    if (! cand->matchesGap(* nextCand, gap))
       continue;
 
-    // If the distance is right, we can relax our quality requirements.
-    if ((cand->isRightWheel() && nextCand->greatQuality()) ||
-        (nextCand->isLeftWheel() && cand->greatQuality()))
+    // If the distance is right, we check the peak quality.
+    if (((cand->* fptr1)() && (nextCand->* qptr)()) ||
+        ((nextCand->* fptr2)() && (cand->* qptr)()))
     {
-      PeakMinima::markBogieShortGap(* cand, * nextCand);
+      (this->* fptrMark)(* cand, * nextCand);
+      count++;
     }
   }
+  return count;
 }
+
 
 
 void PeakMinima::markShortGaps(
@@ -689,13 +694,17 @@ void PeakMinima::markShortGaps(
     THROW(ERR_NO_PEAKS, "Short gap is zero");
 
   // Mark short gaps (between cars).
-  PeakMinima::markShortGapsOfSelects(peaks, shortGap);
+  PeakMinima::markGapsOfSelects(peaks, 
+    &Peak::isRightWheel, &Peak::isLeftWheel,
+    &PeakMinima::markBogieShortGap,
+    shortGap);
 
-  // Look for unpaired short gaps.  If there is a spurious peak
-  // in between, we will fail.
-  PeakMinima::markShortGapsOfUnpaired(peaks, shortGap);
+  // Look for unpaired short gaps (only among consecutive candidates).
+  PeakMinima::markByDistance(peaks,
+    &Peak::isRightWheel, &Peak::isLeftWheel, &Peak::greatQuality,
+    &PeakMinima::markBogieShortGap, shortGap);
 
-  // This makes wheels within a bogie consistent.
+  // Make wheels within a bogie consistent.
   PeakMinima::makeLabelsConsistent(
     peaks,
     &Peak::isLeftWheel, &Peak::isRightWheel,
@@ -703,16 +712,8 @@ void PeakMinima::markShortGaps(
     BOGIE_LEFT, BOGIE_RIGHT,
     wheelGap);
 
-  // This would make inter-bogie labels consistent, but in practice
+  // We could also make inter-bogie labels consistent, but in practice
   // they always are.
-  /*
-  PeakMinima::makeLabelsConsistent(
-    peaks,
-    &Peak::isRightWheel, &Peak::isLeftWheel,
-    &Peak::isLeftBogie, &Peak::isRightBogie,
-    BOGIE_RIGHT, BOGIE_LEFT,
-    shortGap);
-  */
 
   // We will only recalculate qualities once we have done the long gaps
   // as well and marked up the bogies more thoroughly.
@@ -842,10 +843,11 @@ void PeakMinima::markGapsOfSelects(
 {
   // Does gaps between bogies.
   //
-  //            short gaps      long gaps
-  //            ----------      ---------
-  // fptr1      isRightWheel    
-  // fptr2      isLeftWheel
+  //            short gaps              long gaps
+  //            ----------              ---------
+  // fptr1      isRightWheel            isRightWheelNonrightBogie
+  // fptr2      isLeftWheel             isLeftWheelNonleftBogie
+  // fptrMark   markBogieShortGap       markBogieLongGap
 
   PeakPtrs& candidates = peaks.candidates();
   PPLiterator cbegin = candidates.begin();
@@ -869,66 +871,7 @@ void PeakMinima::markGapsOfSelects(
     if (! cand->matchesGap(* nextCand, gap))
       continue;
 
-    // PeakMinima::markBogieShortGap(* cand, * nextCand, "");
     (this->* fptrMark)(* cand, * nextCand);
-  }
-}
-
-
-void PeakMinima::markShortGapsOfSelects(
-  PeakPool& peaks,
-  const Gap& shortGap) const
-{
-  PeakPtrs& candidates = peaks.candidates();
-  PPLiterator cbegin = candidates.begin();
-  PPLiterator cend = candidates.end();
-
-  // Here we mark short gaps where both peaks are already wheels.
-  for (auto cit = cbegin; cit != cend; cit++)
-  {
-    Peak * cand = * cit;
-    if (! cand->isRightWheel())
-      continue;
-
-    PPLiterator ncit = candidates.next(cit, &Peak::isSelected);
-    if (ncit == cend)
-      break;
-
-    Peak * nextCand = * ncit;
-    if (! nextCand->isLeftWheel())
-      continue;
-      
-    if (! cand->matchesGap(* nextCand, shortGap))
-      continue;
-
-    PeakMinima::markBogieShortGap(* cand, * nextCand);
-  }
-}
-
-
-void PeakMinima::markLongGapsOfSelects(
-  PeakPool& peaks,
-  const Gap& longGap) const
-{
-  PeakPtrs& candidates = peaks.candidates();
-  PPLiterator cbegin = candidates.begin();
-  PPLiterator cend = candidates.end();
-  for (PPLiterator cit = cbegin; cit != prev(cend); cit++)
-  {
-    Peak * cand = * cit;
-    if (! cand->isRightWheel() || cand->isRightBogie())
-      continue;
-
-    PPLiterator ncit = candidates.next(cit, &Peak::isSelected);
-    if (ncit == cend)
-      break;
-
-    Peak * nextCand = * ncit;
-    if (! nextCand->isLeftWheel() || nextCand->isLeftBogie())
-      continue;
-
-    if (cand->matchesGap(* nextCand, longGap))
-      PeakMinima::markBogieLongGap(* cand, * nextCand);
   }
 }
 
@@ -945,7 +888,9 @@ void PeakMinima::markLongGaps(
   PeakMinima::printDists(longGap.lower, longGap.upper, "Guessing long gap");
 
   // Label intra-car gaps (within cars).
-  PeakMinima::markLongGapsOfSelects(peaks, longGap);
+  PeakMinima::markGapsOfSelects(peaks,
+    &Peak::isRightWheelNonrightBogie, &Peak::isLeftWheelNonleftBogie,
+    &PeakMinima::markBogieLongGap, longGap);
 
   // We are not currently looking for unpaired peaks in long gaps.
 
@@ -965,7 +910,10 @@ void PeakMinima::markLongGaps(
   Gap actualGap;
   PeakMinima::markBogiesOfSelects(peaks, &Peak::acceptableQuality,
     wheelGap, actualGap);
-  PeakMinima::markLongGapsOfSelects(peaks, longGap);
+
+  PeakMinima::markGapsOfSelects(peaks,
+    &Peak::isRightWheelNonrightBogie, &Peak::isLeftWheelNonleftBogie,
+    &PeakMinima::markBogieLongGap, longGap);
 
   cout << peaks.candidates().strQuality("peaks with all four wheels", 
     offset);
@@ -985,20 +933,25 @@ void PeakMinima::markLongGaps(
     "Guessing new long gap");
 
   // Mark more bogies with the refined peak qualities.
-  PeakMinima::markLongGapsOfSelects(peaks, longGap);
+  PeakMinima::markGapsOfSelects(peaks,
+    &Peak::isRightWheelNonrightBogie, &Peak::isLeftWheelNonleftBogie,
+    &PeakMinima::markBogieLongGap, longGap);
 
-  // This is probably correct, but happens very rarely:
-  // Three times in sensor19, otherwise never.
-  /*
-  const unsigned n = PeakMinima::makeLabelsConsistent(
+  // Mark bogies with the right distance.
+  PeakMinima::markByDistance(peaks,
+    &Peak::isRightWheel, &Peak::isLeftWheel, &Peak::greatQuality,
+    &PeakMinima::markBogieLongGap, longGap);
+
+  // This makes wheels within a bogie consistent.
+  PeakMinima::makeLabelsConsistent(
     peaks,
-    &Peak::isRightWheel, &Peak::isLeftWheel,
-    &Peak::isLeftBogie, &Peak::isRightBogie,
-    BOGIE_RIGHT, BOGIE_LEFT,
-    longGap);
-  if (n)
-    cout << "MADE CONSISTENT " << n << "\n";
-  */
+    &Peak::isLeftWheel, &Peak::isRightWheel,
+    &Peak::isRightBogie, &Peak::isLeftBogie,
+    BOGIE_LEFT, BOGIE_RIGHT,
+    wheelGap);
+
+  // Labels between long gaps are generally consistent,
+  // so no need to call makeLabelsConsistent.
 
   // Store the average peaks for later reference.
   peaks.logAverages(bogies);
@@ -1045,9 +998,6 @@ cout << "FRAC " << countSelected << " " <<
   if (peakPieces.empty())
     THROW(ERR_NO_PEAKS, "Piece list is empty");
 
-  Gap wheelGapNew, shortGapNew, longGapNew;
-  bool threeFlag = false;
-
   Gap wheelGap;
   PeakMinima::markBogies(peaks, wheelGap);
 
@@ -1061,74 +1011,6 @@ peaks.mergeSplits((wheelGap.lower + wheelGap.upper) / 2, offset);
 
 cout << peaks.candidates().strQuality(
   "All selected peaks at end of PeakMinima", offset, &Peak::isSelected);
-
-if (threeFlag)
-{
-  cout << setw(8) << left << "RM Gap" <<
-    setw(16) << right << "old" << " " <<
-    setw(16) << right << "new" << "\n";
-
-  cout << setw(8) << left << "bogie" <<
-    setw(16) << wheelGap.str() << " " <<
-    setw(16) << wheelGapNew.str() <<
-    (wheelGap == wheelGapNew ? "" : " DIFF ") << 
-    (wheelGap.isZero() ? " ZERO " : "") <<
-    "\n";
-  cout << setw(8) << left << "short" <<
-    setw(16) << shortGap.str() << " " <<
-    setw(16) << shortGapNew.str() <<
-    (shortGap == shortGapNew ? "" : " DIFF ") << 
-    (shortGap.isZero() ? " ZERO " : "") <<
-    (shortGap == wheelGap ? " OLD-OVER " : "") <<
-    "\n";
-  cout << setw(8) << left << "long" <<
-    setw(16) << longGap.str() << " " <<
-    setw(16) << longGapNew.str() <<
-    (longGap == longGapNew ? "" : " DIFF ") << 
-    (longGap.isZero() ? " ZERO " : "") <<
-    (longGap == shortGap ? " OLD-OVER " : "") <<
-    "\n\n";
-}
-else
-{
-  cout << setw(8) << left << "RM Gap" <<
-    setw(16) << right << "old" << "\n";
-
-  cout << setw(8) << left << "bogie" <<
-    setw(16) << wheelGap.str() << "\n";
-  cout << setw(8) << left << "short" <<
-    setw(16) << shortGap.str() << "\n";
-  cout << setw(8) << left << "long" <<
-    setw(16) << longGap.str() << "\n\n";
-}
-  
-
-bool goodFlag = true;
-if (wheelGap.isZero() || shortGap.isZero() || longGap.isZero())
-  goodFlag = false;
-else if (longGap == shortGap)
-  goodFlag = false;
-
-if (threeFlag)
-{
-  if (goodFlag)
-    cout << "QM good -> good (" <<
-      (wheelGap == wheelGapNew ? "" : "1") <<
-      (shortGap == shortGapNew ? "" : "2") <<
-      (longGap == longGapNew ? "" : "3") << ")\n\n";
-  else
-    cout << "QM good -> bad\n\n";
-}
-else
-{
-  if (goodFlag)
-  {
-    cout << "QM bad -> good\n\n";
-
-  }
-  else
-    cout << "QM bad -> bad\n\n";
-}
 
   cout << peakPieces.str("end");
   cout << peakPieces.strModality("QQQ");

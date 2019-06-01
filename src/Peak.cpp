@@ -505,6 +505,17 @@ bool Peak::arentPartiallySelectedBogie(const Peak& peak2) const
 }
 
 
+bool Peak::isRightWheelNonrightBogie() const
+{
+  return (Peak::isRightWheel() && ! Peak::isRightBogie());
+}
+
+bool Peak::isLeftWheelNonleftBogie() const
+{
+  return (Peak::isLeftWheel() && ! Peak::isLeftBogie());
+}
+
+
 void Peak::markdown()
 {
   Peak::markNoBogie();

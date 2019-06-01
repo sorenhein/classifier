@@ -194,6 +194,9 @@ class Peak
     bool isRightBogie() const;
     bool isBogie() const;
 
+    bool isRightWheelNonrightBogie() const;
+    bool isLeftWheelNonleftBogie() const;
+
     bool fitsType(
       const BogieType bogieType,
       const WheelType wheelType) const;

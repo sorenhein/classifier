@@ -89,13 +89,13 @@ class PeakMinima
       Gap& wheelGap);
 
 
-    void markShortGapsOfSelects(
+    unsigned markByDistance(
       PeakPool& peaks,
-      const Gap& wheelGap) const;
-
-    void markShortGapsOfUnpaired(
-      PeakPool& peaks,
-      const Gap& wheelGap) const;
+      const PeakFncPtr& fptr1,
+      const PeakFncPtr& fptr2,
+      const PeakFncPtr& qptr,
+      const MinFncPtr& fptrMark,
+      const Gap& gap) const;
 
     unsigned makeLabelsConsistent(
       PeakPool& peaks,
@@ -112,10 +112,6 @@ class PeakMinima
       const PeakFncPtr& fptr1,
       const PeakFncPtr& fptr2,
       const MinFncPtr& fptrMark,
-      const Gap& wheelGap) const;
-
-    void markLongGapsOfSelects(
-      PeakPool& peaks,
       const Gap& wheelGap) const;
 
     void markShortGaps(
