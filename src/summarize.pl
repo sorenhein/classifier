@@ -169,7 +169,7 @@ for my $file (@ARGV)
       $sname = $a[2];
 
       @errorsTrace = (0, 0, 0, 0, 0, 0, 0, 0);
-      @carsTrace = ();
+      @carsTrace = (0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
       $fullTrace = 0;
       @imperfTrace = (0, 0, 0, 0, 0, 0, 0, 0);
 
@@ -264,7 +264,7 @@ for my $file (@ARGV)
         $fullTrace, \@imperfTrace);
 
       @errorsTrace = (0, 0, 0, 0, 0, 0, 0, 0);
-      @carsTrace = ();
+      @carsTrace = (0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
       $fullTrace = 0;
       @imperfTrace = (0, 0, 0, 0, 0, 0, 0, 0);
 
@@ -335,7 +335,7 @@ for my $file (@ARGV)
         $fullTrace, \@imperfTrace);
 
       @errorsTrace = (0, 0, 0, 0, 0, 0, 0, 0);
-      @carsTrace = ();
+      @carsTrace = (0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
       $fullTrace = 0;
       @imperfTrace = (0, 0, 0, 0, 0, 0, 0, 0);
 
