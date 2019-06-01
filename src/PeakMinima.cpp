@@ -895,11 +895,28 @@ void PeakMinima::markLongGaps(
   const unsigned shortGapCount,
   Gap& longGap)
 {
+  UNUSED(shortGapCount);
+
+  Gap shortGap;
+  if (peakPieces.guessGaps(wheelGap, shortGap, longGap))
+  {
+    cout << peakPieces.str("For long gaps by new method");
+
+    cout << "Long gap by new method " << longGap.str() << endl;
+    if (longGap.upper == 0)
+      THROW(ERR_NO_PEAKS, "Long gap is zero");
+  }
+  else
+    THROW(ERR_NO_PEAKS, "New long gap fails");
+
+
+/*
   // Look for intra-car (long) gaps.
   PeakMinima::guessLongGapDistance(peaks, shortGapCount, longGap);
 
   PeakMinima::printDists(longGap.lower, longGap.upper, "Guessing long gap");
 
+*/
   // Label intra-car gaps (within cars).
   PeakMinima::markGapsOfSelects(peaks,
     &Peak::isRightWheelNonrightBogie, &Peak::isLeftWheelNonleftBogie,
@@ -940,7 +957,18 @@ void PeakMinima::markLongGaps(
   PeakMinima::printPeakQuality(bogies[3], "Right bogie, right wheel avg");
 
   // Redo the distances using the new qualities (all four peaks).
-  PeakMinima::guessLongGapDistance(peaks, shortGapCount, longGap);
+  // PeakMinima::guessLongGapDistance(peaks, shortGapCount, longGap);
+
+  if (peakPieces.guessGaps(wheelGap, shortGap, longGap))
+  {
+    cout << peakPieces.str("For long gaps by new method(2)");
+
+    cout << "Long gap by new method(2) " << longGap.str() << endl;
+    if (longGap.upper == 0)
+      THROW(ERR_NO_PEAKS, "Long gap(2) is zero");
+  }
+  else
+    THROW(ERR_NO_PEAKS, "New long gap(2) fails");
 
   PeakMinima::printDists(longGap.lower, longGap.upper, 
     "Guessing new long gap");
