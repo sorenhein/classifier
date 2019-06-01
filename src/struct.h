@@ -369,6 +369,14 @@ struct Gap
     return ss.str();
   };
 
+  void update(const unsigned value)
+  {
+    if (value < lower)
+      lower = value;
+    if (value > upper)
+      upper = value;
+  };
+
   bool operator == (const Gap& g2) const
   {
     // This really tests overlap and not equality.

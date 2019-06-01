@@ -457,9 +457,7 @@ void PeakMinima::markBogiesOfSelects(
   PeakPtrs& candidates = peaks.candidates();
   PPLiterator cbegin = candidates.begin();
   PPLiterator cend = candidates.end();
-
-  actualGap.lower = numeric_limits<unsigned>::max();
-  actualGap.upper = 0;
+  actualGap.reset();
 
   // Here we mark bogies where both peaks are already selected.
   for (auto cit = cbegin; cit != prev(cend); cit++)
@@ -479,17 +477,12 @@ void PeakMinima::markBogiesOfSelects(
       PeakMinima::markWheelPair(* cand, * nextCand, "");
       
       const unsigned dist = nextCand->getIndex() - cand->getIndex();
-      if (dist < actualGap.lower)
-        actualGap.lower = dist;
-      if (dist > actualGap.upper)
-        actualGap.upper = dist;
+      actualGap.update(dist);
     }
   }
 
-  if (actualGap.lower == numeric_limits<unsigned>::max())
-    actualGap.lower = wheelGap.lower;
-  if (actualGap.upper == 0)
-    actualGap.upper = wheelGap.upper;
+  if (actualGap.isZero())
+    actualGap = wheelGap;
 }
 
 
