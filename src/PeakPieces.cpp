@@ -462,6 +462,75 @@ void PeakPieces::guessLongGap(
 }
 
 
+bool PeakPieces::guessGaps(
+  const Gap& wheelGap,
+  Gap& shortGap,
+  Gap& longGap) const
+{
+  const unsigned lp = pieces.size();
+
+  cout << "Wheel gap " << wheelGap.str() << "\n";
+
+  cout << PeakPieces::str("Starting point");
+
+  if (lp == 2)
+  {
+    // Hope they are the two gaps.
+    // TODO Check
+    auto pit = pieces.begin();
+    const PeakPiece& piece0 = * pit; pit++;
+    const PeakPiece& piece1 = * pit;
+    piece0.getGap(shortGap);
+    piece1.getGap(longGap);
+    return true;
+  }
+  else if (lp == 3)
+  {
+    auto pit = pieces.begin();
+    const PeakPiece& piece0 = * pit; pit++;
+    const PeakPiece& piece1 = * pit; pit++;
+    const PeakPiece& piece2 = * pit;
+
+    if (piece0.summary().index > wheelGap.lower && 
+        piece0.summary().index + piece1.summary().index <
+        piece2.summary().index)
+    {
+      // Hope the first two ones are the gaps.
+      // TODO Check
+      piece0.getGap(shortGap);
+      piece1.getGap(longGap);
+      return true;
+    }
+    else
+      cout << "ODDNUM " << lp << "\n";
+  }
+  else if (lp == 4)
+  {
+    auto pit = pieces.begin();
+    const PeakPiece& piece0 = * pit; pit++;
+    const PeakPiece& piece1 = * pit; pit++;
+    const PeakPiece& piece2 = * pit;
+
+    if (piece0.summary().index > wheelGap.lower && 
+        piece0.summary().index + piece1.summary().index <
+        piece2.summary().index)
+    {
+      // Hope the first two ones are the gaps.
+      // TODO Check
+      piece0.getGap(shortGap);
+      piece1.getGap(longGap);
+      return true;
+    }
+    else
+      cout << "ODDNUM " << lp << "\n";
+  }
+  else
+    cout << "ODDNUM " << lp << "\n";
+
+  return false;
+}
+
+
 string PeakPieces::str(const string& text) const
 {
   stringstream ss;

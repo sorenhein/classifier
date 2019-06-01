@@ -76,6 +76,11 @@ class PeakPieces
       Gap& shortGap,
       Gap& longGap) const;
 
+    bool guessGaps(
+      const Gap& wheelGap,
+      Gap& shortGap,
+      Gap& longGap) const;
+
     string str(const string& text) const;
     string strModality(const string& text) const;
 

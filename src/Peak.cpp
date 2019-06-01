@@ -487,6 +487,12 @@ bool Peak::areBogie(const Peak& peak2) const
 }
 
 
+bool Peak::areBogieGap(const Peak& peak2) const
+{
+  return (Peak::isRightWheel() && peak2.isLeftWheel());
+}
+
+
 bool Peak::arePartiallySelected(const Peak& peak2) const
 {
   return (selectFlag || peak2.selectFlag);

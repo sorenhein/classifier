@@ -580,7 +580,9 @@ void PeakMinima::markBogies(
 
 
   // Redo the pieces.
-  PeakMinima::makePieceList(peaks, &Peak::arePartiallySelected);
+  PeakMinima::makePieceList(peaks, 
+    &Peak::acceptableQuality, &Peak::acceptableQuality,
+    &Peak::arePartiallySelected);
 
   // Look at nearby pieces in order to catch near-misses.
   if (peakPieces.extendBogieGap(wheelGap))
@@ -671,20 +673,38 @@ void PeakMinima::markShortGaps(
   Gap& wheelGap,
   Gap& shortGap)
 {
-  // The basis for eliminating small pieces would in general be different,
-  // so for consistency we go back to the original value.
-  PeakMinima::makePieceList(peaks, &Peak::arentPartiallySelectedBogie,
-    wheelGap.count);
+  PeakMinima::makePieceList(peaks, 
+    &Peak::isRightWheel, &Peak::isLeftWheel, &Peak::areBogieGap);
 
-  peakPieces.guessShortGap(wheelGap, shortGap);
+  Gap longGap;
+  if (peakPieces.guessGaps(wheelGap, shortGap, longGap))
+  {
+    cout << peakPieces.str("For short gaps by new method");
 
-  cout << peakPieces.str("For short gaps");
+    cout << "Short gap by new method " << shortGap.str() << endl;
+    if (shortGap.upper == 0)
+      THROW(ERR_NO_PEAKS, "Short gap is zero");
+  }
+  else
+  {
+    THROW(ERR_NO_PEAKS, "New short gap fails");
 
-  PeakMinima::printDists(shortGap.lower, shortGap.upper,
-    "Guessing short gap");
+    // The basis for eliminating small pieces would in general be
+    // different, so for consistency we go back to the original value.
+    PeakMinima::makePieceList(peaks, 
+      &Peak::acceptableQuality, &Peak::acceptableQuality,
+      &Peak::arentPartiallySelectedBogie, wheelGap.count);
 
-  if (shortGap.upper == 0)
-    THROW(ERR_NO_PEAKS, "Short gap is zero");
+    peakPieces.guessShortGap(wheelGap, shortGap);
+
+    cout << peakPieces.str("For short gaps");
+
+    PeakMinima::printDists(shortGap.lower, shortGap.upper,
+      "Guessing short gap");
+
+    if (shortGap.upper == 0)
+      THROW(ERR_NO_PEAKS, "Short gap is zero");
+  }
 
   // Mark short gaps (between cars).
   PeakMinima::markGapsOfSelects(peaks, 
@@ -953,15 +973,13 @@ void PeakMinima::markLongGaps(
 
 void PeakMinima::makePieceList(
   const PeakPool& peaks,
+  const PeakFncPtr& fptr1,
+  const PeakFncPtr& fptr2,
   const PeakPairFncPtr& includePtr,
   const unsigned smallPieceLimit)
 {
   vector<unsigned> dists;
-  peaks.candidatesConst().makeDistances(
-    &Peak::acceptableQuality,
-    &Peak::acceptableQuality,
-    includePtr,
-    dists);
+  peaks.candidatesConst().makeDistances(fptr1, fptr2, includePtr, dists);
 
 // cout << "DISTS\n";
 // for (auto d: dists)
@@ -986,7 +1004,9 @@ cout << "FRAC " << countSelected << " " <<
   countAll << " " <<
   fixed << setprecision(2) << 100. * countSelected / countAll << endl;
 
-  PeakMinima::makePieceList(peaks, &Peak::arePartiallySelected);
+  PeakMinima::makePieceList(peaks, 
+    &Peak::acceptableQuality, &Peak::acceptableQuality,
+    &Peak::arePartiallySelected);
 
   if (peakPieces.empty())
     THROW(ERR_NO_PEAKS, "Piece list is empty");
