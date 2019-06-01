@@ -20,8 +20,9 @@ class PeakMinima
 {
   private:
 
-    PeakPieces peakPieces;
+    typedef void (PeakMinima::*MinFncPtr)(Peak& p1, Peak& p2) const;
 
+    PeakPieces peakPieces;
 
     unsigned offset;
 
@@ -38,16 +39,11 @@ class PeakMinima
 
     void markBogieShortGap(
       Peak& p1,
-      Peak& p2,
-      PeakPool& peaks,
-      PPLiterator& cit,
-      PPLiterator& ncit,
-      const string& text) const;
+      Peak& p2) const;
 
     void markBogieLongGap(
       Peak& p1,
-      Peak& p2,
-      const string& text) const;
+      Peak& p2) const;
 
     void reseedWheelUsingQuality(PeakPool& peaks) const;
 
@@ -110,6 +106,13 @@ class PeakMinima
       const BogieType bogieMatchLeft,
       const BogieType bogieMatchRight,
       const Gap& gap) const;
+
+    void markGapsOfSelects(
+      PeakPool& peaks,
+      const PeakFncPtr& fptr1,
+      const PeakFncPtr& fptr2,
+      const MinFncPtr& fptrMark,
+      const Gap& wheelGap) const;
 
     void markLongGapsOfSelects(
       PeakPool& peaks,
