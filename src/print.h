@@ -32,4 +32,6 @@ void printMatches(
   const Database& db,
   const vector<Alignment>& matches);
 
+void printTopResiduals(const Alignment& match);
+
 #endif

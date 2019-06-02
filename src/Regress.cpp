@@ -12,6 +12,8 @@
 #include "print.h"
 #include "regress/PolynomialRegression.h"
 
+#define GOOD_RESIDUAL_LIMIT 50.0f
+
 extern Timers timers;
 
 
@@ -25,6 +27,21 @@ Regress::~Regress()
 }
 
 
+double Regress::time2pos(
+  const double& time,
+  const vector<double>& coeffs) const
+{
+  double res = 0.;
+  double pow = 1.;
+  for (unsigned c = 0; c <= coeffs.size(); c++)
+  {
+    res += coeffs[c] * pow;
+    pow *= time;
+  }
+  return res;
+}
+
+
 double Regress::residuals(
   const vector<double>& x,
   const vector<double>& y,
@@ -33,15 +50,8 @@ double Regress::residuals(
   double res = 0.;
   for (unsigned i = 0; i < x.size(); i++)
   {
-    double rhs = 0.;
-    double pow = 1.;
-    for (unsigned c = 0; c <= coeffs.size(); c++)
-    {
-      rhs += coeffs[c] * pow;
-      pow *= x[i];
-    }
-
-    res += (y[i] - rhs) * (y[i] - rhs);
+    double pos = Regress::time2pos(x[i], coeffs);
+    res += (y[i] - pos) * (y[i] - pos);
   }
   return res;
 }
@@ -70,6 +80,7 @@ void Regress::specificMatch(
   x.resize(lcommon);
   y.resize(lcommon);
 
+  // The vectors are as compact as possible and are matched.
   for (unsigned i = 0, p = 0; i < lt; i++)
   {
     if (match.actualToRef[i] >= 0)
@@ -86,6 +97,62 @@ void Regress::specificMatch(
   const double peakScale = 200. * 200. / (trainLength * trainLength);
   residuals = peakScale * 
     Regress::residuals(x, y, coeffs);
+}
+
+
+void Regress::summarizeResiduals(
+  const vector<PeakTime>& times,
+  const Database& db,
+  const vector<double>& coeffs,
+  Alignment& match) const
+{
+  if (match.distMatch > GOOD_RESIDUAL_LIMIT)
+  {
+    match.distMatchSumm = match.distMatch;
+    return;
+  }
+
+  vector<PeakPos> refPeaks;
+  db.getPerfectPeaks(match.trainNo, refPeaks);
+  const unsigned lr = refPeaks.size();
+
+  vector<RegrEntry> x;
+  x.resize(lr);
+
+  const unsigned lt = times.size();
+  double sum = 0.;
+  for (unsigned i = 0; i < lt; i++)
+  {
+    const unsigned refIndex = static_cast<unsigned>(match.actualToRef[i]);
+    const double position = Regress::time2pos(times[i].time, coeffs);
+
+    x[refIndex].index = refIndex;
+    x[refIndex].value = position - refPeaks[refIndex].pos;
+    x[refIndex].valueSq = x[refIndex].value * x[refIndex].value;
+    sum += x[refIndex].valueSq;
+  }
+
+  sort(x.rbegin(), x.rend());
+
+  const double average = sum / lt;
+
+  unsigned i = 0;
+  unsigned last = numeric_limits<unsigned>::max();
+  while (i+1 < lt && x[i].valueSq > 2. * average)
+  {
+    if (x[i].valueSq > x[i+1].valueSq + 0.5 * average)
+      last = i;
+    i++;
+  }
+
+  if (last != numeric_limits<unsigned>::max())
+  {
+    for (i = 0; i <= last; i++)
+    {
+      x[i].frac = x[i].valueSq / sum;sum;
+      match.topResiduals.push_back(x[i]);
+    }
+  }
 }
 
 
@@ -114,7 +181,7 @@ void Regress::bestMatch(
   {
     if (ma.dist - ma.distMatch > bestAlign.dist)
     {
-      // Can never best bestAlign.
+      // Can never beat bestAlign.
       continue;
     }
 
@@ -133,6 +200,8 @@ void Regress::bestMatch(
       motionEstimate[1] = coeffs[1];
       motionEstimate[2] = 2. * coeffs[2];
       // As the regression estimates 0.5 * a in the physics formula.
+
+      Regress::summarizeResiduals(times, db, coeffs, ma);
     }
     else
     {
@@ -161,5 +230,8 @@ printMatches(db, matches);
     cout << "Regression motion\n";
     printMotion(motionEstimate);
   }
+
+printTopResiduals(bestAlign);
+
 }
 

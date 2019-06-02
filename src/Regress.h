@@ -15,10 +15,20 @@ class Regress
 {
   private:
 
+    double time2pos(
+      const double& time,
+      const vector<double>& coeffs) const;
+
     double residuals(
       const vector<double>& x,
       const vector<double>& y,
       const vector<double>& coeffs) const;
+
+    void summarizeResiduals(
+      const vector<PeakTime>& times,
+      const Database& db,
+      const vector<double>& coeffs,
+      Alignment& match) const;
 
 
   public:

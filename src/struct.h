@@ -147,14 +147,36 @@ struct HistWarp
   double scale;
 };
 
+struct RegrEntry
+{
+  unsigned index;
+  double value;
+  double valueSq;
+  double frac;
+
+  bool operator < (const RegrEntry& regr2)
+  {
+    return (valueSq < regr2.valueSq);
+  };
+};
+
 struct Alignment
 {
   unsigned trainNo;
-  double dist;
-  double distMatch;
   unsigned numAdd;
   unsigned numDelete;
   vector<int> actualToRef;
+
+  double dist;
+  double distMatch;
+  double distMatchSumm;
+  vector<RegrEntry> topResiduals;
+
+  Alignment()
+  {
+    distMatchSumm = 0.;
+    topResiduals.clear();
+  };
 
   bool operator < (const Alignment& a2)
   {

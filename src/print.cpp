@@ -120,3 +120,23 @@ void printMatches(
   cout << "\n";
 }
 
+
+void printTopResiduals(const Alignment& match)
+{
+  cout << "Top residuals\n";
+
+  cout << setw(6) << "index" <<
+    setw(8) << "value" <<
+    setw(8) << "valSq" <<
+    setw(8) << "frac" << "\n";
+
+  for (auto& r: match.topResiduals)
+  {
+    cout << setw(6) << r.index <<
+      setw(8) << fixed << setprecision(2) << r.value <<
+      setw(8) << fixed << setprecision(2) << r.valueSq <<
+      setw(7) << fixed << setprecision(2) << 100. * r.frac << "%\n";
+  }
+  cout << "\n";
+}
+
