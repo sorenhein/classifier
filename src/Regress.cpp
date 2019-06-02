@@ -106,12 +106,6 @@ void Regress::summarizeResiduals(
   const vector<double>& coeffs,
   Alignment& match) const
 {
-  if (match.distMatch > GOOD_RESIDUAL_LIMIT)
-  {
-    match.distMatchSumm = match.distMatch;
-    return;
-  }
-
   vector<PeakPos> refPeaks;
   db.getPerfectPeaks(match.trainNo, refPeaks);
   const unsigned lr = refPeaks.size();
@@ -153,6 +147,7 @@ void Regress::summarizeResiduals(
       match.topResiduals.push_back(x[i]);
     }
   }
+
 }
 
 
@@ -186,6 +181,7 @@ void Regress::bestMatch(
     }
 
     Regress::specificMatch(times, db, ma, coeffs, residuals);
+    Regress::summarizeResiduals(times, db, coeffs, ma);
 
     if (ma.dist - ma.distMatch + residuals < bestAlign.dist)
     {
@@ -200,8 +196,6 @@ void Regress::bestMatch(
       motionEstimate[1] = coeffs[1];
       motionEstimate[2] = 2. * coeffs[2];
       // As the regression estimates 0.5 * a in the physics formula.
-
-      Regress::summarizeResiduals(times, db, coeffs, ma);
     }
     else
     {

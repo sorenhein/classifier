@@ -184,6 +184,7 @@ void resetCar(CarEntry& c)
   c.configurationUIC = "";
   c.length = 4; // Something non-zero in case we divide by it
   c.symmetryFlag = false;
+  c.fourWheelFlag = true;
 
   c.distWheels = -1;
   c.distWheels1 = -1;
@@ -203,6 +204,7 @@ void resetTrain(TrainEntry& t)
   t.introduction = 0;
   t.countries.clear();
   t.carNumbers.clear();
+  t.fourWheelFlag = true;
 }
 
 
@@ -716,6 +718,9 @@ void readCarFile(
     return;
   }
 
+  if (c.distWheels1 == 0 || c.distWheels2 == 0)
+    c.fourWheelFlag = false;
+
   db.logCar(c);
 }
 
@@ -750,6 +755,8 @@ bool makeTrainAxles(
       const CarEntry * cPtr = db.lookupCar(t.carNumbers[i]);
       if (cPtr == nullptr)
         return false;
+      if (! cPtr -> fourWheelFlag)
+        t.fourWheelFlag = false;
 
       if (i > 0)
         pos += cPtr->distFrontToWheel;
@@ -778,6 +785,8 @@ bool makeTrainAxles(
     {
       // Car is reversed.
       const CarEntry * cPtr = db.lookupCar(-t.carNumbers[i]);
+      if (! cPtr -> fourWheelFlag)
+        t.fourWheelFlag = false;
 
       if (i > 0)
         pos += cPtr->distWheelToBack;

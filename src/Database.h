@@ -36,6 +36,7 @@ struct CarEntry
   string configurationUIC; // E.g. 2'2' or Bo'Bo'
   int length; // In mm
   bool symmetryFlag; // True if wheel geometry is symmetric
+  bool fourWheelFlag; // Some cars "share" axles, look like 3-wheelers
 
   // Not all of these have to be specified simultaneously.
   // At the moment we manage to calculate the missing ones for the
@@ -65,6 +66,7 @@ struct TrainEntry
   vector<int> carNumbers;
   vector<int> axles; // In mm starting from the first wheel
   vector<Clusters> clusterList;  // First one is for 2 clusters, etc.
+  bool fourWheelFlag; // Some cars "share" axles, look like 3-wheelers
 };
 
 struct DatabaseCar

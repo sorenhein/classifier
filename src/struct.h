@@ -169,12 +169,10 @@ struct Alignment
 
   double dist;
   double distMatch;
-  double distMatchSumm;
   vector<RegrEntry> topResiduals;
 
   Alignment()
   {
-    distMatchSumm = 0.;
     topResiduals.clear();
   };
 
