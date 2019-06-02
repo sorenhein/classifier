@@ -1,0 +1,31 @@
+# Derive sensible residual correction for close trains.
+
+set train = ICE4_DEU_48
+set train1 = ${train}_N
+set train2 = ${train}_R
+
+set f1 = cross/${train1}.csv
+set f2 = cross/${train2}.csv
+set f3 = cross/${train}_comb.csv
+
+
+foreach i (../data/control/sensors/sensor*.txt)
+  set bn = `basename $i`
+  ./driver -c $i -x $train1 > $bn
+end
+
+perl cross2.pl sensor??.txt
+
+mv cross/avg.csv $f1
+
+
+foreach i (../data/control/sensors/sensor*.txt)
+  set bn = `basename $i`
+  ./driver -c $i -x $train2 > $bn
+end
+
+perl cross2.pl sensor??.txt
+
+mv cross/avg.csv $f2
+
+perl residuals.pl $f1 $f2 > $f3

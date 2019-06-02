@@ -1052,12 +1052,9 @@ void readTrainFile(
   if (! makeTrainAxles(db, t))
     cout << "File " + fname + ": Could not make axles" << endl;
 
-UNUSED(corrections);
-/*
   auto v = corrections.find(t.officialName);
   if (v != corrections.end())
     correctTrain(t, v->second);
-*/
 
   db.logTrain(t);
 }
@@ -1068,15 +1065,12 @@ void readTrainFiles(
   const string& dir,
   const string& correctionDir)
 {
-  map<string, vector<int>> corrections;
-  UNUSED(correctionDir);
-/*
   vector<string> correctionFiles;
   getFilenames(correctionDir, correctionFiles);
 
+  map<string, vector<int>> corrections;
   for (auto &f: correctionFiles)
     readCorrectionFile(f, corrections);
-*/
 
   vector<string> textfiles;
   getFilenames(dir, textfiles);
