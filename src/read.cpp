@@ -78,9 +78,18 @@ void readCarFile(
   Database& db,
   const string& fname);
 
+void readCorrectionFile(
+  const string& fname,
+  map<string, vector<int>>& corrections);
+
+void correctTrain(
+  TrainEntry& t,
+  const vector<int>& corr);
+
 void readTrainFile(
   Database& db,
-  const string& fname);
+  const string& fname,
+  const map<string, vector<int>>& corrections);
 
 
 // tokenize splits a string into tokens separated by delimiter.
@@ -593,6 +602,7 @@ void readCarFile(
   string line;
   while (getline(fin, line))
   {
+    line.erase(remove(line.begin(), line.end(), '\r'), line.end());
     if (line == "" || line.front() == '#')
       continue;
     
@@ -825,6 +835,8 @@ bool readControlFile(
   string line;
   while (getline(fin, line))
   {
+    line.erase(remove(line.begin(), line.end(), '\r'), line.end());
+
     if (line == "" || line.front() == '#')
       continue;
 
@@ -845,6 +857,8 @@ bool readControlFile(
       c.carDir = rest;
     else if (field == "TRAIN_DIRECTORY")
       c.trainDir = rest;
+    else if (field == "CORRECTION_DIRECTORY")
+      c.correctionDir = rest;
     else if (field == "SENSOR_FILE")
       c.sensorFile = rest;
     else if (field == "TRUTH_FILE")
@@ -909,10 +923,78 @@ bool readControlFile(
 }
 
 
+void readCorrectionFile(
+  const string& fname,
+  map<string, vector<int>>& corrections)
+{
+  ifstream fin;
+  fin.open(fname);
+  string line;
+  string officialName;
+
+  getline(fin, line);
+  line.erase(remove(line.begin(), line.end(), '\r'), line.end());
+
+  if (line.empty())
+  {
+    fin.close();
+    cout << "Error reading correction file: '" << line << "'" << endl;
+    return;
+  }
+
+  const auto sp = line.find(" ");
+  const string& field = line.substr(0, sp);
+  const string& rest = line.substr(sp+1);
+
+  if (field == "OFFICIAL_NAME")
+    officialName = rest;
+  else
+  {
+    fin.close();
+    cout << "Error reading correction file: '" << line << "'" << endl;
+    return;
+  }
+
+  int value;
+  while (getline(fin, line))
+  {
+    line.erase(remove(line.begin(), line.end(), '\r'), line.end());
+    if (line.empty())
+      break;
+
+    if (! readInt(line, value, "Bad integer"))
+      break;
+
+    corrections[officialName].push_back(value);
+  }
+
+  fin.close();
+}
+
+
+void correctTrain(
+  TrainEntry& t,
+  const vector<int>& corr)
+{
+  if (t.axles.size() != corr.size())
+  {
+    cout << "Correction attempted with " << corr.size() << " vs. " <<
+      t.axles.size() << " axles\n";
+    return;
+  }
+
+  for (unsigned i = 0; i < corr.size(); i++)
+    t.axles[i] += corr[i] - corr[0];
+
+}
+
+
 void readTrainFile(
   Database& db,
-  const string& fname)
+  const string& fname,
+  const map<string, vector<int>>& corrections)
 {
+
   TrainEntry t;
   resetTrain(t);
 
@@ -921,6 +1003,7 @@ void readTrainFile(
   string line;
   while (getline(fin, line))
   {
+    line.erase(remove(line.begin(), line.end(), '\r'), line.end());
     if (line == "" || line.front() == '#')
       continue;
 
@@ -969,19 +1052,37 @@ void readTrainFile(
   if (! makeTrainAxles(db, t))
     cout << "File " + fname + ": Could not make axles" << endl;
 
+UNUSED(corrections);
+/*
+  auto v = corrections.find(t.officialName);
+  if (v != corrections.end())
+    correctTrain(t, v->second);
+*/
+
   db.logTrain(t);
 }
 
 
 void readTrainFiles(
   Database& db,
-  const string& dir)
+  const string& dir,
+  const string& correctionDir)
 {
+  map<string, vector<int>> corrections;
+  UNUSED(correctionDir);
+/*
+  vector<string> correctionFiles;
+  getFilenames(correctionDir, correctionFiles);
+
+  for (auto &f: correctionFiles)
+    readCorrectionFile(f, corrections);
+*/
+
   vector<string> textfiles;
   getFilenames(dir, textfiles);
 
   for (auto &f: textfiles)
-    readTrainFile(db, f);
+    readTrainFile(db, f, corrections);
 }
 
 
@@ -997,6 +1098,7 @@ void readSensorFile(
 
   while (getline(fin, line))
   {
+    line.erase(remove(line.begin(), line.end(), '\r'), line.end());
     if (line == "" || line.front() == '#')
       continue;
 
@@ -1047,6 +1149,7 @@ bool readTraceTruth(
 
   while (getline(fin, line))
   {
+    line.erase(remove(line.begin(), line.end(), '\r'), line.end());
     if (line == "" || line.front() == '#')
       continue;
 
@@ -1115,6 +1218,7 @@ bool readInputFile(
 
   while (getline(fin, line))
   {
+    line.erase(remove(line.begin(), line.end(), '\r'), line.end());
     if (line == "" || line.front() == '#')
       continue;
 
@@ -1185,6 +1289,7 @@ bool readTextTrace(
   double v;
   while (getline(fin, line))
   {
+    line.erase(remove(line.begin(), line.end(), '\r'), line.end());
     if (line == "" || line.front() == '#')
       continue;
 

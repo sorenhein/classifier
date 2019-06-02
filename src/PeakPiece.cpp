@@ -312,7 +312,7 @@ cout << "REGRADE branch 4\n";
   else
     return false;
 
-  wheelGap.count += _summary.cumul;
+  wheelGap.count += static_cast<unsigned>(_summary.cumul);
   return true;
 }
 

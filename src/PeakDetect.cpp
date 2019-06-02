@@ -425,7 +425,7 @@ void PeakDetect::eliminateKinks()
     THROW(ERR_NO_PEAKS, "Peak list is short");
 
   for (auto peak = next(peaks.top().begin(), 2); 
-      peak != prev(peaks.top().end()); )
+      peak != prev(peaks.top().end(), 2); )
   {
     const auto peakPrev = prev(peak);
     const auto peakPrevPrev = prev(peakPrev);
@@ -483,7 +483,7 @@ void PeakDetect::eliminateKinks()
 
     if (ratioPrev * ratioNext > KINK_RATIO)
     {
-      peaks.top().collapse(peakPrev, peakNext);
+      peak = peaks.top().collapse(peakPrev, peakNext);
       continue;
     }
 
@@ -497,7 +497,7 @@ void PeakDetect::eliminateKinks()
         KINK_RATIO_ONE_DIM * vMid < vWhole)
     {
       // Another way of looking like a kink.
-      peaks.top().collapse(peakPrev, peakNext);
+      peak = peaks.top().collapse(peakPrev, peakNext);
     }
     else
       peak++;

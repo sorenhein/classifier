@@ -308,7 +308,7 @@ void setup(
   }
 
   readCarFiles(db, control.carDir);
-  readTrainFiles(db, control.trainDir);
+  readTrainFiles(db, control.trainDir, control.correctionDir);
 
   if (control.sensorFile != "")
     readSensorFile(db, control.sensorFile);

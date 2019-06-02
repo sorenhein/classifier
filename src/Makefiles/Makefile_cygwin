@@ -37,14 +37,13 @@ WARN_FLAGS	= 		\
 	-Wno-unknown-pragmas 	\
 	-Wno-long-long
 
-COMPILE_FLAGS	= -O3 -flto -fopenmp -mtune=generic -fno-use-linker-plugin \
+# COMPILE_FLAGS	= -O0 -flto -mtune=generic -fno-use-linker-plugin -ggdb
+COMPILE_FLAGS	= -O3 -flto -mtune=generic -fno-use-linker-plugin \
 		$(WARN_FLAGS) 
 
-LINK1_FLAGS	= -shared -fopenmp
+LINK1_FLAGS	=
 
 LINK2_FLAGS	= 		\
-	-Wl,--subsystem,windows \
-	-Wl,--output-def,$(DLLBASE).def	\
 	-Wl,--dynamicbase 	\
 	-Wl,--nxcompat 		\
 	-Wl,--no-seh 		\

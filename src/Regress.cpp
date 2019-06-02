@@ -117,13 +117,16 @@ void Regress::summarizeResiduals(
   double sum = 0.;
   for (unsigned i = 0; i < lt; i++)
   {
-    const unsigned refIndex = static_cast<unsigned>(match.actualToRef[i]);
-    const double position = Regress::time2pos(times[i].time, coeffs);
+    if (match.actualToRef[i] != -1)
+    {
+      const unsigned refIndex = static_cast<unsigned>(match.actualToRef[i]);
+      const double position = Regress::time2pos(times[i].time, coeffs);
 
-    x[refIndex].index = refIndex;
-    x[refIndex].value = position - refPeaks[refIndex].pos;
-    x[refIndex].valueSq = x[refIndex].value * x[refIndex].value;
-    sum += x[refIndex].valueSq;
+      x[refIndex].index = refIndex;
+      x[refIndex].value = position - refPeaks[refIndex].pos;
+      x[refIndex].valueSq = x[refIndex].value * x[refIndex].value;
+      sum += x[refIndex].valueSq;
+    }
   }
 
   sort(x.rbegin(), x.rend());
@@ -225,7 +228,7 @@ printMatches(db, matches);
     printMotion(motionEstimate);
   }
 
-printTopResiduals(bestAlign);
+// printTopResiduals(bestAlign);
 
 }
 

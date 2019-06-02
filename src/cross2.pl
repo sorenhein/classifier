@@ -120,7 +120,8 @@ for my $i (0 .. $mlen)
     for my $k2 (sort keys %{$output{$k1}})
     {
       my @d = split /_/, $k2;
-      my $s = sprintf(";%7.4f", $averages{$k1}{$k2}[$i]);
+      # my $s = sprintf(";%7.4f", $averages{$k1}{$k2}[$i]);
+      my $s = sprintf(";%d", 1000. * $averages{$k1}{$k2}[$i]);
       $s =~ s/\./,/;
       print $fa $s;
     }

@@ -130,7 +130,7 @@ void PeakPieces::makePieces()
 
     pe.summarize();
 
-    if (pe > summary.cumul)
+    if (pe > static_cast<unsigned>(summary.cumul))
     {
       summary.index = pe.summary().index;
       summary.cumul = pe.summary().cumul;
@@ -147,9 +147,10 @@ void PeakPieces::makePieces()
 void PeakPieces::eraseSmallPieces(const unsigned smallPieceLimit)
 {
   const unsigned basis = 
-    (smallPieceLimit > 0 ? smallPieceLimit : summary.cumul);
+    (smallPieceLimit > 0 ? smallPieceLimit : 
+    static_cast<unsigned>(summary.cumul));
 
-  const int limit = static_cast<int>(0.25f * basis);
+  const unsigned limit = static_cast<unsigned>(0.25f * basis);
 
   for (auto pit = pieces.begin(); pit != pieces.end(); )
   {
@@ -162,7 +163,7 @@ void PeakPieces::eraseSmallPieces(const unsigned smallPieceLimit)
 
 void PeakPieces::eraseSmallMaxima()
 {
-  const int limit = static_cast<int>(0.25f * summary.cumul);
+  const unsigned limit = static_cast<unsigned>(0.25f * summary.cumul);
 
   for (auto pit = pieces.begin(); pit != pieces.end(); pit++)
     pit->eraseSmallMaxima(limit);

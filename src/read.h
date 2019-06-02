@@ -45,7 +45,8 @@ void readCarFiles(
 
 void readTrainFiles(
   Database& db,
-  const string& dir);
+  const string& dir,
+  const string& correctionDir);
 
 void readSensorFile(
   Database& db,

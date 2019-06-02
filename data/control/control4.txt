@@ -1,5 +1,6 @@
 CAR_DIRECTORY ../data/cars
 TRAIN_DIRECTORY ../data/trains
+CORRECTION_DIRECTORY ../data/residuals
 COUNTRY DEU
 YEAR 2018
 DISTURB_FILE ../data/disturbances/case1.txt

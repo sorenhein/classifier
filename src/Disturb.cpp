@@ -1,7 +1,7 @@
 #include <iomanip>
 #include <random>
 #include <ctime>
-
+#include <algorithm>
 
 #include "Disturb.h"
 #include "read.h"
@@ -46,6 +46,7 @@ bool Disturb::readFile(const string& fname)
   string line;
   while (getline(fin, line))
   {
+    line.erase(remove(line.begin(), line.end(), '\r'), line.end());
     if (line == "" || line.front() == '#')
       continue;
 

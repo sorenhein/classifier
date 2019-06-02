@@ -18,6 +18,7 @@ struct Control
 {
   string carDir; // Directory of car files
   string trainDir; // Directory of train files
+  string correctionDir; // Directory of residual correction files
   string sensorFile; // File with sensor data
   string truthFile; // File with trace truth data
   string country; // Country of input traces
