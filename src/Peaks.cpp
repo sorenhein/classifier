@@ -224,7 +224,7 @@ bool Peaks::near(
   else
     return false;
 
-  return true;
+  return (foundIter->isCandidate());
 }
 
 
