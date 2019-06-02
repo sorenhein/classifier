@@ -1,6 +1,8 @@
 # Derive sensible residual correction for close trains.
 
-set train = ICE4_DEU_48
+# set train = ICE4_DEU_48
+
+set train = ICET_DEU_28
 set train1 = ${train}_N
 set train2 = ${train}_R
 
