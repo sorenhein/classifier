@@ -270,14 +270,14 @@ void PeakMinima::markSinglePeaks(
   for (PPLiterator cit = cbegin; cit != cend; cit++)
     (* cit)->calcQualities(peakCenters);
 
-  cout << peaks.candidates().strQuality("All negative minima", offset);
-  cout << peaks.candidates().strQuality("Seeds", 
-    offset, &Peak::isSelected);
+  // cout << peaks.candidates().strQuality("All negative minima", offset);
+  // cout << peaks.candidates().strQuality("Seeds", 
+    // offset, &Peak::isSelected);
 
   // Modify selection based on quality.
   PeakMinima::reseedWheelUsingQuality(peaks);
 
-  cout << peaks.candidates().strQuality("Great-quality seeds", offset);
+  // cout << peaks.candidates().strQuality("Great-quality seeds", offset);
 }
 
 

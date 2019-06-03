@@ -141,6 +141,5 @@ void printTopResiduals(const Alignment& match)
       setw(7) << fixed << setprecision(2) << 100. * r.frac << "%" << endl;
   }
   cout << endl;
-cout << "DONE WITH TOP RES" << endl;
 }
 

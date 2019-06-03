@@ -228,7 +228,7 @@ printMatches(db, matches);
     printMotion(motionEstimate);
   }
 
-// printTopResiduals(bestAlign);
+printTopResiduals(bestAlign);
 
 }
 
