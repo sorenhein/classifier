@@ -552,8 +552,8 @@ string PeakPieces::strModality(const string& text) const
   stringstream ss;
   ss << text << " ";
   for (auto& p: pieces)
-    cout << p.modality();
-  cout << endl;
+    ss << p.modality();
+  ss << endl;
   return ss.str();
 }
 
