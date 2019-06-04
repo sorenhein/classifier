@@ -45,6 +45,8 @@ class PeakPtrs
       PPLiterator& it,
       Peak * peak);
 
+    void moveFrom(PeakPtrs& fromPtrs);
+
     void shift_down(Peak * peak);
 
     PPLiterator erase(PPLiterator& it);

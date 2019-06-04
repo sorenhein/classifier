@@ -383,9 +383,20 @@ PeakQuality Peak::getQualityWhole() const
 }
 
 
-float Peak::getQualityShape() const
+PeakQuality Peak::getQualityShape() const
 {
-  return qualityShape;
+  if (qualityShape <= 0.10f)
+    return PEAK_QUALITY_FANTASTIC;
+  if (qualityShape <= 0.30f)
+    return PEAK_QUALITY_GREAT;
+  if (qualityShape <= 0.50f)
+    return PEAK_QUALITY_GOOD;
+  if (qualityShape <= 0.75f)
+    return PEAK_QUALITY_ACCEPTABLE;
+  if (qualityShape <= 1.00f)
+    return PEAK_QUALITY_BORDERLINE;
+  else
+    return PEAK_QUALITY_POOR;
 }
 
 

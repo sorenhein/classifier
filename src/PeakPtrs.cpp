@@ -121,6 +121,15 @@ void PeakPtrs::insert(
 }
 
 
+void PeakPtrs::moveFrom(PeakPtrs& fromPtrs)
+{
+  for (auto& fr: fromPtrs)
+    peaks.push_back(fr);
+
+  fromPtrs.clear();
+}
+
+
 void PeakPtrs::shift_down(Peak * peak)
 {
   if (peaks.size() > 0)

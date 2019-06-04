@@ -157,7 +157,8 @@ class PeakPattern
       unsigned dist;
       float numBogies; // dist relative to a typical bogie
       bool bogieLikeFlag;
-      PeakQuality qualityLower; // Lower of the two
+      PeakQuality qualityShapeLower; // Lower of the two
+      PeakQuality qualityWholeLower; // Lower of the two
 
       string str(const unsigned offset)
       {
@@ -166,7 +167,8 @@ class PeakPattern
           peakLeft->getIndex() + offset << " - " <<
           peakRight->getIndex() + offset << ", bogies " <<
           setw(5) << fixed << setprecision(2) << numBogies << ", q " <<
-          static_cast<unsigned>(qualityLower) << ", like " << 
+          static_cast<unsigned>(qualityWholeLower) << " " <<
+          static_cast<unsigned>(qualityShapeLower) << ", like " << 
           bogieLikeFlag << endl;
         return ss.str();
       };
@@ -257,6 +259,8 @@ class PeakPattern
       PeakPool& peaks,
       PeakPtrs& peakPtrsUsed,
       PeakPtrs& peakPtrsUnused) const;
+
+    bool looksEmptyFirst(const PeakPtrs& peakPtrsUsed) const;
 
     void updateUnused(
       const PatternEntry& pe,

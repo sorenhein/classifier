@@ -487,6 +487,22 @@ cout << ae.strShort("guessRight", rangeData.qualRight);
 }
 
 
+bool PeakPattern::looksEmptyFirst(const PeakPtrs& peakPtrsUsed) const
+{
+  if (peakPtrsUsed.size() >= 2)
+    return false;
+
+  Peak const * pptr = peakPtrsUsed.front();
+  if (pptr->goodQuality())
+    return false;
+
+  // This could become more elaborate, e.g. the peak is roughly
+  // in an expected position.
+
+  return true;
+}
+
+
 void PeakPattern::updateUnused(
   const PatternEntry& pe,
   PeakPtrs& peakPtrsUnused) const
@@ -1036,9 +1052,15 @@ void PeakPattern::getSpacings(PeakPtrs& peakPtrsUsed)
       se.dist / static_cast<float>(bogieTypical));
     // TODO #define
     se.bogieLikeFlag = (se.numBogies >= 0.7f && se.numBogies <= 1.75f);
-    const PeakQuality pqL = se.peakLeft->getQualityWhole();
-    const PeakQuality pqR = se.peakRight->getQualityWhole();
-    se.qualityLower = (pqL >= pqR ? pqL : pqR);
+
+    const PeakQuality pqWL = se.peakLeft->getQualityWhole();
+    const PeakQuality pqWR = se.peakRight->getQualityWhole();
+    se.qualityWholeLower = (pqWL >= pqWR ? pqWL : pqWR);
+
+    const PeakQuality pqSL = se.peakLeft->getQualityShape();
+    const PeakQuality pqSR = se.peakRight->getQualityShape();
+    se.qualityShapeLower = (pqSL >= pqSR ? pqSL : pqSR);
+
   }
 }
 
@@ -1130,6 +1152,9 @@ bool PeakPattern::guessAndFixShort(
   const unsigned numSpaces = indexLast + 1 - indexFirst;
 cout << "PPINDEX " << numSpaces << endl;
 
+  const SpacingEntry& spFirst = spacings[indexFirst];
+  const SpacingEntry& spLast = spacings[indexLast];
+
   if (numSpaces == 2)
   {
     // TODO Could extend
@@ -1147,10 +1172,10 @@ cout << "PPINDEX " << numSpaces << endl;
   }
   else if (numSpaces == 3)
   {
-    if (spacings[indexFirst].bogieLikeFlag &&
-        spacings[indexLast].bogieLikeFlag &&
-        spacings[indexFirst].qualityLower <= PEAK_QUALITY_GOOD &&
-        spacings[indexLast].qualityLower <= PEAK_QUALITY_GOOD)
+    if (spFirst.bogieLikeFlag &&
+        spLast.bogieLikeFlag &&
+        spFirst.qualityWholeLower <= PEAK_QUALITY_GOOD &&
+        spLast.qualityWholeLower <= PEAK_QUALITY_GOOD)
     {
       if (PeakPattern::plausibleCar(leftFlag, indexFirst, indexLast))
       {
@@ -1162,14 +1187,22 @@ cout << "PPINDEX " << numSpaces << endl;
   }
   else if (numSpaces == 4)
   {
-    if (spacings[indexFirst].bogieLikeFlag &&
-        spacings[indexLast].bogieLikeFlag &&
-        spacings[indexFirst].qualityLower <= PEAK_QUALITY_GOOD &&
-        spacings[indexLast].qualityLower <= PEAK_QUALITY_GOOD)
+    if (spFirst.bogieLikeFlag &&
+        spLast.bogieLikeFlag)
     {
-      if (PeakPattern::plausibleCar(leftFlag, indexFirst, indexLast))
+      if (spFirst.qualityWholeLower <= PEAK_QUALITY_GOOD &&
+          spLast.qualityWholeLower <= PEAK_QUALITY_GOOD &&
+          PeakPattern::plausibleCar(leftFlag, indexFirst, indexLast))
       {
-        PeakPattern::fixShort("PPINDEX 4", indexFirst, indexLast,
+        PeakPattern::fixShort("PPINDEX 4a", indexFirst, indexLast,
+          peakPtrsUsed, peakPtrsUnused);
+        return true;
+      }
+      else if (spFirst.qualityShapeLower <= PEAK_QUALITY_GOOD &&
+          spLast.qualityShapeLower <= PEAK_QUALITY_GOOD &&
+          PeakPattern::plausibleCar(leftFlag, indexFirst, indexLast))
+      {
+        PeakPattern::fixShort("PPINDEX 4b", indexFirst, indexLast,
           peakPtrsUsed, peakPtrsUnused);
         return true;
       }
@@ -1276,6 +1309,13 @@ cout << peakPtrsUnused.strQuality("Unused", offset);
     if (PeakPattern::guessRight(models) &&
         PeakPattern::fix(peaks, peakPtrsUsed, peakPtrsUnused))
       return true;
+
+    if (rangeData.qualLeft == QUALITY_NONE &&
+        PeakPattern::looksEmptyFirst(peakPtrsUsed))
+    {
+      peakPtrsUnused.moveFrom(peakPtrsUsed);
+      return true;
+    }
   }
 
   if (peakPtrsUsed.size() <= 2)
