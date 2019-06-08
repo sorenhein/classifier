@@ -246,7 +246,8 @@ void PeakPieces::guessBogieGap(Gap& wheelGap) const
   const PeakPiece& piece1 = pieces.front();
   const PeakPiece& piece2 = * next(pieces.begin());
 
-  if (piece2.summary().cumul >= 3 * piece1.summary().cumul / 2 &&
+  if (pieces.size() >= 4 &&
+      piece2.summary().cumul >= 3 * piece1.summary().cumul / 2 &&
       piece2.summary().index <= 2 * piece2.summary().index)
   {
     // Assume that the first piece is spurious.
@@ -476,7 +477,23 @@ bool PeakPieces::guessGaps(
 
   if (lp == 1)
   {
+    const PeakPiece& piece = pieces.front();
+    const float lenRatio = piece.summary().index /
+      static_cast<float>(wheelGap.upper);
+
+    if (lenRatio >= 3. && lenRatio <= 7. &&
+        2 * piece.summary().count >= static_cast<int>(wheelGap.count))
+    {
+      shortGap.reset();
+      piece.getGap(longGap);
+      return true;
+    }
+    else
+    {
       cout << "ODDNUM " << lp << "\n";
+      cout << "NOT-THREE " << fixed << setprecision(2) << lenRatio << "\n";
+    }
+
   }
   else if (lp == 2)
   {

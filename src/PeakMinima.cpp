@@ -513,10 +513,15 @@ void PeakMinima::markShortGaps(
   if (peakPieces.guessGaps(wheelGap, shortGap, longGap))
   {
     cout << peakPieces.str("For short gaps by new method");
-
     cout << "Short gap by new method " << shortGap.str() << endl;
-    if (shortGap.upper == 0)
-      THROW(ERR_NO_PEAKS, "Short gap is zero");
+
+    if (shortGap.isZero())
+    {
+      if (! longGap.isZero())
+        THROW(ERR_NO_PEAKS, "Three-wheeler");
+      else
+        THROW(ERR_NO_PEAKS, "Short gap is zero");
+    }
   }
   else
   {

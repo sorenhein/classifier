@@ -229,21 +229,21 @@ for my $file (@ARGV)
       $errorsTrace[0]++;
       $fracHist[$peakFrac][0]++;
 
-      if (hasErrors(\@errorsTrace))
-      {
-        print $fo dividerLine($format);
+      # if (hasErrors(\@errorsTrace))
+      # {
+        # print $fo dividerLine($format);
 
-        print $fo summaryLine($sensor, 
-          $time,
-          $fileno,
-          \@errorsTrace, 
-          \@carsTrace, 
-          $fullTrace, 
-          \@imperfTrace, 
-          $format), "\n";
+        # print $fo summaryLine($sensor, 
+          # $time,
+          # $fileno,
+          # \@errorsTrace, 
+          # \@carsTrace, 
+          # $fullTrace, 
+          # \@imperfTrace, 
+          # $format), "\n";
 
-        print $fo forceNewLine($format);
-      }
+        # print $fo forceNewLine($format);
+      # }
     }
     elsif ($line =~ /^Regression alignment/)
     {
@@ -287,21 +287,21 @@ for my $file (@ARGV)
       $errorsTrace[2] += 0;
       $fracHist[$peakFrac][1]++;
 
-      if (hasErrors(\@errorsTrace))
-      {
-        print $fo dividerLine($format);
+      # if (hasErrors(\@errorsTrace))
+      # {
+        # print $fo dividerLine($format);
 
-        print $fo summaryLine($sensor, 
-          $time,
-          $fileno,
-          \@errorsTrace, 
-          \@carsTrace, 
-          $fullTrace, 
-          \@imperfTrace, 
-          $format), "\n";
+        # print $fo summaryLine($sensor, 
+          # $time,
+          # $fileno,
+          # \@errorsTrace, 
+          # \@carsTrace, 
+          # $fullTrace, 
+          # \@imperfTrace, 
+          # $format), "\n";
 
-        print $fo forceNewLine($format);
-      }
+        # print $fo forceNewLine($format);
+      # }
 
       # transferStats(\@errorsTrace, \@carsTrace, \@splitSummary, $sensor,
         # $fullTrace, \@imperfTrace);

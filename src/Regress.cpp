@@ -122,6 +122,8 @@ void Regress::summarizeResiduals(
       const unsigned refIndex = static_cast<unsigned>(match.actualToRef[i]);
       const double position = Regress::time2pos(times[i].time, coeffs);
 
+// cout << refIndex << ";" << refPeaks[refIndex].pos << ";" << position << "\n";
+
       x[refIndex].index = refIndex;
       x[refIndex].value = position - refPeaks[refIndex].pos;
       x[refIndex].valueSq = x[refIndex].value * x[refIndex].value;
@@ -182,6 +184,8 @@ void Regress::bestMatch(
       // Can never beat bestAlign.
       continue;
     }
+
+// cout << db.lookupTrainName(ma.trainNo) << "\n";
 
     Regress::specificMatch(times, db, ma, coeffs, residuals);
     Regress::summarizeResiduals(times, db, coeffs, ma);
