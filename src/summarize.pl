@@ -39,7 +39,7 @@ else
 }
 
 my %carTable;
-my (@detailsLower, @detailsUpper, @detailsNames);
+my (@detailsLower, @detailsUpper, @detailsNames, @splitNames);
 setCarTables();
 setDetails();
 
@@ -47,6 +47,7 @@ setDetails();
 # Summary hashes.
 my (%errorsSummary, %carsSummary, %fullSummary, %imperfSummary);
 my (%detailsSummaryFirst, %detailsSummaryMid, %detailsSummaryLast);
+my @splitSummary;
 
 # Totals.
 my (@errorsTotal, @carsTotal, $fullTotal, @imperfTotal);
@@ -57,6 +58,11 @@ for my $i (0 .. 100)
 {
   $fracHist[$i][$_] = 0 for 0 .. 7;
 }
+
+# Per-trace arrays.
+my (@errorsTrace, @carsTrace, $fullTrace, @imperfTrace);
+my ($hasIssues, $numIssues, $regressError, $regressSeen,
+  $mismatchSeen, $exceptSeen);
 
 for my $file (@ARGV)
 {
@@ -77,17 +83,8 @@ for my $file (@ARGV)
   open my $fo, ">", $fout or die "Cannot open $fout: $!";
   print $fo summaryHeader($format), detailHeader($format), "\n";
 
-  # Per-trace arrays.
-  my (@errorsTrace, @carsTrace, $fullTrace, @imperfTrace);
-  @errorsTrace = (0, 0, 0, 0, 0, 0, 0, 0);
-  @imperfTrace = (0, 0, 0, 0, 0, 0, 0, 0);
-  $fullTrace = 0;
-  my $hasIssues = 0;
-  my $numIssues = 0;
-  my $regressError = 0.;
-  my $regressSeen = 0;
-  my $mismatchSeen = 0;
-  my $exceptSeen = 0;
+  resetState();
+
   my $peakFrac;
 
   my $trueTrain;
@@ -103,7 +100,6 @@ for my $file (@ARGV)
       $line =~ /^File.*\/([0-9_]*)_001_channel1.dat:/;
       my @a = split /_/, $1;
 
-      #if ($hasIssues)
       if ($fileno >= 0)
       {
         if ($regressError > 0.)
@@ -159,7 +155,7 @@ for my $file (@ARGV)
           print $fo forceNewLine($format);
         }
 
-        transferStats(\@errorsTrace, \@carsTrace, 
+        transferStats(\@errorsTrace, \@carsTrace, \@splitSummary, $sensor,
           $fullTrace, \@imperfTrace);
       }
 
@@ -168,17 +164,7 @@ for my $file (@ARGV)
       $time = $a[1];
       $sname = $a[2];
 
-      @errorsTrace = (0, 0, 0, 0, 0, 0, 0, 0);
-      @carsTrace = (0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
-      $fullTrace = 0;
-      @imperfTrace = (0, 0, 0, 0, 0, 0, 0, 0);
-
-      $hasIssues = 0;
-      $numIssues = 0;
-      $regressSeen = 0;
-      $regressError = 0.;
-      $mismatchSeen = 0;
-      $exceptSeen = 0;
+      resetState();
     }
     elsif ($line =~ /^HITS/)
     {
@@ -241,7 +227,6 @@ for my $file (@ARGV)
     {
       $mismatchSeen = 1;
       $errorsTrace[0]++;
-      $errorsTrace[2] += $numIssues;
       $fracHist[$peakFrac][0]++;
 
       if (hasErrors(\@errorsTrace))
@@ -259,20 +244,6 @@ for my $file (@ARGV)
 
         print $fo forceNewLine($format);
       }
-
-      transferStats(\@errorsTrace, \@carsTrace, 
-        $fullTrace, \@imperfTrace);
-
-      @errorsTrace = (0, 0, 0, 0, 0, 0, 0, 0);
-      @carsTrace = (0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
-      $fullTrace = 0;
-      @imperfTrace = (0, 0, 0, 0, 0, 0, 0, 0);
-
-      $hasIssues = 0;
-      $numIssues = 0;
-      $regressSeen = 0;
-      $regressError = 0.;
-      $exceptSeen = 0;
     }
     elsif ($line =~ /^Regression alignment/)
     {
@@ -312,7 +283,8 @@ for my $file (@ARGV)
       print $fo summaryEmpty($format), "  ", $p, "\n";
 
       $errorsTrace[1]++;
-      $errorsTrace[2] += $numIssues;
+      # $errorsTrace[2] += $numIssues;
+      $errorsTrace[2] += 0;
       $fracHist[$peakFrac][1]++;
 
       if (hasErrors(\@errorsTrace))
@@ -331,19 +303,11 @@ for my $file (@ARGV)
         print $fo forceNewLine($format);
       }
 
-      transferStats(\@errorsTrace, \@carsTrace, 
-        $fullTrace, \@imperfTrace);
+      # transferStats(\@errorsTrace, \@carsTrace, \@splitSummary, $sensor,
+        # $fullTrace, \@imperfTrace);
 
-      @errorsTrace = (0, 0, 0, 0, 0, 0, 0, 0);
-      @carsTrace = (0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
-      $fullTrace = 0;
-      @imperfTrace = (0, 0, 0, 0, 0, 0, 0, 0);
+      # resetState();
 
-      $hasIssues = 0;
-      $numIssues = 0;
-      $regressSeen = 0;
-      $regressError = 0.;
-      $mismatchSeen = 0;
       $exceptSeen = 1;
     }
   }
@@ -404,7 +368,7 @@ for my $file (@ARGV)
       print $fo forceNewLine($format);
     }
 
-    transferStats(\@errorsTrace, \@carsTrace, 
+    transferStats(\@errorsTrace, \@carsTrace, \@splitSummary, $sensor,
       $fullTrace, \@imperfTrace);
   }
 
@@ -453,6 +417,9 @@ print forceNewLine($format);
 
 print summaryFrac($format);
 
+print forceNewLine($format);
+print splitDetails(\@splitSummary, $format);
+
 # print "confusion\n";
 # printf "%6d  %6d\n", $confusion[0][0], $confusion[0][1];
 # printf "%6d  %6d\n", $confusion[1][0], $confusion[1][1];
@@ -492,13 +459,71 @@ sub setDetails
      0  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15 16
      17-20 21-24 25-28 29-32 33-64 65+);
 
+  $splitNames[0] = "Right: no warn";
+  $splitNames[1] = "Right: warn";
+  $splitNames[2] = "Wrong: no warn";
+  $splitNames[3] = "Wrong: warn";
+  $splitNames[4] = "s19-s24-s25";
+}
+
+
+sub resetState
+{
+  @errorsTrace = (0, 0, 0, 0, 0, 0, 0, 0);
+  @carsTrace = (0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+  $fullTrace = 0;
+  @imperfTrace = (0, 0, 0, 0, 0, 0, 0, 0);
+
+  $hasIssues = 0;
+  $numIssues = 0;
+  $regressSeen = 0;
+  $regressError = 0.;
+  $mismatchSeen = 0;
+  $exceptSeen = 0;
+}
+
+
+sub summarizeSplits
+{
+  my ($errorsRef, $carsRef, $splitRef, $sensor) = @_;
+  my $p;
+  if ($errorsRef->[1])
+  {
+    # Exception
+    return;
+  }
+  elsif ($sensor eq "sensor19" || 
+      $sensor eq "sensor24" ||
+      $sensor eq "sensor25")
+  {
+    # Fail a lot
+    $p = 4;
+  }
+  elsif ($errorsRef->[0])
+  {
+    # Fail
+    $p = ($errorsRef->[2] ? 3 : 2);
+  }
+  else
+  {
+    # Succeed
+    $p = ($errorsRef->[2] ? 1 : 0);
+  }
+
+  $splitRef->[$p][0]++;
+  $splitRef->[$p][1] += $errorsRef->[2];
+  for my $i (3 .. 7)
+  {
+    $splitRef->[$p][$i] += $errorsRef->[$i];
+  }
 }
 
 
 sub transferStats
 {
-  my ($errorsRef, $carsRef, $fullVal, $imperfRef) = @_;
+  my ($errorsRef, $carsRef, $splitRef, $sensor, $fullVal, $imperfRef) = @_;
   # Transfer to summary hashes.
+
   for my $i (0 .. $#$errorsRef)
   {
     $errorsSummary{$sensor}[$i] += $errorsRef->[$i];
@@ -519,6 +544,8 @@ sub transferStats
     $imperfSummary{$sensor}[$i] += $imperfRef->[$i];
     $imperfTotal[$i] += $imperfRef->[$i];
   }
+
+  summarizeSplits($errorsRef, $carsRef, $splitRef, $sensor);
 }
 
 
@@ -1098,5 +1125,84 @@ sub summaryFrac
   else
   {
     return fracHeaderCSV() .  fracDetailsCSV();
+  }
+}
+
+
+sub splitHeaderTXT
+{
+}
+
+
+sub splitDetailsTXT
+{
+}
+
+
+sub splitHeaderCSV
+{
+  my $s = 
+    "" . $SEPARATOR .
+    "#" . $SEPARATOR .
+    "Avg" . $SEPARATOR .
+    "<=1" . $SEPARATOR .
+    "<=3" . $SEPARATOR .
+    "<=10" . $SEPARATOR .
+    "<=100" . $SEPARATOR .
+    "100+" . $SEPARATOR .
+    "\n";
+  return $s;
+  
+}
+
+
+sub splitDetailsCSV
+{
+  my $s = "";
+  for my $i (0 .. $#splitSummary)
+  {
+    if (! defined $splitSummary[$i])
+    {
+      $s .= 
+        $splitNames[$i] . $SEPARATOR .
+        "-" . $SEPARATOR .
+        "-" . $SEPARATOR .
+        "-" . $SEPARATOR .
+        "-" . $SEPARATOR .
+        "-" . $SEPARATOR .
+        "-" . $SEPARATOR .
+        "-" . "\n";
+    }
+    else
+    {
+      my $avg = $splitSummary[$i][1] / $splitSummary[$i][0];
+      my $savg = sprintf "%.2g", $avg;
+      $savg =~ s/\./,/;
+
+      $s .= 
+        $splitNames[$i] . $SEPARATOR .
+        $splitSummary[$i][0] . $SEPARATOR .
+        $savg . $SEPARATOR .
+        $splitSummary[$i][3] . $SEPARATOR .
+        $splitSummary[$i][4] . $SEPARATOR .
+        $splitSummary[$i][5] . $SEPARATOR .
+        $splitSummary[$i][6] . $SEPARATOR .
+        $splitSummary[$i][7] . "\n";
+    }
+  }
+  return $s;
+}
+
+
+sub splitDetails
+{
+  my $format = pop;
+  if ($format == $FORMAT_TXT)
+  {
+    return splitHeaderTXT() .  splitDetailsTXT();
+  }
+  else
+  {
+    return splitHeaderCSV() .  splitDetailsCSV();
   }
 }
