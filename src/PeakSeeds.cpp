@@ -443,7 +443,7 @@ void PeakSeeds::mark(
   // Make up to PEAKSEEDS_ITER groups of peaks, each center to be
   // stored in peakCenters.
   // Stop early if the level of the center peak falls below 
-  // PEAKSEEDS_VALUE times the first leval.
+  // PEAKSEEDS_VALUE times the first level.
   // Also stop early if the iteration adds less than the fraction
   // PEAKSEEDS_ADD new peaks.
 
