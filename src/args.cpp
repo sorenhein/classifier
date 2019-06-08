@@ -60,7 +60,7 @@ void usage(
     "\n" <<
     "-a, --append       If present, stats file is not rewritten.\n" <<
     "\n" <<
-    "-w, -writing n     Binary output files (default: 0x30).  Bits:\n" <<
+    "-w, -writing n     Binary output files (default: 0x20).  Bits:\n" <<
     "                   0x01: transient\n" <<
     "                   0x02: back\n" <<
     "                   0x04: front\n" <<
@@ -142,7 +142,7 @@ static void setDefaults(Control& options)
   options.writingBack = false;
   options.writingFront = false;
   options.writingSpeed = false;
-  options.writingPos = true;
+  options.writingPos = false;
   options.writingPeak = true;
   options.writingOutline = false;
 

@@ -165,7 +165,6 @@ if (! control.pickTrainString.empty() &&
         if (matchesAlign.size() == 0)
         {
           traceDB.log(fname, matchesAlign, times.size());
-          traceDB.log(fname, matchesAlign, times.size());
           sensorStats.log(sensor, 10, 1000.);
           trainStats.log(trainTrue, 10, 1000.);
           continue;

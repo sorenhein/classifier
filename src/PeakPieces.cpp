@@ -474,7 +474,11 @@ bool PeakPieces::guessGaps(
 
   cout << PeakPieces::str("Starting point");
 
-  if (lp == 2)
+  if (lp == 1)
+  {
+      cout << "ODDNUM " << lp << "\n";
+  }
+  else if (lp == 2)
   {
     // Hope they are the two gaps.
     // TODO Check

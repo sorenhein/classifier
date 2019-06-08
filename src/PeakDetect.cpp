@@ -15,7 +15,7 @@
 #include "Except.h"
 
 
-#define KINK_RATIO 100.f
+#define KINK_RATIO 500.f
 #define KINK_RATIO_CONSIDER 20.f
 #define KINK_RATIO_ONE_DIM 8.f
 
@@ -431,6 +431,9 @@ void PeakDetect::eliminateKinks()
     const auto peakPrevPrev = prev(peakPrev);
     const auto peakNext = next(peak);
 
+// if (peakNext->getIndex() == 7287)
+  // cout << "HERE\n";
+
     if (peakPrev->getValue() >= 0.f)
     {
       // No kinks fixed on the positive side of the line.
@@ -483,6 +486,9 @@ void PeakDetect::eliminateKinks()
 
     if (ratioPrev * ratioNext > KINK_RATIO)
     {
+// cout << "COLLAPSE1 " << peak->getIndex() + offset << ", ratios " <<
+  // ratioPrev << " * " << ratioNext << " = " <<
+  // ratioPrev * ratioNext << endl;
       peak = peaks.top().collapse(peakPrev, peakNext);
       continue;
     }
@@ -497,6 +503,9 @@ void PeakDetect::eliminateKinks()
         KINK_RATIO_ONE_DIM * vMid < vWhole)
     {
       // Another way of looking like a kink.
+// cout << "COLLAPSE2 " << peak->getIndex() + offset << ", ratios " <<
+  // ratioPrev << " * " << ratioNext << " = " <<
+  // ratioPrev * ratioNext << endl;
       peak = peaks.top().collapse(peakPrev, peakNext);
     }
     else
@@ -544,7 +553,7 @@ void PeakDetect::reduce(
     return;
 
   const bool debug = true;
-  const bool debugDetails = false;
+  const bool debugDetails = true;
 
   if (debugDetails)
     cout << peaks.top().str("Original peaks", offset);
