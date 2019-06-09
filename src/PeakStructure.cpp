@@ -417,6 +417,10 @@ PeakStructure::FindCarType PeakStructure::findEmptyRange(
   UNUSED(peaks);
   UNUSED(car);
 
+cout << "findEmptyRange" << endl;
+cout << range.strFull(offset);
+cout << range.strProfile();
+
   if (range.looksEmpty() || range.looksEmptyLast())
   {
     range.getPeakPtrs().apply(&Peak::markdown);
@@ -437,19 +441,27 @@ PeakStructure::FindCarType PeakStructure::findCarByPattern(
   PeakPtrs peakPtrsUsed, peakPtrsUnused;
   range.split(&Peak::goodQuality, peakPtrsUsed, peakPtrsUnused);
 
+cout << "before locate\n";
+cout << peaks.candidates().strQuality("false", offset, &Peak::isSelected);
   PeakPattern pattern;
   if (! pattern.locate(models, peaks, range, offset,
       peakPtrsUsed, peakPtrsUnused))
   {
+cout << "locate returned false\n";
+cout << peaks.candidates().strQuality("false", offset, &Peak::isSelected);
     return FIND_CAR_NO_MATCH;
   }
   else if (peakPtrsUsed.empty())
   {
+cout << "locate returned empty\n";
+cout << peaks.candidates().strQuality("empty", offset, &Peak::isSelected);
     peakPtrsUnused.apply(&Peak::markdown);
     return FIND_CAR_DOWNGRADE;
   }
   else
   {
+cout << "locate returned match\n";
+cout << peaks.candidates().strQuality("match", offset, &Peak::isSelected);
 
 
 // cout << "findCarByPattern:\n";

@@ -129,6 +129,7 @@ cout << data->str() << endl;
     ae.lenHi[QUALITY_SYMMETRY] =
       static_cast<unsigned>((1.f + LEN_FACTOR_GOOD) * len);
   }
+cout << "DONE getActive" << endl;
 }
 
 
@@ -704,6 +705,7 @@ void PeakPattern::examineCandidates(
   {
     unsigned numClose;
     unsigned dist;
+
     peakPtrsUsed.getClosest(pe->indices, peaksClose, numClose, dist);
 
     cout << PeakPattern::strClosest(pe->indices);
@@ -721,7 +723,19 @@ void PeakPattern::examineCandidates(
     else if (numClose == 3)
       PeakPattern::addToSingles(pe->indices, singles);
     else if (numClose == 2)
+    {
+
+cout << "Condensed doubles before\n";
+for (auto d: doubles)
+  cout << d.str(offset);
+
       PeakPattern::addToDoubles(* pe, doubles);
+
+cout << "Condensed doubles after\n";
+for (auto d: doubles)
+  cout << d.str(offset);
+
+    }
     else if (numClose <= 1)
     {
       // Get rid of the 1's and 0's.
@@ -874,10 +888,18 @@ void PeakPattern::fixOnePeak(
 {
   Peak peakHint;
   peakHint.logPosition(single.target, single.lower, single.upper);
+cout<< "REP1" << endl;
+cout << peakHint.strQuality(offset) << endl;
+cout << peaks.candidates().strQuality("Before", offset,
+  &Peak::isSelected);
   pptr = peaks.repair(peakHint, &Peak::borderlineQuality, offset,
     forceFlag);
+cout<< "REP2" << endl;
+cout << peaks.candidates().strQuality("After", offset,
+  &Peak::isSelected);
 
   PeakPattern::processMessage(text, "repair", single.target, pptr);
+cout<< "REP3" << endl;
 }
 
 
@@ -892,7 +914,7 @@ void PeakPattern::processOnePeak(
   PeakPattern::reviveOnePeak(origin, single, peakPtrsUnused, pptr);
 
   if (pptr == nullptr)
-    PeakPattern::fixOnePeak("fixSingles", single, peaks, pptr, forceFlag);
+    PeakPattern::fixOnePeak(origin, single, peaks, pptr, forceFlag);
 }
 
 
@@ -953,6 +975,7 @@ bool PeakPattern::fixDoubles(
 
     PeakPattern::processOnePeak("fixDoubles 1", db.first, 
       peakPtrsUnused, peaks, pptr, forceFlag);
+cout<< "DOUBL4" << endl;
 
     if (pptr != nullptr)
     {
@@ -986,11 +1009,16 @@ bool PeakPattern::fix(
   const bool forceFlag,
   const bool flexibleFlag)
 {
+cout<< "Start fix" << endl;
   NoneEntry none;
   list<SingleEntry> singles;
   list<DoubleEntry> doubles;
 
   PeakPattern::examineCandidates(peakPtrsUsed, none, singles, doubles);
+
+  cout << "Condensed doubles after examine 1\n";
+  for (auto d: doubles)
+    cout << d.str(offset);
 
   if (candidates.empty())
     return false;
@@ -1003,9 +1031,11 @@ bool PeakPattern::fix(
     {
       // TODO This is quite inefficient, as we actually know the
       // changes we made.  But we just reexamine for now.
-cout << "Re-examining after fixDoubles" << endl;
       PeakPattern::examineCandidates(peakPtrsUsed, none, singles, doubles);
-cout << "Re-examined after fixDoubles" << endl;
+
+cout << "Condensed doubles after examine 2\n";
+for (auto d: doubles)
+  cout << d.str(offset);
     }
   }
 
@@ -1024,6 +1054,10 @@ cout << "Re-examined after fixDoubles" << endl;
     if (PeakPattern::fixSingles(peaks, singles, 
         peakPtrsUsed, peakPtrsUnused, forceFlag))
       PeakPattern::examineCandidates(peakPtrsUsed, none, singles, doubles);
+
+cout << "Condensed doubles after examine 3\n";
+for (auto d: doubles)
+  cout << d.str(offset);
   }
 
   // Try the 4's of various origins.
@@ -1037,17 +1071,31 @@ cout << "Re-examined after fixDoubles" << endl;
 }
 
 
-void PeakPattern::getSpacings(PeakPtrs& peakPtrsUsed)
+void PeakPattern::getSpacings(PeakPtrs& peakPtrsUsed,
+  PeakPool& peaks
+  )
 {
   for (auto pit = peakPtrsUsed.begin(); pit != prev(peakPtrsUsed.end()); 
       pit++)
   {
+
+cout << "getSpacings " << (*pit)->getIndex() + offset << endl;
+cout << peaks.candidates().strQuality("getSpacings loopstart", offset,
+  &Peak::isSelected);
+
     spacings.emplace_back(SpacingEntry());
     SpacingEntry& se = spacings.back();
+
+cout << peaks.candidates().strQuality("getSpacings after emplace", offset,
+  &Peak::isSelected);
 
     se.peakLeft = * pit;
     se.peakRight = * next(pit);
     se.dist = se.peakRight->getIndex() - se.peakLeft->getIndex();
+
+cout << peaks.candidates().strQuality("getSpacings after dist", offset,
+  &Peak::isSelected);
+
     se.numBogies = (bogieTypical == 0 ? 1.f : 
       se.dist / static_cast<float>(bogieTypical));
     // TODO #define
@@ -1301,7 +1349,9 @@ cout << peakPtrsUnused.strQuality("Unused", offset);
   {
     if (PeakPattern::guessLeft(models) &&
         PeakPattern::fix(peaks, peakPtrsUsed, peakPtrsUnused))
+    {
       return true;
+    }
   }
 
   if (rangeData.qualRight != QUALITY_NONE)
@@ -1324,18 +1374,30 @@ cout << peakPtrsUnused.strQuality("Unused", offset);
   if (rangeData.qualBest != QUALITY_GENERAL && 
       rangeData.qualBest != QUALITY_NONE)
   {
+cout << peaks.candidates().strQuality("getSpacing before0", offset,
+  &Peak::isSelected);
+
     // Make an attempt to find short cars without a model.
-    PeakPattern::getSpacings(peakPtrsUsed);
+    PeakPattern::getSpacings(peakPtrsUsed,
+peaks);
+
+cout << peaks.candidates().strQuality("getSpacing after1", offset,
+  &Peak::isSelected);
 
     for (auto& sit: spacings)
       cout << sit.str(offset);
 
+cout << peaks.candidates().strQuality("getSpacing after1", offset,
+  &Peak::isSelected);
+
     if (PeakPattern::guessAndFixShortLeft(peaks, 
         peakPtrsUsed, peakPtrsUnused))
       return true;
+
     if (PeakPattern::guessAndFixShortRight(peaks, 
         peakPtrsUsed, peakPtrsUnused))
       return true;
+
   }
 
   return false;
@@ -1348,12 +1410,15 @@ string PeakPattern::strClosest(const vector<unsigned>& indices) const
   ss << "Closest indices\n";
   for (unsigned i = 0; i < indices.size(); i++)
   {
+    string str;
+    if (peaksClose[i])
+      str = to_string((peaksClose[i]->getIndex()) + offset);
+    else
+      str = "-";
+
     ss << setw(4) << left << i <<
       setw(8) << right << indices[i] + offset <<
-      setw(8) << 
-        (peaksClose[i] ? to_string(peaksClose[i]->getIndex() + offset) : 
-          "-") << 
-        endl;
+      setw(8) << str << endl;
   }
   return ss.str();
 }

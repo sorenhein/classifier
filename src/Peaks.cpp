@@ -5,6 +5,7 @@
 #include <math.h>
 
 #include "Peaks.h"
+#include "Except.h"
 
 
 #define SAMPLE_RATE 2000.
@@ -298,16 +299,42 @@ void Peaks::bracketSpecific(
   bracket.left.pit = foundIter;
   do
   {
+    if (bracket.left.pit == peaks.begin())
+      break;
+
     bracket.left.pit = std::prev(bracket.left.pit);
   }
-  while (bracket.left.pit->getIndex() != ppindex);
+  while (bracket.left.pit->getIndex() > ppindex);
+
+  if (bracket.left.pit->getIndex() != ppindex)
+  {
+    cout << "bracketSpecific: Looked down for " <<
+      ppindex << " to " << pnindex << "\n";
+    cout << "Reached " << bracket.left.pit->getIndex() << endl;
+    THROW(ERR_ALGO_PEAK_CONSISTENCY, "Lower bracket error");
+  }
+
+  bracket.left.hasFlag = true;
 
   bracket.right.pit = foundIter;
   do
   {
     bracket.right.pit = std::next(bracket.right.pit);
+    
+    if (bracket.right.pit == peaks.end())
+      break;
   }
-  while (bracket.right.pit->getIndex() != pnindex);
+  while (bracket.right.pit->getIndex() < pnindex);
+
+  if (bracket.right.pit->getIndex() != pnindex)
+  {
+    cout << "bracketSpecific: Looked up for " <<
+      ppindex << " to " << pnindex << "\n";
+    cout << "Reached " << bracket.right.pit->getIndex() << endl;
+    THROW(ERR_ALGO_PEAK_CONSISTENCY, "Upper bracket error");
+  }
+
+  bracket.right.hasFlag = true;
 }
 
 

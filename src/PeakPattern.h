@@ -348,7 +348,8 @@ class PeakPattern
       const bool forceFlag = false,
       const bool flexibleFlag = false);
 
-    void getSpacings(PeakPtrs& peakPtrsUsed);
+    void getSpacings(PeakPtrs& peakPtrsUsed,
+      PeakPool& peaks);
 
     string strClosest(
       const vector<unsigned>& indices) const;

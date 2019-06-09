@@ -446,6 +446,15 @@ Peak * PeakPool::repairFromLower(
   Bracket bracketLower;
   listLower.bracketSpecific(bracketTop, foundLowerIter, bracketLower);
 
+  cout << "LOW2" << endl;
+  cout << "Bracket " <<
+    (bracketLower.left.hasFlag ? "true" : "false") << " - " <<
+    (bracketLower.right.hasFlag ? "true" : "false") << endl;
+  if (bracketLower.left.hasFlag)
+    cout << "Left " << bracketLower.left.pit->getIndex() << endl;
+  if (bracketLower.right.hasFlag)
+    cout << "Right " << bracketLower.right.pit->getIndex() << endl;
+
   // We only introduce two new peaks, so the one we found goes next 
   // to the bracketing one with opposite polarity.  In the gap we put 
   // the intervening peak with maximum value.  This is quick and dirty.
@@ -546,11 +555,21 @@ Peak * PeakPool::repair(
 
     Bracket bracket;
     liter->bracket(pindex, true, bracket);
+cout << "ldepth " << ldepth << ": Bracket " <<
+  (bracket.left.hasFlag ? "true" : "false") << " - " <<
+  (bracket.right.hasFlag ? "true" : "false") << endl;
+if (bracket.left.hasFlag)
+  cout << "Left " << bracket.left.pit->getIndex() << endl;
+if (bracket.right.hasFlag)
+  cout << "Right " << bracket.right.pit->getIndex() << endl;
 
     // Is one of them close enough?  If both, pick the lowest value.
     Piterator foundIter;
     if (! liter->near(peakHint, bracket, foundIter))
       continue;
+
+cout << "Found possible peak, ldepth " << ldepth << ", offset " << offset << endl;
+cout << foundIter->strQuality(offset) << endl;
 
     if (liter == peakLists.rbegin())
     {
