@@ -46,11 +46,4 @@ SOURCE_FILES    =               \
                 read.cpp        \
                 write.cpp       \
                 driver.cpp      \
-                Ckmeans/Ckmeans.1d.dp.cpp       \
-                Ckmeans/dynamic_prog.cpp        \
-                Ckmeans/fill_log_linear.cpp     \
-                Ckmeans/fill_quadratic.cpp      \
-                Ckmeans/fill_SMAWK.cpp          \
-                Ckmeans/select_levels.cpp       \
-                Ckmeans/weighted_select_levels.cpp \
                 regress/PolynomialRegression.cpp

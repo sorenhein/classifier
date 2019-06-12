@@ -82,12 +82,4 @@ driver.o: CarGaps.h PeakRange.h PeakProfile.h CarModels.h Database.h
 driver.o: TraceDB.h SynthTrain.h Regress.h Disturb.h Align.h
 driver.o: Timers.h Timer.h Stats.h StatCross.h StatEntry.h CompStats.h
 driver.o: PeakStats.h Except.h errors.h geometry.h print.h
-Ckmeans/Ckmeans.1d.dp.o: Ckmeans/Ckmeans.1d.dp.h Ckmeans/within_cluster.h
-Ckmeans/dynamic_prog.o: Ckmeans/Ckmeans.1d.dp.h Ckmeans/within_cluster.h
-Ckmeans/fill_log_linear.o: Ckmeans/Ckmeans.1d.dp.h Ckmeans/within_cluster.h
-Ckmeans/fill_quadratic.o: Ckmeans/Ckmeans.1d.dp.h Ckmeans/within_cluster.h
-Ckmeans/fill_SMAWK.o: Ckmeans/Ckmeans.1d.dp.h Ckmeans/within_cluster.h
-Ckmeans/select_levels.o: Ckmeans/Ckmeans.1d.dp.h Ckmeans/within_cluster.h
-Ckmeans/weighted_select_levels.o: Ckmeans/Ckmeans.1d.dp.h
-Ckmeans/weighted_select_levels.o: Ckmeans/within_cluster.h
 regress/PolynomialRegression.o: regress/PolynomialRegression.h
