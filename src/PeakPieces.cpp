@@ -482,16 +482,22 @@ bool PeakPieces::guessGaps(
       static_cast<float>(wheelGap.upper);
 
     if (lenRatio >= 3. && lenRatio <= 7. &&
-        2 * piece.summary().count >= static_cast<int>(wheelGap.count))
+        2 * piece.summary().cumul >= static_cast<int>(wheelGap.count))
     {
       shortGap.reset();
       piece.getGap(longGap);
+
+      // cout << "Hit likely three-wheeler\n";
+      // cout << "NOT-THREE " << fixed << setprecision(2) << lenRatio << "\n";
+      // cout << piece.summary().cumul << " vs " << wheelGap.count << endl;
+
       return true;
     }
     else
     {
       cout << "ODDNUM " << lp << "\n";
       cout << "NOT-THREE " << fixed << setprecision(2) << lenRatio << "\n";
+      cout << piece.summary().cumul << " vs " << wheelGap.count << endl;
     }
 
   }
