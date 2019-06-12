@@ -869,14 +869,27 @@ void PeakPattern::processMessage(
 void PeakPattern::reviveOnePeak(
   const string& text,
   const SingleEntry& single,
+  PeakPtrs& peakPtrsUsed,
   PeakPtrs& peakPtrsUnused,
   Peak *& pptr) const
 {
   unsigned indexUsed;
+
+  // Peak may have been revived once already, in which case we shouldn't
+  // repeat it.
+  pptr = peakPtrsUsed.locate(single.lower, single.upper, single.target,
+    &Peak::borderlineQuality, indexUsed);
+  
+  if (pptr)
+  {
+    PeakPattern::processMessage(text, "revive from used", single.target, pptr);
+    return;
+  }
+
   pptr = peakPtrsUnused.locate(single.lower, single.upper, single.target,
     &Peak::borderlineQuality, indexUsed);
 
-  PeakPattern::processMessage(text, "revive", single.target, pptr);
+  PeakPattern::processMessage(text, "revive from unused", single.target, pptr);
 }
 
 
@@ -928,7 +941,7 @@ PeakPtrs& peakPtrsUsed,
   Peak *& pptr,
   const bool forceFlag) const
 {
-  PeakPattern::reviveOnePeak(origin, single, peakPtrsUnused, pptr);
+  PeakPattern::reviveOnePeak(origin, single, peakPtrsUsed, peakPtrsUnused, pptr);
 
   if (pptr == nullptr)
   {
@@ -996,17 +1009,14 @@ bool PeakPattern::fixDoubles(
     // we should arguably unroll the change.
 
     PeakPattern::processOnePeak("fixDoubles 1", db.first, 
-peakPtrsUsed,
-      peakPtrsUnused, peaks, pptr, forceFlag);
+      peakPtrsUsed, peakPtrsUnused, peaks, pptr, forceFlag);
 cout<< "DOUBL4" << endl;
 
     if (pptr != nullptr)
     {
 cout << "fixDoubles 1 before add/remove" << endl;
-
       peakPtrsUsed.add(pptr);
       peakPtrsUnused.remove(pptr);
-
 cout << "fixDoubles 1 after add/remove" << endl;
     }
 
@@ -1017,10 +1027,8 @@ peakPtrsUsed,
     if (pptr != nullptr)
     {
 cout << "fixDoubles 2 before add/remove" << endl;
-
       peakPtrsUsed.add(pptr);
       peakPtrsUnused.remove(pptr);
-
 cout << "fixDoubles 2 after add/remove" << endl;
       return true;
     }

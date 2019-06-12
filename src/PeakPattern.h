@@ -309,6 +309,7 @@ class PeakPattern
     void reviveOnePeak(
       const string& text,
       const SingleEntry& single,
+      PeakPtrs& peakPtrsUsed,
       PeakPtrs& peakPtrsUnused,
       Peak *& pptr) const;
       
