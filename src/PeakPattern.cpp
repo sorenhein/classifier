@@ -7,6 +7,7 @@
 
 #include "PeakPattern.h"
 #include "PeakRange.h"
+#include "Except.h"
 
 #define UNUSED(x) ((void)(true ? 0 : ((x), void(), 0)))
 
@@ -883,6 +884,7 @@ void PeakPattern::fixOnePeak(
   const string& text,
   const SingleEntry& single,
   PeakPool& peaks,
+PeakPtrs& peakPtrsUsed,
   Peak *& pptr,
   const bool forceFlag) const
 {
@@ -892,20 +894,35 @@ cout<< "REP1" << endl;
 cout << peakHint.strQuality(offset) << endl;
 cout << peaks.candidates().strQuality("Before", offset,
   &Peak::isSelected);
+if (! peakPtrsUsed.check())
+  THROW(ERR_ALGO_PEAK_CONSISTENCY, "fixOnePeak start");
+
+cout << peakPtrsUsed.strQuality("Before repair wo offset", 0);
+
   pptr = peaks.repair(peakHint, &Peak::borderlineQuality, offset,
     forceFlag);
+if (! peakPtrsUsed.check())
+  THROW(ERR_ALGO_PEAK_CONSISTENCY, "fixOnePeak after repair");
+
 cout<< "REP2" << endl;
 cout << peaks.candidates().strQuality("After", offset,
   &Peak::isSelected);
 
+if (! peakPtrsUsed.check())
+  THROW(ERR_ALGO_PEAK_CONSISTENCY, "fixOnePeak before message");
+
   PeakPattern::processMessage(text, "repair", single.target, pptr);
 cout<< "REP3" << endl;
+
+if (! peakPtrsUsed.check())
+  THROW(ERR_ALGO_PEAK_CONSISTENCY, "fixOnePeak end");
 }
 
 
 void PeakPattern::processOnePeak(
   const string& origin,
   const SingleEntry& single,
+PeakPtrs& peakPtrsUsed,
   PeakPtrs& peakPtrsUnused,
   PeakPool& peaks,
   Peak *& pptr,
@@ -914,7 +931,11 @@ void PeakPattern::processOnePeak(
   PeakPattern::reviveOnePeak(origin, single, peakPtrsUnused, pptr);
 
   if (pptr == nullptr)
-    PeakPattern::fixOnePeak(origin, single, peaks, pptr, forceFlag);
+  {
+    PeakPattern::fixOnePeak(origin, single, peaks, 
+peakPtrsUsed,
+      pptr, forceFlag);
+  }
 }
 
 
@@ -938,6 +959,7 @@ bool PeakPattern::fixSingles(
     // So we lower our peak quality standard.
 
     PeakPattern::processOnePeak("fixSingles", single, 
+peakPtrsUsed,
       peakPtrsUnused, peaks, pptr, forceFlag);
 
     if (pptr != nullptr)
@@ -974,25 +996,31 @@ bool PeakPattern::fixDoubles(
     // we should arguably unroll the change.
 
     PeakPattern::processOnePeak("fixDoubles 1", db.first, 
+peakPtrsUsed,
       peakPtrsUnused, peaks, pptr, forceFlag);
 cout<< "DOUBL4" << endl;
 
     if (pptr != nullptr)
     {
 cout << "fixDoubles 1 before add/remove" << endl;
+
       peakPtrsUsed.add(pptr);
       peakPtrsUnused.remove(pptr);
+
 cout << "fixDoubles 1 after add/remove" << endl;
     }
 
     PeakPattern::processOnePeak("fixDoubles 2", db.second, 
+peakPtrsUsed,
       peakPtrsUnused, peaks, pptr, forceFlag);
 
     if (pptr != nullptr)
     {
 cout << "fixDoubles 2 before add/remove" << endl;
+
       peakPtrsUsed.add(pptr);
       peakPtrsUnused.remove(pptr);
+
 cout << "fixDoubles 2 after add/remove" << endl;
       return true;
     }
@@ -1009,7 +1037,6 @@ bool PeakPattern::fix(
   const bool forceFlag,
   const bool flexibleFlag)
 {
-cout<< "Start fix" << endl;
   NoneEntry none;
   list<SingleEntry> singles;
   list<DoubleEntry> doubles;
@@ -1053,7 +1080,9 @@ for (auto d: doubles)
 
     if (PeakPattern::fixSingles(peaks, singles, 
         peakPtrsUsed, peakPtrsUnused, forceFlag))
+    {
       PeakPattern::examineCandidates(peakPtrsUsed, none, singles, doubles);
+    }
 
 cout << "Condensed doubles after examine 3\n";
 for (auto d: doubles)

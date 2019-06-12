@@ -316,12 +316,14 @@ class PeakPattern
       const string& text,
       const SingleEntry& single,
       PeakPool& peaks,
+PeakPtrs& peakPtrsUsed,
       Peak *& pptr,
       const bool forceFlag) const;
 
     void processOnePeak(
       const string& origin,
       const SingleEntry& single,
+PeakPtrs& peakPtrsUsed,
       PeakPtrs& peakPtrsUnused,
       PeakPool& peaks,
       Peak *& pptr,
