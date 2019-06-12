@@ -1,4 +1,4 @@
-Align.o: Align.h struct.h Database.h Clusters.h Timers.h Timer.h print.h
+Align.o: Align.h struct.h Database.h Timers.h Timer.h print.h
 CarDetect.o: CarDetect.h CarGaps.h Peak.h struct.h CarPeaks.h PeakRange.h
 CarDetect.o: PeakProfile.h PeakPool.h Peaks.h PeakPtrs.h
 CarGaps.o: CarGaps.h Peak.h struct.h PeakPtrs.h CarPeaks.h Except.h
@@ -6,10 +6,8 @@ CarGaps.o: errors.h
 CarModels.o: CarModels.h CarDetect.h CarGaps.h Peak.h struct.h CarPeaks.h
 CarModels.o: PeakPtrs.h Except.h errors.h
 CarPeaks.o: CarPeaks.h Peak.h struct.h
-Clusters.o: Ckmeans/Ckmeans.1d.dp.h Ckmeans/within_cluster.h Clusters.h
-Clusters.o: struct.h Database.h
 CompStats.o: CompStats.h
-Database.o: Database.h Clusters.h struct.h read.h
+Database.o: Database.h struct.h read.h
 Disturb.o: Disturb.h read.h struct.h
 Except.o: Except.h errors.h
 Peak.o: Peak.h struct.h Except.h errors.h
@@ -49,7 +47,7 @@ PeakStructure.o: PeakStructure.h CarDetect.h CarGaps.h Peak.h struct.h
 PeakStructure.o: CarPeaks.h PeakPool.h Peaks.h PeakPtrs.h PeakRange.h
 PeakStructure.o: PeakProfile.h PeakPattern.h CarModels.h PeakShort.h
 PeakStructure.o: PeakRepair.h PeakPartial.h PeakSlots.h Except.h errors.h
-Regress.o: Regress.h struct.h Database.h Clusters.h Timers.h Timer.h
+Regress.o: Regress.h struct.h Database.h Timers.h Timer.h
 Regress.o: Except.h errors.h print.h regress/PolynomialRegression.h
 SegActive.o: SegActive.h PeakDetect.h Peak.h struct.h
 SegActive.o: PeakPool.h Peaks.h PeakPtrs.h CarPeaks.h PeakStructure.h
@@ -70,18 +68,18 @@ Trace.o: Trace.h SegTransient.h struct.h SegQuiet.h SegActive.h
 Trace.o: PeakDetect.h Peak.h PeakPool.h Peaks.h PeakPtrs.h
 Trace.o: CarPeaks.h PeakStructure.h CarDetect.h CarGaps.h PeakRange.h
 Trace.o: PeakProfile.h CarModels.h Timers.h Timer.h read.h
-TraceDB.o: TraceDB.h struct.h Database.h Clusters.h Align.h Except.h
+TraceDB.o: TraceDB.h struct.h Database.h Align.h Except.h
 TraceDB.o: errors.h read.h
 args.o: args.h struct.h
-geometry.o: Database.h Clusters.h struct.h Regress.h
-print.o: print.h Database.h Clusters.h struct.h
-read.o: Database.h Clusters.h struct.h TraceDB.h read.h
+geometry.o: Database.h struct.h Regress.h
+print.o: print.h Database.h struct.h
+read.o: Database.h struct.h TraceDB.h read.h
 write.o: write.h struct.h
 driver.o: args.h struct.h read.h Trace.h SegTransient.h SegQuiet.h
 driver.o: SegActive.h PeakDetect.h Peak.h PeakPool.h
 driver.o: Peaks.h PeakPtrs.h CarPeaks.h PeakStructure.h CarDetect.h
 driver.o: CarGaps.h PeakRange.h PeakProfile.h CarModels.h Database.h
-driver.o: Clusters.h TraceDB.h SynthTrain.h Regress.h Disturb.h Align.h
+driver.o: TraceDB.h SynthTrain.h Regress.h Disturb.h Align.h
 driver.o: Timers.h Timer.h Stats.h StatCross.h StatEntry.h CompStats.h
 driver.o: PeakStats.h Except.h errors.h geometry.h print.h
 Ckmeans/Ckmeans.1d.dp.o: Ckmeans/Ckmeans.1d.dp.h Ckmeans/within_cluster.h

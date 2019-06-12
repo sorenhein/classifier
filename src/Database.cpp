@@ -163,27 +163,6 @@ bool Database::getPerfectPeaks(
 }
 
 
-const Clusters * Database::getClusters(
-  const unsigned trainNo,
-  const unsigned clusterSize) const
-{
-  const unsigned tno = static_cast<unsigned>(trainNo);
-  if (tno >= trainEntries.size())
-  {
-    cout << "Train number is too large\n";
-    return nullptr;
-  }
-
-  if (clusterSize < 2 ||
-      clusterSize > trainEntries[tno].clusterList.size() + 1)
-  {
-    return nullptr;
-  }
-
-  return &trainEntries[tno].clusterList[clusterSize-2];
-}
-
-
 const CarEntry * Database::lookupCar(const int carNo) const
 {
   if (carNo <= 0 || carNo >= static_cast<int>(carEntries.size()))

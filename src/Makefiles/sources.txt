@@ -4,7 +4,6 @@ SOURCE_FILES    =               \
                 CarGaps.cpp     \
                 CarModels.cpp   \
                 CarPeaks.cpp    \
-                Clusters.cpp    \
                 CompStats.cpp   \
                 Database.cpp    \
                 Disturb.cpp     \

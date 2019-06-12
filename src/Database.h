@@ -5,7 +5,6 @@
 #include <list>
 #include <map>
 
-#include "Clusters.h"
 #include "struct.h"
 
 using namespace std;
@@ -65,7 +64,6 @@ struct TrainEntry
   bool reverseFlag;
   vector<int> carNumbers;
   vector<int> axles; // In mm starting from the first wheel
-  vector<Clusters> clusterList;  // First one is for 2 clusters, etc.
   bool fourWheelFlag; // Some cars "share" axles, look like 3-wheelers
 };
 
@@ -134,9 +132,11 @@ class Database
       const unsigned trainNo,
       vector<PeakPos>& peaks) const; // In mm
 
+    /*
     const Clusters * getClusters(
       const unsigned trainNo,
       const unsigned clusterSize) const;
+      */
 
     const CarEntry * lookupCar(const int carNo) const;
 
