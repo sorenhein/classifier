@@ -139,6 +139,8 @@ class Peaks
       vector<PeakTime>& times) const;
 
 
+    bool check() const;
+
     string strTimesCSV(
       const PeakFncPtr& fptr,
       const string& text) const;

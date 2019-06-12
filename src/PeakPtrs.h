@@ -143,6 +143,8 @@ class PeakPtrs
       const PeakPairFncPtr& pairPtr, // true of peak pair
       vector<unsigned>& distances) const;
 
+    bool check() const;
+
     string strQuality(
       const string& text,
       const unsigned offset,

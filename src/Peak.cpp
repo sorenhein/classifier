@@ -912,6 +912,13 @@ void Peak::operator /= (const unsigned no)
   }
 }
 
+
+bool Peak::check() const
+{
+  return (indexLeft <= index && indexRight >= index);
+}
+
+
 string Peak::strHeader() const
 {
   stringstream ss;

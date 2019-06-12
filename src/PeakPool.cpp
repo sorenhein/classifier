@@ -3,6 +3,7 @@
 #include <sstream>
 
 #include "PeakPool.h"
+#include "Except.h"
 
 
 PeakPool::PeakPool()
@@ -329,14 +330,13 @@ bool PeakPool::peakFixable(
   Peak peak = * foundIter;
   peak.update(&* bracket.left.pit);
 
+  Peak peakNext;
   if (nextSkipFlag)
   {
     // There may be other peaks in between, so before we can use
     // the left flank to update peak, we must modify the next one.
-    Peak peakNext = * bracket.right.pit;
+    peakNext = * bracket.right.pit;
     peakNext.update(& peak);
-
-    peak.logNextPeak(& peakNext);
   }
   else
     peak.logNextPeak(&* bracket.right.pit);
@@ -389,6 +389,13 @@ Peak * PeakPool::repairTopLevel(
   Piterator nprevBestMax = next(bracketInnerMax.left.pit);
   if (nprevBestMax != foundIter)
   {
+    // TODO Make a method out of this.
+    for (auto pit = nprevBestMax; pit != foundIter; pit++)
+    {
+      if (pit->isCandidate())
+        _candidates.remove(&* pit);
+    }
+
     // Delete peaks in [nprevBestMax, foundIter).
     // This also recalculates left flanks.
     peaks->collapse(nprevBestMax, foundIter);
@@ -401,6 +408,13 @@ Peak * PeakPool::repairTopLevel(
   Piterator nfoundIter = next(foundIter);
   if (bracketInnerMax.right.pit != nfoundIter)
   {
+    // TODO Make a method out of this.
+    for (auto pit = nfoundIter; pit != bracketInnerMax.right.pit; pit++)
+    {
+      if (pit->isCandidate())
+        _candidates.remove(&* pit);
+    }
+
     // Delete peaks in [nfoundIter, pnextBestMax).
 
     peaks->collapse(nfoundIter, bracketInnerMax.right.pit);
@@ -555,13 +569,6 @@ Peak * PeakPool::repair(
 
     Bracket bracket;
     liter->bracket(pindex, true, bracket);
-cout << "ldepth " << ldepth << ": Bracket " <<
-  (bracket.left.hasFlag ? "true" : "false") << " - " <<
-  (bracket.right.hasFlag ? "true" : "false") << endl;
-if (bracket.left.hasFlag)
-  cout << "Left " << bracket.left.pit->getIndex() << endl;
-if (bracket.right.hasFlag)
-  cout << "Right " << bracket.right.pit->getIndex() << endl;
 
     // Is one of them close enough?  If both, pick the lowest value.
     Piterator foundIter;
@@ -698,6 +705,30 @@ bool PeakPool::getClosest(
     }
   }
   return true;
+}
+
+
+bool PeakPool::check() const
+{
+  bool flag = true;
+  for (auto& pl: peakLists)
+  {
+    if (! pl.check())
+      flag = false;
+  }
+  return flag;
+}
+
+
+void PeakPool::print(const unsigned offset) const
+{
+  unsigned level = 0;
+  for (auto& pl: peakLists)
+  {
+    cout << "PeakPool print, level " << level << "\n";
+    cout << pl.str("", offset);
+    level++;
+  }
 }
 
 

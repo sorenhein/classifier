@@ -151,6 +151,9 @@ class PeakPool
       PeakPtrs& peakPtrsUsed,
       PeakPtrs& peakPtrsUnused) const;
 
+    void print(const unsigned offset) const;
+    bool check() const;
+
     string strCounts() const;
 };
 

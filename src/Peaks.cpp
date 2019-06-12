@@ -480,6 +480,22 @@ void Peaks::getTimes(
 }
 
 
+bool Peaks::check() const
+{
+  bool flag = true;
+  for (auto& peak: peaks)
+  {
+    if (! peak.check())
+    {
+      cout << "PEAKS ERROR\n";
+      cout << peak.strQuality();
+      flag = false;
+    }
+  }
+  return flag;
+}
+
+
 string Peaks::strTimesCSV(
   const PeakFncPtr& fptr,
   const string& text) const

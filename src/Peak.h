@@ -236,6 +236,8 @@ class Peak
 
     void operator /= (const unsigned no);
 
+    bool check() const;
+
     string strHeader() const;
     string strHeaderQuality() const;
 

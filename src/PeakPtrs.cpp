@@ -697,6 +697,21 @@ void PeakPtrs::sort()
 }
 
 
+bool PeakPtrs::check() const
+{
+  for (auto& peak: peaks)
+  {
+    if (! peak->check())
+    {
+      cout << "PEAKPTRS ERROR\n";
+      cout << peak->strQuality();
+      return false;
+    }
+  }
+  return true;
+}
+
+
 string PeakPtrs::strQuality(
   const string& text,
   const unsigned offset,
