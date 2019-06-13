@@ -430,16 +430,9 @@ void PeakPtrs::getClosest(
   vector<unsigned> dist;
   dist.resize(ni, numeric_limits<unsigned>::max());
 
-cout << "yardstick " << yardstick << endl;
-
-cout << PeakPtrs::strQuality("inter", 0);
-
   for (unsigned i = 0; i < ni; i++)
   {
     const unsigned iindex = indices[i];
-
-cout << "iindex " << iindex << endl;
-
     unsigned pindex = 0, d;
     while (pit != peaks.end() && (pindex = (* pit)->getIndex()) < iindex)
     {
@@ -455,13 +448,9 @@ cout << "iindex " << iindex << endl;
     if (pit == peaks.end())
       continue;
 
-cout << "pindex " << pindex << ", dist[i] " << dist[i] << endl;
-
     d = pindex - iindex;
     if (d < yardstick && d < dist[i])
     {
-cout << "Closer: d " << d << endl;
-
       peaksClose[i] = * pit;
       dist[i] = d;
       pit++;

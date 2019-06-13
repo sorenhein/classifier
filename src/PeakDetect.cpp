@@ -537,7 +537,7 @@ void PeakDetect::reduce(
     return;
 
   const bool debug = true;
-  const bool debugDetails = true;
+  const bool debugDetails = false;
 
   if (debugDetails)
     cout << peaks.top().str("Original peaks", offset);

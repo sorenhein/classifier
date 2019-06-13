@@ -905,27 +905,18 @@ PeakPtrs& peakPtrsUsed,
   peakHint.logPosition(single.target, single.lower, single.upper);
 cout<< "REP1" << endl;
 cout << peakHint.strQuality(offset) << endl;
-cout << peaks.candidates().strQuality("Before", offset,
-  &Peak::isSelected);
 if (! peakPtrsUsed.check())
   THROW(ERR_ALGO_PEAK_CONSISTENCY, "fixOnePeak start");
-
-cout << peakPtrsUsed.strQuality("Before repair wo offset", 0);
 
   pptr = peaks.repair(peakHint, &Peak::borderlineQuality, offset,
     forceFlag);
 if (! peakPtrsUsed.check())
   THROW(ERR_ALGO_PEAK_CONSISTENCY, "fixOnePeak after repair");
 
-cout<< "REP2" << endl;
-cout << peaks.candidates().strQuality("After", offset,
-  &Peak::isSelected);
-
 if (! peakPtrsUsed.check())
   THROW(ERR_ALGO_PEAK_CONSISTENCY, "fixOnePeak before message");
 
   PeakPattern::processMessage(text, "repair", single.target, pptr);
-cout<< "REP3" << endl;
 
 if (! peakPtrsUsed.check())
   THROW(ERR_ALGO_PEAK_CONSISTENCY, "fixOnePeak end");
@@ -945,8 +936,7 @@ PeakPtrs& peakPtrsUsed,
 
   if (pptr == nullptr)
   {
-    PeakPattern::fixOnePeak(origin, single, peaks, 
-peakPtrsUsed,
+    PeakPattern::fixOnePeak(origin, single, peaks, peakPtrsUsed,
       pptr, forceFlag);
   }
 }
@@ -1108,30 +1098,17 @@ for (auto d: doubles)
 }
 
 
-void PeakPattern::getSpacings(PeakPtrs& peakPtrsUsed,
-  PeakPool& peaks
-  )
+void PeakPattern::getSpacings(PeakPtrs& peakPtrsUsed)
 {
   for (auto pit = peakPtrsUsed.begin(); pit != prev(peakPtrsUsed.end()); 
       pit++)
   {
-
-cout << "getSpacings " << (*pit)->getIndex() + offset << endl;
-cout << peaks.candidates().strQuality("getSpacings loopstart", offset,
-  &Peak::isSelected);
-
     spacings.emplace_back(SpacingEntry());
     SpacingEntry& se = spacings.back();
-
-cout << peaks.candidates().strQuality("getSpacings after emplace", offset,
-  &Peak::isSelected);
 
     se.peakLeft = * pit;
     se.peakRight = * next(pit);
     se.dist = se.peakRight->getIndex() - se.peakLeft->getIndex();
-
-cout << peaks.candidates().strQuality("getSpacings after dist", offset,
-  &Peak::isSelected);
 
     se.numBogies = (bogieTypical == 0 ? 1.f : 
       se.dist / static_cast<float>(bogieTypical));
@@ -1411,21 +1388,11 @@ cout << peakPtrsUnused.strQuality("Unused", offset);
   if (rangeData.qualBest != QUALITY_GENERAL && 
       rangeData.qualBest != QUALITY_NONE)
   {
-cout << peaks.candidates().strQuality("getSpacing before0", offset,
-  &Peak::isSelected);
-
     // Make an attempt to find short cars without a model.
-    PeakPattern::getSpacings(peakPtrsUsed,
-peaks);
-
-cout << peaks.candidates().strQuality("getSpacing after1", offset,
-  &Peak::isSelected);
+    PeakPattern::getSpacings(peakPtrsUsed);
 
     for (auto& sit: spacings)
       cout << sit.str(offset);
-
-cout << peaks.candidates().strQuality("getSpacing after1", offset,
-  &Peak::isSelected);
 
     if (PeakPattern::guessAndFixShortLeft(peaks, 
         peakPtrsUsed, peakPtrsUnused))

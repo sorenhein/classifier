@@ -351,8 +351,7 @@ PeakPtrs& peakPtrsUsed,
       const bool forceFlag = false,
       const bool flexibleFlag = false);
 
-    void getSpacings(PeakPtrs& peakPtrsUsed,
-      PeakPool& peaks);
+    void getSpacings(PeakPtrs& peakPtrsUsed);
 
     string strClosest(
       const vector<unsigned>& indices) const;
