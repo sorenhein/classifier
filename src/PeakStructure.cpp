@@ -7,7 +7,6 @@
 
 #include "PeakStructure.h"
 #include "PeakPattern.h"
-#include "PeakShort.h"
 #include "PeakRepair.h"
 #include "PeakProfile.h"
 #include "CarModels.h"
