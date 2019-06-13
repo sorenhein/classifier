@@ -9,7 +9,6 @@
 #include "Database.h"
 #include "TraceDB.h"
 #include "Regress.h"
-#include "Disturb.h"
 #include "Align.h"
 #include "Timers.h"
 #include "CompStats.h"
@@ -28,8 +27,7 @@ void setup(
   int argc, 
   char * argv[],
   Control& control,
-  Database& db,
-  Disturb& disturb);
+  Database& db);
 
 unsigned lookupMatchRank(
   const Database& db,
@@ -41,15 +39,13 @@ int main(int argc, char * argv[])
 {
   Control control;
   Database db;
-  Disturb disturb;
-  setup(argc, argv, control, db, disturb);
+  setup(argc, argv, control, db);
 
   Imperfections imperf;
   Align align;
   Regress regress;
 
   vector<PeakPos> perfectPositions;
-  vector<PeakTime> synthTimes;
   vector<Alignment> matchesAlign;
   Alignment bestAlign;
   
@@ -173,8 +169,7 @@ void setup(
   int argc, 
   char * argv[],
   Control& control,
-  Database& db,
-  Disturb& disturb)
+  Database& db)
 {
   if (argc == 2)
     control.controlFile = string(argv[1]);
@@ -192,12 +187,6 @@ void setup(
 
   if (control.sensorFile != "")
     readSensorFile(db, control.sensorFile);
-
-  if (! disturb.readFile(control.disturbFile))
-  {
-    cout << "Bad disturbance file" << endl;
-    exit(0);
-  }
 
   if (! db.select("ALL", 0, 100))
   {

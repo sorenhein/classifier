@@ -869,8 +869,6 @@ bool readControlFile(
     {
       if ( ! readInt(rest, c.year, err)) break;
     }
-    else if (field == "DISTURB_FILE")
-      c.disturbFile = rest;
     else if (field == "TRACE_DIRECTORY")
       c.traceDir = rest;
     else if (field == "SIM_COUNT")

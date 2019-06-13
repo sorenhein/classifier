@@ -8,7 +8,6 @@ CarModels.obj: PeakPtrs.h Except.h errors.h
 CarPeaks.obj: CarPeaks.h Peak.h struct.h
 CompStats.obj: CompStats.h
 Database.obj: Database.h struct.h read.h
-Disturb.obj: Disturb.h read.h struct.h
 Except.obj: Except.h errors.h
 Peak.obj: Peak.h struct.h util/Gap.h Except.h errors.h
 Peaks.obj: Peaks.h Peak.h struct.h Except.h errors.h
@@ -80,9 +79,9 @@ write.obj: write.h struct.h
 driver.obj: args.h struct.h read.h Trace.h SegTransient.h SegQuiet.h
 driver.obj: SegActive.h PeakDetect.h Peak.h PeakPool.h Peaks.h PeakPtrs.h
 driver.obj: CarPeaks.h PeakStructure.h CarDetect.h CarGaps.h PeakRange.h
-driver.obj: PeakProfile.h CarModels.h Database.h TraceDB.h Regress.h
-driver.obj: Disturb.h Align.h Timers.h util/Timer.h CompStats.h PeakStats.h
-driver.obj: Except.h errors.h geometry.h print.h
+driver.obj: PeakProfile.h CarModels.h Database.h TraceDB.h Regress.h Align.h
+driver.obj: Timers.h util/Timer.h CompStats.h PeakStats.h Except.h errors.h
+driver.obj: geometry.h print.h
 regress/PolynomialRegression.obj: regress/PolynomialRegression.h
 util/Gap.obj: util/Gap.h const.h
 util/Timer.obj: util/Timer.h
