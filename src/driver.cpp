@@ -13,7 +13,6 @@
 #include "Disturb.h"
 #include "Align.h"
 #include "Timers.h"
-#include "Stats.h"
 #include "CompStats.h"
 #include "PeakStats.h"
 #include "Except.h"
@@ -60,8 +59,6 @@ int main(int argc, char * argv[])
   vector<double> motionActual(order+1);
   vector<double> motionEstimate(order+1);
   motionActual[0] = 0.; // Offset in m
-
-  Stats stats;
 
   if (control.traceDir != "")
   {
@@ -165,75 +162,9 @@ if (trainDetected != trainTrue)
   }
   else
   {
-    // This generates synthetic, noisy peaks and classifies them.
-
-    for (auto& trainName: db)
-    // string trainName = "ICE1_DEU_56_N";
-    // string trainName = "MERIDIAN_DEU_22_N";
-    {
-      cout << "Train " << trainName << endl;
-      const int trainNoI = db.lookupTrainNumber(trainName);
-      if (trainNoI == -1)
-      {
-        cout << "Bad train name\n";
-        exit(0);
-      }
-      const unsigned trainNo = static_cast<unsigned>(trainNoI);
-
-      // Actually a train might run in more than one country.
-      const string country = db.lookupTrainCountry(trainNo);
-
-      if (! db.getPerfectPeaks(trainName, perfectPositions))
-        cout << "Bad perfect positions" << endl;
-// cout << "Input positions " << trainName << "\n";
-// printPeakPosCSV(perfectPositions, 1);
-
-      for (double speed = control.speedMin; 
-          speed <= control.speedMax + 0.1 * control.speedStep; 
-          speed += control.speedStep)
-      {
-        motionActual[1] = speed;
-
-        for (double accel = control.accelMin; 
-            accel <= control.accelMax + 0.1 * control.accelStep; 
-            accel += control.accelStep)
-        {
-          motionActual[2] = accel;
-
-          for (int no = 0; no < control.simCount; no++)
-          {
-            if (! synth.disturb(perfectPositions, disturb, synthTimes, 
-              0., speed, accel))
-            {
-              continue;
-            }
-
-            align.bestMatches(synthTimes, 0, imperf, db, country, 10, 
-              control, matchesAlign);
-
-            if (matchesAlign.size() == 0)
-            {
-              stats.log(trainName, motionActual,
-                "UNKNOWN", motionActual, 0.);
-              continue;
-            }
-
-            regress.bestMatch(synthTimes, db, order,
-              control, matchesAlign, bestAlign, motionEstimate);
-
-            stats.log(trainName, motionActual,
-              db.lookupTrainName(bestAlign.trainNo),
-              motionEstimate, bestAlign.distMatch);
-          }
-        }
-      }
-    }
-
-    stats.printCrossCountCSV(control.crossCountFile);
-    stats.printCrossPercentCSV(control.crossPercentFile);
-    stats.printOverviewCSV(control.overviewFile);
-    stats.printDetailsCSV(control.detailFile);
-    stats.printQuality();
+    // This was once use to generate synthetic, noisy peaks and
+    // to classify them.
+    cout << "No traces specified.\n";
   }
 
   cout << timers.str(2) << endl;

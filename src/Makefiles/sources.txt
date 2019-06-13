@@ -32,7 +32,6 @@ SOURCE_FILES    =               \
                 SegActive.cpp   \
                 SegQuiet.cpp    \
                 SegTransient.cpp \
-                Stats.cpp       \
                 StatEntry.cpp   \
                 StatCross.cpp   \
                 SynthTrain.cpp  \
