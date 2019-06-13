@@ -242,6 +242,14 @@ class PeakPattern
       PeakPtrs& peakPtrsUsed,
       PeakPtrs& peakPtrsUnused) const;
 
+    bool guessAndFixShortFromSpacings(
+      const string& text,
+      const bool leftFlag,
+      const unsigned indexFirst,
+      const unsigned indexLast,
+      PeakPtrs& peakPtrsUsed,
+      PeakPtrs& peakPtrsUnused) const;
+
     bool guessAndFixShort(
       const bool leftFlag,
       const unsigned indexFirst,

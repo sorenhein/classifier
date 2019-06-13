@@ -1203,6 +1203,32 @@ cout << text << ": " <<
 }
 
 
+bool PeakPattern::guessAndFixShortFromSpacings(
+  const string& text,
+  const bool leftFlag,
+  const unsigned indexFirst,
+  const unsigned indexLast,
+  PeakPtrs& peakPtrsUsed,
+  PeakPtrs& peakPtrsUnused) const
+{
+  const SpacingEntry& spFirst = spacings[indexFirst];
+  const SpacingEntry& spLast = spacings[indexLast];
+
+  if (spFirst.bogieLikeFlag &&
+      spLast.bogieLikeFlag &&
+      spFirst.qualityWholeLower <= PEAK_QUALITY_GOOD &&
+      spLast.qualityWholeLower <= PEAK_QUALITY_GOOD &&
+      PeakPattern::plausibleCar(leftFlag, indexFirst, indexLast))
+  {
+    PeakPattern::fixShort(text, indexFirst, indexLast,
+      peakPtrsUsed, peakPtrsUnused);
+    return true;
+  }
+  else
+    return false;
+}
+
+
 bool PeakPattern::guessAndFixShort(
   const bool leftFlag,
   const unsigned indexFirst,
@@ -1212,7 +1238,7 @@ bool PeakPattern::guessAndFixShort(
   PeakPtrs& peakPtrsUnused) const
 {
   const unsigned numSpaces = indexLast + 1 - indexFirst;
-cout << "PPINDEX " << numSpaces << endl;
+cout << "NUMSPACES " << numSpaces << endl;
 
   const SpacingEntry& spFirst = spacings[indexFirst];
   const SpacingEntry& spLast = spacings[indexLast];
@@ -1234,21 +1260,13 @@ cout << "PPINDEX " << numSpaces << endl;
   }
   else if (numSpaces == 3)
   {
-    if (spFirst.bogieLikeFlag &&
-        spLast.bogieLikeFlag &&
-        spFirst.qualityWholeLower <= PEAK_QUALITY_GOOD &&
-        spLast.qualityWholeLower <= PEAK_QUALITY_GOOD)
-    {
-      if (PeakPattern::plausibleCar(leftFlag, indexFirst, indexLast))
-      {
-        PeakPattern::fixShort("PPINDEX 3", indexFirst, indexLast,
-          peakPtrsUsed, peakPtrsUnused);
-        return true;
-      }
-    }
+    // Could simply be one car.
+    return PeakPattern::guessAndFixShortFromSpacings("PPINDEX 3",
+      leftFlag, indexFirst, indexLast, peakPtrsUsed, peakPtrsUnused);
   }
   else if (numSpaces == 4)
   {
+    // There could be one spurious peak in the middle.
     if (spFirst.bogieLikeFlag &&
         spLast.bogieLikeFlag)
     {
@@ -1268,6 +1286,25 @@ cout << "PPINDEX " << numSpaces << endl;
           peakPtrsUsed, peakPtrsUnused);
         return true;
       }
+    }
+  }
+  else if (numSpaces == 5)
+  {
+cout << "TRYING RIGHT5\n";
+cout << "LEFT " << leftFlag << "\n";
+    if (leftFlag)
+    {
+cout << indexFirst << " " << indexLast-2 << "\n";
+      // There could be a simple car at the left end.
+      return PeakPattern::guessAndFixShortFromSpacings("PPINDEX 4c",
+        leftFlag, indexFirst, indexLast-2, peakPtrsUsed, peakPtrsUnused);
+    }
+    else
+    {
+cout << indexFirst+2 << " " << indexLast << "\n";
+      // There could be a simple car at the right end.
+      return PeakPattern::guessAndFixShortFromSpacings("PPINDEX 4d",
+        leftFlag, indexFirst+2, indexLast, peakPtrsUsed, peakPtrsUnused);
     }
   }
 
@@ -1302,7 +1339,7 @@ bool PeakPattern::guessAndFixShortRight(
 
   const unsigned ss = spacings.size();
   return PeakPattern::guessAndFixShort(
-    false, (ss <= 4 ? 0 : ss-4), ss-1, peaks, peakPtrsUsed, peakPtrsUnused);
+    false, (ss <= 5 ? 0 : ss-5), ss-1, peaks, peakPtrsUsed, peakPtrsUnused);
 }
 
 
