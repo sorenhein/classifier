@@ -63,55 +63,7 @@ int main(int argc, char * argv[])
 
   Stats stats;
 
-  if (control.inputFile != "")
-  {
-    // This was an early attempt to read in peaks from the current
-    // system.  I moved to generate my own peaks.
-
-    vector<InputEntry> actualList;
-    if (! readInputFile(control.inputFile, actualList))
-    {
-      cout << "Could not read " << control.inputFile << endl;
-      exit(0);
-    }
-
-    for (auto& actualEntry: actualList)
-    {
-      align.bestMatches(actualEntry.actual, 0, imperf, db, "DEU", 10, 
-        control, matchesAlign);
-
-      if (matchesAlign.size() == 0)
-      {
-        cout << "number " << actualEntry.number << 
-          ", date " << actualEntry.date <<
-          ", time " << actualEntry.time <<
-          ", axles: " << actualEntry.actual.size() << endl;
-        cout << "NO MATCH\n\n";
-        continue;
-      }
-
-      regress.bestMatch(actualEntry.actual, db, order,
-        control, matchesAlign, bestAlign, motionEstimate);
-
-      cout << "number " << actualEntry.number << 
-        ", date " << actualEntry.date <<
-        ", time " << actualEntry.time << 
-        ", axles: " << actualEntry.actual.size() << endl;
-      for (auto& match: matchesAlign)
-      {
-        cout << setw(24) << left << db.lookupTrainName(match.trainNo) << 
-          setw(10) << fixed << setprecision(2) << match.dist <<
-          setw(10) << fixed << setprecision(2) << match.distMatch <<
-          setw(8) << match.numAdd <<
-          setw(8) << match.numDelete << endl;
-      }
-      cout << endl;
-
-      // TODO print result, scores, axle counts, ...
-      // Count axles that stick out, too small or too large?
-    }
-  }
-  else if (control.traceDir != "")
+  if (control.traceDir != "")
   {
     // This extracts peaks and then extracts train types from peaks.
 

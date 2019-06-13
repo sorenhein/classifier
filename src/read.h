@@ -57,10 +57,6 @@ bool readTraceTruth(
   const Database& db,
   TraceDB& tdb);
 
-bool readInputFile(
-  const string& fname,
-  vector<InputEntry>& actualList);
-
 bool readTextTrace(
   const string& filename,
   vector<double>& samples);

@@ -871,8 +871,6 @@ bool readControlFile(
     }
     else if (field == "DISTURB_FILE")
       c.disturbFile = rest;
-    else if (field == "INPUT_FILE")
-      c.inputFile = rest;
     else if (field == "TRACE_DIRECTORY")
       c.traceDir = rest;
     else if (field == "SIM_COUNT")
