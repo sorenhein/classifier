@@ -1,3 +1,7 @@
+/*
+    A simple class to keep track of gaps between peaks.
+ */
+
 #ifndef TRAIN_GAP_H
 #define TRAIN_GAP_H
 

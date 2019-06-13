@@ -8,7 +8,6 @@ SOURCE_FILES    =               \
                 Database.cpp    \
                 Disturb.cpp     \
                 Except.cpp      \
-                util/Gap.cpp    \
                 Peak.cpp        \
                 Peaks.cpp       \
                 PeakDetect.cpp  \
@@ -37,7 +36,6 @@ SOURCE_FILES    =               \
                 StatEntry.cpp   \
                 StatCross.cpp   \
                 SynthTrain.cpp  \
-                Timer.cpp       \
                 Timers.cpp      \
                 Trace.cpp       \
                 TraceDB.cpp     \
@@ -47,4 +45,6 @@ SOURCE_FILES    =               \
                 read.cpp        \
                 write.cpp       \
                 driver.cpp      \
-                regress/PolynomialRegression.cpp
+                regress/PolynomialRegression.cpp \
+                util/Gap.cpp    \
+                util/Timer.cpp

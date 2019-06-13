@@ -1,4 +1,3 @@
-#include <iostream>
 #include <iomanip>
 #include <sstream>
 
@@ -47,9 +46,9 @@ void Timer::operator += (const Timer& timer2)
 }
 
 
-bool Timer::isUsed() const
+bool Timer::empty() const
 {
-  return no > 0;
+  return (no == 0);
 }
 
 

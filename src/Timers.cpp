@@ -58,7 +58,7 @@ string Timers::str(const int prec) const
     setw(10) << right << "Average" << "\n";
   for (unsigned i = 0; i < timers.size(); i++)
   {
-    if (timers[i].isUsed())
+    if (! timers[i].empty())
       ss << setw(24) << left << names[i] << timers[i].str(prec);
   }
   return ss.str();
