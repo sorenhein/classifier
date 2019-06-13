@@ -118,6 +118,16 @@ class PeakPattern
         return (count < se2.count);
       };
 
+      void bracket(const unsigned delta)
+      {
+        if (target < delta)
+          lower = 0;
+        else
+          lower = target - delta;
+
+        upper = target + delta;
+      };
+
       string str(const unsigned offset)
       {
         stringstream ss;
@@ -145,6 +155,29 @@ class PeakPattern
         stringstream ss;
         ss << first.str(offset) <<
           second.str(offset) <<
+          "count " << count << endl;
+        return ss.str();
+      };
+    };
+
+    struct TripleEntry
+    {
+      SingleEntry first;
+      SingleEntry second;
+      SingleEntry third;
+      unsigned count;
+
+      bool operator < (const TripleEntry& de2)
+      {
+        return (count < de2.count);
+      };
+
+      string str(const unsigned offset)
+      {
+        stringstream ss;
+        ss << first.str(offset) <<
+          second.str(offset) <<
+          third.str(offset) <<
           "count " << count << endl;
         return ss.str();
       };
@@ -296,11 +329,16 @@ class PeakPattern
       const PatternEntry& pe,
       list<DoubleEntry>& doubles) const;
 
+    void addToTriples(
+      const PatternEntry& pe,
+      list<TripleEntry>& triples) const;
+
     void examineCandidates(
       const PeakPtrs& peakPtrsUsed,
       NoneEntry& none,
       list<SingleEntry>& singles,
-      list<DoubleEntry>& doubles);
+      list<DoubleEntry>& doubles,
+      list<TripleEntry>& triples);
 
     void condenseSingles(list<SingleEntry>& singles) const;
 

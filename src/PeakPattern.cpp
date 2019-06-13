@@ -691,16 +691,59 @@ void PeakPattern::addToDoubles(
 }
 
 
+void PeakPattern::addToTriples(
+  const PatternEntry& pe,
+  list<TripleEntry>& triples) const 
+{
+  triples.emplace_back(TripleEntry());
+  TripleEntry& de = triples.back();
+
+  const unsigned bogieQuarter = bogieTypical / 4;
+
+  unsigned pos = 0;
+  for (unsigned i = 0; i < peaksClose.size(); i++)
+  {
+    if (peaksClose[i] == nullptr)
+    {
+      if (pos == 0)
+      {
+        de.first.target = pe.indices[i];
+        pos++;
+      }
+      else if (pos == 1)
+      {
+        de.second.target = pe.indices[i];
+        pos++;
+      }
+      else if (pos == 2)
+      {
+        de.third.target = pe.indices[i];
+        pos++;
+      }
+    }
+  }
+
+  if (pos != 3)
+    THROW(ERR_ALGO_PEAK_CONSISTENCY, "addToTriples error");
+
+  de.first.bracket(bogieQuarter);
+  de.second.bracket(bogieQuarter);
+  de.third.bracket(bogieQuarter);
+}
+
+
 void PeakPattern::examineCandidates(
   const PeakPtrs& peakPtrsUsed,
   NoneEntry& none,
   list<SingleEntry>& singles,
-  list<DoubleEntry>& doubles)
+  list<DoubleEntry>& doubles,
+  list<TripleEntry>& triples)
 {
   // Get the lie of the land.
   unsigned distBest = numeric_limits<unsigned>::max();
   singles.clear();
   doubles.clear();
+  triples.clear();
 
   for (auto pe = candidates.begin(); pe != candidates.end(); )
   {
@@ -724,20 +767,10 @@ void PeakPattern::examineCandidates(
     else if (numClose == 3)
       PeakPattern::addToSingles(pe->indices, singles);
     else if (numClose == 2)
-    {
-
-cout << "Condensed doubles before\n";
-for (auto d: doubles)
-  cout << d.str(offset);
-
       PeakPattern::addToDoubles(* pe, doubles);
-
-cout << "Condensed doubles after\n";
-for (auto d: doubles)
-  cout << d.str(offset);
-
-    }
-    else if (numClose <= 1)
+    else if (numClose == 1)
+      PeakPattern::addToTriples(* pe, triples);
+    else if (numClose == 0)
     {
       // Get rid of the 1's and 0's.
       pe = candidates.erase(pe);
@@ -1038,8 +1071,10 @@ bool PeakPattern::fix(
   NoneEntry none;
   list<SingleEntry> singles;
   list<DoubleEntry> doubles;
+  list<TripleEntry> triples;
 
-  PeakPattern::examineCandidates(peakPtrsUsed, none, singles, doubles);
+  PeakPattern::examineCandidates(peakPtrsUsed, 
+    none, singles, doubles, triples);
 
   cout << "Condensed doubles after examine 1\n";
   for (auto d: doubles)
@@ -1056,7 +1091,8 @@ bool PeakPattern::fix(
     {
       // TODO This is quite inefficient, as we actually know the
       // changes we made.  But we just reexamine for now.
-      PeakPattern::examineCandidates(peakPtrsUsed, none, singles, doubles);
+      PeakPattern::examineCandidates(peakPtrsUsed, 
+        none, singles, doubles, triples);
 
 cout << "Condensed doubles after examine 2\n";
 for (auto d: doubles)
@@ -1079,7 +1115,8 @@ for (auto d: doubles)
     if (PeakPattern::fixSingles(peaks, singles, 
         peakPtrsUsed, peakPtrsUnused, forceFlag))
     {
-      PeakPattern::examineCandidates(peakPtrsUsed, none, singles, doubles);
+      PeakPattern::examineCandidates(peakPtrsUsed, 
+        none, singles, doubles, triples);
     }
 
 cout << "Condensed doubles after examine 3\n";
