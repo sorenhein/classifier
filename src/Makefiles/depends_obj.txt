@@ -66,7 +66,6 @@ SegTransient.obj: CarPeaks.h PeakStructure.h CarDetect.h CarGaps.h
 SegTransient.obj: PeakRange.h PeakProfile.h CarModels.h write.h
 StatEntry.obj: StatEntry.h
 StatCross.obj: StatCross.h
-SynthTrain.obj: SynthTrain.h struct.h Disturb.h
 Timers.obj: Timers.h util/Timer.h
 Trace.obj: Trace.h SegTransient.h struct.h SegQuiet.h SegActive.h
 Trace.obj: PeakDetect.h Peak.h PeakPool.h Peaks.h PeakPtrs.h CarPeaks.h
@@ -81,9 +80,9 @@ write.obj: write.h struct.h
 driver.obj: args.h struct.h read.h Trace.h SegTransient.h SegQuiet.h
 driver.obj: SegActive.h PeakDetect.h Peak.h PeakPool.h Peaks.h PeakPtrs.h
 driver.obj: CarPeaks.h PeakStructure.h CarDetect.h CarGaps.h PeakRange.h
-driver.obj: PeakProfile.h CarModels.h Database.h TraceDB.h SynthTrain.h
-driver.obj: Regress.h Disturb.h Align.h Timers.h util/Timer.h CompStats.h
-driver.obj: PeakStats.h Except.h errors.h geometry.h print.h
+driver.obj: PeakProfile.h CarModels.h Database.h TraceDB.h Regress.h
+driver.obj: Disturb.h Align.h Timers.h util/Timer.h CompStats.h PeakStats.h
+driver.obj: Except.h errors.h geometry.h print.h
 regress/PolynomialRegression.obj: regress/PolynomialRegression.h
 util/Gap.obj: util/Gap.h const.h
 util/Timer.obj: util/Timer.h

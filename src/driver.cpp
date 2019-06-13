@@ -8,7 +8,6 @@
 #include "Trace.h"
 #include "Database.h"
 #include "TraceDB.h"
-#include "SynthTrain.h"
 #include "Regress.h"
 #include "Disturb.h"
 #include "Align.h"
@@ -45,7 +44,6 @@ int main(int argc, char * argv[])
   Disturb disturb;
   setup(argc, argv, control, db, disturb);
 
-  SynthTrain synth;
   Imperfections imperf;
   Align align;
   Regress regress;

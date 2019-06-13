@@ -34,7 +34,6 @@ SOURCE_FILES    =               \
                 SegTransient.cpp \
                 StatEntry.cpp   \
                 StatCross.cpp   \
-                SynthTrain.cpp  \
                 Timers.cpp      \
                 Trace.cpp       \
                 TraceDB.cpp     \
