@@ -30,7 +30,6 @@ SOURCE_FILES    =               \
                 SegActive.cpp   \
                 SegQuiet.cpp    \
                 SegTransient.cpp \
-                StatCross.cpp   \
                 Timers.cpp      \
                 Trace.cpp       \
                 TraceDB.cpp     \

@@ -60,7 +60,6 @@ SegTransient.obj: SegTransient.h struct.h Trace.h SegQuiet.h SegActive.h
 SegTransient.obj: PeakDetect.h Peak.h PeakPool.h Peaks.h PeakPtrs.h
 SegTransient.obj: CarPeaks.h PeakStructure.h CarDetect.h CarGaps.h
 SegTransient.obj: PeakRange.h PeakProfile.h CarModels.h write.h
-StatCross.obj: StatCross.h
 Timers.obj: Timers.h util/Timer.h
 Trace.obj: Trace.h SegTransient.h struct.h SegQuiet.h SegActive.h
 Trace.obj: PeakDetect.h Peak.h PeakPool.h Peaks.h PeakPtrs.h CarPeaks.h

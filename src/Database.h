@@ -132,12 +132,6 @@ class Database
       const unsigned trainNo,
       vector<PeakPos>& peaks) const; // In mm
 
-    /*
-    const Clusters * getClusters(
-      const unsigned trainNo,
-      const unsigned clusterSize) const;
-      */
-
     const CarEntry * lookupCar(const int carNo) const;
 
     int lookupCarNumber(const string& offName) const;

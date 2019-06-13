@@ -109,22 +109,6 @@ enum FileFormat
   FILE_SIZE = 3
 };
 
-struct Cluster
-{
-  double center;
-  double median;
-  double sdev;
-  double lower;
-  double upper;
-  unsigned count;
-  int tag;
-
-  bool operator < (const Cluster& c2)
-  {
-    return (median < c2.median);
-  }
-};
-
 struct InputEntry
 {
   int number;
