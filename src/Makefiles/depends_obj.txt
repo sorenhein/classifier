@@ -10,8 +10,9 @@ CompStats.obj: CompStats.h
 Database.obj: Database.h struct.h read.h
 Disturb.obj: Disturb.h read.h struct.h
 Except.obj: Except.h errors.h
-Peak.obj: Peak.h struct.h Except.h errors.h
-Peaks.obj: Peaks.h Peak.h struct.h
+util/Gap.obj: util/Gap.h const.h
+Peak.obj: Peak.h struct.h util/Gap.h Except.h errors.h
+Peaks.obj: Peaks.h Peak.h struct.h Except.h errors.h
 PeakDetect.obj: PeakDetect.h Peak.h struct.h PeakPool.h Peaks.h PeakPtrs.h
 PeakDetect.obj: CarPeaks.h PeakStructure.h CarDetect.h CarGaps.h PeakRange.h
 PeakDetect.obj: PeakProfile.h CarModels.h PeakSeeds.h PeakMinima.h
@@ -21,16 +22,19 @@ PeakMatch.obj: PeakMatch.h Peak.h struct.h PeakPool.h Peaks.h PeakPtrs.h
 PeakMatch.obj: CarPeaks.h PeakStats.h Except.h errors.h
 PeakMinima.obj: Peak.h struct.h PeakMinima.h PeakPool.h Peaks.h PeakPtrs.h
 PeakMinima.obj: CarPeaks.h PeakPieces.h PeakPiece.h Except.h errors.h
+PeakMinima.obj: util/Gap.h
 PeakPattern.obj: PeakPattern.h CarModels.h CarDetect.h CarGaps.h Peak.h
 PeakPattern.obj: struct.h CarPeaks.h PeakRange.h PeakProfile.h PeakPool.h
-PeakPattern.obj: Peaks.h PeakPtrs.h
+PeakPattern.obj: Peaks.h PeakPtrs.h Except.h errors.h
 PeakPartial.obj: PeakPartial.h Peak.h struct.h PeakSlots.h PeakPtrs.h
 PeakPartial.obj: CarPeaks.h
 PeakPartialUsed.obj: PeakPartial.h Peak.h struct.h PeakSlots.h PeakPtrs.h
 PeakPartialUsed.obj: CarPeaks.h
-PeakPiece.obj: PeakPiece.h struct.h Except.h errors.h
-PeakPieces.obj: PeakPieces.h PeakPiece.h struct.h Peak.h Except.h errors.h
+PeakPiece.obj: PeakPiece.h struct.h util/Gap.h Except.h errors.h
+PeakPieces.obj: PeakPieces.h PeakPiece.h struct.h Peak.h util/Gap.h Except.h
+PeakPieces.obj: errors.h
 PeakPool.obj: PeakPool.h Peaks.h Peak.h struct.h PeakPtrs.h CarPeaks.h
+PeakPool.obj: Except.h errors.h
 PeakProfile.obj: PeakProfile.h struct.h Peak.h PeakPtrs.h CarPeaks.h Except.h
 PeakProfile.obj: errors.h
 PeakPtrs.obj: PeakPtrs.h Peak.h struct.h CarPeaks.h Except.h errors.h
@@ -50,8 +54,8 @@ PeakStructure.obj: PeakStructure.h CarDetect.h CarGaps.h Peak.h struct.h
 PeakStructure.obj: CarPeaks.h PeakPool.h Peaks.h PeakPtrs.h PeakRange.h
 PeakStructure.obj: PeakProfile.h PeakPattern.h CarModels.h PeakShort.h
 PeakStructure.obj: PeakRepair.h PeakPartial.h PeakSlots.h Except.h errors.h
-Regress.obj: Regress.h struct.h Database.h Timers.h Timer.h
-Regress.obj: Except.h errors.h print.h regress/PolynomialRegression.h
+Regress.obj: Regress.h struct.h Database.h Timers.h Timer.h Except.h errors.h
+Regress.obj: print.h regress/PolynomialRegression.h
 SegActive.obj: SegActive.h PeakDetect.h Peak.h struct.h PeakPool.h Peaks.h
 SegActive.obj: PeakPtrs.h CarPeaks.h PeakStructure.h CarDetect.h CarGaps.h
 SegActive.obj: PeakRange.h PeakProfile.h CarModels.h Timers.h Timer.h write.h
@@ -70,8 +74,7 @@ Trace.obj: Trace.h SegTransient.h struct.h SegQuiet.h SegActive.h
 Trace.obj: PeakDetect.h Peak.h PeakPool.h Peaks.h PeakPtrs.h CarPeaks.h
 Trace.obj: PeakStructure.h CarDetect.h CarGaps.h PeakRange.h PeakProfile.h
 Trace.obj: CarModels.h Timers.h Timer.h read.h
-TraceDB.obj: TraceDB.h struct.h Database.h Align.h Except.h
-TraceDB.obj: errors.h read.h
+TraceDB.obj: TraceDB.h struct.h Database.h Align.h Except.h errors.h read.h
 args.obj: args.h struct.h
 geometry.obj: Database.h struct.h Regress.h geometry.h
 print.obj: print.h Database.h struct.h
@@ -80,8 +83,8 @@ write.obj: write.h struct.h
 driver.obj: args.h struct.h read.h Trace.h SegTransient.h SegQuiet.h
 driver.obj: SegActive.h PeakDetect.h Peak.h PeakPool.h Peaks.h PeakPtrs.h
 driver.obj: CarPeaks.h PeakStructure.h CarDetect.h CarGaps.h PeakRange.h
-driver.obj: PeakProfile.h CarModels.h Database.h TraceDB.h
-driver.obj: SynthTrain.h Regress.h Disturb.h Align.h Timers.h Timer.h Stats.h
-driver.obj: StatCross.h StatEntry.h CompStats.h PeakStats.h Except.h errors.h
-driver.obj: geometry.h print.h
+driver.obj: PeakProfile.h CarModels.h Database.h TraceDB.h SynthTrain.h
+driver.obj: Regress.h Disturb.h Align.h Timers.h Timer.h Stats.h StatCross.h
+driver.obj: StatEntry.h CompStats.h PeakStats.h Except.h errors.h geometry.h
+driver.obj: print.h
 regress/PolynomialRegression.obj: regress/PolynomialRegression.h

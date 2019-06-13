@@ -14,6 +14,7 @@ using namespace std;
 
 class Peak;
 class PeakPool;
+class Gap;
 
 
 class PeakMinima
@@ -69,10 +70,6 @@ class PeakMinima
 
 
     void fixBogieOrphans(PeakPool& peaks) const;
-
-    void updateGap(
-      Gap& gap,
-      const Gap& actualGap) const;
 
     void markBogies(
       PeakPool& peaks,

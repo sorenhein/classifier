@@ -6,6 +6,7 @@
 #include <cmath>
 
 #include "Peak.h"
+#include "util/Gap.h"
 #include "Except.h"
 
 // Used for comparing values when checking identity.
@@ -826,15 +827,9 @@ bool Peak::matchesGap(
   const Peak& peakNext,
   const Gap& gap) const
 {
-  // Is smallest conceivable gap still too large?
-  if (peakNext.indexLeft - indexRight > gap.upper)
-    return false;
-
-  // Is largest conceivable gap still too small?
-  if (peakNext.indexRight - indexLeft < gap.lower)
-    return false;
-
-  return true;
+  // Check the smallest and largest conceivabl gaps between the peaks.
+  return gap.overlap(peakNext.indexLeft - indexRight,
+    peakNext.indexRight - indexLeft);
 }
 
 

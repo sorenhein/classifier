@@ -3,6 +3,7 @@
 #include <sstream>
 
 #include "PeakPiece.h"
+#include "util/Gap.h"
 #include "Except.h"
 
 #define SLIDING_LOWER 0.9f
@@ -82,7 +83,7 @@ bool PeakPiece::oftener(
   const Gap& gap,
   const float factor) const
 {
-  return (_summary.cumul >= static_cast<int>(factor * gap.count));
+  return (_summary.cumul >= static_cast<int>(factor * gap.count()));
 }
 
 
@@ -259,64 +260,6 @@ bool PeakPiece::splittableOnGap(
 }
 
 
-bool PeakPiece::extend(Gap& wheelGap) const
-{
-  const unsigned p = _summary.index;
-  const unsigned plo = static_cast<unsigned>(p / 1.1f);
-  const unsigned phi = static_cast<unsigned>(p * 1.1f);
-    
-  const unsigned wlo = static_cast<unsigned>(wheelGap.lower / 1.1f);
-  const unsigned whi = static_cast<unsigned>(wheelGap.upper * 1.1f);
-
-cout << "trying index " << p << ", " << plo << "-" << phi << endl;
-cout << "wheel gap " << wheelGap.lower << "-" << wheelGap.upper << endl;
-cout << "wheel tol " << wlo << "-" << whi << endl;
-
-  if (plo <= wheelGap.upper && wheelGap.lower <= phi)
-  {
-    if (plo < wheelGap.lower)
-    {
-      wheelGap.lower = plo;
-cout << "REGRADE branch 0: overlap lo\n";
-    }
-    if (phi > wheelGap.upper)
-    {
-      wheelGap.upper = phi;
-cout << "REGRADE branch 0: overlap hi\n";
-    }
-  }
-  else if (phi >= wlo && phi <= wheelGap.lower)
-  {
-    // Extend on the low end.
-    wheelGap.lower = phi - 1;
-cout << "REGRADE branch 1\n";
-  }
-  else if (plo >= wheelGap.upper && plo <= whi)
-  {
-    // Extend on the high end.
-    wheelGap.upper = plo + 1;
-cout << "REGRADE branch 2\n";
-  }
-  else if (plo >= wlo && plo <= wheelGap.lower)
-  {
-    // Extend on the low end.
-    wheelGap.lower = plo - 1;
-cout << "REGRADE branch 3\n";
-  }
-  else if (phi >= wheelGap.upper && phi <= whi)
-  {
-    // Extend on the high end.
-    wheelGap.upper = phi + 1;
-cout << "REGRADE branch 4\n";
-  }
-  else
-    return false;
-
-  wheelGap.count += static_cast<unsigned>(_summary.cumul);
-  return true;
-}
-
-
 void PeakPiece::unjitter()
 {
   if (_modality == 1)
@@ -394,9 +337,8 @@ bool PeakPiece::getGap(Gap& gap) const
 
   // It's not a given that this is the right centering.
   // But we generally get the stragglers later.
-  gap.lower = static_cast<unsigned>(p / SLIDING_UPPER) - 1;
-  gap.upper = static_cast<unsigned>(p * SLIDING_UPPER) + 1;
-  gap.count = static_cast<unsigned>(_summary.cumul);
+
+  gap.set(p, _summary.cumul);
   return true;
 }
 
@@ -412,10 +354,7 @@ void PeakPiece::getCombinedGap(
     (piece2._summary.index + piece2._summary.indexHi) / 2);
 
   const unsigned p = (p1 + p2) / 2;
-
-  gap.lower = static_cast<unsigned>(p / SLIDING_UPPER) - 1;
-  gap.upper = static_cast<unsigned>(p * SLIDING_UPPER) + 1;
-  gap.count = static_cast<unsigned>(_summary.cumul);
+  gap.set(p, _summary.cumul);
 }
 
 

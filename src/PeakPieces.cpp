@@ -4,6 +4,7 @@
 
 #include "PeakPieces.h"
 #include "Peak.h"
+#include "util/Gap.h"
 #include "Except.h"
 
 #define SLIDING_LOWER 0.9f
@@ -263,26 +264,23 @@ bool PeakPieces::extendBogieGap(Gap& wheelGap) const
   if (pieces.empty())
     THROW(ERR_NO_PEAKS, "Piece list for bogie extension is empty");
 
-  const unsigned wlo = static_cast<unsigned>(wheelGap.lower / 1.1f);
-  const unsigned whi = static_cast<unsigned>
-    (1.5f * (wheelGap.lower + wheelGap.upper) / 2.);
+  const unsigned whi = static_cast<unsigned>(1.5f * wheelGap.center());
 
   unsigned i = 0;
   bool ret = false;
 
-  // This is a mess concerning the count.
-  const unsigned origCount = wheelGap.count;
   for (auto pit = pieces.begin(); pit != pieces.end(); pit++, i++)
   {
-    if (pit->summary().index < wlo)
+    if (wheelGap.wellAbove(pit->summary().index))
     {
       // Most likely a small piece that was rejected relative to the
       // largest piece (bogie gaps), but now this large piece is gone.
       cout << "markShortGaps: Skipping an initial low piece\n";
-      cout << "wheelGap count " << wheelGap.count << endl;
+      cout << "wheelGap count " << wheelGap.count() << endl;
       cout << "skip count: " << pit->summary().cumul << endl;
     }
-    else if (i+3 <= pieces.size() && pit->extend(wheelGap))
+    else if (i+3 <= pieces.size() && 
+      wheelGap.extend(pit->summary().index))
     {
       // Only regrade if there are pieces left for short and long gaps.
       cout << "Extending wheelGap\n";
@@ -290,20 +288,16 @@ bool PeakPieces::extendBogieGap(Gap& wheelGap) const
     }
     else if (i+3 <= pieces.size() &&
         pit->summary().index < whi &&
-        pit->summary().cumul <= static_cast<int>(wheelGap.count / 4))
+        pit->summary().cumul <= static_cast<int>(wheelGap.count() / 4))
     {
       // Most likely a small piece with valid bogie differences for
       // short cars.
       // TODO Exploit this as well.
       cout << "markShortGaps: Skipping an initial high piece\n";
-      cout << "wheelGap count " << wheelGap.count << endl;
+      cout << "wheelGap count " << wheelGap.count() << endl;
       cout << "skip count: " << pit->summary().cumul << endl;
     }
   }
-
-  // sigh
-  if (ret)
-    wheelGap.count -= origCount;
 
   return ret;
 }
@@ -404,8 +398,7 @@ void PeakPieces::guessShortGap(
   // Skip over any early pieces that are way too short.
   auto pit = pieces.begin();
   unsigned c = 0;
-  const unsigned whi = static_cast<unsigned>(1.1f * wheelGap.upper);
-  while (pit != pieces.end() && pit->summary().index < whi)
+  while (pit != pieces.end() && ! wheelGap.wellBelow(pit->summary().index))
   {
     pit++;
     c++;
@@ -478,26 +471,20 @@ bool PeakPieces::guessGaps(
   if (lp == 1)
   {
     const PeakPiece& piece = pieces.front();
-    const float lenRatio = piece.summary().index /
-      static_cast<float>(wheelGap.upper);
+    const float lenRatio = wheelGap.ratio(piece.summary().index);
 
     if (lenRatio >= 3. && lenRatio <= 7. &&
-        2 * piece.summary().cumul >= static_cast<int>(wheelGap.count))
+        2 * piece.summary().cumul >= static_cast<int>(wheelGap.count()))
     {
       shortGap.reset();
       piece.getGap(longGap);
-
-      // cout << "Hit likely three-wheeler\n";
-      // cout << "NOT-THREE " << fixed << setprecision(2) << lenRatio << "\n";
-      // cout << piece.summary().cumul << " vs " << wheelGap.count << endl;
-
       return true;
     }
     else
     {
       cout << "ODDNUM " << lp << "\n";
       cout << "NOT-THREE " << fixed << setprecision(2) << lenRatio << "\n";
-      cout << piece.summary().cumul << " vs " << wheelGap.count << endl;
+      cout << piece.summary().cumul << " vs " << wheelGap.count() << endl;
     }
 
   }
@@ -519,7 +506,7 @@ bool PeakPieces::guessGaps(
     const PeakPiece& piece1 = * pit; pit++;
     const PeakPiece& piece2 = * pit;
 
-    if (piece0.summary().index > wheelGap.lower && 
+    if (wheelGap.startsBelow(piece0.summary().index) && 
         piece0.summary().index + piece1.summary().index <
         piece2.summary().index)
     {
@@ -539,7 +526,7 @@ bool PeakPieces::guessGaps(
     const PeakPiece& piece1 = * pit; pit++;
     const PeakPiece& piece2 = * pit;
 
-    if (piece0.summary().index > wheelGap.lower && 
+    if (wheelGap.startsBelow(piece0.summary().index) && 
         piece0.summary().index + piece1.summary().index <
         piece2.summary().index)
     {

@@ -362,54 +362,6 @@ struct Imperfections
   };
 };
 
-struct Gap
-{
-  unsigned lower;
-  unsigned upper;
-  unsigned count;
-
-  Gap()
-  {
-    Gap::reset();
-  };
-
-  void reset()
-  {
-    lower = std::numeric_limits<unsigned>::max();
-    upper = 0;
-    count = 0;
-  };
-
-  string str() const
-  {
-    stringstream ss;
-    ss << 
-      setw(4) << lower << " - " <<
-      setw(4) << upper << " (" <<
-      setw(2) << count << ")";
-    return ss.str();
-  };
-
-  void update(const unsigned value)
-  {
-    if (value < lower)
-      lower = value;
-    if (value > upper)
-      upper = value;
-  };
-
-  bool operator == (const Gap& g2) const
-  {
-    // This really tests overlap and not equality.
-    return (lower <= g2.upper && g2.lower <= upper);
-  };
-
-  bool isZero() const
-  {
-    return (upper == 0);
-  };
-};
-
 struct MatchData
 {
   float distance;

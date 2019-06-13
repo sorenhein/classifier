@@ -8,6 +8,8 @@
 
 using namespace std;
 
+class Gap;
+
 
 class PeakPiece
 {
@@ -69,8 +71,6 @@ class PeakPiece
       unsigned& indexRight) const;
 
     void unjitter();
-
-    bool extend(Gap& wheelGap) const;
 
     unsigned modality() const;
     const DistEntry& summary() const;

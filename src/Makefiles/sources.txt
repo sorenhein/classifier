@@ -8,6 +8,7 @@ SOURCE_FILES    =               \
                 Database.cpp    \
                 Disturb.cpp     \
                 Except.cpp      \
+                util/Gap.cpp    \
                 Peak.cpp        \
                 Peaks.cpp       \
                 PeakDetect.cpp  \
