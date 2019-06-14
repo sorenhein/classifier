@@ -134,68 +134,6 @@ cout << "DONE getActive" << endl;
 }
 
 
-/*
-bool PeakPattern::fillPoints(
-  const list<unsigned>& carPoints,
-  const unsigned indexBase,
-  const bool reverseFlag,
-  Completion& pe) const
-  // PatternEntry& pe) const
-{
-  if (pe.abutLeftFlag)
-  {
-    pe.indices.resize(4);
-
-    if (! reverseFlag)
-    {
-      unsigned pi = 0;
-      for (auto i = next(carPoints.begin()); i != prev(carPoints.end()); 
-          i++, pi++)
-        pe.indices[pi] = indexBase + * i;
-    }
-    else
-    {
-      const unsigned pointLast = carPoints.back();
-      unsigned pi = 3;
-      for (auto i = next(carPoints.begin()); i != prev(carPoints.end()); 
-          i++, pi--)
-        pe.indices[pi] = indexBase + pointLast - * i;
-    }
-  }
-  else
-  {
-    const unsigned pointLast = carPoints.back();
-    const unsigned pointLastPeak = * prev(prev(carPoints.end()));
-    const unsigned pointFirstPeak = * next(carPoints.begin());
-
-    // Fail if no room for left car.
-    if (indexBase + pointFirstPeak <= pointLast)
-      return false;
-
-    pe.indices.resize(4);
-
-    if (reverseFlag)
-    {
-      // The car has a right gap, so we don't need to flip it.
-      unsigned pi = 0;
-      for (auto i = next(carPoints.begin()); i != prev(carPoints.end()); 
-          i++, pi++)
-        pe.indices[pi] = indexBase + * i - pointLast;
-    }
-    else
-    {
-      unsigned pi = 3;
-      for (auto i = next(carPoints.begin()); i != prev(carPoints.end()); 
-          i++, pi--)
-        pe.indices[pi] = indexBase - * i;
-    }
-  }
-
-  return true;
-}
-*/
-
-
 bool PeakPattern::fillFromModel(
   const CarModels& models,
   const unsigned indexModel,
@@ -203,7 +141,6 @@ bool PeakPattern::fillFromModel(
   const unsigned indexRangeLeft,
   const unsigned indexRangeRight,
   const BordersType patternType)
-  // const PatternType patternType)
 {
   CarDetect car;
   models.getCar(car, indexModel);
@@ -211,7 +148,6 @@ bool PeakPattern::fillFromModel(
   list<unsigned> carPoints;
   models.getCarPoints(indexModel, carPoints);
 
-  // PatternEntry pe;
   Completion pe;
   bool seenFlag = false;
 
@@ -343,8 +279,6 @@ bool PeakPattern::guessNoBorders()
   candidates.clear();
   candidates.emplace_back(Completion());
   Completion& pe = candidates.back();
-  // candidates.emplace_back(PatternEntry());
-  // PatternEntry& pe = candidates.back();
 
   const unsigned start = avgLeftLeft - delta/2;
   const unsigned end =
@@ -366,23 +300,6 @@ bool PeakPattern::guessNoBorders()
     BORDERS_NONE,
     carPoints);
     
-
-  /*
-  pe.modelNo = carBeforePtr->index();
-  pe.reverseFlag = false;
-  pe.abutLeftFlag = false;
-  pe.abutRightFlag = false;
-  pe.start = avgLeftLeft - delta/2;
-  pe.end = (peaksAfter.firstBogieLeftPtr->getIndex() - avgRightRight) / 2;
-
-  pe.indices.push_back(avgLeftLeft);
-  pe.indices.push_back(avgLeftRight);
-  pe.indices.push_back(avgRightLeft);
-  pe.indices.push_back(avgRightRight);
-
-  pe.borders = PATTERN_NO_BORDERS;
-  */
-
   return true;
 }
 
@@ -426,18 +343,7 @@ bool PeakPattern::guessBothSingleShort()
       rangeData.lenRange > lenShortHi)
     return false;
 
-  // PatternEntry pe;
   Completion pe;
-  /*
-  pe.modelNo = 0; // Doesn't matter
-  pe.reverseFlag = false;
-  pe.abutLeftFlag = true;
-  pe.abutRightFlag = true;
-  pe.start = rangeData.indexLeft;
-  pe.end = rangeData.indexRight;
-  pe.borders = BORDERS_DOUBLE_SIDED_SINGLE_SHORT;
-  // pe.borders = PATTERN_DOUBLE_SIDED_SINGLE_SHORT;
-  */
 
   // Guess that particularly the middle part is shorter in a short car.
   list<unsigned> carPoints;
@@ -458,12 +364,6 @@ bool PeakPattern::guessBothSingleShort()
   {
     candidates.emplace_back(pe);
   }
-
-
-  /*
-  if (PeakPattern::fillPoints(carPoints, pe.start, false, pe))
-      candidates.emplace_back(pe);
-      */
 
   return (! candidates.empty());
 }
@@ -584,7 +484,6 @@ bool PeakPattern::looksEmptyFirst(const PeakPtrs& peakPtrsUsed) const
 
 
 void PeakPattern::updateUnused(
-  // const PatternEntry& pe,
   const Completion& pe,
   PeakPtrs& peakPtrsUnused) const
 {
@@ -594,30 +493,6 @@ void PeakPattern::updateUnused(
     peakPtrsUnused.erase_below(limitLower);
   if (limitUpper)
     peakPtrsUnused.erase_above(limitUpper);
-
-
-  /*
-  if (pe.borders == PATTERN_NO_BORDERS ||
-      pe.borders == PATTERN_DOUBLE_SIDED_SINGLE ||
-      pe.borders == PATTERN_DOUBLE_SIDED_SINGLE_SHORT)
-  {
-    // All the unused peaks are fair game.
-  }
-  else if (pe.borders == PATTERN_SINGLE_SIDED_LEFT ||
-      (pe.borders == PATTERN_DOUBLE_SIDED_DOUBLE && pe.abutLeftFlag))
-  {
-    // Only keep unused peaks in range for later markdown.
-    peakPtrsUnused.erase_above(pe.end);
-  }
-  else if (pe.borders == PATTERN_SINGLE_SIDED_RIGHT ||
-      (pe.borders == PATTERN_DOUBLE_SIDED_DOUBLE && pe.abutRightFlag))
-  {
-    // Only keep unused peaks in range for later markdown.
-    peakPtrsUnused.erase_below(pe.start);
-  }
-  else
-    cout << "ERROR: Unrecognized border type.\n";
-  */
 }
 
 
@@ -668,7 +543,6 @@ void PeakPattern::update(
 
 
 void PeakPattern::setNone(
-  // PatternEntry& pe,
   Completion& pe,
   NoneEntry& none) const
 {
@@ -710,14 +584,12 @@ void PeakPattern::addToSingles(
 
 
 void PeakPattern::addToDoubles(
-  // const PatternEntry& pe,
   const Completion& pe,
   list<DoubleEntry>& doubles) const 
 {
   // We rely heavily on having exactly two nullptrs.
   const unsigned bogieQuarter =
     (pe.index(3) - pe.index(2) + pe.index(1) - pe.index(0)) / 8;
-    // (pe.indices[3] - pe.indices[2] + pe.indices[1] - pe.indices[0]) / 8;
 
   doubles.emplace_back(DoubleEntry());
   DoubleEntry& de = doubles.back();
@@ -771,31 +643,6 @@ void PeakPattern::addToDoubles(
     return;
   }
 
-  /*
-  if (pe.borders == PATTERN_NO_BORDERS ||
-      pe.borders == PATTERN_DOUBLE_SIDED_SINGLE ||
-      pe.borders == PATTERN_DOUBLE_SIDED_SINGLE_SHORT)
-  {
-    // All the unused peaks are fair game.
-  }
-  else if (pe.borders == PATTERN_SINGLE_SIDED_LEFT ||
-      (pe.borders == PATTERN_DOUBLE_SIDED_DOUBLE && pe.abutLeftFlag))
-  {
-    // Don't look open-ended from the left when the right bogie has
-    // no match at all.
-    if (i0 == 2 && i1 == 3)
-      return;
-  }
-  else if (pe.borders == PATTERN_SINGLE_SIDED_RIGHT ||
-      (pe.borders == PATTERN_DOUBLE_SIDED_DOUBLE && pe.abutRightFlag))
-  {
-    // Don't look open-ended from the right when the left bogie has
-    // no match at all.
-    if (i0 == 0 && i1 == 1)
-      return;
-  }
-  */
-
   if (de.first.target < bogieQuarter)
     de.first.lower = 0;
   else
@@ -809,7 +656,6 @@ void PeakPattern::addToDoubles(
 
 
 void PeakPattern::addToTriples(
-  // const PatternEntry& pe,
   const Completion& pe,
   list<TripleEntry>& triples) const 
 {
@@ -825,19 +671,16 @@ void PeakPattern::addToTriples(
     {
       if (pos == 0)
       {
-        // de.first.target = pe.indices[i];
         de.first.target = pe.index(i);
         pos++;
       }
       else if (pos == 1)
       {
-        // de.second.target = pe.indices[i];
         de.second.target = pe.index(i);
         pos++;
       }
       else if (pos == 2)
       {
-        // de.third.target = pe.indices[i];
         de.third.target = pe.index(i);
         pos++;
       }
@@ -1023,7 +866,6 @@ cout << "Adjusted " << p << " goal from " <<
   single.lower += delta;
   single.upper += delta;
 
-  // candidates.front().indices[p] = target;
   candidates.front().revise(p, target);
 }
 
@@ -1143,15 +985,12 @@ bool PeakPattern::fixSingles(
     // So we lower our peak quality standard.
 
     PeakPattern::processOnePeak("fixSingles", single, 
-peakPtrsUsed,
-      peakPtrsUnused, peaks, pptr, forceFlag);
+      peakPtrsUsed, peakPtrsUnused, peaks, pptr, forceFlag);
 
     if (pptr != nullptr)
     {
-cout << "fixSingles before add/remove" << endl;
       peakPtrsUsed.add(pptr);
       peakPtrsUnused.remove(pptr);
-cout << "fixSingles after add/remove" << endl;
       return true;
     }
   }
@@ -1433,15 +1272,11 @@ void PeakPattern::fixShort(
 
   if (rangeData.gapLeft)
   {
-    // none.pe.borders = (rangeData.gapRight ?
     border = (rangeData.gapRight ?
       BORDERS_DOUBLE_SIDED_SINGLE_SHORT :
       BORDERS_SINGLE_SIDED_LEFT);
-      // PATTERN_DOUBLE_SIDED_SINGLE_SHORT :
-      // PATTERN_SINGLE_SIDED_LEFT);
   }
   else
-    // none.pe.borders = PATTERN_SINGLE_SIDED_RIGHT;
     border = BORDERS_SINGLE_SIDED_RIGHT;
 
   list<unsigned> carPoints;
@@ -1453,12 +1288,6 @@ void PeakPattern::fixShort(
     spacings[indexLast].peakRight->getIndex(),
     border,
     carPoints); // Doesn't matter
-
-
-  /*
-  none.pe.start = spacings[indexFirst].peakLeft->getIndex();
-  none.pe.end = spacings[indexLast].peakRight->getIndex();
-  */
 
 cout << text << ": " <<
   none.peaksClose[0]->getIndex() + offset << ", " <<

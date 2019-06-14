@@ -18,56 +18,6 @@ class PeakRange;
 class PeakPool;
 
 
-enum PatternType
-{
-  PATTERN_NO_BORDERS = 0,
-  PATTERN_SINGLE_SIDED_LEFT = 1,
-  PATTERN_SINGLE_SIDED_RIGHT = 2,
-  PATTERN_DOUBLE_SIDED_SINGLE = 3,
-  PATTERN_DOUBLE_SIDED_SINGLE_SHORT = 4,
-  PATTERN_DOUBLE_SIDED_DOUBLE = 5
-};
-
-/*
-struct PatternEntry
-{
-  unsigned modelNo;
-  bool reverseFlag;
-  bool abutLeftFlag;
-  bool abutRightFlag;
-  unsigned start;
-  unsigned end;
-  vector<unsigned> indices;
-  PatternType borders;
-
-  string strAbs(
-    const string& title,
-    const unsigned offset) const
-  {
-    stringstream ss;
-    ss << title << ": " <<
-      indices[0] + offset << " - " <<
-      indices[1] + offset << " - " <<
-      indices[2] + offset << " - " <<
-      indices[3] + offset << "\n";
-    return ss.str();
-  };
-
-  string strRel(const string& title) const
-  {
-    stringstream ss;
-    ss << title << ": " <<
-      indices[0] - start << " - " <<
-      indices[1] - indices[0] << " - " <<
-      indices[2] - indices[1] << " - " <<
-      indices[3] - indices[2] << " - " <<
-      end - indices[3] << "\n";
-    return ss.str();
-  };
-};
-*/
-
-
 class PeakPattern
 {
   private:
@@ -95,7 +45,6 @@ class PeakPattern
 
     struct NoneEntry
     {
-      // PatternEntry pe;
       Completion pe;
 
       vector<Peak const *> peaksClose;
@@ -229,7 +178,6 @@ class PeakPattern
 
     vector<Peak const *> peaksClose;
 
-    // list<PatternEntry> candidates;
     list<Completion> candidates;
 
     vector<SpacingEntry> spacings;
@@ -244,15 +192,6 @@ class PeakPattern
       const CarModels& models,
       const bool fullFlag);
 
-    /*
-    bool fillPoints(
-      const list<unsigned>& carPoints,
-      const unsigned indexBase,
-      const bool reverseFlag,
-      Completion& pe) const;
-      // PatternEntry& pe) const;
-      */
-      
     bool fillFromModel(
       const CarModels& models,
       const unsigned indexModel,
@@ -260,7 +199,6 @@ class PeakPattern
       const unsigned indexRangeLeft,
       const unsigned indexRangeRight,
       const BordersType patternType);
-      // const PatternType patternType);
 
     bool guessNoBorders();
 
@@ -315,7 +253,6 @@ class PeakPattern
     bool looksEmptyFirst(const PeakPtrs& peakPtrsUsed) const;
 
     void updateUnused(
-      // const PatternEntry& pe,
       const Completion& pe,
       PeakPtrs& peakPtrsUnused) const;
 
@@ -330,7 +267,6 @@ class PeakPattern
       PeakPtrs& peakPtrsUnused) const;
 
     void setNone(
-      // PatternEntry& pe,
       Completion& pe,
       NoneEntry& none) const;
 
@@ -339,12 +275,10 @@ class PeakPattern
       list<SingleEntry>& singles) const;
 
     void addToDoubles(
-      // const PatternEntry& pe,
       const Completion& pe,
       list<DoubleEntry>& doubles) const;
 
     void addToTriples(
-      // const PatternEntry& pe,
       const Completion& pe,
       list<TripleEntry>& triples) const;
 
