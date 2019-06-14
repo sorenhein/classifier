@@ -41,5 +41,6 @@ SOURCE_FILES    =               \
                 driver.cpp      \
                 regress/PolynomialRegression.cpp \
                 util/Gap.cpp            \
+                util/MissPeak.cpp       \
                 util/Target.cpp         \
                 util/Timer.cpp
