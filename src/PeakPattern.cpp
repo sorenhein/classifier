@@ -654,7 +654,10 @@ void PeakPattern::addToDoubles(
   }
 
   if (! seenSecondFlag)
+  {
+    cout << "DOUBERR\n";
     return;
+  }
 
   if (pe.borders == PATTERN_NO_BORDERS ||
       pe.borders == PATTERN_DOUBLE_SIDED_SINGLE ||
@@ -824,6 +827,32 @@ void PeakPattern::condenseDoubles(list<DoubleEntry>& doubles) const
     }
   }
   doubles.sort();
+}
+
+
+void PeakPattern::condenseTriples(list<TripleEntry>& triples) const
+{
+  for (auto te = triples.begin(); te != triples.end(); te++)
+  {
+    te->count = 1;
+   
+    for (auto te2 = next(te); te2 != triples.end(); )
+    {
+      if (te2->first.target >= te->first.lower && 
+          te2->first.target <= te->first.upper &&
+          te2->second.target >= te->second.lower &&
+          te2->second.target <= te->second.upper &&
+          te2->third.target >= te->third.lower &&
+          te2->third.target <= te->third.upper)
+      {
+        te->count++;
+        te2 = triples.erase(te2);
+      }
+      else
+        te2++;
+    }
+  }
+  triples.sort();
 }
 
 
@@ -1033,26 +1062,73 @@ bool PeakPattern::fixDoubles(
 
     PeakPattern::processOnePeak("fixDoubles 1", db.first, 
       peakPtrsUsed, peakPtrsUnused, peaks, pptr, forceFlag);
-cout<< "DOUBL4" << endl;
 
     if (pptr != nullptr)
     {
-cout << "fixDoubles 1 before add/remove" << endl;
       peakPtrsUsed.add(pptr);
       peakPtrsUnused.remove(pptr);
-cout << "fixDoubles 1 after add/remove" << endl;
     }
 
     PeakPattern::processOnePeak("fixDoubles 2", db.second, 
-peakPtrsUsed,
-      peakPtrsUnused, peaks, pptr, forceFlag);
+      peakPtrsUsed, peakPtrsUnused, peaks, pptr, forceFlag);
 
     if (pptr != nullptr)
     {
-cout << "fixDoubles 2 before add/remove" << endl;
       peakPtrsUsed.add(pptr);
       peakPtrsUnused.remove(pptr);
-cout << "fixDoubles 2 after add/remove" << endl;
+      return true;
+    }
+  }
+
+  return false;
+}
+
+
+bool PeakPattern::fixTriples(
+  PeakPool& peaks,
+  list<TripleEntry>& triples,
+  PeakPtrs& peakPtrsUsed,
+  PeakPtrs& peakPtrsUnused,
+  const bool forceFlag) const
+{
+  PeakPattern::condenseTriples(triples);
+
+  cout << "Condensed triples\n";
+  for (auto t: triples)
+    cout << t.str(offset);
+
+  Peak * pptr;
+  for (auto& tr: triples)
+  {
+    // We could end up fixing less than all three, in which case
+    // we should arguably unroll the change.
+
+    PeakPattern::processOnePeak("fixTriples 1", tr.first, 
+      peakPtrsUsed, peakPtrsUnused, peaks, pptr, forceFlag);
+
+    if (pptr != nullptr)
+    {
+      peakPtrsUsed.add(pptr);
+      peakPtrsUnused.remove(pptr);
+    }
+
+    PeakPattern::processOnePeak("fixTriples 2", tr.second, 
+      peakPtrsUsed, peakPtrsUnused, peaks, pptr, forceFlag);
+
+    if (pptr != nullptr)
+    {
+      peakPtrsUsed.add(pptr);
+      peakPtrsUnused.remove(pptr);
+      return true;
+    }
+
+    PeakPattern::processOnePeak("fixTriples 3", tr.third, 
+      peakPtrsUsed, peakPtrsUnused, peaks, pptr, forceFlag);
+
+    if (pptr != nullptr)
+    {
+      peakPtrsUsed.add(pptr);
+      peakPtrsUnused.remove(pptr);
       return true;
     }
   }
@@ -1082,6 +1158,20 @@ bool PeakPattern::fix(
 
   if (candidates.empty())
     return false;
+
+  if (none.empty() && singles.empty() && doubles.empty())
+  {
+    if (! forceFlag)
+      return false;
+    else if (PeakPattern::fixTriples(peaks, triples,
+        peakPtrsUsed, peakPtrsUnused, forceFlag))
+    {
+      // TODO This is quite inefficient, as we actually know the
+      // changes we made.  But we just reexamine for now.
+      PeakPattern::examineCandidates(peakPtrsUsed, 
+        none, singles, doubles, triples);
+    }
+  }
 
   // Start with the 2's if that's all there is.
   if (none.empty() && singles.empty() && ! doubles.empty())

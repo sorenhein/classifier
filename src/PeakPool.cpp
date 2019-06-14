@@ -460,15 +460,6 @@ Peak * PeakPool::repairFromLower(
   Bracket bracketLower;
   listLower.bracketSpecific(bracketTop, foundLowerIter, bracketLower);
 
-  cout << "LOW2" << endl;
-  cout << "Bracket " <<
-    (bracketLower.left.hasFlag ? "true" : "false") << " - " <<
-    (bracketLower.right.hasFlag ? "true" : "false") << endl;
-  if (bracketLower.left.hasFlag)
-    cout << "Left " << bracketLower.left.pit->getIndex() << endl;
-  if (bracketLower.right.hasFlag)
-    cout << "Right " << bracketLower.right.pit->getIndex() << endl;
-
   // We only introduce two new peaks, so the one we found goes next 
   // to the bracketing one with opposite polarity.  In the gap we put 
   // the intervening peak with maximum value.  This is quick and dirty.
