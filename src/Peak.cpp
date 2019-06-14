@@ -833,6 +833,23 @@ bool Peak::matchesGap(
 }
 
 
+bool Peak::match(
+  const unsigned lower,
+  const unsigned upper) const
+{
+  if (index >= lower && index <= upper)
+    return true;
+
+  if (indexLeft >= lower && indexLeft <= upper)
+    return true;
+
+  if (indexRight >= lower && indexRight <= upper)
+    return true;
+  
+  return false;
+}
+
+
 bool Peak::check(
   const Peak& p2,
   const unsigned offset) const

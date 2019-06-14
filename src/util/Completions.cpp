@@ -26,14 +26,13 @@ MissCar& Completions::emplace_back()
 }
 
 
-#define UNUSED(x) ((void)(true ? 0 : ((x), void(), 0)))
 
 void Completions::markWith(
-  Peak const * peak,
+  Peak * peak,
   const MissType type)
 {
-  UNUSED(peak);
-  UNUSED(type);
+  for (auto& comp: completions)
+    comp.markWith(peak, type);
 }
 
 
@@ -51,9 +50,20 @@ unsigned Completions::numComplete() const
 
 void Completions::condense()
 {
+  for (auto ci1 = completions.begin(); ci1 != completions.end(); ci1++)
+  {
+    for (auto ci2 = next(ci1); ci2 != completions.end(); )
+    {
+      if (ci1->condense(* ci2))
+        completions.erase(ci2);
+      else
+        ci2++;
+    }
+  }
 }
 
 
+#define UNUSED(x) ((void)(true ? 0 : ((x), void(), 0)))
 void Completions::repairables(list<list<MissPeak>>& repairList)
 {
   UNUSED(repairList);

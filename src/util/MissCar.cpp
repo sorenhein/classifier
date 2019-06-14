@@ -51,6 +51,15 @@ Miterator MissCar::end()
 }
 
 
+void MissCar::markWith(
+  Peak * peak,
+  const MissType type)
+{
+  for (auto& miss: misses)
+    miss.markWith(peak, type);
+}
+
+
 bool MissCar::complete() const
 {
   for (auto& miss: misses)
@@ -58,6 +67,26 @@ bool MissCar::complete() const
     if (miss.source() == MISS_UNMATCHED)
       return false;
   }
+  return true;
+}
+
+
+bool MissCar::condense(MissCar& miss2)
+{
+  const unsigned nm = misses.size();
+  if (miss2.misses.size() != nm)
+    return false;
+
+  Miterator mi1, mi2;
+  for (mi1 = misses.begin(), mi2 = miss2.misses.begin();
+      mi1 != misses.end() && mi2 != miss2.misses.end();
+      mi1++, mi2++)
+  {
+    if (! mi1->consistentWith(* mi2))
+      return false;
+  }
+
+  weight += miss2.weight;
   return true;
 }
 

@@ -40,7 +40,13 @@ class MissCar
     Miterator begin();
     Miterator end();
 
+    void markWith(
+      Peak * peak,
+      const MissType type);
+
     bool complete() const;
+
+    bool condense(MissCar& miss2); 
 
     unsigned score() const;
 

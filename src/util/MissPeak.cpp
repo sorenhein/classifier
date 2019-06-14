@@ -40,6 +40,15 @@ void MissPeak::set(
 }
 
 
+void MissPeak::markWith(
+  Peak * pptrIn,
+  const MissType typeIn)
+{
+  if (pptrIn->match(lower, upper))
+    MissPeak::nominate(typeIn, pptrIn);
+}
+
+
 void MissPeak::nominate(
   const MissType typeIn,
   Peak * pptrIn)
@@ -47,6 +56,12 @@ void MissPeak::nominate(
   _type = typeIn;
   if (pptrIn != nullptr)
     pptr = pptrIn;
+}
+
+
+bool MissPeak::consistentWith(const MissPeak& miss2)
+{
+  return (miss2.mid >= lower && miss2.mid <= upper);
 }
 
 

@@ -32,7 +32,7 @@ class Completions
     MissCar& emplace_back();
 
     void markWith(
-      Peak const * peak,
+      Peak * peak,
       const MissType type);
 
     unsigned numComplete() const;
