@@ -207,7 +207,7 @@ string Gap::str(const string& text) const
     ss << "from " << mid << " (" << _count << ")";
   else
     ss << "mid " << mid << ", " <<
-      lower << " - " << upper <<
+      lower << "-" << upper <<
       " (" << _count << ")";
 
   return ss.str() + "\n";
