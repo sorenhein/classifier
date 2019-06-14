@@ -2,21 +2,21 @@
 #include <iomanip>
 #include <limits>
 
-#include "Completion.h"
+#include "Target.h"
 
 
-Completion::Completion()
+Target::Target()
 {
-  Completion::reset();
+  Target::reset();
 }
 
 
-Completion::~Completion()
+Target::~Target()
 {
 }
 
 
-void Completion::reset()
+void Target::reset()
 {
   abutLeftFlag = false;
   abutRightFlag = false;
@@ -27,7 +27,7 @@ void Completion::reset()
 }
 
 
-bool Completion::fillPoints(
+bool Target::fillPoints(
   const list<unsigned>& carPoints,
   const unsigned indexBase)
 {
@@ -98,7 +98,7 @@ bool Completion::fillPoints(
 }
 
 
-bool Completion::fill(
+bool Target::fill(
   const unsigned modelNoIn,
   const unsigned weightIn,
   const bool reverseFlagIn,
@@ -134,11 +134,11 @@ bool Completion::fill(
   const unsigned indexBase = 
      (abutLeftFlag ? indexRangeLeft : indexRangeRight);
 
-  return Completion::fillPoints(carPoints, indexBase);
+  return Target::fillPoints(carPoints, indexBase);
 }
 
 
-void Completion::revise(
+void Target::revise(
   const unsigned pos,
   const unsigned value)
 {
@@ -147,13 +147,13 @@ void Completion::revise(
 }
 
 
-const vector<unsigned>& Completion::indices()
+const vector<unsigned>& Target::indices()
 {
   return _indices;
 }
 
 
-unsigned Completion::index(const unsigned pos) const
+unsigned Target::index(const unsigned pos) const
 {
   if (pos < _indices.size())
     return _indices[pos];
@@ -162,7 +162,7 @@ unsigned Completion::index(const unsigned pos) const
 }
 
 
-void Completion::limits(
+void Target::limits(
   unsigned& limitLower,
   unsigned& limitUpper) const
 {
@@ -200,7 +200,7 @@ void Completion::limits(
 }
 
 
-bool Completion::outOfRange(
+bool Target::outOfRange(
   const unsigned indexLeft,
   const unsigned indexRight) const
 {
@@ -208,7 +208,7 @@ bool Completion::outOfRange(
 }
 
 
-string Completion::strIndices(
+string Target::strIndices(
   const string& title,
   const unsigned offset) const
 {
@@ -223,7 +223,7 @@ string Completion::strIndices(
   return ss.str() + "\n";
 };
 
-string Completion::strGaps(const string& title) const
+string Target::strGaps(const string& title) const
 {
   if (_indices.empty())
     return "";

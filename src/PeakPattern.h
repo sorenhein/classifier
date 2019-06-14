@@ -8,7 +8,7 @@
 #include "CarModels.h"
 #include "struct.h"
 
-#include "util/Completion.h"
+#include "util/Target.h"
 
 using namespace std;
 
@@ -45,7 +45,7 @@ class PeakPattern
 
     struct NoneEntry
     {
-      Completion pe;
+      Target pe;
 
       vector<Peak const *> peaksClose;
       bool emptyFlag;
@@ -178,7 +178,7 @@ class PeakPattern
 
     vector<Peak const *> peaksClose;
 
-    list<Completion> candidates;
+    list<Target> candidates;
 
     vector<SpacingEntry> spacings;
 
@@ -253,7 +253,7 @@ class PeakPattern
     bool looksEmptyFirst(const PeakPtrs& peakPtrsUsed) const;
 
     void updateUnused(
-      const Completion& pe,
+      const Target& pe,
       PeakPtrs& peakPtrsUnused) const;
 
     void updateUsed(
@@ -267,7 +267,7 @@ class PeakPattern
       PeakPtrs& peakPtrsUnused) const;
 
     void setNone(
-      Completion& pe,
+      Target& pe,
       NoneEntry& none) const;
 
     void addToSingles(
@@ -275,11 +275,11 @@ class PeakPattern
       list<SingleEntry>& singles) const;
 
     void addToDoubles(
-      const Completion& pe,
+      const Target& pe,
       list<DoubleEntry>& doubles) const;
 
     void addToTriples(
-      const Completion& pe,
+      const Target& pe,
       list<TripleEntry>& triples) const;
 
     void examineCandidates(

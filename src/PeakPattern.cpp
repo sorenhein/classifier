@@ -149,7 +149,7 @@ bool PeakPattern::fillFromModel(
   list<unsigned> carPoints;
   models.getCarPoints(indexModel, carPoints);
 
-  Completion pe;
+  Target pe;
   bool seenFlag = false;
 
   if (car.hasLeftGap())
@@ -231,8 +231,8 @@ bool PeakPattern::guessNoBorders()
     return false;
 
   candidates.clear();
-  candidates.emplace_back(Completion());
-  Completion& pe = candidates.back();
+  candidates.emplace_back(Target());
+  Target& pe = candidates.back();
 
   const unsigned start = avgLeftLeft - delta/2;
   const unsigned end =
@@ -298,7 +298,7 @@ bool PeakPattern::guessBothSingleShort()
       rangeData.lenRange > lenShortHi)
     return false;
 
-  Completion pe;
+  Target pe;
 
   // Guess that particularly the middle part is shorter in a short car.
   list<unsigned> carPoints;
@@ -340,25 +340,16 @@ bool PeakPattern::guessBothDouble(
           rangeData.lenRange <= 
           ae1.lenHi[rangeData.qualBest] + ae2.lenHi[rangeData.qualBest])
       {
-cout << ae1.strShort("guessBothDouble 1, left " + 
-  to_string(static_cast<unsigned>(leftFlag)),
-  rangeData.qualBest);
-cout << ae2.strShort("guessBothDouble 2, left " + 
-  to_string(static_cast<unsigned>(leftFlag)),
-  rangeData.qualBest);
-
         if (leftFlag)
           PeakPattern::fillFromModel(models, ae1.index, 
             ae1.data->symmetryFlag, 
             rangeData.indexLeft, rangeData.indexRight, 
             BORDERS_DOUBLE_SIDED_DOUBLE);
-            // PATTERN_DOUBLE_SIDED_DOUBLE);
         else
           PeakPattern::fillFromModel(models, ae2.index, 
             ae2.data->symmetryFlag, 
             rangeData.indexLeft, rangeData.indexRight, 
             BORDERS_DOUBLE_SIDED_DOUBLE);
-            // PATTERN_DOUBLE_SIDED_DOUBLE);
       }
     }
   }
@@ -382,11 +373,8 @@ bool PeakPattern::guessLeft(const CarModels& models)
 
   for (auto& ae: activeEntries)
   {
-cout << ae.strShort("guessLeft", rangeData.qualLeft);
-
     PeakPattern::fillFromModel(models, ae.index, ae.data->symmetryFlag,
       rangeData.indexLeft, 0, BORDERS_SINGLE_SIDED_LEFT);
-      // rangeData.indexLeft, 0, PATTERN_SINGLE_SIDED_LEFT);
   }
 
   return (! candidates.empty());
@@ -440,7 +428,7 @@ bool PeakPattern::looksEmptyFirst(const PeakPtrs& peakPtrsUsed) const
 
 
 void PeakPattern::updateUnused(
-  const Completion& pe,
+  const Target& pe,
   PeakPtrs& peakPtrsUnused) const
 {
   unsigned limitLower, limitUpper;
@@ -499,7 +487,7 @@ void PeakPattern::update(
 
 
 void PeakPattern::setNone(
-  Completion& pe,
+  Target& pe,
   NoneEntry& none) const
 {
   none.pe = pe;
@@ -540,7 +528,7 @@ void PeakPattern::addToSingles(
 
 
 void PeakPattern::addToDoubles(
-  const Completion& pe,
+  const Target& pe,
   list<DoubleEntry>& doubles) const 
 {
   // We rely heavily on having exactly two nullptrs.
@@ -612,7 +600,7 @@ void PeakPattern::addToDoubles(
 
 
 void PeakPattern::addToTriples(
-  const Completion& pe,
+  const Target& pe,
   list<TripleEntry>& triples) const 
 {
   triples.emplace_back(TripleEntry());

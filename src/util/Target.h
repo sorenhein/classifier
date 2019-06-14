@@ -3,8 +3,8 @@
     partial cars.
  */
 
-#ifndef TRAIN_COMPLETION_H
-#define TRAIN_COMPLETION_H
+#ifndef TRAIN_TARGET_H
+#define TRAIN_TARGET_H
 
 #include <vector>
 #include <list>
@@ -25,7 +25,7 @@ enum BordersType
 };
 
 
-class Completion
+class Target
 {
   private:
 
@@ -47,9 +47,9 @@ class Completion
 
   public:
 
-    Completion();
+    Target();
 
-    ~Completion();
+    ~Target();
 
     void reset();
 

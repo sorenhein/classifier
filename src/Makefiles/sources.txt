@@ -40,6 +40,6 @@ SOURCE_FILES    =               \
                 write.cpp       \
                 driver.cpp      \
                 regress/PolynomialRegression.cpp \
-                util/Completion.cpp     \
                 util/Gap.cpp            \
+                util/Target.cpp         \
                 util/Timer.cpp
