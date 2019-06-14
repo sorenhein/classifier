@@ -1,5 +1,5 @@
 /*
-    A simple class to keep track of missing, sought-after peaks
+    A simple class to keep track of a missing, sought-after peak
     when completing a car.
  */
 
@@ -18,7 +18,8 @@ enum MissType
   MISS_UNUSED = 0,
   MISS_USED = 1,
   MISS_REPAIRABLE = 2,
-  MISS_UNMATCHED = 3
+  MISS_UNMATCHED = 3,
+  MISS_SIZE = 4
 };
 
 
@@ -29,6 +30,7 @@ class MissPeak
     unsigned mid;
     unsigned lower;
     unsigned upper;
+
     MissType _type;
     Peak * pptr;
 
