@@ -109,6 +109,7 @@ class CarModels
     bool empty(const unsigned indexIn) const;
     unsigned size() const;
     unsigned available();
+    unsigned count(const unsigned indexIn) const;
     bool hasAnEndGap() const;
 
     void getTypical(

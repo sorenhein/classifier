@@ -30,6 +30,7 @@ class Completion
   private:
 
     unsigned modelNo;
+    unsigned weight;
     bool reverseFlag;
     bool abutLeftFlag;
     bool abutRightFlag;
@@ -54,6 +55,7 @@ class Completion
 
     bool fill(
       const unsigned modelNoIn,
+      const unsigned weightIn,
       const bool reverseFlagIn,
       const unsigned indexRangeLeft,
       const unsigned indexRangeRight,

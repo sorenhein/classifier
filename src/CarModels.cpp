@@ -184,6 +184,12 @@ void CarModels::average(const unsigned index)
 }
 
 
+unsigned CarModels::count(const unsigned index) const
+{
+  return models[index].number;
+}
+
+
 void CarModels::getTypical(
   unsigned& bogieTypical,
   unsigned& longTypical,

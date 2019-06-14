@@ -100,6 +100,7 @@ bool Completion::fillPoints(
 
 bool Completion::fill(
   const unsigned modelNoIn,
+  const unsigned weightIn,
   const bool reverseFlagIn,
   const unsigned indexRangeLeft,
   const unsigned indexRangeRight,
@@ -107,6 +108,7 @@ bool Completion::fill(
   const list<unsigned>& carPoints)
 {
   modelNo = modelNoIn;
+  weight = weightIn;
   reverseFlag = reverseFlagIn;
   abutLeftFlag = (indexRangeLeft != 0);
   abutRightFlag = (indexRangeRight != 0);

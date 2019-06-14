@@ -144,6 +144,7 @@ bool PeakPattern::fillFromModel(
 {
   CarDetect car;
   models.getCar(car, indexModel);
+  const unsigned weight = models.count(indexModel);
 
   list<unsigned> carPoints;
   models.getCarPoints(indexModel, carPoints);
@@ -153,8 +154,8 @@ bool PeakPattern::fillFromModel(
 
   if (car.hasLeftGap())
   {
-    if (pe.fill(indexModel, false, indexRangeLeft, indexRangeRight,
-      patternType, carPoints))
+    if (pe.fill(indexModel, weight, false, 
+        indexRangeLeft, indexRangeRight, patternType, carPoints))
     {
       candidates.emplace_back(pe);
       seenFlag = true;
@@ -163,8 +164,8 @@ bool PeakPattern::fillFromModel(
 
   if (! symmetryFlag && car.hasRightGap())
   {
-    if (pe.fill(indexModel, true, indexRangeLeft, indexRangeRight,
-      patternType, carPoints))
+    if (pe.fill(indexModel, weight, true, 
+        indexRangeLeft, indexRangeRight, patternType, carPoints))
     {
       candidates.emplace_back(pe);
       seenFlag = true;
@@ -172,53 +173,6 @@ bool PeakPattern::fillFromModel(
   }
 
   return seenFlag;
-
-  /*
-  pe.modelNo = indexModel;
-  pe.reverseFlag = false;
-  pe.abutLeftFlag = (indexRangeLeft != 0);
-  pe.abutRightFlag = (indexRangeRight != 0);
-
-  if (pe.abutLeftFlag && pe.abutRightFlag)
-  {
-    pe.start = indexRangeLeft;
-    pe.end = indexRangeRight;
-  }
-  else if (pe.abutLeftFlag)
-  {
-    pe.start = indexRangeLeft;
-    pe.end = pe.start + carPoints.back();
-  }
-  else if (pe.abutRightFlag)
-  {
-    pe.start = indexRangeRight - carPoints.back();
-    pe.end = indexRangeRight;
-  }
-
-  pe.borders = patternType;
-
-  const unsigned indexBase = 
-     (pe.abutLeftFlag ? indexRangeLeft : indexRangeRight);
-
-  if (car.hasLeftGap())
-  {
-    if (PeakPattern::fillPoints(carPoints, indexBase, false, pe))
-      candidates.emplace_back(pe);
-  }
-
-  if (symmetryFlag)
-    return true;
-
-  if (car.hasRightGap())
-  {
-    pe.reverseFlag = true;
-
-    if (PeakPattern::fillPoints(carPoints, indexBase, true, pe))
-      candidates.emplace_back(pe);
-  }
-
-  return true;
-  */
 }
 
 
@@ -294,6 +248,7 @@ bool PeakPattern::guessNoBorders()
 
   pe.fill(
     carBeforePtr->index(),
+    1,
     false,
     start,
     end,
@@ -356,6 +311,7 @@ bool PeakPattern::guessBothSingleShort()
 
   if (pe.fill(
     0, // Doesn't matter
+    1,
     false,
     rangeData.indexLeft,
     rangeData.indexRight,
@@ -1283,6 +1239,7 @@ void PeakPattern::fixShort(
 
   none.pe.fill(
     0, // Doesn't matter
+    1, 
     false, // Doesn't matter
     spacings[indexFirst].peakLeft->getIndex(),
     spacings[indexLast].peakRight->getIndex(),
