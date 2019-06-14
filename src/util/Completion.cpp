@@ -1,4 +1,5 @@
 #include <sstream>
+#include <iomanip>
 #include <limits>
 
 #include "Completion.h"
@@ -37,12 +38,16 @@ bool Completion::fillPoints(
   // - Right bogie, left wheel
   // - Right bogie, right wheel
   // - Right boundary (no wheel)
+  //
+  // Later on, this could also be a three-wheeler or two-wheeler.
 
   const unsigned nc = carPoints.size();
+  if (nc <= 4)
+    return false;
 
   if (abutLeftFlag)
   {
-    _indices.resize(nc);
+    _indices.resize(nc-2);
 
     if (! reverseFlag)
     {
@@ -70,7 +75,7 @@ bool Completion::fillPoints(
     if (indexBase + pointFirstPeak <= pointLast)
       return false;
 
-    _indices.resize(nc);
+    _indices.resize(nc-2);
 
     if (reverseFlag)
     {
@@ -131,9 +136,27 @@ bool Completion::fill(
 }
 
 
+void Completion::revise(
+  const unsigned pos,
+  const unsigned value)
+{
+  if (pos < _indices.size())
+    _indices[pos] = value;
+}
+
+
 const vector<unsigned>& Completion::indices()
 {
   return _indices;
+}
+
+
+unsigned Completion::index(const unsigned pos) const
+{
+  if (pos < _indices.size())
+    return _indices[pos];
+  else
+    return 0;
 }
 
 
@@ -172,6 +195,14 @@ void Completion::limits(
     limitLower = 0;
     limitUpper = 0;
   }
+}
+
+
+bool Completion::outOfRange(
+  const unsigned indexLeft,
+  const unsigned indexRight) const
+{
+  return (_indices.front() < indexLeft || _indices.back() > indexRight);
 }
 
 

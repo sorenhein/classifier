@@ -8,6 +8,8 @@
 #include "CarModels.h"
 #include "struct.h"
 
+#include "util/Completion.h"
+
 using namespace std;
 
 class CarModels;
@@ -26,6 +28,7 @@ enum PatternType
   PATTERN_DOUBLE_SIDED_DOUBLE = 5
 };
 
+/*
 struct PatternEntry
 {
   unsigned modelNo;
@@ -62,6 +65,7 @@ struct PatternEntry
     return ss.str();
   };
 };
+*/
 
 
 class PeakPattern
@@ -91,7 +95,9 @@ class PeakPattern
 
     struct NoneEntry
     {
-      PatternEntry pe;
+      // PatternEntry pe;
+      Completion pe;
+
       vector<Peak const *> peaksClose;
       bool emptyFlag;
 
@@ -223,7 +229,8 @@ class PeakPattern
 
     vector<Peak const *> peaksClose;
 
-    list<PatternEntry> candidates;
+    // list<PatternEntry> candidates;
+    list<Completion> candidates;
 
     vector<SpacingEntry> spacings;
 
@@ -237,11 +244,14 @@ class PeakPattern
       const CarModels& models,
       const bool fullFlag);
 
+    /*
     bool fillPoints(
       const list<unsigned>& carPoints,
       const unsigned indexBase,
       const bool reverseFlag,
-      PatternEntry& pe) const;
+      Completion& pe) const;
+      // PatternEntry& pe) const;
+      */
       
     bool fillFromModel(
       const CarModels& models,
@@ -249,7 +259,8 @@ class PeakPattern
       const bool symmetryFlag,
       const unsigned indexRangeLeft,
       const unsigned indexRangeRight,
-      const PatternType patternType);
+      const BordersType patternType);
+      // const PatternType patternType);
 
     bool guessNoBorders();
 
@@ -304,7 +315,8 @@ class PeakPattern
     bool looksEmptyFirst(const PeakPtrs& peakPtrsUsed) const;
 
     void updateUnused(
-      const PatternEntry& pe,
+      // const PatternEntry& pe,
+      const Completion& pe,
       PeakPtrs& peakPtrsUnused) const;
 
     void updateUsed(
@@ -318,7 +330,8 @@ class PeakPattern
       PeakPtrs& peakPtrsUnused) const;
 
     void setNone(
-      PatternEntry& pe,
+      // PatternEntry& pe,
+      Completion& pe,
       NoneEntry& none) const;
 
     void addToSingles(
@@ -326,11 +339,13 @@ class PeakPattern
       list<SingleEntry>& singles) const;
 
     void addToDoubles(
-      const PatternEntry& pe,
+      // const PatternEntry& pe,
+      const Completion& pe,
       list<DoubleEntry>& doubles) const;
 
     void addToTriples(
-      const PatternEntry& pe,
+      // const PatternEntry& pe,
+      const Completion& pe,
       list<TripleEntry>& triples) const;
 
     void examineCandidates(

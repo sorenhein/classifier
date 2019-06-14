@@ -13,10 +13,14 @@
 using namespace std;
 
 
+// TMP
+#include "../struct.h"
+
 class Completion
 {
   private:
 
+    /*
     enum BordersType
     {
       BORDERS_NONE = 0,
@@ -27,6 +31,7 @@ class Completion
       BORDERS_DOUBLE_SIDED_DOUBLE = 5,
       BORDERS_SIZE = 6
     };
+    */
 
     unsigned modelNo;
     bool reverseFlag;
@@ -59,11 +64,21 @@ class Completion
       const BordersType bordersIn,
       const list<unsigned>& carPoints);
 
+    void revise(
+      const unsigned pos,
+      const unsigned value);
+
     const vector<unsigned>& indices();
+
+    unsigned index(const unsigned pos) const;
 
     void limits(
       unsigned& limitLower,
       unsigned& limitUpper) const;
+
+    bool outOfRange(
+      const unsigned indexLeft,
+      const unsigned indexRight) const;
 
 
     string strIndices(

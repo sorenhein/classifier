@@ -134,11 +134,13 @@ cout << "DONE getActive" << endl;
 }
 
 
+/*
 bool PeakPattern::fillPoints(
   const list<unsigned>& carPoints,
   const unsigned indexBase,
   const bool reverseFlag,
-  PatternEntry& pe) const
+  Completion& pe) const
+  // PatternEntry& pe) const
 {
   if (pe.abutLeftFlag)
   {
@@ -191,6 +193,7 @@ bool PeakPattern::fillPoints(
 
   return true;
 }
+*/
 
 
 bool PeakPattern::fillFromModel(
@@ -199,7 +202,8 @@ bool PeakPattern::fillFromModel(
   const bool symmetryFlag,
   const unsigned indexRangeLeft,
   const unsigned indexRangeRight,
-  const PatternType patternType)
+  const BordersType patternType)
+  // const PatternType patternType)
 {
   CarDetect car;
   models.getCar(car, indexModel);
@@ -207,8 +211,33 @@ bool PeakPattern::fillFromModel(
   list<unsigned> carPoints;
   models.getCarPoints(indexModel, carPoints);
 
-  PatternEntry pe;
+  // PatternEntry pe;
+  Completion pe;
+  bool seenFlag = false;
 
+  if (car.hasLeftGap())
+  {
+    if (pe.fill(indexModel, false, indexRangeLeft, indexRangeRight,
+      patternType, carPoints))
+    {
+      candidates.emplace_back(pe);
+      seenFlag = true;
+    }
+  }
+
+  if (! symmetryFlag && car.hasRightGap())
+  {
+    if (pe.fill(indexModel, true, indexRangeLeft, indexRangeRight,
+      patternType, carPoints))
+    {
+      candidates.emplace_back(pe);
+      seenFlag = true;
+    }
+  }
+
+  return seenFlag;
+
+  /*
   pe.modelNo = indexModel;
   pe.reverseFlag = false;
   pe.abutLeftFlag = (indexRangeLeft != 0);
@@ -253,6 +282,7 @@ bool PeakPattern::fillFromModel(
   }
 
   return true;
+  */
 }
 
 
@@ -311,9 +341,33 @@ bool PeakPattern::guessNoBorders()
     return false;
 
   candidates.clear();
-  candidates.emplace_back(PatternEntry());
-  PatternEntry& pe = candidates.back();
+  candidates.emplace_back(Completion());
+  Completion& pe = candidates.back();
+  // candidates.emplace_back(PatternEntry());
+  // PatternEntry& pe = candidates.back();
 
+  const unsigned start = avgLeftLeft - delta/2;
+  const unsigned end =
+    (peaksAfter.firstBogieLeftPtr->getIndex() - avgRightRight) / 2;
+
+  list<unsigned> carPoints;
+  carPoints.push_back(0);
+  carPoints.push_back(avgLeftLeft - start);
+  carPoints.push_back(avgLeftRight - start);
+  carPoints.push_back(avgRightLeft - start);
+  carPoints.push_back(avgRightRight - start);
+  carPoints.push_back(end - start);
+
+  pe.fill(
+    carBeforePtr->index(),
+    false,
+    start,
+    end,
+    BORDERS_NONE,
+    carPoints);
+    
+
+  /*
   pe.modelNo = carBeforePtr->index();
   pe.reverseFlag = false;
   pe.abutLeftFlag = false;
@@ -327,6 +381,7 @@ bool PeakPattern::guessNoBorders()
   pe.indices.push_back(avgRightRight);
 
   pe.borders = PATTERN_NO_BORDERS;
+  */
 
   return true;
 }
@@ -343,7 +398,8 @@ cout << ae.strShort("guessBothSingle", rangeData.qualBest);
 
       PeakPattern::fillFromModel(models, ae.index, 
         ae.data->symmetryFlag, rangeData.indexLeft, rangeData.indexRight, 
-        PATTERN_DOUBLE_SIDED_SINGLE);
+        BORDERS_DOUBLE_SIDED_SINGLE);
+        // PATTERN_DOUBLE_SIDED_SINGLE);
     }
   }
 
@@ -370,14 +426,18 @@ bool PeakPattern::guessBothSingleShort()
       rangeData.lenRange > lenShortHi)
     return false;
 
-  PatternEntry pe;
+  // PatternEntry pe;
+  Completion pe;
+  /*
   pe.modelNo = 0; // Doesn't matter
   pe.reverseFlag = false;
   pe.abutLeftFlag = true;
   pe.abutRightFlag = true;
   pe.start = rangeData.indexLeft;
   pe.end = rangeData.indexRight;
-  pe.borders = PATTERN_DOUBLE_SIDED_SINGLE_SHORT;
+  pe.borders = BORDERS_DOUBLE_SIDED_SINGLE_SHORT;
+  // pe.borders = PATTERN_DOUBLE_SIDED_SINGLE_SHORT;
+  */
 
   // Guess that particularly the middle part is shorter in a short car.
   list<unsigned> carPoints;
@@ -388,8 +448,22 @@ bool PeakPattern::guessBothSingleShort()
   carPoints.push_back(rangeData.lenRange - sideTypical);
   carPoints.push_back(rangeData.lenRange);
 
+  if (pe.fill(
+    0, // Doesn't matter
+    false,
+    rangeData.indexLeft,
+    rangeData.indexRight,
+    BORDERS_DOUBLE_SIDED_SINGLE_SHORT,
+    carPoints))
+  {
+    candidates.emplace_back(pe);
+  }
+
+
+  /*
   if (PeakPattern::fillPoints(carPoints, pe.start, false, pe))
       candidates.emplace_back(pe);
+      */
 
   return (! candidates.empty());
 }
@@ -421,12 +495,14 @@ cout << ae2.strShort("guessBothDouble 2, left " +
           PeakPattern::fillFromModel(models, ae1.index, 
             ae1.data->symmetryFlag, 
             rangeData.indexLeft, rangeData.indexRight, 
-            PATTERN_DOUBLE_SIDED_DOUBLE);
+            BORDERS_DOUBLE_SIDED_DOUBLE);
+            // PATTERN_DOUBLE_SIDED_DOUBLE);
         else
           PeakPattern::fillFromModel(models, ae2.index, 
             ae2.data->symmetryFlag, 
             rangeData.indexLeft, rangeData.indexRight, 
-            PATTERN_DOUBLE_SIDED_DOUBLE);
+            BORDERS_DOUBLE_SIDED_DOUBLE);
+            // PATTERN_DOUBLE_SIDED_DOUBLE);
       }
     }
   }
@@ -453,7 +529,8 @@ bool PeakPattern::guessLeft(const CarModels& models)
 cout << ae.strShort("guessLeft", rangeData.qualLeft);
 
     PeakPattern::fillFromModel(models, ae.index, ae.data->symmetryFlag,
-      rangeData.indexLeft, 0, PATTERN_SINGLE_SIDED_LEFT);
+      rangeData.indexLeft, 0, BORDERS_SINGLE_SIDED_LEFT);
+      // rangeData.indexLeft, 0, PATTERN_SINGLE_SIDED_LEFT);
   }
 
   return (! candidates.empty());
@@ -482,7 +559,8 @@ bool PeakPattern::guessRight(const CarModels& models)
 cout << ae.strShort("guessRight", rangeData.qualRight);
 
     PeakPattern::fillFromModel(models, ae.index, ae.data->symmetryFlag,
-      0, rangeData.indexRight, PATTERN_SINGLE_SIDED_RIGHT);
+      0, rangeData.indexRight, BORDERS_SINGLE_SIDED_RIGHT);
+      // 0, rangeData.indexRight, PATTERN_SINGLE_SIDED_RIGHT);
   }
 
   return (candidates.size() > 0);
@@ -506,9 +584,19 @@ bool PeakPattern::looksEmptyFirst(const PeakPtrs& peakPtrsUsed) const
 
 
 void PeakPattern::updateUnused(
-  const PatternEntry& pe,
+  // const PatternEntry& pe,
+  const Completion& pe,
   PeakPtrs& peakPtrsUnused) const
 {
+  unsigned limitLower, limitUpper;
+  pe.limits(limitLower, limitUpper);
+  if (limitLower)
+    peakPtrsUnused.erase_below(limitLower);
+  if (limitUpper)
+    peakPtrsUnused.erase_above(limitUpper);
+
+
+  /*
   if (pe.borders == PATTERN_NO_BORDERS ||
       pe.borders == PATTERN_DOUBLE_SIDED_SINGLE ||
       pe.borders == PATTERN_DOUBLE_SIDED_SINGLE_SHORT)
@@ -529,6 +617,7 @@ void PeakPattern::updateUnused(
   }
   else
     cout << "ERROR: Unrecognized border type.\n";
+  */
 }
 
 
@@ -579,10 +668,12 @@ void PeakPattern::update(
 
 
 void PeakPattern::setNone(
-  PatternEntry& pe,
+  // PatternEntry& pe,
+  Completion& pe,
   NoneEntry& none) const
 {
   none.pe = pe;
+
   none.peaksClose = peaksClose;
   none.emptyFlag = false;
 }
@@ -619,12 +710,14 @@ void PeakPattern::addToSingles(
 
 
 void PeakPattern::addToDoubles(
-  const PatternEntry& pe,
+  // const PatternEntry& pe,
+  const Completion& pe,
   list<DoubleEntry>& doubles) const 
 {
   // We rely heavily on having exactly two nullptrs.
   const unsigned bogieQuarter =
-    (pe.indices[3] - pe.indices[2] + pe.indices[1] - pe.indices[0]) / 8;
+    (pe.index(3) - pe.index(2) + pe.index(1) - pe.index(0)) / 8;
+    // (pe.indices[3] - pe.indices[2] + pe.indices[1] - pe.indices[0]) / 8;
 
   doubles.emplace_back(DoubleEntry());
   DoubleEntry& de = doubles.back();
@@ -639,13 +732,15 @@ void PeakPattern::addToDoubles(
     {
       if (! seenFirstFlag)
       {
-        de.first.target = pe.indices[i];
+        // de.first.target = pe.indices[i];
+        de.first.target = pe.index(i);
         i0 = i;
         seenFirstFlag = true;
       }
       else
       {
-        de.second.target = pe.indices[i];
+        // de.second.target = pe.indices[i];
+        de.second.target = pe.index(i);
         i1 = i;
         seenSecondFlag = true;
         break;
@@ -659,6 +754,24 @@ void PeakPattern::addToDoubles(
     return;
   }
 
+  // TODO Can make simpler?
+  unsigned limitLower, limitUpper;
+  pe.limits(limitLower, limitUpper);
+  if (limitLower && i0 == 2 && i1 == 3)
+  {
+    // Don't look open-ended from the left when the right bogie has
+    // no match at all.
+    return;
+  }
+
+  if (limitUpper && i0 == 0 && i1 == 1)
+  {
+    // Don't look open-ended from the right when the left bogie has
+    // no match at all.
+    return;
+  }
+
+  /*
   if (pe.borders == PATTERN_NO_BORDERS ||
       pe.borders == PATTERN_DOUBLE_SIDED_SINGLE ||
       pe.borders == PATTERN_DOUBLE_SIDED_SINGLE_SHORT)
@@ -681,6 +794,7 @@ void PeakPattern::addToDoubles(
     if (i0 == 0 && i1 == 1)
       return;
   }
+  */
 
   if (de.first.target < bogieQuarter)
     de.first.lower = 0;
@@ -695,7 +809,8 @@ void PeakPattern::addToDoubles(
 
 
 void PeakPattern::addToTriples(
-  const PatternEntry& pe,
+  // const PatternEntry& pe,
+  const Completion& pe,
   list<TripleEntry>& triples) const 
 {
   triples.emplace_back(TripleEntry());
@@ -710,17 +825,20 @@ void PeakPattern::addToTriples(
     {
       if (pos == 0)
       {
-        de.first.target = pe.indices[i];
+        // de.first.target = pe.indices[i];
+        de.first.target = pe.index(i);
         pos++;
       }
       else if (pos == 1)
       {
-        de.second.target = pe.indices[i];
+        // de.second.target = pe.indices[i];
+        de.second.target = pe.index(i);
         pos++;
       }
       else if (pos == 2)
       {
-        de.third.target = pe.indices[i];
+        // de.third.target = pe.indices[i];
+        de.third.target = pe.index(i);
         pos++;
       }
     }
@@ -753,9 +871,9 @@ void PeakPattern::examineCandidates(
     unsigned numClose;
     unsigned dist;
 
-    peakPtrsUsed.getClosest(pe->indices, peaksClose, numClose, dist);
+    peakPtrsUsed.getClosest(pe->indices(), peaksClose, numClose, dist);
 
-    cout << PeakPattern::strClosest(pe->indices);
+    cout << PeakPattern::strClosest(pe->indices());
 
     if (numClose == 4)
     {
@@ -768,7 +886,7 @@ void PeakPattern::examineCandidates(
       }
     }
     else if (numClose == 3)
-      PeakPattern::addToSingles(pe->indices, singles);
+      PeakPattern::addToSingles(pe->indices(), singles);
     else if (numClose == 2)
       PeakPattern::addToDoubles(* pe, doubles);
     else if (numClose == 1)
@@ -905,7 +1023,8 @@ cout << "Adjusted " << p << " goal from " <<
   single.lower += delta;
   single.upper += delta;
 
-  candidates.front().indices[p] = target;
+  // candidates.front().indices[p] = target;
+  candidates.front().revise(p, target);
 }
 
 
@@ -1197,8 +1316,10 @@ for (auto d: doubles)
     if (flexibleFlag)
     {
       PeakPattern::readjust(singles);
-      if (candidates.front().indices[0] < rangeData.indexLeft ||
-          candidates.front().indices[3] > rangeData.indexRight)
+      // if (candidates.front().indices[0] < rangeData.indexLeft ||
+        //   candidates.front().indices[3] > rangeData.indexRight)
+      if (candidates.front().outOfRange(rangeData.indexLeft, 
+        rangeData.indexRight))
         return false;
     }
 
@@ -1308,17 +1429,36 @@ void PeakPattern::fixShort(
   none.peaksClose.push_back(spacings[indexLast].peakLeft);
   none.peaksClose.push_back(spacings[indexLast].peakRight);
 
+  BordersType border;
+
   if (rangeData.gapLeft)
   {
-    none.pe.borders = (rangeData.gapRight ?
-      PATTERN_DOUBLE_SIDED_SINGLE_SHORT :
-      PATTERN_SINGLE_SIDED_LEFT);
+    // none.pe.borders = (rangeData.gapRight ?
+    border = (rangeData.gapRight ?
+      BORDERS_DOUBLE_SIDED_SINGLE_SHORT :
+      BORDERS_SINGLE_SIDED_LEFT);
+      // PATTERN_DOUBLE_SIDED_SINGLE_SHORT :
+      // PATTERN_SINGLE_SIDED_LEFT);
   }
   else
-    none.pe.borders = PATTERN_SINGLE_SIDED_RIGHT;
+    // none.pe.borders = PATTERN_SINGLE_SIDED_RIGHT;
+    border = BORDERS_SINGLE_SIDED_RIGHT;
 
+  list<unsigned> carPoints;
+
+  none.pe.fill(
+    0, // Doesn't matter
+    false, // Doesn't matter
+    spacings[indexFirst].peakLeft->getIndex(),
+    spacings[indexLast].peakRight->getIndex(),
+    border,
+    carPoints); // Doesn't matter
+
+
+  /*
   none.pe.start = spacings[indexFirst].peakLeft->getIndex();
   none.pe.end = spacings[indexLast].peakRight->getIndex();
+  */
 
 cout << text << ": " <<
   none.peaksClose[0]->getIndex() + offset << ", " <<
