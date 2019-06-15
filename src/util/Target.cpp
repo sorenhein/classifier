@@ -134,7 +134,11 @@ bool Target::fill(
   const unsigned indexBase = 
      (abutLeftFlag ? indexRangeLeft : indexRangeRight);
 
-  return Target::fillPoints(carPoints, indexBase);
+  if (! Target::fillPoints(carPoints, indexBase))
+    return false;
+  else 
+    return (_indices.front() >= indexRangeLeft &&
+        (indexRangeRight == 0 || _indices.back() <= indexRangeRight));
 }
 
 

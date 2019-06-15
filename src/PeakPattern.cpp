@@ -44,7 +44,7 @@ void PeakPattern::reset()
   carAfterPtr = nullptr;
 
   activeEntries.clear();
-  candidates.clear();
+  targets.clear();
 }
 
 
@@ -149,25 +149,25 @@ bool PeakPattern::fillFromModel(
   list<unsigned> carPoints;
   models.getCarPoints(indexModel, carPoints);
 
-  Target pe;
+  Target target;
   bool seenFlag = false;
 
   if (car.hasLeftGap())
   {
-    if (pe.fill(indexModel, weight, false, 
+    if (target.fill(indexModel, weight, false, 
         indexRangeLeft, indexRangeRight, patternType, carPoints))
     {
-      candidates.emplace_back(pe);
+      targets.emplace_back(target);
       seenFlag = true;
     }
   }
 
   if (! symmetryFlag && car.hasRightGap())
   {
-    if (pe.fill(indexModel, weight, true, 
+    if (target.fill(indexModel, weight, true, 
         indexRangeLeft, indexRangeRight, patternType, carPoints))
     {
-      candidates.emplace_back(pe);
+      targets.emplace_back(target);
       seenFlag = true;
     }
   }
@@ -230,9 +230,9 @@ bool PeakPattern::guessNoBorders()
   if (delta > mid)
     return false;
 
-  candidates.clear();
-  candidates.emplace_back(Target());
-  Target& pe = candidates.back();
+  targets.clear();
+  targets.emplace_back(Target());
+  Target& target = targets.back();
 
   const unsigned start = avgLeftLeft - delta/2;
   const unsigned end =
@@ -246,7 +246,7 @@ bool PeakPattern::guessNoBorders()
   carPoints.push_back(avgRightRight - start);
   carPoints.push_back(end - start);
 
-  pe.fill(
+  target.fill(
     carBeforePtr->index(),
     1,
     false,
@@ -271,11 +271,10 @@ cout << ae.strShort("guessBothSingle", rangeData.qualBest);
       PeakPattern::fillFromModel(models, ae.index, 
         ae.data->symmetryFlag, rangeData.indexLeft, rangeData.indexRight, 
         BORDERS_DOUBLE_SIDED_SINGLE);
-        // PATTERN_DOUBLE_SIDED_SINGLE);
     }
   }
 
-  return (! candidates.empty());
+  return (! targets.empty());
 }
 
 
@@ -298,7 +297,7 @@ bool PeakPattern::guessBothSingleShort()
       rangeData.lenRange > lenShortHi)
     return false;
 
-  Target pe;
+  Target target;
 
   // Guess that particularly the middle part is shorter in a short car.
   list<unsigned> carPoints;
@@ -309,7 +308,7 @@ bool PeakPattern::guessBothSingleShort()
   carPoints.push_back(rangeData.lenRange - sideTypical);
   carPoints.push_back(rangeData.lenRange);
 
-  if (pe.fill(
+  if (target.fill(
     0, // Doesn't matter
     1,
     false,
@@ -318,10 +317,10 @@ bool PeakPattern::guessBothSingleShort()
     BORDERS_DOUBLE_SIDED_SINGLE_SHORT,
     carPoints))
   {
-    candidates.emplace_back(pe);
+    targets.emplace_back(target);
   }
 
-  return (! candidates.empty());
+  return (! targets.empty());
 }
 
 
@@ -329,7 +328,7 @@ bool PeakPattern::guessBothDouble(
   const CarModels& models,
   const bool leftFlag)
 {
-  candidates.clear();
+  targets.clear();
 
   for (auto& ae1: activeEntries)
   {
@@ -354,7 +353,7 @@ bool PeakPattern::guessBothDouble(
     }
   }
 
-  return (! candidates.empty());
+  return (! targets.empty());
 }
 
 
@@ -369,15 +368,15 @@ bool PeakPattern::guessLeft(const CarModels& models)
       rangeData.qualLeft == QUALITY_NONE)
     return false;
 
-  candidates.clear();
+  targets.clear();
 
   for (auto& ae: activeEntries)
   {
     PeakPattern::fillFromModel(models, ae.index, ae.data->symmetryFlag,
-      rangeData.indexLeft, 0, BORDERS_SINGLE_SIDED_LEFT);
+      rangeData.indexLeft, rangeData.indexRight, BORDERS_SINGLE_SIDED_LEFT);
   }
 
-  return (! candidates.empty());
+  return (! targets.empty());
 }
 
 
@@ -396,18 +395,17 @@ bool PeakPattern::guessRight(const CarModels& models)
       carAfterPtr->getPeaksPtr().firstBogieLeftPtr->getIndex())
     return false;
 
-  candidates.clear();
+  targets.clear();
 
   for (auto& ae: activeEntries)
   {
 cout << ae.strShort("guessRight", rangeData.qualRight);
 
     PeakPattern::fillFromModel(models, ae.index, ae.data->symmetryFlag,
-      0, rangeData.indexRight, BORDERS_SINGLE_SIDED_RIGHT);
-      // 0, rangeData.indexRight, PATTERN_SINGLE_SIDED_RIGHT);
+      rangeData.indexLeft, rangeData.indexRight, BORDERS_SINGLE_SIDED_RIGHT);
   }
 
-  return (candidates.size() > 0);
+  return (! targets.empty());
 }
 
 
@@ -640,7 +638,7 @@ void PeakPattern::addToTriples(
 }
 
 
-void PeakPattern::examineCandidates(
+void PeakPattern::examineTargets(
   const PeakPtrs& peakPtrsUsed,
   NoneEntry& none,
   list<SingleEntry>& singles,
@@ -653,14 +651,14 @@ void PeakPattern::examineCandidates(
   doubles.clear();
   triples.clear();
 
-  for (auto pe = candidates.begin(); pe != candidates.end(); )
+  for (auto target = targets.begin(); target != targets.end(); )
   {
     unsigned numClose;
     unsigned dist;
 
-    peakPtrsUsed.getClosest(pe->indices(), peaksClose, numClose, dist);
+    peakPtrsUsed.getClosest(target->indices(), peaksClose, numClose, dist);
 
-    cout << PeakPattern::strClosest(pe->indices());
+    cout << PeakPattern::strClosest(target->indices());
 
     if (numClose == 4)
     {
@@ -669,23 +667,23 @@ void PeakPattern::examineCandidates(
       if (dist < distBest)
       {
         distBest = dist;
-        PeakPattern::setNone(* pe, none);
+        PeakPattern::setNone(* target, none);
       }
     }
     else if (numClose == 3)
-      PeakPattern::addToSingles(pe->indices(), singles);
+      PeakPattern::addToSingles(target->indices(), singles);
     else if (numClose == 2)
-      PeakPattern::addToDoubles(* pe, doubles);
+      PeakPattern::addToDoubles(* target, doubles);
     else if (numClose == 1)
-      PeakPattern::addToTriples(* pe, triples);
+      PeakPattern::addToTriples(* target, triples);
     else if (numClose == 0)
     {
       // Get rid of the 1's and 0's.
-      pe = candidates.erase(pe);
+      target = targets.erase(target);
       continue;
     }
 
-    pe++;
+    target++;
   }
 }
 
@@ -767,7 +765,7 @@ void PeakPattern::readjust(list<SingleEntry>& singles)
   // Probably the fourth peak is at a predictable bogie distance
   // which we can better estimate now.
 
-  if (candidates.size() != 1 || singles.size() != 1)
+  if (targets.size() != 1 || singles.size() != 1)
     return;
 
   unsigned p, target;
@@ -810,7 +808,7 @@ cout << "Adjusted " << p << " goal from " <<
   single.lower += delta;
   single.upper += delta;
 
-  candidates.front().revise(p, target);
+  targets.front().revise(p, target);
 }
 
 
@@ -1051,14 +1049,14 @@ bool PeakPattern::fix(
   list<DoubleEntry> doubles;
   list<TripleEntry> triples;
 
-  PeakPattern::examineCandidates(peakPtrsUsed, 
+  PeakPattern::examineTargets(peakPtrsUsed, 
     none, singles, doubles, triples);
 
   cout << "Condensed doubles after examine 1\n";
   for (auto d: doubles)
     cout << d.str(offset);
 
-  if (candidates.empty())
+  if (targets.empty())
     return false;
 
   if (none.empty() && singles.empty() && doubles.empty())
@@ -1070,7 +1068,7 @@ bool PeakPattern::fix(
     {
       // TODO This is quite inefficient, as we actually know the
       // changes we made.  But we just reexamine for now.
-      PeakPattern::examineCandidates(peakPtrsUsed, 
+      PeakPattern::examineTargets(peakPtrsUsed, 
         none, singles, doubles, triples);
     }
   }
@@ -1083,7 +1081,7 @@ bool PeakPattern::fix(
     {
       // TODO This is quite inefficient, as we actually know the
       // changes we made.  But we just reexamine for now.
-      PeakPattern::examineCandidates(peakPtrsUsed, 
+      PeakPattern::examineTargets(peakPtrsUsed, 
         none, singles, doubles, triples);
 
 cout << "Condensed doubles after examine 2\n";
@@ -1099,9 +1097,7 @@ for (auto d: doubles)
     if (flexibleFlag)
     {
       PeakPattern::readjust(singles);
-      // if (candidates.front().indices[0] < rangeData.indexLeft ||
-        //   candidates.front().indices[3] > rangeData.indexRight)
-      if (candidates.front().outOfRange(rangeData.indexLeft, 
+      if (targets.front().outOfRange(rangeData.indexLeft, 
         rangeData.indexRight))
         return false;
     }
@@ -1109,7 +1105,7 @@ for (auto d: doubles)
     if (PeakPattern::fixSingles(peaks, singles, 
         peakPtrsUsed, peakPtrsUnused, forceFlag))
     {
-      PeakPattern::examineCandidates(peakPtrsUsed, 
+      PeakPattern::examineTargets(peakPtrsUsed, 
         none, singles, doubles, triples);
     }
 

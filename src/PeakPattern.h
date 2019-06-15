@@ -178,7 +178,7 @@ class PeakPattern
 
     vector<Peak const *> peaksClose;
 
-    list<Target> candidates;
+    list<Target> targets;
 
     vector<SpacingEntry> spacings;
 
@@ -282,7 +282,7 @@ class PeakPattern
       const Target& pe,
       list<TripleEntry>& triples) const;
 
-    void examineCandidates(
+    void examineTargets(
       const PeakPtrs& peakPtrsUsed,
       NoneEntry& none,
       list<SingleEntry>& singles,
