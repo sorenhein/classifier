@@ -91,14 +91,18 @@ void MissCar::markWith(
   Peak& peak,
   const MissType type)
 {
+  unsigned dist;
   for (auto& miss: misses)
   {
-    if (miss.markWith(peak, type))
+    if (miss.markWith(peak, type, dist))
     {
       if (type == MISS_REPAIRABLE)
         MissCar::pruneRepairables(miss);
       else
+      {
         MissCar::addPeak(peak);
+        distance += dist;
+      }
     }
   }
 }
@@ -144,6 +148,7 @@ void MissCar::getMatch(
 
 bool MissCar::condense(MissCar& miss2)
 {
+  /*
   const unsigned nm = misses.size();
   if (miss2.misses.size() != nm)
     return false;
@@ -156,6 +161,7 @@ bool MissCar::condense(MissCar& miss2)
     if (! mi1->consistentWith(* mi2))
       return false;
   }
+  */
 
   const unsigned nc = _closestPeaks.size();
   if (miss2._closestPeaks.size() != nc)
@@ -168,6 +174,9 @@ bool MissCar::condense(MissCar& miss2)
   }
 
   weight += miss2.weight;
+  if (miss2.distance < distance)
+    distance = miss2.distance;
+
   return true;
 }
 
@@ -235,9 +244,7 @@ string MissCar::str(const unsigned offset) const
   ss << "Car with weight " << weight << ", distance " << distance;
 
   if (misses.empty())
-  {
     ss << " is complete\n\n";
-  }
   else
   {
     ss << "\n\n";
@@ -246,6 +253,12 @@ string MissCar::str(const unsigned offset) const
       ss << miss.str(offset);
     ss << "\n";
   }
+
+  ss << "Peaks\n";
+    for (auto& p: _closestPeaks)
+      ss << p->strQuality(offset);
+    ss << "\n";
+
   return ss.str();
 }
 

@@ -9,6 +9,9 @@
 
 #include "MissCar.h"
 
+
+typedef list<MissCar>::iterator Citerator;
+
 class Peak;
 
 
@@ -36,6 +39,9 @@ class Completions
     void markWith(
       Peak& peak,
       const MissType type);
+
+    Citerator begin();
+    Citerator end();
 
     unsigned numComplete(MissCar *& complete);
 

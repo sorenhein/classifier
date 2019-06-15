@@ -43,21 +43,22 @@ void MissPeak::set(
 
 bool MissPeak::markWith(
   Peak& peak,
-  const MissType typeIn)
+  const MissType typeIn,
+  unsigned& dist)
 {
   if (_type == MISS_UNMATCHED && peak.match(lower, upper))
   {
     if (typeIn == MISS_UNUSED)
-      MissPeak::nominate(typeIn, &peak);
+      MissPeak::nominate(typeIn, dist, &peak);
     else
-      MissPeak::nominate(typeIn, nullptr);
+      MissPeak::nominate(typeIn, dist, nullptr);
     return true;
   }
   else if (_type == MISS_REPAIRABLE && peak.match(lower, upper))
   {
     if (typeIn == MISS_REPAIRED)
     {
-      MissPeak::nominate(typeIn, &peak);
+      MissPeak::nominate(typeIn, dist, &peak);
       return true;
     }
     else
@@ -70,11 +71,17 @@ bool MissPeak::markWith(
 
 void MissPeak::nominate(
   const MissType typeIn,
+  unsigned& dist,
   Peak * pptrIn)
 {
   _type = typeIn;
   if (pptrIn != nullptr)
+  {
     pptr = pptrIn;
+    const unsigned i = pptr->getIndex();
+    const unsigned d = (i >= mid ? i-mid : mid-i);
+    dist = d*d;
+  }
 }
 
 
@@ -86,7 +93,14 @@ bool MissPeak::operator > (const MissPeak& miss2) const
 
 bool MissPeak::consistentWith(const MissPeak& miss2)
 {
-  return (miss2.mid >= lower && miss2.mid <= upper);
+  if (_type == MISS_UNUSED && miss2._type == MISS_UNUSED)
+    return pptr == miss2.pptr;
+  else if (_type == MISS_REPAIRED && miss2._type == MISS_REPAIRED)
+  {
+    return pptr == miss2.pptr;
+  }
+  else
+    return (miss2.mid >= lower && miss2.mid <= upper);
 }
 
 
@@ -144,7 +158,9 @@ string MissPeak::str(const unsigned offset) const
   stringstream ss;
   ss << setw(6) << mid + offset <<
     setw(12) << right << range <<
-    setw(12) << MissPeak::strType() << "\n";
-  return ss.str();
+    setw(12) << MissPeak::strType();
+  if (_type == MISS_UNUSED || _type == MISS_REPAIRED)
+    ss << setw(12) << (pptr->getIndex()) + offset;
+  return ss.str() + "\n";
 }
 

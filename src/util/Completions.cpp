@@ -43,6 +43,18 @@ void Completions::markWith(
 }
 
 
+Citerator Completions::begin()
+{
+  return completions.begin();
+}
+
+
+Citerator Completions::end()
+{
+  return completions.end();
+}
+
+
 unsigned Completions::numComplete(MissCar *& complete)
 {
   unsigned n = 0;

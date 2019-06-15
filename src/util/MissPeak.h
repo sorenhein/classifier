@@ -51,10 +51,12 @@ class MissPeak
 
     bool markWith(
       Peak& peak,
-      const MissType typeIn);
+      const MissType typeIn,
+      unsigned& dist);
 
     void nominate(
       const MissType typeIn,
+      unsigned& dist,
       Peak * pptrIn = nullptr);
 
     bool operator > (const MissPeak& miss2) const;
