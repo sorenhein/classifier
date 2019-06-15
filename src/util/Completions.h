@@ -37,7 +37,7 @@ class Completions
       Peak * peak,
       const MissType type);
 
-    unsigned numComplete() const;
+    unsigned numComplete(MissCar *& complete);
 
     void condense();
 

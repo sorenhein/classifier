@@ -41,13 +41,17 @@ void MissPeak::set(
   upper = target + tolerance;
 }
 
-
-void MissPeak::markWith(
+bool MissPeak::markWith(
   Peak * pptrIn,
   const MissType typeIn)
 {
   if (_type == MISS_UNMATCHED && pptrIn->match(lower, upper))
+  {
     MissPeak::nominate(typeIn, pptrIn);
+    return true;
+  }
+  else
+    return false;
 }
 
 

@@ -7,6 +7,7 @@
 #define TRAIN_MISSCAR_H
 
 #include <list>
+#include <vector>
 #include <string>
 
 #include "MissPeak.h"
@@ -22,6 +23,11 @@ class MissCar
     list<MissPeak> misses;
     unsigned weight;
     unsigned distance;
+
+    vector<Peak const *> _closestPeaks;
+
+    unsigned _limitLower;
+    unsigned _limitUpper;
 
 
   public:
@@ -43,11 +49,23 @@ class MissCar
     Miterator begin();
     Miterator end();
 
+    void addPeak(Peak * peak);
+
     void markWith(
       Peak * peak,
       const MissType type);
 
     bool complete() const;
+
+    void setMatch(
+      vector<Peak const *>& closestPeaksIn,
+      const unsigned limitLowerIn,
+      const unsigned limitUpperIn);
+
+    void getMatch(
+      vector<Peak const *>*& closestPtr,
+      unsigned& limitLowerOut,
+      unsigned& limitUpperOut);
 
     bool condense(MissCar& miss2); 
 

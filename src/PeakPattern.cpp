@@ -443,6 +443,18 @@ void PeakPattern::updateUnused(
 }
 
 
+void PeakPattern::updateUnused(
+  const unsigned limitLower,
+  const unsigned limitUpper,
+  PeakPtrs& peakPtrsUnused) const
+{
+  if (limitLower)
+    peakPtrsUnused.erase_below(limitLower);
+  if (limitUpper)
+    peakPtrsUnused.erase_above(limitUpper);
+}
+
+
 void PeakPattern::updateUsed(
   const vector<Peak const *>& peaksClosest,
   PeakPtrs& peakPtrsUsed,
@@ -486,6 +498,18 @@ void PeakPattern::update(
 {
   PeakPattern::updateUsed(none.peaksClose, peakPtrsUsed, peakPtrsUnused);
   PeakPattern::updateUnused(none.pe, peakPtrsUnused);
+}
+
+
+void PeakPattern::update(
+  const vector<Peak const *>& closest,
+  const unsigned limitLower,
+  const unsigned limitUpper,
+  PeakPtrs& peakPtrsUsed,
+  PeakPtrs& peakPtrsUnused) const
+{
+  PeakPattern::updateUsed(closest, peakPtrsUsed, peakPtrsUnused);
+  PeakPattern::updateUnused(limitLower, limitUpper, peakPtrsUnused);
 }
 
 
@@ -688,26 +712,46 @@ void PeakPattern::examineTargets(
       {
 cout << "PERFECT MATCH\n";
         distBest = dist;
-        completions.emplace_back(dist);
+        MissCar& miss = completions.emplace_back(dist);
+
+        unsigned limitLower, limitUpper;
+        target->limits(limitLower, limitUpper);
+        miss.setMatch(peaksClose, limitLower, limitUpper);
+
         PeakPattern::setNone(* target, none);
       }
     }
     else if (numClose == 3)
     {
-      completions.emplace_back(dist);
+      MissCar& miss = completions.emplace_back(dist);
+
+      unsigned limitLower, limitUpper;
+      target->limits(limitLower, limitUpper);
+      miss.setMatch(peaksClose, limitLower, limitUpper);
+
       PeakPattern::addToSingles(target->indices(), singles);
     }
     else if (numClose == 2)
     {
       if (PeakPattern::checkDoubles(* target))
       {
-        completions.emplace_back(dist);
+        MissCar& miss = completions.emplace_back(dist);
+
+        unsigned limitLower, limitUpper;
+        target->limits(limitLower, limitUpper);
+        miss.setMatch(peaksClose, limitLower, limitUpper);
+
         PeakPattern::addToDoubles(* target, doubles);
       }
     }
     else if (numClose == 1)
     {
-      completions.emplace_back(dist);
+      MissCar& miss = completions.emplace_back(dist);
+
+      unsigned limitLower, limitUpper;
+      target->limits(limitLower, limitUpper);
+      miss.setMatch(peaksClose, limitLower, limitUpper);
+
       PeakPattern::addToTriples(* target, triples);
     }
     else if (numClose == 0)
@@ -1081,6 +1125,39 @@ bool PeakPattern::fix(
   completions.condense();
 
   cout << completions.str(offset);
+
+  MissCar * winnerPtr;
+  const unsigned numComplete = completions.numComplete(winnerPtr);
+  if (numComplete == 1)
+  {
+    cout << "COMPLETION MATCH\n";
+    vector<Peak const *>* closestPtr;
+    unsigned limitLower, limitUpper;
+    winnerPtr->getMatch(closestPtr, limitLower, limitUpper);
+
+    for (auto& miss: * winnerPtr)
+    {
+      if (miss.source() == MISS_UNUSED)
+      {
+        cout << "Reviving unused " << miss.str(offset);
+        Peak * ptr = miss.ptr();
+        peakPtrsUsed.add(ptr);
+        peakPtrsUnused.remove(ptr);
+      }
+    }
+
+    PeakPattern::update(* closestPtr, limitLower, limitUpper, 
+      peakPtrsUsed, peakPtrsUnused);
+    return true;
+  }
+  else if (numComplete > 1)
+  {
+    cout << "COMPLETION ABUNDANCE " << numComplete << "\n";
+  }
+  else
+  {
+    cout << "COMPLETION MISS\n";
+  }
 
   if (none.empty() && singles.empty() && doubles.empty())
   {

@@ -43,13 +43,16 @@ void Completions::markWith(
 }
 
 
-unsigned Completions::numComplete() const
+unsigned Completions::numComplete(MissCar *& complete)
 {
   unsigned n = 0;
   for (auto& comp: completions)
   {
     if (comp.complete())
+    {
       n++;
+      complete = &comp;
+    }
   }
   return n;
 }

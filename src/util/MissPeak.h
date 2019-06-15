@@ -48,7 +48,7 @@ class MissPeak
       const unsigned target,
       const unsigned tolerance);
 
-    void markWith(
+    bool markWith(
       Peak * pptrIn,
       const MissType typeIn);
 

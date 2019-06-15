@@ -4,6 +4,8 @@
 
 #include "MissCar.h"
 
+#include "../Peak.h"
+
 
 MissCar::MissCar()
 {
@@ -20,6 +22,9 @@ void MissCar::reset()
 {
   weight = 1;
   distance = 0;
+  _closestPeaks.clear();
+  _limitLower = 0;
+  _limitUpper = 0;
 }
 
 
@@ -58,12 +63,39 @@ Miterator MissCar::end()
 }
 
 
+void MissCar::addPeak(Peak * peak)
+{
+  const unsigned pindex = peak->getIndex();
+
+  if (_closestPeaks.empty() || pindex > _closestPeaks.back()->getIndex())
+  {
+    _closestPeaks.push_back(peak);
+    return;
+  }
+
+  for (auto it = _closestPeaks.begin(); it != _closestPeaks.end(); it++)
+  {
+    const unsigned index = (* it)->getIndex();
+    if (index == pindex)
+      return;
+    else if (index > pindex)
+    {
+      _closestPeaks.insert(it, peak);
+      return;
+    }
+  }
+}
+
+
 void MissCar::markWith(
   Peak * peak,
   const MissType type)
 {
   for (auto& miss: misses)
-    miss.markWith(peak, type);
+  {
+    if (miss.markWith(peak, type))
+      MissCar::addPeak(peak);
+  }
 }
 
 
@@ -75,6 +107,33 @@ bool MissCar::complete() const
       return false;
   }
   return true;
+}
+
+
+void MissCar::setMatch(
+  vector<Peak const *>& closestPeaksIn,
+  const unsigned limitLowerIn,
+  const unsigned limitUpperIn)
+{
+  for (auto ptr: closestPeaksIn)
+  {
+    if (ptr)
+      _closestPeaks.push_back(ptr);
+  }
+
+  _limitLower = limitLowerIn;
+  _limitUpper = limitUpperIn;
+}
+
+
+void MissCar::getMatch(
+  vector<Peak const *>*& closestPtr,
+  unsigned& limitLowerOut,
+  unsigned& limitUpperOut)
+{
+  closestPtr = &_closestPeaks;
+  limitLowerOut = _limitLower;
+  limitUpperOut = _limitUpper;
 }
 
 
@@ -90,6 +149,16 @@ bool MissCar::condense(MissCar& miss2)
       mi1++, mi2++)
   {
     if (! mi1->consistentWith(* mi2))
+      return false;
+  }
+
+  const unsigned nc = _closestPeaks.size();
+  if (miss2._closestPeaks.size() != nc)
+    return false;
+
+  for (unsigned i = 0; i < nc; i++)
+  {
+    if (_closestPeaks[i] != miss2._closestPeaks[i])
       return false;
   }
 

@@ -259,6 +259,11 @@ class PeakPattern
       const Target& pe,
       PeakPtrs& peakPtrsUnused) const;
 
+    void updateUnused(
+      const unsigned limitLower,
+      const unsigned limitUpper,
+      PeakPtrs& peakPtrsUnused) const;
+
     void updateUsed(
       const vector<Peak const *>& peaksClosest,
       PeakPtrs& peakPtrsUsed,
@@ -266,6 +271,13 @@ class PeakPattern
 
     void update(
       const NoneEntry& none,
+      PeakPtrs& peakPtrsUsed,
+      PeakPtrs& peakPtrsUnused) const;
+
+    void update(
+      const vector<Peak const *>& closest,
+      const unsigned limitLower,
+      const unsigned limitUpper,
       PeakPtrs& peakPtrsUsed,
       PeakPtrs& peakPtrsUnused) const;
 

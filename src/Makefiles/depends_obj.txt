@@ -83,7 +83,7 @@ regress/PolynomialRegression.obj: regress/PolynomialRegression.h
 util/Completions.obj: util/Completions.h util/MissCar.h util/MissPeak.h
 util/Completions.obj: Peak.h struct.h
 util/Gap.obj: util/Gap.h const.h
-util/MissCar.obj: util/MissCar.h util/MissPeak.h
+util/MissCar.obj: util/MissCar.h util/MissPeak.h Peak.h struct.h
 util/MissPeak.obj: util/MissPeak.h Peak.h struct.h
 util/Target.obj: util/Target.h
 util/Timer.obj: util/Timer.h
