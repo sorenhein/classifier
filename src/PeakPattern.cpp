@@ -641,48 +641,19 @@ miss.add(target.index(i), bogieQuarter);
 }
 
 
-void PeakPattern::addToTriples(
-  const Target& pe,
-  list<TripleEntry>& triples)
+void PeakPattern::addToTriples(const Target& pe)
 {
-  triples.emplace_back(TripleEntry());
-  TripleEntry& de = triples.back();
-
   const unsigned bogieQuarter = bogieTypical / 4;
 
   MissCar& miss = completions.back();
 
-  unsigned pos = 0;
   for (unsigned i = 0; i < peaksClose.size(); i++)
   {
     if (peaksClose[i] == nullptr)
     {
-miss.add(pe.index(i), bogieQuarter);
-
-      if (pos == 0)
-      {
-        de.first.target = pe.index(i);
-        pos++;
-      }
-      else if (pos == 1)
-      {
-        de.second.target = pe.index(i);
-        pos++;
-      }
-      else if (pos == 2)
-      {
-        de.third.target = pe.index(i);
-        pos++;
-      }
+      miss.add(pe.index(i), bogieQuarter);
     }
   }
-
-  if (pos != 3)
-    THROW(ERR_ALGO_PEAK_CONSISTENCY, "addToTriples error");
-
-  de.first.bracket(bogieQuarter);
-  de.second.bracket(bogieQuarter);
-  de.third.bracket(bogieQuarter);
 }
 
 
@@ -757,7 +728,7 @@ cout << "PERFECT MATCH\n";
       target->limits(limitLower, limitUpper);
       miss.setMatch(peaksClose, limitLower, limitUpper);
 
-      PeakPattern::addToTriples(* target, triples);
+      PeakPattern::addToTriples(* target);
     }
     else if (numClose == 0)
     {

@@ -293,9 +293,7 @@ class PeakPattern
       const Target& pe,
       list<DoubleEntry>& doubles);
 
-    void addToTriples(
-      const Target& pe,
-      list<TripleEntry>& triples);
+    void addToTriples(const Target& pe);
 
     bool checkDoubles(const Target& target) const;
 
