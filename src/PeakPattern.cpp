@@ -510,54 +510,24 @@ void PeakPattern::update(
 {
   PeakPattern::updateUsed(closest, peakPtrsUsed, peakPtrsUnused);
 
-// UNUSED(closest);
-  // !
-  // PeakPattern::updateUnused(limitLower, limitUpper, peakPtrsUsed);
-
   PeakPattern::updateUnused(limitLower, limitUpper, peakPtrsUnused);
 }
 
 
-void PeakPattern::setNone(
-  Target& target,
-  NoneEntry& none) const
-{
-  none.pe = target;
-
-  none.peaksClose = peaksClose;
-  none.emptyFlag = false;
-}
-
-
-void PeakPattern::addToSingles(
-  const vector<unsigned>& indices,
-  list<SingleEntry>& singles)
+void PeakPattern::addToSingles(const vector<unsigned>& indices)
 {
   // We rely heavily on having exactly one nullptr.
   // Singles are generally quite likely, so we permit more range.
   const unsigned bogieThird =
     (indices[3] - indices[2] + indices[1] - indices[0]) / 6;
 
-  singles.emplace_back(SingleEntry());
-  SingleEntry& se = singles.back();
   MissCar& miss = completions.back();
 
   for (unsigned i = 0; i < peaksClose.size(); i++)
   {
     if (peaksClose[i] == nullptr)
-    {
-miss.add(indices[i], bogieThird);
-      se.target = indices[i];
-      break;
-    }
+      miss.add(indices[i], bogieThird);
   }
-
-  if (se.target < bogieThird)
-    se.lower = 0;
-  else
-    se.lower = se.target - bogieThird;
-
-  se.upper = se.target + bogieThird;
 }
 
 
@@ -616,16 +586,18 @@ void PeakPattern::addToTriples(const Target& pe)
 
 void PeakPattern::examineTargets(
   const PeakPtrs& peakPtrsUsed,
-  NoneEntry& none,
-  list<SingleEntry>& singles,
-  list<DoubleEntry>& doubles,
-  list<TripleEntry>& triples)
+  NoneEntry& none)
+  // list<SingleEntry>& singles,
+  // list<DoubleEntry>& doubles,
+  // list<TripleEntry>& triples)
 {
+UNUSED(none);
+
   // Get the lie of the land.
   unsigned distBest = numeric_limits<unsigned>::max();
-  singles.clear();
-  doubles.clear();
-  triples.clear();
+  // singles.clear();
+  // doubles.clear();
+  // triples.clear();
   completions.reset();
 
   for (auto target = targets.begin(); target != targets.end(); )
@@ -650,8 +622,6 @@ cout << "PERFECT MATCH\n";
         unsigned limitLower, limitUpper;
         target->limits(limitLower, limitUpper);
         miss.setMatch(peaksClose, limitLower, limitUpper);
-
-        PeakPattern::setNone(* target, none);
       }
     }
     else if (numClose == 3)
@@ -662,7 +632,7 @@ cout << "PERFECT MATCH\n";
       target->limits(limitLower, limitUpper);
       miss.setMatch(peaksClose, limitLower, limitUpper);
 
-      PeakPattern::addToSingles(target->indices(), singles);
+      PeakPattern::addToSingles(target->indices());
     }
     else if (numClose == 2)
     {
@@ -699,6 +669,9 @@ cout << "PERFECT MATCH\n";
 }
 
 
+// TODO =========================== Move to Completions
+//
+/*
 void PeakPattern::readjust(list<SingleEntry>& singles)
 {
   // This applies for a short car where we got three peaks.
@@ -750,6 +723,7 @@ cout << "Adjusted " << p << " goal from " <<
 
   targets.front().revise(p, target);
 }
+*/
 
 
 void PeakPattern::processMessage(
@@ -771,6 +745,7 @@ void PeakPattern::processMessage(
 }
 
 
+/*
 void PeakPattern::reviveOnePeak(
   const string& text,
   const SingleEntry& single,
@@ -832,6 +807,7 @@ PeakPtrs& peakPtrsUsed,
     PeakPattern::fixOnePeak(origin, single, peaks, pptr, forceFlag);
   }
 }
+*/
 
 
 bool PeakPattern::fix(
@@ -845,12 +821,12 @@ bool PeakPattern::fix(
     return false;
 
   NoneEntry none;
-  list<SingleEntry> singles;
-  list<DoubleEntry> doubles;
-  list<TripleEntry> triples;
+  // list<SingleEntry> singles;
+  // list<DoubleEntry> doubles;
+  // list<TripleEntry> triples;
 
-  PeakPattern::examineTargets(peakPtrsUsed, 
-    none, singles, doubles, triples);
+  PeakPattern::examineTargets(peakPtrsUsed, none);
+    // none, singles, doubles, triples);
 
   // Fill out with relevant, unused peaks.
   for (auto pptr: peakPtrsUnused)

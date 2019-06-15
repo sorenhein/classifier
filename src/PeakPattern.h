@@ -62,6 +62,7 @@ class PeakPattern
       };
     };
 
+/*
     struct SingleEntry
     {
       unsigned target;
@@ -138,6 +139,7 @@ class PeakPattern
         return ss.str();
       };
     };
+*/
 
     struct SpacingEntry
     {
@@ -281,13 +283,7 @@ class PeakPattern
       PeakPtrs& peakPtrsUsed,
       PeakPtrs& peakPtrsUnused) const;
 
-    void setNone(
-      Target& pe,
-      NoneEntry& none) const;
-
-    void addToSingles(
-      const vector<unsigned>& indices,
-      list<SingleEntry>& singles);
+    void addToSingles(const vector<unsigned>& indices);
 
     void addToDoubles(const Target& target);
 
@@ -297,12 +293,13 @@ class PeakPattern
 
     void examineTargets(
       const PeakPtrs& peakPtrsUsed,
-      NoneEntry& none,
-      list<SingleEntry>& singles,
-      list<DoubleEntry>& doubles,
-      list<TripleEntry>& triples);
+      NoneEntry& none);
+      // list<SingleEntry>& singles,
+      // list<DoubleEntry>& doubles,
+      // list<TripleEntry>& triples);
 
-    void readjust(list<SingleEntry>& singles);
+    // TODO Move, don't delete
+    // void readjust(list<SingleEntry>& singles);
 
     void processMessage(
       const string& origin,
@@ -310,6 +307,7 @@ class PeakPattern
       const unsigned target,
       Peak *& pptr) const;
       
+/*
     void reviveOnePeak(
       const string& text,
       const SingleEntry& single,
@@ -332,6 +330,7 @@ PeakPtrs& peakPtrsUsed,
       PeakPool& peaks,
       Peak *& pptr,
       const bool forceFlag) const;
+*/
 
     bool fix(
       PeakPool& peaks,
