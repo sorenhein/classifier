@@ -19,12 +19,19 @@ MissCar::~MissCar()
 void MissCar::reset()
 {
   weight = 1;
+  distance = 0;
 }
 
 
 void MissCar::setWeight(const unsigned weightIn)
 {
   weight = weightIn;
+}
+
+
+void MissCar::setDistance(const unsigned dist)
+{
+  distance = dist;
 }
 
 
@@ -115,17 +122,23 @@ void MissCar::repairables(list<MissPeak *>& repairList)
 }
 
 
-string MissCar::str() const
+string MissCar::str(const unsigned offset) const
 {
-  if (misses.empty())
-    return "";
-
   stringstream ss;
-  ss << "Car with Weight " << weight << "\n\n";
-  ss << misses.front().strHeader();
-  for (auto& miss: misses)
-    ss << miss.str();
-  ss << "\n";
+  ss << "Car with weight " << weight << ", distance " << distance;
+
+  if (misses.empty())
+  {
+    ss << " is complete\n\n";
+  }
+  else
+  {
+    ss << "\n\n";
+    ss << misses.front().strHeader();
+    for (auto& miss: misses)
+      ss << miss.str(offset);
+    ss << "\n";
+  }
   return ss.str();
 }
 

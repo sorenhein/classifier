@@ -21,6 +21,7 @@ class MissCar
 
     list<MissPeak> misses;
     unsigned weight;
+    unsigned distance;
 
 
   public:
@@ -32,6 +33,8 @@ class MissCar
     void reset();
 
     void setWeight(const unsigned weightIn);
+
+    void setDistance(const unsigned dist);
 
     void add(
       const unsigned target,
@@ -52,7 +55,7 @@ class MissCar
 
     void repairables(list<MissPeak *>& repairList);
 
-    string str() const;
+    string str(const unsigned offset = 0) const;
 };
 
 #endif

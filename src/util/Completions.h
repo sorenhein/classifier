@@ -29,7 +29,9 @@ class Completions
 
     void reset();
 
-    MissCar& emplace_back();
+    MissCar& emplace_back(const unsigned dist);
+
+    MissCar& back();
 
     void markWith(
       Peak * peak,
@@ -41,7 +43,7 @@ class Completions
 
     void repairables(list<list<MissPeak *>>& repairList);
 
-    string str() const;
+    string str(const unsigned offset = 0) const;
 };
 
 #endif

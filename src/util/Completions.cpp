@@ -20,11 +20,18 @@ void Completions::reset()
 }
 
 
-MissCar& Completions::emplace_back()
+MissCar& Completions::emplace_back(const unsigned dist)
 {
-  return completions.emplace_back(MissCar());
+  MissCar& miss = completions.emplace_back(MissCar());
+  miss.setDistance(dist);
+  return miss;
 }
 
+
+MissCar& Completions::back()
+{
+  return completions.back();
+}
 
 
 void Completions::markWith(
@@ -55,7 +62,7 @@ void Completions::condense()
     for (auto ci2 = next(ci1); ci2 != completions.end(); )
     {
       if (ci1->condense(* ci2))
-        completions.erase(ci2);
+        ci2 = completions.erase(ci2);
       else
         ci2++;
     }
@@ -86,11 +93,11 @@ void Completions::repairables(list<list<MissPeak *>>& repairList)
 }
 
 
-string Completions::str() const
+string Completions::str(const unsigned offset) const
 {
   string s = "";
   for (auto& comp: completions)
-    s += comp.str();
+    s += comp.str(offset);
   return s;
 }
 

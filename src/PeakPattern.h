@@ -9,6 +9,7 @@
 #include "struct.h"
 
 #include "util/Target.h"
+#include "util/Completions.h"
 
 using namespace std;
 
@@ -180,6 +181,8 @@ class PeakPattern
 
     list<Target> targets;
 
+    Completions completions;
+
     vector<SpacingEntry> spacings;
 
 
@@ -272,15 +275,17 @@ class PeakPattern
 
     void addToSingles(
       const vector<unsigned>& indices,
-      list<SingleEntry>& singles) const;
+      list<SingleEntry>& singles);
 
     void addToDoubles(
       const Target& pe,
-      list<DoubleEntry>& doubles) const;
+      list<DoubleEntry>& doubles);
 
     void addToTriples(
       const Target& pe,
-      list<TripleEntry>& triples) const;
+      list<TripleEntry>& triples);
+
+    bool checkDoubles(const Target& target) const;
 
     void examineTargets(
       const PeakPtrs& peakPtrsUsed,
@@ -314,7 +319,6 @@ class PeakPattern
       const string& text,
       const SingleEntry& single,
       PeakPool& peaks,
-PeakPtrs& peakPtrsUsed,
       Peak *& pptr,
       const bool forceFlag) const;
 

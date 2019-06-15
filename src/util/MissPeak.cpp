@@ -31,6 +31,8 @@ void MissPeak::set(
   const unsigned target,
   const unsigned tolerance)
 {
+  mid = target;
+
   if (target < tolerance)
     lower = 0;
   else
@@ -44,7 +46,7 @@ void MissPeak::markWith(
   Peak * pptrIn,
   const MissType typeIn)
 {
-  if (pptrIn->match(lower, upper))
+  if (_type == MISS_UNMATCHED && pptrIn->match(lower, upper))
     MissPeak::nominate(typeIn, pptrIn);
 }
 
@@ -100,17 +102,18 @@ string MissPeak::strHeader() const
 }
 
 
-string MissPeak::str() const
+string MissPeak::str(const unsigned offset) const
 {
   if (upper == 0)
     return "";
 
-  const string range = to_string(lower) + "-" + to_string(upper);
+  const string range = to_string(lower + offset) + "-" + 
+    to_string(upper + offset);
 
   stringstream ss;
-  ss << setw(6) << mid <<
+  ss << setw(6) << mid + offset <<
     setw(12) << right << range <<
-    setw(12) << left << MissPeak::strType() << "\n";
+    setw(12) << MissPeak::strType() << "\n";
   return ss.str();
 }
 

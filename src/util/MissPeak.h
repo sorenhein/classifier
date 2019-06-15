@@ -64,7 +64,7 @@ class MissPeak
 
     string strHeader() const;
 
-    string str() const;
+    string str(const unsigned offset = 0) const;
 };
 
 #endif

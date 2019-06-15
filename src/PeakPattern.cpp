@@ -67,7 +67,7 @@ bool PeakPattern::setGlobals(
 
   if (range.characterize(models, rangeData))
   {
-    cout << rangeData.str("Range globals", offset);
+    cout << "\n" << rangeData.str("Range globals", offset) << "\n";
     return true;
   }
   else
@@ -100,8 +100,8 @@ void PeakPattern::getActiveModels(
     ae.data = data;
     ae.index = index;
 
-cout << "getActiveModels: Got index " << index << endl;
-cout << data->str() << endl;
+// cout << "getActiveModels: Got index " << index << endl;
+// cout << data->str() << endl;
 
     // Three different qualities; only two used for now.
     ae.lenLo.resize(3);
@@ -130,7 +130,7 @@ cout << data->str() << endl;
     ae.lenHi[QUALITY_SYMMETRY] =
       static_cast<unsigned>((1.f + LEN_FACTOR_GOOD) * len);
   }
-cout << "DONE getActive" << endl;
+// cout << "DONE getActive" << endl;
 }
 
 
@@ -187,6 +187,8 @@ bool PeakPattern::guessNoBorders()
 
   if (carBeforePtr->index() != carAfterPtr->index())
     return false;
+
+  cout << "Trying guessNoBorders\n";
 
   // We will not test for symmetry.
   const CarPeaksPtr& peaksBefore = carBeforePtr->getPeaksPtr();
@@ -261,13 +263,13 @@ bool PeakPattern::guessNoBorders()
 
 bool PeakPattern::guessBothSingle(const CarModels& models)
 {
+  cout << "Trying guessBothSingle\n";
+
   for (auto& ae: activeEntries)
   {
     if (rangeData.lenRange >= ae.lenLo[rangeData.qualBest] &&
         rangeData.lenRange <= ae.lenHi[rangeData.qualBest])
     {
-cout << ae.strShort("guessBothSingle", rangeData.qualBest);
-
       PeakPattern::fillFromModel(models, ae.index, 
         ae.data->symmetryFlag, rangeData.indexLeft, rangeData.indexRight, 
         BORDERS_DOUBLE_SIDED_SINGLE);
@@ -284,10 +286,7 @@ bool PeakPattern::guessBothSingleShort()
       rangeData.qualLeft == QUALITY_NONE)
     return false;
 
-  // unsigned bogieTypical, longTypical, sideTypical;
-  // models.getTypical(bogieTypical, longTypical, sideTypical);
-  // if (sideTypical == 0)
-    // sideTypical = bogieTypical;
+  cout << "Trying guessBothSingleShort\n";
 
   unsigned lenTypical = 2 * (sideTypical + bogieTypical) + longTypical;
   unsigned lenShortLo = static_cast<unsigned>(SHORT_FACTOR * lenTypical);
@@ -328,6 +327,8 @@ bool PeakPattern::guessBothDouble(
   const CarModels& models,
   const bool leftFlag)
 {
+  cout << "Trying guessBothDouble\n";
+
   targets.clear();
 
   for (auto& ae1: activeEntries)
@@ -368,6 +369,8 @@ bool PeakPattern::guessLeft(const CarModels& models)
       rangeData.qualLeft == QUALITY_NONE)
     return false;
 
+  cout << "Trying guessLeft\n";
+
   targets.clear();
 
   for (auto& ae: activeEntries)
@@ -397,10 +400,10 @@ bool PeakPattern::guessRight(const CarModels& models)
 
   targets.clear();
 
+  cout << "Trying guessRight\n";
+
   for (auto& ae: activeEntries)
   {
-cout << ae.strShort("guessRight", rangeData.qualRight);
-
     PeakPattern::fillFromModel(models, ae.index, ae.data->symmetryFlag,
       rangeData.indexLeft, rangeData.indexRight, BORDERS_SINGLE_SIDED_RIGHT);
   }
@@ -411,6 +414,8 @@ cout << ae.strShort("guessRight", rangeData.qualRight);
 
 bool PeakPattern::looksEmptyFirst(const PeakPtrs& peakPtrsUsed) const
 {
+  cout << "Trying looksEmptyFirst\n";
+
   if (peakPtrsUsed.size() >= 2)
     return false;
 
@@ -426,11 +431,11 @@ bool PeakPattern::looksEmptyFirst(const PeakPtrs& peakPtrsUsed) const
 
 
 void PeakPattern::updateUnused(
-  const Target& pe,
+  const Target& target,
   PeakPtrs& peakPtrsUnused) const
 {
   unsigned limitLower, limitUpper;
-  pe.limits(limitLower, limitUpper);
+  target.limits(limitLower, limitUpper);
   if (limitLower)
     peakPtrsUnused.erase_below(limitLower);
   if (limitUpper)
@@ -485,10 +490,10 @@ void PeakPattern::update(
 
 
 void PeakPattern::setNone(
-  Target& pe,
+  Target& target,
   NoneEntry& none) const
 {
-  none.pe = pe;
+  none.pe = target;
 
   none.peaksClose = peaksClose;
   none.emptyFlag = false;
@@ -497,7 +502,7 @@ void PeakPattern::setNone(
 
 void PeakPattern::addToSingles(
   const vector<unsigned>& indices,
-  list<SingleEntry>& singles) const 
+  list<SingleEntry>& singles)
 {
   // We rely heavily on having exactly one nullptr.
   // Singles are generally quite likely, so we permit more range.
@@ -506,11 +511,13 @@ void PeakPattern::addToSingles(
 
   singles.emplace_back(SingleEntry());
   SingleEntry& se = singles.back();
+  MissCar& miss = completions.back();
 
   for (unsigned i = 0; i < peaksClose.size(); i++)
   {
     if (peaksClose[i] == nullptr)
     {
+miss.add(indices[i], bogieThird);
       se.target = indices[i];
       break;
     }
@@ -525,13 +532,35 @@ void PeakPattern::addToSingles(
 }
 
 
+bool PeakPattern::checkDoubles(const Target& target) const
+{
+  // TODO Can make simpler?
+  unsigned limitLower, limitUpper;
+  target.limits(limitLower, limitUpper);
+  if (limitLower && peaksClose[2] == nullptr && peaksClose[3] == nullptr)
+  {
+    // Don't look open-ended from the left when the right bogie has
+    // no match at all.
+    return false;
+  }
+
+  if (limitUpper && peaksClose[0] == nullptr && peaksClose[1] == nullptr)
+  {
+    // Don't look open-ended from the right when the left bogie has
+    // no match at all.
+    return false;
+  }
+  return true;
+}
+
+
 void PeakPattern::addToDoubles(
-  const Target& pe,
-  list<DoubleEntry>& doubles) const 
+  const Target& target,
+  list<DoubleEntry>& doubles)
 {
   // We rely heavily on having exactly two nullptrs.
   const unsigned bogieQuarter =
-    (pe.index(3) - pe.index(2) + pe.index(1) - pe.index(0)) / 8;
+    (target.index(3) - target.index(2) + target.index(1) - target.index(0)) / 8;
 
   doubles.emplace_back(DoubleEntry());
   DoubleEntry& de = doubles.back();
@@ -540,21 +569,24 @@ void PeakPattern::addToDoubles(
   bool seenSecondFlag = false;
   unsigned i0 = numeric_limits<unsigned>::max();
   unsigned i1 = numeric_limits<unsigned>::max();
+  MissCar& miss = completions.back();
+
   for (unsigned i = 0; i < peaksClose.size(); i++)
   {
     if (peaksClose[i] == nullptr)
     {
+miss.add(target.index(i), bogieQuarter);
       if (! seenFirstFlag)
       {
-        // de.first.target = pe.indices[i];
-        de.first.target = pe.index(i);
+        // de.first.target = target.indices[i];
+        de.first.target = target.index(i);
         i0 = i;
         seenFirstFlag = true;
       }
       else
       {
-        // de.second.target = pe.indices[i];
-        de.second.target = pe.index(i);
+        // de.second.target = target.indices[i];
+        de.second.target = target.index(i);
         i1 = i;
         seenSecondFlag = true;
         break;
@@ -565,23 +597,6 @@ void PeakPattern::addToDoubles(
   if (! seenSecondFlag)
   {
     cout << "DOUBERR\n";
-    return;
-  }
-
-  // TODO Can make simpler?
-  unsigned limitLower, limitUpper;
-  pe.limits(limitLower, limitUpper);
-  if (limitLower && i0 == 2 && i1 == 3)
-  {
-    // Don't look open-ended from the left when the right bogie has
-    // no match at all.
-    return;
-  }
-
-  if (limitUpper && i0 == 0 && i1 == 1)
-  {
-    // Don't look open-ended from the right when the left bogie has
-    // no match at all.
     return;
   }
 
@@ -599,18 +614,22 @@ void PeakPattern::addToDoubles(
 
 void PeakPattern::addToTriples(
   const Target& pe,
-  list<TripleEntry>& triples) const 
+  list<TripleEntry>& triples)
 {
   triples.emplace_back(TripleEntry());
   TripleEntry& de = triples.back();
 
   const unsigned bogieQuarter = bogieTypical / 4;
 
+  MissCar& miss = completions.back();
+
   unsigned pos = 0;
   for (unsigned i = 0; i < peaksClose.size(); i++)
   {
     if (peaksClose[i] == nullptr)
     {
+miss.add(pe.index(i), bogieQuarter);
+
       if (pos == 0)
       {
         de.first.target = pe.index(i);
@@ -650,6 +669,7 @@ void PeakPattern::examineTargets(
   singles.clear();
   doubles.clear();
   triples.clear();
+  completions.reset();
 
   for (auto target = targets.begin(); target != targets.end(); )
   {
@@ -666,16 +686,30 @@ void PeakPattern::examineTargets(
       // approach for 2's and 3's.
       if (dist < distBest)
       {
+cout << "PERFECT MATCH\n";
         distBest = dist;
+        completions.emplace_back(dist);
         PeakPattern::setNone(* target, none);
       }
     }
     else if (numClose == 3)
+    {
+      completions.emplace_back(dist);
       PeakPattern::addToSingles(target->indices(), singles);
+    }
     else if (numClose == 2)
-      PeakPattern::addToDoubles(* target, doubles);
+    {
+      if (PeakPattern::checkDoubles(* target))
+      {
+        completions.emplace_back(dist);
+        PeakPattern::addToDoubles(* target, doubles);
+      }
+    }
     else if (numClose == 1)
+    {
+      completions.emplace_back(dist);
       PeakPattern::addToTriples(* target, triples);
+    }
     else if (numClose == 0)
     {
       // Get rid of the 1's and 0's.
@@ -862,29 +896,16 @@ void PeakPattern::fixOnePeak(
   const string& text,
   const SingleEntry& single,
   PeakPool& peaks,
-PeakPtrs& peakPtrsUsed,
   Peak *& pptr,
   const bool forceFlag) const
 {
   Peak peakHint;
   peakHint.logPosition(single.target, single.lower, single.upper);
-cout<< "REP1" << endl;
-cout << peakHint.strQuality(offset) << endl;
-if (! peakPtrsUsed.check())
-  THROW(ERR_ALGO_PEAK_CONSISTENCY, "fixOnePeak start");
 
   pptr = peaks.repair(peakHint, &Peak::borderlineQuality, offset,
     forceFlag);
-if (! peakPtrsUsed.check())
-  THROW(ERR_ALGO_PEAK_CONSISTENCY, "fixOnePeak after repair");
-
-if (! peakPtrsUsed.check())
-  THROW(ERR_ALGO_PEAK_CONSISTENCY, "fixOnePeak before message");
 
   PeakPattern::processMessage(text, "repair", single.target, pptr);
-
-if (! peakPtrsUsed.check())
-  THROW(ERR_ALGO_PEAK_CONSISTENCY, "fixOnePeak end");
 }
 
 
@@ -901,8 +922,7 @@ PeakPtrs& peakPtrsUsed,
 
   if (pptr == nullptr)
   {
-    PeakPattern::fixOnePeak(origin, single, peaks, peakPtrsUsed,
-      pptr, forceFlag);
+    PeakPattern::fixOnePeak(origin, single, peaks, pptr, forceFlag);
   }
 }
 
@@ -1044,6 +1064,9 @@ bool PeakPattern::fix(
   const bool forceFlag,
   const bool flexibleFlag)
 {
+  if (targets.empty())
+    return false;
+
   NoneEntry none;
   list<SingleEntry> singles;
   list<DoubleEntry> doubles;
@@ -1052,12 +1075,12 @@ bool PeakPattern::fix(
   PeakPattern::examineTargets(peakPtrsUsed, 
     none, singles, doubles, triples);
 
-  cout << "Condensed doubles after examine 1\n";
-  for (auto d: doubles)
-    cout << d.str(offset);
+  for (auto pptr: peakPtrsUnused)
+    completions.markWith(pptr, MISS_UNUSED);
 
-  if (targets.empty())
-    return false;
+  completions.condense();
+
+  cout << completions.str(offset);
 
   if (none.empty() && singles.empty() && doubles.empty())
   {
@@ -1083,10 +1106,6 @@ bool PeakPattern::fix(
       // changes we made.  But we just reexamine for now.
       PeakPattern::examineTargets(peakPtrsUsed, 
         none, singles, doubles, triples);
-
-cout << "Condensed doubles after examine 2\n";
-for (auto d: doubles)
-  cout << d.str(offset);
     }
   }
 
@@ -1108,10 +1127,6 @@ for (auto d: doubles)
       PeakPattern::examineTargets(peakPtrsUsed, 
         none, singles, doubles, triples);
     }
-
-cout << "Condensed doubles after examine 3\n";
-for (auto d: doubles)
-  cout << d.str(offset);
   }
 
   // Try the 4's of various origins.
@@ -1359,6 +1374,8 @@ bool PeakPattern::guessAndFixShortLeft(
   if (rangeData.qualLeft == QUALITY_NONE)
     return false;
 
+  cout << "Trying guessAndFixShortLeft\n";
+
   const unsigned ss = spacings.size();
   return PeakPattern::guessAndFixShort(
     true, 0, (ss > 4 ? 4 : ss-1), peaks, peakPtrsUsed, peakPtrsUnused);
@@ -1373,6 +1390,8 @@ bool PeakPattern::guessAndFixShortRight(
   if (rangeData.qualRight == QUALITY_NONE || 
       (rangeData.qualLeft != QUALITY_NONE && peakPtrsUsed.size() <= 6))
     return false;
+
+  cout << "Trying guessAndFixShortRight\n";
 
   const unsigned ss = spacings.size();
   return PeakPattern::guessAndFixShort(
