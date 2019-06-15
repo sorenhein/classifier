@@ -42,12 +42,12 @@ void MissPeak::set(
 }
 
 bool MissPeak::markWith(
-  Peak * pptrIn,
+  Peak& peak,
   const MissType typeIn)
 {
-  if (_type == MISS_UNMATCHED && pptrIn->match(lower, upper))
+  if (_type == MISS_UNMATCHED && peak.match(lower, upper))
   {
-    MissPeak::nominate(typeIn, pptrIn);
+    MissPeak::nominate(typeIn, &peak);
     return true;
   }
   else
@@ -62,6 +62,12 @@ void MissPeak::nominate(
   _type = typeIn;
   if (pptrIn != nullptr)
     pptr = pptrIn;
+}
+
+
+bool MissPeak::operator > (const MissPeak& miss2) const
+{
+  return (mid > miss2.mid);
 }
 
 
@@ -80,6 +86,12 @@ MissType MissPeak::source() const
 Peak * MissPeak::ptr()
 {
   return pptr;
+}
+
+
+void MissPeak::fill(Peak& peak)
+{
+  peak.logPosition(mid, lower, upper);
 }
 
 

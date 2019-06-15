@@ -49,18 +49,22 @@ class MissPeak
       const unsigned tolerance);
 
     bool markWith(
-      Peak * pptrIn,
+      Peak& peak,
       const MissType typeIn);
 
     void nominate(
       const MissType typeIn,
       Peak * pptrIn = nullptr);
 
+    bool operator > (const MissPeak& miss2) const;
+
     bool consistentWith(const MissPeak& miss2);
 
     MissType source() const;
 
     Peak * ptr();
+
+    void fill(Peak& peak);
 
     string strHeader() const;
 

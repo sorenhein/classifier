@@ -1121,7 +1121,7 @@ bool PeakPattern::fix(
     none, singles, doubles, triples);
 
   for (auto pptr: peakPtrsUnused)
-    completions.markWith(pptr, MISS_UNUSED);
+    completions.markWith(* pptr, MISS_UNUSED);
 
   completions.condense();
 

@@ -34,14 +34,15 @@ class Completions
     MissCar& back();
 
     void markWith(
-      Peak * peak,
+      Peak& peak,
       const MissType type);
 
     unsigned numComplete(MissCar *& complete);
 
     void condense();
 
-    void repairables(list<list<MissPeak *>>& repairList);
+    void makeRepairables();
+    bool nextRepairable(Peak& peak);
 
     string str(const unsigned offset = 0) const;
 };

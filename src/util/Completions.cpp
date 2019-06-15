@@ -35,7 +35,7 @@ MissCar& Completions::back()
 
 
 void Completions::markWith(
-  Peak * peak,
+  Peak& peak,
   const MissType type)
 {
   for (auto& comp: completions)
@@ -82,17 +82,21 @@ void Completions::sort()
 }
 
 
-void Completions::repairables(list<list<MissPeak *>>& repairList)
+void Completions::makeRepairables()
 {
-  Completions::sort();
+  for (auto& comp: completions)
+    comp.makeRepairables();
+}
 
-  repairList.clear();
+
+bool Completions::nextRepairable(Peak& peak)
+{
   for (auto& comp: completions)
   {
-    list<MissPeak *>& missList = 
-      repairList.emplace_back(list<MissPeak *>());
-    comp.repairables(missList);
+    if (comp.nextRepairable(peak))
+      return true;
   }
+  return false;
 }
 
 

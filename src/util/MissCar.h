@@ -29,6 +29,9 @@ class MissCar
     unsigned _limitLower;
     unsigned _limitUpper;
 
+    list<MissPeak *> repairables;
+    list<MissPeak *>::iterator itRep;
+
 
   public:
 
@@ -49,10 +52,10 @@ class MissCar
     Miterator begin();
     Miterator end();
 
-    void addPeak(Peak * peak);
+    void addPeak(Peak& peak);
 
     void markWith(
-      Peak * peak,
+      Peak& peak,
       const MissType type);
 
     bool complete() const;
@@ -69,9 +72,14 @@ class MissCar
 
     bool condense(MissCar& miss2); 
 
-    unsigned score() const;
+    void makeRepairables();
 
-    void repairables(list<MissPeak *>& repairList);
+    bool nextRepairable(Peak& peak);
+
+    void pruneRepairables(MissPeak& miss);
+
+
+    unsigned score() const;
 
     string str(const unsigned offset = 0) const;
 };

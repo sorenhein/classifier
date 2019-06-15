@@ -63,13 +63,13 @@ Miterator MissCar::end()
 }
 
 
-void MissCar::addPeak(Peak * peak)
+void MissCar::addPeak(Peak& peak)
 {
-  const unsigned pindex = peak->getIndex();
+  const unsigned pindex = peak.getIndex();
 
   if (_closestPeaks.empty() || pindex > _closestPeaks.back()->getIndex())
   {
-    _closestPeaks.push_back(peak);
+    _closestPeaks.push_back(&peak);
     return;
   }
 
@@ -80,7 +80,7 @@ void MissCar::addPeak(Peak * peak)
       return;
     else if (index > pindex)
     {
-      _closestPeaks.insert(it, peak);
+      _closestPeaks.insert(it, &peak);
       return;
     }
   }
@@ -88,13 +88,18 @@ void MissCar::addPeak(Peak * peak)
 
 
 void MissCar::markWith(
-  Peak * peak,
+  Peak& peak,
   const MissType type)
 {
   for (auto& miss: misses)
   {
     if (miss.markWith(peak, type))
+    {
       MissCar::addPeak(peak);
+
+      if (type == MISS_REPAIRABLE)
+        MissCar::pruneRepairables(miss);
+    }
   }
 }
 
@@ -167,6 +172,49 @@ bool MissCar::condense(MissCar& miss2)
 }
 
 
+void MissCar::makeRepairables()
+{
+  repairables.clear();
+  for (auto& miss: misses)
+  {
+    if (miss.source() == MISS_UNMATCHED)
+      repairables.push_back(&miss);
+  }
+  itRep = repairables.begin();
+}
+
+
+bool MissCar::nextRepairable(Peak& peak)
+{
+  if (itRep == repairables.end())
+    return false;
+
+  (* itRep)->fill(peak);
+  itRep++;
+  return true;
+}
+
+
+void MissCar::pruneRepairables(MissPeak& miss)
+{
+  if (itRep == repairables.end() || ** itRep > miss)
+    return; // No point
+  else if (* itRep == &miss)
+    itRep = repairables.erase(itRep);
+  else
+  {
+    for (auto it = next(itRep); it != repairables.end(); it++)
+    {
+      if (* itRep == &miss)
+      {
+        repairables.erase(it);
+        return;
+      }
+    }
+  }
+}
+
+
 unsigned MissCar::score() const
 {
   vector<unsigned> types(MISS_SIZE);
@@ -178,16 +226,6 @@ unsigned MissCar::score() const
     weight +
     3 * types[MISS_UNUSED] +
     1 * types[MISS_REPAIRABLE];
-}
-
-
-void MissCar::repairables(list<MissPeak *>& repairList)
-{
-  for (auto& miss: misses)
-  {
-    if (miss.source() == MISS_UNMATCHED)
-      repairList.push_back(&miss);
-  }
 }
 
 
