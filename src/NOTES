@@ -1,3 +1,17 @@
+Find the odd first cars
+- s02 083643
+- s03 052231
+
+Look at cases with > 1 completion
+
+Implement PeakPool::repairable() const
+
+Fix the best
+
+Rip out old singles, doubles, ... code
+
+
+
 Wrong, large distances
 ----------------------
 s03 152159 #4: A middle car 2744-3373 picks up wrong 1234 car.

@@ -946,8 +946,9 @@ void PeakPattern::fixOnePeak(
   Peak peakHint;
   peakHint.logPosition(single.target, single.lower, single.upper);
 
+  unsigned testIndex;
   pptr = peaks.repair(peakHint, &Peak::borderlineQuality, offset,
-    forceFlag);
+    false, forceFlag, testIndex);
 
   PeakPattern::processMessage(text, "repair", single.target, pptr);
 }

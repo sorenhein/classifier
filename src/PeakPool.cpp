@@ -357,7 +357,9 @@ Peak * PeakPool::repairTopLevel(
   Piterator& foundIter,
   const PeakFncPtr& fptr,
   const unsigned offset,
-  const bool forceFlag)
+  const bool testFlag,
+  const bool forceFlag,
+  unsigned& testIndex)
 {
   // Peak exists but is not good enough, perhaps because of 
   // neighboring spurious peaks.  To salvage the peak we'll have
@@ -385,6 +387,12 @@ Peak * PeakPool::repairTopLevel(
   }
 
   cout << foundIter->strQualityWhole("Top-level peak repairable", offset);
+
+  if (testFlag)
+  {
+    testIndex = foundIter->getIndex();
+    return nullptr;
+  }
 
   Piterator nprevBestMax = next(bracketInnerMax.left.pit);
   if (nprevBestMax != foundIter)
@@ -439,7 +447,9 @@ Peak * PeakPool::repairFromLower(
   Piterator& foundLowerIter,
   const PeakFncPtr& fptr,
   const unsigned offset,
-  const bool forceFlag)
+  const bool testFlag,
+  const bool forceFlag,
+  unsigned& testIndex)
 {
   // There is a lower list, in which foundLowerIter was found.
   // There is the top list, pointed to by peaks, which we may modify.
@@ -497,6 +507,12 @@ Peak * PeakPool::repairFromLower(
       return nullptr;
     }
 
+    if (testFlag)
+    {
+      testIndex = foundLowerIter->getIndex();
+      return nullptr;
+    }
+
     ptopNew = peaks->insert(bracketTop.right.pit, * foundLowerIter);
     peaks->insert(ptopNew, * pmax);
   }
@@ -529,6 +545,12 @@ Peak * PeakPool::repairFromLower(
       return nullptr;
     }
 
+    if (testFlag)
+    {
+      testIndex = foundLowerIter->getIndex();
+      return nullptr;
+    }
+
     ptopNew = peaks->insert(bracketTop.right.pit, * foundLowerIter);
     peaks->insert(bracketTop.right.pit, * pmax);
   }
@@ -545,8 +567,11 @@ Peak * PeakPool::repair(
   const Peak& peakHint,
   const PeakFncPtr& fptr,
   const unsigned offset,
-  const bool forceFlag)
+  const bool testFlag,
+  const bool forceFlag,
+  unsigned& testIndex)
 {
+  testIndex = 0;
   const unsigned pindex = peakHint.getIndex();
   if (pindex < transientLimit)
     return nullptr;
@@ -573,13 +598,14 @@ cout << foundIter->strQuality(offset) << endl;
     {
       // Peak exists, but may need to be sharpened by removing
       // surrounding peaks.
-      return PeakPool::repairTopLevel(foundIter, fptr, offset, forceFlag);
+      return PeakPool::repairTopLevel(foundIter, fptr, offset, 
+        testFlag, forceFlag, testIndex);
     }
     else
     {
       // Peak only exists in earlier list and might be resurrected.
       return PeakPool::repairFromLower(* liter, foundIter, fptr, offset,
-        forceFlag);
+        testFlag, forceFlag, testIndex);
     }
   }
 

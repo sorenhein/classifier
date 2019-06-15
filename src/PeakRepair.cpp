@@ -357,7 +357,9 @@ cout << "indexSingle " << indexSingle + offset <<
   }
 
   cout << "Look for " << peakHint.strQuality(offset) << endl;
-  Peak * pptr = peaks.repair(peakHint, &Peak::goodQuality, offset);
+  unsigned testIndex;
+  Peak * pptr = peaks.repair(peakHint, &Peak::goodQuality, offset,
+    false, false, testIndex);
   if (pptr)
   {
     cout << "INNER REPAIR: " << pptr->strQuality(offset) << endl;

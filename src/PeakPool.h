@@ -100,14 +100,18 @@ class PeakPool
       Piterator& foundIter,
       const PeakFncPtr& fptr,
       const unsigned offset,
-      const bool forceFlag);
+      const bool testFlag,
+      const bool forceFlag,
+      unsigned& testIndex);
 
     Peak * repairFromLower(
       Peaks& listLower,
       Piterator& foundIter,
       const PeakFncPtr& fptr,
       const unsigned offset,
-      const bool forceFlag);
+      const bool testFlag,
+      const bool forceFlag,
+      unsigned& testIndex);
 
 
   public:
@@ -131,8 +135,10 @@ class PeakPool
     Peak * repair(
       const Peak& peakHint,
       const PeakFncPtr& fptr,
-      const unsigned offset,
-      const bool forceFlag = false); // offset is TMP
+      const unsigned offset, // TMP
+      const bool testFlag,
+      const bool forceFlag,
+      unsigned& testIndex);
 
 
     void makeCandidates();
