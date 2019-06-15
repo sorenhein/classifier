@@ -289,11 +289,9 @@ class PeakPattern
       const vector<unsigned>& indices,
       list<SingleEntry>& singles);
 
-    void addToDoubles(
-      const Target& pe,
-      list<DoubleEntry>& doubles);
+    void addToDoubles(const Target& target);
 
-    void addToTriples(const Target& pe);
+    void addToTriples(const Target& target);
 
     bool checkDoubles(const Target& target) const;
 

@@ -583,61 +583,19 @@ bool PeakPattern::checkDoubles(const Target& target) const
 }
 
 
-void PeakPattern::addToDoubles(
-  const Target& target,
-  list<DoubleEntry>& doubles)
+void PeakPattern::addToDoubles(const Target& target)
 {
   // We rely heavily on having exactly two nullptrs.
   const unsigned bogieQuarter =
-    (target.index(3) - target.index(2) + target.index(1) - target.index(0)) / 8;
+    (target.index(3) - target.index(2) + 
+     target.index(1) - target.index(0)) / 8;
 
-  doubles.emplace_back(DoubleEntry());
-  DoubleEntry& de = doubles.back();
-
-  bool seenFirstFlag = false;
-  bool seenSecondFlag = false;
-  unsigned i0 = numeric_limits<unsigned>::max();
-  unsigned i1 = numeric_limits<unsigned>::max();
   MissCar& miss = completions.back();
-
   for (unsigned i = 0; i < peaksClose.size(); i++)
   {
     if (peaksClose[i] == nullptr)
-    {
-miss.add(target.index(i), bogieQuarter);
-      if (! seenFirstFlag)
-      {
-        // de.first.target = target.indices[i];
-        de.first.target = target.index(i);
-        i0 = i;
-        seenFirstFlag = true;
-      }
-      else
-      {
-        // de.second.target = target.indices[i];
-        de.second.target = target.index(i);
-        i1 = i;
-        seenSecondFlag = true;
-        break;
-      }
-    }
+      miss.add(target.index(i), bogieQuarter);
   }
-
-  if (! seenSecondFlag)
-  {
-    cout << "DOUBERR\n";
-    return;
-  }
-
-  if (de.first.target < bogieQuarter)
-    de.first.lower = 0;
-  else
-    de.first.lower = de.first.target - bogieQuarter;
-
-  de.first.upper = de.first.target + bogieQuarter;
-
-  de.second.lower = de.second.target - bogieQuarter;
-  de.second.upper = de.second.target + bogieQuarter;
 }
 
 
@@ -646,7 +604,6 @@ void PeakPattern::addToTriples(const Target& pe)
   const unsigned bogieQuarter = bogieTypical / 4;
 
   MissCar& miss = completions.back();
-
   for (unsigned i = 0; i < peaksClose.size(); i++)
   {
     if (peaksClose[i] == nullptr)
@@ -717,7 +674,7 @@ cout << "PERFECT MATCH\n";
         target->limits(limitLower, limitUpper);
         miss.setMatch(peaksClose, limitLower, limitUpper);
 
-        PeakPattern::addToDoubles(* target, doubles);
+        PeakPattern::addToDoubles(* target);
       }
     }
     else if (numClose == 1)
