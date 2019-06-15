@@ -62,85 +62,6 @@ class PeakPattern
       };
     };
 
-/*
-    struct SingleEntry
-    {
-      unsigned target;
-      unsigned lower;
-      unsigned upper;
-      unsigned count;
-
-      bool operator < (const SingleEntry& se2)
-      {
-        return (count < se2.count);
-      };
-
-      void bracket(const unsigned delta)
-      {
-        if (target < delta)
-          lower = 0;
-        else
-          lower = target - delta;
-
-        upper = target + delta;
-      };
-
-      string str(const unsigned offset)
-      {
-        stringstream ss;
-        ss << target + offset << " (" <<
-          lower + offset << "-" <<
-          upper + offset << "), count " <<
-          count << endl;
-        return ss.str();
-      };
-    };
-
-    struct DoubleEntry
-    {
-      SingleEntry first;
-      SingleEntry second;
-      unsigned count;
-
-      bool operator < (const DoubleEntry& de2)
-      {
-        return (count < de2.count);
-      };
-
-      string str(const unsigned offset)
-      {
-        stringstream ss;
-        ss << first.str(offset) <<
-          second.str(offset) <<
-          "count " << count << endl;
-        return ss.str();
-      };
-    };
-
-    struct TripleEntry
-    {
-      SingleEntry first;
-      SingleEntry second;
-      SingleEntry third;
-      unsigned count;
-
-      bool operator < (const TripleEntry& de2)
-      {
-        return (count < de2.count);
-      };
-
-      string str(const unsigned offset)
-      {
-        stringstream ss;
-        ss << first.str(offset) <<
-          second.str(offset) <<
-          third.str(offset) <<
-          "count " << count << endl;
-        return ss.str();
-      };
-    };
-*/
-
     struct SpacingEntry
     {
       Peak const * peakLeft;
@@ -291,12 +212,7 @@ class PeakPattern
 
     bool checkDoubles(const Target& target) const;
 
-    void examineTargets(
-      const PeakPtrs& peakPtrsUsed,
-      NoneEntry& none);
-      // list<SingleEntry>& singles,
-      // list<DoubleEntry>& doubles,
-      // list<TripleEntry>& triples);
+    void examineTargets(const PeakPtrs& peakPtrsUsed);
 
     // TODO Move, don't delete
     // void readjust(list<SingleEntry>& singles);
@@ -307,31 +223,6 @@ class PeakPattern
       const unsigned target,
       Peak *& pptr) const;
       
-/*
-    void reviveOnePeak(
-      const string& text,
-      const SingleEntry& single,
-      PeakPtrs& peakPtrsUsed,
-      PeakPtrs& peakPtrsUnused,
-      Peak *& pptr) const;
-      
-    void fixOnePeak(
-      const string& text,
-      const SingleEntry& single,
-      PeakPool& peaks,
-      Peak *& pptr,
-      const bool forceFlag) const;
-
-    void processOnePeak(
-      const string& origin,
-      const SingleEntry& single,
-PeakPtrs& peakPtrsUsed,
-      PeakPtrs& peakPtrsUnused,
-      PeakPool& peaks,
-      Peak *& pptr,
-      const bool forceFlag) const;
-*/
-
     bool fix(
       PeakPool& peaks,
       PeakPtrs& peakPtrsUsed,

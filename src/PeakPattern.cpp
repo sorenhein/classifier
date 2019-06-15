@@ -584,20 +584,10 @@ void PeakPattern::addToTriples(const Target& pe)
 }
 
 
-void PeakPattern::examineTargets(
-  const PeakPtrs& peakPtrsUsed,
-  NoneEntry& none)
-  // list<SingleEntry>& singles,
-  // list<DoubleEntry>& doubles,
-  // list<TripleEntry>& triples)
+void PeakPattern::examineTargets(const PeakPtrs& peakPtrsUsed)
 {
-UNUSED(none);
-
   // Get the lie of the land.
   unsigned distBest = numeric_limits<unsigned>::max();
-  // singles.clear();
-  // doubles.clear();
-  // triples.clear();
   completions.reset();
 
   for (auto target = targets.begin(); target != targets.end(); )
@@ -745,71 +735,6 @@ void PeakPattern::processMessage(
 }
 
 
-/*
-void PeakPattern::reviveOnePeak(
-  const string& text,
-  const SingleEntry& single,
-  PeakPtrs& peakPtrsUsed,
-  PeakPtrs& peakPtrsUnused,
-  Peak *& pptr) const
-{
-  unsigned indexUsed;
-
-  // Peak may have been revived once already, in which case we shouldn't
-  // repeat it.
-  pptr = peakPtrsUsed.locate(single.lower, single.upper, single.target,
-    &Peak::borderlineQuality, indexUsed);
-  
-  if (pptr)
-  {
-    PeakPattern::processMessage(text, "revive from used", single.target, pptr);
-    return;
-  }
-
-  pptr = peakPtrsUnused.locate(single.lower, single.upper, single.target,
-    &Peak::borderlineQuality, indexUsed);
-
-  PeakPattern::processMessage(text, "revive from unused", single.target, pptr);
-}
-
-
-void PeakPattern::fixOnePeak(
-  const string& text,
-  const SingleEntry& single,
-  PeakPool& peaks,
-  Peak *& pptr,
-  const bool forceFlag) const
-{
-  Peak peakHint;
-  peakHint.logPosition(single.target, single.lower, single.upper);
-
-  unsigned testIndex;
-  pptr = peaks.repair(peakHint, &Peak::borderlineQuality, offset,
-    false, forceFlag, testIndex);
-
-  PeakPattern::processMessage(text, "repair", single.target, pptr);
-}
-
-
-void PeakPattern::processOnePeak(
-  const string& origin,
-  const SingleEntry& single,
-PeakPtrs& peakPtrsUsed,
-  PeakPtrs& peakPtrsUnused,
-  PeakPool& peaks,
-  Peak *& pptr,
-  const bool forceFlag) const
-{
-  PeakPattern::reviveOnePeak(origin, single, peakPtrsUsed, peakPtrsUnused, pptr);
-
-  if (pptr == nullptr)
-  {
-    PeakPattern::fixOnePeak(origin, single, peaks, pptr, forceFlag);
-  }
-}
-*/
-
-
 bool PeakPattern::fix(
   PeakPool& peaks,
   PeakPtrs& peakPtrsUsed,
@@ -820,13 +745,7 @@ bool PeakPattern::fix(
   if (targets.empty())
     return false;
 
-  NoneEntry none;
-  // list<SingleEntry> singles;
-  // list<DoubleEntry> doubles;
-  // list<TripleEntry> triples;
-
-  PeakPattern::examineTargets(peakPtrsUsed, none);
-    // none, singles, doubles, triples);
+  PeakPattern::examineTargets(peakPtrsUsed);
 
   // Fill out with relevant, unused peaks.
   for (auto pptr: peakPtrsUnused)
