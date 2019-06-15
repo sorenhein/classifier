@@ -95,10 +95,10 @@ void MissCar::markWith(
   {
     if (miss.markWith(peak, type))
     {
-      MissCar::addPeak(peak);
-
       if (type == MISS_REPAIRABLE)
         MissCar::pruneRepairables(miss);
+      else
+        MissCar::addPeak(peak);
     }
   }
 }

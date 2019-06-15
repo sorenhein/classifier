@@ -42,6 +42,7 @@ class Completions
     void condense();
 
     void makeRepairables();
+
     bool nextRepairable(Peak& peak);
 
     string str(const unsigned offset = 0) const;

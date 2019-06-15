@@ -47,8 +47,21 @@ bool MissPeak::markWith(
 {
   if (_type == MISS_UNMATCHED && peak.match(lower, upper))
   {
-    MissPeak::nominate(typeIn, &peak);
+    if (typeIn == MISS_UNUSED)
+      MissPeak::nominate(typeIn, &peak);
+    else
+      MissPeak::nominate(typeIn, nullptr);
     return true;
+  }
+  else if (_type == MISS_REPAIRABLE && peak.match(lower, upper))
+  {
+    if (typeIn == MISS_REPAIRED)
+    {
+      MissPeak::nominate(typeIn, &peak);
+      return true;
+    }
+    else
+      return false;
   }
   else
     return false;
@@ -101,6 +114,8 @@ string MissPeak::strType() const
     return "unused";
   else if (_type == MISS_REPAIRABLE)
     return "repairable";
+  else if (_type == MISS_REPAIRED)
+    return "repaired";
   else if (_type == MISS_UNMATCHED)
     return "unmatched";
   else

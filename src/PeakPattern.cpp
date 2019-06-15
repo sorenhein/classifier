@@ -509,6 +509,11 @@ void PeakPattern::update(
   PeakPtrs& peakPtrsUnused) const
 {
   PeakPattern::updateUsed(closest, peakPtrsUsed, peakPtrsUnused);
+
+// UNUSED(closest);
+  // !
+  // PeakPattern::updateUnused(limitLower, limitUpper, peakPtrsUsed);
+
   PeakPattern::updateUnused(limitLower, limitUpper, peakPtrsUnused);
 }
 
@@ -1120,8 +1125,28 @@ bool PeakPattern::fix(
   PeakPattern::examineTargets(peakPtrsUsed, 
     none, singles, doubles, triples);
 
+  // Fill out with relevant, unused peaks.
   for (auto pptr: peakPtrsUnused)
     completions.markWith(* pptr, MISS_UNUSED);
+
+  // Then fill out with repairable peaks.
+/* */
+  completions.makeRepairables();
+
+  Peak peakRep;
+  while (completions.nextRepairable(peakRep))
+  {
+    unsigned testIndex;
+    cout << "TRYING " << peakRep.strQuality(offset) << endl;
+    peaks.repair(peakRep, &Peak::borderlineQuality, offset,
+      true, forceFlag, testIndex);
+    if (testIndex > 0)
+    {
+      cout << "REPAIRABLE" << endl;
+      completions.markWith(peakRep, MISS_REPAIRABLE);
+    }
+  }
+/* */
 
   completions.condense();
 
@@ -1129,35 +1154,90 @@ bool PeakPattern::fix(
 
   MissCar * winnerPtr;
   const unsigned numComplete = completions.numComplete(winnerPtr);
+  vector<Peak const *>* closestPtr;
+  unsigned limitLower, limitUpper;
+
   if (numComplete == 1)
   {
-    cout << "COMPLETION MATCH\n";
-    vector<Peak const *>* closestPtr;
-    unsigned limitLower, limitUpper;
-    winnerPtr->getMatch(closestPtr, limitLower, limitUpper);
+    cout << "COMPLETION MATCH" << endl;
+winnerPtr->getMatch(closestPtr, limitLower, limitUpper);
+cout << "Got limits " << limitLower + offset << ", " << 
+  limitUpper + offset << endl;
+unsigned lo2, hi2;
+none.pe.limits(lo2, hi2);
+cout << "Old limits " << lo2 + offset << ", " << 
+  hi2 + offset << endl;
+for (auto& p: * closestPtr)
+  cout << p->strQuality(offset);
+cout << endl;
 
     for (auto& miss: * winnerPtr)
     {
       if (miss.source() == MISS_UNUSED)
       {
-        cout << "Reviving unused " << miss.str(offset);
+        cout << "Reviving unused " << miss.str(offset) << endl;;
         Peak * ptr = miss.ptr();
         peakPtrsUsed.add(ptr);
         peakPtrsUnused.remove(ptr);
       }
+/* */
+      else if (miss.source() == MISS_REPAIRABLE)
+      {
+        cout << "Repairing unused " << miss.str(offset) << endl;
+        unsigned testIndex;
+        // Peak peakRep;
+        miss.fill(peakRep);
+        cout << "peakRep " << peakRep.strQuality(offset) << endl;
+        Peak * ptr = peaks.repair(peakRep, &Peak::borderlineQuality, 
+          offset, false, forceFlag, testIndex);
+
+        if (ptr)
+        {
+          cout << "Got repair " << ptr->strQuality(offset) << endl;
+          peakPtrsUsed.add(ptr);
+          cout << peakPtrsUsed.strQuality("Used now", offset);
+          winnerPtr->markWith(* ptr, MISS_REPAIRED);
+          // miss.markWith(* ptr, MISS_REPAIRED);
+        }
+        else
+        {
+          THROW(ERR_ALGO_PEAK_CONSISTENCY, "Not repairable after all?");
+        }
+      }
+/* */
     }
+
+    limitLower = 0;
+    limitUpper = 0;
+    winnerPtr->getMatch(closestPtr, limitLower, limitUpper);
+cout << "Got limits after loop " << limitLower + offset << ", " << 
+  limitUpper + offset << endl;
+// unsigned lo2, hi2;
+none.pe.limits(lo2, hi2);
+cout << "Old limits after loop " << lo2 + offset << ", " << 
+  hi2 + offset << endl;
+for (auto& p: * closestPtr)
+  cout << p->strQuality(offset);
+cout << endl;
+
+cout << peakPtrsUsed.strQuality("Used before update", offset);
+cout << peakPtrsUnused.strQuality("Unused before update", offset);
 
     PeakPattern::update(* closestPtr, limitLower, limitUpper, 
       peakPtrsUsed, peakPtrsUnused);
+
+cout << peakPtrsUsed.strQuality("Used after update", offset);
+cout << peakPtrsUnused.strQuality("Unused after update", offset);
+
     return true;
   }
   else if (numComplete > 1)
   {
-    cout << "COMPLETION ABUNDANCE " << numComplete << "\n";
+    cout << "COMPLETION ABUNDANCE " << numComplete << endl;
   }
   else
   {
-    cout << "COMPLETION MISS\n";
+    cout << "COMPLETION MISS" << endl;
   }
 
   if (none.empty() && singles.empty() && doubles.empty())
@@ -1210,6 +1290,16 @@ bool PeakPattern::fix(
   // Try the 4's of various origins.
   if (! none.empty())
   {
+cout << "COMPCAND\n";
+unsigned limitLower2, limitUpper2;
+none.pe.limits(limitLower2, limitUpper2);
+cout << "Got limits " << limitLower2 + offset << ", " << 
+  limitUpper2 + offset << endl;
+cout << "close peaks\n";
+for (auto& p: none.peaksClose)
+  cout << p->strQuality(offset);
+cout << endl;
+
     PeakPattern::update(none, peakPtrsUsed, peakPtrsUnused);
     return true;
   }
