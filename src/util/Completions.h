@@ -39,7 +39,7 @@ class Completions
 
     void condense();
 
-    void repairables(list<list<MissPeak>>& repairList);
+    void repairables(list<list<MissPeak *>>& repairList);
 
     string str() const;
 };

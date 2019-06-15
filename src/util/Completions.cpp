@@ -63,10 +63,26 @@ void Completions::condense()
 }
 
 
-#define UNUSED(x) ((void)(true ? 0 : ((x), void(), 0)))
-void Completions::repairables(list<list<MissPeak>>& repairList)
+void Completions::sort()
 {
-  UNUSED(repairList);
+  completions.sort([](const MissCar& miss1, const MissCar& miss2)
+    {
+      return (miss1.score() > miss2.score());
+    });
+}
+
+
+void Completions::repairables(list<list<MissPeak *>>& repairList)
+{
+  Completions::sort();
+
+  repairList.clear();
+  for (auto& comp: completions)
+  {
+    list<MissPeak *>& missList = 
+      repairList.emplace_back(list<MissPeak *>());
+    comp.repairables(missList);
+  }
 }
 
 

@@ -16,10 +16,9 @@ class Peak;
 enum MissType
 {
   MISS_UNUSED = 0,
-  MISS_USED = 1,
-  MISS_REPAIRABLE = 2,
-  MISS_UNMATCHED = 3,
-  MISS_SIZE = 4
+  MISS_REPAIRABLE = 1,
+  MISS_UNMATCHED = 2,
+  MISS_SIZE = 3
 };
 
 

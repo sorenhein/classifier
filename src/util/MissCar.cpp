@@ -100,9 +100,18 @@ unsigned MissCar::score() const
   // TODO For example.
   return 
     weight +
-    3 * types[MISS_USED] +
-    2 * types[MISS_UNUSED] +
+    3 * types[MISS_UNUSED] +
     1 * types[MISS_REPAIRABLE];
+}
+
+
+void MissCar::repairables(list<MissPeak *>& repairList)
+{
+  for (auto& miss: misses)
+  {
+    if (miss.source() == MISS_UNMATCHED)
+      repairList.push_back(&miss);
+  }
 }
 
 

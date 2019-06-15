@@ -81,8 +81,6 @@ string MissPeak::strType() const
 {
   if (_type == MISS_UNUSED)
     return "unused";
-  else if (_type == MISS_USED)
-    return "used";
   else if (_type == MISS_REPAIRABLE)
     return "repairable";
   else if (_type == MISS_UNMATCHED)

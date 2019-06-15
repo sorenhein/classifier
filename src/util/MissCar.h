@@ -50,6 +50,8 @@ class MissCar
 
     unsigned score() const;
 
+    void repairables(list<MissPeak *>& repairList);
+
     string str() const;
 };
 
