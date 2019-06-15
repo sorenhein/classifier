@@ -306,12 +306,6 @@ class PeakPattern
       list<DoubleEntry>& doubles,
       list<TripleEntry>& triples);
 
-    void condenseSingles(list<SingleEntry>& singles) const;
-
-    void condenseDoubles(list<DoubleEntry>& doubles) const;
-
-    void condenseTriples(list<TripleEntry>& triples) const;
-
     void readjust(list<SingleEntry>& singles);
 
     void processMessage(
@@ -341,27 +335,6 @@ PeakPtrs& peakPtrsUsed,
       PeakPtrs& peakPtrsUnused,
       PeakPool& peaks,
       Peak *& pptr,
-      const bool forceFlag) const;
-
-    bool fixSingles(
-      PeakPool& peaks,
-      list<SingleEntry>& singles,
-      PeakPtrs& peakPtrsUsed,
-      PeakPtrs& peakPtrsUnused,
-      const bool forceFlag) const;
-
-    bool fixDoubles(
-      PeakPool& peaks,
-      list<DoubleEntry>& doubles,
-      PeakPtrs& peakPtrsUsed,
-      PeakPtrs& peakPtrsUnused,
-      const bool forceFlag) const;
-
-    bool fixTriples(
-      PeakPool& peaks,
-      list<TripleEntry>& triples,
-      PeakPtrs& peakPtrsUsed,
-      PeakPtrs& peakPtrsUnused,
       const bool forceFlag) const;
 
     bool fix(
