@@ -205,6 +205,11 @@ class PeakPattern
     // TODO Move, don't delete
     // void readjust(list<SingleEntry>& singles);
 
+    void annotateCompletions(
+      PeakPool& peaks,
+      PeakPtrs& peakPtrsUnused,
+      const bool forceFlag);
+
     bool fix(
       PeakPool& peaks,
       PeakPtrs& peakPtrsUsed,

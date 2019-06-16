@@ -604,6 +604,39 @@ cout << "Adjusted " << p << " goal from " <<
 */
 
 
+void PeakPattern::annotateCompletions(
+  PeakPool& peaks,
+  PeakPtrs& peakPtrsUnused,
+  const bool forceFlag)
+{
+  // Mark up with relevant, unused peaks.
+  for (auto pptr: peakPtrsUnused)
+    completions.markWith(* pptr, MISS_UNUSED);
+
+  // Mark up with repairable peaks.
+  completions.makeRepairables();
+
+  Peak peakRep;
+  while (completions.nextRepairable(peakRep))
+  {
+    unsigned testIndex;
+    cout << "TRYING " << peakRep.strQuality(offset);
+    peaks.repair(peakRep, &Peak::borderlineQuality, offset,
+      true, forceFlag, testIndex);
+
+    if (testIndex > 0)
+    {
+      cout << "REPAIRABLE" << endl;
+      peakRep.logPosition(testIndex, testIndex, testIndex);
+      completions.markWith(peakRep, MISS_REPAIRABLE);
+    }
+  }
+
+  cout << "Completions after mark-up\n\n";
+  cout << completions.str(offset);
+}
+
+
 bool PeakPattern::fix(
   PeakPool& peaks,
   PeakPtrs& peakPtrsUsed,
@@ -616,33 +649,11 @@ bool PeakPattern::fix(
 
   PeakPattern::targetsToCompletions(peakPtrsUsed);
 
-  // Fill out with relevant, unused peaks.
-  for (auto pptr: peakPtrsUnused)
-    completions.markWith(* pptr, MISS_UNUSED);
-
-  // Then fill out with repairable peaks.
-  completions.makeRepairables();
-
-  Peak peakRep;
-  while (completions.nextRepairable(peakRep))
-  {
-    unsigned testIndex;
-    cout << "TRYING " << peakRep.strQuality(offset);
-    peaks.repair(peakRep, &Peak::borderlineQuality, offset,
-      true, forceFlag, testIndex);
-    if (testIndex > 0)
-    {
-      cout << "REPAIRABLE" << endl;
-      peakRep.logPosition(testIndex, testIndex, testIndex);
-      completions.markWith(peakRep, MISS_REPAIRABLE);
-    }
-  }
-
-  cout << "Completions before filling out\n\n";
-  cout << completions.str(offset);
+  PeakPattern::annotateCompletions(peaks, peakPtrsUnused, forceFlag);
 
   vector<Peak const *>* closestPtr;
   unsigned limitLower, limitUpper;
+  Peak peakRep;
 
   for (auto& misses: completions)
   {
