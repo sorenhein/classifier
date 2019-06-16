@@ -637,6 +637,48 @@ void PeakPattern::annotateCompletions(
 }
 
 
+void PeakPattern::fillCompletions(
+  PeakPool& peaks,
+  PeakPtrs& peakPtrsUsed,
+  PeakPtrs& peakPtrsUnused,
+  const bool forceFlag)
+{
+  Peak peakRep;
+
+  for (auto& misses: completions)
+  {
+    for (auto& miss: misses)
+    {
+      if (miss.source() == MISS_UNUSED)
+      {
+        cout << "Reviving unused " << miss.str(offset) << endl;;
+        Peak * ptr = miss.ptr();
+        peakPtrsUsed.add(ptr);
+        peakPtrsUnused.remove(ptr);
+      }
+      else if (miss.source() == MISS_REPAIRABLE)
+      {
+        cout << "Repairing unused " << miss.str(offset) << endl;
+        unsigned testIndex;
+        miss.fill(peakRep);
+        Peak * ptr = peaks.repair(peakRep, &Peak::borderlineQuality, 
+          offset, false, forceFlag, testIndex);
+
+        if (ptr)
+        {
+          peakPtrsUsed.add(ptr);
+          cout << peakPtrsUsed.strQuality("Used now", offset);
+
+          completions.markWith(* ptr, MISS_REPAIRED);
+        }
+        else
+          THROW(ERR_ALGO_PEAK_CONSISTENCY, "Not repairable after all?");
+      }
+    }
+  }
+}
+
+
 bool PeakPattern::fix(
   PeakPool& peaks,
   PeakPtrs& peakPtrsUsed,
@@ -651,8 +693,12 @@ bool PeakPattern::fix(
 
   PeakPattern::annotateCompletions(peaks, peakPtrsUnused, forceFlag);
 
+  PeakPattern::fillCompletions(peaks, peakPtrsUsed, peakPtrsUnused, 
+    forceFlag);
+
   vector<Peak const *>* closestPtr;
   unsigned limitLower, limitUpper;
+  /*
   Peak peakRep;
 
   for (auto& misses: completions)
@@ -688,6 +734,7 @@ bool PeakPattern::fix(
       }
     }
   }
+  */
 
   MissCar * winnerPtr;
 

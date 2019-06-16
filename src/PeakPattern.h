@@ -210,6 +210,12 @@ class PeakPattern
       PeakPtrs& peakPtrsUnused,
       const bool forceFlag);
 
+    void fillCompletions(
+      PeakPool& peaks,
+      PeakPtrs& peakPtrsUsed,
+      PeakPtrs& peakPtrsUnused,
+      const bool forceFlag);
+
     bool fix(
       PeakPool& peaks,
       PeakPtrs& peakPtrsUsed,
