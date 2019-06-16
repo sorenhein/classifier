@@ -116,12 +116,10 @@ class PeakPattern
       const CarModels& models,
       const bool fullFlag);
 
-    bool fillFromModel(
+    bool addModelTargets(
       const CarModels& models,
       const unsigned indexModel,
       const bool symmetryFlag,
-      const unsigned indexRangeLeft,
-      const unsigned indexRangeRight,
       const BordersType patternType);
 
     bool guessNoBorders();

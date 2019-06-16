@@ -134,12 +134,10 @@ void PeakPattern::getActiveModels(
 }
 
 
-bool PeakPattern::fillFromModel(
+bool PeakPattern::addModelTargets(
   const CarModels& models,
   const unsigned indexModel,
   const bool symmetryFlag,
-  const unsigned indexRangeLeft,
-  const unsigned indexRangeRight,
   const BordersType patternType)
 {
   CarDetect car;
@@ -155,7 +153,8 @@ bool PeakPattern::fillFromModel(
   if (car.hasLeftGap())
   {
     if (target.fill(indexModel, weight, false, 
-        indexRangeLeft, indexRangeRight, patternType, carPoints))
+          rangeData.indexLeft, rangeData.indexRight, 
+          patternType, carPoints))
     {
       targets.emplace_back(target);
       seenFlag = true;
@@ -165,7 +164,8 @@ bool PeakPattern::fillFromModel(
   if (! symmetryFlag && car.hasRightGap())
   {
     if (target.fill(indexModel, weight, true, 
-        indexRangeLeft, indexRangeRight, patternType, carPoints))
+          rangeData.indexLeft, rangeData.indexRight, 
+          patternType, carPoints))
     {
       targets.emplace_back(target);
       seenFlag = true;
@@ -271,8 +271,8 @@ bool PeakPattern::guessBothSingle(const CarModels& models)
     if (rangeData.lenRange >= ae.lenLo[rangeData.qualBest] &&
         rangeData.lenRange <= ae.lenHi[rangeData.qualBest])
     {
-      PeakPattern::fillFromModel(models, ae.index, 
-        ae.data->symmetryFlag, rangeData.indexLeft, rangeData.indexRight, 
+      PeakPattern::addModelTargets(models, ae.index, 
+        ae.data->symmetryFlag,
         BORDERS_DOUBLE_SIDED_SINGLE);
     }
   }
@@ -343,14 +343,12 @@ bool PeakPattern::guessBothDouble(
           ae1.lenHi[rangeData.qualBest] + ae2.lenHi[rangeData.qualBest])
       {
         if (leftFlag)
-          PeakPattern::fillFromModel(models, ae1.index, 
+          PeakPattern::addModelTargets(models, ae1.index, 
             ae1.data->symmetryFlag, 
-            rangeData.indexLeft, rangeData.indexRight, 
             BORDERS_DOUBLE_SIDED_DOUBLE);
         else
-          PeakPattern::fillFromModel(models, ae2.index, 
+          PeakPattern::addModelTargets(models, ae2.index, 
             ae2.data->symmetryFlag, 
-            rangeData.indexLeft, rangeData.indexRight, 
             BORDERS_DOUBLE_SIDED_DOUBLE);
       }
     }
@@ -377,8 +375,8 @@ bool PeakPattern::guessLeft(const CarModels& models)
 
   for (auto& ae: activeEntries)
   {
-    PeakPattern::fillFromModel(models, ae.index, ae.data->symmetryFlag,
-      rangeData.indexLeft, rangeData.indexRight, BORDERS_SINGLE_SIDED_LEFT);
+    PeakPattern::addModelTargets(models, ae.index, ae.data->symmetryFlag,
+      BORDERS_SINGLE_SIDED_LEFT);
   }
 
   return (! targets.empty());
@@ -406,8 +404,8 @@ bool PeakPattern::guessRight(const CarModels& models)
 
   for (auto& ae: activeEntries)
   {
-    PeakPattern::fillFromModel(models, ae.index, ae.data->symmetryFlag,
-      rangeData.indexLeft, rangeData.indexRight, BORDERS_SINGLE_SIDED_RIGHT);
+    PeakPattern::addModelTargets(models, ae.index, ae.data->symmetryFlag,
+      BORDERS_SINGLE_SIDED_RIGHT);
   }
 
   return (! targets.empty());
