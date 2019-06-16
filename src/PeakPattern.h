@@ -206,9 +206,7 @@ class PeakPattern
 
     void addToCompletions(const Target& target);
 
-    bool checkDoubles(const Target& target) const;
-
-    void examineTargets(const PeakPtrs& peakPtrsUsed);
+    void targetsToCompletions(const PeakPtrs& peakPtrsUsed);
 
     // TODO Move, don't delete
     // void readjust(list<SingleEntry>& singles);

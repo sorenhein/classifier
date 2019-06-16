@@ -529,65 +529,11 @@ void PeakPattern::addToCompletions(const Target& target)
 }
 
 
-bool PeakPattern::checkDoubles(const Target& target) const
+void PeakPattern::targetsToCompletions(const PeakPtrs& peakPtrsUsed)
 {
-  // TODO Can make simpler?
-  unsigned limitLower, limitUpper;
-  target.limits(limitLower, limitUpper);
-  if (limitLower && peaksClose[2] == nullptr && peaksClose[3] == nullptr)
-  {
-    // Don't look open-ended from the left when the right bogie has
-    // no match at all.
-    return false;
-  }
-
-  if (limitUpper && peaksClose[0] == nullptr && peaksClose[1] == nullptr)
-  {
-    // Don't look open-ended from the right when the left bogie has
-    // no match at all.
-    return false;
-  }
-  return true;
-}
-
-
-/*
-void PeakPattern::addToDoubles(const Target& target)
-{
-  // const unsigned bogieQuarter = target.bogieGap() / 4;
-  const unsigned bogieQuarter = 3 * target.bogieGap() / 10;
-
-  MissCar& miss = completions.back();
-  for (unsigned i = 0; i < peaksClose.size(); i++)
-  {
-    if (peaksClose[i] == nullptr)
-      miss.add(target.index(i), bogieQuarter);
-  }
-}
-
-
-void PeakPattern::addToTriples(const Target& target)
-{
-  // const unsigned bogieQuarter = target.bogieGap() / 4;
-  const unsigned bogieQuarter = 3 * target.bogieGap() / 10;
-
-  MissCar& miss = completions.back();
-  for (unsigned i = 0; i < peaksClose.size(); i++)
-  {
-    if (peaksClose[i] == nullptr)
-      miss.add(target.index(i), bogieQuarter);
-  }
-}
-*/
-
-
-void PeakPattern::examineTargets(const PeakPtrs& peakPtrsUsed)
-{
-  // Get the lie of the land.
-  unsigned distBest = numeric_limits<unsigned>::max();
   completions.reset();
 
-  for (auto target = targets.begin(); target != targets.end(); )
+  for (auto target = targets.begin(); target != targets.end(); target++)
   {
     unsigned numClose;
     unsigned dist;
@@ -596,22 +542,7 @@ void PeakPattern::examineTargets(const PeakPtrs& peakPtrsUsed)
 
     cout << PeakPattern::strClosest(target->indices());
 
-    if (numClose == 4)
-    {
-      // Here we take the best one, whereas we take a more democratic
-      // approach for 2's and 3's.
-      if (dist < distBest)
-      {
-cout << "PERFECT MATCH\n";
-        distBest = dist;
-        MissCar& miss = completions.emplace_back(dist);
-
-        unsigned limitLower, limitUpper;
-        target->limits(limitLower, limitUpper);
-        miss.setMatch(peaksClose, limitLower, limitUpper);
-      }
-    }
-    else if (numClose == 3)
+    if (numClose > 0)
     {
       MissCar& miss = completions.emplace_back(dist);
 
@@ -621,37 +552,6 @@ cout << "PERFECT MATCH\n";
 
       PeakPattern::addToCompletions(* target);
     }
-    else if (numClose == 2)
-    {
-      if (PeakPattern::checkDoubles(* target))
-      {
-        MissCar& miss = completions.emplace_back(dist);
-
-        unsigned limitLower, limitUpper;
-        target->limits(limitLower, limitUpper);
-        miss.setMatch(peaksClose, limitLower, limitUpper);
-
-        PeakPattern::addToCompletions(* target);
-      }
-    }
-    else if (numClose == 1)
-    {
-      MissCar& miss = completions.emplace_back(dist);
-
-      unsigned limitLower, limitUpper;
-      target->limits(limitLower, limitUpper);
-      miss.setMatch(peaksClose, limitLower, limitUpper);
-
-      PeakPattern::addToCompletions(* target);
-    }
-    else if (numClose == 0)
-    {
-      // Get rid of the 1's and 0's.
-      target = targets.erase(target);
-      continue;
-    }
-
-    target++;
   }
 }
 
@@ -742,7 +642,7 @@ bool PeakPattern::fix(
   if (targets.empty())
     return false;
 
-  PeakPattern::examineTargets(peakPtrsUsed);
+  PeakPattern::targetsToCompletions(peakPtrsUsed);
 
   // Fill out with relevant, unused peaks.
   for (auto pptr: peakPtrsUnused)
