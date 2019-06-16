@@ -204,11 +204,7 @@ class PeakPattern
       PeakPtrs& peakPtrsUsed,
       PeakPtrs& peakPtrsUnused) const;
 
-    void addToSingles(const Target& target);
-
-    void addToDoubles(const Target& target);
-
-    void addToTriples(const Target& target);
+    void addToCompletions(const Target& target);
 
     bool checkDoubles(const Target& target) const;
 

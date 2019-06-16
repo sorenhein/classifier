@@ -25,6 +25,8 @@ struct ModelData
   bool gapRightFlag;
   unsigned gapRight;
 
+  bool bothBogiesFlag;
+
   bool containedFlag;
   unsigned containedIndex;
   bool containedReverseFlag;

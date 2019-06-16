@@ -89,7 +89,7 @@ void PeakPattern::getActiveModels(
     ModelData const * data = models.getData(index);
     if (! fullFlag)
     {
-      if (data->containedFlag)
+      if (data->containedFlag || ! data->bothBogiesFlag)
         continue;
     }
     else if (! data->fullFlag)
@@ -264,6 +264,7 @@ bool PeakPattern::guessNoBorders()
 bool PeakPattern::guessBothSingle(const CarModels& models)
 {
   cout << "Trying guessBothSingle\n";
+  targets.clear();
 
   for (auto& ae: activeEntries)
   {
@@ -287,6 +288,7 @@ bool PeakPattern::guessBothSingleShort()
     return false;
 
   cout << "Trying guessBothSingleShort\n";
+  targets.clear();
 
   unsigned lenTypical = 2 * (sideTypical + bogieTypical) + longTypical;
   unsigned lenShortLo = static_cast<unsigned>(SHORT_FACTOR * lenTypical);
@@ -514,19 +516,15 @@ void PeakPattern::update(
 }
 
 
-void PeakPattern::addToSingles(const Target& target)
+void PeakPattern::addToCompletions(const Target& target)
 {
-  // We rely heavily on having exactly one nullptr.
-  // Singles are generally quite likely, so we permit more range.
-  const unsigned bogieThird = target.bogieGap() / 3;
-    // (indices[3] - indices[2] + indices[1] - indices[0]) / 6;
+  const unsigned bogieTolerance = 3 * target.bogieGap() / 10;
 
   MissCar& miss = completions.back();
-
   for (unsigned i = 0; i < peaksClose.size(); i++)
   {
     if (peaksClose[i] == nullptr)
-      miss.add(target.index(i), bogieThird);
+      miss.add(target.index(i), bogieTolerance);
   }
 }
 
@@ -553,12 +551,11 @@ bool PeakPattern::checkDoubles(const Target& target) const
 }
 
 
+/*
 void PeakPattern::addToDoubles(const Target& target)
 {
-  // We rely heavily on having exactly two nullptrs.
-  const unsigned bogieQuarter = target.bogieGap() / 4;
-    // (target.index(3) - target.index(2) + 
-     // target.index(1) - target.index(0)) / 8;
+  // const unsigned bogieQuarter = target.bogieGap() / 4;
+  const unsigned bogieQuarter = 3 * target.bogieGap() / 10;
 
   MissCar& miss = completions.back();
   for (unsigned i = 0; i < peaksClose.size(); i++)
@@ -571,8 +568,8 @@ void PeakPattern::addToDoubles(const Target& target)
 
 void PeakPattern::addToTriples(const Target& target)
 {
-  const unsigned bogieQuarter = target.bogieGap() / 4;
-  // const unsigned bogieQuarter = bogieTypical / 4;
+  // const unsigned bogieQuarter = target.bogieGap() / 4;
+  const unsigned bogieQuarter = 3 * target.bogieGap() / 10;
 
   MissCar& miss = completions.back();
   for (unsigned i = 0; i < peaksClose.size(); i++)
@@ -581,6 +578,7 @@ void PeakPattern::addToTriples(const Target& target)
       miss.add(target.index(i), bogieQuarter);
   }
 }
+*/
 
 
 void PeakPattern::examineTargets(const PeakPtrs& peakPtrsUsed)
@@ -621,7 +619,7 @@ cout << "PERFECT MATCH\n";
       target->limits(limitLower, limitUpper);
       miss.setMatch(peaksClose, limitLower, limitUpper);
 
-      PeakPattern::addToSingles(* target);
+      PeakPattern::addToCompletions(* target);
     }
     else if (numClose == 2)
     {
@@ -633,7 +631,7 @@ cout << "PERFECT MATCH\n";
         target->limits(limitLower, limitUpper);
         miss.setMatch(peaksClose, limitLower, limitUpper);
 
-        PeakPattern::addToDoubles(* target);
+        PeakPattern::addToCompletions(* target);
       }
     }
     else if (numClose == 1)
@@ -644,7 +642,7 @@ cout << "PERFECT MATCH\n";
       target->limits(limitLower, limitUpper);
       miss.setMatch(peaksClose, limitLower, limitUpper);
 
-      PeakPattern::addToTriples(* target);
+      PeakPattern::addToCompletions(* target);
     }
     else if (numClose == 0)
     {

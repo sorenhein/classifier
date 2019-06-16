@@ -78,6 +78,8 @@ void CarModels::characterize()
     if (data.gapRightFlag)
       data.gapRight = car.getRightGap();
 
+    data.bothBogiesFlag = car.hasLeftBogieGap() && car.hasRightBogieGap();
+
     data.containedFlag = false;
 
     data.symmetryFlag = car.isSymmetric();
