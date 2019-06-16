@@ -516,41 +516,37 @@ void PeakPattern::update(
 }
 
 
-void PeakPattern::addToCompletions(const Target& target)
-{
-  const unsigned bogieTolerance = 3 * target.bogieGap() / 10;
-
-  MissCar& miss = completions.back();
-  for (unsigned i = 0; i < peaksClose.size(); i++)
-  {
-    if (peaksClose[i] == nullptr)
-      miss.add(target.index(i), bogieTolerance);
-  }
-}
-
-
 void PeakPattern::targetsToCompletions(const PeakPtrs& peakPtrsUsed)
 {
   completions.reset();
 
-  for (auto target = targets.begin(); target != targets.end(); target++)
+  vector<Peak const *> peaksClose;
+  unsigned numClose;
+  unsigned dist;
+
+  for (auto& target: targets)
   {
-    unsigned numClose;
-    unsigned dist;
+    peakPtrsUsed.getClosest(target.indices(), peaksClose, numClose, dist);
 
-    peakPtrsUsed.getClosest(target->indices(), peaksClose, numClose, dist);
+    cout << PeakPattern::strClosest(peaksClose, target.indices());
 
-    cout << PeakPattern::strClosest(target->indices());
+    if (numClose == 0)
+      continue;
 
-    if (numClose > 0)
+    unsigned limitLower, limitUpper;
+    target.limits(limitLower, limitUpper);
+
+    MissCar& miss = completions.emplace_back(dist);
+    miss.setLimits(limitLower, limitUpper);
+
+    const unsigned bogieTolerance = 3 * target.bogieGap() / 10;
+
+    for (unsigned i = 0; i < peaksClose.size(); i++)
     {
-      MissCar& miss = completions.emplace_back(dist);
-
-      unsigned limitLower, limitUpper;
-      target->limits(limitLower, limitUpper);
-      miss.setMatch(peaksClose, limitLower, limitUpper);
-
-      PeakPattern::addToCompletions(* target);
+      if (peaksClose[i] == nullptr)
+        miss.addMiss(target.index(i), bogieTolerance);
+      else
+        miss.addMatch(peaksClose[i]);
     }
   }
 }
@@ -611,25 +607,6 @@ cout << "Adjusted " << p << " goal from " <<
   targets.front().revise(p, target);
 }
 */
-
-
-void PeakPattern::processMessage(
-  const string& origin,
-  const string& verb,
-  const unsigned target,
-  Peak *& pptr) const
-{
-  if (pptr == nullptr)
-  {
-    cout << origin << ": Failed target " << verb << " " <<
-      target + offset << "\n";
-  }
-  else
-  {
-    cout << origin << ": Target " << verb << " " <<
-      target + offset << " to " << pptr->getIndex() + offset << endl;
-  }
-}
 
 
 bool PeakPattern::fix(
@@ -1104,7 +1081,9 @@ cout << peakPtrsUnused.strQuality("Unused", offset);
 }
 
 
-string PeakPattern::strClosest(const vector<unsigned>& indices) const
+string PeakPattern::strClosest(
+  vector<Peak const *>& peaksClose,
+  const vector<unsigned>& indices) const
 {
   stringstream ss;
   ss << "Closest indices\n";

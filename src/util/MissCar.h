@@ -45,9 +45,11 @@ class MissCar
 
     void setDistance(const unsigned dist);
 
-    void add(
+    void addMiss(
       const unsigned target,
       const unsigned tolerance);
+
+    void addMatch(Peak const * pptr);
 
     Miterator begin();
     Miterator end();
@@ -60,8 +62,7 @@ class MissCar
 
     bool complete() const;
 
-    void setMatch(
-      vector<Peak const *>& closestPeaksIn,
+    void setLimits(
       const unsigned limitLowerIn,
       const unsigned limitUpperIn);
 

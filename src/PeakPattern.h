@@ -100,8 +100,6 @@ class PeakPattern
 
     vector<ActiveEntry> activeEntries;
 
-    vector<Peak const *> peaksClose;
-
     list<Target> targets;
 
     Completions completions;
@@ -204,19 +202,11 @@ class PeakPattern
       PeakPtrs& peakPtrsUsed,
       PeakPtrs& peakPtrsUnused) const;
 
-    void addToCompletions(const Target& target);
-
     void targetsToCompletions(const PeakPtrs& peakPtrsUsed);
 
     // TODO Move, don't delete
     // void readjust(list<SingleEntry>& singles);
 
-    void processMessage(
-      const string& origin,
-      const string& verb,
-      const unsigned target,
-      Peak *& pptr) const;
-      
     bool fix(
       PeakPool& peaks,
       PeakPtrs& peakPtrsUsed,
@@ -227,6 +217,7 @@ class PeakPattern
     void getSpacings(PeakPtrs& peakPtrsUsed);
 
     string strClosest(
+      vector<Peak const *>& peaksClose,
       const vector<unsigned>& indices) const;
 
 

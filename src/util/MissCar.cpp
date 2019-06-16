@@ -40,7 +40,7 @@ void MissCar::setDistance(const unsigned dist)
 }
 
 
-void MissCar::add(
+void MissCar::addMiss(
   const unsigned target,
   const unsigned tolerance)
 {
@@ -48,6 +48,12 @@ void MissCar::add(
   MissPeak& miss = misses.back();
 
   miss.set(target, tolerance);
+}
+
+
+void MissCar::addMatch(Peak const * pptr)
+{
+  _closestPeaks.push_back(pptr);
 }
 
 
@@ -119,17 +125,10 @@ bool MissCar::complete() const
 }
 
 
-void MissCar::setMatch(
-  vector<Peak const *>& closestPeaksIn,
+void MissCar::setLimits(
   const unsigned limitLowerIn,
   const unsigned limitUpperIn)
 {
-  for (auto ptr: closestPeaksIn)
-  {
-    if (ptr)
-      _closestPeaks.push_back(ptr);
-  }
-
   _limitLower = limitLowerIn;
   _limitUpper = limitUpperIn;
 }
