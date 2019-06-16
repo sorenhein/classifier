@@ -75,9 +75,7 @@ bool PeakPattern::setGlobals(
 }
 
 
-void PeakPattern::getActiveModels(
-  const CarModels& models,
-  const bool fullFlag)
+void PeakPattern::getActiveModels(const CarModels& models)
 {
   activeEntries.clear();
 
@@ -87,12 +85,7 @@ void PeakPattern::getActiveModels(
       continue;
 
     ModelData const * data = models.getData(index);
-    if (! fullFlag)
-    {
-      if (data->containedFlag || ! data->bothBogiesFlag)
-        continue;
-    }
-    else if (! data->fullFlag)
+    if (data->containedFlag || ! data->bothBogiesFlag)
       continue;
 
     activeEntries.emplace_back(ActiveEntry());
@@ -100,9 +93,6 @@ void PeakPattern::getActiveModels(
     ae.data = data;
     ae.index = index;
     ae.fullFlag = data->fullFlag;
-
-// cout << "getActiveModels: Got index " << index << endl;
-// cout << data->str() << endl;
 
     // Three different qualities; only two used for now.
     ae.lenLo.resize(3);
@@ -131,7 +121,6 @@ void PeakPattern::getActiveModels(
     ae.lenHi[QUALITY_BY_SYMMETRY] =
       static_cast<unsigned>((1.f + LEN_FACTOR_GOOD) * len);
   }
-// cout << "DONE getActive" << endl;
 }
 
 
@@ -1030,10 +1019,11 @@ bool PeakPattern::locate(
 cout << peakPtrsUsed.strQuality("Used", offset);
 cout << peakPtrsUnused.strQuality("Unused", offset);
 
+  PeakPattern::getActiveModels(models);
+
   // First try filling the entire range with 1-2 cars.
   if (rangeData.qualBest != QUALITY_NONE)
   {
-    PeakPattern::getActiveModels(models, true);
 
     // Note that guessBothDouble(true) could generate candidates
     // which aren't fitted.  So we can't return the fix value no
@@ -1054,7 +1044,6 @@ cout << peakPtrsUnused.strQuality("Unused", offset);
   }
 
   // Then try to fill up with known models from the left or right.
-  PeakPattern::getActiveModels(models, false);
 
   if (rangeData.qualLeft != QUALITY_NONE)
   {

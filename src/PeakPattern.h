@@ -113,9 +113,7 @@ class PeakPattern
       const PeakRange& range,
       const unsigned offsetIn);
 
-    void getActiveModels(
-      const CarModels& models,
-      const bool fullFlag);
+    void getActiveModels(const CarModels& models);
 
     bool addModelTargets(
       const CarModels& models,
