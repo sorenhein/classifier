@@ -99,6 +99,7 @@ void PeakPattern::getActiveModels(
     ActiveEntry& ae = activeEntries.back();
     ae.data = data;
     ae.index = index;
+    ae.fullFlag = data->fullFlag;
 
 // cout << "getActiveModels: Got index " << index << endl;
 // cout << data->str() << endl;
@@ -268,6 +269,9 @@ bool PeakPattern::guessBothSingle(const CarModels& models)
 
   for (auto& ae: activeEntries)
   {
+    if (! ae.fullFlag)
+      continue;
+
     if (rangeData.lenRange >= ae.lenLo[rangeData.qualBest] &&
         rangeData.lenRange <= ae.lenHi[rangeData.qualBest])
     {
@@ -334,8 +338,14 @@ bool PeakPattern::guessBothDouble(
 
   for (auto& ae1: activeEntries)
   {
+    if (! ae1.fullFlag)
+      continue;
+
     for (auto& ae2: activeEntries)
     {
+      if (! ae2.fullFlag)
+        continue;
+
       if (rangeData.lenRange >= 
           ae1.lenLo[rangeData.qualBest] + ae2.lenLo[rangeData.qualBest] &&
           rangeData.lenRange <= 
@@ -696,53 +706,16 @@ bool PeakPattern::fix(
   PeakPattern::fillCompletions(peaks, peakPtrsUsed, peakPtrsUnused, 
     forceFlag);
 
-  vector<Peak const *>* closestPtr;
-  unsigned limitLower, limitUpper;
-  /*
-  Peak peakRep;
-
-  for (auto& misses: completions)
-  {
-    for (auto& miss: misses)
-    {
-      if (miss.source() == MISS_UNUSED)
-      {
-        cout << "Reviving unused " << miss.str(offset) << endl;;
-        Peak * ptr = miss.ptr();
-        peakPtrsUsed.add(ptr);
-        peakPtrsUnused.remove(ptr);
-      }
-      else if (miss.source() == MISS_REPAIRABLE)
-      {
-        cout << "Repairing unused " << miss.str(offset) << endl;
-        unsigned testIndex;
-        miss.fill(peakRep);
-        Peak * ptr = peaks.repair(peakRep, &Peak::borderlineQuality, 
-          offset, false, forceFlag, testIndex);
-
-        if (ptr)
-        {
-          peakPtrsUsed.add(ptr);
-          cout << peakPtrsUsed.strQuality("Used now", offset);
-
-          completions.markWith(* ptr, MISS_REPAIRED);
-        }
-        else
-        {
-          THROW(ERR_ALGO_PEAK_CONSISTENCY, "Not repairable after all?");
-        }
-      }
-    }
-  }
-  */
-
-  MissCar * winnerPtr;
-
   completions.condense();
-  const unsigned numComplete = completions.numComplete(winnerPtr);
 
   cout << "Completions after filling out\n\n";
   cout << completions.str(offset);
+
+  MissCar * winnerPtr;
+  const unsigned numComplete = completions.numComplete(winnerPtr);
+
+  vector<Peak const *>* closestPtr;
+  unsigned limitLower, limitUpper;
 
   if (numComplete == 1)
   {

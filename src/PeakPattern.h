@@ -27,6 +27,7 @@ class PeakPattern
     {
       ModelData const * data;
       unsigned index;
+      bool fullFlag;
 
       // Interval for different range qualities.
       vector<unsigned> lenLo;
