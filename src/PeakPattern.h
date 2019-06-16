@@ -204,7 +204,7 @@ class PeakPattern
       PeakPtrs& peakPtrsUsed,
       PeakPtrs& peakPtrsUnused) const;
 
-    void addToSingles(const vector<unsigned>& indices);
+    void addToSingles(const Target& target);
 
     void addToDoubles(const Target& target);
 

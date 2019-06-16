@@ -166,6 +166,15 @@ unsigned Target::index(const unsigned pos) const
 }
 
 
+unsigned Target::bogieGap() const
+{
+  if (_indices.size() != 4)
+    return 0;
+  else
+    return (_indices[3] - _indices[2] + _indices[1] - _indices[0]) / 2;
+}
+
+
 void Target::limits(
   unsigned& limitLower,
   unsigned& limitUpper) const
@@ -204,14 +213,6 @@ void Target::limits(
 }
 
 
-bool Target::outOfRange(
-  const unsigned indexLeft,
-  const unsigned indexRight) const
-{
-  return (_indices.front() < indexLeft || _indices.back() > indexRight);
-}
-
-
 string Target::strIndices(
   const string& title,
   const unsigned offset) const
@@ -226,6 +227,7 @@ string Target::strIndices(
 
   return ss.str() + "\n";
 };
+
 
 string Target::strGaps(const string& title) const
 {

@@ -70,13 +70,11 @@ class Target
 
     unsigned index(const unsigned pos) const;
 
+    unsigned bogieGap() const;
+
     void limits(
       unsigned& limitLower,
       unsigned& limitUpper) const;
-
-    bool outOfRange(
-      const unsigned indexLeft,
-      const unsigned indexRight) const;
 
 
     string strIndices(

@@ -514,19 +514,19 @@ void PeakPattern::update(
 }
 
 
-void PeakPattern::addToSingles(const vector<unsigned>& indices)
+void PeakPattern::addToSingles(const Target& target)
 {
   // We rely heavily on having exactly one nullptr.
   // Singles are generally quite likely, so we permit more range.
-  const unsigned bogieThird =
-    (indices[3] - indices[2] + indices[1] - indices[0]) / 6;
+  const unsigned bogieThird = target.bogieGap() / 3;
+    // (indices[3] - indices[2] + indices[1] - indices[0]) / 6;
 
   MissCar& miss = completions.back();
 
   for (unsigned i = 0; i < peaksClose.size(); i++)
   {
     if (peaksClose[i] == nullptr)
-      miss.add(indices[i], bogieThird);
+      miss.add(target.index(i), bogieThird);
   }
 }
 
@@ -556,9 +556,9 @@ bool PeakPattern::checkDoubles(const Target& target) const
 void PeakPattern::addToDoubles(const Target& target)
 {
   // We rely heavily on having exactly two nullptrs.
-  const unsigned bogieQuarter =
-    (target.index(3) - target.index(2) + 
-     target.index(1) - target.index(0)) / 8;
+  const unsigned bogieQuarter = target.bogieGap() / 4;
+    // (target.index(3) - target.index(2) + 
+     // target.index(1) - target.index(0)) / 8;
 
   MissCar& miss = completions.back();
   for (unsigned i = 0; i < peaksClose.size(); i++)
@@ -569,17 +569,16 @@ void PeakPattern::addToDoubles(const Target& target)
 }
 
 
-void PeakPattern::addToTriples(const Target& pe)
+void PeakPattern::addToTriples(const Target& target)
 {
-  const unsigned bogieQuarter = bogieTypical / 4;
+  const unsigned bogieQuarter = target.bogieGap() / 4;
+  // const unsigned bogieQuarter = bogieTypical / 4;
 
   MissCar& miss = completions.back();
   for (unsigned i = 0; i < peaksClose.size(); i++)
   {
     if (peaksClose[i] == nullptr)
-    {
-      miss.add(pe.index(i), bogieQuarter);
-    }
+      miss.add(target.index(i), bogieQuarter);
   }
 }
 
@@ -622,7 +621,7 @@ cout << "PERFECT MATCH\n";
       target->limits(limitLower, limitUpper);
       miss.setMatch(peaksClose, limitLower, limitUpper);
 
-      PeakPattern::addToSingles(target->indices());
+      PeakPattern::addToSingles(* target);
     }
     else if (numClose == 2)
     {

@@ -4,11 +4,9 @@ Find the odd first cars
 
 Look at cases with > 1 completion
 
-Implement PeakPool::repairable() const
-
 Fix the best
 
-Rip out old singles, doubles, ... code
+Move to function-pointer list in Pattern as in Structure?
 
 
 
