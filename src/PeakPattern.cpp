@@ -426,6 +426,10 @@ bool PeakPattern::guessRight(const CarModels& models)
 
 bool PeakPattern::looksEmptyFirst(const PeakPtrs& peakPtrsUsed) const
 {
+  if (rangeData.qualRight == QUALITY_NONE ||
+      rangeData.qualLeft != QUALITY_NONE)
+    return false;
+
   cout << "Trying looksEmptyFirst\n";
 
   if (peakPtrsUsed.size() >= 2)
@@ -556,7 +560,7 @@ void PeakPattern::targetsToCompletions(const PeakPtrs& peakPtrsUsed)
       if (peaksClose[i] == nullptr)
         miss.addMiss(target.index(i), bogieTolerance);
       else
-        miss.addMatch(peaksClose[i]);
+        miss.addMatch(target.index(i), peaksClose[i]);
     }
   }
 }
@@ -777,6 +781,9 @@ void PeakPattern::getSpacings(PeakPtrs& peakPtrsUsed)
     se.qualityShapeLower = (pqSL >= pqSR ? pqSL : pqSR);
 
   }
+
+  for (auto& sit: spacings)
+    cout << sit.str(offset);
 }
 
 
@@ -1039,6 +1046,7 @@ cout << peakPtrsUnused.strQuality("Unused", offset);
 
   if (PeakPattern::guessBothSingle(models))
   {
+    // Single car whose length fits well.  We should never fail.
     if (PeakPattern::fix(peaks, peakPtrsUsed, peakPtrsUnused, true))
       return true;
     else
@@ -1047,59 +1055,43 @@ cout << peakPtrsUnused.strQuality("Unused", offset);
 
   if (PeakPattern::guessBothDoubleLeft(models))
   {
+    // The left car of a two-car combination that might fit.
     if (PeakPattern::fix(peaks, peakPtrsUsed, peakPtrsUnused))
       return true;
   }
 
   if (PeakPattern::guessBothDoubleRight(models))
   {
+    // The right car of a two-car combination that might fit.
     if (PeakPattern::fix(peaks, peakPtrsUsed, peakPtrsUnused))
       return true;
   }
 
-  // First try filling the entire range with 1-2 cars.
-  if (rangeData.qualBest != QUALITY_NONE)
+  if (PeakPattern::guessBothSingleShort())
   {
-
-    // Note that guessBothDouble(true) could generate candidates
-    // which aren't fitted.  So we can't return the fix value no
-    // matter what, and we only return true if it fits.
-
-    // The short one is not model-based, but it fits well here.
-    if (PeakPattern::guessBothSingleShort() &&
-        PeakPattern::fix(peaks, peakPtrsUsed, peakPtrsUnused, true))
+    // Not model-based, more heuristic.
+    if (PeakPattern::fix(peaks, peakPtrsUsed, peakPtrsUnused, true))
       return true;
-    // else if (PeakPattern::guessBothDouble(models, true) &&
-        // PeakPattern::fix(peaks, peakPtrsUsed, peakPtrsUnused))
-      // return true;
-    // else if (PeakPattern::guessBothDouble(models, false) &&
-        // PeakPattern::fix(peaks, peakPtrsUsed, peakPtrsUnused))
-      // return true;
   }
 
-  // Then try to fill up with known models from the left or right.
-
-  if (rangeData.qualLeft != QUALITY_NONE)
+  if (PeakPattern::guessLeft(models))
   {
-    if (PeakPattern::guessLeft(models) &&
-        PeakPattern::fix(peaks, peakPtrsUsed, peakPtrsUnused))
-    {
+    // Fill up with known models from the left.
+    if (PeakPattern::fix(peaks, peakPtrsUsed, peakPtrsUnused))
       return true;
-    }
   }
 
-  if (rangeData.qualRight != QUALITY_NONE)
+  if (PeakPattern::guessRight(models))
   {
-    if (PeakPattern::guessRight(models) &&
-        PeakPattern::fix(peaks, peakPtrsUsed, peakPtrsUnused))
+    // Fill up with known models from the right.
+    if (PeakPattern::fix(peaks, peakPtrsUsed, peakPtrsUnused))
       return true;
+  }
 
-    if (rangeData.qualLeft == QUALITY_NONE &&
-        PeakPattern::looksEmptyFirst(peakPtrsUsed))
-    {
-      peakPtrsUnused.moveFrom(peakPtrsUsed);
-      return true;
-    }
+  if (PeakPattern::looksEmptyFirst(peakPtrsUsed))
+  {
+    peakPtrsUnused.moveFrom(peakPtrsUsed);
+    return true;
   }
 
   if (peakPtrsUsed.size() <= 2)
@@ -1109,9 +1101,6 @@ cout << peakPtrsUnused.strQuality("Unused", offset);
   {
     // Make an attempt to find short cars without a model.
     PeakPattern::getSpacings(peakPtrsUsed);
-
-    for (auto& sit: spacings)
-      cout << sit.str(offset);
 
     if (PeakPattern::guessAndFixShortLeft(peaks, 
         peakPtrsUsed, peakPtrsUnused))

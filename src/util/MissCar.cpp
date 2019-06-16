@@ -51,8 +51,14 @@ void MissCar::addMiss(
 }
 
 
-void MissCar::addMatch(Peak const * pptr)
+#define UNUSED(x) ((void)(true ? 0 : ((x), void(), 0)))
+
+void MissCar::addMatch(
+  const unsigned target,
+  Peak const * pptr)
 {
+  UNUSED(target);
+
   _closestPeaks.push_back(pptr);
 }
 

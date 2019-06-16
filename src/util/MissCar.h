@@ -49,7 +49,9 @@ class MissCar
       const unsigned target,
       const unsigned tolerance);
 
-    void addMatch(Peak const * pptr);
+    void addMatch(
+      const unsigned target,
+      Peak const * pptr);
 
     Miterator begin();
     Miterator end();
