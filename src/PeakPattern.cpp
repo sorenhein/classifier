@@ -120,14 +120,14 @@ void PeakPattern::getActiveModels(
     else
       len = data->lenPP + data->gapLeft + data->gapRight;
 
-    ae.lenLo[QUALITY_WHOLE_MODEL] =
+    ae.lenLo[QUALITY_ACTUAL_GAP] =
       static_cast<unsigned>((1.f - LEN_FACTOR_GREAT) * len);
-    ae.lenHi[QUALITY_WHOLE_MODEL] =
+    ae.lenHi[QUALITY_ACTUAL_GAP] =
       static_cast<unsigned>((1.f + LEN_FACTOR_GREAT) * len);
 
-    ae.lenLo[QUALITY_SYMMETRY] = 
+    ae.lenLo[QUALITY_BY_SYMMETRY] = 
       static_cast<unsigned>((1.f - LEN_FACTOR_GOOD) * len);
-    ae.lenHi[QUALITY_SYMMETRY] =
+    ae.lenHi[QUALITY_BY_SYMMETRY] =
       static_cast<unsigned>((1.f + LEN_FACTOR_GOOD) * len);
   }
 // cout << "DONE getActive" << endl;
@@ -283,8 +283,7 @@ bool PeakPattern::guessBothSingle(const CarModels& models)
 
 bool PeakPattern::guessBothSingleShort()
 {
-  if (rangeData.qualLeft == QUALITY_GENERAL || 
-      rangeData.qualLeft == QUALITY_NONE)
+  if (rangeData.qualLeft == QUALITY_NONE)
     return false;
 
   cout << "Trying guessBothSingleShort\n";
@@ -365,8 +364,7 @@ bool PeakPattern::guessLeft(const CarModels& models)
   if (carBeforePtr == nullptr)
     return false;
 
-  if (rangeData.qualLeft == QUALITY_GENERAL || 
-      rangeData.qualLeft == QUALITY_NONE)
+  if (rangeData.qualLeft == QUALITY_NONE)
     return false;
 
   cout << "Trying guessLeft\n";
@@ -390,8 +388,7 @@ bool PeakPattern::guessRight(const CarModels& models)
   if (carAfterPtr == nullptr)
     return false;
 
-  if (rangeData.qualRight == QUALITY_GENERAL || 
-      rangeData.qualRight == QUALITY_NONE)
+  if (rangeData.qualRight == QUALITY_NONE)
     return false;
 
   if (rangeData.gapRight >= 
@@ -877,8 +874,7 @@ cout << "NUMSPACES " << numSpaces << endl;
   {
     // TODO Could extend
     /*
-    if (rangeData.qualWorst != QUALITY_GENERAL && 
-        rangeData.qualWorst != QUALITY_NONE)
+    if (rangeData.qualWorst != QUALITY_NONE)
     {
       cout << "PPDOUBLE 2\n";
     }
@@ -1004,8 +1000,7 @@ cout << peakPtrsUsed.strQuality("Used", offset);
 cout << peakPtrsUnused.strQuality("Unused", offset);
 
   // First try filling the entire range with 1-2 cars.
-  if (rangeData.qualBest != QUALITY_GENERAL && 
-      rangeData.qualBest != QUALITY_NONE)
+  if (rangeData.qualBest != QUALITY_NONE)
   {
     PeakPattern::getActiveModels(models, true);
 
@@ -1056,8 +1051,7 @@ cout << peakPtrsUnused.strQuality("Unused", offset);
   if (peakPtrsUsed.size() <= 2)
     return false;
 
-  if (rangeData.qualBest != QUALITY_GENERAL && 
-      rangeData.qualBest != QUALITY_NONE)
+  if (rangeData.qualBest != QUALITY_NONE)
   {
     // Make an attempt to find short cars without a model.
     PeakPattern::getSpacings(peakPtrsUsed);

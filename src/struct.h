@@ -368,10 +368,9 @@ enum CarPosition
 
 enum RangeQuality
 {
-  QUALITY_WHOLE_MODEL = 0,
-  QUALITY_SYMMETRY = 1,
-  QUALITY_GENERAL = 2,
-  QUALITY_NONE = 3
+  QUALITY_ACTUAL_GAP = 0,
+  QUALITY_BY_SYMMETRY = 1,
+  QUALITY_NONE = 2
 };
 
 struct RangeData
@@ -404,12 +403,10 @@ struct RangeData
 
   string strQuality(const RangeQuality qual) const
   {
-    if (qual == QUALITY_WHOLE_MODEL)
-      return "WHOLE";
-    else if (qual == QUALITY_SYMMETRY)
+    if (qual == QUALITY_ACTUAL_GAP)
+      return "ACTUAL";
+    else if (qual == QUALITY_BY_SYMMETRY)
       return "SYMMETRY";
-    else if (qual == QUALITY_GENERAL)
-      return "GENERAL";
     else
       return "(none)";
   };

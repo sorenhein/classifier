@@ -99,22 +99,22 @@ bool PeakRange::getQuality(
   if (data->gapRightFlag && leftFlag == revFlag)
   {
     gap = data->gapRight;
-    quality = QUALITY_WHOLE_MODEL;
+    quality = QUALITY_ACTUAL_GAP;
   }
   else if (data->gapLeftFlag && leftFlag != revFlag)
   {
     gap = data->gapLeft;
-    quality = QUALITY_WHOLE_MODEL;
+    quality = QUALITY_ACTUAL_GAP;
   }
   else if (data->gapRightFlag)
   {
     gap = data->gapRight;
-    quality = QUALITY_SYMMETRY;
+    quality = QUALITY_BY_SYMMETRY;
   }
   else
   {
     gap = data->gapLeft;
-    quality = QUALITY_SYMMETRY;
+    quality = QUALITY_BY_SYMMETRY;
   }
 
   return true;
