@@ -253,6 +253,9 @@ bool PeakPattern::guessNoBorders()
 
 bool PeakPattern::guessBothSingle(const CarModels& models)
 {
+  if (rangeData.qualBest == QUALITY_NONE)
+    return false;
+
   cout << "Trying guessBothSingle\n";
   targets.clear();
 
@@ -265,8 +268,7 @@ bool PeakPattern::guessBothSingle(const CarModels& models)
         rangeData.lenRange <= ae.lenHi[rangeData.qualBest])
     {
       PeakPattern::addModelTargets(models, ae.index, 
-        ae.data->symmetryFlag,
-        BORDERS_DOUBLE_SIDED_SINGLE);
+        ae.data->symmetryFlag, BORDERS_DOUBLE_SIDED_SINGLE);
     }
   }
 
@@ -321,6 +323,9 @@ bool PeakPattern::guessBothDouble(
   const CarModels& models,
   const bool leftFlag)
 {
+  if (rangeData.qualBest != QUALITY_NONE)
+    return false;
+
   cout << "Trying guessBothDouble\n";
 
   targets.clear();
@@ -353,6 +358,17 @@ bool PeakPattern::guessBothDouble(
   }
 
   return (! targets.empty());
+}
+
+bool PeakPattern::guessBothDoubleLeft(const CarModels& models)
+{
+  return PeakPattern::guessBothDouble(models, true);
+}
+
+
+bool PeakPattern::guessBothDoubleRight(const CarModels& models)
+{
+  return PeakPattern::guessBothDouble(models, false);
 }
 
 
@@ -1021,6 +1037,26 @@ cout << peakPtrsUnused.strQuality("Unused", offset);
 
   PeakPattern::getActiveModels(models);
 
+  if (PeakPattern::guessBothSingle(models))
+  {
+    if (PeakPattern::fix(peaks, peakPtrsUsed, peakPtrsUnused, true))
+      return true;
+    else
+      return false;
+  }
+
+  if (PeakPattern::guessBothDoubleLeft(models))
+  {
+    if (PeakPattern::fix(peaks, peakPtrsUsed, peakPtrsUnused))
+      return true;
+  }
+
+  if (PeakPattern::guessBothDoubleRight(models))
+  {
+    if (PeakPattern::fix(peaks, peakPtrsUsed, peakPtrsUnused))
+      return true;
+  }
+
   // First try filling the entire range with 1-2 cars.
   if (rangeData.qualBest != QUALITY_NONE)
   {
@@ -1030,17 +1066,15 @@ cout << peakPtrsUnused.strQuality("Unused", offset);
     // matter what, and we only return true if it fits.
 
     // The short one is not model-based, but it fits well here.
-    if (PeakPattern::guessBothSingle(models))
-      return PeakPattern::fix(peaks, peakPtrsUsed, peakPtrsUnused, true);
-    else if (PeakPattern::guessBothSingleShort() &&
+    if (PeakPattern::guessBothSingleShort() &&
         PeakPattern::fix(peaks, peakPtrsUsed, peakPtrsUnused, true))
       return true;
-    else if (PeakPattern::guessBothDouble(models, true) &&
-        PeakPattern::fix(peaks, peakPtrsUsed, peakPtrsUnused))
-      return true;
-    else if (PeakPattern::guessBothDouble(models, false) &&
-        PeakPattern::fix(peaks, peakPtrsUsed, peakPtrsUnused))
-      return true;
+    // else if (PeakPattern::guessBothDouble(models, true) &&
+        // PeakPattern::fix(peaks, peakPtrsUsed, peakPtrsUnused))
+      // return true;
+    // else if (PeakPattern::guessBothDouble(models, false) &&
+        // PeakPattern::fix(peaks, peakPtrsUsed, peakPtrsUnused))
+      // return true;
   }
 
   // Then try to fill up with known models from the left or right.

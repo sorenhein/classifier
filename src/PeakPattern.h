@@ -125,9 +125,12 @@ class PeakPattern
 
     bool guessBothSingle(const CarModels& models);
     bool guessBothSingleShort();
+
     bool guessBothDouble(
       const CarModels& models, 
       const bool leftFlag);
+    bool guessBothDoubleLeft(const CarModels& models);
+    bool guessBothDoubleRight(const CarModels& models);
 
     bool guessLeft(const CarModels& models);
 
