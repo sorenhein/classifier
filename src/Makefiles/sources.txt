@@ -24,6 +24,7 @@ SOURCE_FILES    =               \
                 PeakRepair.cpp  \
                 PeakSeeds.cpp   \
                 PeakSlots.cpp   \
+                PeakSpacing.cpp \
                 PeakStats.cpp   \
                 PeakStructure.cpp \
                 Regress.cpp     \

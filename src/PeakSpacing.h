@@ -1,0 +1,173 @@
+#ifndef TRAIN_PEAKSPACING_H
+#define TRAIN_PEAKSPACING_H
+
+#include <vector>
+#include <list>
+#include <sstream>
+
+#include "util/Target.h"
+#include "Peak.h"
+#include "struct.h"
+
+using namespace std;
+
+class CarModels;
+class CarDetect;
+class PeakRange;
+class PeakPool;
+class PeakPtrs;
+
+
+class PeakSpacing
+{
+  private:
+
+    struct NoneEntry
+    {
+      Target pe;
+
+      vector<Peak const *> peaksClose;
+      bool emptyFlag;
+
+      NoneEntry()
+      {
+        emptyFlag = true;
+      };
+
+      bool empty()
+      {
+        return emptyFlag;
+      };
+    };
+
+    struct SpacingEntry
+    {
+      Peak const * peakLeft;
+      Peak const * peakRight;
+      unsigned dist;
+      float numBogies; // dist relative to a typical bogie
+      bool bogieLikeFlag;
+      PeakQuality qualityShapeLower; // Lower of the two
+      PeakQuality qualityWholeLower; // Lower of the two
+
+      string str(const unsigned offset)
+      {
+        stringstream ss;
+        ss << "Spacing " <<
+          peakLeft->getIndex() + offset << " - " <<
+          peakRight->getIndex() + offset << ", bogies " <<
+          setw(5) << fixed << setprecision(2) << numBogies << ", q " <<
+          static_cast<unsigned>(qualityWholeLower) << " " <<
+          static_cast<unsigned>(qualityShapeLower) << ", like " << 
+          bogieLikeFlag << endl;
+        return ss.str();
+      };
+    };
+
+
+    unsigned offset;
+
+    unsigned bogieTypical;
+    unsigned longTypical;
+    unsigned sideTypical;
+
+    CarDetect const * carBeforePtr;
+    CarDetect const * carAfterPtr;
+
+    RangeData rangeData;
+
+    vector<SpacingEntry> spacings;
+
+
+    bool setGlobals(
+      const CarModels& models,
+      const PeakRange& range,
+      const unsigned offsetIn);
+
+    bool plausibleCar(
+      const bool leftFlag,
+      const unsigned index1,
+      const unsigned index2) const;
+
+    void fixShort(
+      const string& text,
+      const unsigned indexFirst,
+      const unsigned indexLast,
+      PeakPtrs& peakPtrsUsed,
+      PeakPtrs& peakPtrsUnused) const;
+
+    bool guessAndFixShortFromSpacings(
+      const string& text,
+      const bool leftFlag,
+      const unsigned indexFirst,
+      const unsigned indexLast,
+      PeakPtrs& peakPtrsUsed,
+      PeakPtrs& peakPtrsUnused) const;
+
+    bool guessAndFixShort(
+      const bool leftFlag,
+      const unsigned indexFirst,
+      const unsigned indexLast,
+      PeakPool& peaks,
+      PeakPtrs& peakPtrsUsed,
+      PeakPtrs& peakPtrsUnused) const;
+
+    bool guessAndFixShortLeft(
+      PeakPool& peaks,
+      PeakPtrs& peakPtrsUsed,
+      PeakPtrs& peakPtrsUnused) const;
+
+    bool guessAndFixShortRight(
+      PeakPool& peaks,
+      PeakPtrs& peakPtrsUsed,
+      PeakPtrs& peakPtrsUnused) const;
+
+    bool looksEmptyFirst(const PeakPtrs& peakPtrsUsed) const;
+
+    void update(
+      const NoneEntry& none,
+      PeakPtrs& peakPtrsUsed,
+      PeakPtrs& peakPtrsUnused) const;
+
+    void updateUnused(
+      const unsigned limitLower,
+      const unsigned limitUpper,
+      PeakPtrs& peakPtrsUnused) const;
+
+    void updateUnused(
+      const Target& target,
+      PeakPtrs& peakPtrsUnused) const;
+
+    void updateUsed(
+      const vector<Peak const *>& peaksClosest,
+      PeakPtrs& peakPtrsUsed,
+      PeakPtrs& peakPtrsUnused) const;
+
+    void update(
+      const vector<Peak const *>& closest,
+      const unsigned limitLower,
+      const unsigned limitUpper,
+      PeakPtrs& peakPtrsUsed,
+      PeakPtrs& peakPtrsUnused) const;
+
+    void getSpacings(PeakPtrs& peakPtrsUsed);
+
+
+  public:
+
+    PeakSpacing();
+
+    ~PeakSpacing();
+
+    void reset();
+
+    bool locate(
+      const CarModels& models,
+      PeakPool& peaks,
+      const PeakRange& range,
+      const unsigned offsetIn,
+      PeakPtrs& peakPtrsUsed,
+      PeakPtrs& peakPtrsUnused);
+};
+
+#endif
