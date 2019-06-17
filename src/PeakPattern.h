@@ -63,30 +63,6 @@ class PeakPattern
       };
     };
 
-    struct SpacingEntry
-    {
-      Peak const * peakLeft;
-      Peak const * peakRight;
-      unsigned dist;
-      float numBogies; // dist relative to a typical bogie
-      bool bogieLikeFlag;
-      PeakQuality qualityShapeLower; // Lower of the two
-      PeakQuality qualityWholeLower; // Lower of the two
-
-      string str(const unsigned offset)
-      {
-        stringstream ss;
-        ss << "Spacing " <<
-          peakLeft->getIndex() + offset << " - " <<
-          peakRight->getIndex() + offset << ", bogies " <<
-          setw(5) << fixed << setprecision(2) << numBogies << ", q " <<
-          static_cast<unsigned>(qualityWholeLower) << " " <<
-          static_cast<unsigned>(qualityShapeLower) << ", like " << 
-          bogieLikeFlag << endl;
-        return ss.str();
-      };
-    };
-
 
     unsigned offset;
 
@@ -104,8 +80,6 @@ class PeakPattern
     list<Target> targets;
 
     Completions completions;
-
-    vector<SpacingEntry> spacings;
 
 
     bool setGlobals(
@@ -135,44 +109,6 @@ class PeakPattern
     bool guessLeft(const CarModels& models);
 
     bool guessRight(const CarModels& models);
-
-    bool plausibleCar(
-      const bool leftFlag,
-      const unsigned index1,
-      const unsigned index2) const;
-
-    void fixShort(
-      const string& text,
-      const unsigned indexFirst,
-      const unsigned indexLast,
-      PeakPtrs& peakPtrsUsed,
-      PeakPtrs& peakPtrsUnused) const;
-
-    bool guessAndFixShortFromSpacings(
-      const string& text,
-      const bool leftFlag,
-      const unsigned indexFirst,
-      const unsigned indexLast,
-      PeakPtrs& peakPtrsUsed,
-      PeakPtrs& peakPtrsUnused) const;
-
-    bool guessAndFixShort(
-      const bool leftFlag,
-      const unsigned indexFirst,
-      const unsigned indexLast,
-      PeakPool& peaks,
-      PeakPtrs& peakPtrsUsed,
-      PeakPtrs& peakPtrsUnused) const;
-
-    bool guessAndFixShortLeft(
-      PeakPool& peaks,
-      PeakPtrs& peakPtrsUsed,
-      PeakPtrs& peakPtrsUnused) const;
-
-    bool guessAndFixShortRight(
-      PeakPool& peaks,
-      PeakPtrs& peakPtrsUsed,
-      PeakPtrs& peakPtrsUnused) const;
 
     bool looksEmptyFirst(const PeakPtrs& peakPtrsUsed) const;
 
@@ -224,8 +160,6 @@ class PeakPattern
       PeakPtrs& peakPtrsUnused,
       const bool forceFlag = false,
       const bool flexibleFlag = false);
-
-    void getSpacings(PeakPtrs& peakPtrsUsed);
 
     string strClosest(
       vector<Peak const *>& peaksClose,
