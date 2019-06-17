@@ -130,6 +130,12 @@ class PeakStructure
       PeakRange& range,
       CarDetect& car) const;
 
+    FindCarType findCarBySpacing(
+      const CarModels& models,
+      PeakPool& peaks,
+      PeakRange& range,
+      CarDetect& car) const;
+
 
     CarListIter updateRecords(
       const PeakRange& range,

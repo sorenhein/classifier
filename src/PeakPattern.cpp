@@ -1094,6 +1094,7 @@ cout << peakPtrsUnused.strQuality("Unused", offset);
     return true;
   }
 
+  /*
   if (peakPtrsUsed.size() <= 2)
     return false;
 
@@ -1111,6 +1112,7 @@ cout << peakPtrsUnused.strQuality("Unused", offset);
       return true;
 
   }
+  */
 
   return false;
 }

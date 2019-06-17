@@ -7,6 +7,7 @@
 
 #include "PeakStructure.h"
 #include "PeakPattern.h"
+#include "PeakSpacing.h"
 #include "PeakRepair.h"
 #include "PeakProfile.h"
 #include "CarModels.h"
@@ -66,6 +67,11 @@ PeakStructure::PeakStructure()
   findMethods[1].push_back(
     { &PeakStructure::findCarByPattern, 
       "by pattern", 3});
+
+  // Car-sized gaps based on existing models.
+  findMethods[1].push_back(
+    { &PeakStructure::findCarBySpacing, 
+      "by spacing", 6});
 
   findMethods[2].push_back(
     { &PeakStructure::findPartialFirstCarByQuality, 
@@ -453,12 +459,45 @@ PeakStructure::FindCarType PeakStructure::findCarByPattern(
   }
   else
   {
-// cout << "findCarByPattern:\n";
-// cout << peakPtrsUsed.strQuality("Used", offset);
-// cout << peakPtrsUnused.strQuality("Unused", offset);
+    // If it worked, the used and unused peaks have been modified,
+    // and some peaks have disappeared from the union of the lists.
+    PeakRange rangeLocal;
+    rangeLocal.init(peakPtrsUsed);
+    car.makeFourWheeler(rangeLocal, peakPtrsUsed);
 
-  // If it worked, the used and unused peaks have been modified,
-  // and some peaks have disappeared from the union of the lists.
+    peakPtrsUsed.markup();
+    peakPtrsUnused.apply(&Peak::markdown);
+
+    return FIND_CAR_MATCH;
+  }
+}
+
+
+PeakStructure::FindCarType PeakStructure::findCarBySpacing(
+  const CarModels& models,
+  PeakPool& peaks,
+  PeakRange& range,
+  CarDetect& car) const
+{
+  // These can in general cover more time than the car we find.
+  PeakPtrs peakPtrsUsed, peakPtrsUnused;
+  range.split(&Peak::goodQuality, peakPtrsUsed, peakPtrsUnused);
+
+  PeakSpacing spacing;
+  if (! spacing.locate(models, peaks, range, offset,
+      peakPtrsUsed, peakPtrsUnused))
+  {
+    return FIND_CAR_NO_MATCH;
+  }
+  else if (peakPtrsUsed.empty())
+  {
+    peakPtrsUnused.apply(&Peak::markdown);
+    return FIND_CAR_DOWNGRADE;
+  }
+  else
+  {
+    // If it worked, the used and unused peaks have been modified,
+    // and some peaks have disappeared from the union of the lists.
     PeakRange rangeLocal;
     rangeLocal.init(peakPtrsUsed);
     car.makeFourWheeler(rangeLocal, peakPtrsUsed);
