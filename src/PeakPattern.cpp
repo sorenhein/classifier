@@ -788,8 +788,8 @@ bool PeakPattern::locate(
     // Single car whose length fits well.  We should never fail.
     if (PeakPattern::fix(peaks, peakPtrsUsed, peakPtrsUnused, true))
       return true;
-    else
-      return false;
+    // else
+      // return false;
   }
 
   if (PeakPattern::guessBothDoubleLeft(models))
@@ -835,7 +835,6 @@ bool PeakPattern::locate(
 
   return false;
 }
-
 
 string PeakPattern::strClosest(
   vector<Peak const *>& peaksClose,
