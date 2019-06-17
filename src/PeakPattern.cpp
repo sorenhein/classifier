@@ -44,6 +44,8 @@ PeakPattern::PeakPattern()
 {
   PeakPattern::reset();
 
+  // TODO A lot of these seem to be misalignments of cars with peaks.
+  // So it's not clear that we should recognize them.
   patternMethods.push_back(
     { &PeakPattern::guessNoBorders, "by no borders", false, 0});
 
@@ -63,7 +65,10 @@ PeakPattern::PeakPattern()
     { &PeakPattern::guessLeft, "by left", false, 5});
 
   patternMethods.push_back(
-    { &PeakPattern::guessLeft, "by right", false, 6});
+    { &PeakPattern::guessRight, "by right", false, 6});
+  
+  hits.clear();
+  hits.resize(patternMethods.size());
 }
 
 
@@ -218,8 +223,6 @@ bool PeakPattern::guessNoBorders(const CarModels& models)
       rangeData.qualRight != QUALITY_NONE)
     return false;
 
-  cout << "Trying guessNoBorders\n";
-
   // We will not test for symmetry.
   const CarPeaksPtr& peaksBefore = carBeforePtr->getPeaksPtr();
   const CarPeaksPtr& peaksAfter = carAfterPtr->getPeaksPtr();
@@ -296,7 +299,6 @@ bool PeakPattern::guessBothSingle(const CarModels& models)
   if (rangeData.qualBest == QUALITY_NONE)
     return false;
 
-  cout << "Trying guessBothSingle\n";
   targets.clear();
 
   for (auto& ae: activeEntries)
@@ -323,7 +325,6 @@ bool PeakPattern::guessBothSingleShort(const CarModels& models)
   if (rangeData.qualLeft == QUALITY_NONE)
     return false;
 
-  cout << "Trying guessBothSingleShort\n";
   targets.clear();
 
   unsigned lenTypical = 2 * (sideTypical + bogieTypical) + longTypical;
@@ -367,8 +368,6 @@ bool PeakPattern::guessBothDouble(
 {
   if (rangeData.qualBest == QUALITY_NONE)
     return false;
-
-  cout << "Trying guessBothDouble\n";
 
   targets.clear();
 
@@ -424,8 +423,6 @@ bool PeakPattern::guessLeft(const CarModels& models)
   if (rangeData.qualLeft == QUALITY_NONE)
     return false;
 
-  cout << "Trying guessLeft\n";
-
   targets.clear();
 
   for (auto& ae: activeEntries)
@@ -453,8 +450,6 @@ bool PeakPattern::guessRight(const CarModels& models)
     return false;
 
   targets.clear();
-
-  cout << "Trying guessRight\n";
 
   for (auto& ae: activeEntries)
   {
@@ -813,55 +808,31 @@ bool PeakPattern::locate(
 
   PeakPattern::getActiveModels(models);
 
-  // TODO A lot of these seem to be misalignments of cars with peaks.
-  // So it's not clear that we should recognize them.
-  if (PeakPattern::guessNoBorders(models))
+  for (auto& fgroup: patternMethods)
   {
-    if (PeakPattern::fix(peaks, peakPtrsUsed, peakPtrsUnused))
-      return true;
+    cout << "Try " << fgroup.name << endl;
+    if ((this->* fgroup.fptr)(models))
+    {
+      if (PeakPattern::fix(peaks, peakPtrsUsed, peakPtrsUnused, 
+          fgroup.forceFlag))
+      {
+        cout << "Hit " << fgroup.name << endl;
+        hits[fgroup.number]++;
+        return true;
+      }
+    }
   }
 
-  if (PeakPattern::guessBothSingle(models))
-  {
-    // Single car whose length fits well.  We should never fail.
-    if (PeakPattern::fix(peaks, peakPtrsUsed, peakPtrsUnused, true))
-      return true;
-  }
+  // TODO Method for getting string of hits
+  // TODO Lock before setting global function ptrs, only once
 
-  if (PeakPattern::guessBothDoubleLeft(models))
-  {
-    // The left car of a two-car combination that might fit.
-    if (PeakPattern::fix(peaks, peakPtrsUsed, peakPtrsUnused))
-      return true;
-  }
+  /*
+  cout << "HITS\n";
+  for (unsigned i = 0; i < NUM_METHODS; i++)
+    cout << i << " " << hits[i] << endl;
+  cout << endl;
+  */
 
-  if (PeakPattern::guessBothDoubleRight(models))
-  {
-    // The right car of a two-car combination that might fit.
-    if (PeakPattern::fix(peaks, peakPtrsUsed, peakPtrsUnused))
-      return true;
-  }
-
-  if (PeakPattern::guessBothSingleShort(models))
-  {
-    // Not model-based, more heuristic.
-    if (PeakPattern::fix(peaks, peakPtrsUsed, peakPtrsUnused, true))
-      return true;
-  }
-
-  if (PeakPattern::guessLeft(models))
-  {
-    // Fill up with known models from the left.
-    if (PeakPattern::fix(peaks, peakPtrsUsed, peakPtrsUnused))
-      return true;
-  }
-
-  if (PeakPattern::guessRight(models))
-  {
-    // Fill up with known models from the right.
-    if (PeakPattern::fix(peaks, peakPtrsUsed, peakPtrsUnused))
-      return true;
-  }
 
   if (PeakPattern::looksEmptyFirst(peakPtrsUsed))
   {

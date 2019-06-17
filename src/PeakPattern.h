@@ -81,6 +81,8 @@ class PeakPattern
 
     Completions completions;
 
+    vector<unsigned> hits;
+
 
     bool setGlobals(
       const CarModels& models,
