@@ -178,6 +178,10 @@ bool PeakPattern::guessNoBorders()
   if (carBeforePtr->index() != carAfterPtr->index())
     return false;
 
+  if (rangeData.qualLeft != QUALITY_NONE ||
+      rangeData.qualRight != QUALITY_NONE)
+    return false;
+
   cout << "Trying guessNoBorders\n";
 
   // We will not test for symmetry.
@@ -323,7 +327,7 @@ bool PeakPattern::guessBothDouble(
   const CarModels& models,
   const bool leftFlag)
 {
-  if (rangeData.qualBest != QUALITY_NONE)
+  if (rangeData.qualBest == QUALITY_NONE)
     return false;
 
   cout << "Trying guessBothDouble\n";
@@ -766,22 +770,18 @@ bool PeakPattern::locate(
   if (! PeakPattern::setGlobals(models, range, offsetIn))
     return false;
 
-  if (rangeData.qualLeft == QUALITY_NONE && 
-      rangeData.qualRight == QUALITY_NONE)
-  {
-  // TODO A lot of these seem to be misalignments of cars with peaks.
-  // So it's not clear that we should recognize them.
-    if (PeakPattern::guessNoBorders() &&
-        PeakPattern::fix(peaks, peakPtrsUsed, peakPtrsUnused))
-      return true;
-    else
-      return false;
-  }
-
-cout << peakPtrsUsed.strQuality("Used", offset);
-cout << peakPtrsUnused.strQuality("Unused", offset);
+  cout << peakPtrsUsed.strQuality("Used", offset);
+  cout << peakPtrsUnused.strQuality("Unused", offset);
 
   PeakPattern::getActiveModels(models);
+
+  // TODO A lot of these seem to be misalignments of cars with peaks.
+  // So it's not clear that we should recognize them.
+  if (PeakPattern::guessNoBorders())
+  {
+    if (PeakPattern::fix(peaks, peakPtrsUsed, peakPtrsUnused))
+      return true;
+  }
 
   if (PeakPattern::guessBothSingle(models))
   {
