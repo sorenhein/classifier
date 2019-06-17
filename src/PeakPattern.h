@@ -95,10 +95,10 @@ class PeakPattern
       const bool symmetryFlag,
       const BordersType patternType);
 
-    bool guessNoBorders();
+    bool guessNoBorders(const CarModels& models);
 
     bool guessBothSingle(const CarModels& models);
-    bool guessBothSingleShort();
+    bool guessBothSingleShort(const CarModels& models);
 
     bool guessBothDouble(
       const CarModels& models, 

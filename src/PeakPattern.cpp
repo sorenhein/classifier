@@ -27,9 +27,43 @@
 #define LONG_FACTOR 0.9f
 
 
+typedef bool (PeakPattern::*FindPatternPtr)(const CarModels& models);
+  
+struct PatternFncGroup
+{
+  FindPatternPtr fptr;
+  string name;
+  bool forceFlag;
+  unsigned number;
+};
+
+static list<PatternFncGroup> patternMethods;
+
+
 PeakPattern::PeakPattern()
 {
   PeakPattern::reset();
+
+  patternMethods.push_back(
+    { &PeakPattern::guessNoBorders, "by no borders", false, 0});
+
+  patternMethods.push_back(
+    { &PeakPattern::guessBothSingle, "by both single", true, 1});
+
+  patternMethods.push_back(
+    { &PeakPattern::guessBothDoubleLeft, "by double left", false, 2});
+
+  patternMethods.push_back(
+    { &PeakPattern::guessBothDoubleRight, "by double right", false, 3});
+
+  patternMethods.push_back(
+    { &PeakPattern::guessBothSingleShort, "by both single short", true, 4});
+
+  patternMethods.push_back(
+    { &PeakPattern::guessLeft, "by left", false, 5});
+
+  patternMethods.push_back(
+    { &PeakPattern::guessLeft, "by right", false, 6});
 }
 
 
@@ -166,11 +200,13 @@ bool PeakPattern::addModelTargets(
 }
 
 
-bool PeakPattern::guessNoBorders()
+bool PeakPattern::guessNoBorders(const CarModels& models)
 {
   // This is a half-hearted try to fill in exactly one car of the 
   // same type as its neighbors if those neighbors do not have any
   // edge gaps at all.
+
+  UNUSED(models);
 
   if (! carBeforePtr || ! carAfterPtr)
     return false;
@@ -280,8 +316,10 @@ bool PeakPattern::guessBothSingle(const CarModels& models)
 }
 
 
-bool PeakPattern::guessBothSingleShort()
+bool PeakPattern::guessBothSingleShort(const CarModels& models)
 {
+  UNUSED(models);
+
   if (rangeData.qualLeft == QUALITY_NONE)
     return false;
 
@@ -777,7 +815,7 @@ bool PeakPattern::locate(
 
   // TODO A lot of these seem to be misalignments of cars with peaks.
   // So it's not clear that we should recognize them.
-  if (PeakPattern::guessNoBorders())
+  if (PeakPattern::guessNoBorders(models))
   {
     if (PeakPattern::fix(peaks, peakPtrsUsed, peakPtrsUnused))
       return true;
@@ -788,8 +826,6 @@ bool PeakPattern::locate(
     // Single car whose length fits well.  We should never fail.
     if (PeakPattern::fix(peaks, peakPtrsUsed, peakPtrsUnused, true))
       return true;
-    // else
-      // return false;
   }
 
   if (PeakPattern::guessBothDoubleLeft(models))
@@ -806,7 +842,7 @@ bool PeakPattern::locate(
       return true;
   }
 
-  if (PeakPattern::guessBothSingleShort())
+  if (PeakPattern::guessBothSingleShort(models))
   {
     // Not model-based, more heuristic.
     if (PeakPattern::fix(peaks, peakPtrsUsed, peakPtrsUnused, true))
