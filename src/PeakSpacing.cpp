@@ -13,21 +13,6 @@
 
 #define UNUSED(x) ((void)(true ? 0 : ((x), void(), 0)))
 
-// If we try to interpolate an entire car, the end gap should not be
-// too large relative to the bogie gap.
-#define NO_BORDER_FACTOR 3.0f
-
-// The inter-car gap should be larger than effectively zero.
-#define SMALL_BORDER_FACTOR 0.1f
-
-// Limits for match between model and actual gap.
-#define LEN_FACTOR_GREAT 0.05f
-#define LEN_FACTOR_GOOD 0.10f
-
-// Expect a short car to be within these factors of a typical car.
-#define SHORT_FACTOR 0.5f
-#define LONG_FACTOR 0.9f
-
 
 PeakSpacing::PeakSpacing()
 {
@@ -42,8 +27,6 @@ PeakSpacing::~PeakSpacing()
 
 void PeakSpacing::reset()
 {
-  carBeforePtr = nullptr;
-  carAfterPtr = nullptr;
 }
 
 
@@ -54,9 +37,6 @@ bool PeakSpacing::setGlobals(
 {
   if (models.size() == 0)
     return false;
-
-  carBeforePtr = range.carBeforePtr();
-  carAfterPtr = range.carAfterPtr();
 
   offset = offsetIn;
 
@@ -74,17 +54,7 @@ bool PeakSpacing::setGlobals(
 }
 
 
-void PeakSpacing::updateUnused(
-  const unsigned limitLower,
-  const unsigned limitUpper,
-  PeakPtrs& peakPtrsUnused) const
-{
-  if (limitLower)
-    peakPtrsUnused.erase_below(limitLower);
-  if (limitUpper)
-    peakPtrsUnused.erase_above(limitUpper);
-}
-
+// TODO These two methods can go in PeakPtrs
 
 void PeakSpacing::updateUnused(
   const Target& target,
@@ -142,19 +112,6 @@ void PeakSpacing::update(
 {
   PeakSpacing::updateUsed(none.peaksClose, peakPtrsUsed, peakPtrsUnused);
   PeakSpacing::updateUnused(none.pe, peakPtrsUnused);
-}
-
-
-void PeakSpacing::update(
-  const vector<Peak const *>& closest,
-  const unsigned limitLower,
-  const unsigned limitUpper,
-  PeakPtrs& peakPtrsUsed,
-  PeakPtrs& peakPtrsUnused) const
-{
-  PeakSpacing::updateUsed(closest, peakPtrsUsed, peakPtrsUnused);
-
-  PeakSpacing::updateUnused(limitLower, limitUpper, peakPtrsUnused);
 }
 
 

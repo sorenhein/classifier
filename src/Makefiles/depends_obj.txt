@@ -45,14 +45,16 @@ PeakRepair.obj: Peaks.h PeakPtrs.h PeakRange.h PeakProfile.h
 PeakSeeds.obj: PeakSeeds.h Peak.h struct.h PeakPool.h Peaks.h PeakPtrs.h
 PeakSeeds.obj: CarPeaks.h
 PeakSlots.obj: PeakSlots.h struct.h PeakPtrs.h Peak.h CarPeaks.h
-PeakSpacing.obj: PeakSpacing.h struct.h PeakRange.h PeakProfile.h PeakPool.h
-PeakSpacing.obj: Peaks.h Peak.h PeakPtrs.h CarPeaks.h Except.h errors.h
+PeakSpacing.obj: CarModels.h CarDetect.h CarGaps.h Peak.h struct.h CarPeaks.h
+PeakSpacing.obj: PeakSpacing.h util/Target.h PeakRange.h PeakProfile.h
+PeakSpacing.obj: PeakPool.h Peaks.h PeakPtrs.h Except.h errors.h
 PeakStats.obj: PeakStats.h struct.h Except.h errors.h
 PeakStructure.obj: PeakStructure.h CarDetect.h CarGaps.h Peak.h struct.h
 PeakStructure.obj: CarPeaks.h PeakPool.h Peaks.h PeakPtrs.h PeakRange.h
 PeakStructure.obj: PeakProfile.h PeakPattern.h CarModels.h util/Target.h
 PeakStructure.obj: util/Completions.h util/MissCar.h util/MissPeak.h
-PeakStructure.obj: PeakRepair.h PeakPartial.h PeakSlots.h Except.h errors.h
+PeakStructure.obj: PeakSpacing.h PeakRepair.h PeakPartial.h PeakSlots.h
+PeakStructure.obj: Except.h errors.h
 Regress.obj: Regress.h struct.h Database.h Timers.h util/Timer.h Except.h
 Regress.obj: errors.h print.h regress/PolynomialRegression.h
 SegActive.obj: SegActive.h PeakDetect.h Peak.h struct.h PeakPool.h Peaks.h

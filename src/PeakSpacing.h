@@ -12,7 +12,6 @@
 using namespace std;
 
 class CarModels;
-class CarDetect;
 class PeakRange;
 class PeakPool;
 class PeakPtrs;
@@ -71,9 +70,6 @@ class PeakSpacing
     unsigned longTypical;
     unsigned sideTypical;
 
-    CarDetect const * carBeforePtr;
-    CarDetect const * carAfterPtr;
-
     RangeData rangeData;
 
     vector<SpacingEntry> spacings;
@@ -130,23 +126,11 @@ class PeakSpacing
       PeakPtrs& peakPtrsUnused) const;
 
     void updateUnused(
-      const unsigned limitLower,
-      const unsigned limitUpper,
-      PeakPtrs& peakPtrsUnused) const;
-
-    void updateUnused(
       const Target& target,
       PeakPtrs& peakPtrsUnused) const;
 
     void updateUsed(
       const vector<Peak const *>& peaksClosest,
-      PeakPtrs& peakPtrsUsed,
-      PeakPtrs& peakPtrsUnused) const;
-
-    void update(
-      const vector<Peak const *>& closest,
-      const unsigned limitLower,
-      const unsigned limitUpper,
       PeakPtrs& peakPtrsUsed,
       PeakPtrs& peakPtrsUnused) const;
 
