@@ -4,8 +4,7 @@
 #include <vector>
 #include <list>
 
-#include "CarModels.h"
-#include "struct.h"
+#include "PeakRange.h"
 
 #include "util/Target.h"
 #include "util/Completions.h"
@@ -14,8 +13,8 @@ using namespace std;
 
 class CarModels;
 class CarDetect;
-class PeakRange;
 class PeakPool;
+struct ModelData;
 
 
 class PeakPattern
@@ -51,8 +50,6 @@ class PeakPattern
     list<Target> targets;
 
     Completions completions;
-
-    vector<unsigned> hits;
 
 
     void setMethods();

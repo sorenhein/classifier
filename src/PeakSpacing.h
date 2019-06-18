@@ -6,6 +6,7 @@
 #include <sstream>
 
 #include "util/Target.h"
+#include "PeakRange.h"
 #include "Peak.h"
 #include "struct.h"
 

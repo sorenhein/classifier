@@ -2,6 +2,7 @@
 #include <sstream>
 #include <mutex>
 
+#include "CarModels.h"
 #include "PeakPattern.h"
 #include "PeakRange.h"
 #include "Except.h"

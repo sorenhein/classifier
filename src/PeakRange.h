@@ -18,6 +18,72 @@ typedef list<CarDetect>::iterator CarListIter;
 typedef list<CarDetect>::const_iterator CarListConstIter;
 
 
+enum RangeQuality
+{
+  QUALITY_ACTUAL_GAP = 0,
+  QUALITY_BY_SYMMETRY = 1,
+  QUALITY_NONE = 2
+};
+
+
+struct RangeData
+{
+  RangeQuality qualLeft;
+  RangeQuality qualRight;
+  RangeQuality qualBest;
+  RangeQuality qualWorst;
+
+  unsigned gapLeft;
+  unsigned gapRight;
+  unsigned indexLeft;
+  unsigned indexRight;
+  unsigned lenRange;
+
+  RangeData()
+  {
+    qualLeft = QUALITY_NONE;
+    qualRight = QUALITY_NONE;
+    qualBest = QUALITY_NONE;
+    qualWorst = QUALITY_NONE;
+
+    gapLeft = 0;
+    gapRight = 0;
+
+    indexLeft = 0;
+    indexRight = 0;
+    lenRange = 0;
+  };
+
+  string strQuality(const RangeQuality qual) const
+  {
+    if (qual == QUALITY_ACTUAL_GAP)
+      return "ACTUAL";
+    else if (qual == QUALITY_BY_SYMMETRY)
+      return "SYMMETRY";
+    else
+      return "(none)";
+  };
+
+  string str(
+    const string& title,
+    const unsigned offset) const
+  {
+    stringstream ss;
+    ss << title << "\n" <<
+      setw(10) << left << "qualLeft " <<
+        RangeData::strQuality(qualLeft) << "\n" <<
+      setw(10) << left << "qualRight " <<
+        RangeData::strQuality(qualRight) << "\n" <<
+      setw(10) << left << "gapLeft " << gapLeft << "\n" <<
+      setw(10) << left << "gapRight " << gapLeft << "\n" <<
+      setw(10) << left << "indices " <<
+        indexLeft + offset << " - " << indexRight + offset <<  "\n" <<
+      setw(10) << left << "length " << lenRange << endl;
+    return ss.str();
+  };
+};
+
+
 class PeakRange
 {
   private:
