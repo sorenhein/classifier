@@ -388,4 +388,13 @@ struct DistEntry
   };
 };
 
+enum FindCarType
+{
+  FIND_CAR_MATCH = 0,
+  FIND_CAR_PARTIAL = 1,
+  FIND_CAR_DOWNGRADE = 2,
+  FIND_CAR_NO_MATCH = 3,
+  FIND_CAR_SIZE = 4
+};
+
 #endif

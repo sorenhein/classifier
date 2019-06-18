@@ -191,7 +191,7 @@ bool PeakStructure::fillPartialSides(
 }
 
 
-PeakStructure::FindCarType PeakStructure::findCarByOrder(
+FindCarType PeakStructure::findCarByOrder(
   const CarModels& models,
   PeakPool& peaks,
   PeakRange& range,
@@ -234,7 +234,7 @@ PeakStructure::FindCarType PeakStructure::findCarByOrder(
 }
 
 
-PeakStructure::FindCarType PeakStructure::findPartialCarByQuality(
+FindCarType PeakStructure::findPartialCarByQuality(
   const CarModels& models,
   const PeakFncPtr& fptr,
   const CarPosition carpos,
@@ -318,7 +318,7 @@ if (carpos == CARPOSITION_INNER_MULTI)
 }
 
 
-PeakStructure::FindCarType PeakStructure::findPartialFirstCarByQuality(
+FindCarType PeakStructure::findPartialFirstCarByQuality(
   const CarModels& models,
   PeakPool& peaks,
   PeakRange& range,
@@ -343,7 +343,7 @@ PeakStructure::FindCarType PeakStructure::findPartialFirstCarByQuality(
 }
 
 
-PeakStructure::FindCarType PeakStructure::findCarByPeaks(
+FindCarType PeakStructure::findCarByPeaks(
   const CarModels& models,
   const PeakRange& range,
   PeakPtrs& peakPtrs,
@@ -365,7 +365,7 @@ PeakStructure::FindCarType PeakStructure::findCarByPeaks(
 }
 
 
-PeakStructure::FindCarType PeakStructure::findCarByQuality(
+FindCarType PeakStructure::findCarByQuality(
   const CarModels& models,
   const PeakFncPtr& fptr,
   PeakRange& range,
@@ -382,7 +382,7 @@ PeakStructure::FindCarType PeakStructure::findCarByQuality(
 }
 
 
-PeakStructure::FindCarType PeakStructure::findCarByGreatQuality(
+FindCarType PeakStructure::findCarByGreatQuality(
   const CarModels& models,
   PeakPool& peaks,
   PeakRange& range,
@@ -397,7 +397,7 @@ PeakStructure::FindCarType PeakStructure::findCarByGreatQuality(
 }
 
 
-PeakStructure::FindCarType PeakStructure::findCarByGoodQuality(
+FindCarType PeakStructure::findCarByGoodQuality(
   const CarModels& models,
   PeakPool& peaks,
   PeakRange& range,
@@ -412,7 +412,7 @@ PeakStructure::FindCarType PeakStructure::findCarByGoodQuality(
 }
 
 
-PeakStructure::FindCarType PeakStructure::findEmptyRange(
+FindCarType PeakStructure::findEmptyRange(
   const CarModels& models,
   PeakPool& peaks,
   PeakRange& range,
@@ -436,7 +436,7 @@ cout << range.strProfile();
 }
 
 
-PeakStructure::FindCarType PeakStructure::findCarByPattern(
+FindCarType PeakStructure::findCarByPattern(
   const CarModels& models,
   PeakPool& peaks,
   PeakRange& range,
@@ -447,17 +447,19 @@ PeakStructure::FindCarType PeakStructure::findCarByPattern(
   range.split(&Peak::goodQuality, peakPtrsUsed, peakPtrsUnused);
 
   PeakPattern pattern;
-  if (! pattern.locate(models, peaks, range, offset,
-      peakPtrsUsed, peakPtrsUnused))
+  FindCarType ret = pattern.locate(models, range, offset,
+      peaks, peakPtrsUsed, peakPtrsUnused);
+
+  if (ret == FIND_CAR_NO_MATCH)
   {
     return FIND_CAR_NO_MATCH;
   }
-  else if (peakPtrsUsed.empty())
+  else if (ret == FIND_CAR_DOWNGRADE)
   {
     peakPtrsUnused.apply(&Peak::markdown);
     return FIND_CAR_DOWNGRADE;
   }
-  else
+  else if (ret == FIND_CAR_MATCH)
   {
     // If it worked, the used and unused peaks have been modified,
     // and some peaks have disappeared from the union of the lists.
@@ -470,10 +472,12 @@ PeakStructure::FindCarType PeakStructure::findCarByPattern(
 
     return FIND_CAR_MATCH;
   }
+  else
+    return FIND_CAR_NO_MATCH;
 }
 
 
-PeakStructure::FindCarType PeakStructure::findCarBySpacing(
+FindCarType PeakStructure::findCarBySpacing(
   const CarModels& models,
   PeakPool& peaks,
   PeakRange& range,

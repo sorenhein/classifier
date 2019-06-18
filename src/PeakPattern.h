@@ -80,11 +80,6 @@ class PeakPattern
 
     bool looksEmptyFirst(const PeakPtrs& peakPtrsUsed) const;
 
-    void updateUsed(
-      const vector<Peak const *>& peaksClosest,
-      PeakPtrs& peakPtrsUsed,
-      PeakPtrs& peakPtrsUnused) const;
-
     void update(
       const vector<Peak const *>& closest,
       const unsigned limitLower,
@@ -109,8 +104,7 @@ class PeakPattern
       PeakPool& peaks,
       PeakPtrs& peakPtrsUsed,
       PeakPtrs& peakPtrsUnused,
-      const bool forceFlag = false,
-      const bool flexibleFlag = false);
+      const bool forceFlag = false);
 
 
   public:
@@ -121,17 +115,13 @@ class PeakPattern
 
     void reset();
 
-    // TODO Re-order
-    // TODO Return also partial (flat list of peaks?)
-    bool locate(
+    FindCarType locate(
       const CarModels& models,
-      PeakPool& peaks,
       const PeakRange& range,
       const unsigned offsetIn,
+      PeakPool& peaks,
       PeakPtrs& peakPtrsUsed,
       PeakPtrs& peakPtrsUnused);
-
-    string strHits() const;
 };
 
 #endif

@@ -21,15 +21,6 @@ class PeakStructure
 {
   private:
 
-    enum FindCarType
-    {
-      FIND_CAR_MATCH = 0,
-      FIND_CAR_PARTIAL = 1,
-      FIND_CAR_DOWNGRADE = 2,
-      FIND_CAR_NO_MATCH = 3,
-      FIND_CAR_SIZE = 4
-    };
-
     // Only a few methods actually change peaks.
     typedef FindCarType (PeakStructure::*FindCarPtr)(
       const CarModels& models,

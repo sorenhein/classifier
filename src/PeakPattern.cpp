@@ -440,53 +440,14 @@ bool PeakPattern::looksEmptyFirst(const PeakPtrs& peakPtrsUsed) const
 }
 
 
-void PeakPattern::updateUsed(
-  const vector<Peak const *>& peaksClosest,
-  PeakPtrs& peakPtrsUsed,
-  PeakPtrs& peakPtrsUnused) const
-{
-  // There may be some peaks that have to be moved.
-  auto pu = peakPtrsUsed.begin();
-  for (auto& peak: peaksClosest)
-  {
-    if (peak == nullptr)
-      continue;
-
-    const unsigned indexClose = peak->getIndex();
-    while (pu != peakPtrsUsed.end() && (* pu)->getIndex() < indexClose)
-    {
-      peakPtrsUnused.add(* pu);
-      pu = peakPtrsUsed.erase(pu);
-    }
-
-    if (pu == peakPtrsUsed.end())
-      break;
-
-    // Preserve those peaks that are also in peaksClose.
-    if ((* pu)->getIndex() == indexClose)
-      pu = peakPtrsUsed.next(pu);
-  }
-
-  // Erase trailing peaks.
-  while (pu != peakPtrsUsed.end())
-  {
-    peakPtrsUnused.add(* pu);
-    pu = peakPtrsUsed.erase(pu);
-  }
-}
-
-
 void PeakPattern::update(
-  const vector<Peak const *>& closest,
+  const vector<Peak const *>& closestPtrs,
   const unsigned limitLower,
   const unsigned limitUpper,
   PeakPtrs& peakPtrsUsed,
   PeakPtrs& peakPtrsUnused) const
 {
-  // PeakPattern::updateUsed(closest, peakPtrsUsed, peakPtrsUnused);
-
-  peakPtrsUsed.moveOut(closest, peakPtrsUnused);
-
+  peakPtrsUsed.moveOut(closestPtrs, peakPtrsUnused);
   peakPtrsUnused.truncate(limitLower, limitUpper);
 }
 
@@ -580,15 +541,11 @@ void PeakPattern::fillCompletions(
         Peak * ptr = peaks.repair(peakRep, &Peak::borderlineQuality, 
           offset, false, forceFlag, testIndex);
 
-        if (ptr)
-        {
-          peakPtrsUsed.add(ptr);
-          cout << peakPtrsUsed.strQuality("Used now", offset);
+        if (! ptr)
+          THROW(ERR_PATTERN_BAD_FIX, "Peak not repairable after all?");
 
-          completions.markWith(* ptr, COMP_REPAIRED);
-        }
-        else
-          THROW(ERR_ALGO_PEAK_CONSISTENCY, "Not repairable after all?");
+        peakPtrsUsed.add(ptr);
+        completions.markWith(* ptr, COMP_REPAIRED);
       }
     }
   }
@@ -599,8 +556,7 @@ bool PeakPattern::fix(
   PeakPool& peaks,
   PeakPtrs& peakPtrsUsed,
   PeakPtrs& peakPtrsUnused,
-  const bool forceFlag,
-  const bool flexibleFlag)
+  const bool forceFlag)
 {
   if (targets.empty())
     return false;
@@ -609,15 +565,12 @@ bool PeakPattern::fix(
 
   PeakPattern::annotateCompletions(peaks, peakPtrsUnused, forceFlag);
 
-  cout << "Completions after mark-up\n\n";
-  cout << completions.str(offset);
-
   PeakPattern::fillCompletions(peaks, peakPtrsUsed, peakPtrsUnused, 
     forceFlag);
 
   completions.condense();
 
-  cout << "Completions after filling out\n\n";
+  cout << "Completions\n\n";
   cout << completions.str(offset);
 
   CarCompletion * winnerPtr;
@@ -648,23 +601,20 @@ bool PeakPattern::fix(
     cout << "COMPLETION MISS" << endl;
   }
 
-//  TODO Put this in CarCompletion.
-UNUSED(flexibleFlag);
-return false;
-
+  return false;
 }
 
 
-bool PeakPattern::locate(
+FindCarType PeakPattern::locate(
   const CarModels& models,
-  PeakPool& peaks,
   const PeakRange& range,
   const unsigned offsetIn,
+  PeakPool& peaks,
   PeakPtrs& peakPtrsUsed,
   PeakPtrs& peakPtrsUnused)
 {
   if (! PeakPattern::setGlobals(models, range, offsetIn))
-    return false;
+    return FIND_CAR_NO_MATCH;
 
   cout << peakPtrsUsed.strQuality("Used", offset);
   cout << peakPtrsUnused.strQuality("Unused", offset);
@@ -679,7 +629,7 @@ bool PeakPattern::locate(
           fgroup.forceFlag))
       {
         cout << "Hit pattern " << fgroup.name << endl;
-        return true;
+        return FIND_CAR_MATCH;
       }
     }
   }
@@ -687,9 +637,9 @@ bool PeakPattern::locate(
   if (PeakPattern::looksEmptyFirst(peakPtrsUsed))
   {
     peakPtrsUnused.moveFrom(peakPtrsUsed);
-    return true;
+    return FIND_CAR_DOWNGRADE;
   }
 
-  return false;
+  return FIND_CAR_NO_MATCH;
 }
 
