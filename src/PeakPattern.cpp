@@ -130,20 +130,14 @@ void PeakPattern::getActiveModels(const CarModels& models)
     ma.index = index;
     ma.fullFlag = data->fullFlag;
 
-    // Three different qualities; only two used for now.
-    ma.lenLo.resize(3);
-    ma.lenHi.resize(3);
+    ma.lenLo.resize(QUALITY_NONE);
+    ma.lenHi.resize(QUALITY_NONE);
 
     unsigned len;
     if (data->gapLeft == 0)
-    {
-      if (data->gapRight == 0)
-        cout << "getActiveModels ERROR: No gaps\n";
-
-      len = data->lenPP + data->gapLeft + 2 * data->gapRight;
-    }
+      len = data->lenPP + 2 * data->gapRight;
     else if (data->gapRight == 0)
-      len = data->lenPP + 2 * data->gapLeft + data->gapRight;
+      len = data->lenPP + 2 * data->gapLeft;
     else
       len = data->lenPP + data->gapLeft + data->gapRight;
 
@@ -538,16 +532,6 @@ void PeakPattern::updateUsed(
     peakPtrsUnused.add(* pu);
     pu = peakPtrsUsed.erase(pu);
   }
-}
-
-
-void PeakPattern::update(
-  const NoneEntry& none,
-  PeakPtrs& peakPtrsUsed,
-  PeakPtrs& peakPtrsUnused) const
-{
-  PeakPattern::updateUsed(none.peaksClose, peakPtrsUsed, peakPtrsUnused);
-  PeakPattern::updateUnused(none.pe, peakPtrsUnused);
 }
 
 

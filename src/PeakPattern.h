@@ -34,24 +34,6 @@ class PeakPattern
 
     };
 
-    struct NoneEntry
-    {
-      Target pe;
-
-      vector<Peak const *> peaksClose;
-      bool emptyFlag;
-
-      NoneEntry()
-      {
-        emptyFlag = true;
-      };
-
-      bool empty()
-      {
-        return emptyFlag;
-      };
-    };
-
 
     unsigned offset;
 
@@ -117,11 +99,6 @@ class PeakPattern
 
     void updateUsed(
       const vector<Peak const *>& peaksClosest,
-      PeakPtrs& peakPtrsUsed,
-      PeakPtrs& peakPtrsUnused) const;
-
-    void update(
-      const NoneEntry& none,
       PeakPtrs& peakPtrsUsed,
       PeakPtrs& peakPtrsUnused) const;
 
