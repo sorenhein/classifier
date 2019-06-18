@@ -570,7 +570,7 @@ void PeakPattern::targetsToCompletions(PeakPtrs& peakPtrsUsed)
     target.limits(limitLower, limitUpper);
 
     CarCompletion& carCompl = completions.emplace_back();
-    carCompl.setDistance(dist);
+    // carCompl.setDistance(dist);
     carCompl.setLimits(limitLower, limitUpper);
 
     const unsigned bogieTolerance = 3 * target.bogieGap() / 10;
@@ -684,22 +684,22 @@ void PeakPattern::fillCompletions(
 {
   Peak peakRep;
 
-  for (auto& misses: completions)
+  for (auto& cc: completions)
   {
-    for (auto& miss: misses)
+    for (auto& pc: cc)
     {
-      if (miss.source() == COMP_UNUSED)
+      if (pc.source() == COMP_UNUSED)
       {
-        cout << "Reviving unused " << miss.str(offset) << endl;;
-        Peak * ptr = miss.ptr();
+        cout << "Reviving unused " << pc.str(offset) << endl;;
+        Peak * ptr = pc.ptr();
         peakPtrsUsed.add(ptr);
         peakPtrsUnused.remove(ptr);
       }
-      else if (miss.source() == COMP_REPAIRABLE)
+      else if (pc.source() == COMP_REPAIRABLE)
       {
-        cout << "Repairing unused " << miss.str(offset) << endl;
+        cout << "Repairing unused " << pc.str(offset) << endl;
         unsigned testIndex;
-        miss.fill(peakRep);
+        pc.fill(peakRep);
         Peak * ptr = peaks.repair(peakRep, &Peak::borderlineQuality, 
           offset, false, forceFlag, testIndex);
 

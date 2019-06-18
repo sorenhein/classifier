@@ -32,13 +32,10 @@ void PeakCompletion::addMiss(
   const unsigned tolerance)
 {
   mid = target;
-
-  if (target < tolerance)
-    lower = 0;
-  else
-    lower = target - tolerance;
-
+  lower = (target < tolerance ? 0 : target - tolerance);
   upper = target + tolerance;
+  _type = COMP_UNMATCHED;
+  pptr = nullptr;
 }
 
 
@@ -47,28 +44,28 @@ void PeakCompletion::addMatch(
   Peak * ptr)
 {
   mid = target;
+  _type = COMP_USED;
   pptr = ptr;
 }
 
 
 bool PeakCompletion::markWith(
   Peak& peak,
-  const CompletionType typeIn,
-  unsigned& dist)
+  const CompletionType typeIn)
 {
   if (_type == COMP_UNMATCHED && peak.match(lower, upper))
   {
+    _type = typeIn;
     if (typeIn == COMP_UNUSED)
-      PeakCompletion::nominate(typeIn, dist, &peak);
-    else
-      PeakCompletion::nominate(typeIn, dist, nullptr);
+      pptr = &peak;
     return true;
   }
   else if (_type == COMP_REPAIRABLE && peak.match(lower, upper))
   {
     if (typeIn == COMP_REPAIRED)
     {
-      PeakCompletion::nominate(typeIn, dist, &peak);
+      _type = typeIn;
+      pptr = &peak;
       return true;
     }
     else
@@ -76,22 +73,6 @@ bool PeakCompletion::markWith(
   }
   else
     return false;
-}
-
-
-void PeakCompletion::nominate(
-  const CompletionType typeIn,
-  unsigned& dist,
-  Peak * pptrIn)
-{
-  _type = typeIn;
-  if (pptrIn != nullptr)
-  {
-    pptr = pptrIn;
-    const unsigned i = pptr->getIndex();
-    const unsigned d = (i >= mid ? i-mid : mid-i);
-    dist = d*d;
-  }
 }
 
 
@@ -106,9 +87,7 @@ bool PeakCompletion::consistentWith(const PeakCompletion& pc2)
   if (_type == COMP_UNUSED && pc2._type == COMP_UNUSED)
     return pptr == pc2.pptr;
   else if (_type == COMP_REPAIRED && pc2._type == COMP_REPAIRED)
-  {
     return pptr == pc2.pptr;
-  }
   else
     return (pc2.mid >= lower && pc2.mid <= upper);
 }

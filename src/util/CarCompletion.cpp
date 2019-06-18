@@ -21,7 +21,6 @@ CarCompletion::~CarCompletion()
 void CarCompletion::reset()
 {
   weight = 1;
-  distance = 0;
   _closestPeaks.clear();
   _limitLower = 0;
   _limitUpper = 0;
@@ -31,12 +30,6 @@ void CarCompletion::reset()
 void CarCompletion::setWeight(const unsigned weightIn)
 {
   weight = weightIn;
-}
-
-
-void CarCompletion::setDistance(const unsigned dist)
-{
-  distance = dist;
 }
 
 
@@ -105,18 +98,14 @@ void CarCompletion::markWith(
   Peak& peak,
   const CompletionType type)
 {
-  unsigned dist;
   for (auto& pc: peakCompletions)
   {
-    if (pc.markWith(peak, type, dist))
+    if (pc.markWith(peak, type))
     {
       if (type == COMP_REPAIRABLE)
         CarCompletion::pruneRepairables(pc);
       else
-      {
         CarCompletion::addPeak(peak);
-        distance += dist;
-      }
     }
   }
 }
@@ -166,8 +155,6 @@ bool CarCompletion::condense(CarCompletion& miss2)
   }
 
   weight += miss2.weight;
-  if (miss2.distance < distance)
-    distance = miss2.distance;
 
   return true;
 }
@@ -233,7 +220,7 @@ unsigned CarCompletion::score() const
 string CarCompletion::str(const unsigned offset) const
 {
   stringstream ss;
-  ss << "Car with weight " << weight << ", distance " << distance;
+  ss << "Car with weight " << weight << ", distance TBD ";
 
   if (peakCompletions.empty())
     ss << " is complete\n\n";

@@ -22,7 +22,6 @@ class CarCompletion
 
     list<PeakCompletion> peakCompletions;
     unsigned weight;
-    unsigned distance;
 
     vector<Peak const *> _closestPeaks;
 
@@ -42,8 +41,6 @@ class CarCompletion
     void reset();
 
     void setWeight(const unsigned weightIn);
-
-    void setDistance(const unsigned dist);
 
     void addMiss(
       const unsigned target,
