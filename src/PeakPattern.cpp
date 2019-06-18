@@ -666,6 +666,8 @@ void PeakPattern::annotateCompletions(
     }
   }
 
+  completions.makeShift();
+
   cout << "Completions after mark-up\n\n";
   cout << completions.str(offset);
 }

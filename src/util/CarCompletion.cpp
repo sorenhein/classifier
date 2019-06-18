@@ -21,7 +21,7 @@ CarCompletion::~CarCompletion()
 void CarCompletion::reset()
 {
   weight = 1;
-  // _closestPeaks.clear();
+
   _limitLower = 0;
   _limitUpper = 0;
 }
@@ -44,14 +44,10 @@ void CarCompletion::addMiss(
 }
 
 
-#define UNUSED(x) ((void)(true ? 0 : ((x), void(), 0)))
-
 void CarCompletion::addMatch(
   const unsigned target,
   Peak * pptr)
 {
-  // _closestPeaks.push_back(pptr);
-
   peakCompletions.emplace_back(PeakCompletion());
   PeakCompletion& pc = peakCompletions.back();
 
@@ -71,32 +67,6 @@ Miterator CarCompletion::end()
 }
 
 
-/*
-void CarCompletion::addPeak(Peak& peak)
-{
-  const unsigned pindex = peak.getIndex();
-
-  if (_closestPeaks.empty() || pindex > _closestPeaks.back()->getIndex())
-  {
-    _closestPeaks.push_back(&peak);
-    return;
-  }
-
-  for (auto it = _closestPeaks.begin(); it != _closestPeaks.end(); it++)
-  {
-    const unsigned index = (* it)->getIndex();
-    if (index == pindex)
-      return;
-    else if (index > pindex)
-    {
-      _closestPeaks.insert(it, &peak);
-      return;
-    }
-  }
-}
-*/
-
-
 void CarCompletion::markWith(
   Peak& peak,
   const CompletionType type)
@@ -107,8 +77,6 @@ void CarCompletion::markWith(
     {
       if (type == COMP_REPAIRABLE)
         CarCompletion::pruneRepairables(pc);
-      // else
-        // CarCompletion::addPeak(peak);
     }
   }
 }
@@ -139,39 +107,30 @@ void CarCompletion::getMatch(
   unsigned& limitLowerOut,
   unsigned& limitUpperOut)
 {
-  // closestPtr = &_closestPeaks;
-  limitLowerOut = _limitLower;
-  limitUpperOut = _limitUpper;
-
   closestPtrs.clear();
   for (auto& pc: peakCompletions)
     closestPtrs.push_back(pc.ptr());
+
+  limitLowerOut = _limitLower;
+  limitUpperOut = _limitUpper;
 }
 
 
 bool CarCompletion::condense(CarCompletion& miss2)
 {
-  // const unsigned nc = _closestPeaks.size();
   const unsigned nc = peakCompletions.size();
-  // if (miss2._closestPeaks.size() != nc)
   if (miss2.peakCompletions.size() != nc)
     return false;
 
-  for (auto pc1 = peakCompletions.begin(), pc2 = miss2.peakCompletions.begin();
-    pc1 != peakCompletions.end() && pc2 != miss2.peakCompletions.end();
-    pc1++, pc2++)
+  for (auto pc1 = peakCompletions.begin(), 
+      pc2 = miss2.peakCompletions.begin();
+      pc1 != peakCompletions.end() && 
+      pc2 != miss2.peakCompletions.end();
+      pc1++, pc2++)
   {
     if (pc1->ptr() != pc2->ptr())
       return false;
   }
-
-  /*
-  for (unsigned i = 0; i < nc; i++)
-  {
-    if (_closestPeaks[i] != miss2._closestPeaks[i])
-      return false;
-  }
-  */
 
   weight += miss2.weight;
 
@@ -222,24 +181,58 @@ void CarCompletion::pruneRepairables(PeakCompletion& pc)
 }
 
 
-unsigned CarCompletion::score() const
+void CarCompletion::makeShift()
 {
-  vector<unsigned> types(COMP_SIZE);
-  for (auto& pc: peakCompletions)
-    types[pc.source()]++;
+  list<int> dists;
+  int sum = 0;
+  unsigned npos = 0;
+  unsigned nneg = 0;
+  unsigned nall = 0;
 
-  // TODO For example.
-  return 
-    weight +
-    3 * types[COMP_UNUSED] +
-    1 * types[COMP_REPAIRABLE];
+  // Make a list of the distances.
+  for (auto& pc: peakCompletions)
+  {
+    if (! pc.ptr())
+      continue;
+
+    const int d = pc.distance();
+    sum += d;
+    dists.push_back(d);
+    if (d > 0)
+      npos++;
+    if (d < 0)
+      nneg++;
+    nall++;
+  }
+
+  if (nall == 0)
+    return;
+
+  // If they are systematically shifted, compensate for this.
+  int shift = 0;
+  if (npos == 0 || nneg == 0)
+  {
+    shift = sum / nall;
+    for (auto& pc: peakCompletions)
+      pc.adjust(-shift);
+  }
+}
+
+
+unsigned CarCompletion::distanceShift() const
+{
+  unsigned dist = 0;
+  for (auto& pc: peakCompletions)
+    dist += pc.distanceShift();
+  return dist;
 }
 
 
 string CarCompletion::str(const unsigned offset) const
 {
   stringstream ss;
-  ss << "Car with weight " << weight << ", distance TBD ";
+  ss << "Car with weight " << weight << 
+    ", distance " << CarCompletion::distanceShift();
 
   if (peakCompletions.empty())
     ss << " is complete\n\n";

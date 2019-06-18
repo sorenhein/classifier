@@ -23,8 +23,6 @@ class CarCompletion
     list<PeakCompletion> peakCompletions;
     unsigned weight;
 
-    // vector<Peak const *> _closestPeaks;
-
     unsigned _limitLower;
     unsigned _limitUpper;
 
@@ -53,8 +51,6 @@ class CarCompletion
     Miterator begin();
     Miterator end();
 
-    void addPeak(Peak& peak);
-
     void markWith(
       Peak& peak,
       const CompletionType type);
@@ -78,8 +74,10 @@ class CarCompletion
 
     void pruneRepairables(PeakCompletion& pc);
 
+    void makeShift();
 
-    unsigned score() const;
+    unsigned distance() const;
+    unsigned distanceShift() const;
 
     string str(const unsigned offset = 0) const;
 };

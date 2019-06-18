@@ -43,6 +43,8 @@ class Completions
 
     unsigned numComplete(CarCompletion *& complete);
 
+    void makeShift();
+
     void condense();
 
     void makeRepairables();

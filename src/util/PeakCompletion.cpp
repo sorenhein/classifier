@@ -22,6 +22,8 @@ void PeakCompletion::reset()
   mid = 0;
   lower = std::numeric_limits<unsigned>::max();
   upper = 0;
+  adjusted = 0;
+
   _type = COMP_UNMATCHED;
   pptr = nullptr;
 }
@@ -34,6 +36,8 @@ void PeakCompletion::addMiss(
   mid = target;
   lower = (target < tolerance ? 0 : target - tolerance);
   upper = target + tolerance;
+  adjusted = target;
+
   _type = COMP_UNMATCHED;
   pptr = nullptr;
 }
@@ -44,6 +48,7 @@ void PeakCompletion::addMatch(
   Peak * ptr)
 {
   mid = target;
+  adjusted = target;
   _type = COMP_USED;
   pptr = ptr;
 }
@@ -111,6 +116,30 @@ void PeakCompletion::fill(Peak& peak)
 }
 
 
+int PeakCompletion::distance() const
+{
+  const unsigned i = pptr->getIndex();
+  return (i >= mid ? static_cast<int>(i-mid) : -static_cast<int>(mid-i));
+}
+
+
+int PeakCompletion::distanceShift() const
+{
+  if (! pptr)
+    return 0;
+
+  const unsigned i = pptr->getIndex();
+  return (i >= adjusted ? static_cast<int>(i-adjusted) : 
+    -static_cast<int>(adjusted-i));
+}
+
+
+void PeakCompletion::adjust(const int shift)
+{
+  adjusted = mid - shift;
+}
+
+
 string PeakCompletion::strType() const
 {
   if (_type == COMP_USED)
@@ -148,18 +177,26 @@ string PeakCompletion::str(const unsigned offset) const
 
   const unsigned pi = (pptr ? pptr->getIndex() + offset : 0);
   unsigned d;
-  if (pi >= mid)
-    d = (pi - mid) * (pi - mid);
+  if (pi >= adjusted)
+    d = (pi - adjusted) * (pi - adjusted);
   else
-    d = (mid - pi) * (mid - pi);
+    d = (adjusted - pi) * (adjusted - pi);
 
   stringstream ss;
   ss << setw(6) << mid + offset <<
     setw(12) << right << range <<
-    setw(8) <<  mid << // For now
-    setw(12) << PeakCompletion::strType() <<
-    setw(6) << (pptr ? to_string(pi) : "-") << 
-    setw(6) << (pptr ? to_string(d) : "-") << "\n";
+    setw(8) <<  adjusted <<
+    setw(12) << PeakCompletion::strType();
+
+  if (pptr)
+  {
+    ss << setw(6) << pi << setw(6) << d << "\n";
+  }
+  else
+  {
+    ss << setw(6) << "-" << setw(6) << "-" << "\n";
+  }
+
   return ss.str();
 }
 

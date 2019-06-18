@@ -69,6 +69,13 @@ unsigned Completions::numComplete(CarCompletion *& complete)
 }
 
 
+void Completions::makeShift()
+{
+  for (auto& comp: completions)
+    comp.makeShift();
+}
+
+
 void Completions::condense()
 {
   for (auto ci1 = completions.begin(); ci1 != completions.end(); ci1++)

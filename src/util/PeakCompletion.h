@@ -32,6 +32,8 @@ class PeakCompletion
     unsigned lower;
     unsigned upper;
 
+    unsigned adjusted; // Possible adjustment of mid
+
     CompletionType _type;
     Peak * pptr;
 
@@ -67,6 +69,11 @@ class PeakCompletion
     Peak * ptr();
 
     void fill(Peak& peak);
+
+    int distance() const;
+    int distanceShift() const;
+
+    void adjust(const int shift);
 
     string strHeader() const;
 
