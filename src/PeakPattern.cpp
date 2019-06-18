@@ -561,11 +561,6 @@ void PeakPattern::targetsToCompletions(PeakPtrs& peakPtrsUsed)
   {
     peakPtrsUsed.getClosest(target.indices(), peaksClose, numClose, dist);
 
-    cout << PeakPattern::strClosest(peaksClose, target.indices());
-
-    if (numClose == 0)
-      continue;
-
     unsigned limitLower, limitUpper;
     target.limits(limitLower, limitUpper);
 
@@ -659,13 +654,13 @@ void PeakPattern::annotateCompletions(
   while (completions.nextRepairable(peakRep))
   {
     unsigned testIndex;
-    cout << "TRYING " << peakRep.strQuality(offset);
+    // cout << "TRYING " << peakRep.strQuality(offset);
     peaks.repair(peakRep, &Peak::borderlineQuality, offset,
       true, forceFlag, testIndex);
 
     if (testIndex > 0)
     {
-      cout << "REPAIRABLE" << endl;
+      // cout << "REPAIRABLE" << endl;
       peakRep.logPosition(testIndex, testIndex, testIndex);
       completions.markWith(peakRep, COMP_REPAIRABLE);
     }
@@ -743,7 +738,7 @@ bool PeakPattern::fix(
   CarCompletion * winnerPtr;
   const unsigned numComplete = completions.numComplete(winnerPtr);
 
-  vector<Peak const *>* closestPtr;
+  vector<Peak const *> closestPtrs;
   unsigned limitLower, limitUpper;
 
   if (numComplete == 1)
@@ -752,9 +747,9 @@ bool PeakPattern::fix(
 
     limitLower = 0;
     limitUpper = 0;
-    winnerPtr->getMatch(closestPtr, limitLower, limitUpper);
+    winnerPtr->getMatch(closestPtrs, limitLower, limitUpper);
 
-    PeakPattern::update(* closestPtr, limitLower, limitUpper, 
+    PeakPattern::update(closestPtrs, limitLower, limitUpper, 
       peakPtrsUsed, peakPtrsUnused);
 
     return true;
@@ -793,7 +788,6 @@ bool PeakPattern::locate(
 
   for (auto& fgroup: patternMethods)
   {
-    cout << "Try " << fgroup.name << endl;
     if ((this->* fgroup.fptr)(models))
     {
       if (PeakPattern::fix(peaks, peakPtrsUsed, peakPtrsUnused, 
@@ -813,26 +807,5 @@ bool PeakPattern::locate(
   }
 
   return false;
-}
-
-string PeakPattern::strClosest(
-  vector<Peak *>& peaksClose,
-  const vector<unsigned>& indices) const
-{
-  stringstream ss;
-  ss << "Closest indices\n";
-  for (unsigned i = 0; i < indices.size(); i++)
-  {
-    string str;
-    if (peaksClose[i])
-      str = to_string((peaksClose[i]->getIndex()) + offset);
-    else
-      str = "-";
-
-    ss << setw(4) << left << i <<
-      setw(8) << right << indices[i] + offset <<
-      setw(8) << str << endl;
-  }
-  return ss.str();
 }
 

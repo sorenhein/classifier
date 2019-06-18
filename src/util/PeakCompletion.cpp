@@ -113,7 +113,9 @@ void PeakCompletion::fill(Peak& peak)
 
 string PeakCompletion::strType() const
 {
-  if (_type == COMP_UNUSED)
+  if (_type == COMP_USED)
+    return "used";
+  else if (_type == COMP_UNUSED)
     return "unused";
   else if (_type == COMP_REPAIRABLE)
     return "repairable";
@@ -131,25 +133,33 @@ string PeakCompletion::strHeader() const
   stringstream ss;
   ss << setw(6) << "Center" <<
     setw(12) << "Range" <<
-    setw(12) << "Source" << "\n";
+    setw(8) << "Adjust" <<
+    setw(12) << "Source" << 
+    setw(6) << "Peak" << 
+    setw(6) << "Dist" << "\n";
   return ss.str();
 }
 
 
 string PeakCompletion::str(const unsigned offset) const
 {
-  if (upper == 0)
-    return "";
+  const string range = (upper == 0 ? "-" :
+    to_string(lower + offset) + "-" + to_string(upper + offset));
 
-  const string range = to_string(lower + offset) + "-" + 
-    to_string(upper + offset);
+  const unsigned pi = (pptr ? pptr->getIndex() + offset : 0);
+  unsigned d;
+  if (pi >= mid)
+    d = (pi - mid) * (pi - mid);
+  else
+    d = (mid - pi) * (mid - pi);
 
   stringstream ss;
   ss << setw(6) << mid + offset <<
     setw(12) << right << range <<
-    setw(12) << PeakCompletion::strType();
-  if (_type == COMP_UNUSED || _type == COMP_REPAIRED)
-    ss << setw(12) << (pptr->getIndex()) + offset;
-  return ss.str() + "\n";
+    setw(8) <<  mid << // For now
+    setw(12) << PeakCompletion::strType() <<
+    setw(6) << (pptr ? to_string(pi) : "-") << 
+    setw(6) << (pptr ? to_string(d) : "-") << "\n";
+  return ss.str();
 }
 

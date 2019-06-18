@@ -57,14 +57,6 @@ class PeakCompletion
     bool markWith(
       Peak& peak,
       const CompletionType typeIn);
-      // unsigned& dist);
-
-    /*
-    void nominate(
-      const CompletionType typeIn,
-      unsigned& dist,
-      Peak * pptrIn = nullptr);
-      */
 
     bool operator > (const PeakCompletion& pc2) const;
 

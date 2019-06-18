@@ -23,7 +23,7 @@ class CarCompletion
     list<PeakCompletion> peakCompletions;
     unsigned weight;
 
-    vector<Peak const *> _closestPeaks;
+    // vector<Peak const *> _closestPeaks;
 
     unsigned _limitLower;
     unsigned _limitUpper;
@@ -66,7 +66,7 @@ class CarCompletion
       const unsigned limitUpperIn);
 
     void getMatch(
-      vector<Peak const *>*& closestPtr,
+      vector<Peak const *>& closestPtrs,
       unsigned& limitLowerOut,
       unsigned& limitUpperOut);
 

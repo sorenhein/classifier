@@ -129,11 +129,6 @@ class PeakPattern
       const bool forceFlag = false,
       const bool flexibleFlag = false);
 
-    string strClosest(
-      vector<Peak *>& peaksClose,
-      const vector<unsigned>& indices) const;
-
-
 
   public:
 

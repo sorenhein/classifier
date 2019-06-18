@@ -21,7 +21,7 @@ CarCompletion::~CarCompletion()
 void CarCompletion::reset()
 {
   weight = 1;
-  _closestPeaks.clear();
+  // _closestPeaks.clear();
   _limitLower = 0;
   _limitUpper = 0;
 }
@@ -50,11 +50,12 @@ void CarCompletion::addMatch(
   const unsigned target,
   Peak * pptr)
 {
-  UNUSED(target);
+  // _closestPeaks.push_back(pptr);
 
-  _closestPeaks.push_back(pptr);
+  peakCompletions.emplace_back(PeakCompletion());
+  PeakCompletion& pc = peakCompletions.back();
 
-  // pc.addMatch(target, pptr);
+  pc.addMatch(target, pptr);
 }
 
 
@@ -70,6 +71,7 @@ Miterator CarCompletion::end()
 }
 
 
+/*
 void CarCompletion::addPeak(Peak& peak)
 {
   const unsigned pindex = peak.getIndex();
@@ -92,6 +94,7 @@ void CarCompletion::addPeak(Peak& peak)
     }
   }
 }
+*/
 
 
 void CarCompletion::markWith(
@@ -104,8 +107,8 @@ void CarCompletion::markWith(
     {
       if (type == COMP_REPAIRABLE)
         CarCompletion::pruneRepairables(pc);
-      else
-        CarCompletion::addPeak(peak);
+      // else
+        // CarCompletion::addPeak(peak);
     }
   }
 }
@@ -132,27 +135,43 @@ void CarCompletion::setLimits(
 
 
 void CarCompletion::getMatch(
-  vector<Peak const *>*& closestPtr,
+  vector<Peak const *>& closestPtrs,
   unsigned& limitLowerOut,
   unsigned& limitUpperOut)
 {
-  closestPtr = &_closestPeaks;
+  // closestPtr = &_closestPeaks;
   limitLowerOut = _limitLower;
   limitUpperOut = _limitUpper;
+
+  closestPtrs.clear();
+  for (auto& pc: peakCompletions)
+    closestPtrs.push_back(pc.ptr());
 }
 
 
 bool CarCompletion::condense(CarCompletion& miss2)
 {
-  const unsigned nc = _closestPeaks.size();
-  if (miss2._closestPeaks.size() != nc)
+  // const unsigned nc = _closestPeaks.size();
+  const unsigned nc = peakCompletions.size();
+  // if (miss2._closestPeaks.size() != nc)
+  if (miss2.peakCompletions.size() != nc)
     return false;
 
+  for (auto pc1 = peakCompletions.begin(), pc2 = miss2.peakCompletions.begin();
+    pc1 != peakCompletions.end() && pc2 != miss2.peakCompletions.end();
+    pc1++, pc2++)
+  {
+    if (pc1->ptr() != pc2->ptr())
+      return false;
+  }
+
+  /*
   for (unsigned i = 0; i < nc; i++)
   {
     if (_closestPeaks[i] != miss2._closestPeaks[i])
       return false;
   }
+  */
 
   weight += miss2.weight;
 
@@ -232,11 +251,6 @@ string CarCompletion::str(const unsigned offset) const
       ss << pc.str(offset);
     ss << "\n";
   }
-
-  ss << "Peaks\n";
-    for (auto& p: _closestPeaks)
-      ss << p->strQuality(offset);
-    ss << "\n";
 
   return ss.str();
 }
