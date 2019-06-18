@@ -640,6 +640,18 @@ bool Peak::goodPeakQuality() const
 }
 
 
+float Peak::qualityShapeValue() const
+{
+  return qualityShape;
+}
+
+
+float Peak::qualityPeakValue() const
+{
+  return qualityPeak;
+}
+
+
 bool Peak::similarGradientBest(const Peak& p1) const
 {
   if (index == p1.index)

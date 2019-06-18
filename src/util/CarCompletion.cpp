@@ -223,7 +223,7 @@ unsigned CarCompletion::distanceShift() const
 {
   unsigned dist = 0;
   for (auto& pc: peakCompletions)
-    dist += pc.distanceShift();
+    dist += pc.distanceShiftSquared();
   return dist;
 }
 

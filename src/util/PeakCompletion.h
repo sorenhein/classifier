@@ -71,7 +71,7 @@ class PeakCompletion
     void fill(Peak& peak);
 
     int distance() const;
-    int distanceShift() const;
+    unsigned distanceShiftSquared() const;
 
     void adjust(const int shift);
 

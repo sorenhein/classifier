@@ -687,14 +687,14 @@ void PeakPattern::fillCompletions(
     {
       if (pc.source() == COMP_UNUSED)
       {
-        cout << "Reviving unused " << pc.str(offset) << endl;;
+        // cout << "Reviving unused " << pc.str(offset) << endl;;
         Peak * ptr = pc.ptr();
         peakPtrsUsed.add(ptr);
         peakPtrsUnused.remove(ptr);
       }
       else if (pc.source() == COMP_REPAIRABLE)
       {
-        cout << "Repairing unused " << pc.str(offset) << endl;
+        // cout << "Repairing unused " << pc.str(offset) << endl;
         unsigned testIndex;
         pc.fill(peakRep);
         Peak * ptr = peaks.repair(peakRep, &Peak::borderlineQuality, 

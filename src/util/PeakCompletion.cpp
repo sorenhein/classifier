@@ -123,14 +123,14 @@ int PeakCompletion::distance() const
 }
 
 
-int PeakCompletion::distanceShift() const
+unsigned PeakCompletion::distanceShiftSquared() const
 {
   if (! pptr)
     return 0;
 
-  const unsigned i = pptr->getIndex();
-  return (i >= adjusted ? static_cast<int>(i-adjusted) : 
-    -static_cast<int>(adjusted-i));
+  const unsigned pi = pptr->getIndex();
+  const unsigned d = (pi >= adjusted ? pi-adjusted : adjusted-pi);
+  return (d * d);
 }
 
 
@@ -165,6 +165,8 @@ string PeakCompletion::strHeader() const
     setw(8) << "Adjust" <<
     setw(12) << "Source" << 
     setw(6) << "Peak" << 
+    setw(8) << "Qshape" << 
+    setw(8) << "Qpeak" << 
     setw(6) << "Dist" << "\n";
   return ss.str();
 }
@@ -190,7 +192,14 @@ string PeakCompletion::str(const unsigned offset) const
 
   if (pptr)
   {
-    ss << setw(6) << pi << setw(6) << d << "\n";
+    const float qshape = pptr->qualityShapeValue();
+    const float qpeak = pptr->qualityPeakValue();
+
+    ss << setw(6) << pi << 
+      setw(8) << fixed << setprecision(2) << qshape <<
+      setw(8) << fixed << setprecision(2) << qpeak <<
+      setw(6) << d << 
+      "\n";
   }
   else
   {

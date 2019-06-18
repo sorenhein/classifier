@@ -216,6 +216,9 @@ class Peak
 
     bool goodPeakQuality() const;
 
+    float qualityShapeValue() const;
+    float qualityPeakValue() const;
+
     bool similarGradientBest(const Peak& p1) const;
     bool similarGradientForward(const Peak& p1) const;
     bool similarGradientBackward(const Peak& p1) const;
