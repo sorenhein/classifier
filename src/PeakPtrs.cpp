@@ -130,6 +130,41 @@ void PeakPtrs::moveFrom(PeakPtrs& fromPtrs)
 }
 
 
+void PeakPtrs::moveOut(
+  const vector<Peak const *>& peaksClose,
+  PeakPtrs& peakPtrsUnused)
+{
+  // Move those peaks that are not in peakClose to peakPtrsUnused.
+  auto pu = peaks.begin();
+  for (auto& peak: peaksClose)
+  {
+    if (peak == nullptr)
+      continue;
+
+    const unsigned indexClose = peak->getIndex();
+    while (pu != peaks.end() && (* pu)->getIndex() < indexClose)
+    {
+      peakPtrsUnused.add(* pu);
+      pu = PeakPtrs::erase(pu);
+    }
+
+    if (pu == peaks.end())
+      break;
+
+    // Preserve those peaks that are also in peaksClose.
+    if ((* pu)->getIndex() == indexClose)
+      pu = PeakPtrs::next(pu);
+  }
+
+  // Erase trailing peaks.
+  while (pu != peaks.end())
+  {
+    peakPtrsUnused.add(* pu);
+    pu = PeakPtrs::erase(pu);
+  }
+}
+
+
 void PeakPtrs::shift_down(Peak * peak)
 {
   if (peaks.size() > 0)

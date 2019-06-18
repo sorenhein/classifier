@@ -47,6 +47,10 @@ class PeakPtrs
 
     void moveFrom(PeakPtrs& fromPtrs);
 
+    void moveOut(
+      const vector<Peak const *>& peaksClose,
+      PeakPtrs& peakPtrsUnused);
+
     void shift_down(Peak * peak);
 
     PPLiterator erase(PPLiterator& it);

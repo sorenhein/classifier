@@ -483,7 +483,9 @@ void PeakPattern::update(
   PeakPtrs& peakPtrsUsed,
   PeakPtrs& peakPtrsUnused) const
 {
-  PeakPattern::updateUsed(closest, peakPtrsUsed, peakPtrsUnused);
+  // PeakPattern::updateUsed(closest, peakPtrsUsed, peakPtrsUnused);
+
+  peakPtrsUsed.moveOut(closest, peakPtrsUnused);
 
   peakPtrsUnused.truncate(limitLower, limitUpper);
 }
@@ -536,23 +538,20 @@ void PeakPattern::annotateCompletions(
   Peak peakRep;
   while (completions.nextRepairable(peakRep))
   {
+    // Make a test run without actually repairing anything.
     unsigned testIndex;
-    // cout << "TRYING " << peakRep.strQuality(offset);
     peaks.repair(peakRep, &Peak::borderlineQuality, offset,
       true, forceFlag, testIndex);
 
     if (testIndex > 0)
     {
-      // cout << "REPAIRABLE" << endl;
       peakRep.logPosition(testIndex, testIndex, testIndex);
       completions.markWith(peakRep, COMP_REPAIRABLE);
     }
   }
 
+  // If there is a systematic shift, correct for it.
   completions.makeShift();
-
-  cout << "Completions after mark-up\n\n";
-  cout << completions.str(offset);
 }
 
 
@@ -570,14 +569,12 @@ void PeakPattern::fillCompletions(
     {
       if (pc.source() == COMP_UNUSED)
       {
-        // cout << "Reviving unused " << pc.str(offset) << endl;;
         Peak * ptr = pc.ptr();
         peakPtrsUsed.add(ptr);
         peakPtrsUnused.remove(ptr);
       }
       else if (pc.source() == COMP_REPAIRABLE)
       {
-        // cout << "Repairing unused " << pc.str(offset) << endl;
         unsigned testIndex;
         pc.fill(peakRep);
         Peak * ptr = peaks.repair(peakRep, &Peak::borderlineQuality, 
@@ -611,6 +608,9 @@ bool PeakPattern::fix(
   PeakPattern::targetsToCompletions(peakPtrsUsed);
 
   PeakPattern::annotateCompletions(peaks, peakPtrsUnused, forceFlag);
+
+  cout << "Completions after mark-up\n\n";
+  cout << completions.str(offset);
 
   PeakPattern::fillCompletions(peaks, peakPtrsUsed, peakPtrsUnused, 
     forceFlag);
