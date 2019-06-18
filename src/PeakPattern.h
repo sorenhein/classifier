@@ -106,7 +106,7 @@ class PeakPattern
       PeakPtrs& peakPtrsUsed,
       PeakPtrs& peakPtrsUnused) const;
 
-    void targetsToCompletions(const PeakPtrs& peakPtrsUsed);
+    void targetsToCompletions(PeakPtrs& peakPtrsUsed);
 
     // TODO Move, don't delete
     // void readjust(list<SingleEntry>& singles);
@@ -130,7 +130,7 @@ class PeakPattern
       const bool flexibleFlag = false);
 
     string strClosest(
-      vector<Peak const *>& peaksClose,
+      vector<Peak *>& peaksClose,
       const vector<unsigned>& indices) const;
 
 

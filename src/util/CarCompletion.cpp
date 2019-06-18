@@ -47,7 +47,7 @@ void CarCompletion::addMiss(
   peakCompletions.emplace_back(PeakCompletion());
   PeakCompletion& pc = peakCompletions.back();
 
-  pc.set(target, tolerance);
+  pc.addMiss(target, tolerance);
 }
 
 
@@ -55,11 +55,13 @@ void CarCompletion::addMiss(
 
 void CarCompletion::addMatch(
   const unsigned target,
-  Peak const * pptr)
+  Peak * pptr)
 {
   UNUSED(target);
 
   _closestPeaks.push_back(pptr);
+
+  // pc.addMatch(target, pptr);
 }
 
 

@@ -27,7 +27,7 @@ void PeakCompletion::reset()
 }
 
 
-void PeakCompletion::set(
+void PeakCompletion::addMiss(
   const unsigned target,
   const unsigned tolerance)
 {
@@ -40,6 +40,16 @@ void PeakCompletion::set(
 
   upper = target + tolerance;
 }
+
+
+void PeakCompletion::addMatch(
+  const unsigned target,
+  Peak * ptr)
+{
+  mid = target;
+  pptr = ptr;
+}
+
 
 bool PeakCompletion::markWith(
   Peak& peak,

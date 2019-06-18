@@ -21,8 +21,6 @@ class Completions
 
     list<CarCompletion> completions;
 
-    void sort();
-
 
   public:
 
@@ -32,7 +30,7 @@ class Completions
 
     void reset();
 
-    CarCompletion& emplace_back(const unsigned dist);
+    CarCompletion& emplace_back();
 
     CarCompletion& back();
 

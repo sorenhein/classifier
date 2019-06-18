@@ -20,10 +20,9 @@ void Completions::reset()
 }
 
 
-CarCompletion& Completions::emplace_back(const unsigned dist)
+CarCompletion& Completions::emplace_back()
 {
   CarCompletion& miss = completions.emplace_back(CarCompletion());
-  miss.setDistance(dist);
   return miss;
 }
 
@@ -82,16 +81,6 @@ void Completions::condense()
         ci2++;
     }
   }
-}
-
-
-void Completions::sort()
-{
-  completions.sort([](const CarCompletion& miss1, 
-      const CarCompletion& miss2)
-    {
-      return (miss1.score() > miss2.score());
-    });
 }
 
 

@@ -1,6 +1,6 @@
 /*
-    A simple class to keep track of missing, sought-after peaks
-    that collectively would complete a car.
+    A simple class to keep track of peaks that collectively would
+    complete a car.
  */
 
 #ifndef TRAIN_CARCOMPLETION_H
@@ -51,7 +51,7 @@ class CarCompletion
 
     void addMatch(
       const unsigned target,
-      Peak const * pptr);
+      Peak * pptr);
 
     Miterator begin();
     Miterator end();

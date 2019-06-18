@@ -549,11 +549,11 @@ void PeakPattern::update(
 }
 
 
-void PeakPattern::targetsToCompletions(const PeakPtrs& peakPtrsUsed)
+void PeakPattern::targetsToCompletions(PeakPtrs& peakPtrsUsed)
 {
   completions.reset();
 
-  vector<Peak const *> peaksClose;
+  vector<Peak *> peaksClose;
   unsigned numClose;
   unsigned dist;
 
@@ -569,7 +569,8 @@ void PeakPattern::targetsToCompletions(const PeakPtrs& peakPtrsUsed)
     unsigned limitLower, limitUpper;
     target.limits(limitLower, limitUpper);
 
-    CarCompletion& carCompl = completions.emplace_back(dist);
+    CarCompletion& carCompl = completions.emplace_back();
+    carCompl.setDistance(dist);
     carCompl.setLimits(limitLower, limitUpper);
 
     const unsigned bogieTolerance = 3 * target.bogieGap() / 10;
@@ -815,7 +816,7 @@ bool PeakPattern::locate(
 }
 
 string PeakPattern::strClosest(
-  vector<Peak const *>& peaksClose,
+  vector<Peak *>& peaksClose,
   const vector<unsigned>& indices) const
 {
   stringstream ss;

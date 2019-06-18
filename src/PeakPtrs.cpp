@@ -411,9 +411,9 @@ Peak * PeakPtrs::locate(
 
 void PeakPtrs::getClosest(
   const vector<unsigned>& indices,
-  vector<Peak const *>& peaksClose,
+  vector<Peak *>& peaksClose,
   unsigned& numClose,
-  unsigned& distance) const
+  unsigned& distance)
 {
   const unsigned ni = indices.size();
   peaksClose.clear();

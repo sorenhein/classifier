@@ -45,9 +45,13 @@ class PeakCompletion
 
     void reset();
 
-    void set(
+    void addMiss(
       const unsigned target,
       const unsigned tolerance);
+
+    void addMatch(
+      const unsigned target,
+      Peak * ptr);
 
     bool markWith(
       Peak& peak,
