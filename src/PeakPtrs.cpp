@@ -654,6 +654,17 @@ void PeakPtrs::makeDistances(
 }
 
 
+void PeakPtrs::truncate(
+  const unsigned limitLower,
+  const unsigned limitUpper)
+{
+  if (limitLower)
+    PeakPtrs::erase_below(limitLower);
+  if (limitUpper)
+    PeakPtrs::erase_above(limitUpper);
+}
+
+
 void PeakPtrs::apply(const PeakRunFncPtr& fptr)
 {
   for (auto& peak: peaks)

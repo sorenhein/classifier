@@ -80,15 +80,6 @@ class PeakPattern
 
     bool looksEmptyFirst(const PeakPtrs& peakPtrsUsed) const;
 
-    void updateUnused(
-      const Target& pe,
-      PeakPtrs& peakPtrsUnused) const;
-
-    void updateUnused(
-      const unsigned limitLower,
-      const unsigned limitUpper,
-      PeakPtrs& peakPtrsUnused) const;
-
     void updateUsed(
       const vector<Peak const *>& peaksClosest,
       PeakPtrs& peakPtrsUsed,
@@ -102,9 +93,6 @@ class PeakPattern
       PeakPtrs& peakPtrsUnused) const;
 
     void targetsToCompletions(PeakPtrs& peakPtrsUsed);
-
-    // TODO Move, don't delete
-    // void readjust(list<SingleEntry>& singles);
 
     void annotateCompletions(
       PeakPool& peaks,

@@ -127,6 +127,10 @@ class PeakPtrs
       PeakPtrs& peaksMatched,
       PeakPtrs& peaksRejected);
 
+    void truncate(
+      const unsigned limitLower,
+      const unsigned limitUpper);
+
     void apply(const PeakRunFncPtr& fptr);
 
     void markup();

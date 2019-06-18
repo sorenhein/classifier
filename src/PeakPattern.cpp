@@ -440,31 +440,6 @@ bool PeakPattern::looksEmptyFirst(const PeakPtrs& peakPtrsUsed) const
 }
 
 
-void PeakPattern::updateUnused(
-  const Target& target,
-  PeakPtrs& peakPtrsUnused) const
-{
-  unsigned limitLower, limitUpper;
-  target.limits(limitLower, limitUpper);
-  if (limitLower)
-    peakPtrsUnused.erase_below(limitLower);
-  if (limitUpper)
-    peakPtrsUnused.erase_above(limitUpper);
-}
-
-
-void PeakPattern::updateUnused(
-  const unsigned limitLower,
-  const unsigned limitUpper,
-  PeakPtrs& peakPtrsUnused) const
-{
-  if (limitLower)
-    peakPtrsUnused.erase_below(limitLower);
-  if (limitUpper)
-    peakPtrsUnused.erase_above(limitUpper);
-}
-
-
 void PeakPattern::updateUsed(
   const vector<Peak const *>& peaksClosest,
   PeakPtrs& peakPtrsUsed,
@@ -510,7 +485,7 @@ void PeakPattern::update(
 {
   PeakPattern::updateUsed(closest, peakPtrsUsed, peakPtrsUnused);
 
-  PeakPattern::updateUnused(limitLower, limitUpper, peakPtrsUnused);
+  peakPtrsUnused.truncate(limitLower, limitUpper);
 }
 
 
@@ -708,7 +683,6 @@ bool PeakPattern::locate(
       }
     }
   }
-
 
   if (PeakPattern::looksEmptyFirst(peakPtrsUsed))
   {
