@@ -203,9 +203,12 @@ string PeakCompletion::str(const unsigned offset) const
   }
   else
   {
-    ss << setw(6) << "-" << setw(6) << "-" << "\n";
+    ss << setw(6) << "-" << 
+      setw(8) << "-" << 
+      setw(8) << "-" << 
+      setw(6) << "-" << 
+      "\n";
   }
-
   return ss.str();
 }
 

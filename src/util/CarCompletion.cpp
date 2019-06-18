@@ -219,7 +219,7 @@ void CarCompletion::makeShift()
 }
 
 
-unsigned CarCompletion::distanceShift() const
+unsigned CarCompletion::distanceShiftSquared() const
 {
   unsigned dist = 0;
   for (auto& pc: peakCompletions)
@@ -232,7 +232,7 @@ string CarCompletion::str(const unsigned offset) const
 {
   stringstream ss;
   ss << "Car with weight " << weight << 
-    ", distance " << CarCompletion::distanceShift();
+    ", squared distance " << CarCompletion::distanceShiftSquared();
 
   if (peakCompletions.empty())
     ss << " is complete\n\n";

@@ -32,7 +32,9 @@ class PeakCompletion
     unsigned lower;
     unsigned upper;
 
-    unsigned adjusted; // Possible adjustment of mid
+    // If all peaks in a car appear to be off by a similar shift,
+    // we adjust them.
+    unsigned adjusted; 
 
     CompletionType _type;
     Peak * pptr;

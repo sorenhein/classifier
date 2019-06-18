@@ -30,7 +30,6 @@ class PeakPattern
       // Interval for different range qualities.
       vector<unsigned> lenLo;
       vector<unsigned> lenHi;
-
     };
 
 
@@ -59,7 +58,6 @@ class PeakPattern
       const PeakRange& range,
       const unsigned offsetIn);
 
-    // TODO Rename
     void getActiveModels(const CarModels& models);
 
     bool addModelTargets(
@@ -68,19 +66,16 @@ class PeakPattern
       const bool symmetryFlag,
       const BordersType patternType);
 
-    bool guessNoBorders(const CarModels& models);
-
-    bool guessBothSingle(const CarModels& models);
-    bool guessBothSingleShort(const CarModels& models);
-
     bool guessBothDouble(
       const CarModels& models, 
       const bool leftFlag);
+
+    bool guessNoBorders(const CarModels& models);
+    bool guessBothSingle(const CarModels& models);
+    bool guessBothSingleShort(const CarModels& models);
     bool guessBothDoubleLeft(const CarModels& models);
     bool guessBothDoubleRight(const CarModels& models);
-
     bool guessLeft(const CarModels& models);
-
     bool guessRight(const CarModels& models);
 
     bool looksEmptyFirst(const PeakPtrs& peakPtrsUsed) const;

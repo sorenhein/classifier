@@ -21,6 +21,7 @@ class CarCompletion
   private:
 
     list<PeakCompletion> peakCompletions;
+
     unsigned weight;
 
     unsigned _limitLower;
@@ -76,8 +77,7 @@ class CarCompletion
 
     void makeShift();
 
-    unsigned distance() const;
-    unsigned distanceShift() const;
+    unsigned distanceShiftSquared() const;
 
     string str(const unsigned offset = 0) const;
 };

@@ -2,27 +2,13 @@
 #include <sstream>
 #include <mutex>
 
-#include "CarModels.h"
 #include "PeakPattern.h"
-#include "PeakRange.h"
+
+#include "CarModels.h"
+#include "const.h"
 #include "Except.h"
 
 #define UNUSED(x) ((void)(true ? 0 : ((x), void(), 0)))
-
-// If we try to interpolate an entire car, the end gap should not be
-// too large relative to the bogie gap.
-#define NO_BORDER_FACTOR 3.0f
-
-// The inter-car gap should be larger than effectively zero.
-#define SMALL_BORDER_FACTOR 0.1f
-
-// Limits for match between model and actual gap.
-#define LEN_FACTOR_GREAT 0.05f
-#define LEN_FACTOR_GOOD 0.10f
-
-// Expect a short car to be within these factors of a typical car.
-#define SHORT_FACTOR 0.5f
-#define LONG_FACTOR 0.9f
 
 
 typedef bool (PeakPattern::*FindPatternPtr)(const CarModels& models);
@@ -66,28 +52,26 @@ void PeakPattern::reset()
 
 void PeakPattern::setMethods()
 {
-  // TODO A lot of these seem to be misalignments of cars with peaks.
-  // So it's not clear that we should recognize them.
   patternMethods.push_back(
     { &PeakPattern::guessNoBorders, "by no borders", false, 0});
 
   patternMethods.push_back(
-    { &PeakPattern::guessBothSingle, "by both single", true, 1});
+    { &PeakPattern::guessBothSingle, "by both single", true, 0});
 
   patternMethods.push_back(
-    { &PeakPattern::guessBothDoubleLeft, "by double left", false, 2});
+    { &PeakPattern::guessBothDoubleLeft, "by double left", false, 1});
 
   patternMethods.push_back(
-    { &PeakPattern::guessBothDoubleRight, "by double right", false, 3});
+    { &PeakPattern::guessBothDoubleRight, "by double right", false, 2});
 
   patternMethods.push_back(
-    { &PeakPattern::guessBothSingleShort, "by both single short", true, 4});
+    { &PeakPattern::guessBothSingleShort, "by both single short", true, 3});
 
   patternMethods.push_back(
-    { &PeakPattern::guessLeft, "by left", false, 5});
+    { &PeakPattern::guessLeft, "by left", false, 4});
 
   patternMethods.push_back(
-    { &PeakPattern::guessRight, "by right", false, 6});
+    { &PeakPattern::guessRight, "by right", false, 5});
 }
 
 
@@ -131,9 +115,6 @@ void PeakPattern::getActiveModels(const CarModels& models)
     ma.index = index;
     ma.fullFlag = data->fullFlag;
 
-    ma.lenLo.resize(QUALITY_NONE);
-    ma.lenHi.resize(QUALITY_NONE);
-
     unsigned len;
     if (data->gapLeft == 0)
       len = data->lenPP + 2 * data->gapRight;
@@ -142,15 +123,16 @@ void PeakPattern::getActiveModels(const CarModels& models)
     else
       len = data->lenPP + data->gapLeft + data->gapRight;
 
-    ma.lenLo[QUALITY_ACTUAL_GAP] =
-      static_cast<unsigned>((1.f - LEN_FACTOR_GREAT) * len);
-    ma.lenHi[QUALITY_ACTUAL_GAP] =
-      static_cast<unsigned>((1.f + LEN_FACTOR_GREAT) * len);
+    ma.lenLo.resize(QUALITY_NONE);
+    ma.lenHi.resize(QUALITY_NONE);
 
-    ma.lenLo[QUALITY_BY_SYMMETRY] = 
-      static_cast<unsigned>((1.f - LEN_FACTOR_GOOD) * len);
-    ma.lenHi[QUALITY_BY_SYMMETRY] =
-      static_cast<unsigned>((1.f + LEN_FACTOR_GOOD) * len);
+    const unsigned d1 = static_cast<unsigned>(CAR_LEN_FACTOR_GREAT * len);
+    ma.lenLo[QUALITY_ACTUAL_GAP] = len - d1;
+    ma.lenHi[QUALITY_ACTUAL_GAP] = len + d1;
+
+    const unsigned d2 = static_cast<unsigned>(CAR_LEN_FACTOR_GOOD * len);
+    ma.lenLo[QUALITY_BY_SYMMETRY] = len - d2;
+    ma.lenHi[QUALITY_BY_SYMMETRY] = len + d2;
   }
 }
 
@@ -197,163 +179,6 @@ bool PeakPattern::addModelTargets(
 }
 
 
-bool PeakPattern::guessNoBorders(const CarModels& models)
-{
-  // This is a half-hearted try to fill in exactly one car of the 
-  // same type as its neighbors if those neighbors do not have any
-  // edge gaps at all.
-
-  UNUSED(models);
-
-  if (! carBeforePtr || ! carAfterPtr)
-    return false;
-
-  if (carBeforePtr->index() != carAfterPtr->index())
-    return false;
-
-  if (rangeData.qualLeft != QUALITY_NONE ||
-      rangeData.qualRight != QUALITY_NONE)
-    return false;
-
-  // We will not test for symmetry.
-  const CarPeaksPtr& peaksBefore = carBeforePtr->getPeaksPtr();
-  const CarPeaksPtr& peaksAfter = carAfterPtr->getPeaksPtr();
-
-  const unsigned avgLeftLeft = 
-    (peaksBefore.firstBogieLeftPtr->getIndex() +
-     peaksAfter.firstBogieLeftPtr->getIndex()) / 2;
-  const unsigned avgLeftRight =
-    (peaksBefore.firstBogieRightPtr->getIndex() +
-     peaksAfter.firstBogieRightPtr->getIndex()) / 2;
-  const unsigned avgRightLeft =
-    (peaksBefore.secondBogieLeftPtr->getIndex() +
-     peaksAfter.secondBogieLeftPtr->getIndex()) / 2;
-  const unsigned avgRightRight =
-    (peaksBefore.secondBogieRightPtr->getIndex() +
-     peaksAfter.secondBogieRightPtr->getIndex()) / 2;
-
-  // Disqualify if the resulting car is implausible.
-  if (avgLeftLeft < peaksBefore.secondBogieRightPtr->getIndex())
-    return false;
-
-  if (avgRightRight > peaksAfter.firstBogieLeftPtr->getIndex())
-    return false;
-
-  const unsigned delta = 
-    avgLeftLeft - peaksBefore.secondBogieRightPtr->getIndex();
-
-  const unsigned bogieGap = carBeforePtr->getLeftBogieGap();
-
-  // It is implausible for the intra-car gap to be too large.
-  if (delta > NO_BORDER_FACTOR * bogieGap)
-    return false;
-
-  // It is implausible for the intra-car gap to be tiny.
-  if (delta < SMALL_BORDER_FACTOR * bogieGap)
-    return false;
-
-  // It is implausible for the intra-car gap to exceed a mid gap.
-  const unsigned mid = carBeforePtr->getMidGap();
-  if (delta > mid)
-    return false;
-
-  targets.clear();
-  targets.emplace_back(Target());
-  Target& target = targets.back();
-
-  const unsigned start = avgLeftLeft - delta/2;
-  const unsigned end =
-    (peaksAfter.firstBogieLeftPtr->getIndex() - avgRightRight) / 2;
-
-  list<unsigned> carPoints;
-  carPoints.push_back(0);
-  carPoints.push_back(avgLeftLeft - start);
-  carPoints.push_back(avgLeftRight - start);
-  carPoints.push_back(avgRightLeft - start);
-  carPoints.push_back(avgRightRight - start);
-  carPoints.push_back(end - start);
-
-  target.fill(
-    carBeforePtr->index(),
-    1,
-    false,
-    start,
-    end,
-    BORDERS_NONE,
-    carPoints);
-    
-  return true;
-}
-
-
-bool PeakPattern::guessBothSingle(const CarModels& models)
-{
-  if (rangeData.qualBest == QUALITY_NONE)
-    return false;
-
-  targets.clear();
-
-  for (auto& ae: modelsActive)
-  {
-    if (! ae.fullFlag)
-      continue;
-
-    if (rangeData.lenRange >= ae.lenLo[rangeData.qualBest] &&
-        rangeData.lenRange <= ae.lenHi[rangeData.qualBest])
-    {
-      PeakPattern::addModelTargets(models, ae.index, 
-        ae.data->symmetryFlag, BORDERS_DOUBLE_SIDED_SINGLE);
-    }
-  }
-
-  return (! targets.empty());
-}
-
-
-bool PeakPattern::guessBothSingleShort(const CarModels& models)
-{
-  UNUSED(models);
-
-  if (rangeData.qualLeft == QUALITY_NONE)
-    return false;
-
-  targets.clear();
-
-  unsigned lenTypical = 2 * (sideTypical + bogieTypical) + longTypical;
-  unsigned lenShortLo = static_cast<unsigned>(SHORT_FACTOR * lenTypical);
-  unsigned lenShortHi = static_cast<unsigned>(LONG_FACTOR * lenTypical);
-
-  if (rangeData.lenRange < lenShortLo ||
-      rangeData.lenRange > lenShortHi)
-    return false;
-
-  Target target;
-
-  // Guess that particularly the middle part is shorter in a short car.
-  list<unsigned> carPoints;
-  carPoints.push_back(0);
-  carPoints.push_back(sideTypical);
-  carPoints.push_back(sideTypical + bogieTypical);
-  carPoints.push_back(rangeData.lenRange - sideTypical - bogieTypical);
-  carPoints.push_back(rangeData.lenRange - sideTypical);
-  carPoints.push_back(rangeData.lenRange);
-
-  if (target.fill(
-    0, // Doesn't matter
-    1,
-    false,
-    rangeData.indexLeft,
-    rangeData.indexRight,
-    BORDERS_DOUBLE_SIDED_SINGLE_SHORT,
-    carPoints))
-  {
-    targets.emplace_back(target);
-  }
-
-  return (! targets.empty());
-}
-
-
 bool PeakPattern::guessBothDouble(
   const CarModels& models,
   const bool leftFlag)
@@ -393,6 +218,152 @@ bool PeakPattern::guessBothDouble(
   return (! targets.empty());
 }
 
+
+bool PeakPattern::guessNoBorders(const CarModels& models)
+{
+  // This is a half-hearted try to fill in exactly one car of the 
+  // same type as its neighbors if those neighbors do not have any
+  // edge gaps at all.
+
+  // TODO A lot of these seem to be misalignments of cars with peaks.
+  // So it's not clear that we should recognize them.
+
+  UNUSED(models);
+
+  if (! carBeforePtr || ! carAfterPtr)
+    return false;
+
+  if (carBeforePtr->index() != carAfterPtr->index())
+    return false;
+
+  if (rangeData.qualLeft != QUALITY_NONE ||
+      rangeData.qualRight != QUALITY_NONE)
+    return false;
+
+
+  const CarPeaksPtr& peaksBefore = carBeforePtr->getPeaksPtr();
+  const unsigned b1 = peaksBefore.firstBogieLeftPtr->getIndex();
+  const unsigned b2 = peaksBefore.firstBogieRightPtr->getIndex();
+  const unsigned b3 = peaksBefore.secondBogieLeftPtr->getIndex();
+  const unsigned b4 = peaksBefore.secondBogieRightPtr->getIndex();
+
+  const CarPeaksPtr& peaksAfter = carAfterPtr->getPeaksPtr();
+  const unsigned a1 = peaksAfter.firstBogieLeftPtr->getIndex();
+  const unsigned a2 = peaksAfter.firstBogieRightPtr->getIndex();
+  const unsigned a3 = peaksAfter.secondBogieLeftPtr->getIndex();
+  const unsigned a4 = peaksAfter.secondBogieRightPtr->getIndex();
+
+  const unsigned avgLeftLeft = (b1 + a1) / 2;
+  const unsigned avgLeftRight = (b2 + a2) / 2;
+  const unsigned avgRightLeft = (b3 + a3) / 2;
+  const unsigned avgRightRight = (b4 + a4) / 2;
+
+  // Disqualify if the resulting car is implausible.
+  // We will not test for symmetry.
+  if (avgLeftLeft < b4 || avgRightRight > a1)
+    return false;
+
+  const unsigned delta = avgLeftLeft - b4;
+  const unsigned bogieGap = carBeforePtr->getLeftBogieGap();
+
+  // It is implausible for the intra-car gap to be too large.
+  if (delta > CAR_NO_BORDER_FACTOR * bogieGap)
+    return false;
+
+  // It is implausible for the intra-car gap to be tiny.
+  if (delta < CAR_SMALL_BORDER_FACTOR * bogieGap)
+    return false;
+
+  // It is implausible for the intra-car gap to exceed a mid gap.
+  if (delta > carBeforePtr->getMidGap())
+    return false;
+
+  targets.clear();
+  targets.emplace_back(Target());
+  Target& target = targets.back();
+
+  const unsigned start = avgLeftLeft - delta/2;
+  const unsigned end = (a1 - avgRightRight) / 2;
+
+  list<unsigned> carPoints;
+  carPoints.push_back(0);
+  carPoints.push_back(avgLeftLeft - start);
+  carPoints.push_back(avgLeftRight - start);
+  carPoints.push_back(avgRightLeft - start);
+  carPoints.push_back(avgRightRight - start);
+  carPoints.push_back(end - start);
+
+  target.fill(
+    carBeforePtr->index(), 1, false, start, end, BORDERS_NONE, carPoints);
+    
+  return true;
+}
+
+
+bool PeakPattern::guessBothSingle(const CarModels& models)
+{
+  if (rangeData.qualBest == QUALITY_NONE)
+    return false;
+
+  targets.clear();
+  for (auto& ae: modelsActive)
+  {
+    if (! ae.fullFlag)
+      continue;
+
+    if (rangeData.lenRange >= ae.lenLo[rangeData.qualBest] &&
+        rangeData.lenRange <= ae.lenHi[rangeData.qualBest])
+    {
+      PeakPattern::addModelTargets(models, ae.index, 
+        ae.data->symmetryFlag, BORDERS_DOUBLE_SIDED_SINGLE);
+    }
+  }
+  return (! targets.empty());
+}
+
+
+bool PeakPattern::guessBothSingleShort(const CarModels& models)
+{
+  UNUSED(models);
+
+  if (rangeData.qualLeft == QUALITY_NONE)
+    return false;
+
+
+  unsigned lenTypical = 2 * (sideTypical + bogieTypical) + longTypical;
+  unsigned lenShortLo = static_cast<unsigned>
+    (CAR_SHORT_FACTOR_LO * lenTypical);
+  unsigned lenShortHi = static_cast<unsigned>
+    (CAR_SHORT_FACTOR_HI * lenTypical);
+
+  if (rangeData.lenRange < lenShortLo ||
+      rangeData.lenRange > lenShortHi)
+    return false;
+
+  targets.clear();
+  Target target;
+
+  // Guess that particularly the middle part is shorter in a short car.
+  list<unsigned> carPoints;
+  carPoints.push_back(0);
+  carPoints.push_back(sideTypical);
+  carPoints.push_back(sideTypical + bogieTypical);
+  carPoints.push_back(rangeData.lenRange - sideTypical - bogieTypical);
+  carPoints.push_back(rangeData.lenRange - sideTypical);
+  carPoints.push_back(rangeData.lenRange);
+
+  if (target.fill(
+    0, // Doesn't matter
+    1, false, rangeData.indexLeft, rangeData.indexRight,
+    BORDERS_DOUBLE_SIDED_SINGLE_SHORT, carPoints))
+  {
+    targets.emplace_back(target);
+  }
+
+  return (! targets.empty());
+}
+
+
 bool PeakPattern::guessBothDoubleLeft(const CarModels& models)
 {
   return PeakPattern::guessBothDouble(models, true);
@@ -416,13 +387,11 @@ bool PeakPattern::guessLeft(const CarModels& models)
     return false;
 
   targets.clear();
-
   for (auto& ae: modelsActive)
   {
     PeakPattern::addModelTargets(models, ae.index, ae.data->symmetryFlag,
       BORDERS_SINGLE_SIDED_LEFT);
   }
-
   return (! targets.empty());
 }
 
@@ -442,13 +411,11 @@ bool PeakPattern::guessRight(const CarModels& models)
     return false;
 
   targets.clear();
-
   for (auto& ae: modelsActive)
   {
     PeakPattern::addModelTargets(models, ae.index, ae.data->symmetryFlag,
       BORDERS_SINGLE_SIDED_RIGHT);
   }
-
   return (! targets.empty());
 }
 
@@ -458,8 +425,6 @@ bool PeakPattern::looksEmptyFirst(const PeakPtrs& peakPtrsUsed) const
   if (rangeData.qualRight == QUALITY_NONE ||
       rangeData.qualLeft != QUALITY_NONE)
     return false;
-
-  cout << "Trying looksEmptyFirst\n";
 
   if (peakPtrsUsed.size() >= 2)
     return false;
@@ -565,10 +530,10 @@ void PeakPattern::targetsToCompletions(PeakPtrs& peakPtrsUsed)
     target.limits(limitLower, limitUpper);
 
     CarCompletion& carCompl = completions.emplace_back();
-    // carCompl.setDistance(dist);
     carCompl.setLimits(limitLower, limitUpper);
 
-    const unsigned bogieTolerance = 3 * target.bogieGap() / 10;
+    const unsigned bogieTolerance = static_cast<unsigned>
+      (CAR_BOGIE_TOLERANCE * target.bogieGap());
 
     for (unsigned i = 0; i < peaksClose.size(); i++)
     {
@@ -579,63 +544,6 @@ void PeakPattern::targetsToCompletions(PeakPtrs& peakPtrsUsed)
     }
   }
 }
-
-
-// TODO =========================== Move to Completions
-//
-/*
-void PeakPattern::readjust(list<SingleEntry>& singles)
-{
-  // This applies for a short car where we got three peaks.
-  // Probably the fourth peak is at a predictable bogie distance
-  // which we can better estimate now.
-
-  if (targets.size() != 1 || singles.size() != 1)
-    return;
-
-  unsigned p, target;
-  if (peaksClose[0] == nullptr)
-  {
-    p = 0;
-    target = peaksClose[1]->getIndex() -
-      (peaksClose[3]->getIndex() - peaksClose[2]->getIndex());
-  }
-  else if (peaksClose[1] == nullptr)
-  {
-    p = 1;
-    target = peaksClose[0]->getIndex() +
-      (peaksClose[3]->getIndex() - peaksClose[2]->getIndex());
-  }
-  else if (peaksClose[2] == nullptr)
-  {
-    p = 2;
-    target = peaksClose[3]->getIndex() -
-      (peaksClose[1]->getIndex() - peaksClose[0]->getIndex());
-  }
-  else if (peaksClose[3] == nullptr)
-  {
-    p = 3;
-    target = peaksClose[2]->getIndex() +
-      (peaksClose[1]->getIndex() - peaksClose[0]->getIndex());
-  }
-  else
-    return;
-
-  SingleEntry& single = singles.front();
-  const unsigned delta = target - single.target;
-
-cout << "Adjusted " << p << " goal from " << 
-  single.target + offset << " to " <<
-  target + offset << " (" << single.lower + offset + delta << " - " << 
-  single.upper + offset + delta << ")\n";
-
-  single.target = target;
-  single.lower += delta;
-  single.upper += delta;
-
-  targets.front().revise(p, target);
-}
-*/
 
 
 void PeakPattern::annotateCompletions(
