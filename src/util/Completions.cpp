@@ -20,15 +20,15 @@ void Completions::reset()
 }
 
 
-MissCar& Completions::emplace_back(const unsigned dist)
+CarCompletion& Completions::emplace_back(const unsigned dist)
 {
-  MissCar& miss = completions.emplace_back(MissCar());
+  CarCompletion& miss = completions.emplace_back(CarCompletion());
   miss.setDistance(dist);
   return miss;
 }
 
 
-MissCar& Completions::back()
+CarCompletion& Completions::back()
 {
   return completions.back();
 }
@@ -55,7 +55,7 @@ Citerator Completions::end()
 }
 
 
-unsigned Completions::numComplete(MissCar *& complete)
+unsigned Completions::numComplete(CarCompletion *& complete)
 {
   unsigned n = 0;
   for (auto& comp: completions)
@@ -87,7 +87,8 @@ void Completions::condense()
 
 void Completions::sort()
 {
-  completions.sort([](const MissCar& miss1, const MissCar& miss2)
+  completions.sort([](const CarCompletion& miss1, 
+      const CarCompletion& miss2)
     {
       return (miss1.score() > miss2.score());
     });

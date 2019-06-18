@@ -2,23 +2,23 @@
 #include <vector>
 #include <sstream>
 
-#include "MissCar.h"
+#include "CarCompletion.h"
 
 #include "../Peak.h"
 
 
-MissCar::MissCar()
+CarCompletion::CarCompletion()
 {
-  MissCar::reset();
+  CarCompletion::reset();
 }
 
 
-MissCar::~MissCar()
+CarCompletion::~CarCompletion()
 {
 }
 
 
-void MissCar::reset()
+void CarCompletion::reset()
 {
   weight = 1;
   distance = 0;
@@ -28,19 +28,19 @@ void MissCar::reset()
 }
 
 
-void MissCar::setWeight(const unsigned weightIn)
+void CarCompletion::setWeight(const unsigned weightIn)
 {
   weight = weightIn;
 }
 
 
-void MissCar::setDistance(const unsigned dist)
+void CarCompletion::setDistance(const unsigned dist)
 {
   distance = dist;
 }
 
 
-void MissCar::addMiss(
+void CarCompletion::addMiss(
   const unsigned target,
   const unsigned tolerance)
 {
@@ -53,7 +53,7 @@ void MissCar::addMiss(
 
 #define UNUSED(x) ((void)(true ? 0 : ((x), void(), 0)))
 
-void MissCar::addMatch(
+void CarCompletion::addMatch(
   const unsigned target,
   Peak const * pptr)
 {
@@ -63,19 +63,19 @@ void MissCar::addMatch(
 }
 
 
-Miterator MissCar::begin()
+Miterator CarCompletion::begin()
 {
   return misses.begin();
 }
 
 
-Miterator MissCar::end()
+Miterator CarCompletion::end()
 {
   return misses.end();
 }
 
 
-void MissCar::addPeak(Peak& peak)
+void CarCompletion::addPeak(Peak& peak)
 {
   const unsigned pindex = peak.getIndex();
 
@@ -99,7 +99,7 @@ void MissCar::addPeak(Peak& peak)
 }
 
 
-void MissCar::markWith(
+void CarCompletion::markWith(
   Peak& peak,
   const MissType type)
 {
@@ -109,10 +109,10 @@ void MissCar::markWith(
     if (miss.markWith(peak, type, dist))
     {
       if (type == MISS_REPAIRABLE)
-        MissCar::pruneRepairables(miss);
+        CarCompletion::pruneRepairables(miss);
       else
       {
-        MissCar::addPeak(peak);
+        CarCompletion::addPeak(peak);
         distance += dist;
       }
     }
@@ -120,7 +120,7 @@ void MissCar::markWith(
 }
 
 
-bool MissCar::complete() const
+bool CarCompletion::complete() const
 {
   for (auto& miss: misses)
   {
@@ -131,7 +131,7 @@ bool MissCar::complete() const
 }
 
 
-void MissCar::setLimits(
+void CarCompletion::setLimits(
   const unsigned limitLowerIn,
   const unsigned limitUpperIn)
 {
@@ -140,7 +140,7 @@ void MissCar::setLimits(
 }
 
 
-void MissCar::getMatch(
+void CarCompletion::getMatch(
   vector<Peak const *>*& closestPtr,
   unsigned& limitLowerOut,
   unsigned& limitUpperOut)
@@ -151,7 +151,7 @@ void MissCar::getMatch(
 }
 
 
-bool MissCar::condense(MissCar& miss2)
+bool CarCompletion::condense(CarCompletion& miss2)
 {
   /*
   const unsigned nm = misses.size();
@@ -186,7 +186,7 @@ bool MissCar::condense(MissCar& miss2)
 }
 
 
-void MissCar::makeRepairables()
+void CarCompletion::makeRepairables()
 {
   repairables.clear();
   for (auto& miss: misses)
@@ -198,7 +198,7 @@ void MissCar::makeRepairables()
 }
 
 
-bool MissCar::nextRepairable(Peak& peak)
+bool CarCompletion::nextRepairable(Peak& peak)
 {
   if (itRep == repairables.end())
     return false;
@@ -209,7 +209,7 @@ bool MissCar::nextRepairable(Peak& peak)
 }
 
 
-void MissCar::pruneRepairables(MissPeak& miss)
+void CarCompletion::pruneRepairables(MissPeak& miss)
 {
   if (itRep == repairables.end() || ** itRep > miss)
     return; // No point
@@ -229,7 +229,7 @@ void MissCar::pruneRepairables(MissPeak& miss)
 }
 
 
-unsigned MissCar::score() const
+unsigned CarCompletion::score() const
 {
   vector<unsigned> types(MISS_SIZE);
   for (auto& miss: misses)
@@ -243,7 +243,7 @@ unsigned MissCar::score() const
 }
 
 
-string MissCar::str(const unsigned offset) const
+string CarCompletion::str(const unsigned offset) const
 {
   stringstream ss;
   ss << "Car with weight " << weight << ", distance " << distance;

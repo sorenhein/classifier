@@ -569,17 +569,17 @@ void PeakPattern::targetsToCompletions(const PeakPtrs& peakPtrsUsed)
     unsigned limitLower, limitUpper;
     target.limits(limitLower, limitUpper);
 
-    MissCar& miss = completions.emplace_back(dist);
-    miss.setLimits(limitLower, limitUpper);
+    CarCompletion& carCompl = completions.emplace_back(dist);
+    carCompl.setLimits(limitLower, limitUpper);
 
     const unsigned bogieTolerance = 3 * target.bogieGap() / 10;
 
     for (unsigned i = 0; i < peaksClose.size(); i++)
     {
       if (peaksClose[i] == nullptr)
-        miss.addMiss(target.index(i), bogieTolerance);
+        carCompl.addMiss(target.index(i), bogieTolerance);
       else
-        miss.addMatch(target.index(i), peaksClose[i]);
+        carCompl.addMatch(target.index(i), peaksClose[i]);
     }
   }
 }
@@ -739,7 +739,7 @@ bool PeakPattern::fix(
   cout << "Completions after filling out\n\n";
   cout << completions.str(offset);
 
-  MissCar * winnerPtr;
+  CarCompletion * winnerPtr;
   const unsigned numComplete = completions.numComplete(winnerPtr);
 
   vector<Peak const *>* closestPtr;
@@ -767,7 +767,7 @@ bool PeakPattern::fix(
     cout << "COMPLETION MISS" << endl;
   }
 
-//  TODO Put this in MissCar.
+//  TODO Put this in CarCompletion.
 UNUSED(flexibleFlag);
 return false;
 

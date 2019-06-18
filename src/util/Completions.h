@@ -7,10 +7,10 @@
 
 #include <list>
 
-#include "MissCar.h"
+#include "CarCompletion.h"
 
 
-typedef list<MissCar>::iterator Citerator;
+typedef list<CarCompletion>::iterator Citerator;
 
 class Peak;
 
@@ -19,7 +19,7 @@ class Completions
 {
   private:
 
-    list<MissCar> completions;
+    list<CarCompletion> completions;
 
     void sort();
 
@@ -32,9 +32,9 @@ class Completions
 
     void reset();
 
-    MissCar& emplace_back(const unsigned dist);
+    CarCompletion& emplace_back(const unsigned dist);
 
-    MissCar& back();
+    CarCompletion& back();
 
     void markWith(
       Peak& peak,
@@ -43,7 +43,7 @@ class Completions
     Citerator begin();
     Citerator end();
 
-    unsigned numComplete(MissCar *& complete);
+    unsigned numComplete(CarCompletion *& complete);
 
     void condense();
 

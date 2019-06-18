@@ -16,7 +16,7 @@
 typedef list<MissPeak>::iterator Miterator;
 
 
-class MissCar
+class CarCompletion
 {
   private:
 
@@ -35,9 +35,9 @@ class MissCar
 
   public:
 
-    MissCar();
+    CarCompletion();
 
-    ~MissCar();
+    ~CarCompletion();
 
     void reset();
 
@@ -73,7 +73,7 @@ class MissCar
       unsigned& limitLowerOut,
       unsigned& limitUpperOut);
 
-    bool condense(MissCar& miss2); 
+    bool condense(CarCompletion& carCompl2); 
 
     void makeRepairables();
 
