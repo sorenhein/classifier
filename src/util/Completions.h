@@ -38,7 +38,7 @@ class Completions
 
     void markWith(
       Peak& peak,
-      const MissType type);
+      const CompletionType type);
 
     Citerator begin();
     Citerator end();

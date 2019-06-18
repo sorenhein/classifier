@@ -44,6 +44,6 @@ SOURCE_FILES    =               \
                 util/CarCompletion.cpp  \
                 util/Completions.cpp    \
                 util/Gap.cpp            \
-                util/MissPeak.cpp       \
+                util/PeakCompletion.cpp \
                 util/Target.cpp         \
                 util/Timer.cpp

@@ -3,24 +3,24 @@
     that collectively would complete a car.
  */
 
-#ifndef TRAIN_MISSCAR_H
-#define TRAIN_MISSCAR_H
+#ifndef TRAIN_CARCOMPLETION_H
+#define TRAIN_CARCOMPLETION_H
 
 #include <list>
 #include <vector>
 #include <string>
 
-#include "MissPeak.h"
+#include "PeakCompletion.h"
 
 
-typedef list<MissPeak>::iterator Miterator;
+typedef list<PeakCompletion>::iterator Miterator;
 
 
 class CarCompletion
 {
   private:
 
-    list<MissPeak> misses;
+    list<PeakCompletion> peakCompletions;
     unsigned weight;
     unsigned distance;
 
@@ -29,8 +29,8 @@ class CarCompletion
     unsigned _limitLower;
     unsigned _limitUpper;
 
-    list<MissPeak *> repairables;
-    list<MissPeak *>::iterator itRep;
+    list<PeakCompletion *> repairables;
+    list<PeakCompletion *>::iterator itRep;
 
 
   public:
@@ -60,7 +60,7 @@ class CarCompletion
 
     void markWith(
       Peak& peak,
-      const MissType type);
+      const CompletionType type);
 
     bool complete() const;
 
@@ -79,7 +79,7 @@ class CarCompletion
 
     bool nextRepairable(Peak& peak);
 
-    void pruneRepairables(MissPeak& miss);
+    void pruneRepairables(PeakCompletion& pc);
 
 
     unsigned score() const;

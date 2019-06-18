@@ -44,10 +44,10 @@ void CarCompletion::addMiss(
   const unsigned target,
   const unsigned tolerance)
 {
-  misses.emplace_back(MissPeak());
-  MissPeak& miss = misses.back();
+  peakCompletions.emplace_back(PeakCompletion());
+  PeakCompletion& pc = peakCompletions.back();
 
-  miss.set(target, tolerance);
+  pc.set(target, tolerance);
 }
 
 
@@ -65,13 +65,13 @@ void CarCompletion::addMatch(
 
 Miterator CarCompletion::begin()
 {
-  return misses.begin();
+  return peakCompletions.begin();
 }
 
 
 Miterator CarCompletion::end()
 {
-  return misses.end();
+  return peakCompletions.end();
 }
 
 
@@ -101,15 +101,15 @@ void CarCompletion::addPeak(Peak& peak)
 
 void CarCompletion::markWith(
   Peak& peak,
-  const MissType type)
+  const CompletionType type)
 {
   unsigned dist;
-  for (auto& miss: misses)
+  for (auto& pc: peakCompletions)
   {
-    if (miss.markWith(peak, type, dist))
+    if (pc.markWith(peak, type, dist))
     {
-      if (type == MISS_REPAIRABLE)
-        CarCompletion::pruneRepairables(miss);
+      if (type == COMP_REPAIRABLE)
+        CarCompletion::pruneRepairables(pc);
       else
       {
         CarCompletion::addPeak(peak);
@@ -122,9 +122,9 @@ void CarCompletion::markWith(
 
 bool CarCompletion::complete() const
 {
-  for (auto& miss: misses)
+  for (auto& pc: peakCompletions)
   {
-    if (miss.source() == MISS_UNMATCHED)
+    if (pc.source() == COMP_UNMATCHED)
       return false;
   }
   return true;
@@ -153,21 +153,6 @@ void CarCompletion::getMatch(
 
 bool CarCompletion::condense(CarCompletion& miss2)
 {
-  /*
-  const unsigned nm = misses.size();
-  if (miss2.misses.size() != nm)
-    return false;
-
-  Miterator mi1, mi2;
-  for (mi1 = misses.begin(), mi2 = miss2.misses.begin();
-      mi1 != misses.end() && mi2 != miss2.misses.end();
-      mi1++, mi2++)
-  {
-    if (! mi1->consistentWith(* mi2))
-      return false;
-  }
-  */
-
   const unsigned nc = _closestPeaks.size();
   if (miss2._closestPeaks.size() != nc)
     return false;
@@ -189,10 +174,10 @@ bool CarCompletion::condense(CarCompletion& miss2)
 void CarCompletion::makeRepairables()
 {
   repairables.clear();
-  for (auto& miss: misses)
+  for (auto& pc: peakCompletions)
   {
-    if (miss.source() == MISS_UNMATCHED)
-      repairables.push_back(&miss);
+    if (pc.source() == COMP_UNMATCHED)
+      repairables.push_back(&pc);
   }
   itRep = repairables.begin();
 }
@@ -209,17 +194,17 @@ bool CarCompletion::nextRepairable(Peak& peak)
 }
 
 
-void CarCompletion::pruneRepairables(MissPeak& miss)
+void CarCompletion::pruneRepairables(PeakCompletion& pc)
 {
-  if (itRep == repairables.end() || ** itRep > miss)
+  if (itRep == repairables.end() || ** itRep > pc)
     return; // No point
-  else if (* itRep == &miss)
+  else if (* itRep == &pc)
     itRep = repairables.erase(itRep);
   else
   {
     for (auto it = next(itRep); it != repairables.end(); it++)
     {
-      if (* itRep == &miss)
+      if (* itRep == &pc)
       {
         repairables.erase(it);
         return;
@@ -231,15 +216,15 @@ void CarCompletion::pruneRepairables(MissPeak& miss)
 
 unsigned CarCompletion::score() const
 {
-  vector<unsigned> types(MISS_SIZE);
-  for (auto& miss: misses)
-    types[miss.source()]++;
+  vector<unsigned> types(COMP_SIZE);
+  for (auto& pc: peakCompletions)
+    types[pc.source()]++;
 
   // TODO For example.
   return 
     weight +
-    3 * types[MISS_UNUSED] +
-    1 * types[MISS_REPAIRABLE];
+    3 * types[COMP_UNUSED] +
+    1 * types[COMP_REPAIRABLE];
 }
 
 
@@ -248,14 +233,14 @@ string CarCompletion::str(const unsigned offset) const
   stringstream ss;
   ss << "Car with weight " << weight << ", distance " << distance;
 
-  if (misses.empty())
+  if (peakCompletions.empty())
     ss << " is complete\n\n";
   else
   {
     ss << "\n\n";
-    ss << misses.front().strHeader();
-    for (auto& miss: misses)
-      ss << miss.str(offset);
+    ss << peakCompletions.front().strHeader();
+    for (auto& pc: peakCompletions)
+      ss << pc.str(offset);
     ss << "\n";
   }
 

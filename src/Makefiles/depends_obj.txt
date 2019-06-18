@@ -24,7 +24,7 @@ PeakMinima.obj: util/Gap.h
 PeakPattern.obj: CarModels.h CarDetect.h CarGaps.h Peak.h struct.h CarPeaks.h
 PeakPattern.obj: PeakPattern.h PeakRange.h PeakProfile.h PeakPool.h Peaks.h
 PeakPattern.obj: PeakPtrs.h util/Target.h util/Completions.h
-PeakPattern.obj: util/CarCompletion.h util/MissPeak.h Except.h errors.h
+PeakPattern.obj: util/CarCompletion.h util/PeakCompletion.h Except.h errors.h
 PeakPartial.obj: PeakPartial.h Peak.h struct.h PeakSlots.h PeakPtrs.h
 PeakPartial.obj: CarPeaks.h
 PeakPartialUsed.obj: PeakPartial.h Peak.h struct.h PeakSlots.h PeakPtrs.h
@@ -52,9 +52,9 @@ PeakStats.obj: PeakStats.h struct.h Except.h errors.h
 PeakStructure.obj: PeakStructure.h CarDetect.h CarGaps.h Peak.h struct.h
 PeakStructure.obj: CarPeaks.h PeakPool.h Peaks.h PeakPtrs.h PeakRange.h
 PeakStructure.obj: PeakProfile.h PeakPattern.h util/Target.h
-PeakStructure.obj: util/Completions.h util/CarCompletion.h util/MissPeak.h
-PeakStructure.obj: PeakSpacing.h PeakRepair.h PeakPartial.h PeakSlots.h
-PeakStructure.obj: CarModels.h Except.h errors.h
+PeakStructure.obj: util/Completions.h util/CarCompletion.h
+PeakStructure.obj: util/PeakCompletion.h PeakSpacing.h PeakRepair.h
+PeakStructure.obj: PeakPartial.h PeakSlots.h CarModels.h Except.h errors.h
 Regress.obj: Regress.h struct.h Database.h Timers.h util/Timer.h Except.h
 Regress.obj: errors.h print.h regress/PolynomialRegression.h
 SegActive.obj: SegActive.h PeakDetect.h Peak.h struct.h PeakPool.h Peaks.h
@@ -84,9 +84,11 @@ driver.obj: PeakProfile.h CarModels.h Database.h TraceDB.h Regress.h Align.h
 driver.obj: Timers.h util/Timer.h CompStats.h PeakStats.h Except.h errors.h
 driver.obj: geometry.h print.h
 regress/PolynomialRegression.obj: regress/PolynomialRegression.h
-util/Completions.obj: util/Completions.h util/CarCompletion.h util/MissPeak.h
-util/Completions.obj: Peak.h struct.h
+util/CarCompletion.obj: util/CarCompletion.h util/PeakCompletion.h Peak.h
+util/CarCompletion.obj: struct.h
+util/Completions.obj: util/Completions.h util/CarCompletion.h
+util/Completions.obj: util/PeakCompletion.h Peak.h struct.h
 util/Gap.obj: util/Gap.h const.h
-util/MissPeak.obj: util/MissPeak.h Peak.h struct.h
+util/PeakCompletion.obj: util/PeakCompletion.h Peak.h struct.h
 util/Target.obj: util/Target.h
 util/Timer.obj: util/Timer.h

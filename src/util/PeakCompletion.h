@@ -3,8 +3,8 @@
     when completing a car.
  */
 
-#ifndef TRAIN_MISSPEAK_H
-#define TRAIN_MISSPEAK_H
+#ifndef TRAIN_PEAKCOMPLETION_H
+#define TRAIN_PEAKCOMPLETION_H
 
 #include <string>
 
@@ -13,17 +13,17 @@ using namespace std;
 class Peak;
 
 
-enum MissType
+enum CompletionType
 {
-  MISS_UNUSED = 0,
-  MISS_REPAIRABLE = 1,
-  MISS_REPAIRED = 2,
-  MISS_UNMATCHED = 3,
-  MISS_SIZE = 4
+  COMP_UNUSED = 0,
+  COMP_REPAIRABLE = 1,
+  COMP_REPAIRED = 2,
+  COMP_UNMATCHED = 3,
+  COMP_SIZE = 4
 };
 
 
-class MissPeak
+class PeakCompletion
 {
   private:
 
@@ -31,7 +31,7 @@ class MissPeak
     unsigned lower;
     unsigned upper;
 
-    MissType _type;
+    CompletionType _type;
     Peak * pptr;
 
     string strType() const;
@@ -39,9 +39,9 @@ class MissPeak
 
   public:
 
-    MissPeak();
+    PeakCompletion();
 
-    ~MissPeak();
+    ~PeakCompletion();
 
     void reset();
 
@@ -51,19 +51,19 @@ class MissPeak
 
     bool markWith(
       Peak& peak,
-      const MissType typeIn,
+      const CompletionType typeIn,
       unsigned& dist);
 
     void nominate(
-      const MissType typeIn,
+      const CompletionType typeIn,
       unsigned& dist,
       Peak * pptrIn = nullptr);
 
-    bool operator > (const MissPeak& miss2) const;
+    bool operator > (const PeakCompletion& pc2) const;
 
-    bool consistentWith(const MissPeak& miss2);
+    bool consistentWith(const PeakCompletion& pc2);
 
-    MissType source() const;
+    CompletionType source() const;
 
     Peak * ptr();
 

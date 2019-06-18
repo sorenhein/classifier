@@ -649,7 +649,7 @@ void PeakPattern::annotateCompletions(
 {
   // Mark up with relevant, unused peaks.
   for (auto pptr: peakPtrsUnused)
-    completions.markWith(* pptr, MISS_UNUSED);
+    completions.markWith(* pptr, COMP_UNUSED);
 
   // Mark up with repairable peaks.
   completions.makeRepairables();
@@ -666,7 +666,7 @@ void PeakPattern::annotateCompletions(
     {
       cout << "REPAIRABLE" << endl;
       peakRep.logPosition(testIndex, testIndex, testIndex);
-      completions.markWith(peakRep, MISS_REPAIRABLE);
+      completions.markWith(peakRep, COMP_REPAIRABLE);
     }
   }
 
@@ -687,14 +687,14 @@ void PeakPattern::fillCompletions(
   {
     for (auto& miss: misses)
     {
-      if (miss.source() == MISS_UNUSED)
+      if (miss.source() == COMP_UNUSED)
       {
         cout << "Reviving unused " << miss.str(offset) << endl;;
         Peak * ptr = miss.ptr();
         peakPtrsUsed.add(ptr);
         peakPtrsUnused.remove(ptr);
       }
-      else if (miss.source() == MISS_REPAIRABLE)
+      else if (miss.source() == COMP_REPAIRABLE)
       {
         cout << "Repairing unused " << miss.str(offset) << endl;
         unsigned testIndex;
@@ -707,7 +707,7 @@ void PeakPattern::fillCompletions(
           peakPtrsUsed.add(ptr);
           cout << peakPtrsUsed.strQuality("Used now", offset);
 
-          completions.markWith(* ptr, MISS_REPAIRED);
+          completions.markWith(* ptr, COMP_REPAIRED);
         }
         else
           THROW(ERR_ALGO_PEAK_CONSISTENCY, "Not repairable after all?");

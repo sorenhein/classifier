@@ -36,7 +36,7 @@ CarCompletion& Completions::back()
 
 void Completions::markWith(
   Peak& peak,
-  const MissType type)
+  const CompletionType type)
 {
   for (auto& comp: completions)
     comp.markWith(peak, type);
