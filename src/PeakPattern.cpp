@@ -1,9 +1,6 @@
-#include <list>
 #include <iostream>
-#include <iomanip>
-#include <algorithm>
-#include <fstream>
 #include <sstream>
+#include <mutex>
 
 #include "PeakPattern.h"
 #include "PeakRange.h"
@@ -37,13 +34,37 @@ struct PatternFncGroup
   unsigned number;
 };
 
+static mutex mtx;
 static list<PatternFncGroup> patternMethods;
 
 
 PeakPattern::PeakPattern()
 {
-  PeakPattern::reset();
+  mtx.lock();
+  PeakPattern::setMethods();
+  mtx.unlock();
 
+  PeakPattern::reset();
+}
+
+
+PeakPattern::~PeakPattern()
+{
+}
+
+
+void PeakPattern::reset()
+{
+  carBeforePtr = nullptr;
+  carAfterPtr = nullptr;
+
+  modelsActive.clear();
+  targets.clear();
+}
+
+
+void PeakPattern::setMethods()
+{
   // TODO A lot of these seem to be misalignments of cars with peaks.
   // So it's not clear that we should recognize them.
   patternMethods.push_back(
@@ -66,24 +87,6 @@ PeakPattern::PeakPattern()
 
   patternMethods.push_back(
     { &PeakPattern::guessRight, "by right", false, 6});
-  
-  hits.clear();
-  hits.resize(patternMethods.size());
-}
-
-
-PeakPattern::~PeakPattern()
-{
-}
-
-
-void PeakPattern::reset()
-{
-  carBeforePtr = nullptr;
-  carAfterPtr = nullptr;
-
-  activeEntries.clear();
-  targets.clear();
 }
 
 
@@ -104,19 +107,13 @@ bool PeakPattern::setGlobals(
   if (sideTypical == 0)
     sideTypical = bogieTypical;
 
-  if (range.characterize(models, rangeData))
-  {
-    cout << "\n" << rangeData.str("Range globals", offset) << "\n";
-    return true;
-  }
-  else
-    return false;
+  return (range.characterize(models, rangeData));
 }
 
 
 void PeakPattern::getActiveModels(const CarModels& models)
 {
-  activeEntries.clear();
+  modelsActive.clear();
 
   for (unsigned index = 0; index < models.size(); index++)
   {
@@ -127,15 +124,15 @@ void PeakPattern::getActiveModels(const CarModels& models)
     if (data->containedFlag || ! data->bothBogiesFlag)
       continue;
 
-    activeEntries.emplace_back(ActiveEntry());
-    ActiveEntry& ae = activeEntries.back();
-    ae.data = data;
-    ae.index = index;
-    ae.fullFlag = data->fullFlag;
+    modelsActive.emplace_back(ModelActive());
+    ModelActive& ma = modelsActive.back();
+    ma.data = data;
+    ma.index = index;
+    ma.fullFlag = data->fullFlag;
 
     // Three different qualities; only two used for now.
-    ae.lenLo.resize(3);
-    ae.lenHi.resize(3);
+    ma.lenLo.resize(3);
+    ma.lenHi.resize(3);
 
     unsigned len;
     if (data->gapLeft == 0)
@@ -150,14 +147,14 @@ void PeakPattern::getActiveModels(const CarModels& models)
     else
       len = data->lenPP + data->gapLeft + data->gapRight;
 
-    ae.lenLo[QUALITY_ACTUAL_GAP] =
+    ma.lenLo[QUALITY_ACTUAL_GAP] =
       static_cast<unsigned>((1.f - LEN_FACTOR_GREAT) * len);
-    ae.lenHi[QUALITY_ACTUAL_GAP] =
+    ma.lenHi[QUALITY_ACTUAL_GAP] =
       static_cast<unsigned>((1.f + LEN_FACTOR_GREAT) * len);
 
-    ae.lenLo[QUALITY_BY_SYMMETRY] = 
+    ma.lenLo[QUALITY_BY_SYMMETRY] = 
       static_cast<unsigned>((1.f - LEN_FACTOR_GOOD) * len);
-    ae.lenHi[QUALITY_BY_SYMMETRY] =
+    ma.lenHi[QUALITY_BY_SYMMETRY] =
       static_cast<unsigned>((1.f + LEN_FACTOR_GOOD) * len);
   }
 }
@@ -301,7 +298,7 @@ bool PeakPattern::guessBothSingle(const CarModels& models)
 
   targets.clear();
 
-  for (auto& ae: activeEntries)
+  for (auto& ae: modelsActive)
   {
     if (! ae.fullFlag)
       continue;
@@ -371,12 +368,12 @@ bool PeakPattern::guessBothDouble(
 
   targets.clear();
 
-  for (auto& ae1: activeEntries)
+  for (auto& ae1: modelsActive)
   {
     if (! ae1.fullFlag)
       continue;
 
-    for (auto& ae2: activeEntries)
+    for (auto& ae2: modelsActive)
     {
       if (! ae2.fullFlag)
         continue;
@@ -425,7 +422,7 @@ bool PeakPattern::guessLeft(const CarModels& models)
 
   targets.clear();
 
-  for (auto& ae: activeEntries)
+  for (auto& ae: modelsActive)
   {
     PeakPattern::addModelTargets(models, ae.index, ae.data->symmetryFlag,
       BORDERS_SINGLE_SIDED_LEFT);
@@ -451,7 +448,7 @@ bool PeakPattern::guessRight(const CarModels& models)
 
   targets.clear();
 
-  for (auto& ae: activeEntries)
+  for (auto& ae: modelsActive)
   {
     PeakPattern::addModelTargets(models, ae.index, ae.data->symmetryFlag,
       BORDERS_SINGLE_SIDED_RIGHT);
@@ -816,22 +813,11 @@ bool PeakPattern::locate(
       if (PeakPattern::fix(peaks, peakPtrsUsed, peakPtrsUnused, 
           fgroup.forceFlag))
       {
-        cout << "Hit " << fgroup.name << endl;
-        hits[fgroup.number]++;
+        cout << "Hit pattern " << fgroup.name << endl;
         return true;
       }
     }
   }
-
-  // TODO Method for getting string of hits
-  // TODO Lock before setting global function ptrs, only once
-
-  /*
-  cout << "HITS\n";
-  for (unsigned i = 0; i < NUM_METHODS; i++)
-    cout << i << " " << hits[i] << endl;
-  cout << endl;
-  */
 
 
   if (PeakPattern::looksEmptyFirst(peakPtrsUsed))

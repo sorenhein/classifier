@@ -770,7 +770,6 @@ cout << peaks.candidates().strQuality(
   for (unsigned i = 0; i < NUM_METHODS; i++)
     cout << i << " " << hits[i] << endl;
   cout << endl;
-
 }
 
 

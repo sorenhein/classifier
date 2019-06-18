@@ -3,7 +3,6 @@
 
 #include <vector>
 #include <list>
-#include <sstream>
 
 #include "CarModels.h"
 #include "struct.h"
@@ -23,7 +22,7 @@ class PeakPattern
 {
   private:
 
-    struct ActiveEntry
+    struct ModelActive
     {
       ModelData const * data;
       unsigned index;
@@ -33,16 +32,6 @@ class PeakPattern
       vector<unsigned> lenLo;
       vector<unsigned> lenHi;
 
-      string strShort(
-        const string& title,
-        const RangeQuality& qual) const
-      {
-        stringstream ss;
-        ss << title << ": model " << index <<
-          ", len peak-peak " << data->lenPP <<
-          ", len range " << lenLo[qual] << " - " << lenHi[qual] << endl;
-        return ss.str();
-      };
     };
 
     struct NoneEntry
@@ -75,7 +64,7 @@ class PeakPattern
 
     RangeData rangeData;
 
-    vector<ActiveEntry> activeEntries;
+    vector<ModelActive> modelsActive;
 
     list<Target> targets;
 
@@ -84,11 +73,14 @@ class PeakPattern
     vector<unsigned> hits;
 
 
+    void setMethods();
+
     bool setGlobals(
       const CarModels& models,
       const PeakRange& range,
       const unsigned offsetIn);
 
+    // TODO Rename
     void getActiveModels(const CarModels& models);
 
     bool addModelTargets(
@@ -177,6 +169,8 @@ class PeakPattern
 
     void reset();
 
+    // TODO Re-order
+    // TODO Return also partial (flat list of peaks?)
     bool locate(
       const CarModels& models,
       PeakPool& peaks,
@@ -184,6 +178,8 @@ class PeakPattern
       const unsigned offsetIn,
       PeakPtrs& peakPtrsUsed,
       PeakPtrs& peakPtrsUnused);
+
+    string strHits() const;
 };
 
 #endif
