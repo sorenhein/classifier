@@ -177,17 +177,12 @@ string PeakCompletion::str(const unsigned offset) const
   const string range = (upper == 0 ? "-" :
     to_string(lower + offset) + "-" + to_string(upper + offset));
 
-  const unsigned pi = (pptr ? pptr->getIndex() + offset : 0);
-  unsigned d;
-  if (pi >= adjusted)
-    d = (pi - adjusted) * (pi - adjusted);
-  else
-    d = (adjusted - pi) * (adjusted - pi);
+  const unsigned pi = (pptr ? pptr->getIndex() : 0);
 
   stringstream ss;
   ss << setw(6) << mid + offset <<
     setw(12) << right << range <<
-    setw(8) <<  adjusted <<
+    setw(8) <<  adjusted + offset <<
     setw(12) << PeakCompletion::strType();
 
   if (pptr)
@@ -195,10 +190,10 @@ string PeakCompletion::str(const unsigned offset) const
     const float qshape = pptr->qualityShapeValue();
     const float qpeak = pptr->qualityPeakValue();
 
-    ss << setw(6) << pi << 
+    ss << setw(6) << pi + offset << 
       setw(8) << fixed << setprecision(2) << qshape <<
       setw(8) << fixed << setprecision(2) << qpeak <<
-      setw(6) << d << 
+      setw(6) << PeakCompletion::distanceShiftSquared() << 
       "\n";
   }
   else

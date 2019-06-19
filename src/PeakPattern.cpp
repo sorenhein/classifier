@@ -56,22 +56,22 @@ void PeakPattern::setMethods()
     { &PeakPattern::guessNoBorders, "by no borders", false, 0});
 
   patternMethods.push_back(
-    { &PeakPattern::guessBothSingle, "by both single", true, 0});
+    { &PeakPattern::guessBothSingle, "by both single", true, 1});
 
   patternMethods.push_back(
-    { &PeakPattern::guessBothDoubleLeft, "by double left", false, 1});
+    { &PeakPattern::guessBothDoubleLeft, "by double left", false, 2});
 
   patternMethods.push_back(
-    { &PeakPattern::guessBothDoubleRight, "by double right", false, 2});
+    { &PeakPattern::guessBothDoubleRight, "by double right", false, 3});
 
   patternMethods.push_back(
-    { &PeakPattern::guessBothSingleShort, "by both single short", true, 3});
+    { &PeakPattern::guessBothSingleShort, "by both single short", true, 4});
 
   patternMethods.push_back(
-    { &PeakPattern::guessLeft, "by left", false, 4});
+    { &PeakPattern::guessLeft, "by left", false, 5});
 
   patternMethods.push_back(
-    { &PeakPattern::guessRight, "by right", false, 5});
+    { &PeakPattern::guessRight, "by right", false, 6});
 }
 
 
@@ -183,7 +183,7 @@ bool PeakPattern::guessBothDouble(
   const CarModels& models,
   const bool leftFlag)
 {
-  if (rangeData.qualBest == QUALITY_NONE)
+  if (rangeData.qualWorst == QUALITY_NONE)
     return false;
 
   targets.clear();
@@ -302,7 +302,7 @@ bool PeakPattern::guessNoBorders(const CarModels& models)
 
 bool PeakPattern::guessBothSingle(const CarModels& models)
 {
-  if (rangeData.qualBest == QUALITY_NONE)
+  if (rangeData.qualWorst == QUALITY_NONE)
     return false;
 
   targets.clear();
@@ -326,9 +326,8 @@ bool PeakPattern::guessBothSingleShort(const CarModels& models)
 {
   UNUSED(models);
 
-  if (rangeData.qualLeft == QUALITY_NONE)
+  if (rangeData.qualWorst == QUALITY_NONE)
     return false;
-
 
   unsigned lenTypical = 2 * (sideTypical + bogieTypical) + longTypical;
   unsigned lenShortLo = static_cast<unsigned>
@@ -595,10 +594,14 @@ bool PeakPattern::fix(
   else if (numComplete > 1)
   {
     cout << "COMPLETION ABUNDANCE " << numComplete << endl;
+    if (forceFlag)
+      cout << "FORCE ABUNDANCE " << numComplete << endl;
   }
   else
   {
     cout << "COMPLETION MISS" << endl;
+    if (forceFlag)
+      cout << "FORCE MISS" << endl;
   }
 
   return false;
@@ -625,6 +628,7 @@ FindCarType PeakPattern::locate(
   {
     if ((this->* fgroup.fptr)(models))
     {
+      cout << "Try pattern " << fgroup.name <<  endl;
       if (PeakPattern::fix(peaks, peakPtrsUsed, peakPtrsUnused, 
           fgroup.forceFlag))
       {

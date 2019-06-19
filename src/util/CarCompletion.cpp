@@ -183,11 +183,10 @@ void CarCompletion::pruneRepairables(PeakCompletion& pc)
 
 void CarCompletion::makeShift()
 {
-  list<int> dists;
   int sum = 0;
-  unsigned npos = 0;
-  unsigned nneg = 0;
-  unsigned nall = 0;
+  int npos = 0;
+  int nneg = 0;
+  int nall = 0;
 
   // Make a list of the distances.
   for (auto& pc: peakCompletions)
@@ -197,7 +196,6 @@ void CarCompletion::makeShift()
 
     const int d = pc.distance();
     sum += d;
-    dists.push_back(d);
     if (d > 0)
       npos++;
     if (d < 0)
@@ -205,17 +203,13 @@ void CarCompletion::makeShift()
     nall++;
   }
 
-  if (nall == 0)
-    return;
-
   // If they are systematically shifted, compensate for this.
   int shift = 0;
-  if (npos == 0 || nneg == 0)
-  {
+  if (nall > 0 && (npos == 0 || nneg == 0))
     shift = sum / nall;
-    for (auto& pc: peakCompletions)
-      pc.adjust(-shift);
-  }
+
+  for (auto& pc: peakCompletions)
+    pc.adjust(-shift);
 }
 
 
