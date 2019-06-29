@@ -214,10 +214,14 @@ void PeakSpacing::fixShort(
 
   list<unsigned> carPoints;
 
+  TargetData tdata;
+  tdata.modelNo = 0; // Doesn't matter
+  tdata.reverseFlag = false;
+  tdata.weight = 1; // Doesn't matter
+  tdata.forceFlag = false;  // Doesn't matter
+
   none.pe.fill(
-    0, // Doesn't matter
-    1, 
-    false, // Doesn't matter
+    tdata,
     spacings[indexFirst].peakLeft->getIndex(),
     spacings[indexLast].peakRight->getIndex(),
     border,

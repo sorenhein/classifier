@@ -36,7 +36,8 @@ class Completions
 
     void markWith(
       Peak& peak,
-      const CompletionType type);
+      const CompletionType type,
+      const bool forceFlag);
 
     Citerator begin();
     Citerator end();
@@ -49,7 +50,9 @@ class Completions
 
     void makeRepairables();
 
-    bool nextRepairable(Peak& peak);
+    bool nextRepairable(
+      Peak& peak,
+      bool& forceFlag);
 
     string str(const unsigned offset = 0) const;
 };

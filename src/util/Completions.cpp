@@ -35,10 +35,11 @@ CarCompletion& Completions::back()
 
 void Completions::markWith(
   Peak& peak,
-  const CompletionType type)
+  const CompletionType type,
+  const bool forceFlag)
 {
   for (auto& comp: completions)
-    comp.markWith(peak, type);
+    comp.markWith(peak, type, forceFlag);
 }
 
 
@@ -98,11 +99,13 @@ void Completions::makeRepairables()
 }
 
 
-bool Completions::nextRepairable(Peak& peak)
+bool Completions::nextRepairable(
+  Peak& peak,
+  bool& forceFlag)
 {
   for (auto& comp: completions)
   {
-    if (comp.nextRepairable(peak))
+    if (comp.nextRepairable(peak, forceFlag))
       return true;
   }
   return false;

@@ -24,14 +24,20 @@ enum BordersType
   BORDERS_SIZE = 6
 };
 
+struct TargetData
+{
+  unsigned modelNo;
+  bool reverseFlag;
+  unsigned weight;
+  bool forceFlag;
+};
+
 
 class Target
 {
   private:
 
-    unsigned modelNo;
-    unsigned weight;
-    bool reverseFlag;
+    TargetData data;
     bool abutLeftFlag;
     bool abutRightFlag;
     unsigned start;
@@ -54,9 +60,7 @@ class Target
     void reset();
 
     bool fill(
-      const unsigned modelNoIn,
-      const unsigned weightIn,
-      const bool reverseFlagIn,
+      const TargetData& tdata,
       const unsigned indexRangeLeft,
       const unsigned indexRangeRight,
       const BordersType bordersIn,
@@ -75,6 +79,8 @@ class Target
     void limits(
       unsigned& limitLower,
       unsigned& limitUpper) const;
+
+    const TargetData& getData() const;
 
 
     string strIndices(

@@ -49,7 +49,7 @@ bool Target::fillPoints(
   {
     _indices.resize(nc-2);
 
-    if (! reverseFlag)
+    if (! data.reverseFlag)
     {
       unsigned pi = 0;
       for (auto i = next(carPoints.begin()); i != prev(carPoints.end()); 
@@ -77,7 +77,7 @@ bool Target::fillPoints(
 
     _indices.resize(nc-2);
 
-    if (reverseFlag)
+    if (data.reverseFlag)
     {
       // The car has a right gap, so we don't need to flip it.
       unsigned pi = 0;
@@ -99,17 +99,13 @@ bool Target::fillPoints(
 
 
 bool Target::fill(
-  const unsigned modelNoIn,
-  const unsigned weightIn,
-  const bool reverseFlagIn,
+  const TargetData& tdata,
   const unsigned indexRangeLeft,
   const unsigned indexRangeRight,
   const BordersType bordersIn,
   const list<unsigned>& carPoints)
 {
-  modelNo = modelNoIn;
-  weight = weightIn;
-  reverseFlag = reverseFlagIn;
+  data = tdata;
   abutLeftFlag = (indexRangeLeft != 0);
   abutRightFlag = (indexRangeRight != 0);
 
@@ -210,6 +206,12 @@ void Target::limits(
     limitLower = 0;
     limitUpper = 0;
   }
+}
+
+
+const TargetData& Target::getData() const
+{
+  return data;
 }
 
 

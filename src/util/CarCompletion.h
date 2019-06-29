@@ -11,6 +11,7 @@
 #include <string>
 
 #include "PeakCompletion.h"
+#include "Target.h"
 
 
 typedef list<PeakCompletion>::iterator Miterator;
@@ -22,7 +23,7 @@ class CarCompletion
 
     list<PeakCompletion> peakCompletions;
 
-    unsigned weight;
+    TargetData data;
 
     unsigned _limitLower;
     unsigned _limitUpper;
@@ -39,8 +40,6 @@ class CarCompletion
 
     void reset();
 
-    void setWeight(const unsigned weightIn);
-
     void addMiss(
       const unsigned target,
       const unsigned tolerance);
@@ -54,24 +53,27 @@ class CarCompletion
 
     void markWith(
       Peak& peak,
-      const CompletionType type);
+      const CompletionType type,
+      const bool forceFlag);
 
     bool complete() const;
 
-    void setLimits(
-      const unsigned limitLowerIn,
-      const unsigned limitUpperIn);
+    void setData(const Target& target);
 
     void getMatch(
       vector<Peak const *>& closestPtrs,
       unsigned& limitLowerOut,
       unsigned& limitUpperOut);
 
+    bool forceFlag() const;
+
     bool condense(CarCompletion& carCompl2); 
 
     void makeRepairables();
 
-    bool nextRepairable(Peak& peak);
+    bool nextRepairable(
+      Peak& peak,
+      bool& forceFlag);
 
     void pruneRepairables(PeakCompletion& pc);
 

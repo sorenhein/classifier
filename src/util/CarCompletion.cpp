@@ -6,6 +6,8 @@
 
 #include "../Peak.h"
 
+#define UNUSED(x) ((void)(true ? 0 : ((x), void(), 0)))
+
 
 CarCompletion::CarCompletion()
 {
@@ -20,16 +22,11 @@ CarCompletion::~CarCompletion()
 
 void CarCompletion::reset()
 {
-  weight = 1;
+  data.weight = 1;
+  data.forceFlag = false;
 
   _limitLower = 0;
   _limitUpper = 0;
-}
-
-
-void CarCompletion::setWeight(const unsigned weightIn)
-{
-  weight = weightIn;
 }
 
 
@@ -69,8 +66,19 @@ Miterator CarCompletion::end()
 
 void CarCompletion::markWith(
   Peak& peak,
-  const CompletionType type)
+  const CompletionType type,
+  const bool forceFlag)
 {
+  // data.forceFlag says whether the whole completion is prepared to
+  // force peaks back into existence.
+  // forceFlag says whether the particular peak arose with force or
+  // not.  But as it might also have arisen without force, we
+  // actually can't make a lot of this.  It probably doesn't matter
+  // much in practice anyway.  Otherwise, if we were sure that the
+  // peak only would have arisen with force, we would not revive it
+  // if data.forceFlag was false.
+
+  UNUSED(forceFlag);
   for (auto& pc: peakCompletions)
   {
     if (pc.markWith(peak, type))
@@ -93,12 +101,10 @@ bool CarCompletion::complete() const
 }
 
 
-void CarCompletion::setLimits(
-  const unsigned limitLowerIn,
-  const unsigned limitUpperIn)
+void CarCompletion::setData(const Target& target)
 {
-  _limitLower = limitLowerIn;
-  _limitUpper = limitUpperIn;
+  target.limits(_limitLower, _limitUpper);
+  data = target.getData();
 }
 
 
@@ -113,6 +119,12 @@ void CarCompletion::getMatch(
 
   limitLowerOut = _limitLower;
   limitUpperOut = _limitUpper;
+}
+
+
+bool CarCompletion::forceFlag() const
+{
+  return data.forceFlag;
 }
 
 
@@ -132,7 +144,7 @@ bool CarCompletion::condense(CarCompletion& miss2)
       return false;
   }
 
-  weight += miss2.weight;
+  data.weight += miss2.data.weight;
 
   return true;
 }
@@ -150,12 +162,15 @@ void CarCompletion::makeRepairables()
 }
 
 
-bool CarCompletion::nextRepairable(Peak& peak)
+bool CarCompletion::nextRepairable(
+  Peak& peak,
+  bool& forceFlag)
 {
   if (itRep == repairables.end())
     return false;
 
   (* itRep)->fill(peak);
+  forceFlag = data.forceFlag;
   itRep++;
   return true;
 }
@@ -225,7 +240,7 @@ unsigned CarCompletion::distanceShiftSquared() const
 string CarCompletion::str(const unsigned offset) const
 {
   stringstream ss;
-  ss << "Car with weight " << weight << 
+  ss << "Car with weight " << data.weight << 
     ", squared distance " << CarCompletion::distanceShiftSquared();
 
   if (peakCompletions.empty())

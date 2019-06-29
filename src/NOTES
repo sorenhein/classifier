@@ -1,14 +1,7 @@
 Completions
 -----------
-targets.clear()
-Loop over all methods, collect all targets
-Fill out once in fix()
-- Have to note for each target
-  model number
-  reverseFlag
-  weight
-  forceFlag
-- Classify later by weight, dist, quality, used/unused/repaired
+- Classify by weight, dist, quality, used/unused/repaired
+
 - Then when we condense
   - Identical peaks
     - If same model and reverseFlag, hence weight, get rid of one.

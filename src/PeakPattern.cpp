@@ -11,13 +11,12 @@
 #define UNUSED(x) ((void)(true ? 0 : ((x), void(), 0)))
 
 
-typedef bool (PeakPattern::*FindPatternPtr)(const CarModels& models);
+typedef void (PeakPattern::*FindPatternPtr)(const CarModels& models);
   
 struct PatternFncGroup
 {
   FindPatternPtr fptr;
   string name;
-  bool forceFlag;
   unsigned number;
 };
 
@@ -53,25 +52,25 @@ void PeakPattern::reset()
 void PeakPattern::setMethods()
 {
   patternMethods.push_back(
-    { &PeakPattern::guessNoBorders, "by no borders", false, 0});
+    { &PeakPattern::guessNoBorders, "by no borders", 0});
 
   patternMethods.push_back(
-    { &PeakPattern::guessBothSingle, "by both single", true, 1});
+    { &PeakPattern::guessBothSingle, "by both single", 1});
 
   patternMethods.push_back(
-    { &PeakPattern::guessBothDoubleLeft, "by double left", false, 2});
+    { &PeakPattern::guessBothDoubleLeft, "by double left", 2});
 
   patternMethods.push_back(
-    { &PeakPattern::guessBothDoubleRight, "by double right", false, 3});
+    { &PeakPattern::guessBothDoubleRight, "by double right", 3});
 
   patternMethods.push_back(
-    { &PeakPattern::guessBothSingleShort, "by both single short", true, 4});
+    { &PeakPattern::guessBothSingleShort, "by both single short", 4});
 
   patternMethods.push_back(
-    { &PeakPattern::guessLeft, "by left", false, 5});
+    { &PeakPattern::guessLeft, "by left", 5});
 
   patternMethods.push_back(
-    { &PeakPattern::guessRight, "by right", false, 6});
+    { &PeakPattern::guessRight, "by right", 6});
 }
 
 
@@ -141,6 +140,7 @@ bool PeakPattern::addModelTargets(
   const CarModels& models,
   const unsigned indexModel,
   const bool symmetryFlag,
+  const bool forceFlag,
   const BordersType patternType)
 {
   CarDetect car;
@@ -151,12 +151,17 @@ bool PeakPattern::addModelTargets(
   models.getCarPoints(indexModel, carPoints);
 
   Target target;
+  TargetData tdata;
   bool seenFlag = false;
 
   if (car.hasLeftGap())
   {
-    if (target.fill(indexModel, weight, false, 
-          rangeData.indexLeft, rangeData.indexRight, 
+    tdata.modelNo = indexModel;
+    tdata.reverseFlag = false;
+    tdata.weight = weight;
+    tdata.forceFlag = forceFlag;
+
+    if (target.fill(tdata, rangeData.indexLeft, rangeData.indexRight, 
           patternType, carPoints))
     {
       targets.emplace_back(target);
@@ -166,8 +171,12 @@ bool PeakPattern::addModelTargets(
 
   if (! symmetryFlag && car.hasRightGap())
   {
-    if (target.fill(indexModel, weight, true, 
-          rangeData.indexLeft, rangeData.indexRight, 
+    tdata.modelNo = indexModel;
+    tdata.reverseFlag = true;
+    tdata.weight = weight;
+    tdata.forceFlag = forceFlag;
+
+    if (target.fill(tdata, rangeData.indexLeft, rangeData.indexRight, 
           patternType, carPoints))
     {
       targets.emplace_back(target);
@@ -179,14 +188,12 @@ bool PeakPattern::addModelTargets(
 }
 
 
-bool PeakPattern::guessBothDouble(
+void PeakPattern::guessBothDouble(
   const CarModels& models,
   const bool leftFlag)
 {
   if (rangeData.qualWorst == QUALITY_NONE)
-    return false;
-
-  targets.clear();
+    return;
 
   for (auto& ae1: modelsActive)
   {
@@ -205,21 +212,19 @@ bool PeakPattern::guessBothDouble(
       {
         if (leftFlag)
           PeakPattern::addModelTargets(models, ae1.index, 
-            ae1.data->symmetryFlag, 
+            ae1.data->symmetryFlag, false,
             BORDERS_DOUBLE_SIDED_DOUBLE);
         else
           PeakPattern::addModelTargets(models, ae2.index, 
-            ae2.data->symmetryFlag, 
+            ae2.data->symmetryFlag, false,
             BORDERS_DOUBLE_SIDED_DOUBLE);
       }
     }
   }
-
-  return (! targets.empty());
 }
 
 
-bool PeakPattern::guessNoBorders(const CarModels& models)
+void PeakPattern::guessNoBorders(const CarModels& models)
 {
   // This is a half-hearted try to fill in exactly one car of the 
   // same type as its neighbors if those neighbors do not have any
@@ -231,14 +236,14 @@ bool PeakPattern::guessNoBorders(const CarModels& models)
   UNUSED(models);
 
   if (! carBeforePtr || ! carAfterPtr)
-    return false;
+    return;
 
   if (carBeforePtr->index() != carAfterPtr->index())
-    return false;
+    return;
 
   if (rangeData.qualLeft != QUALITY_NONE ||
       rangeData.qualRight != QUALITY_NONE)
-    return false;
+    return;
 
 
   const CarPeaksPtr& peaksBefore = carBeforePtr->getPeaksPtr();
@@ -261,24 +266,23 @@ bool PeakPattern::guessNoBorders(const CarModels& models)
   // Disqualify if the resulting car is implausible.
   // We will not test for symmetry.
   if (avgLeftLeft < b4 || avgRightRight > a1)
-    return false;
+    return;
 
   const unsigned delta = avgLeftLeft - b4;
   const unsigned bogieGap = carBeforePtr->getLeftBogieGap();
 
   // It is implausible for the intra-car gap to be too large.
   if (delta > CAR_NO_BORDER_FACTOR * bogieGap)
-    return false;
+    return;
 
   // It is implausible for the intra-car gap to be tiny.
   if (delta < CAR_SMALL_BORDER_FACTOR * bogieGap)
-    return false;
+    return;
 
   // It is implausible for the intra-car gap to exceed a mid gap.
   if (delta > carBeforePtr->getMidGap())
-    return false;
+    return;
 
-  targets.clear();
   targets.emplace_back(Target());
   Target& target = targets.back();
 
@@ -293,19 +297,21 @@ bool PeakPattern::guessNoBorders(const CarModels& models)
   carPoints.push_back(avgRightRight - start);
   carPoints.push_back(end - start);
 
-  target.fill(
-    carBeforePtr->index(), 1, false, start, end, BORDERS_NONE, carPoints);
-    
-  return true;
+  TargetData tdata;
+  tdata.modelNo = carBeforePtr->index();
+  tdata.reverseFlag = false;
+  tdata.weight = 1;
+  tdata.forceFlag = false;
+
+  target.fill(tdata, start, end, BORDERS_NONE, carPoints);
 }
 
 
-bool PeakPattern::guessBothSingle(const CarModels& models)
+void PeakPattern::guessBothSingle(const CarModels& models)
 {
   if (rangeData.qualWorst == QUALITY_NONE)
-    return false;
+    return;
 
-  targets.clear();
   for (auto& ae: modelsActive)
   {
     if (! ae.fullFlag)
@@ -315,19 +321,18 @@ bool PeakPattern::guessBothSingle(const CarModels& models)
         rangeData.lenRange <= ae.lenHi[rangeData.qualBest])
     {
       PeakPattern::addModelTargets(models, ae.index, 
-        ae.data->symmetryFlag, BORDERS_DOUBLE_SIDED_SINGLE);
+        ae.data->symmetryFlag, true, BORDERS_DOUBLE_SIDED_SINGLE);
     }
   }
-  return (! targets.empty());
 }
 
 
-bool PeakPattern::guessBothSingleShort(const CarModels& models)
+void PeakPattern::guessBothSingleShort(const CarModels& models)
 {
   UNUSED(models);
 
   if (rangeData.qualWorst == QUALITY_NONE)
-    return false;
+    return;
 
   unsigned lenTypical = 2 * (sideTypical + bogieTypical) + longTypical;
   unsigned lenShortLo = static_cast<unsigned>
@@ -337,9 +342,8 @@ bool PeakPattern::guessBothSingleShort(const CarModels& models)
 
   if (rangeData.lenRange < lenShortLo ||
       rangeData.lenRange > lenShortHi)
-    return false;
+    return;
 
-  targets.clear();
   Target target;
 
   // Guess that particularly the middle part is shorter in a short car.
@@ -351,71 +355,69 @@ bool PeakPattern::guessBothSingleShort(const CarModels& models)
   carPoints.push_back(rangeData.lenRange - sideTypical);
   carPoints.push_back(rangeData.lenRange);
 
-  if (target.fill(
-    0, // Doesn't matter
-    1, false, rangeData.indexLeft, rangeData.indexRight,
+  TargetData tdata;
+  tdata.modelNo = 0; // Doesn't matter
+  tdata.reverseFlag = false;
+  tdata.weight = 1;
+  tdata.forceFlag = true;
+
+  if (target.fill(tdata, rangeData.indexLeft, rangeData.indexRight,
     BORDERS_DOUBLE_SIDED_SINGLE_SHORT, carPoints))
   {
     targets.emplace_back(target);
   }
-
-  return (! targets.empty());
 }
 
 
-bool PeakPattern::guessBothDoubleLeft(const CarModels& models)
+void PeakPattern::guessBothDoubleLeft(const CarModels& models)
 {
-  return PeakPattern::guessBothDouble(models, true);
+  PeakPattern::guessBothDouble(models, true);
 }
 
 
-bool PeakPattern::guessBothDoubleRight(const CarModels& models)
+void PeakPattern::guessBothDoubleRight(const CarModels& models)
 {
-  return PeakPattern::guessBothDouble(models, false);
+  PeakPattern::guessBothDouble(models, false);
 }
 
 
-bool PeakPattern::guessLeft(const CarModels& models)
+void PeakPattern::guessLeft(const CarModels& models)
 {
   // Starting from the left, so open towards the end.
 
   if (carBeforePtr == nullptr)
-    return false;
+    return;
 
   if (rangeData.qualLeft == QUALITY_NONE)
-    return false;
+    return;
 
-  targets.clear();
   for (auto& ae: modelsActive)
   {
     PeakPattern::addModelTargets(models, ae.index, ae.data->symmetryFlag,
-      BORDERS_SINGLE_SIDED_LEFT);
+      false, BORDERS_SINGLE_SIDED_LEFT);
   }
-  return (! targets.empty());
 }
 
 
-bool PeakPattern::guessRight(const CarModels& models)
+void PeakPattern::guessRight(const CarModels& models)
 {
   // Starting from the right, so open towards the beginning.
 
   if (carAfterPtr == nullptr)
-    return false;
+    return;
 
   if (rangeData.qualRight == QUALITY_NONE)
-    return false;
+    return;
 
   if (rangeData.gapRight >= 
       carAfterPtr->getPeaksPtr().firstBogieLeftPtr->getIndex())
-    return false;
+    return;
 
-  targets.clear();
   for (auto& ae: modelsActive)
   {
     PeakPattern::addModelTargets(models, ae.index, ae.data->symmetryFlag,
-      BORDERS_SINGLE_SIDED_RIGHT);
+      false, BORDERS_SINGLE_SIDED_RIGHT);
   }
-  return (! targets.empty());
 }
 
 
@@ -463,11 +465,8 @@ void PeakPattern::targetsToCompletions(PeakPtrs& peakPtrsUsed)
   {
     peakPtrsUsed.getClosest(target.indices(), peaksClose, numClose, dist);
 
-    unsigned limitLower, limitUpper;
-    target.limits(limitLower, limitUpper);
-
     CarCompletion& carCompl = completions.emplace_back();
-    carCompl.setLimits(limitLower, limitUpper);
+    carCompl.setData(target);
 
     const unsigned bogieTolerance = static_cast<unsigned>
       (CAR_BOGIE_TOLERANCE * target.bogieGap());
@@ -485,18 +484,18 @@ void PeakPattern::targetsToCompletions(PeakPtrs& peakPtrsUsed)
 
 void PeakPattern::annotateCompletions(
   PeakPool& peaks,
-  PeakPtrs& peakPtrsUnused,
-  const bool forceFlag)
+  PeakPtrs& peakPtrsUnused)
 {
   // Mark up with relevant, unused peaks.
   for (auto pptr: peakPtrsUnused)
-    completions.markWith(* pptr, COMP_UNUSED);
+    completions.markWith(* pptr, COMP_UNUSED, false);
 
   // Mark up with repairable peaks.
   completions.makeRepairables();
 
   Peak peakRep;
-  while (completions.nextRepairable(peakRep))
+  bool forceFlag;
+  while (completions.nextRepairable(peakRep, forceFlag))
   {
     // Make a test run without actually repairing anything.
     unsigned testIndex;
@@ -506,7 +505,7 @@ void PeakPattern::annotateCompletions(
     if (testIndex > 0)
     {
       peakRep.logPosition(testIndex, testIndex, testIndex);
-      completions.markWith(peakRep, COMP_REPAIRABLE);
+      completions.markWith(peakRep, COMP_REPAIRABLE, forceFlag);
     }
   }
 
@@ -518,8 +517,7 @@ void PeakPattern::annotateCompletions(
 void PeakPattern::fillCompletions(
   PeakPool& peaks,
   PeakPtrs& peakPtrsUsed,
-  PeakPtrs& peakPtrsUnused,
-  const bool forceFlag)
+  PeakPtrs& peakPtrsUnused)
 {
   Peak peakRep;
 
@@ -538,13 +536,13 @@ void PeakPattern::fillCompletions(
         unsigned testIndex;
         pc.fill(peakRep);
         Peak * ptr = peaks.repair(peakRep, &Peak::borderlineQuality, 
-          offset, false, forceFlag, testIndex);
+          offset, false, cc.forceFlag(), testIndex);
 
         if (! ptr)
           THROW(ERR_PATTERN_BAD_FIX, "Peak not repairable after all?");
 
         peakPtrsUsed.add(ptr);
-        completions.markWith(* ptr, COMP_REPAIRED);
+        completions.markWith(* ptr, COMP_REPAIRED, cc.forceFlag());
       }
     }
   }
@@ -554,18 +552,16 @@ void PeakPattern::fillCompletions(
 bool PeakPattern::fix(
   PeakPool& peaks,
   PeakPtrs& peakPtrsUsed,
-  PeakPtrs& peakPtrsUnused,
-  const bool forceFlag)
+  PeakPtrs& peakPtrsUnused)
 {
   if (targets.empty())
     return false;
 
   PeakPattern::targetsToCompletions(peakPtrsUsed);
 
-  PeakPattern::annotateCompletions(peaks, peakPtrsUnused, forceFlag);
+  PeakPattern::annotateCompletions(peaks, peakPtrsUnused);
 
-  PeakPattern::fillCompletions(peaks, peakPtrsUsed, peakPtrsUnused, 
-    forceFlag);
+  PeakPattern::fillCompletions(peaks, peakPtrsUsed, peakPtrsUnused);
 
   completions.condense();
 
@@ -592,17 +588,9 @@ bool PeakPattern::fix(
     return true;
   }
   else if (numComplete > 1)
-  {
     cout << "COMPLETION ABUNDANCE " << numComplete << endl;
-    if (forceFlag)
-      cout << "FORCE ABUNDANCE " << numComplete << endl;
-  }
   else
-  {
     cout << "COMPLETION MISS" << endl;
-    if (forceFlag)
-      cout << "FORCE MISS" << endl;
-  }
 
   return false;
 }
@@ -624,19 +612,13 @@ FindCarType PeakPattern::locate(
 
   PeakPattern::getActiveModels(models);
 
+  // Make all the possible targets; don't stop as soon as one fits.
+  targets.clear();
   for (auto& fgroup: patternMethods)
-  {
-    if ((this->* fgroup.fptr)(models))
-    {
-      cout << "Try pattern " << fgroup.name <<  endl;
-      if (PeakPattern::fix(peaks, peakPtrsUsed, peakPtrsUnused, 
-          fgroup.forceFlag))
-      {
-        cout << "Hit pattern " << fgroup.name << endl;
-        return FIND_CAR_MATCH;
-      }
-    }
-  }
+    (this->* fgroup.fptr)(models);
+
+  if (PeakPattern::fix(peaks, peakPtrsUsed, peakPtrsUnused))
+    return FIND_CAR_MATCH;
 
   if (PeakPattern::looksEmptyFirst(peakPtrsUsed))
   {

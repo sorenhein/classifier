@@ -64,19 +64,20 @@ class PeakPattern
       const CarModels& models,
       const unsigned indexModel,
       const bool symmetryFlag,
+      const bool forceFlag,
       const BordersType patternType);
 
-    bool guessBothDouble(
+    void guessBothDouble(
       const CarModels& models, 
       const bool leftFlag);
 
-    bool guessNoBorders(const CarModels& models);
-    bool guessBothSingle(const CarModels& models);
-    bool guessBothSingleShort(const CarModels& models);
-    bool guessBothDoubleLeft(const CarModels& models);
-    bool guessBothDoubleRight(const CarModels& models);
-    bool guessLeft(const CarModels& models);
-    bool guessRight(const CarModels& models);
+    void guessNoBorders(const CarModels& models);
+    void guessBothSingle(const CarModels& models);
+    void guessBothSingleShort(const CarModels& models);
+    void guessBothDoubleLeft(const CarModels& models);
+    void guessBothDoubleRight(const CarModels& models);
+    void guessLeft(const CarModels& models);
+    void guessRight(const CarModels& models);
 
     bool looksEmptyFirst(const PeakPtrs& peakPtrsUsed) const;
 
@@ -91,20 +92,17 @@ class PeakPattern
 
     void annotateCompletions(
       PeakPool& peaks,
-      PeakPtrs& peakPtrsUnused,
-      const bool forceFlag);
+      PeakPtrs& peakPtrsUnused);
 
     void fillCompletions(
       PeakPool& peaks,
       PeakPtrs& peakPtrsUsed,
-      PeakPtrs& peakPtrsUnused,
-      const bool forceFlag);
+      PeakPtrs& peakPtrsUnused);
 
     bool fix(
       PeakPool& peaks,
       PeakPtrs& peakPtrsUsed,
-      PeakPtrs& peakPtrsUnused,
-      const bool forceFlag = false);
+      PeakPtrs& peakPtrsUnused);
 
 
   public:
