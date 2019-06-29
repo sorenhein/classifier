@@ -22,8 +22,9 @@ CarCompletion::~CarCompletion()
 
 void CarCompletion::reset()
 {
-  data.weight = 1;
-  data.forceFlag = false;
+  weight = 0;
+  _forceFlag = false;
+  data.clear();
 
   _limitLower = 0;
   _limitUpper = 0;
@@ -69,8 +70,8 @@ void CarCompletion::markWith(
   const CompletionType type,
   const bool forceFlag)
 {
-  // data.forceFlag says whether the whole completion is prepared to
-  // force peaks back into existence.
+  // _forceFlag says whether the whole completion is prepared to
+  // force peaks back into existence (in at least one instance).
   // forceFlag says whether the particular peak arose with force or
   // not.  But as it might also have arisen without force, we
   // actually can't make a lot of this.  It probably doesn't matter
@@ -104,7 +105,8 @@ bool CarCompletion::complete() const
 void CarCompletion::setData(const Target& target)
 {
   target.limits(_limitLower, _limitUpper);
-  data = target.getData();
+  weight = target.getData().weight;
+  data.push_back(target.getData());
 }
 
 
@@ -124,7 +126,7 @@ void CarCompletion::getMatch(
 
 bool CarCompletion::forceFlag() const
 {
-  return data.forceFlag;
+  return _forceFlag;
 }
 
 
@@ -144,7 +146,28 @@ bool CarCompletion::condense(CarCompletion& miss2)
       return false;
   }
 
-  data.weight += miss2.data.weight;
+  // Merge the two lists of origins.
+  for (auto& d2: miss2.data)
+  {
+    bool seenFlag = false;
+    for (auto& d1: data)
+    {
+      if (d1.modelNo == d2.modelNo && d1.reverseFlag == d2.reverseFlag)
+      {
+        seenFlag = true;
+        break;
+      }
+    }
+
+    if (! seenFlag)
+    {
+      // Could then forget about this d2 here (efficiency).
+      weight += d2.weight;
+      if (d2.forceFlag)
+        _forceFlag = true;
+      data.push_back(d2);
+    }
+  }
 
   return true;
 }
@@ -170,7 +193,7 @@ bool CarCompletion::nextRepairable(
     return false;
 
   (* itRep)->fill(peak);
-  forceFlag = data.forceFlag;
+  forceFlag = _forceFlag;
   itRep++;
   return true;
 }
@@ -240,7 +263,7 @@ unsigned CarCompletion::distanceShiftSquared() const
 string CarCompletion::str(const unsigned offset) const
 {
   stringstream ss;
-  ss << "Car with weight " << data.weight << 
+  ss << "Car with weight " << weight << 
     ", squared distance " << CarCompletion::distanceShiftSquared();
 
   if (peakCompletions.empty())

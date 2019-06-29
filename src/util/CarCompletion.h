@@ -23,7 +23,9 @@ class CarCompletion
 
     list<PeakCompletion> peakCompletions;
 
-    TargetData data;
+    unsigned weight;
+    bool _forceFlag;
+    list<TargetData> data;
 
     unsigned _limitLower;
     unsigned _limitUpper;

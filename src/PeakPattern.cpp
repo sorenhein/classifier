@@ -27,7 +27,8 @@ static list<PatternFncGroup> patternMethods;
 PeakPattern::PeakPattern()
 {
   mtx.lock();
-  PeakPattern::setMethods();
+  if (patternMethods.empty())
+    PeakPattern::setMethods();
   mtx.unlock();
 
   PeakPattern::reset();
