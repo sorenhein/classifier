@@ -92,6 +92,17 @@ void Completions::condense()
 }
 
 
+void Completions::sort()
+{
+  // Sort in descending order of peaks.
+  completions.sort();
+
+  // Sort each completion by the model of its origin.
+  for (auto& comp: completions)
+    comp.sort();
+}
+
+
 void Completions::makeRepairables()
 {
   for (auto& comp: completions)

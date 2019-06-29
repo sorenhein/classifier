@@ -58,9 +58,15 @@ class CarCompletion
       const CompletionType type,
       const bool forceFlag);
 
+    unsigned filled() const;
+
     bool complete() const;
 
     void setData(const Target& target);
+
+    bool operator < (const CarCompletion& comp2) const;
+
+    void sort();
 
     void getMatch(
       vector<Peak const *>& closestPtrs,

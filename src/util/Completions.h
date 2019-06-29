@@ -48,6 +48,8 @@ class Completions
 
     void condense();
 
+    void sort();
+
     void makeRepairables();
 
     bool nextRepairable(

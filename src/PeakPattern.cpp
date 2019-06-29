@@ -566,6 +566,8 @@ bool PeakPattern::fix(
 
   completions.condense();
 
+  completions.sort();
+
   cout << "Completions\n\n";
   cout << completions.str(offset);
 

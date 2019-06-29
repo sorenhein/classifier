@@ -22,7 +22,7 @@ void Target::reset()
   abutRightFlag = false;
   start = 0;
   end = numeric_limits<unsigned>::max();
-  borders = BORDERS_SIZE;
+  data.borders = BORDERS_SIZE;
   _indices.clear();
 }
 
@@ -125,7 +125,7 @@ bool Target::fill(
     end = indexRangeRight;
   }
 
-  borders = bordersIn;
+  data.borders = bordersIn;
 
   const unsigned indexBase = 
      (abutLeftFlag ? indexRangeLeft : indexRangeRight);
@@ -180,22 +180,22 @@ void Target::limits(
   // When we received enough peaks for several cars, we don't want to
   // discard peaks that may belong to other cars.
   
-  if (borders == BORDERS_NONE ||
-      borders == BORDERS_DOUBLE_SIDED_SINGLE ||
-      borders == BORDERS_DOUBLE_SIDED_SINGLE_SHORT)
+  if (data.borders == BORDERS_NONE ||
+      data.borders == BORDERS_DOUBLE_SIDED_SINGLE ||
+      data.borders == BORDERS_DOUBLE_SIDED_SINGLE_SHORT)
   {
     // All the unused peaks are fair game.
     limitLower = 0;
     limitUpper = 0;
   }
-  else if (borders == BORDERS_SINGLE_SIDED_LEFT ||
-      (borders == BORDERS_DOUBLE_SIDED_DOUBLE && abutLeftFlag))
+  else if (data.borders == BORDERS_SINGLE_SIDED_LEFT ||
+      (data.borders == BORDERS_DOUBLE_SIDED_DOUBLE && abutLeftFlag))
   {
     limitLower = 0;
     limitUpper = end;
   }
-  else if (borders == BORDERS_SINGLE_SIDED_RIGHT ||
-      (borders == BORDERS_DOUBLE_SIDED_DOUBLE && abutRightFlag))
+  else if (data.borders == BORDERS_SINGLE_SIDED_RIGHT ||
+      (data.borders == BORDERS_DOUBLE_SIDED_DOUBLE && abutRightFlag))
   {
     limitLower = start;
     limitUpper = 0;

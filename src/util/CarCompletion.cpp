@@ -91,6 +91,19 @@ void CarCompletion::markWith(
 }
 
 
+unsigned CarCompletion::filled() const
+{
+  unsigned f = 0;
+  for (auto& pc: peakCompletions)
+  {
+    const auto s = pc.source();
+    if (s == COMP_USED || s == COMP_UNUSED || s == COMP_REPAIRED)
+      f++;
+  }
+  return f;
+}
+
+
 bool CarCompletion::complete() const
 {
   for (auto& pc: peakCompletions)
@@ -107,6 +120,19 @@ void CarCompletion::setData(const Target& target)
   target.limits(_limitLower, _limitUpper);
   weight = target.getData().weight;
   data.push_back(target.getData());
+}
+
+
+bool CarCompletion::operator < (const CarCompletion& comp2) const
+{
+  // Sort first by count, then by model number, then by reverseFlag.
+  return (CarCompletion::filled() >= comp2.filled());
+}
+
+
+void CarCompletion::sort()
+{
+  data.sort();
 }
 
 
@@ -146,6 +172,11 @@ bool CarCompletion::condense(CarCompletion& miss2)
       return false;
   }
 
+// cout << "Weight before merge: " << weight << endl;
+
+// TODO When all 4 peaks are accounted for, reverseFlag can be
+// ignored.
+
   // Merge the two lists of origins.
   for (auto& d2: miss2.data)
   {
@@ -163,6 +194,8 @@ bool CarCompletion::condense(CarCompletion& miss2)
     {
       // Could then forget about this d2 here (efficiency).
       weight += d2.weight;
+// cout << "Merging " << d2.modelNo << ", " << d2.reverseFlag << " weight " <<
+  // d2.weight << ", now " << weight << endl;
       if (d2.forceFlag)
         _forceFlag = true;
       data.push_back(d2);
@@ -267,15 +300,25 @@ string CarCompletion::str(const unsigned offset) const
     ", squared distance " << CarCompletion::distanceShiftSquared();
 
   if (peakCompletions.empty())
-    ss << " is complete\n\n";
-  else
+    return ss.str() + " is empty\n\n";
+
+  string smprev = "", sm;
+  for (auto& d: data)
   {
-    ss << "\n\n";
-    ss << peakCompletions.front().strHeader();
-    for (auto& pc: peakCompletions)
-      ss << pc.str(offset);
-    ss << "\n";
+    sm = d.strModel();
+    if (sm != smprev)
+    {
+      ss << "\n" << sm << ":";
+      smprev = sm;
+    }
+    ss << d.strSource();
   }
+
+  ss << "\n\n";
+  ss << peakCompletions.front().strHeader();
+  for (auto& pc: peakCompletions)
+    ss << pc.str(offset);
+  ss << "\n";
 
   return ss.str();
 }

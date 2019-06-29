@@ -30,6 +30,44 @@ struct TargetData
   bool reverseFlag;
   unsigned weight;
   bool forceFlag;
+  BordersType borders;
+
+  bool operator < (TargetData& tdata2) const
+  {
+    if (modelNo < tdata2.modelNo)
+      return true;
+    else if (modelNo > tdata2.modelNo)
+      return false;
+    else if (reverseFlag == tdata2.reverseFlag)
+      return true; // To have something
+    else
+      return (! reverseFlag);
+  };
+
+  string strModel() const
+  {
+    return to_string(modelNo) + (reverseFlag ? "R" : "");
+  };
+
+  string strSource() const
+  {
+    string s = " ";
+    if (borders == BORDERS_NONE)
+      s = "none";
+    else if (borders == BORDERS_SINGLE_SIDED_LEFT)
+      s = "left";
+    else if (borders == BORDERS_SINGLE_SIDED_RIGHT)
+      s = "right";
+    else if (borders == BORDERS_DOUBLE_SIDED_SINGLE)
+      s = "single";
+    else if (borders == BORDERS_DOUBLE_SIDED_SINGLE_SHORT)
+      s = "single-short";
+    else if (borders == BORDERS_DOUBLE_SIDED_DOUBLE)
+      s = "single-double";
+    
+    s += " (" + to_string(weight) + ")";
+    return s;
+  };
 };
 
 
@@ -42,7 +80,6 @@ class Target
     bool abutRightFlag;
     unsigned start;
     unsigned end;
-    BordersType borders;
     vector<unsigned> _indices;
 
 
