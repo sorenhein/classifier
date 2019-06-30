@@ -77,10 +77,10 @@ void Completions::makeShift()
 }
 
 
-void Completions::calcDistanceSquared()
+void Completions::calcMetrics()
 {
   for (auto& comp: completions)
-    comp.calcDistanceSquared();
+    comp.calcMetrics();
 }
 
 

@@ -74,6 +74,8 @@ class PeakCompletion
 
     int distance() const;
     unsigned distanceShiftSquared() const;
+    float qualityShape() const;
+    float qualityPeak() const;
 
     void adjust(const int shift);
 

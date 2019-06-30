@@ -25,6 +25,8 @@ class CarCompletion
 
     unsigned weight;
     unsigned distanceSquared;
+    float qualShapeSum;
+    float qualPeakSum;
     bool _forceFlag;
     list<TargetData> data;
 
@@ -42,6 +44,8 @@ class CarCompletion
     void updateOverallFrom(CarCompletion& carCompl2);
 
     void mergeFrom(CarCompletion& carCompl2);
+
+    void calcDistanceSquared();
 
 
   public:
@@ -95,7 +99,7 @@ class CarCompletion
 
     void makeShift();
 
-    void calcDistanceSquared();
+    void calcMetrics();
 
     string str(const unsigned offset = 0) const;
 };

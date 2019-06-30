@@ -134,6 +134,18 @@ unsigned PeakCompletion::distanceShiftSquared() const
 }
 
 
+float PeakCompletion::qualityShape() const
+{
+  return (pptr ? pptr->qualityShapeValue() : 0.f);
+}
+
+
+float PeakCompletion::qualityPeak() const
+{
+  return (pptr ? pptr->qualityPeakValue() : 0.f);
+}
+
+
 void PeakCompletion::adjust(const int shift)
 {
   adjusted = mid - shift;

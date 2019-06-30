@@ -193,6 +193,7 @@ void CarCompletion::updateOverallFrom(CarCompletion& d2)
 void CarCompletion::mergeFrom(CarCompletion& miss2)
 {
   // Merge the two lists of origins.
+  // TODO As sorted, can stop when fewer peaks available.
   for (auto& d2: miss2.data)
   {
     TargetData * d1ptr = nullptr;
@@ -228,15 +229,51 @@ void CarCompletion::mergeFrom(CarCompletion& miss2)
 
 bool CarCompletion::condense(CarCompletion& miss2)
 {
-  if (! CarCompletion::samePeaks(miss2))
+  if (CarCompletion::samePeaks(miss2))
+  {
+    // Merge the two lists of origins.
+    CarCompletion::mergeFrom(miss2);
+    return true;
+  }
+  else if (CarCompletion::filled() == peakCompletions.size() && 
+      miss2.filled() == peakCompletions.size())
+  {
+    const float dratio = (distanceSquared == 0 ? 100.f :
+      miss2.distanceSquared / static_cast<float>(distanceSquared));
+
+    const float qsratio = (qualShapeSum == 0. ? 100.f :
+      miss2.qualShapeSum / qualShapeSum);
+      
+    const float qpratio = (qualPeakSum == 0. ? 100.f :
+      miss2.qualPeakSum / qualPeakSum);
+
+cout << "ratios " << setprecision(4) << fixed << dratio << ", " <<
+  qsratio << ", " << qpratio << endl;
+
+    // TODO To expand.
+    if (dratio > 1. && qsratio > 1. && qpratio > 1.)
+    {
+      cout << "SUPERIOR1\n";
+      return true;
+    }
+    else if (dratio > 3. && qsratio > 0.95 && qpratio > 1.25)
+    {
+      cout << "SUPERIOR2\n";
+      return true;
+    }
+    else if (distanceSquared < 50 && dratio > 0.75 &&
+      qsratio > 1.25 && qpratio > 1.25)
+    {
+      cout << "SUPERIOR3\n";
+      return true;
+    }
+    else
+    {
+      return false;
+    }
+  }
+  else
     return false;
-
-  // TODO As sorted, can stop when fewer peaks available.
-
-  // Merge the two lists of origins.
-  CarCompletion::mergeFrom(miss2);
-
-  return true;
 }
 
 
@@ -329,6 +366,20 @@ void CarCompletion::calcDistanceSquared()
     return;
 
   data.front().distanceSquared = distanceSquared;
+}
+
+
+void CarCompletion::calcMetrics()
+{
+  CarCompletion::calcDistanceSquared();
+
+  qualShapeSum = 0.f;
+  qualPeakSum = 0.f;
+  for (auto& pc: peakCompletions)
+  {
+    qualShapeSum += pc.qualityShape();
+    qualPeakSum += pc.qualityPeak();
+  }
 }
 
 

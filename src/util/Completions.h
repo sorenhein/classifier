@@ -46,7 +46,7 @@ class Completions
 
     void makeShift();
 
-    void calcDistanceSquared();
+    void calcMetrics();
 
     void condense();
 
