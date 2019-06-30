@@ -231,32 +231,10 @@ bool CarCompletion::condense(CarCompletion& miss2)
   if (! CarCompletion::samePeaks(miss2))
     return false;
 
-// TODO When all 4 peaks are accounted for, reverseFlag can be
-// ignored.
-// TODO As sorted, can stop when fewer peaks available.
+  // TODO As sorted, can stop when fewer peaks available.
 
   // Merge the two lists of origins.
-  for (auto& d2: miss2.data)
-  {
-    bool seenFlag = false;
-    for (auto& d1: data)
-    {
-      if (d1.modelNo == d2.modelNo && d1.reverseFlag == d2.reverseFlag)
-      {
-        seenFlag = true;
-        break;
-      }
-    }
-
-    if (! seenFlag)
-    {
-      // Could then forget about this d2 here (efficiency).
-      weight += d2.weight;
-      if (d2.forceFlag)
-        _forceFlag = true;
-      data.push_back(d2);
-    }
-  }
+  CarCompletion::mergeFrom(miss2);
 
   return true;
 }
