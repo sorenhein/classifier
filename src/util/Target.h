@@ -31,6 +31,7 @@ struct TargetData
   unsigned weight;
   bool forceFlag;
   BordersType borders;
+  unsigned distanceSquared;
 
   bool operator < (TargetData& tdata2) const
   {
@@ -53,19 +54,20 @@ struct TargetData
   {
     string s = " ";
     if (borders == BORDERS_NONE)
-      s = "none";
+      s += "none";
     else if (borders == BORDERS_SINGLE_SIDED_LEFT)
-      s = "left";
+      s += "left";
     else if (borders == BORDERS_SINGLE_SIDED_RIGHT)
-      s = "right";
+      s += "right";
     else if (borders == BORDERS_DOUBLE_SIDED_SINGLE)
-      s = "single";
+      s += "single";
     else if (borders == BORDERS_DOUBLE_SIDED_SINGLE_SHORT)
-      s = "single-short";
+      s += "single-short";
     else if (borders == BORDERS_DOUBLE_SIDED_DOUBLE)
-      s = "single-double";
+      s += "single-double";
     
-    s += " (" + to_string(weight) + ")";
+    s += " (" + to_string(weight) + ", dsq " + 
+      to_string(distanceSquared) + ")";
     return s;
   };
 };

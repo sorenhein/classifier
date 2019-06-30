@@ -24,6 +24,7 @@ class CarCompletion
     list<PeakCompletion> peakCompletions;
 
     unsigned weight;
+    unsigned distanceSquared;
     bool _forceFlag;
     list<TargetData> data;
 
@@ -32,6 +33,15 @@ class CarCompletion
 
     list<PeakCompletion *> repairables;
     list<PeakCompletion *>::iterator itRep;
+
+
+    unsigned filled() const;
+
+    bool samePeaks(CarCompletion& carCompl2);
+
+    void updateOverallFrom(CarCompletion& carCompl2);
+
+    void mergeFrom(CarCompletion& carCompl2);
 
 
   public:
@@ -57,8 +67,6 @@ class CarCompletion
       Peak& peak,
       const CompletionType type,
       const bool forceFlag);
-
-    unsigned filled() const;
 
     bool complete() const;
 
@@ -87,7 +95,7 @@ class CarCompletion
 
     void makeShift();
 
-    unsigned distanceShiftSquared() const;
+    void calcDistanceSquared();
 
     string str(const unsigned offset = 0) const;
 };

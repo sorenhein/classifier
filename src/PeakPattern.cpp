@@ -512,6 +512,9 @@ void PeakPattern::annotateCompletions(
 
   // If there is a systematic shift, correct for it.
   completions.makeShift();
+
+  // Calculate the distances squared.
+  completions.calcDistanceSquared();
 }
 
 

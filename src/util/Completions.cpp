@@ -77,6 +77,13 @@ void Completions::makeShift()
 }
 
 
+void Completions::calcDistanceSquared()
+{
+  for (auto& comp: completions)
+    comp.calcDistanceSquared();
+}
+
+
 void Completions::condense()
 {
   for (auto ci1 = completions.begin(); ci1 != completions.end(); ci1++)

@@ -23,6 +23,7 @@ CarCompletion::~CarCompletion()
 void CarCompletion::reset()
 {
   weight = 0;
+  distanceSquared = numeric_limits<unsigned>::max();
   _forceFlag = false;
   data.clear();
 
@@ -156,7 +157,7 @@ bool CarCompletion::forceFlag() const
 }
 
 
-bool CarCompletion::condense(CarCompletion& miss2)
+bool CarCompletion::samePeaks(CarCompletion& miss2)
 {
   const unsigned nc = peakCompletions.size();
   if (miss2.peakCompletions.size() != nc)
@@ -171,11 +172,68 @@ bool CarCompletion::condense(CarCompletion& miss2)
     if (pc1->ptr() != pc2->ptr())
       return false;
   }
+  return true;
+}
 
-// cout << "Weight before merge: " << weight << endl;
+
+void CarCompletion::updateOverallFrom(CarCompletion& d2)
+{
+  if (d2.distanceSquared < distanceSquared)
+  {
+    peakCompletions = d2.peakCompletions;
+
+    distanceSquared = d2.distanceSquared;
+
+    if (d2._forceFlag)
+      _forceFlag = true;
+  }
+}
+
+
+void CarCompletion::mergeFrom(CarCompletion& miss2)
+{
+  // Merge the two lists of origins.
+  for (auto& d2: miss2.data)
+  {
+    TargetData * d1ptr = nullptr;
+    for (auto& d1: data)
+    {
+      if (d1.modelNo == d2.modelNo)
+      {
+        // Could have different reverseFlags.  We only allow the best
+        // one into the list.
+        d1ptr = &d1;
+        break;
+      }
+    }
+
+    if (d1ptr)
+    {
+      // Don't update weight
+      if (d2.distanceSquared < d1ptr->distanceSquared)
+      {
+        * d1ptr = d2;
+        CarCompletion::updateOverallFrom(miss2);
+      }
+    }
+    else
+    {
+      weight += d2.weight;
+      data.push_back(d2);
+      CarCompletion::updateOverallFrom(miss2);
+    }
+  }
+}
+
+
+bool CarCompletion::condense(CarCompletion& miss2)
+{
+  if (! CarCompletion::samePeaks(miss2))
+    return false;
 
 // TODO When all 4 peaks are accounted for, reverseFlag can be
 // ignored.
+// TODO As sorted, can stop when fewer peaks available.
 
   // Merge the two lists of origins.
   for (auto& d2: miss2.data)
@@ -194,8 +252,6 @@ bool CarCompletion::condense(CarCompletion& miss2)
     {
       // Could then forget about this d2 here (efficiency).
       weight += d2.weight;
-// cout << "Merging " << d2.modelNo << ", " << d2.reverseFlag << " weight " <<
-  // d2.weight << ", now " << weight << endl;
       if (d2.forceFlag)
         _forceFlag = true;
       data.push_back(d2);
@@ -284,12 +340,17 @@ void CarCompletion::makeShift()
 }
 
 
-unsigned CarCompletion::distanceShiftSquared() const
+void CarCompletion::calcDistanceSquared()
 {
-  unsigned dist = 0;
+  // At this point there is exactly one element in data.
+  distanceSquared = 0;
   for (auto& pc: peakCompletions)
-    dist += pc.distanceShiftSquared();
-  return dist;
+    distanceSquared += pc.distanceShiftSquared();
+
+  if (data.empty())
+    return;
+
+  data.front().distanceSquared = distanceSquared;
 }
 
 
@@ -297,7 +358,7 @@ string CarCompletion::str(const unsigned offset) const
 {
   stringstream ss;
   ss << "Car with weight " << weight << 
-    ", squared distance " << CarCompletion::distanceShiftSquared();
+    ", squared distance " << distanceSquared;
 
   if (peakCompletions.empty())
     return ss.str() + " is empty\n\n";
@@ -308,7 +369,7 @@ string CarCompletion::str(const unsigned offset) const
     sm = d.strModel();
     if (sm != smprev)
     {
-      ss << "\n" << sm << ":";
+      ss << "\n" << setw(3) << sm << ":";
       smprev = sm;
     }
     ss << d.strSource();
