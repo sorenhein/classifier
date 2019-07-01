@@ -227,13 +227,13 @@ void CarCompletion::mergeFrom(CarCompletion& miss2)
 }
 
 
-bool CarCompletion::condense(CarCompletion& miss2)
+CondenseType CarCompletion::condense(CarCompletion& miss2)
 {
   if (CarCompletion::samePeaks(miss2))
   {
     // Merge the two lists of origins.
     CarCompletion::mergeFrom(miss2);
-    return true;
+    return CONDENSE_SAME;
   }
   else if (CarCompletion::filled() == peakCompletions.size() && 
       miss2.filled() == peakCompletions.size())
@@ -254,26 +254,42 @@ cout << "ratios " << setprecision(4) << fixed << dratio << ", " <<
     if (dratio > 1. && qsratio > 1. && qpratio > 1.)
     {
       cout << "SUPERIOR1\n";
-      return true;
+      return CONDENSE_BETTER;
     }
     else if (dratio > 3. && qsratio > 0.95 && qpratio > 1.25)
     {
       cout << "SUPERIOR2\n";
-      return true;
+      return CONDENSE_BETTER;
     }
     else if (distanceSquared < 50 && dratio > 0.75 &&
       qsratio > 1.25 && qpratio > 1.25)
     {
       cout << "SUPERIOR3\n";
-      return true;
+      return CONDENSE_BETTER;
+    }
+    else if (dratio < 1. && qsratio < 1. && qpratio < 1.)
+    {
+      cout << "INFERIOR1\n";
+      return CONDENSE_WORSE;
+    }
+    else if (dratio < 0.333 && qsratio < 1.05 && qpratio < 0.80)
+    {
+      cout << "INFERIOR2\n";
+      return CONDENSE_WORSE;
+    }
+    else if (miss2.distanceSquared < 50 && dratio < 1.333 &&
+      qsratio < 0.80 && qpratio < 0.80)
+    {
+      cout << "INFERIOR3\n";
+      return CONDENSE_WORSE;
     }
     else
     {
-      return false;
+      return CONDENSE_DIFFERENT;
     }
   }
   else
-    return false;
+    return CONDENSE_DIFFERENT;
 }
 
 

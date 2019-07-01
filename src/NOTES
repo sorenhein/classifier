@@ -4,12 +4,6 @@ Completions
 
 Put Target into CarCompletion
 
-s18 082257: d² = 85 is wrong
-Completions::condense should return
-CONDENSE_DIFFERENT
-CONDENSE_BETTER
-CONDENSE_WORSE
-
 - Then when we condense
   - Identical peaks
     - If same model and reverseFlag, hence weight, get rid of one.

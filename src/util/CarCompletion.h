@@ -14,6 +14,14 @@
 #include "Target.h"
 
 
+enum CondenseType
+{
+  CONDENSE_SAME = 0,
+  CONDENSE_BETTER = 1,
+  CONDENSE_WORSE = 2,
+  CONDENSE_DIFFERENT = 3
+};
+
 typedef list<PeakCompletion>::iterator Miterator;
 
 
@@ -87,7 +95,7 @@ class CarCompletion
 
     bool forceFlag() const;
 
-    bool condense(CarCompletion& carCompl2); 
+    CondenseType condense(CarCompletion& carCompl2); 
 
     void makeRepairables();
 

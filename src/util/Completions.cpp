@@ -86,15 +86,30 @@ void Completions::calcMetrics()
 
 void Completions::condense()
 {
-  for (auto ci1 = completions.begin(); ci1 != completions.end(); ci1++)
+  for (auto ci1 = completions.begin(); ci1 != completions.end(); )
   {
+    bool c1flag = false;
     for (auto ci2 = next(ci1); ci2 != completions.end(); )
     {
-      if (ci1->condense(* ci2))
+      const CondenseType ct = ci1->condense(* ci2);
+
+      if (ct == CONDENSE_SAME)
         ci2 = completions.erase(ci2);
+      else if (ct == CONDENSE_BETTER)
+        ci2 = completions.erase(ci2);
+      else if (ct == CONDENSE_WORSE)
+      {
+        c1flag = true;
+        break;
+      }
       else
         ci2++;
     }
+
+    if (c1flag)
+      ci1 = completions.erase(ci1);
+    else
+      ci1++;
   }
 }
 

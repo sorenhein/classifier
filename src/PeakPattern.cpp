@@ -512,9 +512,6 @@ void PeakPattern::annotateCompletions(
 
   // If there is a systematic shift, correct for it.
   completions.makeShift();
-
-  // Calculate metrics for comparing completions.
-  completions.calcMetrics();
 }
 
 
@@ -550,6 +547,9 @@ void PeakPattern::fillCompletions(
       }
     }
   }
+
+  // Calculate metrics for comparing completions.
+  completions.calcMetrics();
 }
 
 
