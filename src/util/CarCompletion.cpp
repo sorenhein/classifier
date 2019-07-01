@@ -256,12 +256,12 @@ cout << "ratios " << setprecision(4) << fixed << dratio << ", " <<
       cout << "SUPERIOR1\n";
       return CONDENSE_BETTER;
     }
-    else if (dratio > 3. && qsratio > 0.95 && qpratio > 1.25)
+    else if (dratio > 3. && qsratio > 0.9 && qpratio > 1.2)
     {
       cout << "SUPERIOR2\n";
       return CONDENSE_BETTER;
     }
-    else if (distanceSquared < 50 && dratio > 0.75 &&
+    else if (distanceSquared < 50 && dratio > 0.667 &&
       qsratio > 1.25 && qpratio > 1.25)
     {
       cout << "SUPERIOR3\n";
@@ -272,12 +272,12 @@ cout << "ratios " << setprecision(4) << fixed << dratio << ", " <<
       cout << "INFERIOR1\n";
       return CONDENSE_WORSE;
     }
-    else if (dratio < 0.333 && qsratio < 1.05 && qpratio < 0.80)
+    else if (dratio < 0.333 && qsratio < 1.1 && qpratio < 0.83)
     {
       cout << "INFERIOR2\n";
       return CONDENSE_WORSE;
     }
-    else if (miss2.distanceSquared < 50 && dratio < 1.333 &&
+    else if (miss2.distanceSquared < 50 && dratio < 1.5 &&
       qsratio < 0.80 && qpratio < 0.80)
     {
       cout << "INFERIOR3\n";

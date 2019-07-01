@@ -427,7 +427,7 @@ float Peak::getParameter(
 
 bool Peak::isCandidate() const
 {
-  return (! maxFlag && value < 0.f);
+  return (! maxFlag && value < 0.f && index != 0);
 }
 
 

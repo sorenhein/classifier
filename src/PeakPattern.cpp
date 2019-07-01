@@ -594,9 +594,29 @@ bool PeakPattern::fix(
     return true;
   }
   else if (numComplete > 1)
-    cout << "COMPLETION ABUNDANCE " << numComplete << endl;
+  {
+    if (rangeData.qualWorst == QUALITY_NONE)
+    {
+      if (rangeData.qualLeft == QUALITY_NONE)
+        cout << "COMPLETION ABUND-FIRST " << numComplete << endl;
+      else
+        cout << "COMPLETION ABUND-LAST " << numComplete << endl;
+    }
+    else
+      cout << "COMPLETION ABUND-MID " << numComplete << endl;
+  }
   else
-    cout << "COMPLETION MISS" << endl;
+  {
+    if (rangeData.qualWorst == QUALITY_NONE)
+    {
+      if (rangeData.qualLeft == QUALITY_NONE)
+        cout << "COMPLETION MISS-FIRST " << numComplete << endl;
+      else
+        cout << "COMPLETION MISS-LAST " << numComplete << endl;
+    }
+    else
+      cout << "COMPLETION MISS-MID " << numComplete << endl;
+  }
 
   return false;
 }
