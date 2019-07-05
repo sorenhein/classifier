@@ -44,7 +44,7 @@ bool PeakSpacing::setGlobals(
   if (sideTypical == 0)
     sideTypical = bogieTypical;
 
-  if (range.characterize(models, rangeData))
+  if (range.characterize(models, bogieTypical, rangeData))
   {
     cout << "\n" << rangeData.str("Range globals", offset) << "\n";
     return true;

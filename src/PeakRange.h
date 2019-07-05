@@ -22,7 +22,8 @@ enum RangeQuality
 {
   QUALITY_ACTUAL_GAP = 0,
   QUALITY_BY_SYMMETRY = 1,
-  QUALITY_NONE = 2
+  QUALITY_BY_ANALOGY = 2,
+  QUALITY_NONE = 3
 };
 
 
@@ -110,6 +111,7 @@ class PeakRange
     bool getQuality(
       const CarModels& models,
       CarDetect const * carPtr,
+      const unsigned bogieTypical,
       const bool leftFlag,
       RangeQuality& quality,
       unsigned& gap) const;
@@ -136,6 +138,7 @@ class PeakRange
 
     bool characterize(
       const CarModels& models,
+      const unsigned bogieTypical,
       RangeData& rdata) const;
 
     void shortenLeft(const CarDetect& car);

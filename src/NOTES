@@ -2,8 +2,6 @@ Completions
 -----------
 - Don't complete first car if first two peaks poor, second two good
   s03 052231 #13
-- Is double car not working?
-  s04 075129 #25
 
 - Classify by weight, dist, quality, used/unused/repaired
 

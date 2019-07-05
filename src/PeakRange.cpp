@@ -71,6 +71,7 @@ void PeakRange::fill(PeakPool& peaks)
 bool PeakRange::getQuality(
   const CarModels& models,
   CarDetect const * carPtr,
+  const unsigned bogieTypical,
   const bool leftFlag,
   RangeQuality& quality,
   unsigned& gap) const
@@ -91,7 +92,16 @@ bool PeakRange::getQuality(
   }
 
   if (! data->gapLeftFlag && ! data->gapRightFlag)
-    return false;
+  {
+    if (bogieTypical == 0)
+      return false;
+    else
+    {
+      gap = bogieTypical;
+      quality = QUALITY_BY_ANALOGY;
+      return true;
+    }
+  }
 
   // Two flips would make a regular order.
   const bool revFlag = carPtr->isReversed() ^ modelFlipFlag;
@@ -123,16 +133,17 @@ bool PeakRange::getQuality(
 
 bool PeakRange::characterize(
   const CarModels& models,
+  const unsigned bogieTypical,
   RangeData& rdata) const
 {
   if (! _carBeforePtr && ! _carAfterPtr)
     return false;
 
-  if (! PeakRange::getQuality(models, _carBeforePtr,
+  if (! PeakRange::getQuality(models, _carBeforePtr, bogieTypical,
       true, rdata.qualLeft, rdata.gapLeft))
     rdata.qualLeft = QUALITY_NONE;
 
-  if (! PeakRange::getQuality(models, _carAfterPtr,
+  if (! PeakRange::getQuality(models, _carAfterPtr, bogieTypical,
       false, rdata.qualRight, rdata.gapRight))
     rdata.qualRight = QUALITY_NONE;
 

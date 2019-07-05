@@ -92,7 +92,7 @@ bool PeakPattern::setGlobals(
   if (sideTypical == 0)
     sideTypical = bogieTypical;
 
-  return (range.characterize(models, rangeData));
+  return range.characterize(models, bogieTypical, rangeData);
 }
 
 
@@ -133,6 +133,9 @@ void PeakPattern::getActiveModels(const CarModels& models)
     const unsigned d2 = static_cast<unsigned>(CAR_LEN_FACTOR_GOOD * len);
     ma.lenLo[QUALITY_BY_SYMMETRY] = len - d2;
     ma.lenHi[QUALITY_BY_SYMMETRY] = len + d2;
+
+    ma.lenLo[QUALITY_BY_ANALOGY] = len - d2;
+    ma.lenHi[QUALITY_BY_ANALOGY] = len + d2;
   }
 }
 
