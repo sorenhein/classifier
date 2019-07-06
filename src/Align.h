@@ -43,6 +43,7 @@ class Align
       const vector<PeakPos>& refPeaks,
       const vector<PeakTime>& times,
       const vector<int>& actualToRef,
+      const unsigned offsetRef,
       Shift& shift) const;
       
     void estimateMotion(
@@ -60,6 +61,7 @@ class Align
       const unsigned lt,
       const unsigned lp,
       const vector<int>& actualToRef,
+      const unsigned offsetRef,
       const bool makeShiftFlag) const;
 
     bool betterSimpleScore(

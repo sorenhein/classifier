@@ -229,6 +229,7 @@ void Align::estimateAlignedMotion(
   const vector<PeakPos>& refPeaks,
   const vector<PeakTime>& times,
   const vector<int>& actualToRef,
+  const unsigned offsetRef,
   Shift& shift) const
 {
   PolynomialRegression pol;
@@ -240,7 +241,7 @@ void Align::estimateAlignedMotion(
 
   for (unsigned i = 0; i < lt; i++)
   {
-    y[i] = refPeaks[static_cast<unsigned>(actualToRef[i])].pos;
+    y[i] = refPeaks[static_cast<unsigned>(actualToRef[i]) + offsetRef].pos;
     x[i] = times[i].time;
   }
 
@@ -415,6 +416,7 @@ void Align::makeShiftCandidates(
   const unsigned lt,
   const unsigned lp,
   const vector<int>& actualToRef,
+  const unsigned offsetRef,
   const bool fullTrainFlag) const
 {
   candidates.clear();
@@ -429,7 +431,7 @@ void Align::makeShiftCandidates(
 
     for (auto& o: shifts)
     {
-      const unsigned m = actualToRef[o.firstTimeNo];
+      const unsigned m = actualToRef[o.firstTimeNo + offsetRef];
       if (m <= o.firstRefNo + 2 && m + 2 >= o.firstRefNo)
       {
         candidates.push_back(Shift());
@@ -602,9 +604,16 @@ void Align::scalePeaks(
 
   vector<Shift> candidates;
 
+  // Guess whether we're missing the whole first car.
+  unsigned offsetRef;
+  if (static_cast<unsigned>(actualToRef.back()) + 4 <= refPeaks.size())
+    offsetRef = 4;
+  else
+    offsetRef = 0;
+
   if (numFrontWheels <= 4)
     Align::makeShiftCandidates(candidates, likelyShifts[numFrontWheels], 
-      lt, lp, actualToRef, fullTrainFlag);
+      lt, lp, actualToRef, offsetRef, fullTrainFlag);
 
   if (candidates.empty())
     return;
@@ -626,7 +635,8 @@ void Align::scalePeaks(
     cand.motion.resize(3);
 
     if (fullTrainFlag)
-      Align::estimateAlignedMotion(refPeaks, times, actualToRef, cand);
+      Align::estimateAlignedMotion(refPeaks, times, actualToRef, 
+        offsetRef, cand);
     else
       Align::estimateMotion(refPeaks, times, cand);
 
@@ -702,6 +712,9 @@ void Align::bestMatches(
     Shift shift;
     Align::scalePeaks(refPeaks, times, actualToRef, 
       numFrontWheels, fullTrainFlag, shift, scaledPeaks);
+
+    if (scaledPeaks.empty())
+      continue;
 
     if (control.verboseAlignPeaks)
     {

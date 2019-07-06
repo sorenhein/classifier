@@ -62,6 +62,7 @@ class PeakDetect
     void pushPeak(
       Peak const * pptr,
       const float tOffset,
+      int& pnoNext,
       vector<PeakTime>& times,
       vector<int>& actualToRef) const;
 

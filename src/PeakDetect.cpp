@@ -618,18 +618,20 @@ void PeakDetect::makeSynthPeaks(vector<float>& synthPeaks) const
 void PeakDetect::pushPeak(
   Peak const * pptr,
   const float tOffset,
+  int& pnoNext,
   vector<PeakTime>& times,
   vector<int>& actualToRef) const
 {
   // TODO times and actualRef should be a struct with this method
   if (pptr)
   {
-    actualToRef.push_back(times.size());
-
     times.emplace_back(PeakTime());
     PeakTime& p = times.back();
     p.time = pptr->getIndex() / SAMPLE_RATE - tOffset;
+
+    actualToRef.push_back(pnoNext);
   }
+  pnoNext++;
 }
 
 
@@ -648,14 +650,19 @@ bool PeakDetect::getAlignment(
   actualToRef.clear();
 
   const float t0 = cars.front().firstPeak() / SAMPLE_RATE;
+  int pnoNext = 0;
 
   for (auto& car: cars)
   {
     const CarPeaksPtr cptr = car.getPeaksPtr();
-    PeakDetect::pushPeak(cptr.firstBogieLeftPtr, t0, times, actualToRef);
-    PeakDetect::pushPeak(cptr.firstBogieRightPtr, t0, times, actualToRef);
-    PeakDetect::pushPeak(cptr.secondBogieLeftPtr, t0, times, actualToRef);
-    PeakDetect::pushPeak(cptr.secondBogieRightPtr, t0, times, actualToRef);
+    PeakDetect::pushPeak(cptr.firstBogieLeftPtr, t0, pnoNext, 
+      times, actualToRef);
+    PeakDetect::pushPeak(cptr.firstBogieRightPtr, t0, pnoNext, 
+      times, actualToRef);
+    PeakDetect::pushPeak(cptr.secondBogieLeftPtr, t0, pnoNext, 
+      times, actualToRef);
+    PeakDetect::pushPeak(cptr.secondBogieRightPtr, t0, pnoNext, 
+      times, actualToRef);
   }
 
   numFrontWheels = cars.front().numFrontWheels();
