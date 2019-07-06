@@ -308,6 +308,15 @@ void SegActive::logPeakStats(
 }
 
 
+bool SegActive::getAlignment(
+  vector<PeakTime>& times,
+  vector<int>& actualToRef,
+  unsigned& numFrontWheels)
+{
+  return peakDetect.getAlignment(times, actualToRef, numFrontWheels);
+}
+
+
 void SegActive::getPeakTimes(
   vector<PeakTime>& times,
   unsigned& numFrontWheels) const

@@ -102,6 +102,7 @@ class CarDetect
 
     unsigned firstPeakMinus1() const;
     unsigned lastPeakPlus1() const;
+    unsigned firstPeak() const;
 
     unsigned getLeftGap() const;
     unsigned getLeftBogieGap() const;

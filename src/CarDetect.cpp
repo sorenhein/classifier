@@ -350,6 +350,19 @@ unsigned CarDetect::lastPeakPlus1() const
     return 0;
 }
 
+unsigned CarDetect::firstPeak() const
+{
+  if (peaksPtr.firstBogieLeftPtr)
+    return peaksPtr.firstBogieLeftPtr->getIndex();
+  if (peaksPtr.firstBogieRightPtr)
+    return peaksPtr.firstBogieRightPtr->getIndex();
+  if (peaksPtr.secondBogieLeftPtr)
+    return peaksPtr.secondBogieLeftPtr->getIndex();
+  if (peaksPtr.secondBogieRightPtr)
+    return peaksPtr.secondBogieRightPtr->getIndex();
+  return 0;
+}
+
 
 const CarPeaksPtr& CarDetect::getPeaksPtr() const
 {

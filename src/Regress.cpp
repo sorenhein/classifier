@@ -152,7 +152,6 @@ void Regress::summarizeResiduals(
       match.topResiduals.push_back(x[i]);
     }
   }
-
 }
 
 

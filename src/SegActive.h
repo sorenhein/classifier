@@ -66,6 +66,11 @@ class SegActive
       const double speedTrue,
       PeakStats& peakStats);
 
+    bool getAlignment(
+      vector<PeakTime>& times,
+      vector<int>& actualToRef,
+      unsigned& numFrontWheels);
+
     void getPeakTimes(
       vector<PeakTime>& times,
       unsigned& numFrontWheels) const; 

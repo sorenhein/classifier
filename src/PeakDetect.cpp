@@ -18,6 +18,7 @@
 #define KINK_RATIO 500.f
 #define KINK_RATIO_CONSIDER 20.f
 #define KINK_RATIO_ONE_DIM 8.f
+#define SAMPLE_RATE 2000.f
 
 
 PeakDetect::PeakDetect()
@@ -596,6 +597,7 @@ cout << "PEAKPOOL\n";
 cout << peaks.strCounts();
 }
 
+
 void PeakDetect::logPeakStats(
   const vector<PeakPos>& posTrue,
   const string& trainTrue,
@@ -610,6 +612,55 @@ void PeakDetect::logPeakStats(
 void PeakDetect::makeSynthPeaks(vector<float>& synthPeaks) const
 {
   peaks.topConst().getSamples(&Peak::isSelected, synthPeaks);
+}
+
+
+void PeakDetect::pushPeak(
+  Peak const * pptr,
+  const float tOffset,
+  vector<PeakTime>& times,
+  vector<int>& actualToRef) const
+{
+  // TODO times and actualRef should be a struct with this method
+  if (pptr)
+  {
+    actualToRef.push_back(times.size());
+
+    times.emplace_back(PeakTime());
+    PeakTime& p = times.back();
+    p.time = pptr->getIndex() / SAMPLE_RATE - tOffset;
+  }
+}
+
+
+bool PeakDetect::getAlignment(
+  vector<PeakTime>& times,
+  vector<int>& actualToRef,
+  unsigned& numFrontWheels)
+{
+  if (pstruct.hasGaps())
+    return false;
+
+  if (cars.empty())
+    return false;
+
+  times.clear();
+  actualToRef.clear();
+
+  const float t0 = cars.front().firstPeak() / SAMPLE_RATE;
+
+  for (auto& car: cars)
+  {
+    const CarPeaksPtr cptr = car.getPeaksPtr();
+    PeakDetect::pushPeak(cptr.firstBogieLeftPtr, t0, times, actualToRef);
+    PeakDetect::pushPeak(cptr.firstBogieRightPtr, t0, times, actualToRef);
+    PeakDetect::pushPeak(cptr.secondBogieLeftPtr, t0, times, actualToRef);
+    PeakDetect::pushPeak(cptr.secondBogieRightPtr, t0, times, actualToRef);
+  }
+
+  numFrontWheels = cars.front().numFrontWheels();
+
+  return true;
 }
 
 

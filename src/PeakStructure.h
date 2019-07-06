@@ -176,6 +176,8 @@ class PeakStructure
       list<CarDetect>& cars,
       PeakPool& peaks,
       const unsigned offsetIn);
+
+    bool hasGaps() const;
     
     bool markImperfections(
       const list<CarDetect>& cars,

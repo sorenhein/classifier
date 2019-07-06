@@ -10,6 +10,7 @@
 #include "Database.h"
 #include "Timers.h"
 #include "print.h"
+#include "regress/PolynomialRegression.h"
 
 // Can adjust these.
 
@@ -224,6 +225,29 @@ double Align::interpolateTime(
 }
 
 
+void Align::estimateAlignedMotion(
+  const vector<PeakPos>& refPeaks,
+  const vector<PeakTime>& times,
+  const vector<int>& actualToRef,
+  Shift& shift) const
+{
+  PolynomialRegression pol;
+  vector<double> x, y;
+
+  const unsigned lt = times.size();
+  x.resize(lt);
+  y.resize(lt);
+
+  for (unsigned i = 0; i < lt; i++)
+  {
+    y[i] = refPeaks[static_cast<unsigned>(actualToRef[i])].pos;
+    x[i] = times[i].time;
+  }
+
+  pol.fitIt(x, y, 2, shift.motion);
+}
+
+
 void Align::estimateMotion(
   const vector<PeakPos>& refPeaks,
   const vector<PeakTime>& times,
@@ -389,10 +413,35 @@ void Align::makeShiftCandidates(
   vector<Shift>& candidates,
   const vector<OverallShift>& shifts,
   const unsigned lt,
-  const unsigned lp) const
+  const unsigned lp,
+  const vector<int>& actualToRef,
+  const bool fullTrainFlag) const
 {
   candidates.clear();
 
+  if (fullTrainFlag)
+  {
+    const unsigned lteff = static_cast<unsigned>
+      (actualToRef.back() - actualToRef.front() + 1);
+
+    if (lteff > lp)
+      return;
+
+    for (auto& o: shifts)
+    {
+      const unsigned m = actualToRef[o.firstTimeNo];
+      if (m <= o.firstRefNo + 2 && m + 2 >= o.firstRefNo)
+      {
+        candidates.push_back(Shift());
+        Shift& shift = candidates.back();
+        shift.firstRefNo = o.firstRefNo;
+        shift.firstTimeNo = o.firstTimeNo;
+      }
+    }
+  }
+  else
+  {
+    // TODO indent
   for (auto& o: shifts)
   {
     // Let's say firstRefNo = 2, firstTimeNo = 1, lp = 56, lt = 54.
@@ -414,6 +463,8 @@ void Align::makeShiftCandidates(
       shift1.firstHalfNetInsert = 1;
       shift1.secondHalfNetInsert = 0;
 
+      // For trains that are presumably full, we don't need to
+      // double up.
       candidates.push_back(Shift());
       Shift& shift2 = candidates.back();
       shift2.firstRefNo = o.firstRefNo;
@@ -447,6 +498,7 @@ void Align::makeShiftCandidates(
       shift.firstHalfNetInsert = 0;
       shift.secondHalfNetInsert = 0;
     }
+  }
   }
 }
 
@@ -518,7 +570,9 @@ bool Align::betterSimpleScore(
 void Align::scalePeaks(
   const vector<PeakPos>& refPeaks,
   const vector<PeakTime>& times,
+  const vector<int>& actualToRef,
   const unsigned numFrontWheels,
+  const bool fullTrainFlag,
   Shift& shift,
   vector<PeakPos>& scaledPeaks) const
 {
@@ -550,7 +604,10 @@ void Align::scalePeaks(
 
   if (numFrontWheels <= 4)
     Align::makeShiftCandidates(candidates, likelyShifts[numFrontWheels], 
-      lt, lp);
+      lt, lp, actualToRef, fullTrainFlag);
+
+  if (candidates.empty())
+    return;
 
   // We calculate a simple score for this shift.  In fact
   // we could also run Needleman-Wunsch, so this is a bit of an
@@ -568,7 +625,10 @@ void Align::scalePeaks(
     Shift& cand = candidates[i];
     cand.motion.resize(3);
 
-    Align::estimateMotion(refPeaks, times, cand);
+    if (fullTrainFlag)
+      Align::estimateAlignedMotion(refPeaks, times, actualToRef, cand);
+    else
+      Align::estimateMotion(refPeaks, times, cand);
 
     for (unsigned j = 0; j < lt; j++)
     {
@@ -610,7 +670,9 @@ bool Align::countTooDifferent(
 
 void Align::bestMatches(
   const vector<PeakTime>& times,
+  const vector<int>& actualToRef,
   const unsigned numFrontWheels,
+  const bool fullTrainFlag,
   const Imperfections& imperf,
   const Database& db,
   const string& country,
@@ -618,8 +680,6 @@ void Align::bestMatches(
   const Control& control,
   vector<Alignment>& matches) const
 {
-  UNUSED(numFrontWheels);
-
   timers.start(TIMER_ALIGN);
 
   vector<PeakPos> refPeaks, scaledPeaks;
@@ -640,8 +700,8 @@ void Align::bestMatches(
 
     const double trainLength = refPeaks.back().pos - refPeaks.front().pos;
     Shift shift;
-    Align::scalePeaks(refPeaks, times, numFrontWheels, shift, scaledPeaks);
-
+    Align::scalePeaks(refPeaks, times, actualToRef, 
+      numFrontWheels, fullTrainFlag, shift, scaledPeaks);
 
     if (control.verboseAlignPeaks)
     {
@@ -654,21 +714,8 @@ void Align::bestMatches(
 
     matches.push_back(Alignment());
     matches.back().trainNo = refTrainNoU;
-// cout << "ALIGN train " << refTrain << " scale " << 
-  // shift.firstRefNo << "-" << 
-  // shift.firstTimeNo << ", " << 
-  // shift.firstHalfNetInsert << "/" << 
-  // shift.secondHalfNetInsert << endl;
     Align::NeedlemanWunsch(refPeaks, scaledPeaks, peakScale, 
       imperf, shift, matches.back());
-// Alignment al = matches.back();
-// cout << "ALIGN after NW: " << al.trainNo << " " <<
-  // al.dist << " " << al.distMatch << ", " <<
-  // al.numAdd << " " << al.numDelete << endl;
-// for (unsigned i = 0; i < matches.back().actualToRef.size(); i++)
-// {
-  // cout << "i " << i << " " << matches.back().actualToRef[i] << endl;
-// }
   }
 
   sort(matches.begin(), matches.end());

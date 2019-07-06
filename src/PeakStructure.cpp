@@ -777,6 +777,12 @@ cout << peaks.candidates().strQuality(
 }
 
 
+bool PeakStructure::hasGaps() const
+{
+  return (! ranges.empty());
+}
+
+
 bool PeakStructure::markImperfections(
   const list<CarDetect>& cars,
   Imperfections& imperf) const

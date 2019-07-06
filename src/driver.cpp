@@ -66,6 +66,7 @@ int main(int argc, char * argv[])
 
     Trace trace;
     vector<PeakTime> times;
+    vector<int> actualToRef;
     unsigned numFrontWheels;
 
     CompStats sensorStats, trainStats;
@@ -96,14 +97,24 @@ if (! control.pickTrainString.empty() &&
         trace.logPeakStats(posTrue, trainTrue, speedTrue, peakStats);
         trace.write(control);
 
-        trace.getTrace(times, numFrontWheels);
+        bool fullTrainFlag;
+        if (trace.getAlignment(times, actualToRef, numFrontWheels))
+        {
+          cout << "FULLALIGN\n";
+          fullTrainFlag = true;
+        }
+        else
+        {
+          trace.getTrace(times, numFrontWheels);
+          fullTrainFlag = false;
+        }
+
         // TODO Kludge.  Should be in PeakDetect or so.
         if (imperf.numSkipsOfSeen > 0)
           numFrontWheels = 4 - imperf.numSkipsOfSeen;
 
-        align.bestMatches(times, numFrontWheels, imperf,
-          db, country, 10, control, matchesAlign);
-
+        align.bestMatches(times, actualToRef, numFrontWheels, fullTrainFlag,
+          imperf, db, country, 10, control, matchesAlign);
 
         if (matchesAlign.size() == 0)
         {

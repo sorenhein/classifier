@@ -59,6 +59,12 @@ class PeakDetect
 
     void completePeaks();
 
+    void pushPeak(
+      Peak const * pptr,
+      const float tOffset,
+      vector<PeakTime>& times,
+      vector<int>& actualToRef) const;
+
     void printPeak(
       const Peak& peak,
       const string& text) const;
@@ -87,6 +93,11 @@ class PeakDetect
       PeakStats& peakStats);
 
     void makeSynthPeaks(vector<float>& synthPeaks) const;
+
+    bool getAlignment(
+      vector<PeakTime>& times,
+      vector<int>& actualToRef,
+      unsigned& numFrontWheels);
 
     void getPeakTimes(
       vector<PeakTime>& times,

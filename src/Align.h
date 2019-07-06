@@ -39,6 +39,12 @@ class Align
       const vector<PeakTime>& times,
       const double index) const;
 
+    void estimateAlignedMotion(
+      const vector<PeakPos>& refPeaks,
+      const vector<PeakTime>& times,
+      const vector<int>& actualToRef,
+      Shift& shift) const;
+      
     void estimateMotion(
       const vector<PeakPos>& refPeaks,
       const vector<PeakTime>& times,
@@ -52,7 +58,9 @@ class Align
       vector<Shift>& candidates,
       const vector<OverallShift>& shifts,
       const unsigned lt,
-      const unsigned lp) const;
+      const unsigned lp,
+      const vector<int>& actualToRef,
+      const bool makeShiftFlag) const;
 
     bool betterSimpleScore(
       const double score,
@@ -65,7 +73,9 @@ class Align
     void scalePeaks(
       const vector<PeakPos>& refPeaks,
       const vector<PeakTime>& times,
+      const vector<int>& actualToRef,
       const unsigned numFrontWheels,
+      const bool fullTrainFlag,
       Shift& shift,
       vector<PeakPos>& scaledPeaks) const;
 
@@ -92,7 +102,9 @@ class Align
 
     void bestMatches(
       const vector<PeakTime>& times,
+      const vector<int>& actualToRef,
       const unsigned numFrontWheels,
+      const bool fullTrainFlag,
       const Imperfections& imperf,
       const Database& db,
       const string& country,
