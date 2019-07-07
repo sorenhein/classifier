@@ -229,20 +229,26 @@ void Align::estimateAlignedMotion(
   const vector<PeakPos>& refPeaks,
   const vector<PeakTime>& times,
   const vector<int>& actualToRef,
-  const unsigned offsetRef,
+  const int offsetRef,
   Shift& shift) const
 {
   PolynomialRegression pol;
   vector<double> x, y;
 
   const unsigned lt = times.size();
-  x.resize(lt);
-  y.resize(lt);
 
-  for (unsigned i = 0; i < lt; i++)
+  // If offsetRef is negative, skip over presumed spurious first car.
+  unsigned i = 0;
+  while (i < lt && actualToRef[i] + offsetRef < 0)
+    i++;
+
+  x.resize(lt - i);
+  y.resize(lt - i);
+
+  for (unsigned p = 0; i < lt; i++, p++)
   {
-    y[i] = refPeaks[static_cast<unsigned>(actualToRef[i]) + offsetRef].pos;
-    x[i] = times[i].time;
+    y[p] = refPeaks[actualToRef[i] + offsetRef].pos;
+    x[p] = times[i].time;
   }
 
   pol.fitIt(x, y, 2, shift.motion);
@@ -416,22 +422,19 @@ void Align::makeShiftCandidates(
   const unsigned lt,
   const unsigned lp,
   const vector<int>& actualToRef,
-  const unsigned offsetRef,
+  const int offsetRef,
   const bool fullTrainFlag) const
 {
   candidates.clear();
 
   if (fullTrainFlag)
   {
-    const unsigned lteff = static_cast<unsigned>
-      (actualToRef.back() - actualToRef.front() + 1);
-
-    if (lteff > lp)
-      return;
-
     for (auto& o: shifts)
     {
-      const unsigned m = actualToRef[o.firstTimeNo + offsetRef];
+      // const unsigned m = actualToRef[
+        // static_cast<int>(o.firstTimeNo) + offsetRef];
+
+      const unsigned m = actualToRef[o.firstTimeNo] + offsetRef;
       if (m <= o.firstRefNo + 2 && m + 2 >= o.firstRefNo)
       {
         candidates.push_back(Shift());
@@ -605,9 +608,13 @@ void Align::scalePeaks(
   vector<Shift> candidates;
 
   // Guess whether we're missing the whole first car.
-  unsigned offsetRef;
-  if (static_cast<unsigned>(actualToRef.back()) + 4 <= refPeaks.size())
+  int offsetRef;
+  if (actualToRef.empty())
+    offsetRef = 0;
+  else if (static_cast<unsigned>(actualToRef.back()) + 4 <= refPeaks.size())
     offsetRef = 4;
+  else if (static_cast<unsigned>(actualToRef.back()) <= refPeaks.size() + 4)
+    offsetRef = -4;
   else
     offsetRef = 0;
 
@@ -639,6 +646,13 @@ void Align::scalePeaks(
         offsetRef, cand);
     else
       Align::estimateMotion(refPeaks, times, cand);
+
+/*
+cout << "i " << i << ": " << cand.firstRefNo << ", " << cand.firstTimeNo <<
+  endl;
+cout << "motion " << cand.motion[0] << ", " <<
+  cand.motion[1] << ", " << cand.motion[2] << endl;
+  */
 
     for (unsigned j = 0; j < lt; j++)
     {
@@ -708,6 +722,7 @@ void Align::bestMatches(
 
     db.getPerfectPeaks(refTrainNoU, refPeaks);
 
+// cout << "refTrain " << refTrain << endl;
     const double trainLength = refPeaks.back().pos - refPeaks.front().pos;
     Shift shift;
     Align::scalePeaks(refPeaks, times, actualToRef, 
