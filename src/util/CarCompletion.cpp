@@ -116,6 +116,17 @@ bool CarCompletion::complete() const
 }
 
 
+bool CarCompletion::partial() const
+{
+  for (auto& pc: peakCompletions)
+  {
+    if (pc.source() == COMP_UNMATCHED)
+      return true;
+  }
+  return false;
+}
+
+
 void CarCompletion::setData(const Target& target)
 {
   target.limits(_limitLower, _limitUpper);
@@ -154,6 +165,23 @@ void CarCompletion::getMatch(
 bool CarCompletion::forceFlag() const
 {
   return _forceFlag;
+}
+
+
+BordersType CarCompletion::bestBorders() const
+{
+  BordersType b = BORDERS_SIZE;
+
+  unsigned dBest = numeric_limits<unsigned>::max();
+  for (auto& tdata: data)
+  {
+    if (tdata.distanceSquared < dBest)
+    {
+      dBest = tdata.distanceSquared;
+      b = tdata.borders;
+    }
+  }
+  return b;
 }
 
 

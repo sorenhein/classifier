@@ -44,6 +44,10 @@ class Completions
 
     unsigned numComplete(CarCompletion *& complete);
 
+    unsigned numPartial(
+      CarCompletion *& partial,
+      BordersType& borders);
+
     void makeShift();
 
     void calcMetrics();

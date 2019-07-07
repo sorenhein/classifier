@@ -81,6 +81,7 @@ class CarCompletion
       const bool forceFlag);
 
     bool complete() const;
+    bool partial() const;
 
     void setData(const Target& target);
 
@@ -94,6 +95,8 @@ class CarCompletion
       unsigned& limitUpperOut);
 
     bool forceFlag() const;
+
+    BordersType bestBorders() const;
 
     CondenseType condense(CarCompletion& carCompl2); 
 

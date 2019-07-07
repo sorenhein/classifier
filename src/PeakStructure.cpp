@@ -472,6 +472,13 @@ FindCarType PeakStructure::findCarByPattern(
 
     return FIND_CAR_MATCH;
   }
+  else if (ret == FIND_CAR_PARTIAL)
+  {
+    car.makeAnyWheeler(range, peakPtrsUsed);
+    peakPtrsUsed.markup();
+    peakPtrsUnused.apply(&Peak::markdown);
+    return FIND_CAR_PARTIAL;
+  }
   else
     return FIND_CAR_NO_MATCH;
 }

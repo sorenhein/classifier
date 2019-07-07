@@ -70,6 +70,24 @@ unsigned Completions::numComplete(CarCompletion *& complete)
 }
 
 
+unsigned Completions::numPartial(
+  CarCompletion *& partial,
+  BordersType& borders)
+{
+  unsigned n = 0;
+  for (auto& comp: completions)
+  {
+    if (comp.partial())
+    {
+      n++;
+      partial = &comp;
+      borders = comp.bestBorders();
+    }
+  }
+  return n;
+}
+
+
 void Completions::makeShift()
 {
   for (auto& comp: completions)

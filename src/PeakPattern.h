@@ -81,6 +81,10 @@ class PeakPattern
 
     bool looksEmptyFirst(const PeakPtrs& peakPtrsUsed) const;
 
+    bool isPartialSingle(
+      PeakPtrs& peakPtrsUsed,
+      PeakPtrs& peakPtrsUnused);
+
     void update(
       const vector<Peak const *>& closest,
       const unsigned limitLower,

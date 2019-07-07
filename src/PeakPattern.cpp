@@ -445,6 +445,55 @@ bool PeakPattern::looksEmptyFirst(const PeakPtrs& peakPtrsUsed) const
 }
 
 
+bool PeakPattern::isPartialSingle(
+  PeakPtrs& peakPtrsUsed,
+  PeakPtrs& peakPtrsUnused)
+{
+  CarCompletion * winnerPtr;
+
+  const unsigned numComplete = completions.numComplete(winnerPtr);
+  if (numComplete > 0)
+    return false;
+
+  BordersType borders;
+  const unsigned numPartial = completions.numPartial(winnerPtr, borders);
+  if (numPartial != 1)
+    return false;
+
+  if (borders != BORDERS_DOUBLE_SIDED_SINGLE &&
+      borders != BORDERS_DOUBLE_SIDED_SINGLE_SHORT)
+    return false;
+
+  vector<Peak const *> closestPtrs;
+  unsigned limitLower = 0;
+  unsigned limitUpper = 0;
+
+  winnerPtr->getMatch(closestPtrs, limitLower, limitUpper);
+
+  PeakPattern::update(closestPtrs, limitLower, limitUpper,
+    peakPtrsUsed, peakPtrsUnused);
+
+  // Fill in null pointers in peakPtrsUsed for partial car.
+
+  PPLiterator pit = peakPtrsUsed.begin();
+  auto cit = closestPtrs.begin();
+
+  while (cit != closestPtrs.end())
+  {
+    if (* cit == nullptr)
+      peakPtrsUsed.insert(pit, nullptr);
+    else
+    {
+      // Assume without checking that the peaks match up.
+      pit++;
+    }
+    cit++;
+  }
+
+  return true;
+}
+
+
 void PeakPattern::update(
   const vector<Peak const *>& closestPtrs,
   const unsigned limitLower,
@@ -653,6 +702,12 @@ FindCarType PeakPattern::locate(
   {
     peakPtrsUnused.moveFrom(peakPtrsUsed);
     return FIND_CAR_DOWNGRADE;
+  }
+
+  if (PeakPattern::isPartialSingle(peakPtrsUsed, peakPtrsUnused))
+  {
+cout << "PARTIALHIT\n";
+    return FIND_CAR_PARTIAL;
   }
 
   return FIND_CAR_NO_MATCH;
