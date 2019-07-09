@@ -81,7 +81,16 @@ class PeakPattern
 
     bool looksEmptyFirst(const PeakPtrs& peakPtrsUsed) const;
 
+    void isPartial(
+      PeakPtrs& peakPtrsUsed,
+      PeakPtrs& peakPtrsUnused,
+      CarCompletion * winnerPtr);
+
     bool isPartialSingle(
+      PeakPtrs& peakPtrsUsed,
+      PeakPtrs& peakPtrsUnused);
+
+    bool isPartialLast(
       PeakPtrs& peakPtrsUsed,
       PeakPtrs& peakPtrsUnused);
 

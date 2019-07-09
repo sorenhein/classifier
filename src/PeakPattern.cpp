@@ -445,25 +445,11 @@ bool PeakPattern::looksEmptyFirst(const PeakPtrs& peakPtrsUsed) const
 }
 
 
-bool PeakPattern::isPartialSingle(
+void PeakPattern::isPartial(
   PeakPtrs& peakPtrsUsed,
-  PeakPtrs& peakPtrsUnused)
+  PeakPtrs& peakPtrsUnused,
+  CarCompletion * winnerPtr)
 {
-  CarCompletion * winnerPtr;
-
-  const unsigned numComplete = completions.numComplete(winnerPtr);
-  if (numComplete > 0)
-    return false;
-
-  BordersType borders;
-  const unsigned numPartial = completions.numPartial(winnerPtr, borders);
-  if (numPartial != 1)
-    return false;
-
-  if (borders != BORDERS_DOUBLE_SIDED_SINGLE &&
-      borders != BORDERS_DOUBLE_SIDED_SINGLE_SHORT)
-    return false;
-
   vector<Peak const *> closestPtrs;
   unsigned limitLower = 0;
   unsigned limitUpper = 0;
@@ -489,7 +475,55 @@ bool PeakPattern::isPartialSingle(
     }
     cit++;
   }
+}
 
+
+bool PeakPattern::isPartialSingle(
+  PeakPtrs& peakPtrsUsed,
+  PeakPtrs& peakPtrsUnused)
+{
+  CarCompletion * winnerPtr;
+
+  const unsigned numComplete = completions.numComplete(winnerPtr);
+  if (numComplete > 0)
+    return false;
+
+  BordersType borders;
+  const unsigned numPartial = completions.numPartial(winnerPtr, borders);
+  if (numPartial != 1)
+    return false;
+
+  if (borders != BORDERS_DOUBLE_SIDED_SINGLE &&
+      borders != BORDERS_DOUBLE_SIDED_SINGLE_SHORT)
+    return false;
+
+  PeakPattern::isPartial(peakPtrsUsed, peakPtrsUnused, winnerPtr);
+  return true;
+}
+
+
+bool PeakPattern::isPartialLast(
+  PeakPtrs& peakPtrsUsed,
+  PeakPtrs& peakPtrsUnused)
+{
+  if (peakPtrsUsed.size() >= 6)
+    return false;
+
+  CarCompletion * winnerPtr;
+
+  const unsigned numComplete = completions.numComplete(winnerPtr);
+  if (numComplete > 0)
+    return false;
+
+  BordersType borders;
+  const unsigned numPartial = completions.numPartial(winnerPtr, borders);
+  if (numPartial != 1)
+    return false;
+
+  if (borders != BORDERS_SINGLE_SIDED_LEFT)
+    return false;
+
+  PeakPattern::isPartial(peakPtrsUsed, peakPtrsUnused, winnerPtr);
   return true;
 }
 
@@ -706,9 +740,17 @@ FindCarType PeakPattern::locate(
 
   if (PeakPattern::isPartialSingle(peakPtrsUsed, peakPtrsUnused))
   {
-cout << "PARTIALHIT\n";
+cout << "PARTIALSINGLE\n";
     return FIND_CAR_PARTIAL;
   }
+
+  /*
+  if (PeakPattern::isPartialLast(peakPtrsUsed, peakPtrsUnused))
+  {
+cout << "PARTIALLAST\n";
+    return FIND_CAR_PARTIAL;
+  }
+  */
 
   return FIND_CAR_NO_MATCH;
 }
