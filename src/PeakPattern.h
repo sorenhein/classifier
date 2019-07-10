@@ -94,6 +94,10 @@ class PeakPattern
       PeakPtrs& peakPtrsUsed,
       PeakPtrs& peakPtrsUnused);
 
+    bool isPartialFirst(
+      PeakPtrs& peakPtrsUsed,
+      PeakPtrs& peakPtrsUnused);
+
     void update(
       const vector<Peak const *>& closest,
       const unsigned limitLower,

@@ -456,8 +456,11 @@ void PeakPattern::isPartial(
 
   winnerPtr->getMatch(closestPtrs, limitLower, limitUpper);
 
-  PeakPattern::update(closestPtrs, limitLower, limitUpper,
+  /* PeakPattern::update(closestPtrs, limitLower, limitUpper,
     peakPtrsUsed, peakPtrsUnused);
+    */
+
+  peakPtrsUsed.moveOut(closestPtrs, peakPtrsUnused);
 
   // Fill in null pointers in peakPtrsUsed for partial car.
 
@@ -521,6 +524,32 @@ bool PeakPattern::isPartialLast(
     return false;
 
   if (borders != BORDERS_SINGLE_SIDED_LEFT)
+    return false;
+
+  PeakPattern::isPartial(peakPtrsUsed, peakPtrsUnused, winnerPtr);
+  return true;
+}
+
+
+bool PeakPattern::isPartialFirst(
+  PeakPtrs& peakPtrsUsed,
+  PeakPtrs& peakPtrsUnused)
+{
+  if (peakPtrsUsed.size() >= 5)
+    return false;
+
+  CarCompletion * winnerPtr;
+
+  const unsigned numComplete = completions.numComplete(winnerPtr);
+  if (numComplete > 0)
+    return false;
+
+  BordersType borders;
+  const unsigned numPartial = completions.numPartial(winnerPtr, borders);
+  if (numPartial != 1)
+    return false;
+
+  if (borders != BORDERS_SINGLE_SIDED_RIGHT)
     return false;
 
   PeakPattern::isPartial(peakPtrsUsed, peakPtrsUnused, winnerPtr);
@@ -749,6 +778,14 @@ cout << "PARTIALSINGLE\n";
 cout << "PARTIALLAST\n";
     return FIND_CAR_PARTIAL;
   }
+
+  /* */
+  if (PeakPattern::isPartialFirst(peakPtrsUsed, peakPtrsUnused))
+  {
+cout << "PARTIALFIRST\n";
+    return FIND_CAR_PARTIAL;
+  }
+  /* */
 
   return FIND_CAR_NO_MATCH;
 }
