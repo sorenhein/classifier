@@ -506,7 +506,7 @@ bool PeakPattern::isPartialLast(
   PeakPtrs& peakPtrsUsed,
   PeakPtrs& peakPtrsUnused)
 {
-  if (peakPtrsUsed.size() >= 6)
+  if (peakPtrsUsed.size() >= 5)
     return false;
 
   CarCompletion * winnerPtr;
@@ -744,13 +744,13 @@ cout << "PARTIALSINGLE\n";
     return FIND_CAR_PARTIAL;
   }
 
-  /*
+  /* */
   if (PeakPattern::isPartialLast(peakPtrsUsed, peakPtrsUnused))
   {
 cout << "PARTIALLAST\n";
     return FIND_CAR_PARTIAL;
   }
-  */
+  /* */
 
   return FIND_CAR_NO_MATCH;
 }
