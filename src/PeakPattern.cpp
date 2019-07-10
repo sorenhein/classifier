@@ -744,13 +744,11 @@ cout << "PARTIALSINGLE\n";
     return FIND_CAR_PARTIAL;
   }
 
-  /* */
   if (PeakPattern::isPartialLast(peakPtrsUsed, peakPtrsUnused))
   {
 cout << "PARTIALLAST\n";
     return FIND_CAR_PARTIAL;
   }
-  /* */
 
   return FIND_CAR_NO_MATCH;
 }
