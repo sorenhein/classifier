@@ -98,8 +98,8 @@ if (! control.pickTrainString.empty() &&
         trace.write(control);
 
         bool fullTrainFlag;
-        if (! actualToRef.empty() &&
-            trace.getAlignment(times, actualToRef, numFrontWheels))
+        if (trace.getAlignment(times, actualToRef, numFrontWheels) &&
+            ! actualToRef.empty())
         {
           cout << "FULLALIGN\n";
           fullTrainFlag = true;

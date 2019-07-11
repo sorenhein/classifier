@@ -208,7 +208,6 @@ double Align::interpolateTime(
 {
   const unsigned lt = times.size();
 
-// cout << "interpolate: index " << index << endl;
   const unsigned iLeft = static_cast<unsigned>(index);
   if (iLeft+1 >= lt)
   {
@@ -218,8 +217,6 @@ double Align::interpolateTime(
 
   const unsigned iRight = iLeft + 1;
   const double frac = index - iLeft;
-// cout << "iLeft " << iLeft << " iRight " << iRight << " frac " <<
-  // frac << endl;
 
   return (1.-frac) * times[iLeft].time + frac * times[iRight].time;
 }
@@ -242,12 +239,18 @@ void Align::estimateAlignedMotion(
   while (i < lt && actualToRef[i] + offsetRef < 0)
     i++;
 
-  x.resize(lt - i);
-  y.resize(lt - i);
+  const unsigned lr = refPeaks.size();
+  const unsigned rest = lt - i;
+  x.resize(rest);
+  y.resize(rest);
 
   for (unsigned p = 0; i < lt; i++, p++)
   {
-    y[p] = refPeaks[actualToRef[i] + offsetRef].pos;
+    const unsigned ri = actualToRef[i] + offsetRef;
+    if (ri >= lr)
+      break;
+
+    y[p] = refPeaks[ri].pos;
     x[p] = times[i].time;
   }
 
@@ -611,19 +614,27 @@ void Align::scalePeaks(
   int offsetRef;
   if (actualToRef.empty())
     offsetRef = 0;
-  else if (static_cast<unsigned>(actualToRef.back()) + 4 <= refPeaks.size())
-    offsetRef = 4;
-  else if (static_cast<unsigned>(actualToRef.back()) <= refPeaks.size() + 4)
-    offsetRef = -4;
   else
-    offsetRef = 0;
+  {
+    const unsigned aback = static_cast<unsigned>(actualToRef.back());
+    if (aback + 4 <= refPeaks.size())
+      offsetRef = 4;
+    else if (aback >= refPeaks.size() && aback <= refPeaks.size() + 4)
+      offsetRef = -4;
+    else
+      offsetRef = 0;
+  }
 
+// cout << "offset " << offsetRef << endl;
   if (numFrontWheels <= 4)
     Align::makeShiftCandidates(candidates, likelyShifts[numFrontWheels], 
       lt, lp, actualToRef, offsetRef, fullTrainFlag);
 
   if (candidates.empty())
+  // {
+// cout << "no cand " << endl;
     return;
+  // }
 
   // We calculate a simple score for this shift.  In fact
   // we could also run Needleman-Wunsch, so this is a bit of an
@@ -729,7 +740,10 @@ void Align::bestMatches(
       numFrontWheels, fullTrainFlag, shift, scaledPeaks);
 
     if (scaledPeaks.empty())
+    // {
+// cout << "empty\n";
       continue;
+    // }
 
     if (control.verboseAlignPeaks)
     {

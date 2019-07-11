@@ -1,10 +1,5 @@
 Completions
 -----------
-s05 180052:
-First car first pos becomes "negative".
-Should match more partially.
-Should match at least 392?
-
 Does align work for partial lasts?
 
 - s08 104828 #12

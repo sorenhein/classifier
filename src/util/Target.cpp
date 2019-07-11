@@ -83,14 +83,24 @@ bool Target::fillPoints(
       unsigned pi = 0;
       for (auto i = next(carPoints.begin()); i != prev(carPoints.end()); 
           i++, pi++)
-        _indices[pi] = indexBase + * i - pointLast;
+      {
+        if (pointLast > indexBase + * i)
+          _indices[pi] = 0;
+        else
+          _indices[pi] = indexBase + * i - pointLast;
+      }
     }
     else
     {
       unsigned pi = nc-3;
       for (auto i = next(carPoints.begin()); i != prev(carPoints.end()); 
           i++, pi--)
-        _indices[pi] = indexBase - * i;
+      {
+        if (* i > indexBase)
+          _indices[pi] = 0;
+        else
+          _indices[pi] = indexBase - * i;
+      }
     }
   }
 
@@ -121,7 +131,10 @@ bool Target::fill(
   }
   else if (abutRightFlag)
   {
-    start = indexRangeRight - carPoints.back();
+    if (carPoints.back() > indexRangeRight)
+      start = 0;
+    else
+      start = indexRangeRight - carPoints.back();
     end = indexRangeRight;
   }
 
