@@ -47,7 +47,8 @@ class CarCompletion
 
     unsigned filled() const;
 
-    bool samePeaks(CarCompletion& carCompl2);
+    bool samePeaks(CarCompletion& comp2);
+    bool contains(CarCompletion& comp2);
 
     void updateOverallFrom(CarCompletion& carCompl2);
 

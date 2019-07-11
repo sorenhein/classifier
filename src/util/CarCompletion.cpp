@@ -204,6 +204,25 @@ bool CarCompletion::samePeaks(CarCompletion& miss2)
 }
 
 
+bool CarCompletion::contains(CarCompletion& comp2)
+{
+  const unsigned nc = peakCompletions.size();
+  if (comp2.peakCompletions.size() != nc)
+    return false;
+
+  for (auto pc1 = peakCompletions.begin(), 
+      pc2 = comp2.peakCompletions.begin();
+      pc1 != peakCompletions.end() && 
+      pc2 != comp2.peakCompletions.end();
+      pc1++, pc2++)
+  {
+    if (pc2->ptr() && pc1->ptr() != pc2->ptr())
+      return false;
+  }
+  return true;
+}
+
+
 void CarCompletion::updateOverallFrom(CarCompletion& d2)
 {
   if (d2.distanceSquared < distanceSquared)
@@ -315,6 +334,16 @@ cout << "ratios " << setprecision(4) << fixed << dratio << ", " <<
     {
       return CONDENSE_DIFFERENT;
     }
+  }
+  else if (CarCompletion::contains(miss2))
+  {
+    cout << "SUPERIOR4\n";
+    return CONDENSE_BETTER;
+  }
+  else if (miss2.contains(* this))
+  {
+    cout << "SUPERIOR5\n";
+    return CONDENSE_WORSE;
   }
   else
     return CONDENSE_DIFFERENT;
