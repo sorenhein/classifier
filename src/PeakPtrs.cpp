@@ -260,7 +260,16 @@ unsigned PeakPtrs::count(const PeakFncPtr& fptr) const
 
 bool PeakPtrs::empty() const
 {
-  return peaks.empty();
+  if (peaks.empty())
+    return true;
+
+  for (auto peak: peaks)
+  {
+    if (peak != nullptr)
+      return false;
+  }
+
+  return true;
 }
 
 

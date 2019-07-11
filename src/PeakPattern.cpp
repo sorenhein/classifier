@@ -553,7 +553,7 @@ bool PeakPattern::isPartialFirst(
     return false;
 
   PeakPattern::isPartial(peakPtrsUsed, peakPtrsUnused, winnerPtr);
-  return true;
+  return ! peakPtrsUsed.empty();
 }
 
 

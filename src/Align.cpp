@@ -617,15 +617,15 @@ void Align::scalePeaks(
   else
   {
     const unsigned aback = static_cast<unsigned>(actualToRef.back());
-    if (aback + 4 <= refPeaks.size())
+    if (aback + 4 <= lp)
       offsetRef = 4;
-    else if (aback >= refPeaks.size() && aback <= refPeaks.size() + 4)
+    else if (aback >= lp && aback <= lp + 4)
       offsetRef = -4;
     else
       offsetRef = 0;
   }
 
-// cout << "offset " << offsetRef << endl;
+// cout << "asize " << actualToRef.size() << " offset " << offsetRef << endl;
   if (numFrontWheels <= 4)
     Align::makeShiftCandidates(candidates, likelyShifts[numFrontWheels], 
       lt, lp, actualToRef, offsetRef, fullTrainFlag);

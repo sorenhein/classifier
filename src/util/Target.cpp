@@ -72,8 +72,8 @@ bool Target::fillPoints(
     const unsigned pointFirstPeak = * next(carPoints.begin());
 
     // Fail if no room for left car.
-    if (indexBase + pointFirstPeak <= pointLast)
-      return false;
+    // if (indexBase + pointFirstPeak <= pointLast)
+      // return false;
 
     _indices.resize(nc-2);
 
