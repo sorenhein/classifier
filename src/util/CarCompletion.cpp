@@ -282,8 +282,25 @@ CondenseType CarCompletion::condense(CarCompletion& miss2)
     CarCompletion::mergeFrom(miss2);
     return CONDENSE_SAME;
   }
-  else if (CarCompletion::filled() == peakCompletions.size() && 
-      miss2.filled() == peakCompletions.size())
+  else if (CarCompletion::contains(miss2))
+  {
+    cout << "SUPERIOR4\n";
+    return CONDENSE_BETTER;
+  }
+  else if (miss2.contains(* this))
+  {
+    cout << "SUPERIOR5\n";
+    return CONDENSE_WORSE;
+  }
+
+  const unsigned f = CarCompletion::filled();
+  const unsigned f2 = miss2.filled();
+
+  if (f == f2 && 
+     (f == peakCompletions.size() || f+1 == peakCompletions.size()))
+
+  // if (CarCompletion::filled() == peakCompletions.size() && 
+      // miss2.filled() == peakCompletions.size())
   {
     const float dratio = (distanceSquared == 0 ? 100.f :
       miss2.distanceSquared / static_cast<float>(distanceSquared));
@@ -334,16 +351,6 @@ cout << "ratios " << setprecision(4) << fixed << dratio << ", " <<
     {
       return CONDENSE_DIFFERENT;
     }
-  }
-  else if (CarCompletion::contains(miss2))
-  {
-    cout << "SUPERIOR4\n";
-    return CONDENSE_BETTER;
-  }
-  else if (miss2.contains(* this))
-  {
-    cout << "SUPERIOR5\n";
-    return CONDENSE_WORSE;
   }
   else
     return CONDENSE_DIFFERENT;
