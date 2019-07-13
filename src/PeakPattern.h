@@ -125,6 +125,10 @@ class PeakPattern
       PeakPtrs& peakPtrsUsed,
       PeakPtrs& peakPtrsUnused);
 
+    void pruneFirst(
+      PeakPtrs& peakPtrsUsed,
+      PeakPtrs& peakPtrsUnused);
+
     bool fix(
       PeakPool& peaks,
       PeakPtrs& peakPtrsUsed,

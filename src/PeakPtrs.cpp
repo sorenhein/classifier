@@ -266,6 +266,7 @@ unsigned PeakPtrs::count(const PeakFncPtr& fptr) const
 
 bool PeakPtrs::empty() const
 {
+  // TODO This test not needed?
   if (peaks.empty())
     return true;
 

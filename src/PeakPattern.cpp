@@ -648,6 +648,25 @@ bool PeakPattern::isPartialFirst(
 }
 
 
+void PeakPattern::pruneFirst(
+  PeakPtrs& peakPtrsUsed,
+  PeakPtrs& peakPtrsUnused)
+{
+  // Remove front peaks that have overall qualities below good.
+  for (auto pit = peakPtrsUsed.begin(); pit != peakPtrsUsed.end(); pit++)
+  {
+    if (* pit == nullptr)
+      continue;
+
+    if (( *pit)->goodPeakQuality())
+      return;
+
+    peakPtrsUnused.push_back(* pit);
+    * pit = nullptr;
+  }
+}
+
+
 void PeakPattern::update(
   const vector<Peak const *>& closestPtrs,
   const unsigned limitLower,
@@ -879,8 +898,14 @@ cout << "PARTIALLAST\n";
   /* */
   if (PeakPattern::isPartialFirst(peakPtrsUsed, peakPtrsUnused))
   {
+    PeakPattern::pruneFirst(peakPtrsUsed, peakPtrsUnused);
+    if (peakPtrsUsed.empty())
+      return FIND_CAR_DOWNGRADE;
+    else
+    {
 cout << "PARTIALFIRST\n";
-    return FIND_CAR_PARTIAL;
+      return FIND_CAR_PARTIAL;
+    }
   }
   /* */
 
