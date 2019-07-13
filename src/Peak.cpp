@@ -633,6 +633,13 @@ bool Peak::borderlineQuality() const
 }
 
 
+bool Peak::absurdQuality() const
+{
+  // TODO #define
+  return (qualityShape >= 2.5f);
+}
+
+
 bool Peak::goodPeakQuality() const
 {
   // TODO #define

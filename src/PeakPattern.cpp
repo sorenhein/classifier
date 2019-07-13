@@ -604,7 +604,10 @@ void PeakPattern::annotateCompletions(
 {
   // Mark up with relevant, unused peaks.
   for (auto pptr: peakPtrsUnused)
-    completions.markWith(* pptr, COMP_UNUSED, false);
+  {
+    if (! pptr->absurdQuality())
+      completions.markWith(* pptr, COMP_UNUSED, false);
+  }
 
   // Mark up with repairable peaks.
   completions.makeRepairables();
@@ -656,6 +659,9 @@ void PeakPattern::fillCompletions(
 
         if (! ptr)
           THROW(ERR_PATTERN_BAD_FIX, "Peak not repairable after all?");
+
+        if (ptr->absurdQuality())
+          continue;
 
         peakPtrsUsed.add(ptr);
         completions.markWith(* ptr, COMP_REPAIRED, cc.forceFlag());
