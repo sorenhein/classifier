@@ -79,18 +79,6 @@ class PeakStructure
 
     FindCarType findCarByQuality(
       const CarModels& models,
-      const PeakFncPtr& fptr,
-      PeakRange& range,
-      CarDetect& car) const;
-
-    FindCarType findCarByGreatQuality(
-      const CarModels& models,
-      PeakPool& peaks,
-      PeakRange& range,
-      CarDetect& car) const;
-
-    FindCarType findCarByGoodQuality(
-      const CarModels& models,
       PeakPool& peaks,
       PeakRange& range,
       CarDetect& car) const;

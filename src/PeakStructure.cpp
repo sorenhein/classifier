@@ -47,15 +47,10 @@ PeakStructure::PeakStructure()
     { &PeakStructure::findCarByOrder, 
       "by 1234 order", 0});
 
-  // Exactly 4 great peaks that look like a car.
+  // Exactly 4 peaks that look like a car by quality.
   findMethods[1].push_back(
-    { &PeakStructure::findCarByGreatQuality, 
+    { &PeakStructure::findCarByQuality, 
       "by great quality", 1});
-
-  // Exactly 4 good peaks that look like a car.
-  findMethods[1].push_back(
-    { &PeakStructure::findCarByGoodQuality, 
-      "by good quality", 2});
 
   // No great peaks at all.
   findMethods[1].push_back(
@@ -253,23 +248,6 @@ FindCarType PeakStructure::findCarByPeaks(
 
 FindCarType PeakStructure::findCarByQuality(
   const CarModels& models,
-  const PeakFncPtr& fptr,
-  PeakRange& range,
-  CarDetect& car) const
-{
-  PeakPtrs peakPtrsUsed, peakPtrsUnused;
-  range.split(fptr, peakPtrsUsed, peakPtrsUnused);
-
-  if (PeakStructure::findCarByPeaks(models, range, peakPtrsUsed, car) ==
-      FIND_CAR_MATCH)
-    return FIND_CAR_MATCH;
-
-  return FIND_CAR_NO_MATCH;
-}
-
-
-FindCarType PeakStructure::findCarByGreatQuality(
-  const CarModels& models,
   PeakPool& peaks,
   PeakRange& range,
   CarDetect& car) const
@@ -277,24 +255,15 @@ FindCarType PeakStructure::findCarByGreatQuality(
   UNUSED(peaks);
   if (range.numGreat() != 4)
     return FIND_CAR_NO_MATCH;
-  else
-    return PeakStructure::findCarByQuality(models,
-      &Peak::greatQuality, range, car);
-}
 
+  PeakPtrs peakPtrsUsed, peakPtrsUnused;
+  range.split(&Peak::greatQuality, peakPtrsUsed, peakPtrsUnused);
 
-FindCarType PeakStructure::findCarByGoodQuality(
-  const CarModels& models,
-  PeakPool& peaks,
-  PeakRange& range,
-  CarDetect& car) const
-{
-  UNUSED(peaks);
-  if (range.numGood() != 4)
-    return FIND_CAR_NO_MATCH;
-  else
-    return PeakStructure::findCarByQuality(models,
-      &Peak::goodQuality, range, car);
+  if (PeakStructure::findCarByPeaks(models, range, peakPtrsUsed, car) ==
+      FIND_CAR_MATCH)
+    return FIND_CAR_MATCH;
+
+  return FIND_CAR_NO_MATCH;
 }
 
 

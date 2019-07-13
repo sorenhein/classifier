@@ -12,30 +12,6 @@ Does align work for partial lasts?
 
 Put Target into CarCompletion
 
-- Then when we condense
-  - Identical peaks
-    - If same model and reverseFlag, hence weight, get rid of one.
-      For any open peaks, combine (extend) the ranges
-    - If different, note both in a list, and add up weight
-  - Subsumed peaks
-    - For each extra peak, have a threshold for each of used/unused/...
-      - dist, quality
-    - If the extra peaks are OK, get rid of subsumed peaks
-    - Otherwise get rid of the longer one?!
-- If that is still not conclusive, look among the longest fits
-  - Among the peaks that are not in common
-    - Some function of dist, quality, source
-  - May have completely separate ones (front and back)
-    - Go by distance and quality overall of the two
-- If still > 1 completion
-  - What to do?
-- If no completion
-  - When to declare a partial match?
-    - A mid should probably rarely be partial
-    - A first is often a partial
-    - A last is somewhere in between
-  
-
 Too many car models
 - Count car models
 - Count targets in PeakPattern
