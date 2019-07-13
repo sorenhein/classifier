@@ -39,7 +39,7 @@ void CarCompletion::reset()
 
 
 bool CarCompletion::fillPoints(
-  const TargetData& tdata,
+  const bool reverseFlag,
   const list<unsigned>& carPoints,
   const unsigned indexBase)
 {
@@ -61,7 +61,7 @@ bool CarCompletion::fillPoints(
   {
     _indices.resize(nc-2);
 
-    if (! tdata.reverseFlag)
+    if (! reverseFlag)
     {
       unsigned pi = 0;
       for (auto i = next(carPoints.begin()); i != prev(carPoints.end());
@@ -89,7 +89,7 @@ bool CarCompletion::fillPoints(
 
     _indices.resize(nc-2);
 
-    if (tdata.reverseFlag)
+    if (reverseFlag)
     {
       // The car has a right gap, so we don't need to flip it.
       unsigned pi = 0;
@@ -162,9 +162,20 @@ bool CarCompletion::fill(
   const unsigned indexRangeRight,
   const list<unsigned>& carPoints)
 {
-  data.emplace_back(tdata);
   abutLeftFlag = (indexRangeLeft != 0);
   abutRightFlag = (indexRangeRight != 0);
+
+  const unsigned indexBase =
+     (abutLeftFlag ? indexRangeLeft : indexRangeRight);
+
+  if (! CarCompletion::fillPoints(tdata.reverseFlag, carPoints, indexBase))
+    return false;
+
+  if (_indices.front() < indexRangeLeft ||
+      (indexRangeRight != 0 && _indices.back() > indexRangeRight))
+    return false;
+
+  data.emplace_back(tdata);
 
   if (abutLeftFlag && abutRightFlag)
   {
@@ -186,15 +197,7 @@ bool CarCompletion::fill(
   }
 
   CarCompletion::setLimits(tdata);
-
-  const unsigned indexBase =
-     (abutLeftFlag ? indexRangeLeft : indexRangeRight);
-
-  if (! CarCompletion::fillPoints(tdata, carPoints, indexBase))
-    return false;
-  else
-    return (_indices.front() >= indexRangeLeft &&
-        (indexRangeRight == 0 || _indices.back() <= indexRangeRight));
+  return true;
 }
 
 

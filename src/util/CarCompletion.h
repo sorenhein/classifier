@@ -54,7 +54,7 @@ class CarCompletion
 
 
     bool fillPoints(
-      const TargetData& tdata,
+      const bool reverseFlag,
       const list<unsigned>& carPoints,
       const unsigned indexBase);
 
