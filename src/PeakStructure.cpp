@@ -8,7 +8,6 @@
 #include "PeakStructure.h"
 #include "PeakPattern.h"
 #include "PeakSpacing.h"
-#include "PeakRepair.h"
 #include "PeakProfile.h"
 #include "CarModels.h"
 #include "Except.h"
@@ -72,12 +71,6 @@ PeakStructure::PeakStructure()
   findMethods[1].push_back(
     { &PeakStructure::findCarBySpacing, 
       "by spacing", 6});
-
-  /*
-  findMethods[2].push_back(
-    { &PeakStructure::findPartialFirstCarByQuality, 
-      "first partial by quality", 5});
-      */
 
   hits.resize(NUM_METHODS);
 }
@@ -233,115 +226,6 @@ FindCarType PeakStructure::findCarByOrder(
   }
 
   return FIND_CAR_NO_MATCH;
-}
-
-
-FindCarType PeakStructure::findPartialCarByQuality(
-  const CarModels& models,
-  const PeakFncPtr& fptr,
-  const CarPosition carpos,
-  PeakPool& peaks,
-  PeakRange& range,
-  CarDetect& car) const
-{
-  PeakPtrs peakPtrsUsed, peakPtrsUnused;
-  range.split(fptr, peakPtrsUsed, peakPtrsUnused);
-
-  if (peakPtrsUsed.size() == 0)
-    return FIND_CAR_NO_MATCH;
-
-// cout << "PP BEFORE\n";
-// for (auto& peak: peakPtrsUsed)
-  // cout << peak->strQuality(offset);
-
-const unsigned numOrig = peakPtrsUsed.size();
-
-  PeakRepair repair;
-  if (repair.edgeCar(models, offset, carpos, 
-      peaks, range, peakPtrsUsed, peakPtrsUnused))
-  {
-    if (carpos == CARPOSITION_FIRST)
-      cout << "Hit an anywheeler\n";
-    else if (carpos == CARPOSITION_INNER_SINGLE ||
-             carpos == CARPOSITION_INNER_MULTI)
-    {
-
-cout << "Hit a midwheeler\n";
-unsigned num = 0;
-for (auto& peak: peakPtrsUsed)
-{
-  if (peak != nullptr)
-    num++;
-}
-cout << "PP AFTER " << numOrig << " " << num << "\n";
-  /*
-for (auto& peak: peakPtrsUsed)
-  if (peak)
-    cout << peak->strQuality(offset);
-  cout << "MIDCOUNT " << num << "\n";
-  */
-
-if (carpos == CARPOSITION_INNER_MULTI)
-{
-  if (num == 4)
-    cout << "MMULT hit\n";
-  else
-    cout << "MMULT nohit\n";
-}
-
-
-      if (num != 4)
-        return FIND_CAR_NO_MATCH;
-    }
-    else
-      cout << "Hit a lastwheeler\n";
-
-
-    if (carpos == CARPOSITION_INNER_MULTI)
-    {
-      PeakRange rangeLocal;
-      rangeLocal.init(peakPtrsUsed);
-      car.makeAnyWheeler(rangeLocal, peakPtrsUsed);
-
-      peakPtrsUsed.markup();
-      peakPtrsUnused.apply(&Peak::markdown);
-      return FIND_CAR_MATCH;
-    }
-    else
-    {
-      car.makeAnyWheeler(range, peakPtrsUsed);
-      peakPtrsUsed.markup();
-      peakPtrsUnused.apply(&Peak::markdown);
-      return FIND_CAR_PARTIAL;
-    }
-  }
-  else
-    return FIND_CAR_NO_MATCH;
-}
-
-
-FindCarType PeakStructure::findPartialFirstCarByQuality(
-  const CarModels& models,
-  PeakPool& peaks,
-  PeakRange& range,
-  CarDetect& car) const
-{
-  if (! range.isFirstCar())
-    return FIND_CAR_NO_MATCH;
-
-  if (range.numGreat() > 4)
-    return FIND_CAR_NO_MATCH;
-
-  // Have to refill range if we pruned transients.
-  if (peaks.pruneTransients(range.endValue()))
-    range.fill(peaks);
-
-  // TODO Should the next car then actively become the first one?
-  if (range.numGood() == 0)
-    return FIND_CAR_DOWNGRADE;
-
-  return PeakStructure::findPartialCarByQuality(models, 
-      &Peak::goodQuality, CARPOSITION_FIRST, peaks, range, car);
 }
 
 
