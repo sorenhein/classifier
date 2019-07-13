@@ -636,7 +636,7 @@ bool Peak::borderlineQuality() const
 bool Peak::absurdQuality() const
 {
   // TODO #define
-  return (qualityShape >= 2.5f);
+  return (qualityShape >= 2.5f || qualityPeak >= 2.5f);
 }
 
 

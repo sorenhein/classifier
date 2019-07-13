@@ -204,6 +204,38 @@ bool CarCompletion::samePeaks(CarCompletion& miss2)
 }
 
 
+bool CarCompletion::samePartialPeaks(CarCompletion& miss2)
+{
+  const unsigned nc = peakCompletions.size();
+  if (miss2.peakCompletions.size() != nc)
+    return false;
+
+  auto pc1 = peakCompletions.begin();
+  auto pc2 = miss2.peakCompletions.begin();
+
+  while (pc1 != peakCompletions.end() && pc2 != miss2.peakCompletions.end())
+  {
+    Peak const * p1 = pc1->ptr();
+    Peak const * p2 = pc2->ptr();
+
+    if (p1 == nullptr)
+      pc1++;
+    else if (p2 == nullptr)
+      pc2++;
+    else if (p1 == p2)
+    {
+      pc1++;
+      pc2++;
+    }
+    else
+      return false;
+  }
+
+  return (pc1 == peakCompletions.end() && 
+    pc2 == miss2.peakCompletions.end());
+}
+
+
 bool CarCompletion::contains(CarCompletion& comp2)
 {
   const unsigned nc = peakCompletions.size();
@@ -281,6 +313,20 @@ CondenseType CarCompletion::condense(CarCompletion& miss2)
     // Merge the two lists of origins.
     CarCompletion::mergeFrom(miss2);
     return CONDENSE_SAME;
+  }
+  else if (CarCompletion::samePartialPeaks(miss2))
+  {
+    // For example the same three peaks show up as 134 and 234.
+    if (distanceSquared <= miss2.distanceSquared)
+    {
+      cout << "SUPERIOR6\n";
+      return CONDENSE_BETTER;
+    }
+    else
+    {
+      cout << "INFERIOR6\n";
+      return CONDENSE_WORSE;
+    }
   }
   else if (CarCompletion::contains(miss2))
   {

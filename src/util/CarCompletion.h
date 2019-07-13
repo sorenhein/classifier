@@ -46,6 +46,7 @@ class CarCompletion
 
 
     bool samePeaks(CarCompletion& comp2);
+    bool samePartialPeaks(CarCompletion& comp2);
     bool contains(CarCompletion& comp2);
 
     void updateOverallFrom(CarCompletion& carCompl2);
