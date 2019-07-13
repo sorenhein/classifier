@@ -94,6 +94,15 @@ class PeakPattern
       PeakPtrs& peakPtrsUsed,
       PeakPtrs& peakPtrsUnused);
 
+    void guessFirstRightBogie(
+      unsigned& p2,
+      unsigned& p3,
+      unsigned& p4);
+
+    bool isPartialFirst1(PeakPtrs& peakPtrsUsed);
+
+    bool isPartialFirst2(PeakPtrs& peakPtrsUsed);
+
     bool isPartialFirst(
       PeakPtrs& peakPtrsUsed,
       PeakPtrs& peakPtrsUnused);

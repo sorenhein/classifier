@@ -54,6 +54,12 @@ void PeakPtrs::clear()
 }
 
 
+void PeakPtrs::push_front(Peak * peak)
+{
+  peaks.push_front(peak);
+}
+
+
 void PeakPtrs::push_back(Peak * peak)
 {
   peaks.push_back(peak);

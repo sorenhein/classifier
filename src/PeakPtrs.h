@@ -32,6 +32,7 @@ class PeakPtrs
 
     void clear();
 
+    void push_front(Peak * peak);
     void push_back(Peak * peak);
 
     void assign(

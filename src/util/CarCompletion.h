@@ -45,8 +45,6 @@ class CarCompletion
     list<PeakCompletion *>::iterator itRep;
 
 
-    unsigned filled() const;
-
     bool samePeaks(CarCompletion& comp2);
     bool contains(CarCompletion& comp2);
 
@@ -98,6 +96,8 @@ class CarCompletion
     bool forceFlag() const;
 
     BordersType bestBorders() const;
+
+    unsigned filled() const;
 
     CondenseType condense(CarCompletion& carCompl2); 
 

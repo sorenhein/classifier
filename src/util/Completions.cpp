@@ -88,6 +88,17 @@ unsigned Completions::numPartial(
 }
 
 
+bool Completions::effectivelyEmpty() const
+{
+  for (auto& comp: completions)
+  {
+    if (comp.filled() != 0)
+     return false;
+  }
+  return true;
+}
+
+
 void Completions::makeShift()
 {
   for (auto& comp: completions)

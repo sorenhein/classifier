@@ -48,6 +48,8 @@ class Completions
       CarCompletion *& partial,
       BordersType& borders);
 
+    bool effectivelyEmpty() const;
+
     void makeShift();
 
     void calcMetrics();

@@ -531,6 +531,86 @@ bool PeakPattern::isPartialLast(
 }
 
 
+void PeakPattern::guessFirstRightBogie(
+  unsigned& p2,
+  unsigned& p3,
+  unsigned& p4)
+{
+  // Try to guess the rough positions of the rightmost bogie.
+  if (sideTypical >= rangeData.indexRight)
+  {
+    p2 = 0;
+    p3 = 0;
+    p4 = 0;
+    return;
+  }
+
+  p4 = rangeData.indexRight - sideTypical;
+
+  if (bogieTypical >= p4)
+  {
+    p2 = 0;
+    p3 = 0;
+    return;
+  }
+
+  p3 = p4 - bogieTypical;
+
+  if (longTypical >= p3)
+    p2 = 0;
+  else
+    p2 = p3 - bogieTypical;
+}
+
+
+bool PeakPattern::isPartialFirst1(PeakPtrs& peakPtrsUsed)
+{
+  // Try to match the lone peak to the right bogie, peaks p3 and p4.
+  unsigned p2, p3, p4;
+  PeakPattern::guessFirstRightBogie(p2, p3, p4);
+  
+  const unsigned pu = peakPtrsUsed.front()->getIndex();
+  if (p3 == 0 || pu >= (p3 + p4) / 2)
+  {
+    // Assume it's a p4.
+    for (unsigned i = 0; i < 3; i++)
+      peakPtrsUsed.push_front(nullptr);
+    return true;
+  }
+  else if (p2 == 0 || pu >= (p2 + p3) / 2)
+  {
+    // Assume it's a p3.
+    for (unsigned i = 0; i < 2; i++)
+      peakPtrsUsed.push_front(nullptr);
+    peakPtrsUsed.push_back(nullptr);
+    return true;
+  }
+  else
+    return false;
+}
+
+
+bool PeakPattern::isPartialFirst2(PeakPtrs& peakPtrsUsed)
+{
+  // Try to match the two peaks to the right bogie, peaks p3 and p4.
+  unsigned p2, p3, p4;
+  PeakPattern::guessFirstRightBogie(p2, p3, p4);
+  
+  const unsigned pu = peakPtrsUsed.front()->getIndex();
+  if (p3 == 0 || pu >= (p3 + p4) / 2)
+    return false;
+  else if (p2 == 0 || pu >= (p2 + p3) / 2)
+  {
+    // Assume they are p3 and p4.
+    for (unsigned i = 0; i < 2; i++)
+      peakPtrsUsed.push_front(nullptr);
+    return true;
+  }
+  else
+    return false;
+}
+
+
 bool PeakPattern::isPartialFirst(
   PeakPtrs& peakPtrsUsed,
   PeakPtrs& peakPtrsUnused)
@@ -544,8 +624,19 @@ bool PeakPattern::isPartialFirst(
   if (numComplete > 0)
     return false;
 
+  if (completions.effectivelyEmpty())
+  {
+    if (peakPtrsUsed.size() == 1)
+      return PeakPattern::isPartialFirst1(peakPtrsUsed);
+    else if (peakPtrsUsed.size() == 2)
+      return PeakPattern::isPartialFirst2(peakPtrsUsed);
+    else
+      return false;
+  }
+
   BordersType borders;
   const unsigned numPartial = completions.numPartial(winnerPtr, borders);
+
   if (numPartial != 1)
     return false;
 
