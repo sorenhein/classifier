@@ -19,7 +19,7 @@
 #define GREAT_CAR_DISTANCE 0.5f
 
 #define NUM_METHODS 10
-#define NUM_METHOD_GROUPS 3
+#define NUM_METHOD_GROUPS 2
 
 
 struct WheelSpec
@@ -73,9 +73,11 @@ PeakStructure::PeakStructure()
     { &PeakStructure::findCarBySpacing, 
       "by spacing", 6});
 
+  /*
   findMethods[2].push_back(
     { &PeakStructure::findPartialFirstCarByQuality, 
       "first partial by quality", 5});
+      */
 
   hits.resize(NUM_METHODS);
 }

@@ -24,6 +24,14 @@ enum BordersType
   BORDERS_SIZE = 6
 };
 
+enum RangeType
+{
+  RANGE_UNBOUNDED = 0,
+  RANGE_BOUNDED_LEFT = 1,
+  RANGE_BOUNDED_RIGHT = 2,
+  RANGE_BOUNDED_BOTH = 3
+};
+
 struct TargetData
 {
   unsigned modelNo;
@@ -31,6 +39,7 @@ struct TargetData
   unsigned weight;
   bool forceFlag;
   BordersType borders;
+  RangeType range;
   unsigned distanceSquared;
 
   bool operator < (TargetData& tdata2) const
@@ -103,6 +112,7 @@ class Target
       const unsigned indexRangeLeft,
       const unsigned indexRangeRight,
       const BordersType bordersIn,
+      const RangeType rangeIn,
       const list<unsigned>& carPoints);
 
     void revise(

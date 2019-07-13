@@ -145,7 +145,8 @@ bool PeakPattern::addModelTargets(
   const unsigned indexModel,
   const bool symmetryFlag,
   const bool forceFlag,
-  const BordersType patternType)
+  const BordersType patternType,
+  const RangeType rangeType)
 {
   CarDetect car;
   models.getCar(car, indexModel);
@@ -166,7 +167,7 @@ bool PeakPattern::addModelTargets(
     tdata.forceFlag = forceFlag;
 
     if (target.fill(tdata, rangeData.indexLeft, rangeData.indexRight, 
-          patternType, carPoints))
+          patternType, rangeType, carPoints))
     {
       targets.emplace_back(target);
       seenFlag = true;
@@ -181,7 +182,7 @@ bool PeakPattern::addModelTargets(
     tdata.forceFlag = forceFlag;
 
     if (target.fill(tdata, rangeData.indexLeft, rangeData.indexRight, 
-          patternType, carPoints))
+          patternType, rangeType, carPoints))
     {
       targets.emplace_back(target);
       seenFlag = true;
@@ -217,11 +218,11 @@ void PeakPattern::guessBothDouble(
         if (leftFlag)
           PeakPattern::addModelTargets(models, ae1.index, 
             ae1.data->symmetryFlag, false,
-            BORDERS_DOUBLE_SIDED_DOUBLE);
+            BORDERS_DOUBLE_SIDED_DOUBLE, RANGE_BOUNDED_BOTH);
         else
           PeakPattern::addModelTargets(models, ae2.index, 
             ae2.data->symmetryFlag, false,
-            BORDERS_DOUBLE_SIDED_DOUBLE);
+            BORDERS_DOUBLE_SIDED_DOUBLE, RANGE_BOUNDED_BOTH);
       }
     }
   }
@@ -307,7 +308,7 @@ void PeakPattern::guessNoBorders(const CarModels& models)
   tdata.weight = 1;
   tdata.forceFlag = false;
 
-  target.fill(tdata, start, end, BORDERS_NONE, carPoints);
+  target.fill(tdata, start, end, BORDERS_NONE, RANGE_UNBOUNDED, carPoints);
 }
 
 
@@ -325,7 +326,8 @@ void PeakPattern::guessBothSingle(const CarModels& models)
         rangeData.lenRange <= ae.lenHi[rangeData.qualBest])
     {
       PeakPattern::addModelTargets(models, ae.index, 
-        ae.data->symmetryFlag, true, BORDERS_DOUBLE_SIDED_SINGLE);
+        ae.data->symmetryFlag, true, BORDERS_DOUBLE_SIDED_SINGLE,
+        RANGE_BOUNDED_BOTH);
     }
   }
 }
@@ -366,7 +368,7 @@ void PeakPattern::guessBothSingleShort(const CarModels& models)
   tdata.forceFlag = true;
 
   if (target.fill(tdata, rangeData.indexLeft, rangeData.indexRight,
-    BORDERS_DOUBLE_SIDED_SINGLE_SHORT, carPoints))
+    BORDERS_DOUBLE_SIDED_SINGLE_SHORT, RANGE_BOUNDED_BOTH, carPoints))
   {
     targets.emplace_back(target);
   }
@@ -397,8 +399,11 @@ void PeakPattern::guessLeft(const CarModels& models)
 
   for (auto& ae: modelsActive)
   {
+    const RangeType rtype = (rangeData.qualRight == QUALITY_NONE ?
+      RANGE_BOUNDED_LEFT : RANGE_BOUNDED_BOTH);
+
     PeakPattern::addModelTargets(models, ae.index, ae.data->symmetryFlag,
-      false, BORDERS_SINGLE_SIDED_LEFT);
+      false, BORDERS_SINGLE_SIDED_LEFT, rtype);
   }
 }
 
@@ -419,8 +424,11 @@ void PeakPattern::guessRight(const CarModels& models)
 
   for (auto& ae: modelsActive)
   {
+    const RangeType rtype = (rangeData.qualLeft == QUALITY_NONE ?
+      RANGE_BOUNDED_RIGHT : RANGE_BOUNDED_BOTH);
+
     PeakPattern::addModelTargets(models, ae.index, ae.data->symmetryFlag,
-      false, BORDERS_SINGLE_SIDED_RIGHT);
+      false, BORDERS_SINGLE_SIDED_RIGHT, rtype);
   }
 }
 

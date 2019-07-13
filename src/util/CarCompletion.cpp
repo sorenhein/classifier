@@ -366,9 +366,9 @@ CondenseType CarCompletion::condense(CarCompletion& miss2)
 
   const unsigned fill = CarCompletion::filled();
   const unsigned fill2 = miss2.filled();
+  const unsigned np = peakCompletions.size();
 
-  if (fill == fill2 && 
-     (fill == peakCompletions.size() || fill+1 == peakCompletions.size()))
+  if (fill == fill2 && (fill == np || fill+1 == np))
   {
     const float dratio = ratioCappedUnsigned(miss2.distanceSquared, 
       distanceSquared, 100.f);
@@ -396,9 +396,17 @@ CondenseType CarCompletion::condense(CarCompletion& miss2)
       return CONDENSE_BETTER;
     }
     else
+      return CONDENSE_DIFFERENT;
+  }
+  else if (fill < np && fill2 < np && fill != fill2)
+  {
+    if (data.front().range == RANGE_BOUNDED_RIGHT)
     {
+      // Could be a first car.
       return CONDENSE_DIFFERENT;
     }
+    else
+      return CONDENSE_DIFFERENT;
   }
   else
     return CONDENSE_DIFFERENT;

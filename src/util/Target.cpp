@@ -113,6 +113,7 @@ bool Target::fill(
   const unsigned indexRangeLeft,
   const unsigned indexRangeRight,
   const BordersType bordersIn,
+  const RangeType rangeIn,
   const list<unsigned>& carPoints)
 {
   data = tdata;
@@ -139,6 +140,7 @@ bool Target::fill(
   }
 
   data.borders = bordersIn;
+  data.range = rangeIn;
 
   const unsigned indexBase = 
      (abutLeftFlag ? indexRangeLeft : indexRangeRight);

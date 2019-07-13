@@ -225,6 +225,7 @@ void PeakSpacing::fixShort(
     spacings[indexFirst].peakLeft->getIndex(),
     spacings[indexLast].peakRight->getIndex(),
     border,
+    RANGE_UNBOUNDED, // Maybe make more specific later
     carPoints); // Doesn't matter
 
 cout << text << ": " <<

@@ -65,7 +65,8 @@ class PeakPattern
       const unsigned indexModel,
       const bool symmetryFlag,
       const bool forceFlag,
-      const BordersType patternType);
+      const BordersType patternType,
+      const RangeType rangeType);
 
     void guessBothDouble(
       const CarModels& models, 
