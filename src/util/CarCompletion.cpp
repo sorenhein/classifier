@@ -5,6 +5,7 @@
 #include "CarCompletion.h"
 
 #include "../Peak.h"
+#include "../misc.h"
 
 #define UNUSED(x) ((void)(true ? 0 : ((x), void(), 0)))
 
@@ -272,15 +273,32 @@ bool CarCompletion::dominates(
 }
 
 
-void CarCompletion::updateOverallFrom(CarCompletion& d2)
+void CarCompletion::combineSameCount(CarCompletion& carCompl2)
 {
-  if (d2.distanceSquared < distanceSquared)
+  // Both completions miss exactly one peak.  One set does not dominate
+  // the other.  We will pick only those peaks that are the same in both.
+
+  for (auto pc1 = peakCompletions.begin(), 
+      pc2 = carCompl2.peakCompletions.begin();
+      pc1 != peakCompletions.end() && 
+      pc2 != carCompl2.peakCompletions.end();
+      pc1++, pc2++)
   {
-    peakCompletions = d2.peakCompletions;
+    if (! pc2->ptr())
+      pc1->reset();
+  }
+}
 
-    distanceSquared = d2.distanceSquared;
 
-    if (d2._forceFlag)
+void CarCompletion::updateOverallFrom(CarCompletion& carCompl2)
+{
+  if (carCompl2.distanceSquared < distanceSquared)
+  {
+    peakCompletions = carCompl2.peakCompletions;
+
+    distanceSquared = carCompl2.distanceSquared;
+
+    if (carCompl2._forceFlag)
       _forceFlag = true;
   }
 }
@@ -334,65 +352,48 @@ CondenseType CarCompletion::condense(CarCompletion& miss2)
   else if (CarCompletion::samePartialPeaks(miss2))
   {
     // For example the same three peaks show up as 134 and 234.
-    if (distanceSquared <= miss2.distanceSquared)
-    {
-      cout << "SUPERIOR6\n";
-      return CONDENSE_BETTER;
-    }
-    else
-    {
-      cout << "INFERIOR6\n";
-      return CONDENSE_WORSE;
-    }
+    return (distanceSquared <= miss2.distanceSquared ?
+      CONDENSE_BETTER : CONDENSE_WORSE);
   }
   else if (CarCompletion::contains(miss2))
   {
-    cout << "SUPERIOR4\n";
     return CONDENSE_BETTER;
   }
   else if (miss2.contains(* this))
   {
-    cout << "SUPERIOR5\n";
     return CONDENSE_WORSE;
   }
 
-  const unsigned f = CarCompletion::filled();
-  const unsigned f2 = miss2.filled();
+  const unsigned fill = CarCompletion::filled();
+  const unsigned fill2 = miss2.filled();
 
-  if (f == f2 && 
-     (f == peakCompletions.size() || f+1 == peakCompletions.size()))
+  if (fill == fill2 && 
+     (fill == peakCompletions.size() || fill+1 == peakCompletions.size()))
   {
-    float dratio = (distanceSquared == 0 ? 100.f :
-      miss2.distanceSquared / static_cast<float>(distanceSquared));
+    const float dratio = ratioCappedUnsigned(miss2.distanceSquared, 
+      distanceSquared, 100.f);
 
-    float qsratio = (qualShapeSum == 0. ? 100.f :
-      miss2.qualShapeSum / qualShapeSum);
-      
-    float qpratio = (qualPeakSum == 0. ? 100.f :
-      miss2.qualPeakSum / qualPeakSum);
+    const float qsratio = ratioCappedFloat(miss2.qualShapeSum,
+      qualShapeSum, 100.f);
 
-    if (dratio == 0.)
-      dratio = 0.001f;
-
-    if (qsratio == 0.)
-      qsratio = 0.001f;
-
-    if (qpratio == 0.)
-      qpratio = 0.001f;
-
-cout << "ratios " << setprecision(4) << fixed << dratio << ", " <<
-  qsratio << ", " << qpratio << endl;
+    const float qpratio = ratioCappedFloat(miss2.qualPeakSum,
+      qualPeakSum, 100.f);
 
     if (CarCompletion::dominates(dratio, qsratio, qpratio, distanceSquared))
     {
-      cout << "SUPERIOR1\n";
       return CONDENSE_BETTER;
     }
-    else if (CarCompletion::dominates(1.f/dratio, 1.f/qsratio, 
-      1.f/qpratio, miss2.distanceSquared))
+    else if (CarCompletion::dominates(1.f / dratio, 1.f / qsratio, 
+      1.f / qpratio, miss2.distanceSquared))
     {
-      cout << "INFERIOR1\n";
       return CONDENSE_WORSE;
+    }
+    else if (fill+1 == peakCompletions.size())
+    {
+      // For example peaks 134 and 234 where one set doesn't dominate.
+      // We will go with 34 in that case.
+      CarCompletion::combineSameCount(miss2);
+      return CONDENSE_BETTER;
     }
     else
     {

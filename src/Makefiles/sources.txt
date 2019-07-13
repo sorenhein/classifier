@@ -36,6 +36,7 @@ SOURCE_FILES    =               \
                 TraceDB.cpp     \
                 args.cpp        \
                 geometry.cpp    \
+                misc.cpp        \
                 print.cpp       \
                 read.cpp        \
                 write.cpp       \

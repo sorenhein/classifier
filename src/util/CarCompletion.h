@@ -55,6 +55,8 @@ class CarCompletion
       const float qpRatio,
       const unsigned dSq) const;
 
+    void combineSameCount(CarCompletion& carCompl2);
+
     void updateOverallFrom(CarCompletion& carCompl2);
 
     void mergeFrom(CarCompletion& carCompl2);
