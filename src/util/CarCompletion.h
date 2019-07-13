@@ -31,19 +31,34 @@ class CarCompletion
 
     list<PeakCompletion> peakCompletions;
 
+    // Related to target.
+    list<TargetData> data;
+    unsigned limitLower;
+    unsigned limitUpper;
+    bool abutLeftFlag;
+    bool abutRightFlag;
+    unsigned _start;
+    unsigned _end;
+    vector<unsigned> _indices;
+
+    // Related to completion.
     unsigned weight;
     unsigned distanceSquared;
     float qualShapeSum;
     float qualPeakSum;
     bool _forceFlag;
-    list<TargetData> data;
 
-    unsigned _limitLower;
-    unsigned _limitUpper;
 
     list<PeakCompletion *> repairables;
     list<PeakCompletion *>::iterator itRep;
 
+
+    bool fillPoints(
+      const TargetData& tdata,
+      const list<unsigned>& carPoints,
+      const unsigned indexBase);
+
+    void setLimits(const TargetData& tdata);
 
     bool samePeaks(CarCompletion& comp2);
     bool samePartialPeaks(CarCompletion& comp2);
@@ -71,6 +86,16 @@ class CarCompletion
     ~CarCompletion();
 
     void reset();
+
+    bool fill(
+      const TargetData& tdata,
+      const unsigned indexRangeLeft,
+      const unsigned indexRangeRight,
+      const list<unsigned>& carPoints);
+
+    const vector<unsigned>& indices();
+
+    void registerPeaks(vector<Peak *> peaksClose);
 
     void addMiss(
       const unsigned target,

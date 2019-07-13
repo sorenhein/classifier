@@ -1,6 +1,6 @@
 #include <sstream>
-#include <vector>
 #include <sstream>
+#include <limits>
 
 #include "CarCompletion.h"
 
@@ -23,13 +23,178 @@ CarCompletion::~CarCompletion()
 
 void CarCompletion::reset()
 {
+  data.clear();
+  limitLower = 0;
+  limitUpper = 0;
+  abutLeftFlag = false;
+  abutRightFlag = false;
+  _start = 0;
+  _end = numeric_limits<unsigned>::max();
+  _indices.clear();
+
   weight = 0;
   distanceSquared = numeric_limits<unsigned>::max();
-  _forceFlag = false;
-  data.clear();
 
-  _limitLower = 0;
-  _limitUpper = 0;
+}
+
+
+bool CarCompletion::fillPoints(
+  const TargetData& tdata,
+  const list<unsigned>& carPoints,
+  const unsigned indexBase)
+{
+  // The car points for a complete four-wheeler include:
+  // - Left boundary (no wheel)
+  // - Left bogie, left wheel
+  // - Left bogie, right wheel
+  // - Right bogie, left wheel
+  // - Right bogie, right wheel
+  // - Right boundary (no wheel)
+  //
+  // Later on, this could also be a three-wheeler or two-wheeler.
+
+  const unsigned nc = carPoints.size();
+  if (nc <= 4)
+    return false;
+
+  if (abutLeftFlag)
+  {
+    _indices.resize(nc-2);
+
+    if (! tdata.reverseFlag)
+    {
+      unsigned pi = 0;
+      for (auto i = next(carPoints.begin()); i != prev(carPoints.end());
+          i++, pi++)
+        _indices[pi] = indexBase + * i;
+    }
+    else
+    {
+      const unsigned pointLast = carPoints.back();
+      unsigned pi = nc-3;
+      for (auto i = next(carPoints.begin()); i != prev(carPoints.end());
+          i++, pi--)
+        _indices[pi] = indexBase + pointLast - * i;
+    }
+  }
+  else
+  {
+    const unsigned pointLast = carPoints.back();
+    const unsigned pointLastPeak = * prev(prev(carPoints.end()));
+    const unsigned pointFirstPeak = * next(carPoints.begin());
+
+    // Fail if no room for left car.
+    // if (indexBase + pointFirstPeak <= pointLast)
+      // return false;
+
+    _indices.resize(nc-2);
+
+    if (tdata.reverseFlag)
+    {
+      // The car has a right gap, so we don't need to flip it.
+      unsigned pi = 0;
+      for (auto i = next(carPoints.begin()); i != prev(carPoints.end());
+          i++, pi++)
+      {
+        if (pointLast > indexBase + * i)
+          _indices[pi] = 0;
+        else
+          _indices[pi] = indexBase + * i - pointLast;
+      }
+    }
+    else
+    {
+      unsigned pi = nc-3;
+      for (auto i = next(carPoints.begin()); i != prev(carPoints.end());
+          i++, pi--)
+      {
+        if (* i > indexBase)
+          _indices[pi] = 0;
+        else
+          _indices[pi] = indexBase - * i;
+      }
+    }
+  }
+
+  return true;
+}
+
+
+void CarCompletion::setLimits(const TargetData& tdata)
+{
+  // Sets limits beyond which unused peak pointers should not be
+  // marked down.  (A zero value means no limit in that direction.)
+  // When we received enough peaks for several cars, we don't want to
+  // discard peaks that may belong to other cars.
+
+  if (tdata.borders == BORDERS_NONE ||
+      tdata.borders == BORDERS_DOUBLE_SIDED_SINGLE ||
+      tdata.borders == BORDERS_DOUBLE_SIDED_SINGLE_SHORT)
+  {
+    // All the unused peaks are fair game.
+    limitLower = 0;
+    limitUpper = 0;
+  }
+  else if (tdata.borders == BORDERS_SINGLE_SIDED_LEFT ||
+      (tdata.borders == BORDERS_DOUBLE_SIDED_DOUBLE && abutLeftFlag))
+  {
+    limitLower = 0;
+    limitUpper = _end;
+  }
+  else if (tdata.borders == BORDERS_SINGLE_SIDED_RIGHT ||
+      (tdata.borders == BORDERS_DOUBLE_SIDED_DOUBLE && abutRightFlag))
+  {
+    limitLower = _start;
+    limitUpper = 0;
+  }
+  else
+  {
+    // Should not happen.
+    limitLower = 0;
+    limitUpper = 0;
+  }
+}
+
+
+bool CarCompletion::fill(
+  const TargetData& tdata,
+  const unsigned indexRangeLeft,
+  const unsigned indexRangeRight,
+  const list<unsigned>& carPoints)
+{
+  data.emplace_back(tdata);
+  abutLeftFlag = (indexRangeLeft != 0);
+  abutRightFlag = (indexRangeRight != 0);
+
+  if (abutLeftFlag && abutRightFlag)
+  {
+    _start = indexRangeLeft;
+    _end = indexRangeRight;
+  }
+  else if (abutLeftFlag)
+  {
+    _start = indexRangeLeft;
+    _end = _start + carPoints.back();
+  }
+  else if (abutRightFlag)
+  {
+    if (carPoints.back() > indexRangeRight)
+      _start = 0;
+    else
+      _start = indexRangeRight - carPoints.back();
+    _end = indexRangeRight;
+  }
+
+  CarCompletion::setLimits(tdata);
+
+  const unsigned indexBase =
+     (abutLeftFlag ? indexRangeLeft : indexRangeRight);
+
+  if (! CarCompletion::fillPoints(tdata, carPoints, indexBase))
+    return false;
+  else
+    return (_indices.front() >= indexRangeLeft &&
+        (indexRangeRight == 0 || _indices.back() <= indexRangeRight));
 }
 
 
@@ -130,7 +295,7 @@ bool CarCompletion::partial() const
 
 void CarCompletion::setData(const Target& target)
 {
-  target.limits(_limitLower, _limitUpper);
+  target.limits(limitLower, limitUpper);
   weight = target.getData().weight;
   data.push_back(target.getData());
 }
@@ -158,8 +323,8 @@ void CarCompletion::getMatch(
   for (auto& pc: peakCompletions)
     closestPtrs.push_back(pc.ptr());
 
-  limitLowerOut = _limitLower;
-  limitUpperOut = _limitUpper;
+  limitLowerOut = limitLower;
+  limitUpperOut = limitUpper;
 }
 
 

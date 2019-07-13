@@ -586,10 +586,46 @@ Peak * PeakPool::repair(
     Bracket bracket;
     liter->bracket(pindex, true, bracket);
 
+/*
+cout << "ldepth " << ldepth << ", looking for " << 
+  peakHint.getIndex() + offset << endl;
+if (bracket.left.hasFlag)
+  cout << "left " << bracket.left.pit->getIndex() + offset << endl;
+if (bracket.right.hasFlag)
+  cout << "right " << bracket.right.pit->getIndex() + offset << endl;
+*/
+
+    // We won't look deeper if we're at the edge of this level.
+    if (! bracket.left.hasFlag || ! bracket.right.hasFlag)
+    {
+cout << "No complete bracket, giving up at level " << ldepth << endl;
+      return false;
+    }
+
     // Is one of them close enough?  If both, pick the lowest value.
     Piterator foundIter;
     if (! liter->near(peakHint, bracket, foundIter))
       continue;
+
+    /*
+    if (foundIter == liter->begin() ||
+        next(foundIter) == liter->end())
+    {
+cout << "Found1, but giving up at level " << ldepth << endl;
+      return false;
+    }
+
+    const unsigned fi = peakLists.rbegin()->front().getIndex();
+    const unsigned bi = peakLists.rbegin()->back().getIndex();
+
+    if (prev(foundIter)->getIndex() == fi ||
+        next(foundIter)->getIndex() == bi)
+    {
+cout << "Found2, but giving up at level " << ldepth << endl;
+      return false;
+    }
+    */
+
 
 cout << "Found possible peak, ldepth " << ldepth << ", offset " << offset << endl;
 cout << foundIter->strQuality(offset) << endl;
@@ -604,8 +640,26 @@ cout << foundIter->strQuality(offset) << endl;
     else
     {
       // Peak only exists in earlier list and might be resurrected.
-      return PeakPool::repairFromLower(* liter, foundIter, fptr, offset,
-        testFlag, forceFlag, testIndex);
+
+      if (testFlag)
+      {
+        // Don't reconstruct the first or last minimum at top level.
+        const unsigned findex = foundIter->getIndex();
+        Peak& pfirst = * next(peakLists.rbegin()->begin());
+        Peak& plast = * prev(prev(peakLists.rbegin()->end()));
+        if (findex == pfirst.getIndex() ||
+            findex == plast.getIndex())
+        {
+// cout << "findex " << findex << endl;
+// cout << "first " << pfirst.getIndex() << endl;
+// cout << "last " << plast.getIndex() << endl;
+          testIndex = 0;
+          return nullptr;
+        }
+      }
+
+      return PeakPool::repairFromLower(* liter, foundIter, fptr, 
+        offset, testFlag, forceFlag, testIndex);
     }
   }
 

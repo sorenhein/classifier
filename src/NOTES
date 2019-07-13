@@ -1,5 +1,14 @@
 Completions
 -----------
+Fold Target into CarCompletion.
+Redo list of issues.
+Improve spacing (call it "final" perhaps?).
+Number of models -- monitor.
+Better IMPERF output, perhaps number of partial cars.
+Fewer method outputs from PeakStructure.
+Reduce distances even if result is correct.
+
+
 Does align work for partial lasts?
 
 - s08 104828 #12

@@ -153,13 +153,22 @@ bool PeakRange::characterize(
     rdata.qualRight : rdata.qualLeft);
 
   if (_carBeforePtr)
-    rdata.indexLeft = _carBeforePtr->
-      getPeaksPtr().secondBogieRightPtr->getIndex() + rdata.gapLeft;
+  {
+    Peak const * pptrLast = 
+      _carBeforePtr->getPeaksPtr().secondBogieRightPtr;
+    if (pptrLast)
+      rdata.indexLeft = pptrLast->getIndex() + rdata.gapLeft;
+  }
 
   if (_carAfterPtr)
   {
-    const unsigned i = rdata.indexRight = _carAfterPtr->
-      getPeaksPtr().firstBogieLeftPtr->getIndex();
+    Peak const * pptrFirst = _carAfterPtr->getPeaksPtr().firstBogieLeftPtr;
+    if (pptrFirst == nullptr)
+      return false;
+
+    // ??
+    // const unsigned i = rdata.indexRight = pptrFirst->getIndex();
+    const unsigned i = pptrFirst->getIndex();
     if (rdata.gapRight > i)
       return false;
     else

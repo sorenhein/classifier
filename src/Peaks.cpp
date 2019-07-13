@@ -225,6 +225,14 @@ bool Peaks::near(
   else
     return false;
 
+  // Gradients will be messed up.
+  if (foundIter == peaks.begin() || std::prev(foundIter) == peaks.begin())
+    return false;
+
+  if (std::next(foundIter) == peaks.end() ||
+      std::next(std::next(foundIter)) == peaks.end())
+    return false;
+
   return (foundIter->isCandidate());
 }
 

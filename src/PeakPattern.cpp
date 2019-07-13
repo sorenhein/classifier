@@ -165,6 +165,8 @@ bool PeakPattern::addModelTargets(
     tdata.reverseFlag = false;
     tdata.weight = weight;
     tdata.forceFlag = forceFlag;
+    tdata.borders = patternType;
+    tdata.range = rangeType;
 
     if (target.fill(tdata, rangeData.indexLeft, rangeData.indexRight, 
           patternType, rangeType, carPoints))
@@ -180,6 +182,8 @@ bool PeakPattern::addModelTargets(
     tdata.reverseFlag = true;
     tdata.weight = weight;
     tdata.forceFlag = forceFlag;
+    tdata.borders = patternType;
+    tdata.range = rangeType;
 
     if (target.fill(tdata, rangeData.indexLeft, rangeData.indexRight, 
           patternType, rangeType, carPoints))
@@ -307,6 +311,8 @@ void PeakPattern::guessNoBorders(const CarModels& models)
   tdata.reverseFlag = false;
   tdata.weight = 1;
   tdata.forceFlag = false;
+  tdata.borders = BORDERS_NONE;
+  tdata.range = RANGE_UNBOUNDED;
 
   target.fill(tdata, start, end, BORDERS_NONE, RANGE_UNBOUNDED, carPoints);
 }
@@ -366,6 +372,8 @@ void PeakPattern::guessBothSingleShort(const CarModels& models)
   tdata.reverseFlag = false;
   tdata.weight = 1;
   tdata.forceFlag = true;
+  tdata.borders = BORDERS_DOUBLE_SIDED_SINGLE_SHORT;
+  tdata.range = RANGE_BOUNDED_BOTH;
 
   if (target.fill(tdata, rangeData.indexLeft, rangeData.indexRight,
     BORDERS_DOUBLE_SIDED_SINGLE_SHORT, RANGE_BOUNDED_BOTH, carPoints))
@@ -732,6 +740,7 @@ void PeakPattern::annotateCompletions(
 
   Peak peakRep;
   bool forceFlag;
+cout << "Annotating\n";
   while (completions.nextRepairable(peakRep, forceFlag))
   {
     // Make a test run without actually repairing anything.
@@ -758,6 +767,7 @@ void PeakPattern::fillCompletions(
 {
   Peak peakRep;
 
+cout << "Filling\n";
   for (auto& cc: completions)
   {
     for (auto& pc: cc)
@@ -776,10 +786,21 @@ void PeakPattern::fillCompletions(
           offset, false, cc.forceFlag(), testIndex);
 
         if (! ptr)
-          THROW(ERR_PATTERN_BAD_FIX, "Peak not repairable after all?");
+        {
+          // This happens if we might repair a peak at a lower level,
+          // but at the top level there's no good (selected) 
+          // neighboring peak.
+          cout << "Peak not repairable after all\n";
+          continue;
+        }
 
         if (ptr->absurdQuality())
+        {
+cout << "Rejecting reconstructed peak\n";
           continue;
+        }
+
+cout << "Marking peak " << ptr->getIndex() + offset << endl;
 
         peakPtrsUsed.add(ptr);
         completions.markWith(* ptr, COMP_REPAIRED, cc.forceFlag());
@@ -903,7 +924,6 @@ cout << "PARTIALLAST\n";
     return FIND_CAR_PARTIAL;
   }
 
-  /* */
   if (PeakPattern::isPartialFirst(peakPtrsUsed, peakPtrsUnused))
   {
     PeakPattern::pruneFirst(peakPtrsUsed, peakPtrsUnused);
@@ -911,11 +931,9 @@ cout << "PARTIALLAST\n";
       return FIND_CAR_DOWNGRADE;
     else
     {
-cout << "PARTIALFIRST\n";
       return FIND_CAR_PARTIAL;
     }
   }
-  /* */
 
   return FIND_CAR_NO_MATCH;
 }
