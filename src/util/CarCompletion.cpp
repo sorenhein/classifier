@@ -255,6 +255,23 @@ bool CarCompletion::contains(CarCompletion& comp2)
 }
 
 
+bool CarCompletion::dominates(
+  const float dRatio,
+  const float qsRatio,
+  const float qpRatio,
+  const unsigned dSq) const
+{
+  if (dRatio > 1. && qsRatio > 1. && qpRatio > 1.)
+    return true;
+  else if (dRatio > 3. && qsRatio > 0.9 && qpRatio > 1.2)
+    return true;
+  else if (dSq < 50 && dRatio > 0.667 && qsRatio > 1.25 && qpRatio > 1.25)
+    return true;
+  else
+    return false;
+}
+
+
 void CarCompletion::updateOverallFrom(CarCompletion& d2)
 {
   if (d2.distanceSquared < distanceSquared)
@@ -344,53 +361,37 @@ CondenseType CarCompletion::condense(CarCompletion& miss2)
 
   if (f == f2 && 
      (f == peakCompletions.size() || f+1 == peakCompletions.size()))
-
-  // if (CarCompletion::filled() == peakCompletions.size() && 
-      // miss2.filled() == peakCompletions.size())
   {
-    const float dratio = (distanceSquared == 0 ? 100.f :
+    float dratio = (distanceSquared == 0 ? 100.f :
       miss2.distanceSquared / static_cast<float>(distanceSquared));
 
-    const float qsratio = (qualShapeSum == 0. ? 100.f :
+    float qsratio = (qualShapeSum == 0. ? 100.f :
       miss2.qualShapeSum / qualShapeSum);
       
-    const float qpratio = (qualPeakSum == 0. ? 100.f :
+    float qpratio = (qualPeakSum == 0. ? 100.f :
       miss2.qualPeakSum / qualPeakSum);
+
+    if (dratio == 0.)
+      dratio = 0.001f;
+
+    if (qsratio == 0.)
+      qsratio = 0.001f;
+
+    if (qpratio == 0.)
+      qpratio = 0.001f;
 
 cout << "ratios " << setprecision(4) << fixed << dratio << ", " <<
   qsratio << ", " << qpratio << endl;
 
-    // TODO To expand.
-    if (dratio > 1. && qsratio > 1. && qpratio > 1.)
+    if (CarCompletion::dominates(dratio, qsratio, qpratio, distanceSquared))
     {
       cout << "SUPERIOR1\n";
       return CONDENSE_BETTER;
     }
-    else if (dratio > 3. && qsratio > 0.9 && qpratio > 1.2)
-    {
-      cout << "SUPERIOR2\n";
-      return CONDENSE_BETTER;
-    }
-    else if (distanceSquared < 50 && dratio > 0.667 &&
-      qsratio > 1.25 && qpratio > 1.25)
-    {
-      cout << "SUPERIOR3\n";
-      return CONDENSE_BETTER;
-    }
-    else if (dratio < 1. && qsratio < 1. && qpratio < 1.)
+    else if (CarCompletion::dominates(1.f/dratio, 1.f/qsratio, 
+      1.f/qpratio, miss2.distanceSquared))
     {
       cout << "INFERIOR1\n";
-      return CONDENSE_WORSE;
-    }
-    else if (dratio < 0.333 && qsratio < 1.1 && qpratio < 0.83)
-    {
-      cout << "INFERIOR2\n";
-      return CONDENSE_WORSE;
-    }
-    else if (miss2.distanceSquared < 50 && dratio < 1.5 &&
-      qsratio < 0.80 && qpratio < 0.80)
-    {
-      cout << "INFERIOR3\n";
       return CONDENSE_WORSE;
     }
     else

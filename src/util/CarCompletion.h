@@ -48,6 +48,12 @@ class CarCompletion
     bool samePeaks(CarCompletion& comp2);
     bool samePartialPeaks(CarCompletion& comp2);
     bool contains(CarCompletion& comp2);
+    
+    bool dominates(
+      const float dRatio,
+      const float qsRatio,
+      const float qpRatio,
+      const unsigned dSq) const;
 
     void updateOverallFrom(CarCompletion& carCompl2);
 
