@@ -13,15 +13,12 @@ SOURCE_FILES    =               \
                 PeakMatch.cpp   \
                 PeakMinima.cpp  \
                 PeakPattern.cpp \
-                PeakPartial.cpp \
-                PeakPartialUsed.cpp \
                 PeakPiece.cpp   \
                 PeakPieces.cpp  \
                 PeakPool.cpp    \
                 PeakProfile.cpp \
                 PeakPtrs.cpp    \
                 PeakRange.cpp   \
-                PeakRepair.cpp  \
                 PeakSeeds.cpp   \
                 PeakSlots.cpp   \
                 PeakSpacing.cpp \
