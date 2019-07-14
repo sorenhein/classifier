@@ -17,7 +17,7 @@
 #define GOOD_CAR_DISTANCE 1.5f
 #define GREAT_CAR_DISTANCE 0.5f
 
-#define NUM_METHODS 10
+#define NUM_METHODS 5
 #define NUM_METHOD_GROUPS 2
 
 
@@ -55,7 +55,7 @@ PeakStructure::PeakStructure()
   // No great peaks at all.
   findMethods[1].push_back(
     { &PeakStructure::findEmptyRange, 
-      "by emptiness", 4});
+      "by emptiness", 2});
 
   // Car-sized gaps based on existing models.
   findMethods[1].push_back(
@@ -65,7 +65,7 @@ PeakStructure::PeakStructure()
   // Car-sized gaps based on existing models.
   findMethods[1].push_back(
     { &PeakStructure::findCarBySpacing, 
-      "by spacing", 6});
+      "by spacing", 4});
 
   hits.resize(NUM_METHODS);
 }

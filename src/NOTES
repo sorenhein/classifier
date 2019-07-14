@@ -1,11 +1,23 @@
-Completions
------------
-Redo list of issues.
-Improve spacing (call it "final" perhaps?).
+Better outputs
+--------------
+- Remove table "Skips"
+- Add new table
+  . #trains with >= 1 warnings
+  . #trains with 0 warnings, >= partial cars
+  . #partial cars
+  . #skipped peaks in partial cars
+- Model histogram
+  . 0, 1, 2, 3, 4, 5+ model cars
+- Add sensor "TOP" for trains with 0 warnings
+
+Improvements
+------------
 Number of models -- monitor.
-Better IMPERF output, perhaps number of partial cars.
-Fewer method outputs from PeakStructure.
+Improve spacing (call it "final" perhaps?).
 Reduce distances even if result is correct.
+
+No absurdly large unsigned in PeakCompletion, "FAIL on gap ratio"
+Scan sensor??.txt for large numbers in general.
 
 
 Does align work for partial lasts?

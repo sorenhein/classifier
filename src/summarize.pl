@@ -15,8 +15,8 @@ my $FORMAT_CSV = 1;
 
 my $REGRESS_THRESHOLD = 3.;
 
-my $NUM_EMPTY_FNC = 4;
-my $NUM_LAST_FNC = 9;
+my $NUM_EMPTY_FNC = 2;
+my $NUM_LAST_FNC = 4;
 
 my @confusion;
 my $confString = "ICE4_DEU_48";
