@@ -1,17 +1,11 @@
-Better outputs
---------------
-- Remove table "Skips"
-- Add new table
-  . #trains with >= 1 warnings
-  . #trains with 0 warnings, >= partial cars
-  . #partial cars
-  . #skipped peaks in partial cars
-
 Improvements
 ------------
-Number of models -- monitor.
-Improve spacing (call it "final" perhaps?).
-Reduce distances even if result is correct.
+Warnings
+- Look at spacing (call it "Final"?)
+- Look at other issues
+Number of models
+Exceptions
+Large distances
 
 No absurdly large unsigned in PeakCompletion, "FAIL on gap ratio"
 Scan sensor??.txt for large numbers in general.

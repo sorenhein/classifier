@@ -47,13 +47,13 @@ setDetails();
 
 
 # Summary hashes.
-my (%errorsSummary, %carsSummary, %fullSummary, %imperfSummary);
+my (%errorsSummary, %carsSummary, %fullSummary);
 my (%partialSummary, %modelSummary);
 my (%detailsSummaryFirst, %detailsSummaryMid, %detailsSummaryLast);
 my @splitSummary;
 
 # Totals.
-my (@errorsTotal, @carsTotal, $fullTotal, @imperfTotal);
+my (@errorsTotal, @carsTotal, $fullTotal);
 my (@modelTotal, @partialTotal);
 my $sensor;
 
@@ -64,7 +64,7 @@ for my $i (0 .. 100)
 }
 
 # Per-trace arrays.
-my (@errorsTrace, @carsTrace, $fullTrace, @imperfTrace);
+my (@errorsTrace, @carsTrace, $fullTrace);
 my (@modelTrace, @partialTrace);
 my ($hasIssues, $numIssues, $regressError, $regressSeen,
   $mismatchSeen, $exceptSeen);
@@ -120,7 +120,6 @@ for my $file (@ARGV)
             \@errorsTrace, 
             \@carsTrace, 
             $fullTrace, 
-            \@imperfTrace, 
             \@partialTrace,
             \@modelTrace,
             $format), "\n";
@@ -129,7 +128,7 @@ for my $file (@ARGV)
         }
 
         transferStats(\@errorsTrace, \@carsTrace, \@splitSummary, $sensor,
-          $fullTrace, \@imperfTrace, \@partialTrace, \@modelTrace, $fullFlag);
+          $fullTrace, \@partialTrace, \@modelTrace, $fullFlag);
       }
 
       $fileno++;
@@ -156,19 +155,6 @@ for my $file (@ARGV)
     elsif ($line =~ /$fullString/)
     {
       $fullFlag = 1;
-    }
-    elsif ($line =~ /^IMPERF/)
-    {
-      $line =~ / (\d+)-(\d+), (\d+)-(\d+)/;
-      $imperfTrace[0] = $1;
-      $imperfTrace[1] = $2;
-      $imperfTrace[2] = $3;
-      $imperfTrace[3] = $4;
-
-      if ($1 > 0 || $2 > 0 || $3 > 0 || $4 > 0)
-      {
-        $hasIssues = 1;
-      }
     }
     elsif ($line =~ /^PARTIALS /)
     {
@@ -291,7 +277,6 @@ for my $file (@ARGV)
       \@errorsTrace, 
       \@carsTrace, 
       $fullTrace, 
-      \@imperfTrace, 
       \@partialTrace, 
       \@modelTrace,
       $format), "\n";
@@ -300,7 +285,7 @@ for my $file (@ARGV)
   }
 
   transferStats(\@errorsTrace, \@carsTrace, \@splitSummary, $sensor,
-    $fullTrace, \@imperfTrace, \@partialTrace, \@modelTrace, $fullFlag);
+    $fullTrace, \@partialTrace, \@modelTrace, $fullFlag);
 
   close $fo;
 }
@@ -319,7 +304,6 @@ for my $sensor (sort keys %carsSummary)
     \@{$errorsSummary{$sensor}},
     \@{$carsSummary{$sensor}},
     $fullSummary{$sensor},
-    \@{$imperfSummary{$sensor}},
     \@{$partialSummary{$sensor}},
     \@{$modelSummary{$sensor}},
     $format);
@@ -335,7 +319,6 @@ print summaryLine(
   \@errorsTotal, 
   \@carsTotal, 
   $fullTotal, 
-  \@imperfTotal, 
   \@partialTotal, 
   \@modelTotal,
   $format);
@@ -406,7 +389,6 @@ sub resetState
   @errorsTrace = (0, 0, 0, 0, 0, 0, 0, 0);
   @carsTrace = (0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
   $fullTrace = 0;
-  @imperfTrace = (0, 0, 0, 0, 0, 0, 0, 0);
   @partialTrace = (0, 0, 0, 0);
   @modelTrace = (0, 0, 0, 0, 0, 0);
 
@@ -501,7 +483,7 @@ sub summarizeSplits
 sub transferStats
 {
   my ($errorsRef, $carsRef, $splitRef, $sensor, $fullVal, 
-    $imperfRef, $partialRef, $modelRef, $fullFlag) = @_;
+    $partialRef, $modelRef, $fullFlag) = @_;
 
   # Transfer to summary hashes.
 
@@ -536,13 +518,6 @@ sub transferStats
   $fullSummary{$sensor} += $fullVal;
   $fullSummary{$topSensor} += $fullVal if $fullFlag;
   $fullTotal += $fullVal;
-
-  for my $i (0 .. $#$imperfRef)
-  {
-    $imperfSummary{$sensor}[$i] += $imperfRef->[$i];
-    $imperfSummary{$topSensor}[$i] += $imperfRef->[$i] if $fullFlag;
-    $imperfTotal[$i] += $imperfRef->[$i];
-  }
 
   summarizeSplits($errorsRef, $carsRef, $splitRef, $sensor);
 }
@@ -691,7 +666,7 @@ sub forceNewLine
 sub summaryLineTXT
 {
   my ($sensor, $time, $trace,
-    $errorsRef, $carsRef, $full, $imperfRef, $partialRef, $modelRef) = @_;
+    $errorsRef, $carsRef, $full, $partialRef, $modelRef) = @_;
   my $str = sprintf "%-10s%8s%6s%6s%6s%6s  %6s%6s%6s%6s%6s  %6s%6s%6s%6s  %6s%6s%6s%6s%6s%6s",
     $sensor,
     $time,
@@ -748,7 +723,7 @@ sub summaryLineTXT
 sub summaryLineCSV
 {
   my ($sensor, $time, $trace,
-    $errorsRef, $carsRef, $full, $imperfRef, $partialRef, $modelRef) = @_;
+    $errorsRef, $carsRef, $full, $partialRef, $modelRef) = @_;
   my $str = 
     $sensor . $SEPARATOR .
     $time . $SEPARATOR .
@@ -815,19 +790,18 @@ sub hasErrors
 
 sub summaryLine
 {
-  my ($sensor, $time, $trace,
-    $errorsRef, $carsRef, $full, $imperfRef, 
+  my ($sensor, $time, $trace, $errorsRef, $carsRef, $full,
       $partialRef, $modelRef, $format) = @_;
 
   if ($format == $FORMAT_TXT)
   {
     return summaryLineTXT($sensor, $time, $trace,
-      $errorsRef, $carsRef, $full, $imperfRef, $partialRef, $modelRef);
+      $errorsRef, $carsRef, $full, $partialRef, $modelRef);
   }
   else
   {
     return summaryLineCSV($sensor, $time, $trace,
-      $errorsRef, $carsRef, $full, $imperfRef, $partialRef, $modelRef);
+      $errorsRef, $carsRef, $full, $partialRef, $modelRef);
   }
 }
 
