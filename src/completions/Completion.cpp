@@ -6,8 +6,7 @@
 
 #include "../Peak.h"
 #include "../misc.h"
-
-#define CAR_BOGIE_TOLERANCE 0.3f
+#include "../const.h"
 
 #define UNUSED(x) ((void)(true ? 0 : ((x), void(), 0)))
 
@@ -431,12 +430,25 @@ bool Completion::dominates(
 {
   if (dRatio > 1. && qsRatio > 1. && qpRatio > 1.)
     return true;
-  else if (dRatio > 3. && qsRatio > 0.9 && qpRatio > 1.2)
+
+  for (auto& cc: CompletionCases)
+  {
+    if (cc.dSquared.flag && dSq >= cc.dSquared.limit)
+      break;
+
+    if (cc.dSquaredRatio.flag && dRatio <= cc.dSquaredRatio.limit)
+      break;
+
+    if (cc.qualShapeRatio.flag && qsRatio <= cc.qualShapeRatio.limit)
+      break;
+
+    if (cc.qualPeakRatio.flag && qpRatio <= cc.qualPeakRatio.limit)
+      break;
+
     return true;
-  else if (dSq < 50 && dRatio > 0.667 && qsRatio > 1.25 && qpRatio > 1.25)
-    return true;
-  else
-    return false;
+  }
+
+  return false;
 }
 
 

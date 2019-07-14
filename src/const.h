@@ -2,6 +2,8 @@
      Algorithmic parameters governing the overall behavior.
  */
 
+#include <list>
+
 
 ////////////////////////////////////////////////////////////////////////
 //                                                                    //
@@ -24,7 +26,7 @@
 ////////////////////////////////////////////////////////////////////////
 
 // The following constants help to eliminate peak constellations that
-// are obviously not car.  They are nowhere near good enough to avoid
+// are obviously not cars.  They are nowhere near good enough to avoid
 // false positives, but that is not their purpose.
 
 // If we interpolate an entire car without having any end gaps,
@@ -48,6 +50,43 @@
 #define CAR_SHORT_FACTOR_LO 0.5f
 #define CAR_SHORT_FACTOR_HI 0.9f
 
-// Tolerance when targeting peaks from a model.
+
+////////////////////////////////////////////////////////////////////////
+//                                                                    //
+//                          Completions                               //
+//                                                                    //
+////////////////////////////////////////////////////////////////////////
+
+// When looking for peak completions, go +/- this factor of the 
+// estimated bogie distance.
 
 #define CAR_BOGIE_TOLERANCE 0.3f
+
+struct CompletionEntry
+{
+  bool flag;
+  float limit;
+};
+
+struct CompletionCase
+{
+  CompletionEntry dSquared; // Upper limit; others are lower limits
+  CompletionEntry dSquaredRatio;
+  CompletionEntry qualShapeRatio;
+  CompletionEntry qualPeakRatio;
+};
+
+// These are cases for which one car completion is deemed to dominate
+// another.  
+// In the first one, there is almost-dominance except that the peak 
+// quality shape is slightly inferior.  
+// In the second one, the absolute squared distance is low and there
+// is dominance in the qualities, so it doesn't matter that the 
+// relative distance is slightly off.
+
+static list<CompletionCase> CompletionCases =
+{
+  { {false, 0.f}, {true, 3.f}, {true, 0.9f}, {true, 1.2f} },
+  { {true, 50.f}, {true, 0.6667f}, {true, 1.25f}, {true, 1.25f} }
+};
+
