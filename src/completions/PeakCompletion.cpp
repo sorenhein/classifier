@@ -55,6 +55,12 @@ void PeakCompletion::addMatch(
 }
 
 
+void PeakCompletion::unrepair()
+{
+  _type = COMP_UNMATCHED;
+}
+
+
 bool PeakCompletion::markWith(
   Peak& peak,
   const CompletionType typeIn)

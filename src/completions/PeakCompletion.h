@@ -58,6 +58,8 @@ class PeakCompletion
       const unsigned target,
       Peak * ptr);
 
+    void unrepair();
+
     bool markWith(
       Peak& peak,
       const CompletionType typeIn);

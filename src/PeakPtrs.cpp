@@ -282,19 +282,25 @@ bool PeakPtrs::empty() const
 
 unsigned PeakPtrs::firstIndex() const
 {
-  if (peaks.empty())
-    return numeric_limits<unsigned>::max();
-  else
-    return peaks.front()->getIndex();
+  for (auto peak: peaks)
+  {
+    if (peak != nullptr)
+      return peak->getIndex();
+  }
+
+  return numeric_limits<unsigned>::max();
 }
 
 
 unsigned PeakPtrs::lastIndex() const
 {
-  if (peaks.empty())
-    return numeric_limits<unsigned>::max();
-  else
-    return peaks.back()->getIndex();
+  for (auto pit = peaks.rbegin(); pit != peaks.rend(); pit++)
+  {
+     if (* pit != nullptr)
+       return (* pit)->getIndex();
+  }
+
+  return peaks.back()->getIndex();
 }
 
 

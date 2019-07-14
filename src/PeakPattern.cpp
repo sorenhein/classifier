@@ -767,6 +767,7 @@ cout << "Filling\n";
           // This happens if we might repair a peak at a lower level,
           // but at the top level there's no good (selected) 
           // neighboring peak.
+          pc.unrepair();
           cout << "Peak not repairable after all\n";
           continue;
         }
