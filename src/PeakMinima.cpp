@@ -687,6 +687,9 @@ void PeakMinima::markLongGaps(
     cout << "Long gap by new method " << longGap.str() << endl;
     if (longGap.empty())
       THROW(ERR_NO_PEAKS, "Long gap is zero");
+
+    if (longGap.center() / wheelGap.center() > 20)
+      THROW(ERR_NO_PEAKS, "Long gap is very long");
   }
   else
     THROW(ERR_NO_PEAKS, "New long gap fails");
