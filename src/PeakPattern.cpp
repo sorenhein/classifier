@@ -168,7 +168,7 @@ bool PeakPattern::addModelTargets(
     tdata.borders = patternType;
     tdata.range = rangeType;
 
-    CarCompletion& comp = completions.emplace_back();
+    Completion& comp = completions.emplace_back();
 
     if (comp.fill(tdata, rangeData.indexLeft, rangeData.indexRight, 
           carPoints))
@@ -186,7 +186,7 @@ bool PeakPattern::addModelTargets(
     tdata.borders = patternType;
     tdata.range = rangeType;
 
-    CarCompletion& comp = completions.emplace_back();
+    Completion& comp = completions.emplace_back();
 
     if (comp.fill(tdata, rangeData.indexLeft, rangeData.indexRight, 
           carPoints))
@@ -313,7 +313,7 @@ void PeakPattern::guessNoBorders(const CarModels& models)
   tdata.borders = BORDERS_NONE;
   tdata.range = RANGE_UNBOUNDED;
 
-  CarCompletion& comp = completions.emplace_back();
+  Completion& comp = completions.emplace_back();
   comp.fill(tdata, start, end, carPoints);
 }
 
@@ -373,7 +373,7 @@ void PeakPattern::guessBothSingleShort(const CarModels& models)
   tdata.borders = BORDERS_DOUBLE_SIDED_SINGLE_SHORT;
   tdata.range = RANGE_BOUNDED_BOTH;
 
-  CarCompletion& comp = completions.emplace_back();
+  Completion& comp = completions.emplace_back();
   comp.fill(tdata, rangeData.indexLeft, rangeData.indexRight,
     carPoints);
 }
@@ -460,7 +460,7 @@ bool PeakPattern::looksEmptyFirst(const PeakPtrs& peakPtrsUsed) const
 void PeakPattern::isPartial(
   PeakPtrs& peakPtrsUsed,
   PeakPtrs& peakPtrsUnused,
-  CarCompletion * winnerPtr)
+  Completion * winnerPtr)
 {
   vector<Peak const *> closestPtrs;
   unsigned limitLower = 0;
@@ -493,7 +493,7 @@ bool PeakPattern::isPartialSingle(
   PeakPtrs& peakPtrsUsed,
   PeakPtrs& peakPtrsUnused)
 {
-  CarCompletion * winnerPtr;
+  Completion * winnerPtr;
 
   const unsigned numComplete = completions.numComplete(winnerPtr);
   if (numComplete > 0)
@@ -520,7 +520,7 @@ bool PeakPattern::isPartialLast(
   if (peakPtrsUsed.size() >= 5)
     return false;
 
-  CarCompletion * winnerPtr;
+  Completion * winnerPtr;
 
   const unsigned numComplete = completions.numComplete(winnerPtr);
   if (numComplete > 0)
@@ -626,7 +626,7 @@ bool PeakPattern::isPartialFirst(
   if (peakPtrsUsed.size() >= 5)
     return false;
 
-  CarCompletion * winnerPtr;
+  Completion * winnerPtr;
 
   const unsigned numComplete = completions.numComplete(winnerPtr);
   if (numComplete > 0)
@@ -811,7 +811,7 @@ bool PeakPattern::fix(
   cout << "Completions\n\n";
   cout << completions.str(offset);
 
-  CarCompletion * winnerPtr;
+  Completion * winnerPtr;
   const unsigned numComplete = completions.numComplete(winnerPtr);
 
   vector<Peak const *> closestPtrs;

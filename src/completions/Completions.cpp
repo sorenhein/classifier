@@ -1,5 +1,4 @@
 #include "Completions.h"
-
 #include "../Peak.h"
 
 
@@ -20,14 +19,14 @@ void Completions::reset()
 }
 
 
-CarCompletion& Completions::emplace_back()
+Completion& Completions::emplace_back()
 {
-  CarCompletion& miss = completions.emplace_back(CarCompletion());
+  Completion& miss = completions.emplace_back(Completion());
   return miss;
 }
 
 
-CarCompletion& Completions::back()
+Completion& Completions::back()
 {
   return completions.back();
 }
@@ -61,7 +60,7 @@ bool Completions::empty() const
 }
 
 
-unsigned Completions::numComplete(CarCompletion *& complete)
+unsigned Completions::numComplete(Completion *& complete)
 {
   unsigned n = 0;
   for (auto& comp: completions)
@@ -77,7 +76,7 @@ unsigned Completions::numComplete(CarCompletion *& complete)
 
 
 unsigned Completions::numPartial(
-  CarCompletion *& partial,
+  Completion *& partial,
   BordersType& borders)
 {
   unsigned n = 0;

@@ -39,7 +39,7 @@ SOURCE_FILES    =               \
                 write.cpp       \
                 driver.cpp      \
                 regress/PolynomialRegression.cpp \
-                completions/CarCompletion.cpp  \
+                completions/Completion.cpp  \
                 completions/Completions.cpp    \
                 completions/PeakCompletion.cpp \
                 util/Gap.cpp            \

@@ -82,7 +82,7 @@ class PeakPattern
     void isPartial(
       PeakPtrs& peakPtrsUsed,
       PeakPtrs& peakPtrsUnused,
-      CarCompletion * winnerPtr);
+      Completion * winnerPtr);
 
     bool isPartialSingle(
       PeakPtrs& peakPtrsUsed,

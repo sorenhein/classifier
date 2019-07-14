@@ -2,7 +2,7 @@
 #include <sstream>
 #include <limits>
 
-#include "CarCompletion.h"
+#include "Completion.h"
 
 #include "../Peak.h"
 #include "../misc.h"
@@ -12,18 +12,18 @@
 #define UNUSED(x) ((void)(true ? 0 : ((x), void(), 0)))
 
 
-CarCompletion::CarCompletion()
+Completion::Completion()
 {
-  CarCompletion::reset();
+  Completion::reset();
 }
 
 
-CarCompletion::~CarCompletion()
+Completion::~Completion()
 {
 }
 
 
-void CarCompletion::reset()
+void Completion::reset()
 {
   data.clear();
   limitLower = 0;
@@ -40,7 +40,7 @@ void CarCompletion::reset()
 }
 
 
-bool CarCompletion::fillPoints(
+bool Completion::fillPoints(
   const bool reverseFlag,
   const list<unsigned>& carPoints,
   const unsigned indexBase)
@@ -122,7 +122,7 @@ bool CarCompletion::fillPoints(
 }
 
 
-void CarCompletion::setLimits(const TargetData& tdata)
+void Completion::setLimits(const TargetData& tdata)
 {
   // Sets limits beyond which unused peak pointers should not be
   // marked down.  (A zero value means no limit in that direction.)
@@ -158,7 +158,7 @@ void CarCompletion::setLimits(const TargetData& tdata)
 }
 
 
-bool CarCompletion::fill(
+bool Completion::fill(
   const TargetData& tdata,
   const unsigned indexRangeLeft,
   const unsigned indexRangeRight,
@@ -170,7 +170,7 @@ bool CarCompletion::fill(
   const unsigned indexBase =
      (abutLeftFlag ? indexRangeLeft : indexRangeRight);
 
-  if (! CarCompletion::fillPoints(tdata.reverseFlag, carPoints, indexBase))
+  if (! Completion::fillPoints(tdata.reverseFlag, carPoints, indexBase))
     return false;
 
   if (_indices.front() < indexRangeLeft ||
@@ -198,12 +198,12 @@ bool CarCompletion::fill(
     _end = indexRangeRight;
   }
 
-  CarCompletion::setLimits(tdata);
+  Completion::setLimits(tdata);
   return true;
 }
 
 
-void CarCompletion::registerPeaks(vector<Peak *>& peaksClose)
+void Completion::registerPeaks(vector<Peak *>& peaksClose)
 {
   const unsigned bogieGap = (_indices.size() == 4 ?
     (_indices[3] - _indices[2] + _indices[1] - _indices[0]) / 2 : 0);
@@ -224,48 +224,25 @@ void CarCompletion::registerPeaks(vector<Peak *>& peaksClose)
 }
 
 
-// TODO Not needed
-void CarCompletion::addMiss(
-  const unsigned target,
-  const unsigned tolerance)
-{
-  peakCompletions.emplace_back(PeakCompletion());
-  PeakCompletion& pc = peakCompletions.back();
-
-  pc.addMiss(target, tolerance);
-}
-
-
-void CarCompletion::addMatch(
-  const unsigned target,
-  Peak * pptr)
-{
-  peakCompletions.emplace_back(PeakCompletion());
-  PeakCompletion& pc = peakCompletions.back();
-
-  pc.addMatch(target, pptr);
-}
-
-
-const vector<unsigned>& CarCompletion::indices()
+const vector<unsigned>& Completion::indices()
 {
   return _indices;
 }
 
 
-Miterator CarCompletion::begin()
+Miterator Completion::begin()
 {
   return peakCompletions.begin();
 }
 
 
-Miterator CarCompletion::end()
+Miterator Completion::end()
 {
   return peakCompletions.end();
 }
 
 
-void CarCompletion::markWith(
+void Completion::markWith(
   Peak& peak,
   const CompletionType type,
   const bool forceFlag)
@@ -285,13 +262,13 @@ void CarCompletion::markWith(
     if (pc.markWith(peak, type))
     {
       if (type == COMP_REPAIRABLE)
-        CarCompletion::pruneRepairables(pc);
+        Completion::pruneRepairables(pc);
     }
   }
 }
 
 
-unsigned CarCompletion::filled() const
+unsigned Completion::filled() const
 {
   unsigned f = 0;
   for (auto& pc: peakCompletions)
@@ -304,7 +281,7 @@ unsigned CarCompletion::filled() const
 }
 
 
-bool CarCompletion::complete() const
+bool Completion::complete() const
 {
   for (auto& pc: peakCompletions)
   {
@@ -315,7 +292,7 @@ bool CarCompletion::complete() const
 }
 
 
-bool CarCompletion::partial() const
+bool Completion::partial() const
 {
   for (auto& pc: peakCompletions)
   {
@@ -326,20 +303,20 @@ bool CarCompletion::partial() const
 }
 
 
-bool CarCompletion::operator < (const CarCompletion& comp2) const
+bool Completion::operator < (const Completion& comp2) const
 {
   // Sort first by count, then by model number, then by reverseFlag.
-  return (CarCompletion::filled() >= comp2.filled());
+  return (Completion::filled() >= comp2.filled());
 }
 
 
-void CarCompletion::sort()
+void Completion::sort()
 {
   data.sort();
 }
 
 
-void CarCompletion::getMatch(
+void Completion::getMatch(
   vector<Peak const *>& closestPtrs,
   unsigned& limitLowerOut,
   unsigned& limitUpperOut)
@@ -353,13 +330,13 @@ void CarCompletion::getMatch(
 }
 
 
-bool CarCompletion::forceFlag() const
+bool Completion::forceFlag() const
 {
   return _forceFlag;
 }
 
 
-BordersType CarCompletion::bestBorders() const
+BordersType Completion::bestBorders() const
 {
   BordersType b = BORDERS_SIZE;
 
@@ -376,16 +353,16 @@ BordersType CarCompletion::bestBorders() const
 }
 
 
-bool CarCompletion::samePeaks(CarCompletion& miss2)
+bool Completion::samePeaks(Completion& comp2)
 {
   const unsigned nc = peakCompletions.size();
-  if (miss2.peakCompletions.size() != nc)
+  if (comp2.peakCompletions.size() != nc)
     return false;
 
   for (auto pc1 = peakCompletions.begin(), 
-      pc2 = miss2.peakCompletions.begin();
+      pc2 = comp2.peakCompletions.begin();
       pc1 != peakCompletions.end() && 
-      pc2 != miss2.peakCompletions.end();
+      pc2 != comp2.peakCompletions.end();
       pc1++, pc2++)
   {
     if (pc1->ptr() != pc2->ptr())
@@ -395,16 +372,16 @@ bool CarCompletion::samePeaks(CarCompletion& miss2)
 }
 
 
-bool CarCompletion::samePartialPeaks(CarCompletion& miss2)
+bool Completion::samePartialPeaks(Completion& comp2)
 {
   const unsigned nc = peakCompletions.size();
-  if (miss2.peakCompletions.size() != nc)
+  if (comp2.peakCompletions.size() != nc)
     return false;
 
   auto pc1 = peakCompletions.begin();
-  auto pc2 = miss2.peakCompletions.begin();
+  auto pc2 = comp2.peakCompletions.begin();
 
-  while (pc1 != peakCompletions.end() && pc2 != miss2.peakCompletions.end())
+  while (pc1 != peakCompletions.end() && pc2 != comp2.peakCompletions.end())
   {
     Peak const * p1 = pc1->ptr();
     Peak const * p2 = pc2->ptr();
@@ -423,11 +400,11 @@ bool CarCompletion::samePartialPeaks(CarCompletion& miss2)
   }
 
   return (pc1 == peakCompletions.end() && 
-    pc2 == miss2.peakCompletions.end());
+    pc2 == comp2.peakCompletions.end());
 }
 
 
-bool CarCompletion::contains(CarCompletion& comp2)
+bool Completion::contains(Completion& comp2)
 {
   const unsigned nc = peakCompletions.size();
   if (comp2.peakCompletions.size() != nc)
@@ -446,7 +423,7 @@ bool CarCompletion::contains(CarCompletion& comp2)
 }
 
 
-bool CarCompletion::dominates(
+bool Completion::dominates(
   const float dRatio,
   const float qsRatio,
   const float qpRatio,
@@ -463,15 +440,15 @@ bool CarCompletion::dominates(
 }
 
 
-void CarCompletion::combineSameCount(CarCompletion& carCompl2)
+void Completion::combineSameCount(Completion& comp2)
 {
   // Both completions miss exactly one peak.  One set does not dominate
   // the other.  We will pick only those peaks that are the same in both.
 
   for (auto pc1 = peakCompletions.begin(), 
-      pc2 = carCompl2.peakCompletions.begin();
+      pc2 = comp2.peakCompletions.begin();
       pc1 != peakCompletions.end() && 
-      pc2 != carCompl2.peakCompletions.end();
+      pc2 != comp2.peakCompletions.end();
       pc1++, pc2++)
   {
     if (! pc2->ptr())
@@ -480,25 +457,25 @@ void CarCompletion::combineSameCount(CarCompletion& carCompl2)
 }
 
 
-void CarCompletion::updateOverallFrom(CarCompletion& carCompl2)
+void Completion::updateOverallFrom(Completion& comp2)
 {
-  if (carCompl2.distanceSquared < distanceSquared)
+  if (comp2.distanceSquared < distanceSquared)
   {
-    peakCompletions = carCompl2.peakCompletions;
+    peakCompletions = comp2.peakCompletions;
 
-    distanceSquared = carCompl2.distanceSquared;
+    distanceSquared = comp2.distanceSquared;
 
-    if (carCompl2._forceFlag)
+    if (comp2._forceFlag)
       _forceFlag = true;
   }
 }
 
 
-void CarCompletion::mergeFrom(CarCompletion& miss2)
+void Completion::mergeFrom(Completion& comp2)
 {
   // Merge the two lists of origins.
   // TODO As sorted, can stop when fewer peaks available.
-  for (auto& d2: miss2.data)
+  for (auto& d2: comp2.data)
   {
     TargetData * d1ptr = nullptr;
     for (auto& d1: data)
@@ -518,63 +495,63 @@ void CarCompletion::mergeFrom(CarCompletion& miss2)
       if (d2.distanceSquared < d1ptr->distanceSquared)
       {
         * d1ptr = d2;
-        CarCompletion::updateOverallFrom(miss2);
+        Completion::updateOverallFrom(comp2);
       }
     }
     else
     {
       weight += d2.weight;
       data.push_back(d2);
-      CarCompletion::updateOverallFrom(miss2);
+      Completion::updateOverallFrom(comp2);
     }
   }
 }
 
 
-CondenseType CarCompletion::condense(CarCompletion& miss2)
+CondenseType Completion::condense(Completion& comp2)
 {
-  if (CarCompletion::samePeaks(miss2))
+  if (Completion::samePeaks(comp2))
   {
     // Merge the two lists of origins.
-    CarCompletion::mergeFrom(miss2);
+    Completion::mergeFrom(comp2);
     return CONDENSE_SAME;
   }
-  else if (CarCompletion::samePartialPeaks(miss2))
+  else if (Completion::samePartialPeaks(comp2))
   {
     // For example the same three peaks show up as 134 and 234.
-    return (distanceSquared <= miss2.distanceSquared ?
+    return (distanceSquared <= comp2.distanceSquared ?
       CONDENSE_BETTER : CONDENSE_WORSE);
   }
-  else if (CarCompletion::contains(miss2))
+  else if (Completion::contains(comp2))
   {
     return CONDENSE_BETTER;
   }
-  else if (miss2.contains(* this))
+  else if (comp2.contains(* this))
   {
     return CONDENSE_WORSE;
   }
 
-  const unsigned fill = CarCompletion::filled();
-  const unsigned fill2 = miss2.filled();
+  const unsigned fill = Completion::filled();
+  const unsigned fill2 = comp2.filled();
   const unsigned np = peakCompletions.size();
 
   if (fill == fill2 && (fill == np || fill+1 == np))
   {
-    const float dratio = ratioCappedUnsigned(miss2.distanceSquared, 
+    const float dratio = ratioCappedUnsigned(comp2.distanceSquared, 
       distanceSquared, 100.f);
 
-    const float qsratio = ratioCappedFloat(miss2.qualShapeSum,
+    const float qsratio = ratioCappedFloat(comp2.qualShapeSum,
       qualShapeSum, 100.f);
 
-    const float qpratio = ratioCappedFloat(miss2.qualPeakSum,
+    const float qpratio = ratioCappedFloat(comp2.qualPeakSum,
       qualPeakSum, 100.f);
 
-    if (CarCompletion::dominates(dratio, qsratio, qpratio, distanceSquared))
+    if (Completion::dominates(dratio, qsratio, qpratio, distanceSquared))
     {
       return CONDENSE_BETTER;
     }
-    else if (CarCompletion::dominates(1.f / dratio, 1.f / qsratio, 
-      1.f / qpratio, miss2.distanceSquared))
+    else if (Completion::dominates(1.f / dratio, 1.f / qsratio, 
+      1.f / qpratio, comp2.distanceSquared))
     {
       return CONDENSE_WORSE;
     }
@@ -582,7 +559,7 @@ CondenseType CarCompletion::condense(CarCompletion& miss2)
     {
       // For example peaks 134 and 234 where one set doesn't dominate.
       // We will go with 34 in that case.
-      CarCompletion::combineSameCount(miss2);
+      Completion::combineSameCount(comp2);
       return CONDENSE_BETTER;
     }
     else
@@ -603,7 +580,7 @@ CondenseType CarCompletion::condense(CarCompletion& miss2)
 }
 
 
-void CarCompletion::makeRepairables()
+void Completion::makeRepairables()
 {
   repairables.clear();
   for (auto& pc: peakCompletions)
@@ -615,7 +592,7 @@ void CarCompletion::makeRepairables()
 }
 
 
-bool CarCompletion::nextRepairable(
+bool Completion::nextRepairable(
   Peak& peak,
   bool& forceFlag)
 {
@@ -629,7 +606,7 @@ bool CarCompletion::nextRepairable(
 }
 
 
-void CarCompletion::pruneRepairables(PeakCompletion& pc)
+void Completion::pruneRepairables(PeakCompletion& pc)
 {
   if (itRep == repairables.end() || ** itRep > pc)
     return; // No point
@@ -649,7 +626,7 @@ void CarCompletion::pruneRepairables(PeakCompletion& pc)
 }
 
 
-void CarCompletion::makeShift()
+void Completion::makeShift()
 {
   int sum = 0;
   int npos = 0;
@@ -681,7 +658,7 @@ void CarCompletion::makeShift()
 }
 
 
-void CarCompletion::calcDistanceSquared()
+void Completion::calcDistanceSquared()
 {
   // At this point there is exactly one element in data.
   distanceSquared = 0;
@@ -695,9 +672,9 @@ void CarCompletion::calcDistanceSquared()
 }
 
 
-void CarCompletion::calcMetrics()
+void Completion::calcMetrics()
 {
-  CarCompletion::calcDistanceSquared();
+  Completion::calcDistanceSquared();
 
   qualShapeSum = 0.f;
   qualPeakSum = 0.f;
@@ -709,7 +686,7 @@ void CarCompletion::calcMetrics()
 }
 
 
-string CarCompletion::str(const unsigned offset) const
+string Completion::str(const unsigned offset) const
 {
   stringstream ss;
   ss << "Car with weight " << weight << 

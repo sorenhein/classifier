@@ -24,7 +24,7 @@ PeakMinima.obj: CarPeaks.h PeakPieces.h PeakPiece.h Except.h errors.h
 PeakMinima.obj: util/Gap.h
 PeakPattern.obj: PeakPattern.h PeakRange.h PeakProfile.h struct.h PeakPool.h
 PeakPattern.obj: Peaks.h Peak.h PeakPtrs.h CarPeaks.h
-PeakPattern.obj: completions/Completions.h completions/CarCompletion.h
+PeakPattern.obj: completions/Completions.h completions/Completion.h
 PeakPattern.obj: completions/PeakCompletion.h CarModels.h CarDetect.h
 PeakPattern.obj: CarGaps.h const.h Except.h errors.h
 PeakPiece.obj: PeakPiece.h struct.h util/Gap.h Except.h errors.h
@@ -47,7 +47,7 @@ PeakStats.obj: PeakStats.h struct.h Except.h errors.h
 PeakStructure.obj: PeakStructure.h CarDetect.h CarGaps.h Peak.h struct.h
 PeakStructure.obj: CarPeaks.h PeakPool.h Peaks.h PeakPtrs.h PeakRange.h
 PeakStructure.obj: PeakProfile.h PeakPattern.h completions/Completions.h
-PeakStructure.obj: completions/CarCompletion.h completions/PeakCompletion.h
+PeakStructure.obj: completions/Completion.h completions/PeakCompletion.h
 PeakStructure.obj: PeakSpacing.h CarModels.h Except.h errors.h
 Regress.obj: Regress.h struct.h Database.h Timers.h util/Timer.h Except.h
 Regress.obj: errors.h print.h regress/PolynomialRegression.h
@@ -79,5 +79,12 @@ driver.obj: PeakProfile.h CarModels.h Database.h TraceDB.h Regress.h Align.h
 driver.obj: Timers.h util/Timer.h CompStats.h PeakStats.h Except.h errors.h
 driver.obj: geometry.h print.h
 regress/PolynomialRegression.obj: regress/PolynomialRegression.h
+completions/Completion.obj: completions/Completion.h
+completions/Completion.obj: completions/PeakCompletion.h Peak.h struct.h
+completions/Completion.obj: misc.h
+completions/Completions.obj: completions/Completions.h
+completions/Completions.obj: completions/Completion.h
+completions/Completions.obj: completions/PeakCompletion.h Peak.h struct.h
+completions/PeakCompletion.obj: completions/PeakCompletion.h Peak.h struct.h
 util/Gap.obj: util/Gap.h const.h
 util/Timer.obj: util/Timer.h

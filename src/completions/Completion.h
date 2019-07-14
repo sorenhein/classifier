@@ -92,7 +92,7 @@ enum CondenseType
 typedef list<PeakCompletion>::iterator Miterator;
 
 
-class CarCompletion
+class Completion
 {
   private:
 
@@ -127,9 +127,9 @@ class CarCompletion
 
     void setLimits(const TargetData& tdata);
 
-    bool samePeaks(CarCompletion& comp2);
-    bool samePartialPeaks(CarCompletion& comp2);
-    bool contains(CarCompletion& comp2);
+    bool samePeaks(Completion& comp2);
+    bool samePartialPeaks(Completion& comp2);
+    bool contains(Completion& comp2);
     
     bool dominates(
       const float dRatio,
@@ -137,20 +137,20 @@ class CarCompletion
       const float qpRatio,
       const unsigned dSq) const;
 
-    void combineSameCount(CarCompletion& carCompl2);
+    void combineSameCount(Completion& carCompl2);
 
-    void updateOverallFrom(CarCompletion& carCompl2);
+    void updateOverallFrom(Completion& carCompl2);
 
-    void mergeFrom(CarCompletion& carCompl2);
+    void mergeFrom(Completion& carCompl2);
 
     void calcDistanceSquared();
 
 
   public:
 
-    CarCompletion();
+    Completion();
 
-    ~CarCompletion();
+    ~Completion();
 
     void reset();
 
@@ -164,14 +164,6 @@ class CarCompletion
 
     const vector<unsigned>& indices();
 
-    void addMiss(
-      const unsigned target,
-      const unsigned tolerance);
-
-    void addMatch(
-      const unsigned target,
-      Peak * pptr);
-
     Miterator begin();
     Miterator end();
 
@@ -183,7 +175,7 @@ class CarCompletion
     bool complete() const;
     bool partial() const;
 
-    bool operator < (const CarCompletion& comp2) const;
+    bool operator < (const Completion& comp2) const;
 
     void sort();
 
@@ -198,7 +190,7 @@ class CarCompletion
 
     unsigned filled() const;
 
-    CondenseType condense(CarCompletion& carCompl2); 
+    CondenseType condense(Completion& comp2); 
 
     void makeRepairables();
 
