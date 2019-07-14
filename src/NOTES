@@ -7,29 +7,14 @@ Number of models
 Exceptions
 Large distances
 
-No absurdly large unsigned in PeakCompletion, "FAIL on gap ratio"
 Scan sensor??.txt for large numbers in general.
+- sensor19, 134730: Same peak twice in a completion.
 
-
-Does align work for partial lasts?
-
-- s08 104828 #12
-  Candidate for partial mid car
-
-- Don't complete first car if first two peaks poor, second two good
-  s03 052231 #13
-
-- Classify by weight, dist, quality, used/unused/repaired
+Does Align work for partial lasts?
 
 Too many car models
 - Count car models
 - Count targets in PeakPattern
-
-
-Find the odd first cars
-- s02 083643
-- s03 052231
-
 
 Wrong, large distances
 ----------------------
@@ -43,12 +28,8 @@ General blockers
 * Missing peaks
   -> More adaptive way to keep collecting peaks?
   -> Signal quality, filtering?  Simpson integration?
-* Specific warnings
-  -> Move even more to ByPattern, away from the hand-crafted long one
-  -> sensor00 has two POSITIVE peaks at the front?  Restored perhaps?
 * Three-wheel cars
   -> Detect in PeakMinima?
-
 
 PeakPiece:
 Do we need summary(), modality()?
@@ -85,9 +66,6 @@ Align.cpp
   - numFrontWheels as before, in case nothing else suits
   - struct: noObs, noRef, flag
   - One for the first, middle and last peak that we assume
-
-ByGeometry in PeakStructure: Probably should check that there
-aren't two peaks in the middle with good spacing.
 
 Plan 2019-02-27
 ---------------
@@ -133,10 +111,6 @@ Also:
   Can utilize knowledge, e.g. 1-3-4
 
 * Time profile of recognizers etc., speed up
-
-
-The regression is odd: Different penalties in first and second stage?
-- s05, 183315
 
 Three-peak cars
 - First or last of ranges with >= 3 peaks
@@ -207,7 +181,6 @@ Maybe transients can be reduced with filter padding as in filtfilt.
 * And for peak extraction
 
 * Clean up driver.cpp
-* Move out ckmeans code
 
 2018-07-17
 ----------

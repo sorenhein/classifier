@@ -717,7 +717,6 @@ void PeakPattern::annotateCompletions(
 
   Peak peakRep;
   bool forceFlag;
-cout << "Annotating\n";
   while (completions.nextRepairable(peakRep, forceFlag))
   {
     // Make a test run without actually repairing anything.
@@ -744,7 +743,6 @@ void PeakPattern::fillCompletions(
 {
   Peak peakRep;
 
-cout << "Filling\n";
   for (auto& cc: completions)
   {
     for (auto& pc: cc)
