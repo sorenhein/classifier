@@ -474,8 +474,11 @@ void PeakPtrs::getClosest(
     return;
 
   // Roughly half a bogie gap.
-  const unsigned yardstick = 
-    (indices[1] - indices[0] + indices[3] - indices[2]) / 4;
+  unsigned yardstick;
+  if (indices[0] == 0 || indices[1] == 0)
+    yardstick = (indices[3] - indices[2]) / 2;
+  else
+    yardstick = (indices[1] - indices[0] + indices[3] - indices[2]) / 4;
 
   auto pit = peaks.begin();
   vector<unsigned> dist;
@@ -502,8 +505,12 @@ void PeakPtrs::getClosest(
     d = pindex - iindex;
     if (d < yardstick && d < dist[i])
     {
-      peaksClose[i] = * pit;
-      dist[i] = d;
+      if (iindex > 0)
+      {
+        // iindex == 0 indicates a sentinel, not a real peak.
+        peaksClose[i] = * pit;
+        dist[i] = d;
+      }
       pit++;
     }
   }

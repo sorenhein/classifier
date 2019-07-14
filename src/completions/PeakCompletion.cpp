@@ -33,9 +33,10 @@ void PeakCompletion::addMiss(
   const unsigned target,
   const unsigned tolerance)
 {
+  // A target of 0 indicates a sentinel, not a real target.
   mid = target;
   lower = (target < tolerance ? 0 : target - tolerance);
-  upper = target + tolerance;
+  upper = (target == 0 ? 0 : target + tolerance);
   adjusted = target;
 
   _type = COMP_UNMATCHED;
@@ -148,7 +149,11 @@ float PeakCompletion::qualityPeak() const
 
 void PeakCompletion::adjust(const int shift)
 {
-  adjusted = mid - shift;
+  if (mid == 0)
+    return;
+
+  // Avoid 0 as this is a sentinel.
+  adjusted = (shift >= static_cast<int>(mid) ? 1 : mid - shift);
 }
 
 
