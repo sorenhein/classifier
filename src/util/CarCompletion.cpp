@@ -7,6 +7,8 @@
 #include "../Peak.h"
 #include "../misc.h"
 
+#define CAR_BOGIE_TOLERANCE 0.3f
+
 #define UNUSED(x) ((void)(true ? 0 : ((x), void(), 0)))
 
 
@@ -201,6 +203,28 @@ bool CarCompletion::fill(
 }
 
 
+void CarCompletion::registerPeaks(vector<Peak *>& peaksClose)
+{
+  const unsigned bogieGap = (_indices.size() == 4 ?
+    (_indices[3] - _indices[2] + _indices[1] - _indices[0]) / 2 : 0);
+
+  const unsigned bogieTolerance = static_cast<unsigned>
+    (CAR_BOGIE_TOLERANCE * bogieGap);
+
+  for (unsigned i = 0; i < peaksClose.size(); i++)
+  {
+    peakCompletions.emplace_back(PeakCompletion());
+    PeakCompletion& pc = peakCompletions.back();
+
+    if (peaksClose[i])
+      pc.addMatch(_indices[i], peaksClose[i]);
+    else
+      pc.addMiss(_indices[i], bogieTolerance);
+  }
+}
+
+
+// TODO Not needed
 void CarCompletion::addMiss(
   const unsigned target,
   const unsigned tolerance)
@@ -220,6 +244,12 @@ void CarCompletion::addMatch(
   PeakCompletion& pc = peakCompletions.back();
 
   pc.addMatch(target, pptr);
+}
+
+
+const vector<unsigned>& CarCompletion::indices()
+{
+  return _indices;
 }
 
 

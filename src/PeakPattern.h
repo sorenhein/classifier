@@ -6,7 +6,7 @@
 
 #include "PeakRange.h"
 
-#include "util/Target.h"
+// #include "util/Target.h"
 #include "util/Completions.h"
 
 using namespace std;
@@ -46,7 +46,7 @@ class PeakPattern
 
     vector<ModelActive> modelsActive;
 
-    list<Target> targets;
+    // list<Target> targets;
 
     Completions completions;
 

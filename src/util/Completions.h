@@ -42,6 +42,8 @@ class Completions
     Citerator begin();
     Citerator end();
 
+    bool empty() const;
+
     unsigned numComplete(CarCompletion *& complete);
 
     unsigned numPartial(

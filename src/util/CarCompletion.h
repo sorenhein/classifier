@@ -93,9 +93,9 @@ class CarCompletion
       const unsigned indexRangeRight,
       const list<unsigned>& carPoints);
 
-    const vector<unsigned>& indices();
+    void registerPeaks(vector<Peak *>& peaksClose);
 
-    void registerPeaks(vector<Peak *> peaksClose);
+    const vector<unsigned>& indices();
 
     void addMiss(
       const unsigned target,

@@ -55,6 +55,12 @@ Citerator Completions::end()
 }
 
 
+bool Completions::empty() const
+{
+  return completions.empty();
+}
+
+
 unsigned Completions::numComplete(CarCompletion *& complete)
 {
   unsigned n = 0;
