@@ -78,8 +78,11 @@ struct RangeData
       setw(10) << left << "gapLeft " << gapLeft << "\n" <<
       setw(10) << left << "gapRight " << gapLeft << "\n" <<
       setw(10) << left << "indices " <<
-        indexLeft + offset << " - " << indexRight + offset <<  "\n" <<
-      setw(10) << left << "length " << lenRange << endl;
+        indexLeft + offset << " - " <<
+        (indexRight == 0 ? "open" : to_string(indexRight + offset)) <<  
+        "\n" <<
+      setw(10) << left << "length " << 
+        (lenRange == 0 ? "open" : to_string(lenRange)) << endl;
     return ss.str();
   };
 };

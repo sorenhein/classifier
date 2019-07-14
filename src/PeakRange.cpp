@@ -178,7 +178,10 @@ bool PeakRange::characterize(
   if (rdata.indexRight > 0 && rdata.indexRight <= rdata.indexLeft)
     return false;
 
-  rdata.lenRange = rdata.indexRight - rdata.indexLeft;
+  if (rdata.indexRight == 0)
+    rdata.lenRange = 0;
+  else
+    rdata.lenRange = rdata.indexRight - rdata.indexLeft;
 
   return true;
 }
