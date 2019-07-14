@@ -6,7 +6,7 @@
 
 #include "PeakRange.h"
 
-#include "util/Completions.h"
+#include "completions/Completions.h"
 
 using namespace std;
 

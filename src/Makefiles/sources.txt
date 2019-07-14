@@ -39,8 +39,8 @@ SOURCE_FILES    =               \
                 write.cpp       \
                 driver.cpp      \
                 regress/PolynomialRegression.cpp \
-                util/CarCompletion.cpp  \
-                util/Completions.cpp    \
+                completions/CarCompletion.cpp  \
+                completions/Completions.cpp    \
+                completions/PeakCompletion.cpp \
                 util/Gap.cpp            \
-                util/PeakCompletion.cpp \
                 util/Timer.cpp
