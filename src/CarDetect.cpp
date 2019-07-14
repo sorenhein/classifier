@@ -441,6 +441,22 @@ bool CarDetect::isPartial() const
 }
 
 
+unsigned CarDetect::numNulls() const
+{
+  unsigned n = 0;
+  if (! peaksPtr.firstBogieLeftPtr)
+    n++;
+  if (! peaksPtr.firstBogieRightPtr)
+    n++;
+  if (! peaksPtr.secondBogieLeftPtr)
+    n++;
+  if (! peaksPtr.secondBogieRightPtr)
+    n++;
+  
+  return n;
+}
+
+
 void CarDetect::averageGaps(const CarDetectNumbers& cdn)
 {
   gaps.average(cdn);

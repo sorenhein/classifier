@@ -634,6 +634,31 @@ cout << peaks.candidates().strQuality(
   if (ranges.empty() && ! cars.empty())
     cout << "FULLHOUSE\n\n";
 
+  // Output statistics of partials.
+  unsigned numTrainsWithWarnings = 0;
+  unsigned numTrainsWithPartials = 0;
+  unsigned numCarsWithPartials = 0;
+  unsigned numPartialPeaks = 0;
+  
+  if (! ranges.empty())
+    numTrainsWithWarnings = 1;
+
+  for (auto& car: cars)
+  {
+    const unsigned n = car.numNulls();
+    if (n == 0)
+      continue;
+
+    numTrainsWithPartials = 1;
+    numCarsWithPartials++;
+    numPartialPeaks += n;
+  }
+
+  cout << "PARTIALS " << numTrainsWithWarnings << " " <<
+    numTrainsWithPartials << " " <<
+    numCarsWithPartials << " " <<
+    numPartialPeaks << "\n\n";
+
   cout << "HITS\n";
   for (unsigned i = 0; i < NUM_METHODS; i++)
     cout << i << " " << hits[i] << endl;

@@ -122,6 +122,7 @@ class CarDetect
 
     bool isSymmetric() const;
     bool isPartial() const;
+    unsigned numNulls() const;
 
     void averageGaps(const CarDetectNumbers& cdn);
     void averageGaps(const unsigned count);
