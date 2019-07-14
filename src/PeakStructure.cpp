@@ -631,6 +631,8 @@ void PeakStructure::markCars(
 cout << peaks.candidates().strQuality(
   "All selected peaks at end of PeakStructure", offset, &Peak::isSelected);
 
+  if (ranges.empty() && ! cars.empty())
+    cout << "FULLHOUSE\n\n";
 
   cout << "HITS\n";
   for (unsigned i = 0; i < NUM_METHODS; i++)
