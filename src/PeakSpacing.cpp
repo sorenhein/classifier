@@ -54,64 +54,19 @@ bool PeakSpacing::setGlobals(
 }
 
 
-// TODO These two methods can go in PeakPtrs
-
-void PeakSpacing::updateUnused(
-  const Target& target,
+void PeakSpacing::update(
+  vector<Peak const *>& peaksClose,
+  const unsigned limitLower,
+  const unsigned limitUpper,
+  PeakPtrs& peakPtrsUsed,
   PeakPtrs& peakPtrsUnused) const
 {
-  unsigned limitLower, limitUpper;
-  target.limits(limitLower, limitUpper);
+  peakPtrsUsed.moveOut(peaksClose, peakPtrsUnused);
+
   if (limitLower)
     peakPtrsUnused.erase_below(limitLower);
   if (limitUpper)
     peakPtrsUnused.erase_above(limitUpper);
-}
-
-
-void PeakSpacing::updateUsed(
-  const vector<Peak const *>& peaksClosest,
-  PeakPtrs& peakPtrsUsed,
-  PeakPtrs& peakPtrsUnused) const
-{
-  // There may be some peaks that have to be moved.
-  auto pu = peakPtrsUsed.begin();
-  for (auto& peak: peaksClosest)
-  {
-    if (peak == nullptr)
-      continue;
-
-    const unsigned indexClose = peak->getIndex();
-    while (pu != peakPtrsUsed.end() && (* pu)->getIndex() < indexClose)
-    {
-      peakPtrsUnused.add(* pu);
-      pu = peakPtrsUsed.erase(pu);
-    }
-
-    if (pu == peakPtrsUsed.end())
-      break;
-
-    // Preserve those peaks that are also in peaksClose.
-    if ((* pu)->getIndex() == indexClose)
-      pu = peakPtrsUsed.next(pu);
-  }
-
-  // Erase trailing peaks.
-  while (pu != peakPtrsUsed.end())
-  {
-    peakPtrsUnused.add(* pu);
-    pu = peakPtrsUsed.erase(pu);
-  }
-}
-
-
-void PeakSpacing::update(
-  const NoneEntry& none,
-  PeakPtrs& peakPtrsUsed,
-  PeakPtrs& peakPtrsUnused) const
-{
-  PeakSpacing::updateUsed(none.peaksClose, peakPtrsUsed, peakPtrsUnused);
-  PeakSpacing::updateUnused(none.pe, peakPtrsUnused);
 }
 
 
@@ -195,46 +150,41 @@ void PeakSpacing::fixShort(
   PeakPtrs& peakPtrsUsed,
   PeakPtrs& peakPtrsUnused) const
 {
-  NoneEntry none;
-  none.peaksClose.push_back(spacings[indexFirst].peakLeft);
-  none.peaksClose.push_back(spacings[indexFirst].peakRight);
-  none.peaksClose.push_back(spacings[indexLast].peakLeft);
-  none.peaksClose.push_back(spacings[indexLast].peakRight);
+  vector<Peak const *> peaksClose;
+  peaksClose.push_back(spacings[indexFirst].peakLeft);
+  peaksClose.push_back(spacings[indexFirst].peakRight);
+  peaksClose.push_back(spacings[indexLast].peakLeft);
+  peaksClose.push_back(spacings[indexLast].peakRight);
 
-  BordersType border;
-
+  unsigned limitLower, limitUpper;
   if (rangeData.gapLeft)
   {
-    border = (rangeData.gapRight ?
-      BORDERS_DOUBLE_SIDED_SINGLE_SHORT :
-      BORDERS_SINGLE_SIDED_LEFT);
+    if (rangeData.gapRight)
+    {
+      // All the unused peaks are fair game.
+      limitLower = 0;
+      limitUpper = 0;
+    }
+    else
+    {
+      limitLower = 0;
+      limitUpper = spacings[indexLast].peakRight->getIndex();
+    }
   }
   else
-    border = BORDERS_SINGLE_SIDED_RIGHT;
-
-  list<unsigned> carPoints;
-
-  TargetData tdata;
-  tdata.modelNo = 0; // Doesn't matter
-  tdata.reverseFlag = false;
-  tdata.weight = 1; // Doesn't matter
-  tdata.forceFlag = false;  // Doesn't matter
-
-  none.pe.fill(
-    tdata,
-    spacings[indexFirst].peakLeft->getIndex(),
-    spacings[indexLast].peakRight->getIndex(),
-    border,
-    RANGE_UNBOUNDED, // Maybe make more specific later
-    carPoints); // Doesn't matter
+  {
+    limitLower = spacings[indexFirst].peakLeft->getIndex();
+    limitUpper = 0;
+  }
 
 cout << text << ": " <<
-  none.peaksClose[0]->getIndex() + offset << ", " <<
-  none.peaksClose[1]->getIndex() + offset << ", " <<
-  none.peaksClose[2]->getIndex() + offset << ", " <<
-  none.peaksClose[3]->getIndex() + offset << endl;
+  peaksClose[0]->getIndex() + offset << ", " <<
+  peaksClose[1]->getIndex() + offset << ", " <<
+  peaksClose[2]->getIndex() + offset << ", " <<
+  peaksClose[3]->getIndex() + offset << endl;
 
-  PeakSpacing::update(none, peakPtrsUsed, peakPtrsUnused);
+  PeakSpacing::update(peaksClose, limitLower, limitUpper,
+    peakPtrsUsed, peakPtrsUnused);
 }
 
 

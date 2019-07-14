@@ -5,7 +5,6 @@
 #include <list>
 #include <sstream>
 
-#include "util/Target.h"
 #include "PeakRange.h"
 #include "Peak.h"
 #include "struct.h"
@@ -21,24 +20,6 @@ class PeakPtrs;
 class PeakSpacing
 {
   private:
-
-    struct NoneEntry
-    {
-      Target pe;
-
-      vector<Peak const *> peaksClose;
-      bool emptyFlag;
-
-      NoneEntry()
-      {
-        emptyFlag = true;
-      };
-
-      bool empty()
-      {
-        return emptyFlag;
-      };
-    };
 
     struct SpacingEntry
     {
@@ -122,16 +103,9 @@ class PeakSpacing
     bool looksEmptyFirst(const PeakPtrs& peakPtrsUsed) const;
 
     void update(
-      const NoneEntry& none,
-      PeakPtrs& peakPtrsUsed,
-      PeakPtrs& peakPtrsUnused) const;
-
-    void updateUnused(
-      const Target& target,
-      PeakPtrs& peakPtrsUnused) const;
-
-    void updateUsed(
-      const vector<Peak const *>& peaksClosest,
+      vector<Peak const *>& peaksClose,
+      const unsigned limitLower,
+      const unsigned limitUpper,
       PeakPtrs& peakPtrsUsed,
       PeakPtrs& peakPtrsUnused) const;
 
