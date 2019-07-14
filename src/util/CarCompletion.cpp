@@ -326,14 +326,6 @@ bool CarCompletion::partial() const
 }
 
 
-void CarCompletion::setData(const Target& target)
-{
-  target.limits(limitLower, limitUpper);
-  weight = target.getData().weight;
-  data.push_back(target.getData());
-}
-
-
 bool CarCompletion::operator < (const CarCompletion& comp2) const
 {
   // Sort first by count, then by model number, then by reverseFlag.

@@ -43,5 +43,4 @@ SOURCE_FILES    =               \
                 util/Completions.cpp    \
                 util/Gap.cpp            \
                 util/PeakCompletion.cpp \
-                util/Target.cpp         \
                 util/Timer.cpp

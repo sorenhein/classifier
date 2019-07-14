@@ -156,7 +156,6 @@ bool PeakPattern::addModelTargets(
   list<unsigned> carPoints;
   models.getCarPoints(indexModel, carPoints);
 
-  // Target target;
   TargetData tdata;
   bool seenFlag = false;
 
@@ -171,12 +170,9 @@ bool PeakPattern::addModelTargets(
 
     CarCompletion& comp = completions.emplace_back();
 
-    // if (target.fill(tdata, rangeData.indexLeft, rangeData.indexRight, 
-          // patternType, rangeType, carPoints))
     if (comp.fill(tdata, rangeData.indexLeft, rangeData.indexRight, 
           carPoints))
     {
-      // targets.emplace_back(target);
       seenFlag = true;
     }
   }
@@ -192,12 +188,9 @@ bool PeakPattern::addModelTargets(
 
     CarCompletion& comp = completions.emplace_back();
 
-    // if (target.fill(tdata, rangeData.indexLeft, rangeData.indexRight, 
-          // patternType, rangeType, carPoints))
     if (comp.fill(tdata, rangeData.indexLeft, rangeData.indexRight, 
           carPoints))
     {
-      // targets.emplace_back(target);
       seenFlag = true;
     }
   }
@@ -301,9 +294,6 @@ void PeakPattern::guessNoBorders(const CarModels& models)
   if (delta > carBeforePtr->getMidGap())
     return;
 
-  // targets.emplace_back(Target());
-  // Target& target = targets.back();
-
   const unsigned start = avgLeftLeft - delta/2;
   const unsigned end = (a1 - avgRightRight) / 2;
 
@@ -323,7 +313,6 @@ void PeakPattern::guessNoBorders(const CarModels& models)
   tdata.borders = BORDERS_NONE;
   tdata.range = RANGE_UNBOUNDED;
 
-  // target.fill(tdata, start, end, BORDERS_NONE, RANGE_UNBOUNDED, carPoints);
   CarCompletion& comp = completions.emplace_back();
   comp.fill(tdata, start, end, carPoints);
 }
@@ -367,8 +356,6 @@ void PeakPattern::guessBothSingleShort(const CarModels& models)
       rangeData.lenRange > lenShortHi)
     return;
 
-  // Target target;
-
   // Guess that particularly the middle part is shorter in a short car.
   list<unsigned> carPoints;
   carPoints.push_back(0);
@@ -386,14 +373,9 @@ void PeakPattern::guessBothSingleShort(const CarModels& models)
   tdata.borders = BORDERS_DOUBLE_SIDED_SINGLE_SHORT;
   tdata.range = RANGE_BOUNDED_BOTH;
 
-  // if (target.fill(tdata, rangeData.indexLeft, rangeData.indexRight,
-    // BORDERS_DOUBLE_SIDED_SINGLE_SHORT, RANGE_BOUNDED_BOTH, carPoints))
   CarCompletion& comp = completions.emplace_back();
-  if (comp.fill(tdata, rangeData.indexLeft, rangeData.indexRight,
-    carPoints))
-  {
-    // targets.emplace_back(target);
-  }
+  comp.fill(tdata, rangeData.indexLeft, rangeData.indexRight,
+    carPoints);
 }
 
 
@@ -707,37 +689,13 @@ void PeakPattern::update(
 
 void PeakPattern::targetsToCompletions(PeakPtrs& peakPtrsUsed)
 {
-  // completions.reset();
-
   vector<Peak *> peaksClose;
   unsigned numClose;
   unsigned dist;
 
-  /*
-  for (auto& target: targets)
-  {
-    peakPtrsUsed.getClosest(target.indices(), peaksClose, numClose, dist);
-
-    CarCompletion& carCompl = completions.emplace_back();
-    carCompl.setData(target);
-
-    const unsigned bogieTolerance = static_cast<unsigned>
-      (CAR_BOGIE_TOLERANCE * target.bogieGap());
-
-    for (unsigned i = 0; i < peaksClose.size(); i++)
-    {
-      if (peaksClose[i] == nullptr)
-        carCompl.addMiss(target.index(i), bogieTolerance);
-      else
-        carCompl.addMatch(target.index(i), peaksClose[i]);
-    }
-  }
-  */
-
   for (auto& comp: completions)
   {
     peakPtrsUsed.getClosest(comp.indices(), peaksClose, numClose, dist);
-
     comp.registerPeaks(peaksClose);
   }
 }
@@ -837,8 +795,6 @@ bool PeakPattern::fix(
   PeakPtrs& peakPtrsUsed,
   PeakPtrs& peakPtrsUnused)
 {
-  // if (targets.empty())
-    // return false;
   if (completions.empty())
     return false;
 
@@ -920,7 +876,6 @@ FindCarType PeakPattern::locate(
   PeakPattern::getActiveModels(models);
 
   // Make all the possible targets; don't stop as soon as one fits.
-  // targets.clear();
   completions.reset();
   for (auto& fgroup: patternMethods)
     (this->* fgroup.fptr)(models);
