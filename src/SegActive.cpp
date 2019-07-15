@@ -5,8 +5,8 @@
 #include <math.h>
 
 #include "SegActive.h"
-#include "Timers.h"
 #include "write.h"
+#include "util/Timers.h"
 
 #define SAMPLE_RATE 2000.f
 

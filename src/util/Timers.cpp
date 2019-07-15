@@ -26,14 +26,10 @@ void Timers::reset()
   
   names[TIMER_READ] = "Read";
   names[TIMER_TRANSIENT] = "Transient";
-  names[TIMER_ENDS] = "Front/back";
   names[TIMER_CONDITION] = "Condition";
   names[TIMER_DETECT_PEAKS] = "Detect peaks";
-  names[TIMER_PREALIGN] = "Pre-alignment";
   names[TIMER_ALIGN] = "Alignment";
   names[TIMER_REGRESS] = "Regression";
-  names[TIMER_DISPLACE_SIMPLE] = "Simple displacement";
-  names[TIMER_DISPLACE_COMPLEX] = "Complex displacement";
   names[TIMER_WRITE] = "Write";
 }
 

@@ -10,12 +10,12 @@
 #include "TraceDB.h"
 #include "Regress.h"
 #include "Align.h"
-#include "Timers.h"
 #include "CompStats.h"
 #include "PeakStats.h"
 #include "Except.h"
 #include "geometry.h"
 #include "print.h"
+#include "util/Timers.h"
 
 using namespace std;
 

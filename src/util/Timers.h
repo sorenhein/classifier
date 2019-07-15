@@ -9,7 +9,7 @@
 #include <vector>
 #include <string>
 
-#include "util/Timer.h"
+#include "Timer.h"
 
 using namespace std;
 
@@ -18,16 +18,12 @@ enum TimerName
 {
   TIMER_READ = 0,
   TIMER_TRANSIENT = 1,
-  TIMER_ENDS = 2,
-  TIMER_CONDITION = 3,
-  TIMER_DETECT_PEAKS = 4,
-  TIMER_PREALIGN = 5,
-  TIMER_ALIGN = 6,
-  TIMER_REGRESS = 7,
-  TIMER_DISPLACE_SIMPLE = 8,
-  TIMER_DISPLACE_COMPLEX = 9,
-  TIMER_WRITE = 10,
-  TIMER_SIZE = 11
+  TIMER_CONDITION = 2,
+  TIMER_DETECT_PEAKS = 3,
+  TIMER_ALIGN = 4,
+  TIMER_REGRESS = 5,
+  TIMER_WRITE = 6,
+  TIMER_SIZE = 7
 };
 
 

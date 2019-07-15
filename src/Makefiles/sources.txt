@@ -20,7 +20,6 @@ SOURCE_FILES    =               \
                 PeakPtrs.cpp    \
                 PeakRange.cpp   \
                 PeakSeeds.cpp   \
-                PeakSlots.cpp   \
                 PeakSpacing.cpp \
                 PeakStats.cpp   \
                 PeakStructure.cpp \
@@ -28,7 +27,6 @@ SOURCE_FILES    =               \
                 SegActive.cpp   \
                 SegQuiet.cpp    \
                 SegTransient.cpp \
-                Timers.cpp      \
                 Trace.cpp       \
                 TraceDB.cpp     \
                 args.cpp        \
@@ -42,5 +40,6 @@ SOURCE_FILES    =               \
                 completions/Completion.cpp  \
                 completions/Completions.cpp    \
                 completions/PeakCompletion.cpp \
-                util/Gap.cpp            \
-                util/Timer.cpp
+                util/Gap.cpp    \
+                util/Timer.cpp  \
+                util/Timers.cpp

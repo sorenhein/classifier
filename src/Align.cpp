@@ -8,9 +8,9 @@
 
 #include "Align.h"
 #include "Database.h"
-#include "Timers.h"
 #include "print.h"
 #include "regress/PolynomialRegression.h"
+#include "util/Timers.h"
 
 // Can adjust these.
 

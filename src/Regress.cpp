@@ -7,10 +7,10 @@
 
 #include "Regress.h"
 #include "Database.h"
-#include "Timers.h"
 #include "Except.h"
 #include "print.h"
 #include "regress/PolynomialRegression.h"
+#include "util/Timers.h"
 
 #define GOOD_RESIDUAL_LIMIT 50.0f
 

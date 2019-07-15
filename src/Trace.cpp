@@ -5,8 +5,8 @@
 #include <sstream>
 
 #include "Trace.h"
-#include "Timers.h"
 #include "read.h"
+#include "util/Timers.h"
 
 extern Timers timers;
 
@@ -129,9 +129,7 @@ void Trace::detect(
   runs.clear();
   Trace::calcRuns();
   transientFlag = transient.detect(samples, runs);
-  timers.stop(TIMER_TRANSIENT);
 
-  timers.start(TIMER_ENDS);
   Interval intAfterTransient;
   intAfterTransient.first = transient.lastSampleNo();
   intAfterTransient.len = samples.size() - intAfterTransient.first;
@@ -143,7 +141,7 @@ void Trace::detect(
   Interval intAfterFront;
   (void) quietFront.detect(samples, intAfterBack, 
     QUIET_FRONT, intAfterFront);
-  timers.stop(TIMER_ENDS);
+  timers.stop(TIMER_TRANSIENT);
 
   if (control.verboseTransientMatch)
     cout << transient.str() << "\n";
