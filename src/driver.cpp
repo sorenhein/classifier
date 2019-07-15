@@ -5,6 +5,7 @@
 
 #include "args.h"
 #include "read.h"
+#include "misc.h"
 #include "Trace.h"
 #include "Database.h"
 #include "TraceDB.h"

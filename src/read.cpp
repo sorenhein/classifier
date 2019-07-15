@@ -5,26 +5,10 @@
 #include <set>
 #include <algorithm>
 
-#pragma warning(push)
-#pragma warning(disable: 4365 4571 4625 4626 4774 5026 5027)
-#if defined(__CYGWIN__)
-  #include "dirent/dirent.h"
-#elif defined(_WIN32)
-  #ifndef NOMINMAX
-    #define NOMINMAX
-  #endif
-  #include "dirent/dirent.h"
-  #include <windows.h>
-  #include "Shlwapi.h"
-#else
-  #include <dirent.h>
-#endif
-#pragma warning(pop)
-
-
 #include "Database.h"
 #include "TraceDB.h"
 #include "read.h"
+#include "misc.h"
 
 #define UNUSED(x) ((void)(true ? 0 : ((x), void(), 0)))
 
@@ -33,33 +17,16 @@ void resetCar(CarEntry& c);
 
 void resetTrain(TrainEntry& t);
 
-void readCountries(
-  const string& text,
-  vector<string>& countries);
-
 bool readOrder(
   const Database& db,
   const string& text,
   vector<int>& carNumbers,
   const string& err);
 
-void readUsage(
-  const string& text,
-  vector<string>& value);
-
-bool readBool(
-  const string& text,
-  bool& value,
-  const string& err);
-
 bool readLevel(
   const string& text,
   TrainLevel& value,
   const string& err);
-
-void toUpper(string& text);
-
-FileFormat ext2format(const string& text);
 
 bool fillInEquation(
   int &lhs,
@@ -90,90 +57,6 @@ void readTrainFile(
   Database& db,
   const string& fname,
   const map<string, vector<int>>& corrections);
-
-
-// tokenize splits a string into tokens separated by delimiter.
-// http://stackoverflow.com/questions/236129/split-a-string-in-c
-
-void tokenize(
-  const string& text,
-  vector<string>& tokens,
-  const string& delimiters)
-{
-  string::size_type pos, lastPos = 0;
-
-  while (true)
-  {
-    pos = text.find_first_of(delimiters, lastPos);
-    if (pos == std::string::npos)
-    {
-      pos = text.length();
-      tokens.push_back(string(text.data()+lastPos,
-        static_cast<string::size_type>(pos - lastPos)));
-      break;
-    }
-    else
-    {
-      tokens.push_back(string(text.data()+lastPos,
-        static_cast<string::size_type>(pos - lastPos)));
-    }
-    lastPos = pos + 1;
-  }
-}
-
-
-unsigned countDelimiters(
-  const string& text,
-  const string& delimiters)
-{
-  int c = 0;
-  for (unsigned i = 0; i < delimiters.length(); i++)
-    c += static_cast<int>
-      (count(text.begin(), text.end(), delimiters.at(i)));
-  return static_cast<unsigned>(c);
-}
-
-
-void getFilenames(
-  const string& dirName,
-  vector<string>& textfiles,
-  const string& terminateMatch)
-{
-  DIR *dir;
-  dirent *ent;
-
-  if ((dir = opendir(dirName.c_str())) == nullptr)
-  {
-    cout << "Bad directory " << dirName << endl;
-    return;
-  }
-
-  while ((ent = readdir(dir)) != nullptr)
-  {
-    if (ent->d_type == DT_REG)
-    {
-      // Only files ending on .txt or .dat
-      const string name = string(ent->d_name);
-      const auto p = name.find_last_of('.');
-      if (p == string::npos || p == name.size()-1)
-        continue;
-      const string ext = name.substr(p+1);
-      const FileFormat f = ext2format(ext);
-      if (f != FILE_TXT && f != FILE_DAT)
-        continue;
-
-      if (terminateMatch == "")
-        textfiles.push_back(dirName + "/" + string(ent->d_name));
-      else if (name.find(terminateMatch) != string::npos)
-      {
-        textfiles.push_back(dirName + "/" + string(ent->d_name));
-        break;
-      }
-    }
-  }
-
-  closedir(dir);
-}
 
 
 void resetCar(CarEntry& c)
@@ -218,17 +101,6 @@ void resetTrain(TrainEntry& t)
 
 
 
-void readCountries(
-  const string& text,
-  vector<string>& countries)
-{
-  const size_t c = countDelimiters(text, ",");
-  countries.resize(c+1);
-  countries.clear();
-  tokenize(text, countries, ",");
-}
-
-
 bool readOrder(
   const Database& db,
   const string& text,
@@ -255,7 +127,7 @@ bool readOrder(
 
       string bracketed = s.substr(pos+1);
       bracketed.pop_back();
-      if (! readInt(bracketed, count, err))
+      if (! parseInt(bracketed, count, err))
         return false;
       
       s = s.substr(0, pos);
@@ -287,110 +159,6 @@ bool readOrder(
 }
 
 
-void readUsage(
-  const string& text,
-  vector<string>& value)
-{
-  const size_t c = countDelimiters(text, ",");
-  value.resize(c+1);
-  value.clear();
-  tokenize(text, value, ",");
-}
-
-
-bool readInt(
-  const string& text,
-  int& value,
-  const string& err)
-{
-  if (text == "")
-    return false;
-
-  int i;
-  size_t pos;
-  try
-  {
-    i = stoi(text, &pos);
-    if (pos != text.size())
-    {
-      cout << err << endl;
-      return false;
-    }
-  }
-  catch (const invalid_argument& ia)
-  {
-    UNUSED(ia);
-    cout << err << endl;
-    return false;
-  }
-  catch (const out_of_range& ia)
-  {
-    UNUSED(ia);
-    cout << err << endl;
-    return false;
-  }
-
-  value = i;
-  return true;
-}
-
-
-bool readDouble(
-  const string& text,
-  double& value,
-  const string& err)
-{
-  if (text == "")
-    return false;
-
-  double f;
-  size_t pos;
-  try
-  {
-    f = stod(text, &pos);
-    if (pos != text.size())
-    {
-      cout << err << endl;
-      return false;
-    }
-  }
-  catch (const invalid_argument& ia)
-  {
-    UNUSED(ia);
-    cout << err << endl;
-    return false;
-  }
-  catch (const out_of_range& ia)
-  {
-    UNUSED(ia);
-    cout << err << endl;
-    return false;
-  }
-
-  value = f;
-  return true;
-}
-
-
-bool readBool(
-  const string& text,
-  bool& value,
-  const string& err)
-{
-  if (text == "yes")
-    value = true;
-  else if (text == "no")
-    value = false;
-  else
-  {
-    cout << err << endl;
-    return false;
-  }
-
-  return true;
-}
-
-
 bool readLevel(
   const string& text,
   TrainLevel& level,
@@ -409,29 +177,6 @@ bool readLevel(
   }
 
   return true;
-}
-
-
-void toUpper(string& text)
-{
-  for (unsigned i = 0; i < text.size(); i++)
-    text.at(i) = static_cast<char>(toupper(static_cast<int>(text.at(i))));
-}
-
-
-FileFormat ext2format(const string& text)
-{
-  string st = text;
-  toUpper(st);
-
-  if (st == "TXT")
-    return FILE_TXT;
-  else if (st == "CSV")
-    return FILE_CSV;
-  else if (st == "DAT")
-    return FILE_DAT;
-  else
-    return FILE_SIZE;
 }
 
 
@@ -623,20 +368,20 @@ void readCarFile(
     else if (field == "NAME")
       c.name = rest;
     else if (field == "USAGE")
-      readUsage(rest, c.usage);
+      parseCommaString(rest, c.usage);
     else if (field == "COUNTRIES")
-      readCountries(rest, c.countries);
+      parseCommaString(rest, c.countries);
     else if (field == "INTRODUCTION")
     {
-      if (! readInt(rest, c.introduction, err)) break;
+      if (! parseInt(rest, c.introduction, err)) break;
     }
     else if (field == "POWER")
     {
-      if (! readBool(rest, c.powerFlag, err)) break;
+      if (! parseBool(rest, c.powerFlag, err)) break;
     }
     else if (field == "CAPACITY")
     {
-      if (! readInt(rest, c.capacity, err)) break;
+      if (! parseInt(rest, c.capacity, err)) break;
     }
     else if (field == "CLASS")
     {
@@ -644,71 +389,71 @@ void readCarFile(
     }
     else if (field == "RESTAURANT")
     {
-      if (! readBool(rest, c.restaurantFlag, err)) break;
+      if (! parseBool(rest, c.restaurantFlag, err)) break;
     }
     else if (field == "WEIGHT")
     {
-      if (! readInt(rest, c.weight, err)) break;
+      if (! parseInt(rest, c.weight, err)) break;
     }
     else if (field == "WHEEL_LOAD")
     {
-      if (! readInt(rest, c.wheelLoad, err)) break;
+      if (! parseInt(rest, c.wheelLoad, err)) break;
     }
     else if (field == "SPEED")
     {
-      if (! readInt(rest, c.speed, err)) break;
+      if (! parseInt(rest, c.speed, err)) break;
     }
     else if (field == "CONFIGURATION")
       c.configurationUIC = rest;
     else if (field == "LENGTH")
     {
-      if (! readInt(rest, c.length, err)) break;
+      if (! parseInt(rest, c.length, err)) break;
     }
     else if (field == "SYMMETRY")
     {
-      if (! readBool(rest, c.symmetryFlag, err)) break;
+      if (! parseBool(rest, c.symmetryFlag, err)) break;
     }
     else if (field == "LENGTH")
     {
-      if (! readInt(rest, c.length, err)) break;
+      if (! parseInt(rest, c.length, err)) break;
     }
     else if (field == "DIST_WHEELS")
     {
-      if (! readInt(rest, c.distWheels, err)) break;
+      if (! parseInt(rest, c.distWheels, err)) break;
       c.distWheels1 = c.distWheels;
       c.distWheels2 = c.distWheels;
     }
     else if (field == "DIST_WHEELS1")
     {
-      if (! readInt(rest, c.distWheels1, err)) break;
+      if (! parseInt(rest, c.distWheels1, err)) break;
     }
     else if (field == "DIST_WHEELS2")
     {
-      if (! readInt(rest, c.distWheels2, err)) break;
+      if (! parseInt(rest, c.distWheels2, err)) break;
     }
     else if (field == "DIST_MIDDLES")
     {
-      if (! readInt(rest, c.distMiddles, err)) break;
+      if (! parseInt(rest, c.distMiddles, err)) break;
     }
     else if (field == "DIST_PAIR")
     {
-      if (! readInt(rest, c.distPair, err)) break;
+      if (! parseInt(rest, c.distPair, err)) break;
     }
     else if (field == "DIST_FRONT_TO_WHEEL")
     {
-      if (! readInt(rest, c.distFrontToWheel, err)) break;
+      if (! parseInt(rest, c.distFrontToWheel, err)) break;
     }
     else if (field == "DIST_WHEEL_TO_BACK")
     {
-      if (! readInt(rest, c.distWheelToBack, err)) break;
+      if (! parseInt(rest, c.distWheelToBack, err)) break;
     }
     else if (field == "DIST_FRONT_TO_MID1")
     {
-      if (! readInt(rest, c.distFrontToMid1, err)) break;
+      if (! parseInt(rest, c.distFrontToMid1, err)) break;
     }
     else if (field == "DIST_BACK_TO_MID2")
     {
-      if (! readInt(rest, c.distBackToMid2, err)) break;
+      if (! parseInt(rest, c.distBackToMid2, err)) break;
     }
     else if (field == "COMMENT")
     {
@@ -867,37 +612,37 @@ bool readControlFile(
       c.country = rest;
     else if (field == "YEAR")
     {
-      if ( ! readInt(rest, c.year, err)) break;
+      if ( ! parseInt(rest, c.year, err)) break;
     }
     else if (field == "TRACE_DIRECTORY")
       c.traceDir = rest;
     else if (field == "SIM_COUNT")
     {
-      if ( ! readInt(rest, c.simCount, err)) break;
+      if ( ! parseInt(rest, c.simCount, err)) break;
     }
     else if (field == "SPEED_MIN")
     {
-      if ( ! readDouble(rest, c.speedMin, err)) break;
+      if ( ! parseDouble(rest, c.speedMin, err)) break;
     }
     else if (field == "SPEED_MAX")
     {
-      if ( ! readDouble(rest, c.speedMax, err)) break;
+      if ( ! parseDouble(rest, c.speedMax, err)) break;
     }
     else if (field == "SPEED_STEP")
     {
-      if ( ! readDouble(rest, c.speedStep, err)) break;
+      if ( ! parseDouble(rest, c.speedStep, err)) break;
     }
     else if (field == "ACCELERATION_MIN")
     {
-      if ( ! readDouble(rest, c.accelMin, err)) break;
+      if ( ! parseDouble(rest, c.accelMin, err)) break;
     }
     else if (field == "ACCELERATION_MAX")
     {
-      if ( ! readDouble(rest, c.accelMax, err)) break;
+      if ( ! parseDouble(rest, c.accelMax, err)) break;
     }
     else if (field == "ACCELERATION_STEP")
     {
-      if ( ! readDouble(rest, c.accelStep, err)) break;
+      if ( ! parseDouble(rest, c.accelStep, err)) break;
     }
     else if (field == "CROSSCOUNT_FILE")
       c.crossCountFile = rest;
@@ -958,7 +703,7 @@ void readCorrectionFile(
     if (line.empty())
       break;
 
-    if (! readInt(line, value, "Bad integer"))
+    if (! parseInt(line, value, "Bad integer"))
       break;
 
     corrections[officialName].push_back(value);
@@ -1021,17 +766,17 @@ void readTrainFile(
       t.name = rest;
     else if (field == "INTRODUCTION")
     {
-      if ( ! readInt(rest, t.introduction, err)) break;
+      if ( ! parseInt(rest, t.introduction, err)) break;
     }
     else if (field == "RETIREMENT")
     {
-      if ( ! readInt(rest, t.retirement, err)) break;
+      if ( ! parseInt(rest, t.retirement, err)) break;
     }
     else if (field == "COUNTRIES")
-      readCountries(rest, t.countries);
+      parseCommaString(rest, t.countries);
     else if (field == "SYMMETRY")
     {
-      if (! readBool(rest, t.symmetryFlag, err)) break;
+      if (! parseBool(rest, t.symmetryFlag, err)) break;
     }
     else if (field == "ORDER")
     {
@@ -1154,19 +899,19 @@ bool readTraceTruth(
     truth.filename = v[0];
     truth.trainName = v[2];
 
-    if (! readInt(v[3], truth.numAxles, err))
+    if (! parseInt(v[3], truth.numAxles, err))
     {
       fin.close();
       return false;
     }
 
-    if (! readDouble(v[4], truth.speed, err))
+    if (! parseDouble(v[4], truth.speed, err))
     {
       fin.close();
       return false;
     }
 
-    if (! readDouble(v[5], truth.accel, err))
+    if (! parseDouble(v[5], truth.accel, err))
     {
       fin.close();
       return false;
@@ -1219,7 +964,7 @@ bool readInputFile(
     v.clear();
     tokenize(line, v, ",");
 
-    if (! readInt(v[0], number, err))
+    if (! parseInt(v[0], number, err))
     {
       fin.close();
       return false;;
@@ -1236,21 +981,21 @@ bool readInputFile(
       entryp->date = v[2];
       entryp->time = v[3];
 
-      if (! readInt(v[4], offset, err))
+      if (! parseInt(v[4], offset, err))
       {
         fin.close();
         return false;;
       }
     }
 
-    if (! readInt(v[4], i, err))
+    if (! parseInt(v[4], i, err))
     {
       fin.close();
       return false;;
     }
     peak.time = (i - offset) / SAMPLE_RATE;
 
-    if (! readDouble(v[5], peak.value, err))
+    if (! parseDouble(v[5], peak.value, err))
     {
       fin.close();
       return false;;
@@ -1261,57 +1006,5 @@ bool readInputFile(
 
   fin.close();
   return true;
-}
-
-
-bool readTextTrace(
-  const string& filename,
-  vector<double>& samples)
-{
-  ifstream fin;
-  fin.open(filename);
-  string line;
-  double v;
-  while (getline(fin, line))
-  {
-    line.erase(remove(line.begin(), line.end(), '\r'), line.end());
-    if (line == "" || line.front() == '#')
-      continue;
-
-    // The format seems to have a trailing comma.
-    if (line.back() == ',')
-      line.pop_back();
-
-    const string err = "File " + filename +
-      ": Bad line '" + line + "'";
-    if (! readDouble(line, v, err))
-    {
-      fin.close();
-      return false;
-    }
-    samples.push_back(v);
-  }
-
-  fin.close();
-  return true;
-}
-
-
-bool readBinaryTrace(
-  const string& filename,
-  vector<float>& samples)
-{
-  ifstream fin(filename, std::ios::binary);
-  fin.unsetf(std::ios::skipws);
-  fin.seekg(0, std::ios::end);
-  const unsigned filesize = static_cast<unsigned>(fin.tellg());
-  fin.seekg(0, std::ios::beg);
-  samples.resize(filesize/4);
-
-  fin.read(reinterpret_cast<char *>(samples.data()),
-    static_cast<long int>(samples.size() * sizeof(float)));
-  fin.close();
-  return true;
-
 }
 

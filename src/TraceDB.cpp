@@ -8,6 +8,7 @@
 #include "Align.h"
 #include "Except.h"
 #include "read.h"
+#include "misc.h"
 #include "struct.h"
 
 #define SEPARATOR ";"
