@@ -2,39 +2,18 @@
 #include <iomanip>
 #include <fstream>
 #include <sstream>
-#include <algorithm>
-
 #include <filesystem>
 
-/* */
-#pragma warning(push)
-#pragma warning(disable: 4365 4571 4625 4626 4774 5026 5027)
-#if defined(__CYGWIN__)
-  #include "dirent/dirent.h"
-#elif defined(_WIN32)
-  #ifndef NOMINMAX
-    #define NOMINMAX
-  #endif
-  #include "dirent/dirent.h"
-  #include <windows.h>
-  #include "Shlwapi.h"
-#else
-  #include <dirent.h>
-#endif
-#pragma warning(pop)
-/* */
-
+#include "misc.h"
 
 #define UNUSED(x) ((void)(true ? 0 : ((x), void(), 0)))
 
-#include "misc.h"
 
 void getFilenames(
   const string& dirName,
   vector<string>& textfiles,
   const string& terminateMatch)
 {
-  /*
   if (! std::filesystem::exists(dirName))
   {
     cout << "Bad directory " << dirName << endl;
@@ -44,22 +23,14 @@ void getFilenames(
   for (const auto& entry: std::filesystem::directory_iterator(dirName))
   {
     const auto& path = entry.path();
-    string name = path.string();
 
-    while (true)
-    {
-      unsigned i = name.find("\\");
-      if (i == string::npos)
-        break;
-      else
-        name.replace(i, 2, "/");
-    }
+    string name = path.string();
+    replace(name.begin(), name.end(), '\\', '/');
 
     string ext = path.extension().string();
     toUpper(ext);
     if (ext != ".TXT" && ext != ".DAT")
       continue;
-// cout << "name " << name << ", " << ext << endl;
 
     if (terminateMatch == "")
       textfiles.push_back(name);
@@ -69,49 +40,6 @@ void getFilenames(
       break;
     }
   }
-
-  for (auto& s: textfiles)
-    cout << "file " << s << endl;
-  */
-
-  /* */
-  DIR *dir;
-  dirent *ent;
-
-  if ((dir = opendir(dirName.c_str())) == nullptr)
-  {
-    cout << "Bad directory " << dirName << endl;
-    return;
-  }
-
-  while ((ent = readdir(dir)) != nullptr)
-  {
-    if (ent->d_type == DT_REG)
-    {
-      // Only files ending on .txt or .dat
-      const string name = string(ent->d_name);
-      const auto p = name.find_last_of('.');
-      if (p == string::npos || p == name.size()-1)
-        continue;
-
-      string ext = name.substr(p+1);
-      toUpper(ext);
-      if (ext != "TXT" && ext != "DAT")
-        continue;
-
-      if (terminateMatch == "")
-        textfiles.push_back(dirName + "/" + string(ent->d_name));
-      else if (name.find(terminateMatch) != string::npos)
-      {
-        textfiles.push_back(dirName + "/" + string(ent->d_name));
-        break;
-      }
-    }
-  }
-  closedir(dir);
-  /* */
-  for (auto& s: textfiles)
-    cout << "file " << s << endl;
 }
 
 

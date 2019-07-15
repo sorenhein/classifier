@@ -6,7 +6,8 @@
 
 #include "Trace.h"
 #include "read.h"
-#include "misc.h"
+
+#include "util/misc.h"
 #include "util/Timers.h"
 
 extern Timers timers;

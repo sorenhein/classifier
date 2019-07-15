@@ -5,8 +5,9 @@
 #include "Completion.h"
 
 #include "../Peak.h"
-#include "../misc.h"
 #include "../const.h"
+
+#include "../util/misc.h"
 
 #define UNUSED(x) ((void)(true ? 0 : ((x), void(), 0)))
 

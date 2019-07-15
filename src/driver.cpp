@@ -5,7 +5,6 @@
 
 #include "args.h"
 #include "read.h"
-#include "misc.h"
 #include "Trace.h"
 #include "Database.h"
 #include "TraceDB.h"
@@ -16,7 +15,9 @@
 #include "Except.h"
 #include "geometry.h"
 #include "print.h"
+
 #include "util/Timers.h"
+#include "util/misc.h"
 
 using namespace std;
 

@@ -8,7 +8,8 @@
 #include "Database.h"
 #include "TraceDB.h"
 #include "read.h"
-#include "misc.h"
+
+#include "util/misc.h"
 
 #define UNUSED(x) ((void)(true ? 0 : ((x), void(), 0)))
 

@@ -31,7 +31,6 @@ SOURCE_FILES    =               \
                 TraceDB.cpp     \
                 args.cpp        \
                 geometry.cpp    \
-                misc.cpp        \
                 print.cpp       \
                 read.cpp        \
                 write.cpp       \
@@ -40,6 +39,7 @@ SOURCE_FILES    =               \
                 completions/Completion.cpp  \
                 completions/Completions.cpp    \
                 completions/PeakCompletion.cpp \
+                util/misc.cpp   \
                 util/Gap.cpp    \
                 util/Timer.cpp  \
                 util/Timers.cpp
