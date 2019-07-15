@@ -83,13 +83,6 @@ struct TrainData
   double accel;
 };
 
-struct SensorData
-{
-  string name;
-  string country;
-  string type;
-};
-
 struct PeakPos
 {
   double pos; // In m

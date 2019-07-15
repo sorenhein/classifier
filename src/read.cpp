@@ -1084,7 +1084,6 @@ void readSensorFile(
   fin.open(fname);
   string line;
   vector<string> v;
-  SensorData sdata;
 
   while (getline(fin, line))
   {
@@ -1105,11 +1104,7 @@ void readSensorFile(
     v.clear();
     tokenize(line, v, ",");
 
-    sdata.name = v[0];
-    sdata.country = v[1];
-    sdata.type = v[2];
-
-    if (! db.logSensor(sdata))
+    if (! db.logSensor(v[0], v[1], v[2]))
     {
       cout << err << endl;
       fin.close();

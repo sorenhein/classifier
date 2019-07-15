@@ -1,11 +1,5 @@
-#include <iostream>
-#include <iomanip>
-#include <sstream>
-#include <algorithm>
-
 #include "Database.h"
 #include "read.h"
-#include "struct.h"
 
 
 Database::Database()
@@ -29,11 +23,69 @@ Database::~Database()
 }
 
 
+void Database::logCar(const CarEntry& car)
+{
+  offCarMap[car.officialName] = carEntries.size();
+  carEntries.push_back(car);
+}
+
+
+void Database::logTrain(const TrainEntry& train)
+{
+  const string officialName = train.officialName;
+
+  // Normal direction.
+  trainEntries.push_back(train);
+  TrainEntry& t = trainEntries.back();
+  t.officialName = officialName + "_N";
+  t.reverseFlag = false;
+  offTrainMap[t.officialName] = trainEntries.size()-1;
+
+  if (! train.symmetryFlag)
+  {
+    // Reversed as well.
+    TrainEntry tr = train;
+
+    const int aLast = tr.axles.back();
+    const unsigned l = tr.axles.size();
+    const vector<int> axles = tr.axles;
+    for (unsigned i = 0; i < l; i++)
+      tr.axles[i] = aLast - axles[l-i-1];
+
+    tr.officialName = officialName + "_R";
+    tr.reverseFlag = true;
+    trainEntries.push_back(tr);
+    offTrainMap[tr.officialName] = trainEntries.size()-1;
+  }
+}
+
+
+bool Database::logSensor(
+  const string& name,
+  const string& country,
+  const string& stype)
+{
+  auto it = sensors.find(name);
+  if (it != sensors.end())
+  {
+    cout << "Sensor " << name << " already logged\n";
+    return false;
+  }
+
+  DatabaseSensor& sensor = sensors[name];
+  sensor.country = country;
+  sensor.type = stype;
+  return true;
+}
+
+
 bool Database::select(
   const string& countries,
   const unsigned minAxles,
   const unsigned maxAxles)
 {
+  // Used in preparation for looping using begin() and end().
+
   selectedTrains.clear();
 
   // Make a map of country strings
@@ -61,74 +113,15 @@ bool Database::select(
     selectedTrains.push_back(train.officialName);
   }
 
-  return (selectedTrains.size() > 0);
-}
-
-
-void Database::logCar(const CarEntry& car)
-{
-  offCarMap[car.officialName] = carEntries.size();
-  carEntries.push_back(car);
-}
-
-
-void Database::logTrain(const TrainEntry& train)
-{
-  const string officialName = train.officialName;
-
-  if (train.symmetryFlag)
-  {
-    // One direction only.
-    trainEntries.push_back(train);
-    TrainEntry& t = trainEntries.back();
-    t.officialName = officialName + "_N";
-    t.reverseFlag = false;
-    offTrainMap[t.officialName] = trainEntries.size()-1;
-  }
-  else
-  {
-    // Normal.
-    trainEntries.push_back(train);
-    TrainEntry& t = trainEntries.back();
-    t.officialName = officialName + "_N";
-    t.reverseFlag = false;
-    offTrainMap[t.officialName] = trainEntries.size()-1;
-
-    // Reversed.
-    TrainEntry tr = train;
-
-    const int aLast = tr.axles.back();
-    const unsigned l = tr.axles.size();
-    const vector<int> axles = tr.axles;
-    for (unsigned i = 0; i < l; i++)
-      tr.axles[i] = aLast - axles[l-i-1];
-
-    tr.officialName = officialName + "_R";
-    tr.reverseFlag = true;
-    trainEntries.push_back(tr);
-    offTrainMap[tr.officialName] = trainEntries.size()-1;
-  }
-}
-
-
-bool Database::logSensor(const SensorData& sdata)
-{
-  auto it = sensors.find(sdata.name);
-  if (it != sensors.end())
-  {
-    cout << "Sensor " << sdata.name << " already logged\n";
-    return false;
-  }
-
-  DatabaseSensor& sensor = sensors[sdata.name];
-  sensor.country = sdata.country;
-  sensor.type = sdata.type;
-  return true;
+  return (! selectedTrains.empty());
 }
 
 
 unsigned Database::axleCount(const unsigned trainNo) const
 {
+  if (trainNo >= trainEntries.size())
+    return 0;
+
   return trainEntries[trainNo].axles.size();
 }
 
@@ -138,7 +131,10 @@ bool Database::getPerfectPeaks(
   vector<PeakPos>& peaks) const // In m
 {
   const int trainNo = Database::lookupTrainNumber(trainName);
-  return Database::getPerfectPeaks(static_cast<unsigned>(trainNo), peaks);
+  if (trainNo == -1)
+    return false;
+  else
+    return Database::getPerfectPeaks(static_cast<unsigned>(trainNo), peaks);
 }
 
 
@@ -166,10 +162,7 @@ bool Database::getPerfectPeaks(
 const CarEntry * Database::lookupCar(const int carNo) const
 {
   if (carNo <= 0 || carNo >= static_cast<int>(carEntries.size()))
-  {
-    cout << "Bad car number" << endl;
     return nullptr;
-  }
   else
     return &carEntries[static_cast<unsigned>(carNo)];
 }
@@ -208,20 +201,9 @@ string Database::lookupSensorCountry(const string& sensor) const
 {
   auto it = sensors.find(sensor);
   if (it == sensors.end())
-    return "";
+    return "Bad sensor name";
   else
     return it->second.country;
-}
-
-
-string Database::lookupTrainCountry(const unsigned trainNo) const
-{
-  // TODO: Just pick the first one for now.  The simulation loop
-  // should probably consider all trains in all countries.
-  if (trainNo >= trainEntries.size())
-    return "Bad index";
-  else
-    return trainEntries[trainNo].countries[0];
 }
 
 
@@ -241,37 +223,11 @@ bool Database::trainIsInCountry(
 }
 
 
-bool Database::trainsShareCountry(
-  const unsigned trainNo1,
-  const unsigned trainNo2) const
-{
-  const TrainEntry& t1 = trainEntries[trainNo1];
-  const TrainEntry& t2 = trainEntries[trainNo2];
-
-  for (auto& c1: t1.countries)
-  {
-    for (auto& c2: t2.countries)
-    {
-      if (c1 == c2)
-        return true;
-    }
-  }
-  return false;
-}
-
-
 bool Database::trainIsReversed(const unsigned trainNo) const
 {
+  if (trainNo >= trainEntries.size())
+    return false;
+
   return trainEntries[trainNo].reverseFlag;
-}
-
-
-void Database::printAxlesCSV(const TrainEntry& t) const
-{
-  cout << t.officialName << ";";
-  for (auto it: t.axles)
-    cout << fixed << setprecision(3) << it << ";";
-
-  cout << endl;
 }
 

@@ -67,14 +67,6 @@ struct TrainEntry
   bool fourWheelFlag; // Some cars "share" axles, look like 3-wheelers
 };
 
-struct DatabaseCar
-{
-  double shortGap;
-  double longGap;
-  int count;
-  int countInternal;
-};
-
 struct DatabaseSensor
 {
   string country;
@@ -98,8 +90,6 @@ class Database
 
    map<string, unsigned> offTrainMap;
 
-   void printAxlesCSV(const TrainEntry& t) const;
-
 
   public:
 
@@ -111,7 +101,10 @@ class Database
 
     void logTrain(const TrainEntry& train);
 
-    bool logSensor(const SensorData& sdata);
+    bool logSensor(
+      const string& name,
+      const string& country,
+      const string& stype);
 
     bool select(
       const string& countries,
@@ -126,11 +119,11 @@ class Database
 
     bool getPerfectPeaks(
       const string& trainName,
-      vector<PeakPos>& peaks) const; // In mm
+      vector<PeakPos>& peaks) const; // In m
 
     bool getPerfectPeaks(
       const unsigned trainNo,
-      vector<PeakPos>& peaks) const; // In mm
+      vector<PeakPos>& peaks) const; // In m
 
     const CarEntry * lookupCar(const int carNo) const;
 
@@ -142,18 +135,11 @@ class Database
 
     string lookupSensorCountry(const string& sensor) const;
 
-    string lookupTrainCountry(const unsigned trainNo) const;
-
     bool trainIsInCountry(
       const unsigned trainNo,
       const string& country) const;
 
-    bool trainsShareCountry(
-      const unsigned trainNo1,
-      const unsigned trainNo2) const;
-
     bool trainIsReversed(const unsigned trainNo) const;
-
 };
 
 #endif
