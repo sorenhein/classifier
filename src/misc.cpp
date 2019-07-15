@@ -4,7 +4,9 @@
 #include <sstream>
 #include <algorithm>
 
+#include <filesystem>
 
+/* */
 #pragma warning(push)
 #pragma warning(disable: 4365 4571 4625 4626 4774 5026 5027)
 #if defined(__CYGWIN__)
@@ -20,6 +22,7 @@
   #include <dirent.h>
 #endif
 #pragma warning(pop)
+/* */
 
 
 #define UNUSED(x) ((void)(true ? 0 : ((x), void(), 0)))
@@ -31,6 +34,47 @@ void getFilenames(
   vector<string>& textfiles,
   const string& terminateMatch)
 {
+  /*
+  if (! std::filesystem::exists(dirName))
+  {
+    cout << "Bad directory " << dirName << endl;
+    return;
+  }
+
+  for (const auto& entry: std::filesystem::directory_iterator(dirName))
+  {
+    const auto& path = entry.path();
+    string name = path.string();
+
+    while (true)
+    {
+      unsigned i = name.find("\\");
+      if (i == string::npos)
+        break;
+      else
+        name.replace(i, 2, "/");
+    }
+
+    string ext = path.extension().string();
+    toUpper(ext);
+    if (ext != ".TXT" && ext != ".DAT")
+      continue;
+// cout << "name " << name << ", " << ext << endl;
+
+    if (terminateMatch == "")
+      textfiles.push_back(name);
+    else if (name.find(terminateMatch) != string::npos)
+    {
+      textfiles.push_back(name);
+      break;
+    }
+  }
+
+  for (auto& s: textfiles)
+    cout << "file " << s << endl;
+  */
+
+  /* */
   DIR *dir;
   dirent *ent;
 
@@ -65,6 +109,9 @@ void getFilenames(
     }
   }
   closedir(dir);
+  /* */
+  for (auto& s: textfiles)
+    cout << "file " << s << endl;
 }
 
 
