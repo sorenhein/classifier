@@ -1,3 +1,7 @@
+/*
+    A collection of information about trains and cars that we'll classify.
+ */
+
 #ifndef TRAIN_DATABASE_H
 #define TRAIN_DATABASE_H
 
@@ -67,16 +71,17 @@ struct TrainEntry
   bool fourWheelFlag; // Some cars "share" axles, look like 3-wheelers
 };
 
-struct DatabaseSensor
-{
-  string country;
-  string type;
-};
-
 
 class Database
 {
   private:
+
+    struct DatabaseSensor
+    {
+      string country;
+      string type;
+    };
+
 
    vector<CarEntry> carEntries;
    
@@ -107,7 +112,7 @@ class Database
       const string& stype);
 
     bool select(
-      const string& countries,
+      const list<string>& countries,
       const unsigned minAxles,
       const unsigned maxAxles);
 

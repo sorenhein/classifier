@@ -1,5 +1,4 @@
 #include "Database.h"
-#include "read.h"
 
 
 Database::Database()
@@ -67,10 +66,7 @@ bool Database::logSensor(
 {
   auto it = sensors.find(name);
   if (it != sensors.end())
-  {
-    cout << "Sensor " << name << " already logged\n";
     return false;
-  }
 
   DatabaseSensor& sensor = sensors[name];
   sensor.country = country;
@@ -80,29 +76,28 @@ bool Database::logSensor(
 
 
 bool Database::select(
-  const string& countries,
+  const list<string>& countries,
   const unsigned minAxles,
   const unsigned maxAxles)
 {
   // Used in preparation for looping using begin() and end().
 
   selectedTrains.clear();
+  if (countries.empty())
+    return false;
 
-  // Make a map of country strings
+  const bool allFlag = (countries.size() == 1 && countries.front() == "ALL");
   map<string, int> countryMap;
-  if (countries != "ALL")
+  if (! allFlag)
   {
-    const size_t c = countDelimiters(countries, ",");
-    vector<string> vCountries(c+1);
-    vCountries.clear();
-    tokenize(countries, vCountries, ",");
-    for (auto& v: vCountries)
-      countryMap[v] = 1;
+    // Make a map of country strings
+    for (auto& c: countries)
+      countryMap[c] = 1;
   }
 
   for (auto& train: trainEntries)
   {
-    if (countries != "ALL" &&
+    if (! allFlag && 
         countryMap.find(train.officialName) == countryMap.end())
       continue;
 

@@ -200,7 +200,7 @@ void setup(
   if (control.sensorFile != "")
     readSensorFile(db, control.sensorFile);
 
-  if (! db.select("ALL", 0, 100))
+  if (! db.select({"ALL"}, 0, 100))
   {
     cout << "No trains selected" << endl;
     exit(0);
