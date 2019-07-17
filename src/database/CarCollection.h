@@ -39,7 +39,7 @@ enum CarFieldInts
   CAR_DIST_FRONT_TO_WHEEL = 12,
   CAR_DIST_WHEEL_TO_BACK = 13,
   CAR_DIST_FRONT_TO_MID1 = 14,
-  CAR_DIST_FRONT_TO_MID2 = 15,
+  CAR_DIST_BACK_TO_MID2 = 15,
   CAR_INTS_SIZE = 16
 };
 
@@ -60,6 +60,13 @@ class CarCollection: public Collection
     void complete(Entity& entry);
 
     void configure();
+
+    bool fillInEquation(
+      int &lhs,
+      vector<int>& rhs,
+      const unsigned len) const;
+
+    bool fillInDistances(Entity& entry) const;
 
 
   public:
