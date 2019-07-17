@@ -9,6 +9,8 @@
 #include <list>
 #include <map>
 
+#include "database/CarCollection.h"
+
 #include "struct.h"
 
 using namespace std;
@@ -82,8 +84,9 @@ class Database
       string type;
     };
 
-
    vector<CarEntry> carEntries;
+CarCollection carEntriesNew;
+void readCarFile(const string& fname);
    
    vector<TrainEntry> trainEntries;
 
@@ -94,6 +97,9 @@ class Database
    map<string, int> offCarMap;
 
    map<string, unsigned> offTrainMap;
+
+   void setCorrespondences();
+   void resetCar(Entity& carEntry) const;
 
 
   public:

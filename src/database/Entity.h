@@ -1,0 +1,79 @@
+#ifndef TRAIN_ENTITY_H
+#define TRAIN_ENTITY_H
+
+#include <vector>
+#include <list>
+#include <deque>
+
+using namespace std;
+
+
+enum CorrespondenceType
+{
+  CORRESPONDENCE_STRING = 0,
+  CORRESPONDENCE_STRING_VECTOR = 1,
+  CORRESPONDENCE_INT = 2,
+  CORRESPONDENCE_BOOL = 3,
+  CORRESPONDENCE_SIZE = 4
+};
+
+
+struct CorrespondenceEntry
+{
+  string tag;
+  CorrespondenceType corrType;
+  unsigned no;
+};
+
+
+class Entity
+{
+  private:
+
+    vector<string> strings;
+    vector<vector<string>> stringVectors;
+    vector<int> ints;
+    deque<bool> bools;
+
+    void init(const vector<unsigned>& fieldCounts);
+
+
+  public:
+
+    Entity();
+
+    ~Entity();
+
+    void clear();
+
+    bool readFile(
+      const string& fname,
+      const list<CorrespondenceEntry>& fields,
+      const vector<unsigned>& fieldCounts);
+
+    const string getString(const unsigned no);
+
+    const vector<string> getStringVector(const unsigned no);
+
+    int getInt(const unsigned no) const;
+
+    bool getBool(const unsigned no) const;
+
+    void setString(
+      const unsigned no,
+      const string& s);
+
+    void setStringVector(
+      const unsigned no,
+      const vector<string>& v);
+
+    void setInt(
+      const unsigned no,
+      const int i);
+
+    void setBool(
+      const unsigned no,
+      const bool b);
+};
+
+#endif

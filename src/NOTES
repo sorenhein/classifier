@@ -1,3 +1,5 @@
+misc.c split into parse.c, move to database
+
 Improvements
 ------------
 Warnings
