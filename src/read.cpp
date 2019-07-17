@@ -489,7 +489,10 @@ void readCarFiles(
   getFilenames(dir, textfiles);
 
   for (auto &f: textfiles)
+  {
     readCarFile(db, f);
+    db.readCarFile(f);
+  }
 }
 
 

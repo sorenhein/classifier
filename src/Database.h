@@ -86,7 +86,6 @@ class Database
 
    vector<CarEntry> carEntries;
 CarCollection carEntriesNew;
-void readCarFile(const string& fname);
    
    vector<TrainEntry> trainEntries;
 
@@ -108,6 +107,7 @@ void readCarFile(const string& fname);
 
     ~Database();
 
+void readCarFile(const string& fname);
     void logCar(const CarEntry& car);
 
     void logTrain(const TrainEntry& train);
