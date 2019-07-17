@@ -1,8 +1,28 @@
 #include "CarCollection.h"
 
 
+#include <iostream>
+
+
+CarCollection::CarCollection()
+{
+  CarCollection::reset();
+}
+
+
+void CarCollection::reset()
+{
+  fields.clear();
+  fieldCounts.clear();
+  entries.clear();
+
+  CarCollection::configure();
+}
+
+
 void CarCollection::configure()
 {
+cout << "Arring in CarCollection::configure" << endl;
   fields =
     {
     { "OFFICIAL_NAME", CORRESPONDENCE_STRING, CAR_OFFICIAL_NAME },
@@ -34,7 +54,16 @@ void CarCollection::configure()
     { "RESTAURANT", CORRESPONDENCE_BOOL, CAR_RESTAURANT },
     { "SYMMETRY", CORRESPONDENCE_BOOL, CAR_SYMMETRY }
   };
+
+  fieldCounts =
+  {
+    CAR_STRINGS_SIZE,
+    CAR_VECTORS_SIZE,
+    CAR_INTS_SIZE,
+    CAR_BOOLS_SIZE
+  };
 }
+
 
 void CarCollection::complete(Entity& entry)
 {

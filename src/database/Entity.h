@@ -4,6 +4,7 @@
 #include <vector>
 #include <list>
 #include <deque>
+#include <string>
 
 using namespace std;
 

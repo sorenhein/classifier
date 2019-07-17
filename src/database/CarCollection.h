@@ -59,10 +59,14 @@ class CarCollection: public Collection
 
     void complete(Entity& entry);
 
+    void configure();
+
 
   public:
 
-    void configure();
+    CarCollection();
+
+    void reset();
 
 };
 

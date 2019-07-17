@@ -19,12 +19,11 @@ class Collection
 
     list<CorrespondenceEntry> fields;
 
-  private:
-
     vector<unsigned> fieldCounts;
 
     vector<Entity> entries;
 
+  private:
 
     virtual void complete(Entity& entry){UNUSED(entry);};
 
@@ -33,11 +32,9 @@ class Collection
 
     Collection();
 
-    virtual ~Collection();
+    virtual ~Collection(){};
 
-    void reset();
-
-    virtual void configure(){};
+    virtual void reset(){};
 
     bool readFile(const string& fname);
 

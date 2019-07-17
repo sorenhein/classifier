@@ -1,22 +1,10 @@
 #include "Collection.h"
 
 
+#include <iostream>
+
 Collection::Collection()
 {
-  Collection::reset();
-}
-
-
-Collection::~Collection()
-{
-}
-
-
-void Collection::reset()
-{
-  fields.clear();
-  fieldCounts.clear();
-  entries.clear();
 }
 
 
@@ -27,6 +15,7 @@ bool Collection::readFile(const string& fname)
     return false;
 
   Collection::complete(entry);
+  entries.push_back(entry);
   return true;
 }
 
