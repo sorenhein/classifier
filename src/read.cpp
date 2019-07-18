@@ -513,12 +513,13 @@ bool makeTrainAxles(
     else if (carNo > 0)
     {
       db.appendAxles(carNo, false, posx, axles);
-cout << "carNo " << carNo << ", now " << axles.size() << " axles\n";
+cout << "New carNo " << carNo << ", now " << axles.size() << " axles\n";
     }
     else
     {
       // Car is reversed.
       db.appendAxles(-carNo, true, posx, axles);
+cout << "New carNo " << carNo << ", now " << axles.size() << " axles\n";
     }
   }
 
@@ -562,6 +563,7 @@ cout << "carNo " << carNo << ", now " << axles.size() << " axles\n";
       }
 
       pos += cPtr->distWheelToBack;
+cout << "Old carNo " << carNo << ", now " << t.axles.size() << " axles\n";
     }
     else
     {
@@ -592,6 +594,7 @@ cout << "carNo " << carNo << ", now " << axles.size() << " axles\n";
       }
 
       pos += cPtr->distFrontToWheel;
+cout << "Old carNo " << carNo << ", now " << t.axles.size() << " axles\n";
     }
   }
 

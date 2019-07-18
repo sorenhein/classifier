@@ -12,10 +12,6 @@ CarCollection::CarCollection()
   // Put a dummy car at 0 which is not used.
   // We're going to put reversed cars by the negative of the
   // actual index, and this only works if we exclude 0.
-
-  entries.emplace_back(Entity());
-  Entity& entry = entries.back();
-  entry.setString(CAR_OFFICIAL_NAME, "Dummy");
 }
 
 
@@ -29,6 +25,10 @@ void CarCollection::reset()
   fields.clear();
   fieldCounts.clear();
   entries.clear();
+
+  entries.emplace_back(Entity());
+  Entity& entry = entries.back();
+  entry.setString(CAR_OFFICIAL_NAME, "Dummy");
 
   CarCollection::configure();
 }
@@ -255,6 +255,8 @@ bool CarCollection::readFile(const string& fname)
   Entity entry;
   if (! entry.readFile(fname, fields, fieldCounts))
     return false;
+
+  CarCollection::strDistances(entry);
 
   CarCollection::complete(entry);
   entries.push_back(entry);
