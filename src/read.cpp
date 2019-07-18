@@ -14,8 +14,6 @@
 #define UNUSED(x) ((void)(true ? 0 : ((x), void(), 0)))
 
 
-// void resetCar(CarEntry& c);
-
 void resetTrain(TrainEntry& t);
 
 bool readOrder(
@@ -44,39 +42,6 @@ void readTrainFile(
   Database& db,
   const string& fname,
   const map<string, vector<int>>& corrections);
-
-
-/*
-void resetCar(CarEntry& c)
-{
-  c.officialName = "";
-  c.name = "";
-  c.usage.clear();
-  c.countries.clear();
-  c.introduction = 0;
-  c.powerFlag = false;
-  c.capacity = 0;
-  c.level = TRAIN_NONE;
-  c.restaurantFlag = false;
-  c.weight = 0;
-  c.wheelLoad = 0;
-  c.speed = 1; // Something non-zero in case we divide by it
-  c.configurationUIC = "";
-  c.length = 4; // Something non-zero in case we divide by it
-  c.symmetryFlag = false;
-  c.fourWheelFlag = true;
-
-  c.distWheels = -1;
-  c.distWheels1 = -1;
-  c.distWheels2 = -1;
-  c.distMiddles = -1;
-  c.distPair = -1;
-  c.distFrontToWheel = -1;
-  c.distWheelToBack = -1;
-  c.distFrontToMid1 = -1;
-  c.distBackToMid2 = -1;
-}
-*/
 
 
 void resetTrain(TrainEntry& t)
@@ -532,84 +497,6 @@ bool readTraceTruth(
 
     tdb.log(truth, db);
   }
-  fin.close();
-  return true;
-}
-
-
-#define SAMPLE_RATE 2000.
-
-bool readInputFile(
-  const string& fname,
-  vector<InputEntry>& actualList)
-{
-  ifstream fin;
-  fin.open(fname);
-  string line;
-  InputEntry * entryp = nullptr;
-  vector<string> v;
-  int prevNo = -1;
-  int offset = 0, number, i;
-  PeakTime peak;
-
-  while (getline(fin, line))
-  {
-    line.erase(remove(line.begin(), line.end(), '\r'), line.end());
-    if (line == "" || line.front() == '#')
-      continue;
-
-    const string err = "File " + fname + ": Bad line '" + line + "'";
-    const size_t c = countDelimiters(line, ",");
-    if (c != 5)
-    {
-      cout << err << endl;
-      fin.close();
-      return false;
-    }
-
-    v.clear();
-    tokenize(line, v, ",");
-
-    if (! parseInt(v[0], number, err))
-    {
-      fin.close();
-      return false;;
-    }
-
-    if (number != prevNo)
-    {
-      prevNo = number;
-      actualList.push_back(InputEntry());
-      entryp = &actualList.back();
-
-      entryp->number = number;
-      entryp->tag = v[1];
-      entryp->date = v[2];
-      entryp->time = v[3];
-
-      if (! parseInt(v[4], offset, err))
-      {
-        fin.close();
-        return false;;
-      }
-    }
-
-    if (! parseInt(v[4], i, err))
-    {
-      fin.close();
-      return false;;
-    }
-    peak.time = (i - offset) / SAMPLE_RATE;
-
-    if (! parseDouble(v[5], peak.value, err))
-    {
-      fin.close();
-      return false;;
-    }
-
-    entryp->actual.push_back(peak);
-  }
-
   fin.close();
   return true;
 }
