@@ -1,7 +1,7 @@
 #ifndef TRAIN_CARCOLLECTION_H
 #define TRAIN_CARCOLLECTION_H
 
-#include "Collection.h"
+#include "Entity.h"
 
 using namespace std;
 
@@ -53,7 +53,7 @@ enum CarFieldBools
 };
 
 
-class CarCollection: public Collection
+class CarCollection
 {
   private:
 
@@ -69,11 +69,22 @@ class CarCollection: public Collection
     bool fillInDistances(Entity& entry) const;
 
 
+    list<CorrespondenceEntry> fields;
+
+    vector<unsigned> fieldCounts;
+
+    vector<Entity> entries;
+
+
   public:
 
     CarCollection();
 
+    ~CarCollection();
+
     void reset();
+
+    bool readFile(const string& fname);
 
     bool appendAxles(
       const unsigned index,

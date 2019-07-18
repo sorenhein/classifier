@@ -1,6 +1,5 @@
 #include "CarCollection.h"
 
-
 #include <iostream>
 
 
@@ -15,6 +14,11 @@ CarCollection::CarCollection()
   entries.emplace_back(Entity());
   Entity& entry = entries.back();
   entry.setString(CAR_OFFICIAL_NAME, "Dummy");
+}
+
+
+CarCollection::~CarCollection()
+{
 }
 
 
@@ -70,6 +74,19 @@ void CarCollection::configure()
     CAR_BOOLS_SIZE
   };
 }
+
+
+bool CarCollection::readFile(const string& fname)
+{
+  Entity entry;
+  if (! entry.readFile(fname, fields, fieldCounts))
+    return false;
+
+  CarCollection::complete(entry);
+  entries.push_back(entry);
+  return true;
+}
+
 
 
 bool CarCollection::fillInEquation(
