@@ -500,6 +500,29 @@ bool makeTrainAxles(
   const Database& db,
   TrainEntry& t)
 {
+  int posx = 0;
+  vector<int> axles;
+
+  for (unsigned i = 0; i < t.carNumbers.size(); i++)
+  {
+    const int carNo = t.carNumbers[i];
+    if (carNo == 0)
+    {
+      cout << "makeTrainAxles: Bad car number" << endl;
+      return false;
+    }
+    else if (carNo > 0)
+    {
+      db.appendAxles(t.carNumbers[i], false, posx, axles);
+    }
+    else
+    {
+      // Car is reversed.
+      db.appendAxles(t.carNumbers[i], true, posx, axles);
+    }
+  }
+
+
   int pos = 0;
   for (unsigned i = 0; i < t.carNumbers.size(); i++)
   {

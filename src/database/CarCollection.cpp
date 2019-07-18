@@ -7,6 +7,14 @@
 CarCollection::CarCollection()
 {
   CarCollection::reset();
+
+  // Put a dummy car at 0 which is not used.
+  // We're going to put reversed cars by the negative of the
+  // actual index, and this only works if we exclude 0.
+
+  entries.emplace_back(Entity());
+  Entity& entry = entries.back();
+  entry.setString(CAR_OFFICIAL_NAME, "Dummy");
 }
 
 
@@ -237,7 +245,7 @@ void CarCollection::complete(Entity& entry)
 }
 
 
-bool CarCollection::addAxles(
+bool CarCollection::appendAxles(
   const unsigned index,
   const bool reverseFlag,
   int& posRunning,

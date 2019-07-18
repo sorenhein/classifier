@@ -30,6 +30,16 @@ void Database::readCarFile(const string& fname)
 }
 
 
+void Database::appendAxles(
+  const unsigned index,
+  const bool reverseFlag,
+  int& posRunning,
+  vector<int>& axles) const
+{
+  carEntriesNew.appendAxles(index, reverseFlag, posRunning, axles);
+}
+
+
 void Database::logCar(const CarEntry& car)
 {
   offCarMap[car.officialName] = carEntries.size();

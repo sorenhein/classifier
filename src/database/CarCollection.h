@@ -75,7 +75,7 @@ class CarCollection: public Collection
 
     void reset();
 
-    bool addAxles(
+    bool appendAxles(
       const unsigned index,
       const bool reverseFlag,
       int& posRunning,

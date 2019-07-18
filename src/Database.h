@@ -108,6 +108,12 @@ CarCollection carEntriesNew;
     ~Database();
 
 void readCarFile(const string& fname);
+void appendAxles(
+  const unsigned index,
+  const bool reverseFlag,
+  int& posRunning,
+  vector<int>& axles) const;
+
     void logCar(const CarEntry& car);
 
     void logTrain(const TrainEntry& train);
