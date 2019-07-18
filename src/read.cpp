@@ -14,7 +14,7 @@
 #define UNUSED(x) ((void)(true ? 0 : ((x), void(), 0)))
 
 
-void resetCar(CarEntry& c);
+// void resetCar(CarEntry& c);
 
 void resetTrain(TrainEntry& t);
 
@@ -46,6 +46,7 @@ void readTrainFile(
   const map<string, vector<int>>& corrections);
 
 
+/*
 void resetCar(CarEntry& c)
 {
   c.officialName = "";
@@ -75,6 +76,7 @@ void resetCar(CarEntry& c)
   c.distFrontToMid1 = -1;
   c.distBackToMid2 = -1;
 }
+*/
 
 
 void resetTrain(TrainEntry& t)
@@ -154,10 +156,7 @@ void readCarFiles(
   getFilenames(dir, textfiles);
 
   for (auto &f: textfiles)
-  {
-    // readCarFile(db, f);
     db.readCarFile(f);
-  }
 }
 
 

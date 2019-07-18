@@ -2,6 +2,8 @@ misc.c split into parse.c, move to database
 
 Difference in results between laptop and PC?  Always?!
 
+parse.cpp: No more cout?
+
 Improvements
 ------------
 Warnings

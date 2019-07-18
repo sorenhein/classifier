@@ -16,49 +16,6 @@
 using namespace std;
 
 
-enum TrainLevel
-{
-  TRAIN_NONE = 0,
-  TRAIN_FIRST = 1,
-  TRAIN_SECOND = 2
-};
-
-
-struct CarEntry
-{
-  string officialName; // Example: Avmz 801
-  string name; // Example: "DB Class 801 First Class Intermediate Car"
-  vector<string> usage; // ICE1
-  vector<string> countries; // Three-letter codes, e.g. DEU
-  int introduction; // Year
-  bool powerFlag;
-  int capacity;
-  TrainLevel level;
-  bool restaurantFlag;
-  int weight; // In kg
-  int wheelLoad; // In kg
-  int speed; // In km/h
-  string configurationUIC; // E.g. 2'2' or Bo'Bo'
-  int length; // In mm
-  bool symmetryFlag; // True if wheel geometry is symmetric
-  bool fourWheelFlag; // Some cars "share" axles, look like 3-wheelers
-
-  // Not all of these have to be specified simultaneously.
-  // At the moment we manage to calculate the missing ones for the
-  // combinations that occur...
-
-  int distWheels;  // In mm: Distance between wheels in a pair
-  int distWheels1;  // In mm: Distance between wheels in front pair
-  int distWheels2;  // In mm: Distance between wheels in back pair
-  int distMiddles; // In mm: Distance between middles of wheel pairs
-  int distPair; // In mm: Inner distance between pairs
-  int distFrontToWheel; // In mm
-  int distWheelToBack; // In mm
-  int distFrontToMid1; // In mm
-  int distBackToMid2; // In mm
-};
-
-
 struct TrainEntry
 {
   string officialName; // Example: "X74_SWE_28" (not really official...)

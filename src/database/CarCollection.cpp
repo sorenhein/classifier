@@ -35,34 +35,58 @@ void CarCollection::reset()
 void CarCollection::configure()
 {
   fields =
-    {
+  {
+    // Example: Avmz 801
     { "OFFICIAL_NAME", CORRESPONDENCE_STRING, CAR_OFFICIAL_NAME },
+    // Example: "DB Class 801 First Class Intermediate Car"
     { "NAME", CORRESPONDENCE_STRING, CAR_NAME },
+    // Example: 2'2' or Bo'Bo
     { "CONFIGURATION", CORRESPONDENCE_STRING, CAR_CONFIGURATION_UIC },
+    // Example: "second"
     { "CLASS", CORRESPONDENCE_STRING, CAR_CLASS },
     { "COMMENT", CORRESPONDENCE_STRING, CAR_COMMENT },
 
+    // Example: "ICE1"
     { "USAGE", CORRESPONDENCE_STRING_VECTOR, CAR_USAGE },
+    // List of comma-separated three-letter codes, e.g. "DEU,SWE"
     { "COUNTRIES", CORRESPONDENCE_STRING_VECTOR, CAR_COUNTRIES },
 
+    // Example: 1990
     { "INTRODUCTION", CORRESPONDENCE_INT, CAR_INTRODUCTION },
+    // Example: 53 (passengers)
     { "CAPACITY", CORRESPONDENCE_INT, CAR_CAPACITY },
+    // Example: 50000 (kg)
     { "WEIGHT", CORRESPONDENCE_INT, CAR_WEIGHT },
+    // Example: 20100 (kg)
     { "WHEEL_LOAD", CORRESPONDENCE_INT, CAR_WHEEL_LOAD },
+    // Example: 280 (km/h)
     { "SPEED", CORRESPONDENCE_INT, CAR_SPEED },
+    // Example: 24780 (mm)
     { "LENGTH", CORRESPONDENCE_INT, CAR_LENGTH },
+    // Example: 2500 (mm)
     { "DIST_WHEELS", CORRESPONDENCE_INT, CAR_DIST_WHEELS },
+    // Example: 2500 (mm)
     { "DIST_WHEELS1", CORRESPONDENCE_INT, CAR_DIST_WHEELS1 },
+    // Example: 2500 (mm)
     { "DIST_WHEELS2", CORRESPONDENCE_INT, CAR_DIST_WHEELS2 },
+    // Example: 19000 (mm)
     { "DIST_MIDDLES", CORRESPONDENCE_INT, CAR_DIST_MIDDLES },
+    // Example: 14880 (mm)
     { "DIST_PAIR", CORRESPONDENCE_INT, CAR_DIST_PAIR },
+    // Example: 2450 (mm)
     { "DIST_FRONT_TO_WHEEL", CORRESPONDENCE_INT, CAR_DIST_FRONT_TO_WHEEL },
+    // Example: 1375 (mm)
     { "DIST_WHEEL_TO_BACK", CORRESPONDENCE_INT, CAR_DIST_WHEEL_TO_BACK },
+    // Example: 3700 (mm)
     { "DIST_FRONT_TO_MID1", CORRESPONDENCE_INT, CAR_DIST_FRONT_TO_MID1 },
+    // Example: 3900 (mm)
     { "DIST_BACK_TO_MID2", CORRESPONDENCE_INT, CAR_DIST_BACK_TO_MID2 },
 
+    // Example: "no"
     { "POWER", CORRESPONDENCE_BOOL, CAR_POWER },
+    // Example: "no"
     { "RESTAURANT", CORRESPONDENCE_BOOL, CAR_RESTAURANT },
+    // Example: "yes"
     { "SYMMETRY", CORRESPONDENCE_BOOL, CAR_SYMMETRY }
   };
 
