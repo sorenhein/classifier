@@ -594,6 +594,35 @@ bool makeTrainAxles(
       pos += cPtr->distFrontToWheel;
     }
   }
+
+  const unsigned l = axles.size();
+  bool diffFlag = false;
+  if (l != t.axles.size())
+  {
+    cout << "AXLE Old " << t.axles.size() << " vs " << l << endl;
+    diffFlag = true;
+  }
+  else
+  {
+    for (unsigned i = 0; i < l; i++)
+    {
+      if (axles[i] != t.axles[i])
+      {
+        cout << "AXLE First differ at " << i << endl;
+        for (unsigned j = 0; j < l; j++)
+          cout << setw(3) << j << 
+           setw(8) << t.axles[j] << 
+           setw(8) << axles[j] << endl;
+        cout << endl;
+        diffFlag = true;
+        break;
+      }
+    }
+  }
+
+  if (! diffFlag)
+    cout << "AXLEIDENT\n";
+
   return true;
 }
 
