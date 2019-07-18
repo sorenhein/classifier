@@ -1,6 +1,8 @@
 #ifndef TRAIN_CARCOLLECTION_H
 #define TRAIN_CARCOLLECTION_H
 
+#include <map>
+
 #include "Entity.h"
 
 using namespace std;
@@ -57,6 +59,15 @@ class CarCollection
 {
   private:
 
+    list<CorrespondenceEntry> fields;
+
+    vector<unsigned> fieldCounts;
+
+    vector<Entity> entries;
+
+    map<string, int> offCarMap;
+
+
     bool complete(Entity& entry);
 
     void configure();
@@ -68,13 +79,6 @@ class CarCollection
       const unsigned len) const;
 
     bool fillInDistances(Entity& entry) const;
-
-
-    list<CorrespondenceEntry> fields;
-
-    vector<unsigned> fieldCounts;
-
-    vector<Entity> entries;
 
 
   public:
@@ -91,6 +95,8 @@ class CarCollection
       const int carNo,
       int& posRunning,
       vector<int>& axles) const;
+
+    int lookupCarNumber(const string& offName) const;
 
     string strDistances(const Entity& entry) const;
 };

@@ -84,7 +84,7 @@ class Database
       string type;
     };
 
-   vector<CarEntry> carEntries;
+   // vector<CarEntry> carEntries;
 CarCollection carEntriesNew;
    
    vector<TrainEntry> trainEntries;
@@ -113,7 +113,7 @@ bool appendAxles(
   int& posRunning,
   vector<int>& axles) const;
 
-    void logCar(const CarEntry& car);
+    // void logCar(const CarEntry& car);
 
     void logTrain(const TrainEntry& train);
 
@@ -141,7 +141,7 @@ bool appendAxles(
       const unsigned trainNo,
       vector<PeakPos>& peaks) const; // In m
 
-    const CarEntry * lookupCar(const int carNo) const;
+    // const CarEntry * lookupCar(const int carNo) const;
 
     int lookupCarNumber(const string& offName) const;
 

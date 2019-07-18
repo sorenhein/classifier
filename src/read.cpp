@@ -336,6 +336,7 @@ void printDistances(const CarEntry& c)
 }
 
 
+/*
 void readCarFile(
   Database& db,
   const string& fname)
@@ -479,6 +480,7 @@ void readCarFile(
 
   db.logCar(c);
 }
+*/
 
 
 void readCarFiles(
@@ -490,7 +492,7 @@ void readCarFiles(
 
   for (auto &f: textfiles)
   {
-    readCarFile(db, f);
+    // readCarFile(db, f);
     db.readCarFile(f);
   }
 }
@@ -509,26 +511,6 @@ bool makeTrainAxles(
       return false;
     }
   }
-
-  /*
-  {
-    if (carNo == 0)
-    {
-      cout << "makeTrainAxles: Bad car number" << endl;
-      return false;
-    }
-    else if (carNo > 0)
-    {
-      db.appendAxles(carNo, false, pos, t.axles);
-    }
-    else
-    {
-      // Car is reversed.
-      db.appendAxles(-carNo, true, pos, t.axles);
-    }
-  }
-  */
-
   return true;
 }
 

@@ -8,10 +8,6 @@
 CarCollection::CarCollection()
 {
   CarCollection::reset();
-
-  // Put a dummy car at 0 which is not used.
-  // We're going to put reversed cars by the negative of the
-  // actual index, and this only works if we exclude 0.
 }
 
 
@@ -24,11 +20,13 @@ void CarCollection::reset()
 {
   fields.clear();
   fieldCounts.clear();
-  entries.clear();
 
+  entries.clear();
   entries.emplace_back(Entity());
   Entity& entry = entries.back();
   entry.setString(CAR_OFFICIAL_NAME, "Dummy");
+
+  offCarMap.clear();
 
   CarCollection::configure();
 }
@@ -276,9 +274,10 @@ bool CarCollection::readFile(const string& fname)
   if (! entry.readFile(fname, fields, fieldCounts))
     return false;
 
-
   if (! CarCollection::complete(entry))
     return false;
+
+  offCarMap[entry.getString(CAR_OFFICIAL_NAME)] = entries.size();
 
   entries.push_back(entry);
   return true;
@@ -363,6 +362,16 @@ bool CarCollection::appendAxles(
     posRunning += entry[CAR_DIST_FRONT_TO_WHEEL];
   }
   return true;
+}
+
+
+int CarCollection::lookupCarNumber(const string& offName) const
+{
+  auto it = offCarMap.find(offName);
+  if (it == offCarMap.end())
+    return 0; // Invalid number
+  else
+    return it->second;
 }
 
 
