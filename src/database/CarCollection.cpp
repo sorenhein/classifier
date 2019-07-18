@@ -1,6 +1,8 @@
 #include "CarCollection.h"
 
 #include <iostream>
+#include <iomanip>
+#include <sstream>
 
 
 CarCollection::CarCollection()
@@ -74,19 +76,6 @@ void CarCollection::configure()
     CAR_BOOLS_SIZE
   };
 }
-
-
-bool CarCollection::readFile(const string& fname)
-{
-  Entity entry;
-  if (! entry.readFile(fname, fields, fieldCounts))
-    return false;
-
-  CarCollection::complete(entry);
-  entries.push_back(entry);
-  return true;
-}
-
 
 
 bool CarCollection::fillInEquation(
@@ -250,7 +239,7 @@ void CarCollection::complete(Entity& entry)
   {
     if (entry[CAR_DIST_WHEELS1] == -1)
       entry[CAR_DIST_WHEELS1] = dw;
-    if (entry[CAR_DIST_WHEELS1] == -1)
+    if (entry[CAR_DIST_WHEELS2] == -1)
       entry[CAR_DIST_WHEELS2] = dw;
   }
 
@@ -258,6 +247,18 @@ void CarCollection::complete(Entity& entry)
     entry[CAR_DIST_WHEELS1] > 0 && entry[CAR_DIST_WHEELS2] > 0);
 
   CarCollection::fillInDistances(entry);
+}
+
+
+bool CarCollection::readFile(const string& fname)
+{
+  Entity entry;
+  if (! entry.readFile(fname, fields, fieldCounts))
+    return false;
+
+  CarCollection::complete(entry);
+  entries.push_back(entry);
+  return true;
 }
 
 
@@ -324,5 +325,29 @@ bool CarCollection::appendAxles(
     posRunning += entry[CAR_DIST_FRONT_TO_WHEEL];
   }
   return true;
+}
+
+
+string CarCollection::strDistances(const Entity& entry) const
+{
+  stringstream ss;
+
+  ss << 
+    setw(22) << left << "LENGTH" << entry[CAR_LENGTH] << "\n" << 
+    setw(22) << "DIST_WHEELS" << entry[CAR_DIST_WHEELS] << "\n" <<
+    setw(22) << "DIST_WHEELS1" << entry[CAR_DIST_WHEELS1] << "\n" <<
+    setw(22) << "DIST_WHEELS2" << entry[CAR_DIST_WHEELS2] << "\n" <<
+    setw(22) << "DIST_MIDDLES" << entry[CAR_DIST_MIDDLES] << "\n" <<
+    setw(22) << "DIST_PAIR" << entry[CAR_DIST_PAIR] << "\n" <<
+    setw(22) << "DIST_FRONT_TO_WHEEL" << 
+      entry[CAR_DIST_FRONT_TO_WHEEL] << "\n" <<
+    setw(22) << "DIST_WHEEL_TO_BACK" << 
+      entry[CAR_DIST_WHEEL_TO_BACK] << "\n" <<
+    setw(22) << "DIST_FRONT_TO_MID1" << 
+      entry[CAR_DIST_FRONT_TO_MID1] << "\n" <<
+    setw(22) << "DIST_BACK_TO_MID2" << 
+      entry[CAR_DIST_BACK_TO_MID2] << "\n\n";
+
+  return ss.str();
 }
 

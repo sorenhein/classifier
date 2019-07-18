@@ -91,6 +91,8 @@ class CarCollection
       const bool reverseFlag,
       int& posRunning,
       vector<int>& axles) const;
+
+    string strDistances(const Entity& entry) const;
 };
 
 #endif

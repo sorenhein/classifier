@@ -32,7 +32,7 @@ void Entity::init(const vector<unsigned>& fieldCounts)
 {
   strings.resize(fieldCounts[CORRESPONDENCE_STRING]);
   stringVectors.resize(fieldCounts[CORRESPONDENCE_STRING_VECTOR]);
-  ints.resize(fieldCounts[CORRESPONDENCE_INT]);
+  ints.resize(fieldCounts[CORRESPONDENCE_INT], -1);
   bools.resize(fieldCounts[CORRESPONDENCE_BOOL]);
 }
 
