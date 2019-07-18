@@ -171,12 +171,12 @@ bool CarCollection::fillInDistances(Entity& entry) const
 
   vector<int> rhs(5);
 
-  bool done = false;
+  bool changeFlag = true;
   bool inconsistentFlag = false;
   int lhs;
-  for (unsigned iter = 0; iter < 3 && ! done; iter++)
+  for (unsigned iter = 0; iter < 3 && changeFlag; iter++)
   {
-    done = true;
+    changeFlag = false;
 
     // Equation 1
     lhs = 2 * entry[CAR_DIST_MIDDLES];
@@ -190,16 +190,10 @@ bool CarCollection::fillInDistances(Entity& entry) const
       entry[CAR_DIST_PAIR]  = rhs[0]/2;
       entry[CAR_DIST_WHEELS1] = rhs[1];
       entry[CAR_DIST_WHEELS2] = rhs[2];
-cout << "HIT EQ1, now:\n";
-cout << CarCollection::strDistances(entry);
+      changeFlag = true;
     }
     else if (inconsistentFlag)
-    {
-      cout << "Inconsistency in equation 1\n";
-      done = false;
-    }
-    else
-      done = false;
+      return false;
 
     // Equation 2
     lhs = entry[CAR_LENGTH];
@@ -217,16 +211,10 @@ cout << CarCollection::strDistances(entry);
       entry[CAR_DIST_PAIR] = rhs[2];
       entry[CAR_DIST_WHEELS2] = rhs[3];
       entry[CAR_DIST_WHEEL_TO_BACK] = rhs[4];
-cout << "HIT EQ2, now:\n";
-cout << CarCollection::strDistances(entry);
+      changeFlag = true;
     }
     else if (inconsistentFlag)
-    {
-      cout << "Inconsistency in equation 2\n";
-      done = false;
-    }
-    else
-      done = false;
+      return false;
 
     // Equation 3
     lhs = 2 * entry[CAR_DIST_FRONT_TO_MID1];
@@ -238,16 +226,10 @@ cout << CarCollection::strDistances(entry);
       entry[CAR_DIST_FRONT_TO_MID1] = lhs/2;
       entry[CAR_DIST_WHEELS1] = rhs[1];
       entry[CAR_DIST_FRONT_TO_WHEEL] = rhs[0]/2;
-cout << "HIT EQ3, now:\n";
-cout << CarCollection::strDistances(entry);
+      changeFlag = true;
     }
     else if (inconsistentFlag)
-    {
-      cout << "Inconsistency in equation 3\n";
-      done = false;
-    }
-    else
-      done = false;
+      return false;
 
     // Equation 4
     lhs = 2 * entry[CAR_DIST_BACK_TO_MID2];
@@ -259,24 +241,18 @@ cout << CarCollection::strDistances(entry);
       entry[CAR_DIST_BACK_TO_MID2] = lhs/2;
       entry[CAR_DIST_WHEELS2] = rhs[1];
       entry[CAR_DIST_WHEEL_TO_BACK] = rhs[0]/2;
-cout << "HIT EQ4, now:\n";
-cout << CarCollection::strDistances(entry);
+      changeFlag = true;
     }
     else if (inconsistentFlag)
-    {
-      cout << "Inconsistency in equation 4\n";
-      done = false;
-    }
-    else
-      done = false;
+      return false;
   }
 
-  return done;
+  return ! changeFlag;
 }
 
 
 
-void CarCollection::complete(Entity& entry)
+bool CarCollection::complete(Entity& entry)
 {
   const unsigned dw = entry[CAR_DIST_WHEELS];
   if (dw > 0)
@@ -290,7 +266,7 @@ void CarCollection::complete(Entity& entry)
   entry.setBool(CAR_FOURWHEEL_FLAG,
     entry[CAR_DIST_WHEELS1] > 0 && entry[CAR_DIST_WHEELS2] > 0);
 
-  CarCollection::fillInDistances(entry);
+  return CarCollection::fillInDistances(entry);
 }
 
 
@@ -300,13 +276,10 @@ bool CarCollection::readFile(const string& fname)
   if (! entry.readFile(fname, fields, fieldCounts))
     return false;
 
-  CarCollection::strDistances(entry);
 
-cout << "BEFORE " << fname << endl;
-cout << CarCollection::strDistances(entry);
-  CarCollection::complete(entry);
-cout << "AFTER " << fname << endl;
-cout << CarCollection::strDistances(entry);
+  if (! CarCollection::complete(entry))
+    return false;
+
   entries.push_back(entry);
   return true;
 }

@@ -57,7 +57,7 @@ class CarCollection
 {
   private:
 
-    void complete(Entity& entry);
+    bool complete(Entity& entry);
 
     void configure();
 

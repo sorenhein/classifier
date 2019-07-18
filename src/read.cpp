@@ -500,9 +500,7 @@ bool makeTrainAxles(
   const Database& db,
   TrainEntry& t)
 {
-  int posx = 0;
-  vector<int> axles;
-
+  int pos = 0;
   for (int carNo: t.carNumbers)
   {
     if (carNo == 0)
@@ -512,119 +510,14 @@ bool makeTrainAxles(
     }
     else if (carNo > 0)
     {
-      db.appendAxles(carNo, false, posx, axles);
-cout << "New carNo " << carNo << ", now " << axles.size() << " axles\n";
+      db.appendAxles(carNo, false, pos, t.axles);
     }
     else
     {
       // Car is reversed.
-      db.appendAxles(-carNo, true, posx, axles);
-cout << "New carNo " << carNo << ", now " << axles.size() << " axles\n";
+      db.appendAxles(-carNo, true, pos, t.axles);
     }
   }
-
-
-  int pos = 0;
-  for (unsigned i = 0; i < t.carNumbers.size(); i++)
-  {
-    const int carNo = t.carNumbers[i];
-    if (carNo == 0)
-    {
-      cout << "makeTrainAxles: Bad car number" << endl;
-      return false;
-    }
-    else if (carNo > 0)
-    {
-      const CarEntry * cPtr = db.lookupCar(t.carNumbers[i]);
-      if (cPtr == nullptr)
-        return false;
-      if (! cPtr -> fourWheelFlag)
-        t.fourWheelFlag = false;
-
-      if (i > 0)
-        pos += cPtr->distFrontToWheel;
-
-      if (i == 0 || cPtr->distFrontToWheel > 0)
-      t.axles.push_back(pos); // First pair, first wheel
-
-      if (cPtr->distWheels1 > 0)
-      {
-        pos += cPtr->distWheels1;
-        t.axles.push_back(pos); // First pair, second wheel
-      }
-
-      pos += cPtr->distPair;
-      t.axles.push_back(pos); // Second pair, first wheel
-
-      if (cPtr->distWheels2 > 0)
-      {
-        pos += cPtr->distWheels2;
-        t.axles.push_back(pos); // Second pair, second wheel
-      }
-
-      pos += cPtr->distWheelToBack;
-cout << "Old carNo " << carNo << ", now " << t.axles.size() << " axles\n";
-    }
-    else
-    {
-      // Car is reversed.
-      const CarEntry * cPtr = db.lookupCar(-t.carNumbers[i]);
-      if (! cPtr -> fourWheelFlag)
-        t.fourWheelFlag = false;
-
-      if (i > 0)
-        pos += cPtr->distWheelToBack;
-
-      if (i == 0 || cPtr->distWheelToBack > 0)
-        t.axles.push_back(pos); // Second pair, second wheel
-
-      if (cPtr->distWheels2 > 0)
-      {
-        pos += cPtr->distWheels2;
-        t.axles.push_back(pos); // Second pair, first wheel
-      }
-
-      pos += cPtr->distPair;
-      t.axles.push_back(pos); // First pair, second wheel
-
-      if (cPtr->distWheels1 > 0)
-      {
-        pos += cPtr->distWheels1;
-        t.axles.push_back(pos); // First pair, first wheel
-      }
-
-      pos += cPtr->distFrontToWheel;
-cout << "Old carNo " << carNo << ", now " << t.axles.size() << " axles\n";
-    }
-  }
-
-  const unsigned l = axles.size();
-  bool diffFlag = false;
-  if (l != t.axles.size())
-  {
-    cout << "AXLE Old " << t.axles.size() << " vs " << l << endl;
-    diffFlag = true;
-  }
-  else
-  {
-    for (unsigned i = 0; i < l; i++)
-    {
-      if (axles[i] != t.axles[i])
-      {
-        cout << "AXLE First differ at " << i << endl;
-        for (unsigned j = 0; j < l; j++)
-          cout << setw(3) << j << 
-           setw(8) << t.axles[j] << 
-           setw(8) << axles[j] << endl;
-        cout << endl;
-        diffFlag = true;
-        break;
-      }
-    }
-  }
-
-  if (! diffFlag)
-    cout << "AXLEIDENT\n";
 
   return true;
 }
