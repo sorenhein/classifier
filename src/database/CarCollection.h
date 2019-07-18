@@ -64,6 +64,7 @@ class CarCollection
     bool fillInEquation(
       int &lhs,
       vector<int>& rhs,
+      bool& inconsistentFlag,
       const unsigned len) const;
 
     bool fillInDistances(Entity& entry) const;
