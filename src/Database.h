@@ -84,21 +84,20 @@ class Database
       string type;
     };
 
-   // vector<CarEntry> carEntries;
-CarCollection carEntriesNew;
+    CarCollection carEntriesNew;
    
-   vector<TrainEntry> trainEntries;
+    vector<TrainEntry> trainEntries;
 
-   map<string, DatabaseSensor> sensors;
+    map<string, DatabaseSensor> sensors;
 
-   list<string> selectedTrains;
+    list<string> selectedTrains;
 
-   map<string, int> offCarMap;
+    map<string, int> offCarMap;
 
-   map<string, unsigned> offTrainMap;
+    map<string, unsigned> offTrainMap;
 
-   void setCorrespondences();
-   void resetCar(Entity& carEntry) const;
+    void setCorrespondences();
+    void resetCar(Entity& carEntry) const;
 
 
   public:
@@ -107,13 +106,12 @@ CarCollection carEntriesNew;
 
     ~Database();
 
-void readCarFile(const string& fname);
-bool appendAxles(
-  const int carNo,
-  int& posRunning,
-  vector<int>& axles) const;
+    void readCarFile(const string& fname);
 
-    // void logCar(const CarEntry& car);
+    bool appendAxles(
+      const int carNo,
+      int& posRunning,
+      vector<int>& axles) const;
 
     void logTrain(const TrainEntry& train);
 
@@ -140,8 +138,6 @@ bool appendAxles(
     bool getPerfectPeaks(
       const unsigned trainNo,
       vector<PeakPos>& peaks) const; // In m
-
-    // const CarEntry * lookupCar(const int carNo) const;
 
     int lookupCarNumber(const string& offName) const;
 

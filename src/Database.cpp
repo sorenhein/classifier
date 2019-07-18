@@ -4,18 +4,9 @@
 Database::Database()
 {
   carEntriesNew.reset();
-
-  // carEntries.clear();
   trainEntries.clear();
   offCarMap.clear();
   offTrainMap.clear();
-
-  // Put a dummy car at position 0 which is not used.
-  // We're going to put reversed cars by the negative of the
-  // actual number, and this only works if we exclude 0.
-  // CarEntry car;
-  // car.officialName = "Dummy";
-  // carEntries.push_back(car);
 }
 
 
@@ -37,15 +28,6 @@ bool Database::appendAxles(
 {
   return carEntriesNew.appendAxles(carNo, posRunning, axles);
 }
-
-
-/*
-void Database::logCar(const CarEntry& car)
-{
-  offCarMap[car.officialName] = carEntries.size();
-  carEntries.push_back(car);
-}
-*/
 
 
 void Database::logTrain(const TrainEntry& train)
@@ -173,28 +155,9 @@ bool Database::getPerfectPeaks(
 }
 
 
-/*
-const CarEntry * Database::lookupCar(const int carNo) const
-{
-  if (carNo <= 0 || carNo >= static_cast<int>(carEntries.size()))
-    return nullptr;
-  else
-    return &carEntries[static_cast<unsigned>(carNo)];
-}
-*/
-
-
 int Database::lookupCarNumber(const string& offName) const
 {
   return carEntriesNew.lookupCarNumber(offName);
-
-  /*
-  auto it = offCarMap.find(offName);
-  if (it == offCarMap.end())
-    return 0; // Invalid number
-  else
-    return it->second;
-    */
 }
 
 
