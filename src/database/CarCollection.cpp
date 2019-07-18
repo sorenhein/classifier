@@ -150,65 +150,65 @@ bool CarCollection::fillInDistances(Entity& entry) const
     done = true;
 
     // Equation 1
-    lhs = 2 * entry.getInt(CAR_DIST_MIDDLES);
-    rhs[0] = 2 * entry.getInt(CAR_DIST_PAIR);
-    rhs[1] = entry.getInt(CAR_DIST_WHEELS1);
-    rhs[2] = entry.getInt(CAR_DIST_WHEELS2);
+    lhs = 2 * entry[CAR_DIST_MIDDLES];
+    rhs[0] = 2 * entry[CAR_DIST_PAIR];
+    rhs[1] = entry[CAR_DIST_WHEELS1];
+    rhs[2] = entry[CAR_DIST_WHEELS2];
 
     if (fillInEquation(lhs, rhs, 3))
     {
-      entry.setInt(CAR_DIST_WHEELS1, rhs[1]);
-      entry.setInt(CAR_DIST_WHEELS1, rhs[2]);
-      entry.setInt(CAR_DIST_MIDDLES, lhs/2);
-      entry.setInt(CAR_DIST_PAIR, rhs[0]/2);
+      entry[CAR_DIST_MIDDLES] = lhs/2;
+      entry[CAR_DIST_PAIR]  = rhs[0]/2;
+      entry[CAR_DIST_WHEELS1] = rhs[1];
+      entry[CAR_DIST_WHEELS1] = rhs[2];
     }
     else
       done = false;
 
     // Equation 2
-    lhs = entry.getInt(CAR_LENGTH);
-    rhs[0] = entry.getInt(CAR_DIST_FRONT_TO_WHEEL);
-    rhs[1] = entry.getInt(CAR_DIST_WHEELS1);
-    rhs[2] = entry.getInt(CAR_DIST_PAIR);
-    rhs[3] = entry.getInt(CAR_DIST_WHEELS2);
-    rhs[4] = entry.getInt(CAR_DIST_WHEEL_TO_BACK);
+    lhs = entry[CAR_LENGTH];
+    rhs[0] = entry[CAR_DIST_FRONT_TO_WHEEL];
+    rhs[1] = entry[CAR_DIST_WHEELS1];
+    rhs[2] = entry[CAR_DIST_PAIR];
+    rhs[3] = entry[CAR_DIST_WHEELS2];
+    rhs[4] = entry[CAR_DIST_WHEEL_TO_BACK];
 
     if (fillInEquation(lhs, rhs, 5))
     {
-      entry.setInt(CAR_LENGTH, lhs);
-      entry.setInt(CAR_DIST_FRONT_TO_WHEEL, rhs[0]);
-      entry.setInt(CAR_DIST_WHEELS1, rhs[1]);
-      entry.setInt(CAR_DIST_PAIR, rhs[2]);
-      entry.setInt(CAR_DIST_WHEELS2, rhs[3]);
-      entry.setInt(CAR_DIST_WHEEL_TO_BACK, rhs[4]);
+      entry[CAR_LENGTH] = lhs;
+      entry[CAR_DIST_FRONT_TO_WHEEL] = rhs[0];
+      entry[CAR_DIST_WHEELS1] = rhs[1];
+      entry[CAR_DIST_PAIR] = rhs[2];
+      entry[CAR_DIST_WHEELS2] = rhs[3];
+      entry[CAR_DIST_WHEEL_TO_BACK] = rhs[4];
     }
     else
       done = false;
 
     // Equation 3
-    lhs = 2 * entry.getInt(CAR_DIST_FRONT_TO_MID1);
-    rhs[0] = 2 * entry.getInt(CAR_DIST_FRONT_TO_WHEEL);
-    rhs[1] = entry.getInt(CAR_DIST_WHEELS1);
+    lhs = 2 * entry[CAR_DIST_FRONT_TO_MID1];
+    rhs[0] = 2 * entry[CAR_DIST_FRONT_TO_WHEEL];
+    rhs[1] = entry[CAR_DIST_WHEELS1];
 
     if (fillInEquation(lhs, rhs, 2))
     {
-      entry.setInt(CAR_DIST_WHEELS1, rhs[1]);
-      entry.setInt(CAR_DIST_FRONT_TO_MID1, lhs/2);
-      entry.setInt(CAR_DIST_FRONT_TO_WHEEL, rhs[0]/2);
+      entry[CAR_DIST_FRONT_TO_MID1] = lhs/2;
+      entry[CAR_DIST_WHEELS1] = rhs[1];
+      entry[CAR_DIST_FRONT_TO_WHEEL] = rhs[0]/2;
     }
     else
       done = false;
 
     // Equation 4
-    lhs = 2 * entry.getInt(CAR_DIST_BACK_TO_MID2);
-    rhs[0] = 2 * entry.getInt(CAR_DIST_WHEEL_TO_BACK);
-    rhs[1] = entry.getInt(CAR_DIST_WHEELS2);
+    lhs = 2 * entry[CAR_DIST_BACK_TO_MID2];
+    rhs[0] = 2 * entry[CAR_DIST_WHEEL_TO_BACK];
+    rhs[1] = entry[CAR_DIST_WHEELS2];
 
     if (fillInEquation(lhs, rhs, 2))
     {
-      entry.setInt(CAR_DIST_WHEELS2, rhs[1]);
-      entry.setInt(CAR_DIST_BACK_TO_MID2, lhs/2);
-      entry.setInt(CAR_DIST_WHEEL_TO_BACK, rhs[0]/2);
+      entry[CAR_DIST_BACK_TO_MID2] = lhs/2;
+      entry[CAR_DIST_WHEELS2] = rhs[1];
+      entry[CAR_DIST_WHEEL_TO_BACK] = rhs[0]/2;
     }
     else
       done = false;
@@ -221,19 +221,84 @@ bool CarCollection::fillInDistances(Entity& entry) const
 
 void CarCollection::complete(Entity& entry)
 {
-  const unsigned dw = entry.getInt(CAR_DIST_WHEELS);
+  const unsigned dw = entry[CAR_DIST_WHEELS];
   if (dw > 0)
   {
-    if (entry.getInt(CAR_DIST_WHEELS1) == -1)
-      entry.setInt(CAR_DIST_WHEELS1, dw);
-    if (entry.getInt(CAR_DIST_WHEELS1) == -1)
-      entry.setInt(CAR_DIST_WHEELS2, dw);
+    if (entry[CAR_DIST_WHEELS1] == -1)
+      entry[CAR_DIST_WHEELS1] = dw;
+    if (entry[CAR_DIST_WHEELS1] == -1)
+      entry[CAR_DIST_WHEELS2] = dw;
   }
 
   entry.setBool(CAR_FOURWHEEL_FLAG,
-    entry.getInt(CAR_DIST_WHEELS1) > 0 && 
-    entry.getInt(CAR_DIST_WHEELS2) > 0);
+    entry[CAR_DIST_WHEELS1] > 0 && entry[CAR_DIST_WHEELS2] > 0);
 
   CarCollection::fillInDistances(entry);
+}
+
+
+bool CarCollection::addAxles(
+  const unsigned index,
+  const bool reverseFlag,
+  int& posRunning,
+  vector<int>& axles) const
+{
+  if (index >= entries.size())
+    return false;
+
+  const Entity& entry = entries[index];
+  const int dw1 = entry[CAR_DIST_WHEELS1];
+  const int dw2 = entry[CAR_DIST_WHEELS2];
+
+  if (! reverseFlag)
+  {
+    if (! axles.empty())
+      posRunning += entry[CAR_DIST_FRONT_TO_WHEEL];
+
+    axles.push_back(posRunning); // First pair, first wheel
+  
+    if (dw1 > 0)
+    {
+      posRunning += dw1;
+      axles.push_back(posRunning);  // First pair, second wheel
+    }
+
+    posRunning += entry[CAR_DIST_PAIR];
+    axles.push_back(posRunning); // Second pair, first wheel
+
+    if (dw2 > 0)
+    {
+      posRunning += dw2;
+      axles.push_back(posRunning); // Second pair, second wheel
+    }
+
+    posRunning += entry[CAR_DIST_WHEEL_TO_BACK];
+  }
+  else
+  {
+    // Car is reversed.
+    if (! axles.empty())
+      posRunning += entry[CAR_DIST_WHEEL_TO_BACK];
+
+    axles.push_back(posRunning); // Second pair, second wheel
+
+    if (dw2 > 0)
+    {
+      posRunning += dw2;
+      axles.push_back(posRunning); // Second pair, first wheel
+    }
+
+    posRunning += entry[CAR_DIST_PAIR];
+    axles.push_back(posRunning); // First pair, second wheel
+
+    if (dw1 > 0)
+    {
+      posRunning += dw1;
+      axles.push_back(posRunning);  // First pair, first wheel
+    }
+
+    posRunning += entry[CAR_DIST_FRONT_TO_WHEEL];
+  }
+  return true;
 }
 

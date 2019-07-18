@@ -121,6 +121,18 @@ bool Entity::readFile(
 }
 
 
+int& Entity::operator [](const unsigned no)
+{
+  return ints[no];
+}
+
+
+const int& Entity::operator [](const unsigned no) const
+{
+  return ints[no];
+}
+
+
 const string Entity::getString(const unsigned no)
 {
   if (no >= strings.size())

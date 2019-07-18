@@ -75,6 +75,11 @@ class CarCollection: public Collection
 
     void reset();
 
+    bool addAxles(
+      const unsigned index,
+      const bool reverseFlag,
+      int& posRunning,
+      vector<int>& axles) const;
 };
 
 #endif

@@ -52,6 +52,9 @@ class Entity
       const list<CorrespondenceEntry>& fields,
       const vector<unsigned>& fieldCounts);
 
+    int& operator [](const unsigned no); // Only the ints vector
+    const int& operator [](const unsigned no) const;
+
     const string getString(const unsigned no);
 
     const vector<string> getStringVector(const unsigned no);
