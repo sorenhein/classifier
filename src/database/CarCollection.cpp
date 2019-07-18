@@ -286,11 +286,26 @@ bool CarCollection::readFile(const string& fname)
 
 
 bool CarCollection::appendAxles(
-  const unsigned index,
-  const bool reverseFlag,
+  const int carNo,
   int& posRunning,
   vector<int>& axles) const
 {
+  if (carNo == 0)
+    return false;
+
+  unsigned index;
+  bool reverseFlag;
+  if (carNo > 0)
+  {
+    index = carNo;
+    reverseFlag = false;
+  }
+  else
+  {
+    index = -carNo;
+    reverseFlag = true;
+  }
+
   if (index >= entries.size())
     return false;
 

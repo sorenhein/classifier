@@ -503,6 +503,15 @@ bool makeTrainAxles(
   int pos = 0;
   for (int carNo: t.carNumbers)
   {
+    if (! db.appendAxles(carNo, pos, t.axles))
+    {
+      cout << "makeTrainAxles: appendAxles failed\n";
+      return false;
+    }
+  }
+
+  /*
+  {
     if (carNo == 0)
     {
       cout << "makeTrainAxles: Bad car number" << endl;
@@ -518,6 +527,7 @@ bool makeTrainAxles(
       db.appendAxles(-carNo, true, pos, t.axles);
     }
   }
+  */
 
   return true;
 }

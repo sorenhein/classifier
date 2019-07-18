@@ -88,8 +88,7 @@ class CarCollection
     bool readFile(const string& fname);
 
     bool appendAxles(
-      const unsigned index,
-      const bool reverseFlag,
+      const int carNo,
       int& posRunning,
       vector<int>& axles) const;
 

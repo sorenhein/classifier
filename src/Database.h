@@ -108,9 +108,8 @@ CarCollection carEntriesNew;
     ~Database();
 
 void readCarFile(const string& fname);
-void appendAxles(
-  const unsigned index,
-  const bool reverseFlag,
+bool appendAxles(
+  const int carNo,
   int& posRunning,
   vector<int>& axles) const;
 

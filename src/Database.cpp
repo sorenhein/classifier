@@ -30,13 +30,12 @@ void Database::readCarFile(const string& fname)
 }
 
 
-void Database::appendAxles(
-  const unsigned index,
-  const bool reverseFlag,
+bool Database::appendAxles(
+  const int carNo,
   int& posRunning,
   vector<int>& axles) const
 {
-  carEntriesNew.appendAxles(index, reverseFlag, posRunning, axles);
+  return carEntriesNew.appendAxles(carNo, posRunning, axles);
 }
 
 
