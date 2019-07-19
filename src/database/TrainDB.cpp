@@ -1,4 +1,4 @@
-#include "TrainCollection.h"
+#include "TrainDB.h"
 
 #include <iostream>
 #include <iomanip>
@@ -7,29 +7,29 @@
 #define UNUSED(x) ((void)(true ? 0 : ((x), void(), 0)))
 
 
-TrainCollection::TrainCollection()
+TrainDB::TrainDB()
 {
-  TrainCollection::reset();
+  TrainDB::reset();
 }
 
 
-TrainCollection::~TrainCollection()
+TrainDB::~TrainDB()
 {
 }
 
 
-void TrainCollection::reset()
+void TrainDB::reset()
 {
   fields.clear();
   fieldCounts.clear();
   entries.clear();
   offTrainMap.clear();
 
-  TrainCollection::configure();
+  TrainDB::configure();
 }
 
 
-void TrainCollection::configure()
+void TrainDB::configure()
 {
   fields =
   {
@@ -55,7 +55,7 @@ void TrainCollection::configure()
 }
 
 
-bool TrainCollection::complete(Entity& entry)
+bool TrainDB::complete(Entity& entry)
 {
   UNUSED(entry);
   return true;
@@ -67,13 +67,13 @@ bool TrainCollection::complete(Entity& entry)
 }
 
 
-bool TrainCollection::readFile(const string& fname)
+bool TrainDB::readFile(const string& fname)
 {
   Entity entry;
   if (! entry.readFile(fname, fields, fieldCounts))
     return false;
 
-  if (! TrainCollection::complete(entry))
+  if (! TrainDB::complete(entry))
     return false;
 
   offTrainMap[entry.getString(TRAIN_OFFICIAL_NAME)] = entries.size();
@@ -83,7 +83,7 @@ bool TrainCollection::readFile(const string& fname)
 }
 
 
-int TrainCollection::lookupTrainNumber(const string& offName) const
+int TrainDB::lookupTrainNumber(const string& offName) const
 {
   auto it = offTrainMap.find(offName);
   if (it == offTrainMap.end())

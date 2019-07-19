@@ -1,22 +1,22 @@
-#include "CarCollection.h"
+#include "CarDB.h"
 
 #include <iostream>
 #include <iomanip>
 #include <sstream>
 
 
-CarCollection::CarCollection()
+CarDB::CarDB()
 {
-  CarCollection::reset();
+  CarDB::reset();
 }
 
 
-CarCollection::~CarCollection()
+CarDB::~CarDB()
 {
 }
 
 
-void CarCollection::reset()
+void CarDB::reset()
 {
   fields.clear();
   fieldCounts.clear();
@@ -28,11 +28,11 @@ void CarCollection::reset()
 
   offCarMap.clear();
 
-  CarCollection::configure();
+  CarDB::configure();
 }
 
 
-void CarCollection::configure()
+void CarDB::configure()
 {
   fields =
   {
@@ -100,7 +100,7 @@ void CarCollection::configure()
 }
 
 
-bool CarCollection::fillInEquation(
+bool CarDB::fillInEquation(
   int &lhs,
   vector<int>& rhs,
   bool& inconsistentFlag,
@@ -170,7 +170,7 @@ bool CarCollection::fillInEquation(
 }
 
 
-bool CarCollection::fillInDistances(Entity& entry) const
+bool CarDB::fillInDistances(Entity& entry) const
 {
   // Calculate missing distances.  Check that not over-specified.
   // Less than some small number means that the value was not set.
@@ -274,7 +274,7 @@ bool CarCollection::fillInDistances(Entity& entry) const
 
 
 
-bool CarCollection::complete(Entity& entry)
+bool CarDB::complete(Entity& entry)
 {
   const unsigned dw = entry[CAR_DIST_WHEELS];
   if (dw > 0)
@@ -288,17 +288,17 @@ bool CarCollection::complete(Entity& entry)
   entry.setBool(CAR_FOURWHEEL_FLAG,
     entry[CAR_DIST_WHEELS1] > 0 && entry[CAR_DIST_WHEELS2] > 0);
 
-  return CarCollection::fillInDistances(entry);
+  return CarDB::fillInDistances(entry);
 }
 
 
-bool CarCollection::readFile(const string& fname)
+bool CarDB::readFile(const string& fname)
 {
   Entity entry;
   if (! entry.readFile(fname, fields, fieldCounts))
     return false;
 
-  if (! CarCollection::complete(entry))
+  if (! CarDB::complete(entry))
     return false;
 
   offCarMap[entry.getString(CAR_OFFICIAL_NAME)] = entries.size();
@@ -308,7 +308,7 @@ bool CarCollection::readFile(const string& fname)
 }
 
 
-bool CarCollection::appendAxles(
+bool CarDB::appendAxles(
   const int carNo,
   int& posRunning,
   vector<int>& axles) const
@@ -389,7 +389,7 @@ bool CarCollection::appendAxles(
 }
 
 
-int CarCollection::lookupCarNumber(const string& offName) const
+int CarDB::lookupCarNumber(const string& offName) const
 {
   auto it = offCarMap.find(offName);
   if (it == offCarMap.end())
@@ -399,7 +399,7 @@ int CarCollection::lookupCarNumber(const string& offName) const
 }
 
 
-string CarCollection::strDistances(const Entity& entry) const
+string CarDB::strDistances(const Entity& entry) const
 {
   stringstream ss;
 

@@ -39,9 +39,9 @@ SOURCE_FILES    =               \
                 completions/Completion.cpp  \
                 completions/Completions.cpp    \
                 completions/PeakCompletion.cpp \
-                database/CarCollection.cpp \
+                database/CarDB.cpp \
                 database/Entity.cpp \
-                database/TrainCollection.cpp \
+                database/TrainDB.cpp \
                 util/misc.cpp   \
                 util/Gap.cpp    \
                 util/Timer.cpp  \

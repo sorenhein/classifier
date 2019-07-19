@@ -9,7 +9,8 @@
 #include <list>
 #include <map>
 
-#include "database/CarCollection.h"
+#include "database/CarDB.h"
+#include "database/TrainDB.h"
 
 #include "struct.h"
 
@@ -41,9 +42,11 @@ class Database
       string type;
     };
 
-    CarCollection carEntriesNew;
+    CarDB carDB;
    
     vector<TrainEntry> trainEntries;
+
+TrainDB trainDB;
 
     map<string, DatabaseSensor> sensors;
 

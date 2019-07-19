@@ -1,5 +1,5 @@
-#ifndef TRAIN_TRAINCOLLECTION_H
-#define TRAIN_TRAINCOLLECTION_H
+#ifndef TRAIN_TRAINDB_H
+#define TRAIN_TRAINDB_H
 
 #include <map>
 
@@ -36,7 +36,7 @@ enum TrainFieldBools
 };
 
 
-class TrainCollection
+class TrainDB
 {
   private:
 
@@ -56,9 +56,9 @@ class TrainCollection
 
   public:
 
-    TrainCollection();
+    TrainDB();
 
-    ~TrainCollection();
+    ~TrainDB();
 
     void reset();
 

@@ -3,7 +3,7 @@
 
 Database::Database()
 {
-  carEntriesNew.reset();
+  carDB.reset();
   trainEntries.clear();
   offCarMap.clear();
   offTrainMap.clear();
@@ -17,7 +17,7 @@ Database::~Database()
 
 void Database::readCarFile(const string& fname)
 {
-  carEntriesNew.readFile(fname);
+  carDB.readFile(fname);
 }
 
 
@@ -26,7 +26,7 @@ bool Database::appendAxles(
   int& posRunning,
   vector<int>& axles) const
 {
-  return carEntriesNew.appendAxles(carNo, posRunning, axles);
+  return carDB.appendAxles(carNo, posRunning, axles);
 }
 
 
@@ -157,7 +157,7 @@ bool Database::getPerfectPeaks(
 
 int Database::lookupCarNumber(const string& offName) const
 {
-  return carEntriesNew.lookupCarNumber(offName);
+  return carDB.lookupCarNumber(offName);
 }
 
 

@@ -1,5 +1,5 @@
-#ifndef TRAIN_CARCOLLECTION_H
-#define TRAIN_CARCOLLECTION_H
+#ifndef TRAIN_CARDB_H
+#define TRAIN_CARDB_H
 
 #include <map>
 
@@ -55,7 +55,7 @@ enum CarFieldBools
 };
 
 
-class CarCollection
+class CarDB
 {
   private:
 
@@ -83,9 +83,9 @@ class CarCollection
 
   public:
 
-    CarCollection();
+    CarDB();
 
-    ~CarCollection();
+    ~CarDB();
 
     void reset();
 
