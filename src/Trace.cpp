@@ -76,12 +76,6 @@ void Trace::calcRuns()
 }
 
 
-bool Trace::readText()
-{
-  return readTextTrace(filename, samples);
-}
-
-
 bool Trace::readBinary()
 {
   vector<float> fsamples;
@@ -105,19 +99,13 @@ void Trace::printSamples(const string& title) const
 }
 
 
-void Trace::read(
-  const string& fname,
-  const bool binaryFlag)
+void Trace::read(const string& fname)
 {
   timers.start(TIMER_READ);
 
   filename = fname;
-
   samples.clear();
-  if (binaryFlag)
-    Trace::readBinary();
-  else
-     Trace::readText();
+  Trace::readBinary();
 
   timers.stop(TIMER_READ);
 }

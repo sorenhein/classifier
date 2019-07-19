@@ -242,39 +242,6 @@ void toUpper(string& text)
 }
 
 
-bool readTextTrace(
-  const string& filename,
-  vector<double>& samples)
-{
-  ifstream fin;
-  fin.open(filename);
-  string line;
-  double v;
-  while (getline(fin, line))
-  {
-    line.erase(remove(line.begin(), line.end(), '\r'), line.end());
-    if (line == "" || line.front() == '#')
-      continue;
-
-    // The format seems to have a trailing comma.
-    if (line.back() == ',')
-      line.pop_back();
-
-    const string err = "File " + filename +
-      ": Bad line '" + line + "'";
-    if (! parseDouble(line, v, err))
-    {
-      fin.close();
-      return false;
-    }
-    samples.push_back(v);
-  }
-
-  fin.close();
-  return true;
-}
-
-
 bool readBinaryTrace(
   const string& filename,
   vector<float>& samples)

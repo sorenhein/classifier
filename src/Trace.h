@@ -32,7 +32,6 @@ class Trace
 
     void calcRuns();
 
-    bool readText();
     bool readBinary();
 
     void printSamples(const string& title) const;
@@ -45,9 +44,7 @@ class Trace
 
     ~Trace();
 
-    void read(
-      const string& fname,
-      const bool binaryFlag);
+    void read(const string& fname);
 
     void detect(
       const Control& control,

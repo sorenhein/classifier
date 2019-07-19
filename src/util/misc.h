@@ -49,10 +49,6 @@ bool parseCarSpecifier(
 
 void toUpper(string& text);
 
-bool readTextTrace(
-  const string& filename,
-  vector<double>& samples);
-
 bool readBinaryTrace(
   const string& filename,
   vector<float>& samples);

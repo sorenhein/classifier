@@ -94,7 +94,7 @@ if (! control.pickTrainString.empty() &&
       
       try
       {
-        trace.read(fname, true);
+        trace.read(fname);
         trace.detect(control, imperf);
         trace.logPeakStats(posTrue, trainTrue, speedTrue, peakStats);
         trace.write(control);
