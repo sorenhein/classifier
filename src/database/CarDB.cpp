@@ -23,8 +23,6 @@ void CarDB::reset()
 
   entries.clear();
   entries.emplace_back(Entity());
-  Entity& entry = entries.back();
-  entry.setString(CAR_OFFICIAL_NAME, "Dummy");
 
   offCarMap.clear();
 

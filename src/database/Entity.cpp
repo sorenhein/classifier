@@ -33,6 +33,7 @@ void Entity::init(const vector<unsigned>& fieldCounts)
 {
   strings.resize(fieldCounts[CORRESPONDENCE_STRING]);
   stringVectors.resize(fieldCounts[CORRESPONDENCE_STRING_VECTOR]);
+  intVectors.resize(fieldCounts[CORRESPONDENCE_INT_VECTOR]);
   ints.resize(fieldCounts[CORRESPONDENCE_INT], -1);
   bools.resize(fieldCounts[CORRESPONDENCE_BOOL]);
 }
@@ -152,6 +153,8 @@ vector<string>& Entity::getStringVector(const unsigned no)
 
 vector<int>& Entity::getIntVector(const unsigned no)
 {
+if (no >= intVectors.size())
+  cout << "HERE\n";
   assert(no < intVectors.size());
   return intVectors[no];
 }
