@@ -189,6 +189,52 @@ void parseCommaString(
 }
 
 
+bool parseCarSpecifier(
+  const string& text,
+  const string& err,
+  string& offName,
+  bool& reverseFlag,
+  unsigned& count)
+{
+  count = 1;
+  offName = text;
+  reverseFlag = false;
+
+  if (offName.back() == ')')
+  {
+    auto pos = offName.find("(");
+    if (pos == string::npos)
+      return false;
+
+    string bracketed = offName.substr(pos+1);
+    bracketed.pop_back();
+
+    int countI;
+    if (! parseInt(bracketed, countI, err))
+      return false;
+
+    count = static_cast<unsigned>(countI);
+    offName = offName.substr(0, pos);
+  }
+
+  if (offName.back() == ']')
+  {
+    // Car is "backwards".
+    auto pos = offName.find("[");
+    if (pos == string::npos)
+      return false;
+
+    string bracketed = offName.substr(pos+1);
+    if (bracketed != "R]")
+      return false;
+
+    offName = offName.substr(0, pos);
+    reverseFlag =  true;
+  }
+  return true;
+}
+
+
 void toUpper(string& text)
 {
   for (unsigned i = 0; i < text.size(); i++)

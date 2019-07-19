@@ -390,7 +390,7 @@ bool CarDB::appendAxles(
 }
 
 
-int CarDB::lookupCarNumber(const string& offName) const
+int CarDB::lookupNumber(const string& offName) const
 {
   auto it = offCarMap.find(offName);
   if (it == offCarMap.end())

@@ -96,7 +96,7 @@ class CarDB
       int& posRunning,
       vector<int>& axles) const;
 
-    int lookupCarNumber(const string& offName) const;
+    int lookupNumber(const string& offName) const;
 
     string strDistances(const Entity& entry) const;
 };

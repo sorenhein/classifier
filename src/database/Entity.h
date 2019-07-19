@@ -57,9 +57,10 @@ class Entity
     int& operator [](const unsigned no); // Only the ints vector
     const int& operator [](const unsigned no) const;
 
-    const string getString(const unsigned no);
+    string getString(const unsigned no) const;
 
-    const vector<string> getStringVector(const unsigned no);
+    vector<string>& getStringVector(const unsigned no);
+    vector<int>& getIntVector(const unsigned no);
 
     int getInt(const unsigned no) const;
 

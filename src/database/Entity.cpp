@@ -3,6 +3,7 @@
 #include <fstream>
 #include <sstream>
 #include <algorithm>
+#include <cassert>
 
 #include "Entity.h"
 #include "../util/misc.h"
@@ -123,67 +124,64 @@ bool Entity::readFile(
 
 int& Entity::operator [](const unsigned no)
 {
+  assert(no < ints.size());
   return ints[no];
 }
 
 
 const int& Entity::operator [](const unsigned no) const
 {
+  assert(no < ints.size());
   return ints[no];
 }
 
 
-const string Entity::getString(const unsigned no)
+string Entity::getString(const unsigned no) const
 {
-  if (no >= strings.size())
-    return "";
-  else
-    return strings[no];
+  assert(no < strings.size());
+  return strings[no];
 }
 
 
-const vector<string> Entity::getStringVector(const unsigned no)
+vector<string>& Entity::getStringVector(const unsigned no)
 {
-  if (no >= stringVectors.size())
-    return { "" };
-  else
-    return stringVectors[no];
+  assert(no < stringVectors.size());
+  return stringVectors[no];
+}
+
+
+vector<int>& Entity::getIntVector(const unsigned no)
+{
+  assert(no < intVectors.size());
+  return intVectors[no];
 }
 
 
 int Entity::getInt(const unsigned no) const
 {
-  if (no >= ints.size())
-    return -1;
-  else
-    return ints[no];
+  assert(no < ints.size());
+  return ints[no];
 }
 
 
 bool Entity::getBool(const unsigned no) const
 {
-  if (no >= bools.size())
-    return false;
-  else
-    return bools[no];
+  assert(no < bools.size());
+  return bools[no];
 }
 
 
 unsigned Entity::sizeString(const unsigned no) const
 {
-  if (no >= stringVectors.size())
-    return 0;
-  else
-    return stringVectors[no].size();
+  assert(no < stringVectors.size());
+  return stringVectors[no].size();
 }
 
 
 unsigned Entity::sizeInt(const unsigned no) const
 {
-  if (no >= intVectors.size())
-    return 0;
-  else
-    return intVectors[no].size();
+  assert(no < intVectors.size());
+  return intVectors[no].size();
 }
 
 
@@ -191,8 +189,8 @@ void Entity::setString(
   const unsigned no,
   const string& s)
 {
-  if (no < strings.size())
-    strings[no] = s;
+  assert(no < strings.size());
+  strings[no] = s;
 }
 
 
@@ -200,8 +198,8 @@ void Entity::setStringVector(
   const unsigned no,
   const vector<string>& v)
 {
-  if (no < stringVectors.size())
-    stringVectors[no] = v;
+  assert(no < stringVectors.size());
+  stringVectors[no] = v;
 }
 
 
@@ -209,8 +207,8 @@ void Entity::setInt(
   const unsigned no,
   const int i)
 {
-  if (no < ints.size())
-    ints[no] = i;
+  assert(no < ints.size());
+  ints[no] = i;
 }
 
 
@@ -218,7 +216,7 @@ void Entity::setBool(
   const unsigned no,
   const bool b)
 {
-  if (no < bools.size())
-    bools[no] = b;
+  assert(no < bools.size());
+  bools[no] = b;
 }
 

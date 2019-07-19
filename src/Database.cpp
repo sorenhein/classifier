@@ -32,7 +32,7 @@ bool Database::appendAxles(
 
 void Database::readTrainFile(const string& fname)
 {
-  trainDB.readFile(fname);
+  trainDB.readFile(carDB, "", fname);
 }
 
 
@@ -163,7 +163,7 @@ bool Database::getPerfectPeaks(
 
 int Database::lookupCarNumber(const string& offName) const
 {
-  return carDB.lookupCarNumber(offName);
+  return carDB.lookupNumber(offName);
 }
 
 

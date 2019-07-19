@@ -40,6 +40,13 @@ void parseCommaString(
   const string& text,
   vector<string>& fields);
 
+bool parseCarSpecifier(
+  const string& text,
+  const string& err,
+  string& offName,
+  bool& reverseFlag,
+  unsigned& count);
+
 void toUpper(string& text);
 
 bool readTextTrace(

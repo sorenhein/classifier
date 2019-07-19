@@ -7,6 +7,8 @@
 
 using namespace std;
 
+class CarDB;
+
 
 enum TrainFieldStrings
 {
@@ -57,7 +59,10 @@ class TrainDB
     map<string, int> offTrainMap;
 
 
-    bool complete(Entity& entry);
+    bool complete(
+      const CarDB& carDB,
+      const string& err,
+      Entity& entry);
 
     void configure();
 
@@ -70,7 +75,10 @@ class TrainDB
 
     void reset();
 
-    bool readFile(const string& fname);
+    bool readFile(
+      const CarDB& carDB,
+      const string& err,
+      const string& fname);
 
     unsigned numAxles(const unsigned trainNo) const;
     unsigned numCars(const unsigned trainNo) const;
