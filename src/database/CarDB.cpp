@@ -94,6 +94,7 @@ void CarDB::configure()
   {
     CAR_STRINGS_SIZE,
     CAR_VECTORS_SIZE,
+    0,
     CAR_INTS_SIZE,
     CAR_BOOLS_SIZE
   };

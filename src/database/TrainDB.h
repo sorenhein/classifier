@@ -15,11 +15,18 @@ enum TrainFieldStrings
   TRAIN_STRINGS_SIZE = 2
 };
 
-enum TrainFieldVectors
+enum TrainFieldStringVectors
 {
   TRAIN_COUNTRIES = 0,
   TRAIN_CAR_ORDER = 1,
-  TRAIN_VECTORS_SIZE = 2
+  TRAIN_CARS = 2,
+  TRAIN_STRING_VECTORS_SIZE = 3
+};
+
+enum TrainFieldIntVectors
+{
+  TRAIN_AXLES = 0,
+  TRAIN_INT_VECTORS_SIZE = 1
 };
 
 enum TrainFieldInts
@@ -32,7 +39,8 @@ enum TrainFieldInts
 enum TrainFieldBools
 {
   TRAIN_SYMMETRY = 0,
-  TRAIN_BOOLS_SIZE = 1
+  TRAIN_REVERSED = 1,
+  TRAIN_BOOLS_SIZE = 2
 };
 
 
@@ -64,7 +72,13 @@ class TrainDB
 
     bool readFile(const string& fname);
 
+    unsigned numAxles(const unsigned trainNo) const;
+    unsigned numCars(const unsigned trainNo) const;
+
     int lookupTrainNumber(const string& offName) const;
+    string lookupTrainName(const unsigned trainNo) const;
+
+    bool reversed(const unsigned trainNo) const;
 };
 
 #endif

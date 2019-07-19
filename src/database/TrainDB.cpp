@@ -48,7 +48,8 @@ void TrainDB::configure()
   fieldCounts =
   {
     TRAIN_STRINGS_SIZE,
-    TRAIN_VECTORS_SIZE,
+    TRAIN_STRING_VECTORS_SIZE,
+    TRAIN_INT_VECTORS_SIZE,
     TRAIN_INTS_SIZE,
     TRAIN_BOOLS_SIZE
   };
@@ -83,12 +84,48 @@ bool TrainDB::readFile(const string& fname)
 }
 
 
+unsigned TrainDB::numAxles(const unsigned trainNo) const
+{
+  if (trainNo >= entries.size())
+    return 0;
+  else
+    return entries[trainNo].sizeInt(TRAIN_AXLES);
+}
+
+
+unsigned TrainDB::numCars(const unsigned trainNo) const
+{
+  if (trainNo >= entries.size())
+    return 0;
+  else
+    return entries[trainNo].sizeString(TRAIN_CARS);
+}
+
+
 int TrainDB::lookupTrainNumber(const string& offName) const
 {
   auto it = offTrainMap.find(offName);
   if (it == offTrainMap.end())
-    return 0; // Invalid number
+    return -1;
   else
     return it->second;
+}
+
+
+string TrainDB::lookupTrainName(const unsigned trainNo) const
+{
+  if (trainNo >= entries.size())
+    return "Bad index";
+  else
+    return entries[trainNo].getString(TRAIN_OFFICIAL_NAME);
+}
+
+
+bool TrainDB::reversed(const unsigned trainNo) const
+{
+  if (trainNo >= entries.size())
+    return false;
+  else
+    return entries[trainNo].getBool(TRAIN_REVERSED);
 }
 

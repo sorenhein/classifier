@@ -13,9 +13,10 @@ enum CorrespondenceType
 {
   CORRESPONDENCE_STRING = 0,
   CORRESPONDENCE_STRING_VECTOR = 1,
-  CORRESPONDENCE_INT = 2,
-  CORRESPONDENCE_BOOL = 3,
-  CORRESPONDENCE_SIZE = 4
+  CORRESPONDENCE_INT_VECTOR = 2,
+  CORRESPONDENCE_INT = 3,
+  CORRESPONDENCE_BOOL = 4,
+  CORRESPONDENCE_SIZE = 5
 };
 
 
@@ -33,6 +34,7 @@ class Entity
 
     vector<string> strings;
     vector<vector<string>> stringVectors;
+    vector<vector<int>> intVectors;
     vector<int> ints;
     deque<bool> bools;
 
@@ -62,6 +64,10 @@ class Entity
     int getInt(const unsigned no) const;
 
     bool getBool(const unsigned no) const;
+
+    unsigned sizeString(const unsigned no) const;
+
+    unsigned sizeInt(const unsigned no) const;
 
     void setString(
       const unsigned no,

@@ -68,6 +68,8 @@ TrainDB trainDB;
 
     void readCarFile(const string& fname);
 
+    void readTrainFile(const string& fname);
+
     bool appendAxles(
       const int carNo,
       int& posRunning,

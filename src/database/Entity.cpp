@@ -169,6 +169,24 @@ bool Entity::getBool(const unsigned no) const
 }
 
 
+unsigned Entity::sizeString(const unsigned no) const
+{
+  if (no >= stringVectors.size())
+    return 0;
+  else
+    return stringVectors[no].size();
+}
+
+
+unsigned Entity::sizeInt(const unsigned no) const
+{
+  if (no >= intVectors.size())
+    return 0;
+  else
+    return intVectors[no].size();
+}
+
+
 void Entity::setString(
   const unsigned no,
   const string& s)

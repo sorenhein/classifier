@@ -388,7 +388,10 @@ void readTrainFiles(
   getFilenames(dir, textfiles);
 
   for (auto &f: textfiles)
+  {
     readTrainFile(db, f, corrections);
+    db.readTrainFile(f);
+  }
 }
 
 

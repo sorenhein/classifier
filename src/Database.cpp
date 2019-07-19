@@ -30,6 +30,12 @@ bool Database::appendAxles(
 }
 
 
+void Database::readTrainFile(const string& fname)
+{
+  trainDB.readFile(fname);
+}
+
+
 void Database::logTrain(const TrainEntry& train)
 {
   const string officialName = train.officialName;
