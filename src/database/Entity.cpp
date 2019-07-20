@@ -215,6 +215,13 @@ vector<string>& Entity::getStringVector(const unsigned no)
 }
 
 
+const vector<string>& Entity::getStringVector(const unsigned no) const
+{
+  assert(no < stringVectors.size());
+  return stringVectors[no];
+}
+
+
 vector<int>& Entity::getIntVector(const unsigned no)
 {
   assert(no < intVectors.size());

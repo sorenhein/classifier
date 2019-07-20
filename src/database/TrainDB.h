@@ -59,6 +59,8 @@ class TrainDB
 
     map<string, int> offTrainMap;
 
+    list<string> selected;
+
 
     bool correct(
       const CorrectionDB& correctionDB,
@@ -87,14 +89,27 @@ class TrainDB
     unsigned numAxles(const unsigned trainNo) const;
     unsigned numCars(const unsigned trainNo) const;
 
-    int lookupTrainNumber(const string& offName) const;
-    string lookupTrainName(const unsigned trainNo) const;
+    int lookupNumber(const string& offName) const;
+    string lookupName(const unsigned trainNo) const;
 
     bool reversed(const unsigned trainNo) const;
+
+    bool isInCountry(
+      const unsigned trainNo,
+      const string& country) const;
 
     void getPeakPositions(
       const unsigned trainNo,
       vector<double>& peakPositions) const; // In m
+
+    bool selectByAxles(
+      const list<string>& countries,
+      const unsigned minAxles,
+      const unsigned maxAxles);
+
+    list<string>::const_iterator begin() const { return selected.begin(); }
+    list<string>::const_iterator end() const { return selected.end(); }
+
 };
 
 #endif

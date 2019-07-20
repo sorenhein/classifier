@@ -74,6 +74,7 @@ class Entity
     const string& getString(const unsigned no) const;
 
     vector<string>& getStringVector(const unsigned no);
+    const vector<string>& getStringVector(const unsigned no) const;
 
     vector<int>& getIntVector(const unsigned no);
     const vector<int>& getIntVector(const unsigned no) const;

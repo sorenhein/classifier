@@ -98,10 +98,6 @@ class Database
     unsigned axleCount(const unsigned trainNo) const;
 
     bool getPerfectPeaks(
-      const string& trainName,
-      vector<PeakPos>& peaks) const; // In m
-
-    bool getPerfectPeaks(
       const unsigned trainNo,
       vector<PeakPos>& peaks) const; // In m
 

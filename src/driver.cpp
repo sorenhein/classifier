@@ -90,10 +90,14 @@ if (! control.pickTrainString.empty() &&
       const double speedTrue = traceDB.lookupTrueSpeed(fname);
       const int trainNoTrue = db.lookupTrainNumber(trainTrue);
       vector<PeakPos> posTrue;
-      db.getPerfectPeaks(static_cast<unsigned>(trainNoTrue), posTrue);
       
       try
       {
+        if (trainNoTrue == -1)
+          THROW(ERR_NO_PEAKS, "True train not known");
+
+        db.getPerfectPeaks(static_cast<unsigned>(trainNoTrue), posTrue);
+
         trace.read(fname);
         trace.detect(control, imperf);
         trace.logPeakStats(posTrue, trainTrue, speedTrue, peakStats);

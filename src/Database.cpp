@@ -35,6 +35,7 @@ void Database::readTrainFile(const string& fname)
   trainDB.readFile(carDB, correctionDB, fname);
 }
 
+
 void Database::readCorrectionFile(const string& fname)
 {
   correctionDB.readFile(fname);
@@ -126,22 +127,7 @@ bool Database::select(
 
 unsigned Database::axleCount(const unsigned trainNo) const
 {
-  if (trainNo >= trainEntries.size())
-    return 0;
-
-  return trainEntries[trainNo].axles.size();
-}
-
-
-bool Database::getPerfectPeaks(
-  const string& trainName,
-  vector<PeakPos>& peaks) const // In m
-{
-  const int trainNo = Database::lookupTrainNumber(trainName);
-  if (trainNo == -1)
-    return false;
-  else
-    return Database::getPerfectPeaks(static_cast<unsigned>(trainNo), peaks);
+  return trainDB.numAxles(trainNo);
 }
 
 
@@ -149,21 +135,13 @@ bool Database::getPerfectPeaks(
   const unsigned trainNo,
   vector<PeakPos>& peaks) const // In m
 {
-  if (trainNo >= trainEntries.size())
-    return false;
+  // if (trainNo >= trainEntries.size())
+    // return false;
 
   PeakPos peak;
   peak.value = 1.f;
   peaks.clear();
   
-  /*
-  for (auto it: trainEntries[trainNo].axles)
-  {
-    peak.pos = it / 1000.; // Convert from mm to m
-    peaks.push_back(peak);
-  }
-  */
-
   vector<double> peakPos;
   trainDB.getPeakPositions(trainNo, peakPos);
 
@@ -172,32 +150,6 @@ bool Database::getPerfectPeaks(
     peak.pos = d;
     peaks.push_back(peak);
   }
-
-  /*
-  if (peaks.size() != peakPos.size())
-  {
-    cout << "PPOS size " << peaks.size() << " vs " << peakPos.size() << endl;
-  }
-  else
-  {
-    for (unsigned i = 0; i < peakPos.size(); i++)
-    {
-      if (peakPos[i] == 0.)
-      {
-        if (peaks[i].pos != 0.)
-          cout << i << " PPOS expected zero: " << peaks[i].pos << endl;
-      }
-      else
-      {
-        double d = (peakPos[i] - peaks[i].pos) / peakPos[i];
-        if (d > 1.e-6)
-          cout << i << " PPOS deviation " << d << " between " <<
-            peakPos[i] << " and " << peaks[i].pos << 
-            ", train number " << trainNo << endl;
-      }
-    }
-  }
-  */
 
   return true;
 }
@@ -214,8 +166,11 @@ int Database::lookupTrainNumber(const string& offName) const
   auto it = offTrainMap.find(offName);
   if (it == offTrainMap.end())
     return -1;
-  else
-    return static_cast<int>(it->second);
+
+  const int old = static_cast<int>(it->second);
+  if (old != trainDB.lookupNumber(offName))
+    cout << "TNUM\n";
+  return old;
 }
 
 
@@ -223,8 +178,11 @@ string Database::lookupTrainName(const unsigned trainNo) const
 {
   if (trainNo >= trainEntries.size())
     return "Bad index";
-  else
-    return trainEntries[trainNo].officialName;
+
+  const string old = trainEntries[trainNo].officialName;
+  if (old != trainDB.lookupName(trainNo))
+    cout << "TNAME\n";
+  return old;
 }
 
 
@@ -242,14 +200,26 @@ bool Database::trainIsInCountry(
   const unsigned trainNo,
   const string& country) const
 {
+  bool n = trainDB.isInCountry(trainNo, country);
+
   if (trainNo >= trainEntries.size())
+  {
+    if (n != false)
+      cout << "CTR1\n";
     return false;
+  }
 
   for (auto& c: trainEntries[trainNo].countries)
   {
     if (country == c)
+    {
+      if (n != true)
+        cout << "CTR2\n";
       return true;
+    }
   }
+  if (n != false)
+    cout << "CTR3\n";
   return false;
 }
 
@@ -258,6 +228,10 @@ bool Database::trainIsReversed(const unsigned trainNo) const
 {
   if (trainNo >= trainEntries.size())
     return false;
+
+  const bool old = trainEntries[trainNo].reverseFlag;
+  if (old != trainDB.reversed(trainNo))
+    cout << "TREV\n";
 
   return trainEntries[trainNo].reverseFlag;
 }

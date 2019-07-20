@@ -183,7 +183,7 @@ unsigned TrainDB::numCars(const unsigned trainNo) const
 }
 
 
-int TrainDB::lookupTrainNumber(const string& offName) const
+int TrainDB::lookupNumber(const string& offName) const
 {
   auto it = offTrainMap.find(offName);
   if (it == offTrainMap.end())
@@ -193,7 +193,7 @@ int TrainDB::lookupTrainNumber(const string& offName) const
 }
 
 
-string TrainDB::lookupTrainName(const unsigned trainNo) const
+string TrainDB::lookupName(const unsigned trainNo) const
 {
   assert(trainNo < entries.size());
   return entries[trainNo].getString(TRAIN_OFFICIAL_NAME);
@@ -207,6 +207,23 @@ bool TrainDB::reversed(const unsigned trainNo) const
 }
 
 
+bool TrainDB::isInCountry(
+  const unsigned trainNo,
+  const string& country) const
+{
+  assert(trainNo < entries.size());
+  const vector<string>& sv = 
+    entries[trainNo].getStringVector(TRAIN_COUNTRIES);
+
+  for (const auto& c: sv)
+  {
+    if (c == country)
+      return true;
+  }
+  return false;
+}
+
+
 void TrainDB::getPeakPositions(
   const unsigned trainNo,
   vector<double>& peakPositions) const
@@ -217,5 +234,44 @@ void TrainDB::getPeakPositions(
   {
     peakPositions.push_back(p / 1000.); // In m
   }
+}
+
+
+bool TrainDB::selectByAxles(
+  const list<string>& countries,
+  const unsigned minAxles,
+  const unsigned maxAxles)
+{
+  // Used in preparation for looping using begin() and end().
+
+  selected.clear();
+  if (countries.empty())
+    return false;
+
+  const bool allFlag = 
+    (countries.size() == 1 && countries.front() == "ALL");
+
+  map<string, int> countryMap;
+  if (! allFlag)
+  {
+    // Make a map of country strings
+    for (auto& c: countries)
+      countryMap[c] = 1;
+  }
+
+  for (auto& entry: entries)
+  {
+    const string offName = entry.getString(TRAIN_OFFICIAL_NAME);
+    if (! allFlag && countryMap.find(offName) == countryMap.end())
+      continue;
+
+    const unsigned l = entry.sizeInt(TRAIN_AXLES);
+    if (l < minAxles || l > maxAxles)
+      continue;
+
+    selected.push_back(offName);
+  }
+
+  return (! selected.empty());
 }
 
