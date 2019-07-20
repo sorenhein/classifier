@@ -1,6 +1,5 @@
 tokenize to no longer use outside parse.cpp?
 
-misc.c split into parse.c and io.c
 move parse.cpp to database
 cout more localized, not in parse.cpp but in the callers
 

@@ -61,7 +61,6 @@ class TrainDB
 
     bool complete(
       const CarDB& carDB,
-      const string& err,
       Entity& entry);
 
     void configure();

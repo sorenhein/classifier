@@ -22,13 +22,11 @@ bool parseInt(
 
 bool parseDouble(
   const string& text,
-  double& value,
-  const string& err);
+  double& value);
 
 bool parseBool(
   const string& text,
-  bool& value,
-  const string& err);
+  bool& value);
 
 void parseCommaString(
   const string& text,
@@ -36,7 +34,6 @@ void parseCommaString(
 
 bool parseCarSpecifier(
   const string& text,
-  const string& err,
   string& offName,
   bool& reverseFlag,
   unsigned& count);

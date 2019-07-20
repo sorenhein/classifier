@@ -1,11 +1,4 @@
-#include <iostream>
-#include <iomanip>
-#include <fstream>
-#include <sstream>
-
 #include "parse.h"
-
-#define UNUSED(x) ((void)(true ? 0 : ((x), void(), 0)))
 
 
 void tokenize(
@@ -77,8 +70,7 @@ bool parseInt(
 
 bool parseDouble(
   const string& text,
-  double& value,
-  const string& err)
+  double& value)
 {
   if (text == "")
     return false;
@@ -89,21 +81,10 @@ bool parseDouble(
   {
     f = stod(text, &pos);
     if (pos != text.size())
-    {
-      cout << err << endl;
       return false;
-    }
   }
-  catch (const invalid_argument& ia)
+  catch (...)
   {
-    UNUSED(ia);
-    cout << err << endl;
-    return false;
-  }
-  catch (const out_of_range& ia)
-  {
-    UNUSED(ia);
-    cout << err << endl;
     return false;
   }
 
@@ -114,20 +95,20 @@ bool parseDouble(
 
 bool parseBool(
   const string& text,
-  bool& value,
-  const string& err)
+  bool& value)
 {
   if (text == "yes")
-    value = true;
-  else if (text == "no")
-    value = false;
-  else
   {
-    cout << err << endl;
-    return false;
+    value = true;
+    return true;
   }
-
-  return true;
+  else if (text == "no")
+  {
+    value = false;
+    return true;
+  }
+  else
+    return false;
 }
 
 
@@ -144,7 +125,6 @@ void parseCommaString(
 
 bool parseCarSpecifier(
   const string& text,
-  const string& err,
   string& offName,
   bool& reverseFlag,
   unsigned& count)
@@ -164,10 +144,7 @@ bool parseCarSpecifier(
 
     int countI;
     if (! parseInt(bracketed, countI))
-    {  
-      cout << err << endl;
       return false;
-    }
 
     count = static_cast<unsigned>(countI);
     offName = offName.substr(0, pos);

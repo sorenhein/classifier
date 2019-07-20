@@ -92,8 +92,9 @@ bool Entity::readFile(
         }
         else if (field.corrType == CORRESPONDENCE_BOOL)
         {
-          if (! parseBool(value, bools[field.no], err))
+          if (! parseBool(value, bools[field.no]))
           {
+            cout << err << endl;
             errFlag = true;
             break;
           }

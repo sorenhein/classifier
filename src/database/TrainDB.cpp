@@ -61,7 +61,6 @@ void TrainDB::configure()
 
 bool TrainDB::complete(
   const CarDB& carDB,
-  const string& err,
   Entity& entry)
 {
   string carName;
@@ -73,7 +72,7 @@ bool TrainDB::complete(
 
   for (auto& str: stringVector)
   {
-    if (! parseCarSpecifier(str, err, carName, reverseFlag, count))
+    if (! parseCarSpecifier(str, carName, reverseFlag, count))
     {
       cout << "Could not parse car specification: " << str << endl;
       return false;
@@ -108,8 +107,11 @@ bool TrainDB::readFile(
   if (! entry.readFile(fname, fields, fieldCounts))
     return false;
 
-  if (! TrainDB::complete(carDB, err, entry))
+  if (! TrainDB::complete(carDB, entry))
+  {
+    cout << err << endl;
     return false;
+  }
 
   offTrainMap[entry.getString(TRAIN_OFFICIAL_NAME)] = entries.size();
 

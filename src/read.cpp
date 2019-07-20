@@ -205,27 +205,51 @@ bool readControlFile(
     }
     else if (field == "SPEED_MIN")
     {
-      if ( ! parseDouble(rest, c.speedMin, err)) break;
+      if ( ! parseDouble(rest, c.speedMin)) 
+      {
+        cout << err << endl;
+        break;
+      }
     }
     else if (field == "SPEED_MAX")
     {
-      if ( ! parseDouble(rest, c.speedMax, err)) break;
+      if ( ! parseDouble(rest, c.speedMax)) 
+      {
+        cout << err << endl;
+        break;
+      }
     }
     else if (field == "SPEED_STEP")
     {
-      if ( ! parseDouble(rest, c.speedStep, err)) break;
+      if ( ! parseDouble(rest, c.speedStep)) 
+      {
+        cout << err << endl;
+        break;
+      }
     }
     else if (field == "ACCELERATION_MIN")
     {
-      if ( ! parseDouble(rest, c.accelMin, err)) break;
+      if ( ! parseDouble(rest, c.accelMin)) 
+      {
+        cout << err << endl;
+        break;
+      }
     }
     else if (field == "ACCELERATION_MAX")
     {
-      if ( ! parseDouble(rest, c.accelMax, err)) break;
+      if ( ! parseDouble(rest, c.accelMax)) 
+      {
+        cout << err << endl;
+        break;
+      }
     }
     else if (field == "ACCELERATION_STEP")
     {
-      if ( ! parseDouble(rest, c.accelStep, err)) break;
+      if ( ! parseDouble(rest, c.accelStep)) 
+      {
+        cout << err << endl;
+        break;
+      }
     }
     else if (field == "CROSSCOUNT_FILE")
       c.crossCountFile = rest;
@@ -370,7 +394,11 @@ void readTrainFile(
       parseCommaString(rest, t.countries);
     else if (field == "SYMMETRY")
     {
-      if (! parseBool(rest, t.symmetryFlag, err)) break;
+      if (! parseBool(rest, t.symmetryFlag)) 
+      {
+        cout << err << endl;
+        break;
+      }
     }
     else if (field == "ORDER")
     {
@@ -503,14 +531,16 @@ bool readTraceTruth(
       return false;
     }
 
-    if (! parseDouble(v[4], truth.speed, err))
+    if (! parseDouble(v[4], truth.speed))
     {
+      cout << err << endl;
       fin.close();
       return false;
     }
 
-    if (! parseDouble(v[5], truth.accel, err))
+    if (! parseDouble(v[5], truth.accel))
     {
+      cout << err << endl;
       fin.close();
       return false;
     }
