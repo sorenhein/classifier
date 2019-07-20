@@ -45,21 +45,11 @@ class Database
 
     CarDB carDB;
    
-    vector<TrainEntry> trainEntries;
     TrainDB trainDB;
 
     CorrectionDB correctionDB;
 
     map<string, DatabaseSensor> sensors;
-
-    list<string> selectedTrains;
-
-    map<string, int> offCarMap;
-
-    map<string, unsigned> offTrainMap;
-
-    void setCorrespondences();
-    void resetCar(Entity& carEntry) const;
 
 
   public:
@@ -78,8 +68,6 @@ class Database
       const int carNo,
       int& posRunning,
       vector<int>& axles) const;
-
-    void logTrain(const TrainEntry& train);
 
     bool logSensor(
       const string& name,

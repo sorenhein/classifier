@@ -4,9 +4,7 @@
 Database::Database()
 {
   carDB.reset();
-  trainEntries.clear();
-  offCarMap.clear();
-  offTrainMap.clear();
+  trainDB.reset();
 }
 
 
@@ -39,36 +37,6 @@ void Database::readTrainFile(const string& fname)
 void Database::readCorrectionFile(const string& fname)
 {
   correctionDB.readFile(fname);
-}
-
-
-void Database::logTrain(const TrainEntry& train)
-{
-  const string officialName = train.officialName;
-
-  // Normal direction.
-  trainEntries.push_back(train);
-  TrainEntry& t = trainEntries.back();
-  t.officialName = officialName + "_N";
-  t.reverseFlag = false;
-  offTrainMap[t.officialName] = trainEntries.size()-1;
-
-  if (! train.symmetryFlag)
-  {
-    // Reversed as well.
-    TrainEntry tr = train;
-
-    const int aLast = tr.axles.back();
-    const unsigned l = tr.axles.size();
-    const vector<int> axles = tr.axles;
-    for (unsigned i = 0; i < l; i++)
-      tr.axles[i] = aLast - axles[l-i-1];
-
-    tr.officialName = officialName + "_R";
-    tr.reverseFlag = true;
-    trainEntries.push_back(tr);
-    offTrainMap[tr.officialName] = trainEntries.size()-1;
-  }
 }
 
 

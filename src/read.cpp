@@ -340,89 +340,6 @@ void correctTrain(
 }
 
 
-void readTrainFile(
-  Database& db,
-  const string& fname,
-  const map<string, vector<int>>& corrections)
-{
-
-  TrainEntry t;
-  resetTrain(t);
-
-  ifstream fin;
-  fin.open(fname);
-  string line;
-  while (getline(fin, line))
-  {
-    line.erase(remove(line.begin(), line.end(), '\r'), line.end());
-    if (line == "" || line.front() == '#')
-      continue;
-
-    const string err = "File " + fname + ": Bad line '" + line + "'";
-    
-    const auto sp = line.find(" ");
-    if (sp == string::npos || sp == 0 || sp == line.size()-1)
-    {
-      cout << err << endl;
-      break;
-    }
-
-    const string& field = line.substr(0, sp);
-    const string& rest = line.substr(sp+1);
-
-    if (field == "OFFICIAL_NAME")
-      t.officialName = rest;
-    else if (field == "NAME")
-      t.name = rest;
-    else if (field == "INTRODUCTION")
-    {
-      if ( ! parseInt(rest, t.introduction)) 
-      {
-        cout << err << endl;
-        break;
-      }
-    }
-    else if (field == "RETIREMENT")
-    {
-      if ( ! parseInt(rest, t.retirement)) 
-      {
-        cout << err << endl;
-        break;
-      }
-    }
-    else if (field == "COUNTRIES")
-      parseCommaString(rest, t.countries);
-    else if (field == "SYMMETRY")
-    {
-      if (! parseBool(rest, t.symmetryFlag)) 
-      {
-        cout << err << endl;
-        break;
-      }
-    }
-    else if (field == "ORDER")
-    {
-      if (! readOrder(db, rest, t.carNumbers, err)) break;
-    }
-    else
-    {
-      cout << err << endl;
-      break;
-    }
-  }
-  fin.close();
-
-  if (! makeTrainAxles(db, t))
-    cout << "File " + fname + ": Could not make axles" << endl;
-
-  auto v = corrections.find(t.officialName);
-  if (v != corrections.end())
-    correctTrain(t, v->second);
-
-  db.logTrain(t);
-}
-
-
 void readTrainFiles(
   Database& db,
   const string& dir,
@@ -431,10 +348,10 @@ void readTrainFiles(
   vector<string> correctionFiles;
   getFilenames(correctionDir, correctionFiles);
 
-  map<string, vector<int>> corrections;
+  // map<string, vector<int>> corrections;
   for (auto &f: correctionFiles)
   {
-    readCorrectionFile(f, corrections);
+    // readCorrectionFile(f, corrections);
     db.readCorrectionFile(f);
   }
 
@@ -442,10 +359,7 @@ void readTrainFiles(
   getFilenames(dir, textfiles);
 
   for (auto &f: textfiles)
-  {
-    readTrainFile(db, f, corrections);
     db.readTrainFile(f);
-  }
 }
 
 
