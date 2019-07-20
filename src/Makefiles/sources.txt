@@ -39,9 +39,12 @@ SOURCE_FILES    =                       \
                 completions/Completion.cpp  \
                 completions/Completions.cpp    \
                 completions/PeakCompletion.cpp \
+                                        \
                 database/CarDB.cpp      \
+                database/CorrectionDB.cpp \
                 database/Entity.cpp     \
                 database/TrainDB.cpp    \
+                                        \
                 util/misc.cpp           \
                 util/parse.cpp          \
                 util/Gap.cpp            \

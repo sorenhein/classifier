@@ -1,0 +1,75 @@
+#include <iostream>
+
+#include "CorrectionDB.h"
+
+
+CorrectionDB::CorrectionDB()
+{
+  CorrectionDB::reset();
+}
+
+
+CorrectionDB::~CorrectionDB()
+{
+}
+
+
+void CorrectionDB::reset()
+{
+  fields.clear();
+  fieldCounts.clear();
+  entries.clear();
+  correctionMap.clear();
+
+  CorrectionDB::configure();
+}
+
+
+void CorrectionDB::configure()
+{
+  fields =
+  {
+    { "OFFICIAL_NAME", CORRESPONDENCE_STRING, CORR_OFFICIAL_NAME }
+  };
+
+  fieldCounts =
+  {
+    CORR_STRINGS_SIZE,
+    CORR_STRING_VECTORS_SIZE,
+    CORR_INT_VECTORS_SIZE,
+    CORR_INTS_SIZE,
+    CORR_BOOLS_SIZE
+  };
+}
+
+
+bool CorrectionDB::readFile(const string& fname)
+{
+  Entity entry;
+  if (! entry.readFile(fname, fields, fieldCounts))
+  {
+    cout << "Could not read correction file " << fname << endl;
+    return false;
+  }
+
+  correctionMap[entry.getString(CORR_OFFICIAL_NAME)] = entries.size();
+
+  entries.push_back(entry);
+  return true;
+}
+
+
+bool CorrectionDB::getIntVector(
+  const string& officialName, // Without the _N / _R
+  vector<int>& correction)
+{
+  auto c = correctionMap.find(officialName);
+  if (c == correctionMap.end())
+    return false;
+  else
+  {
+    correction = entries[c->second].getIntVector(CORR_DELTAS);
+    return true;
+  }
+}
+

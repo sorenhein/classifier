@@ -69,6 +69,7 @@ bool TrainDB::complete(
 
   auto& stringVector = entry.getStringVector(TRAIN_CAR_ORDER);
   auto& axles = entry.getIntVector(TRAIN_AXLES);
+  int pos = 0;
 
   for (auto& str: stringVector)
   {
@@ -87,14 +88,20 @@ bool TrainDB::complete(
 
     const int carNo = (reverseFlag ? carDBNo : -carDBNo);
     for (unsigned i = 0; i < count; i++)
-      axles.push_back(carNo);
+    {
+      if (! carDB.appendAxles(carNo, pos, axles))
+      {
+        cout << "TrainDB::complete: appendAxles failed\n";
+        return false;
+      }
+    }
   }
 
   return true;
 
   // TODO
   // method for corrections
-  // makeTrainAxles
+  // reverse
 }
 
 
