@@ -139,7 +139,14 @@ const int& Entity::operator [](const unsigned no) const
 }
 
 
-string Entity::getString(const unsigned no) const
+string& Entity::getString(const unsigned no)
+{
+  assert(no < strings.size());
+  return strings[no];
+}
+
+
+const string& Entity::getString(const unsigned no) const
 {
   assert(no < strings.size());
   return strings[no];
@@ -155,8 +162,13 @@ vector<string>& Entity::getStringVector(const unsigned no)
 
 vector<int>& Entity::getIntVector(const unsigned no)
 {
-if (no >= intVectors.size())
-  cout << "HERE\n";
+  assert(no < intVectors.size());
+  return intVectors[no];
+}
+
+
+const vector<int>& Entity::getIntVector(const unsigned no) const
+{
   assert(no < intVectors.size());
   return intVectors[no];
 }
@@ -223,5 +235,18 @@ void Entity::setBool(
 {
   assert(no < bools.size());
   bools[no] = b;
+}
+
+
+void Entity::reverseIntVector(const unsigned no)
+{
+  assert(no < intVectors.size());
+  vector<int> axlesOrig = intVectors[no];
+  vector<int>& axles = intVectors[no];
+
+  const int aLast = axles.back();
+  const unsigned la = axles.size();
+  for (unsigned i = 0; i < la; i++)
+    axles[i] = aLast - axlesOrig[la-i-1];
 }
 

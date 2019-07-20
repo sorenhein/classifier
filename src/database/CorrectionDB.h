@@ -1,3 +1,9 @@
+/*
+ * For some train types it seems that the stated axle positions are
+ * not optimal for detection.  The most necessary corrections are
+ * stored here.
+ */
+
 #ifndef TRAIN_CORRECTIONDB_H
 #define TRAIN_CORRECTIONDB_H
 
@@ -62,9 +68,8 @@ class CorrectionDB
 
     bool readFile(const string& fname);
 
-    bool getIntVector(
-      const string& officialName, // Without the _N / _R
-      vector<int>& corrections);
+    // The name is Without the _N / _R
+    vector<int> const * getIntVector(const string& officialName) const; 
 };
 
 #endif

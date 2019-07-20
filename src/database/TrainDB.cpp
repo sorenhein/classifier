@@ -4,7 +4,9 @@
 #include <cassert>
 
 #include "CarDB.h"
+#include "CorrectionDB.h"
 #include "TrainDB.h"
+
 #include "../util/parse.h"
 
 #define UNUSED(x) ((void)(true ? 0 : ((x), void(), 0)))
@@ -98,16 +100,39 @@ bool TrainDB::complete(
   }
 
   return true;
+}
 
-  // TODO
-  // method for corrections
-  // reverse
+
+bool TrainDB::correct(
+  const CorrectionDB& correctionDB,
+  Entity& entry)
+{
+  // At this point the official name has not been adorned with _N / _R.
+  vector<int> const * corrptr = correctionDB.getIntVector(
+    entry.getString(TRAIN_OFFICIAL_NAME));
+
+  if (! corrptr)
+    return false;
+
+  vector<int>& axles = entry.getIntVector(TRAIN_AXLES);
+
+  if (axles.size() != corrptr->size())
+  {
+    cout << "Correction of " << entry.getString(TRAIN_OFFICIAL_NAME) <<
+      " attempted with " << corrptr->size() << " axles" << endl;
+    return false;
+  }
+
+  for (unsigned i = 0; i < axles.size(); i++)
+    axles[i] += (* corrptr)[i] - (* corrptr)[0];
+
+  return true;
 }
 
 
 bool TrainDB::readFile(
   const CarDB& carDB,
-  const string& err,
+  const CorrectionDB& correctionDB,
   const string& fname)
 {
   Entity entry;
@@ -115,14 +140,28 @@ bool TrainDB::readFile(
     return false;
 
   if (! TrainDB::complete(carDB, entry))
-  {
-    cout << err << endl;
     return false;
-  }
 
+  TrainDB::correct(correctionDB, entry);
+
+  // The train is first stored in the normal direction, and the name
+  // is suffixed with _N.
+
+  const string officialName = entry.getString(TRAIN_OFFICIAL_NAME);
+
+  entry.getString(TRAIN_OFFICIAL_NAME) += "_N";
+  entry.setBool(TRAIN_REVERSED, false);
   offTrainMap[entry.getString(TRAIN_OFFICIAL_NAME)] = entries.size();
-
   entries.push_back(entry);
+
+  // Then we store the reverse direction.
+
+  entry.getString(TRAIN_OFFICIAL_NAME) = officialName + "_R";
+  entry.setBool(TRAIN_REVERSED, true);
+  entry.reverseIntVector(TRAIN_AXLES);
+  offTrainMap[entry.getString(TRAIN_OFFICIAL_NAME)] = entries.size();
+  entries.push_back(entry);
+
   return true;
 }
 

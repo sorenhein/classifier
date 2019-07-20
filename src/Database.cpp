@@ -32,7 +32,12 @@ bool Database::appendAxles(
 
 void Database::readTrainFile(const string& fname)
 {
-  trainDB.readFile(carDB, "", fname);
+  trainDB.readFile(carDB, correctionDB, fname);
+}
+
+void Database::readCorrectionFile(const string& fname)
+{
+  correctionDB.readFile(fname);
 }
 
 

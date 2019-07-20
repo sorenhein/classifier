@@ -57,10 +57,13 @@ class Entity
     int& operator [](const unsigned no); // Only the ints vector
     const int& operator [](const unsigned no) const;
 
-    string getString(const unsigned no) const;
+    string& getString(const unsigned no);
+    const string& getString(const unsigned no) const;
 
     vector<string>& getStringVector(const unsigned no);
+
     vector<int>& getIntVector(const unsigned no);
+    const vector<int>& getIntVector(const unsigned no) const;
 
     int getInt(const unsigned no) const;
 
@@ -85,6 +88,8 @@ class Entity
     void setBool(
       const unsigned no,
       const bool b);
+
+    void reverseIntVector(const unsigned no);
 };
 
 #endif

@@ -59,17 +59,13 @@ bool CorrectionDB::readFile(const string& fname)
 }
 
 
-bool CorrectionDB::getIntVector(
-  const string& officialName, // Without the _N / _R
-  vector<int>& correction)
+vector<int> const * CorrectionDB::getIntVector(
+  const string& officialName) const // Without the _N / _R
 {
   auto c = correctionMap.find(officialName);
   if (c == correctionMap.end())
-    return false;
+    return nullptr;
   else
-  {
-    correction = entries[c->second].getIntVector(CORR_DELTAS);
-    return true;
-  }
+    return &entries[c->second].getIntVector(CORR_DELTAS);
 }
 

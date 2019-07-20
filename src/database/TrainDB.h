@@ -8,6 +8,7 @@
 using namespace std;
 
 class CarDB;
+class CorrectionDB;
 
 
 enum TrainFieldStrings
@@ -59,6 +60,10 @@ class TrainDB
     map<string, int> offTrainMap;
 
 
+    bool correct(
+      const CorrectionDB& correctionDB,
+      Entity& entry);
+
     bool complete(
       const CarDB& carDB,
       Entity& entry);
@@ -76,7 +81,7 @@ class TrainDB
 
     bool readFile(
       const CarDB& carDB,
-      const string& err,
+      const CorrectionDB& correctionDB,
       const string& fname);
 
     unsigned numAxles(const unsigned trainNo) const;

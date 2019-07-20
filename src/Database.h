@@ -10,6 +10,7 @@
 #include <map>
 
 #include "database/CarDB.h"
+#include "database/CorrectionDB.h"
 #include "database/TrainDB.h"
 
 #include "struct.h"
@@ -45,8 +46,9 @@ class Database
     CarDB carDB;
    
     vector<TrainEntry> trainEntries;
+    TrainDB trainDB;
 
-TrainDB trainDB;
+    CorrectionDB correctionDB;
 
     map<string, DatabaseSensor> sensors;
 
@@ -69,6 +71,8 @@ TrainDB trainDB;
     void readCarFile(const string& fname);
 
     void readTrainFile(const string& fname);
+
+    void readCorrectionFile(const string& fname);
 
     bool appendAxles(
       const int carNo,
