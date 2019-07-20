@@ -91,9 +91,9 @@ class Database
       const unsigned minAxles,
       const unsigned maxAxles);
 
-    list<string>::const_iterator begin() const {return selectedTrains.begin(); }
+    list<string>::const_iterator begin() const {return trainDB.begin(); }
 
-    list<string>::const_iterator end() const {return selectedTrains.end(); }
+    list<string>::const_iterator end() const {return trainDB.end(); }
 
     unsigned axleCount(const unsigned trainNo) const;
 

@@ -93,35 +93,7 @@ bool Database::select(
   const unsigned minAxles,
   const unsigned maxAxles)
 {
-  // Used in preparation for looping using begin() and end().
-
-  selectedTrains.clear();
-  if (countries.empty())
-    return false;
-
-  const bool allFlag = (countries.size() == 1 && countries.front() == "ALL");
-  map<string, int> countryMap;
-  if (! allFlag)
-  {
-    // Make a map of country strings
-    for (auto& c: countries)
-      countryMap[c] = 1;
-  }
-
-  for (auto& train: trainEntries)
-  {
-    if (! allFlag && 
-        countryMap.find(train.officialName) == countryMap.end())
-      continue;
-
-    const unsigned l = train.axles.size();
-    if (l < minAxles || l > maxAxles)
-      continue;
-
-    selectedTrains.push_back(train.officialName);
-  }
-
-  return (! selectedTrains.empty());
+  return trainDB.selectByAxles(countries, minAxles, maxAxles);
 }
 
 
