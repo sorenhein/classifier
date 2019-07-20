@@ -125,19 +125,10 @@ bool Database::select(
 }
 
 
-unsigned Database::axleCount(const unsigned trainNo) const
-{
-  return trainDB.numAxles(trainNo);
-}
-
-
 bool Database::getPerfectPeaks(
   const unsigned trainNo,
   vector<PeakPos>& peaks) const // In m
 {
-  // if (trainNo >= trainEntries.size())
-    // return false;
-
   PeakPos peak;
   peak.value = 1.f;
   peaks.clear();
@@ -161,31 +152,6 @@ int Database::lookupCarNumber(const string& offName) const
 }
 
 
-int Database::lookupTrainNumber(const string& offName) const
-{
-  auto it = offTrainMap.find(offName);
-  if (it == offTrainMap.end())
-    return -1;
-
-  const int old = static_cast<int>(it->second);
-  if (old != trainDB.lookupNumber(offName))
-    cout << "TNUM\n";
-  return old;
-}
-
-
-string Database::lookupTrainName(const unsigned trainNo) const
-{
-  if (trainNo >= trainEntries.size())
-    return "Bad index";
-
-  const string old = trainEntries[trainNo].officialName;
-  if (old != trainDB.lookupName(trainNo))
-    cout << "TNAME\n";
-  return old;
-}
-
-
 string Database::lookupSensorCountry(const string& sensor) const
 {
   auto it = sensors.find(sensor);
@@ -196,43 +162,34 @@ string Database::lookupSensorCountry(const string& sensor) const
 }
 
 
+unsigned Database::axleCount(const unsigned trainNo) const
+{
+  return trainDB.numAxles(trainNo);
+}
+
+
+int Database::lookupTrainNumber(const string& offName) const
+{
+  return trainDB.lookupNumber(offName);
+}
+
+
+string Database::lookupTrainName(const unsigned trainNo) const
+{
+  return trainDB.lookupName(trainNo);
+}
+
+
 bool Database::trainIsInCountry(
   const unsigned trainNo,
   const string& country) const
 {
-  bool n = trainDB.isInCountry(trainNo, country);
-
-  if (trainNo >= trainEntries.size())
-  {
-    if (n != false)
-      cout << "CTR1\n";
-    return false;
-  }
-
-  for (auto& c: trainEntries[trainNo].countries)
-  {
-    if (country == c)
-    {
-      if (n != true)
-        cout << "CTR2\n";
-      return true;
-    }
-  }
-  if (n != false)
-    cout << "CTR3\n";
-  return false;
+  return trainDB.isInCountry(trainNo, country);
 }
 
 
 bool Database::trainIsReversed(const unsigned trainNo) const
 {
-  if (trainNo >= trainEntries.size())
-    return false;
-
-  const bool old = trainEntries[trainNo].reverseFlag;
-  if (old != trainDB.reversed(trainNo))
-    cout << "TREV\n";
-
-  return trainEntries[trainNo].reverseFlag;
+  return trainDB.reversed(trainNo);
 }
 

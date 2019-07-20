@@ -22,7 +22,7 @@ enum TrainFieldStringVectors
 {
   TRAIN_COUNTRIES = 0,
   TRAIN_CAR_ORDER = 1,
-  TRAIN_CARS = 2,
+  TRAIN_CARS = 2, // TODO Needed?
   TRAIN_STRING_VECTORS_SIZE = 3
 };
 
@@ -36,7 +36,8 @@ enum TrainFieldInts
 {
   TRAIN_INTRODUCTION = 0,
   TRAIN_RETIREMENT = 1,
-  TRAIN_INTS_SIZE = 2
+  TRAIN_NUM_CARS = 2,
+  TRAIN_INTS_SIZE = 3
 };
 
 enum TrainFieldBools
@@ -106,6 +107,11 @@ class TrainDB
       const list<string>& countries,
       const unsigned minAxles,
       const unsigned maxAxles);
+
+    bool selectByCars(
+      const list<string>& countries,
+      const unsigned minCars,
+      const unsigned maxCars);
 
     list<string>::const_iterator begin() const { return selected.begin(); }
     list<string>::const_iterator end() const { return selected.end(); }

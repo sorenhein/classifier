@@ -72,6 +72,7 @@ bool TrainDB::complete(
   auto& stringVector = entry.getStringVector(TRAIN_CAR_ORDER);
   auto& axles = entry.getIntVector(TRAIN_AXLES);
   int pos = 0;
+  int _numCars = 0;
 
   for (auto& str: stringVector)
   {
@@ -97,8 +98,10 @@ bool TrainDB::complete(
         return false;
       }
     }
+    _numCars += count;
   }
 
+  entry[TRAIN_NUM_CARS] = _numCars;
   return true;
 }
 
@@ -179,7 +182,7 @@ unsigned TrainDB::numAxles(const unsigned trainNo) const
 unsigned TrainDB::numCars(const unsigned trainNo) const
 {
   assert(trainNo < entries.size());
-  return entries[trainNo].sizeString(TRAIN_CARS);
+  return entries[trainNo][TRAIN_NUM_CARS];
 }
 
 
@@ -267,6 +270,45 @@ bool TrainDB::selectByAxles(
 
     const unsigned l = entry.sizeInt(TRAIN_AXLES);
     if (l < minAxles || l > maxAxles)
+      continue;
+
+    selected.push_back(offName);
+  }
+
+  return (! selected.empty());
+}
+
+
+bool TrainDB::selectByCars(
+  const list<string>& countries,
+  const unsigned minCars,
+  const unsigned maxCars)
+{
+  // Used in preparation for looping using begin() and end().
+
+  selected.clear();
+  if (countries.empty())
+    return false;
+
+  const bool allFlag = 
+    (countries.size() == 1 && countries.front() == "ALL");
+
+  map<string, int> countryMap;
+  if (! allFlag)
+  {
+    // Make a map of country strings
+    for (auto& c: countries)
+      countryMap[c] = 1;
+  }
+
+  for (auto& entry: entries)
+  {
+    const string offName = entry.getString(TRAIN_OFFICIAL_NAME);
+    if (! allFlag && countryMap.find(offName) == countryMap.end())
+      continue;
+
+    const unsigned l = entry[TRAIN_NUM_CARS];
+    if (l < minCars || l > maxCars)
       continue;
 
     selected.push_back(offName);
