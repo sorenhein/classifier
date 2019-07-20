@@ -18,8 +18,7 @@ unsigned countDelimiters(
 
 bool parseInt(
   const string& text,
-  int& value,
-  const string& err);
+  int& value);
 
 bool parseDouble(
   const string& text,

@@ -82,8 +82,11 @@ bool readOrder(
 
       string bracketed = s.substr(pos+1);
       bracketed.pop_back();
-      if (! parseInt(bracketed, count, err))
+      if (! parseInt(bracketed, count))
+      {
+        cout << err << endl;
         return false;
+      }
       
       s = s.substr(0, pos);
     }
@@ -184,13 +187,21 @@ bool readControlFile(
       c.country = rest;
     else if (field == "YEAR")
     {
-      if ( ! parseInt(rest, c.year, err)) break;
+      if ( ! parseInt(rest, c.year)) 
+      {
+        cout << err << endl;
+        break;
+      }
     }
     else if (field == "TRACE_DIRECTORY")
       c.traceDir = rest;
     else if (field == "SIM_COUNT")
     {
-      if ( ! parseInt(rest, c.simCount, err)) break;
+      if ( ! parseInt(rest, c.simCount)) 
+      {
+        cout << err << endl;
+        break;
+      }
     }
     else if (field == "SPEED_MIN")
     {
@@ -275,8 +286,11 @@ void readCorrectionFile(
     if (line.empty())
       break;
 
-    if (! parseInt(line, value, "Bad integer"))
+    if (! parseInt(line, value))
+    {
+      cout << "Bad integer" << endl;
       break;
+    }
 
     corrections[officialName].push_back(value);
   }
@@ -338,11 +352,19 @@ void readTrainFile(
       t.name = rest;
     else if (field == "INTRODUCTION")
     {
-      if ( ! parseInt(rest, t.introduction, err)) break;
+      if ( ! parseInt(rest, t.introduction)) 
+      {
+        cout << err << endl;
+        break;
+      }
     }
     else if (field == "RETIREMENT")
     {
-      if ( ! parseInt(rest, t.retirement, err)) break;
+      if ( ! parseInt(rest, t.retirement)) 
+      {
+        cout << err << endl;
+        break;
+      }
     }
     else if (field == "COUNTRIES")
       parseCommaString(rest, t.countries);
@@ -474,8 +496,9 @@ bool readTraceTruth(
     truth.filename = v[0];
     truth.trainName = v[2];
 
-    if (! parseInt(v[3], truth.numAxles, err))
+    if (! parseInt(v[3], truth.numAxles))
     {
+      cout << err << endl;
       fin.close();
       return false;
     }

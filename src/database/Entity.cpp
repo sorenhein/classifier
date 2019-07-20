@@ -83,8 +83,9 @@ bool Entity::readFile(
         }
         else if (field.corrType == CORRESPONDENCE_INT)
         {
-          if (! parseInt(value, ints[field.no], err))
+          if (! parseInt(value, ints[field.no]))
           {
+            cout << err << endl;
             errFlag = true;
             break;
           }

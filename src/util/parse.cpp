@@ -52,8 +52,7 @@ unsigned countDelimiters(
 
 bool parseInt(
   const string& text,
-  int& value,
-  const string& err)
+  int& value)
 {
   if (text == "")
     return false;
@@ -64,21 +63,10 @@ bool parseInt(
   {
     i = stoi(text, &pos);
     if (pos != text.size())
-    {
-      cout << err << endl;
       return false;
-    }
   }
-  catch (const invalid_argument& ia)
+  catch (...)
   {
-    UNUSED(ia);
-    cout << err << endl;
-    return false;
-  }
-  catch (const out_of_range& ia)
-  {
-    UNUSED(ia);
-    cout << err << endl;
     return false;
   }
 
@@ -175,8 +163,11 @@ bool parseCarSpecifier(
     bracketed.pop_back();
 
     int countI;
-    if (! parseInt(bracketed, countI, err))
+    if (! parseInt(bracketed, countI))
+    {  
+      cout << err << endl;
       return false;
+    }
 
     count = static_cast<unsigned>(countI);
     offName = offName.substr(0, pos);
