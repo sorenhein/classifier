@@ -91,6 +91,10 @@ class TrainDB
     string lookupTrainName(const unsigned trainNo) const;
 
     bool reversed(const unsigned trainNo) const;
+
+    void getPeakPositions(
+      const unsigned trainNo,
+      vector<double>& peakPositions) const; // In m
 };
 
 #endif

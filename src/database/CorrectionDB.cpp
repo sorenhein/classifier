@@ -46,7 +46,7 @@ void CorrectionDB::configure()
 bool CorrectionDB::readFile(const string& fname)
 {
   Entity entry;
-  if (! entry.readFile(fname, fields, fieldCounts))
+  if (! entry.readSeriesFile(fname, fields, fieldCounts, CORR_DELTAS))
   {
     cout << "Could not read correction file " << fname << endl;
     return false;

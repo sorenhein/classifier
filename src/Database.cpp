@@ -162,6 +162,33 @@ bool Database::getPerfectPeaks(
     peaks.push_back(peak);
   }
 
+  vector<double> peakPos;
+  trainDB.getPeakPositions(trainNo, peakPos);
+  /*
+  if (peaks.size() != peakPos.size())
+  {
+    cout << "PPOS size " << peaks.size() << " vs " << peakPos.size() << endl;
+  }
+  else
+  {
+    for (unsigned i = 0; i < peakPos.size(); i++)
+    {
+      if (peakPos[i] == 0.)
+      {
+        if (peaks[i].pos != 0.)
+          cout << i << " PPOS expected zero: " << peaks[i].pos << endl;
+      }
+      else
+      {
+        double d = (peakPos[i] - peaks[i].pos) / peakPos[i];
+        if (d > 1.e-6)
+          cout << i << " PPOS deviation " << d << " between " <<
+            peakPos[i] << " and " << peaks[i].pos << endl;
+      }
+    }
+  }
+  */
+
   return true;
 }
 

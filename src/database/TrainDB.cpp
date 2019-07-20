@@ -81,7 +81,7 @@ bool TrainDB::complete(
       return false;
     }
 
-    const int carDBNo = carDB.lookupNumber(str);
+    const int carDBNo = carDB.lookupNumber(carName);
     if (carDBNo == 0)
     {
       cout << "Car " << str << " not found" << endl;
@@ -201,5 +201,18 @@ bool TrainDB::reversed(const unsigned trainNo) const
 {
   assert(trainNo < entries.size());
   return entries[trainNo].getBool(TRAIN_REVERSED);
+}
+
+
+void TrainDB::getPeakPositions(
+  const unsigned trainNo,
+  vector<double>& peakPositions) const
+{
+  assert(trainNo < entries.size());
+  const vector<int>& axles = entries[trainNo].getIntVector(TRAIN_AXLES);
+  for (int p: axles)
+  {
+    peakPositions.push_back(p / 1000.); // In m
+  }
 }
 

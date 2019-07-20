@@ -40,6 +40,11 @@ class Entity
 
     void init(const vector<unsigned>& fieldCounts);
 
+    bool parseField(
+      const list<CorrespondenceEntry>& fields,
+      const string& tag,
+      const string& value);
+
 
   public:
 
@@ -49,10 +54,18 @@ class Entity
 
     void clear();
 
+    // Key-type file.
     bool readFile(
       const string& fname,
       const list<CorrespondenceEntry>& fields,
       const vector<unsigned>& fieldCounts);
+
+    // One header followed by ints.
+    bool readSeriesFile(
+      const string& fname,
+      const list<CorrespondenceEntry>& fields,
+      const vector<unsigned>& fieldCounts,
+      const unsigned no);
 
     int& operator [](const unsigned no); // Only the ints vector
     const int& operator [](const unsigned no) const;

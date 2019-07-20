@@ -39,6 +39,52 @@ void Entity::init(const vector<unsigned>& fieldCounts)
 }
 
 
+bool Entity::parseField(
+  const list<CorrespondenceEntry>& fields,
+  const string& tag,
+  const string& value)
+{
+  for (const auto& field: fields)
+  {
+    if (field.tag == tag)
+    {
+      if (field.corrType == CORRESPONDENCE_STRING)
+      {
+        strings[field.no] = value;
+      }
+      else if (field.corrType == CORRESPONDENCE_STRING_VECTOR)
+      {
+        parseCommaString(value, stringVectors[field.no]);
+      }
+      else if (field.corrType == CORRESPONDENCE_INT)
+      {
+        if (! parseInt(value, ints[field.no]))
+        {
+          cout << "Bad integer" << endl;
+          return false;
+        }
+      }
+      else if (field.corrType == CORRESPONDENCE_BOOL)
+      {
+        if (! parseBool(value, bools[field.no]))
+        {
+          cout << "Bad boolean" << endl;
+          return false;
+        }
+      }
+      else
+      {
+        cout << "Bad correspondence type " << endl;
+        return false;
+      }
+
+      return true;
+    }
+  }
+  return false;
+}
+
+
 bool Entity::readFile(
   const string& fname,
   const list<CorrespondenceEntry>& fields,
@@ -67,58 +113,67 @@ bool Entity::readFile(
     const string& tag = line.substr(0, sp);
     const string& value = line.substr(sp+1);
 
-    bool seenFlag = false;
-    bool errFlag = false;
-    for (const auto& field: fields)
-    {
-      if (field.tag == tag)
-      {
-        if (field.corrType == CORRESPONDENCE_STRING)
-        {
-          strings[field.no] = value;
-        }
-        else if (field.corrType == CORRESPONDENCE_STRING_VECTOR)
-        {
-          parseCommaString(value, stringVectors[field.no]);
-        }
-        else if (field.corrType == CORRESPONDENCE_INT)
-        {
-          if (! parseInt(value, ints[field.no]))
-          {
-            cout << err << endl;
-            errFlag = true;
-            break;
-          }
-        }
-        else if (field.corrType == CORRESPONDENCE_BOOL)
-        {
-          if (! parseBool(value, bools[field.no]))
-          {
-            cout << err << endl;
-            errFlag = true;
-            break;
-          }
-        }
-        else
-        {
-          errFlag = true;
-          cout << "File " << fname << ": Bad correspondence type " <<
-            field.corrType << endl;
-          break;
-        }
-
-        seenFlag = true;
-        break;
-      }
-    }
-
-    if (! seenFlag && ! errFlag)
+    if (! Entity::parseField(fields, tag, value))
     {
       cout << err << endl;
       fin.close();
       return false;
       break;
     }
+  }
+  fin.close();
+  return true;
+}
+
+
+bool Entity::readSeriesFile(
+  const string& fname,
+  const list<CorrespondenceEntry>& fields,
+  const vector<unsigned>& fieldCounts,
+  const unsigned no)
+{
+  Entity::init(fieldCounts);
+  
+  ifstream fin;
+  fin.open(fname);
+  string line;
+
+  getline(fin, line);
+  line.erase(remove(line.begin(), line.end(), '\r'), line.end());
+
+  if (line.empty())
+  {
+    fin.close();
+    cout << "Error reading correction file: '" << line << "'" << endl;
+    return false;
+  }
+
+  // Read the single header tag.
+  const auto sp = line.find(" ");
+  const string& tag = line.substr(0, sp);
+  const string& value = line.substr(sp+1);
+
+  if (! Entity::parseField(fields, tag, value))
+  {
+    cout << "Error reading correction file: '" << line << "'" << endl;
+    fin.close();
+    return false;
+  }
+
+  int number;
+  while (getline(fin, line))
+  {
+    line.erase(remove(line.begin(), line.end(), '\r'), line.end());
+    if (line.empty())
+      break;
+
+    if (! parseInt(line, number))
+    {
+      cout << "Bad integer" << endl;
+      break;
+    }
+
+    intVectors[no].push_back(number);
   }
   fin.close();
   return true;
