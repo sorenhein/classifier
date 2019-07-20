@@ -10,7 +10,7 @@
 #include "read.h"
 #include "struct.h"
 
-#include "util/misc.h"
+#include "util/parse.h"
 
 #define SEPARATOR ";"
 

@@ -9,6 +9,7 @@
 #include "TraceDB.h"
 #include "read.h"
 
+#include "util/parse.h"
 #include "util/misc.h"
 
 #define UNUSED(x) ((void)(true ? 0 : ((x), void(), 0)))
