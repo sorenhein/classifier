@@ -156,14 +156,23 @@ bool Database::getPerfectPeaks(
   peak.value = 1.f;
   peaks.clear();
   
+  /*
   for (auto it: trainEntries[trainNo].axles)
   {
     peak.pos = it / 1000.; // Convert from mm to m
     peaks.push_back(peak);
   }
+  */
 
   vector<double> peakPos;
   trainDB.getPeakPositions(trainNo, peakPos);
+
+  for (auto d: peakPos)
+  {
+    peak.pos = d;
+    peaks.push_back(peak);
+  }
+
   /*
   if (peaks.size() != peakPos.size())
   {
@@ -183,7 +192,8 @@ bool Database::getPerfectPeaks(
         double d = (peakPos[i] - peaks[i].pos) / peakPos[i];
         if (d > 1.e-6)
           cout << i << " PPOS deviation " << d << " between " <<
-            peakPos[i] << " and " << peaks[i].pos << endl;
+            peakPos[i] << " and " << peaks[i].pos << 
+            ", train number " << trainNo << endl;
       }
     }
   }

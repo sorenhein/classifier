@@ -88,7 +88,7 @@ bool TrainDB::complete(
       return false;
     }
 
-    const int carNo = (reverseFlag ? carDBNo : -carDBNo);
+    const int carNo = (reverseFlag ? -carDBNo : carDBNo);
     for (unsigned i = 0; i < count; i++)
     {
       if (! carDB.appendAxles(carNo, pos, axles))
@@ -156,11 +156,14 @@ bool TrainDB::readFile(
 
   // Then we store the reverse direction.
 
-  entry.getString(TRAIN_OFFICIAL_NAME) = officialName + "_R";
-  entry.setBool(TRAIN_REVERSED, true);
-  entry.reverseIntVector(TRAIN_AXLES);
-  offTrainMap[entry.getString(TRAIN_OFFICIAL_NAME)] = entries.size();
-  entries.push_back(entry);
+  if (! entry.getBool(TRAIN_SYMMETRY))
+  {
+    entry.getString(TRAIN_OFFICIAL_NAME) = officialName + "_R";
+    entry.setBool(TRAIN_REVERSED, true);
+    entry.reverseIntVector(TRAIN_AXLES);
+    offTrainMap[entry.getString(TRAIN_OFFICIAL_NAME)] = entries.size();
+    entries.push_back(entry);
+  }
 
   return true;
 }
