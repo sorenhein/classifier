@@ -13,6 +13,8 @@ Database::~Database()
 }
 
 
+// CAR
+
 void Database::readCarFile(const string& fname)
 {
   carDB.readFile(fname);
@@ -28,11 +30,13 @@ bool Database::appendAxles(
 }
 
 
-void Database::readTrainFile(const string& fname)
+int Database::lookupCarNumber(const string& offName) const
 {
-  trainDB.readFile(carDB, correctionDB, fname);
+  return carDB.lookupNumber(offName);
 }
 
+
+// CORRECTIONS
 
 void Database::readCorrectionFile(const string& fname)
 {
@@ -53,15 +57,6 @@ bool Database::logSensor(
   sensor.country = country;
   sensor.type = stype;
   return true;
-}
-
-
-bool Database::select(
-  const list<string>& countries,
-  const unsigned minAxles,
-  const unsigned maxAxles)
-{
-  return trainDB.selectByAxles(countries, minAxles, maxAxles);
 }
 
 
@@ -86,12 +81,6 @@ bool Database::getPerfectPeaks(
 }
 
 
-int Database::lookupCarNumber(const string& offName) const
-{
-  return carDB.lookupNumber(offName);
-}
-
-
 string Database::lookupSensorCountry(const string& sensor) const
 {
   auto it = sensors.find(sensor);
@@ -99,6 +88,14 @@ string Database::lookupSensorCountry(const string& sensor) const
     return "Bad sensor name";
   else
     return it->second.country;
+}
+
+
+// TRAIN
+
+void Database::readTrainFile(const string& fname)
+{
+  trainDB.readFile(carDB, correctionDB, fname);
 }
 
 
@@ -132,4 +129,14 @@ bool Database::trainIsReversed(const unsigned trainNo) const
 {
   return trainDB.reversed(trainNo);
 }
+
+
+bool Database::select(
+  const list<string>& countries,
+  const unsigned minAxles,
+  const unsigned maxAxles)
+{
+  return trainDB.selectByAxles(countries, minAxles, maxAxles);
+}
+
 

@@ -2,7 +2,6 @@
 #include <iomanip>
 #include <fstream>
 #include <sstream>
-#include <set>
 #include <algorithm>
 
 #include "Database.h"
@@ -15,108 +14,6 @@
 #define UNUSED(x) ((void)(true ? 0 : ((x), void(), 0)))
 
 
-void resetTrain(TrainEntry& t);
-
-bool readOrder(
-  const Database& db,
-  const string& text,
-  vector<int>& carNumbers,
-  const string& err);
-
-bool makeTrainAxles(
-  const Database& db,
-  TrainEntry& t);
-
-void readCarFile(
-  Database& db,
-  const string& fname);
-
-void readCorrectionFile(
-  const string& fname,
-  map<string, vector<int>>& corrections);
-
-void correctTrain(
-  TrainEntry& t,
-  const vector<int>& corr);
-
-void readTrainFile(
-  Database& db,
-  const string& fname,
-  const map<string, vector<int>>& corrections);
-
-
-void resetTrain(TrainEntry& t)
-{
-  t.name = "";
-  t.introduction = 0;
-  t.countries.clear();
-  t.carNumbers.clear();
-  t.fourWheelFlag = true;
-}
-
-
-
-bool readOrder(
-  const Database& db,
-  const string& text,
-  vector<int>& carNumbers,
-  const string& err)
-{
-  // Split on comma to get groups of cars.
-  const size_t c = countDelimiters(text, ",");
-  vector<string> carStrings(c+1);
-  carStrings.clear();
-  tokenize(text, carStrings, ",");
-
-  // Expand notation "802(7)" into 7 cars of type 802.
-  carNumbers.clear();
-  for (unsigned i = 0; i < carStrings.size(); i++)
-  {
-    string s = carStrings[i];
-    int count = 1;
-    if (s.back() == ')')
-    {
-      auto pos = s.find("(");
-      if (pos == string::npos)
-        return false;
-
-      string bracketed = s.substr(pos+1);
-      bracketed.pop_back();
-      if (! parseInt(bracketed, count))
-      {
-        cout << err << endl;
-        return false;
-      }
-      
-      s = s.substr(0, pos);
-    }
-
-    // Car is "backwards".
-    int reverseMultiplier = 1;
-    if (s.back() == ']')
-    {
-      auto pos = s.find("[");
-      if (pos == string::npos)
-        return false;
-
-      string bracketed = s.substr(pos+1);
-      if (bracketed != "R]")
-        return false;
-      
-      s = s.substr(0, pos);
-      reverseMultiplier = -1;
-    }
-
-    // A reversed car has the negative number.
-    const int carNo = reverseMultiplier * db.lookupCarNumber(s);
-
-    for (unsigned j = 0; j < static_cast<unsigned>(count); j++)
-      carNumbers.push_back(carNo);
-  }
-  return true;
-}
-
-
 void readCarFiles(
   Database& db,
   const string& dir)
@@ -126,23 +23,6 @@ void readCarFiles(
 
   for (auto &f: textfiles)
     db.readCarFile(f);
-}
-
-
-bool makeTrainAxles(
-  const Database& db,
-  TrainEntry& t)
-{
-  int pos = 0;
-  for (int carNo: t.carNumbers)
-  {
-    if (! db.appendAxles(carNo, pos, t.axles))
-    {
-      cout << "makeTrainAxles: appendAxles failed\n";
-      return false;
-    }
-  }
-  return true;
 }
 
 
@@ -268,75 +148,6 @@ bool readControlFile(
 
   fin.close();
   return true;
-}
-
-
-void readCorrectionFile(
-  const string& fname,
-  map<string, vector<int>>& corrections)
-{
-  ifstream fin;
-  fin.open(fname);
-  string line;
-  string officialName;
-
-  getline(fin, line);
-  line.erase(remove(line.begin(), line.end(), '\r'), line.end());
-
-  if (line.empty())
-  {
-    fin.close();
-    cout << "Error reading correction file: '" << line << "'" << endl;
-    return;
-  }
-
-  const auto sp = line.find(" ");
-  const string& field = line.substr(0, sp);
-  const string& rest = line.substr(sp+1);
-
-  if (field == "OFFICIAL_NAME")
-    officialName = rest;
-  else
-  {
-    fin.close();
-    cout << "Error reading correction file: '" << line << "'" << endl;
-    return;
-  }
-
-  int value;
-  while (getline(fin, line))
-  {
-    line.erase(remove(line.begin(), line.end(), '\r'), line.end());
-    if (line.empty())
-      break;
-
-    if (! parseInt(line, value))
-    {
-      cout << "Bad integer" << endl;
-      break;
-    }
-
-    corrections[officialName].push_back(value);
-  }
-
-  fin.close();
-}
-
-
-void correctTrain(
-  TrainEntry& t,
-  const vector<int>& corr)
-{
-  if (t.axles.size() != corr.size())
-  {
-    cout << "Correction attempted with " << corr.size() << " vs. " <<
-      t.axles.size() << " axles\n";
-    return;
-  }
-
-  for (unsigned i = 0; i < corr.size(); i++)
-    t.axles[i] += corr[i] - corr[0];
-
 }
 
 

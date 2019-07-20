@@ -3,6 +3,12 @@ tokenize to no longer use outside parse.cpp?
 move parse.cpp to database
 cout more localized, not in parse.cpp but in the callers
 
+getPerfectPeaks: Move to double, not PeakPos (delete from struct.h?)
+
+Make SensorDB
+
+Flatten Database
+
 Difference in results between laptop and PC?  Always?!
 
 Improvements
