@@ -55,66 +55,6 @@ bool readControlFile(
       c.country = rest;
     else if (field == "TRACE_DIRECTORY")
       c.traceDir = rest;
-    else if (field == "SIM_COUNT")
-    {
-      if ( ! parseInt(rest, c.simCount)) 
-      {
-        cout << err << endl;
-        break;
-      }
-    }
-    else if (field == "SPEED_MIN")
-    {
-      if ( ! parseDouble(rest, c.speedMin)) 
-      {
-        cout << err << endl;
-        break;
-      }
-    }
-    else if (field == "SPEED_MAX")
-    {
-      if ( ! parseDouble(rest, c.speedMax)) 
-      {
-        cout << err << endl;
-        break;
-      }
-    }
-    else if (field == "SPEED_STEP")
-    {
-      if ( ! parseDouble(rest, c.speedStep)) 
-      {
-        cout << err << endl;
-        break;
-      }
-    }
-    else if (field == "ACCELERATION_MIN")
-    {
-      if ( ! parseDouble(rest, c.accelMin)) 
-      {
-        cout << err << endl;
-        break;
-      }
-    }
-    else if (field == "ACCELERATION_MAX")
-    {
-      if ( ! parseDouble(rest, c.accelMax)) 
-      {
-        cout << err << endl;
-        break;
-      }
-    }
-    else if (field == "ACCELERATION_STEP")
-    {
-      if ( ! parseDouble(rest, c.accelStep)) 
-      {
-        cout << err << endl;
-        break;
-      }
-    }
-    else if (field == "CROSSCOUNT_FILE")
-      c.crossCountFile = rest;
-    else if (field == "CROSSPERCENT_FILE")
-      c.crossPercentFile = rest;
     else if (field == "OVERVIEW_FILE")
       c.overviewFile = rest;
     else if (field == "DETAIL_FILE")

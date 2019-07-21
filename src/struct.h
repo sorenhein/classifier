@@ -24,15 +24,6 @@ struct Control
   string truthFile; // File with trace truth data
   string country; // Country of input traces
   string traceDir; // In 32-bit format
-  int simCount; // Number of simulations for a given train, v and a
-  double speedMin; // Lower speed for simulation loop, in m/s
-  double speedMax; // Upper speed for simulation loop, in m/s
-  double speedStep; // Step size, in m/s
-  double accelMin; // Lower acceleration for simulation loop, in m/s^2
-  double accelMax; // Upper acceleration for simulation loop, in m/s^2
-  double accelStep; // Step size, in m/s^2
-  string crossCountFile; // Output file for cross-table of counts
-  string crossPercentFile; // Output file for cross-table of percentages
   string overviewFile; // Output file for overview train tables
   string detailFile; // Output file for detailed train tables
 

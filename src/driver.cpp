@@ -70,7 +70,7 @@ int main(int argc, char * argv[])
   vector<double> motionEstimate(order+1);
   motionActual[0] = 0.; // Offset in m
 
-  if (control.traceDir == "")
+  if (control2.traceDir() == "")
   {
     // This was once use to generate synthetic, noisy peaks and
     // to classify them.
@@ -80,10 +80,10 @@ int main(int argc, char * argv[])
 
   // This extracts peaks and then extracts train types from peaks.
   TraceDB traceDB;
-  traceDB.readFile(control.truthFile, sensorDB);
+  traceDB.readFile(control2.truthFile(), sensorDB);
 
   vector<string> datfiles;
-  getFilenames(control.traceDir, datfiles, control.pickFileString);
+  getFilenames(control2.traceDir(), datfiles, control.pickFileString);
 
   Trace trace;
   vector<PeakTime> times;
@@ -216,37 +216,28 @@ void setup(
     exit(0);
   }
 
-  if (control.carDir != control2.carDir())
-    cout << "CONTROLERR1\n";
-  if (control.correctionDir != control2.correctionDir())
-    cout << "CONTROLERR2\n";
-  if (control.trainDir != control2.trainDir())
-    cout << "CONTROLERR3\n";
-  if (control.sensorFile != control2.sensorFile())
-    cout << "CONTROLERR4\n";
-
   // carDB
   vector<string> textfiles;
-  getFilenames(control.carDir, textfiles);
+  getFilenames(control2.carDir(), textfiles);
   for (auto& fname: textfiles)
     carDB.readFile(fname);
 
   // correctionDB
   CorrectionDB correctionDB;
   vector<string> correctionFiles;
-  getFilenames(control.correctionDir, correctionFiles);
+  getFilenames(control2.correctionDir(), correctionFiles);
   for (auto& fname: correctionFiles)
     correctionDB.readFile(fname);
 
   // trainDB
   textfiles.clear();
-  getFilenames(control.trainDir, textfiles);
+  getFilenames(control2.trainDir(), textfiles);
   for (auto& fname: textfiles)
     trainDB.readFile(carDB, correctionDB, fname);
 
   // sensorDB
-  if (control.sensorFile != "")
-    sensorDB.readFile(control.sensorFile);
+  if (control2.sensorFile() != "")
+    sensorDB.readFile(control2.sensorFile());
 
   if (! trainDB.selectByAxles({"ALL"}, 0, 100))
   {
