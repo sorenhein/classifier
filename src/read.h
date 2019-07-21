@@ -5,6 +5,8 @@ using namespace std;
 
 struct Control;
 class Database;
+class SensorDB;
+class TrainDB;
 class TraceDB;
 
 
@@ -27,7 +29,8 @@ void readSensorFile(
 
 bool readTraceTruth(
   const string& fname,
-  const Database& db,
+  const SensorDB& sensorDB,
+  const TrainDB& trainDB,
   TraceDB& tdb);
 
 #endif

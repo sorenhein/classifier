@@ -4,7 +4,10 @@
 #include <sstream>
 
 #include "TraceDB.h"
-#include "Database.h"
+
+#include "database/SensorDB.h"
+#include "database/TrainDB.h"
+
 #include "Align.h"
 #include "Except.h"
 #include "read.h"
@@ -27,7 +30,7 @@ TraceDB::~TraceDB()
 
 bool TraceDB::deriveComponents(
   const string& fname,
-  const Database& db,
+  const SensorDB& sensorDB,
   TraceEntry& entry)
 {
   const size_t c = countDelimiters(fname, "_");
@@ -44,7 +47,7 @@ bool TraceDB::deriveComponents(
   entry.date = v[0]; 
   entry.time = v[1]; 
   entry.sensor = v[2]; 
-  entry.country = db.lookupSensorCountry(v[2]);
+  entry.country = sensorDB.country(v[2]);
   return true;
 }
 
@@ -73,7 +76,8 @@ string TraceDB::deriveName(
 
 bool TraceDB::log(
   const TraceTruth& truth,
-  const Database& db)
+  const SensorDB& sensorDB,
+  const TrainDB& trainDB)
 {
   auto it = entries.find(truth.filename);
   if (it != entries.end())
@@ -84,7 +88,7 @@ bool TraceDB::log(
   
   TraceEntry& entry = entries[truth.filename];
 
-  if (! TraceDB::deriveComponents(truth.filename, db, entry))
+  if (! TraceDB::deriveComponents(truth.filename, sensorDB, entry))
   {
     cout << "Could not parse filename " << truth.filename << "\n";
     return false;
@@ -96,7 +100,7 @@ bool TraceDB::log(
   entry.trainTruth.speed = truth.speed / 3.6; // In m/s
   entry.trainTruth.accel = truth.accel;
 
-  if (db.lookupTrainNumber(entry.trainTruth.trainName) == -1)
+  if (trainDB.lookupNumber(entry.trainTruth.trainName) == -1)
   {
     cout << "Train " << entry.trainTruth.trainName <<
       " does not exist\n";
@@ -223,7 +227,7 @@ void TraceDB::printCSVHeader(ofstream& fout) const
 void TraceDB::printCSV(
   const string& fname,
   const bool appendFlag,
-  const Database& db) const
+  const TrainDB& trainDB) const
 {
   ifstream fin(fname.c_str());
   const bool exists = fin.good();
@@ -255,7 +259,7 @@ void TraceDB::printCSV(
 
     for (unsigned i = 0; i < entry.align.size(); i++)
       s += SEPARATOR + 
-        db.lookupTrainName(entry.align[i].trainNo) + SEPARATOR +
+        trainDB.lookupName(entry.align[i].trainNo) + SEPARATOR +
         to_string(entry.align[i].distMatch) + SEPARATOR +
         to_string(entry.align[i].numAdd) + SEPARATOR +
         to_string(entry.align[i].numDelete);

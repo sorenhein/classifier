@@ -111,12 +111,12 @@ void printMotion(const vector<double>& motionEstimate)
 
 
 void printMatches(
-  const Database& db,
+  const TrainDB& trainDB,
   const vector<Alignment>& matches)
 {
   cout << "Matching alignment\n";
   for (auto& match: matches)
-    printAlignment(match, db.lookupTrainName(match.trainNo));
+    printAlignment(match, trainDB.lookupName(match.trainNo));
   cout << "\n";
 }
 

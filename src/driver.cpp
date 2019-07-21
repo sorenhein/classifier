@@ -6,7 +6,12 @@
 #include "args.h"
 #include "read.h"
 #include "Trace.h"
-#include "Database.h"
+
+#include "database/SensorDB.h"
+#include "database/CarDB.h"
+#include "database/CorrectionDB.h"
+#include "database/TrainDB.h"
+
 #include "TraceDB.h"
 #include "Regress.h"
 #include "Align.h"
@@ -29,10 +34,12 @@ void setup(
   int argc, 
   char * argv[],
   Control& control,
-  Database& db);
+  SensorDB& sensorDB,
+  CarDB& carDB,
+  TrainDB& trainDB);
 
 unsigned lookupMatchRank(
-  const Database& db,
+  const TrainDB& trainDB,
   const vector<Alignment>& matches,
   const string& tag);
 
@@ -40,8 +47,12 @@ unsigned lookupMatchRank(
 int main(int argc, char * argv[])
 {
   Control control;
-  Database db;
-  setup(argc, argv, control, db);
+
+  SensorDB sensorDB;
+  CarDB carDB;
+  TrainDB trainDB;
+
+  setup(argc, argv, control, sensorDB, carDB, trainDB);
 
   Imperfections imperf;
   Align align;
@@ -61,7 +72,7 @@ int main(int argc, char * argv[])
     // This extracts peaks and then extracts train types from peaks.
 
     TraceDB traceDB;
-    readTraceTruth(control.truthFile, db, traceDB);
+    readTraceTruth(control.truthFile, sensorDB, trainDB, traceDB);
 
     vector<string> datfiles;
     getFilenames(control.traceDir, datfiles, control.pickFileString);
@@ -77,7 +88,7 @@ int main(int argc, char * argv[])
     for (auto& fname: datfiles)
     {
       const string sensor = traceDB.lookupSensor(fname);
-      const string country = db.lookupSensorCountry(sensor);
+      const string country = sensorDB.country(sensor);
       const string trainTrue = traceDB.lookupTrueTrain(fname);
 
 if (! control.pickTrainString.empty() &&
@@ -88,7 +99,7 @@ if (! control.pickTrainString.empty() &&
 
       // This is only used for diagnostics in trace.
       const double speedTrue = traceDB.lookupTrueSpeed(fname);
-      const int trainNoTrue = db.lookupTrainNumber(trainTrue);
+      const int trainNoTrue = trainDB.lookupNumber(trainTrue);
       vector<double> posTrue;
       
       try
@@ -96,7 +107,8 @@ if (! control.pickTrainString.empty() &&
         if (trainNoTrue == -1)
           THROW(ERR_NO_PEAKS, "True train not known");
 
-        db.getPerfectPeaks(static_cast<unsigned>(trainNoTrue), posTrue);
+        trainDB.getPeakPositions(static_cast<unsigned>(trainNoTrue), 
+          posTrue);
 
         trace.read(fname);
         trace.detect(control, imperf);
@@ -121,7 +133,7 @@ if (! control.pickTrainString.empty() &&
           numFrontWheels = 4 - imperf.numSkipsOfSeen;
 
         align.bestMatches(times, actualToRef, numFrontWheels, fullTrainFlag,
-          imperf, db, country, 10, control, matchesAlign);
+          imperf, trainDB, country, 10, control, matchesAlign);
 
         if (matchesAlign.size() == 0)
         {
@@ -131,21 +143,22 @@ if (! control.pickTrainString.empty() &&
           continue;
         }
 
-        regress.bestMatch(times, db, order, control, matchesAlign,
+        regress.bestMatch(times, trainDB, order, control, matchesAlign,
           bestAlign, motionEstimate);
 
         if (! control.pickTrainString.empty())
         {
           const string s = sensor + "/" + traceDB.lookupTime(fname);
-          dumpResiduals(times, db, order, matchesAlign, s, trainTrue, 
+          dumpResiduals(times, trainDB, order, matchesAlign, s, trainTrue, 
             control.pickTrainString, 
-            db.axleCount(static_cast<unsigned>(trainNoTrue)));
+            trainDB.numAxles(static_cast<unsigned>(trainNoTrue)));
         }
 
         traceDB.log(fname, matchesAlign, times.size());
 
-        const string trainDetected = db.lookupTrainName(bestAlign.trainNo);
-        const unsigned rank = lookupMatchRank(db, matchesAlign, trainTrue);
+        const string trainDetected = trainDB.lookupName(bestAlign.trainNo);
+        const unsigned rank = lookupMatchRank(trainDB, matchesAlign, 
+          trainTrue);
 
         sensorStats.log(sensor, rank, bestAlign.distMatch);
         trainStats.log(trainTrue, rank, bestAlign.distMatch);
@@ -166,7 +179,8 @@ if (trainDetected != trainTrue)
       }
     }
 
-    traceDB.printCSV(control.summaryFile, control.summaryAppendFlag, db);
+    traceDB.printCSV(control.summaryFile, control.summaryAppendFlag, 
+      trainDB);
 
     sensorStats.print("sensorstats.txt", "Sensor");
     trainStats.print("trainstats.txt", "Train");
@@ -187,7 +201,9 @@ void setup(
   int argc, 
   char * argv[],
   Control& control,
-  Database& db)
+  SensorDB& sensorDB,
+  CarDB& carDB,
+  TrainDB& trainDB)
 {
   if (argc == 2)
     control.controlFile = string(argv[1]);
@@ -200,13 +216,30 @@ void setup(
     exit(0);
   }
 
-  readCarFiles(db, control.carDir);
-  readTrainFiles(db, control.trainDir, control.correctionDir);
+  // carDB
+  vector<string> textfiles;
+  getFilenames(control.carDir, textfiles);
+  for (auto& fname: textfiles)
+    carDB.readFile(fname);
 
+  // correctionDB
+  CorrectionDB correctionDB;
+  vector<string> correctionFiles;
+  getFilenames(control.correctionDir, correctionFiles);
+  for (auto& fname: correctionFiles)
+    correctionDB.readFile(fname);
+
+  // trainDB
+  textfiles.clear();
+  getFilenames(control.trainDir, textfiles);
+  for (auto& fname: textfiles)
+    trainDB.readFile(carDB, correctionDB, fname);
+
+  // sensorDB
   if (control.sensorFile != "")
-    readSensorFile(db, control.sensorFile);
+    sensorDB.readFile(control.sensorFile);
 
-  if (! db.select({"ALL"}, 0, 100))
+  if (! trainDB.selectByAxles({"ALL"}, 0, 100))
   {
     cout << "No trains selected" << endl;
     exit(0);
@@ -215,11 +248,11 @@ void setup(
 
 
 unsigned lookupMatchRank(
-  const Database& db,
+  const TrainDB& trainDB,
   const vector<Alignment>& matches,
   const string& tag)
 {
-  const unsigned tno = static_cast<unsigned>(db.lookupTrainNumber(tag));
+  const unsigned tno = static_cast<unsigned>(trainDB.lookupNumber(tag));
   for (unsigned i = 0; i < matches.size(); i++)
   {
     if (matches[i].trainNo == tno)

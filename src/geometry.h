@@ -8,7 +8,7 @@
 
 using namespace std;
 
-class Database;
+class TrainDB;
 
 
 bool nameMatch(
@@ -17,7 +17,7 @@ bool nameMatch(
 
 void dumpResiduals(
   const vector<PeakTime>& times,
-  const Database& db,
+  const TrainDB& trainDB,
   const unsigned order,
   const vector<Alignment>& matches,
   const string& heading,

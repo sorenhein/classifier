@@ -9,7 +9,8 @@
 
 using namespace std;
 
-class Database;
+class SensorDB;
+class TrainDB;
 
 
 class TraceDB
@@ -32,7 +33,7 @@ class TraceDB
 
     bool deriveComponents(
       const string& fname,
-      const Database& db,
+      const SensorDB& sensorDB,
       TraceEntry& entry);
 
     string deriveName(
@@ -52,7 +53,8 @@ class TraceDB
 
     bool log(
       const TraceTruth& truth,
-      const Database& db);
+      const SensorDB& sensorDB,
+      const TrainDB& trainDB);
 
     bool log(
       const string& fname,
@@ -68,7 +70,7 @@ class TraceDB
     void printCSV(
       const string& fname,
       const bool appendFlag,
-      const Database& db) const;
+      const TrainDB& trainDB) const;
 };
 
 #endif

@@ -2,7 +2,7 @@
 #include <iomanip>
 #include <string>
 
-#include "Database.h"
+#include "database/TrainDB.h"
 #include "Regress.h"
 #include "geometry.h"
 
@@ -19,7 +19,7 @@ bool nameMatch(
 
 void dumpResiduals(
   const vector<PeakTime>& times,
-  const Database& db,
+  const TrainDB& trainDB,
   const unsigned order,
   const vector<Alignment>& matches,
   const string& heading,
@@ -45,13 +45,13 @@ void dumpResiduals(
   for (auto& ma: matches)
   {
     mno++;
-    const string tname = db.lookupTrainName(ma.trainNo);
+    const string tname = trainDB.lookupName(ma.trainNo);
     if (! nameMatch(tname, trainSelect))
       continue;
     if (ma.distMatch > 3.)
       continue;
 
-    regress.specificMatch(times, db, ma, coeffs, residuals);
+    regress.specificMatch(times, trainDB, ma, coeffs, residuals);
 
     vector<double> pos(numWheels, 0.);
     for (unsigned i = 0; i < times.size(); i++)
@@ -63,7 +63,7 @@ void dumpResiduals(
           coeffs[0] + coeffs[1] * t + coeffs[2] * t * t;
     }
 
-    db.getPerfectPeaks(ma.trainNo, posTrue);
+    trainDB.getPeakPositions(ma.trainNo, posTrue);
 
     cout << "SPECTRAIN " << trainTrue << " " << tname << endl;
     cout << heading << "/" << 

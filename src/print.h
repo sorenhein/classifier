@@ -3,7 +3,8 @@
 
 #include <vector>
 
-#include "Database.h"
+#include "database/TrainDB.h"
+
 #include "struct.h"
 
 using namespace std;
@@ -29,7 +30,7 @@ void printMotion(
   const vector<double>& motionEstimate);
 
 void printMatches(
-  const Database& db,
+  const TrainDB& trainDB,
   const vector<Alignment>& matches);
 
 void printTopResiduals(const Alignment& match);

@@ -8,7 +8,7 @@
 
 using namespace std;
 
-class Database;
+class TrainDB;
 
 
 class Regress
@@ -26,7 +26,7 @@ class Regress
 
     void summarizeResiduals(
       const vector<PeakTime>& times,
-      const Database& db,
+      const TrainDB& trainDB,
       const vector<double>& coeffs,
       Alignment& match) const;
 
@@ -39,14 +39,14 @@ class Regress
 
     void specificMatch(
       const vector<PeakTime>& times,
-      const Database& db,
+      const TrainDB& trainDB,
       const Alignment& match,
       vector<double>& coeffs,
       double& residuals) const;
 
     void bestMatch(
       const vector<PeakTime>& times,
-      const Database& db,
+      const TrainDB& trainDB,
       const unsigned order,
       const Control& control,
       vector<Alignment>& matches,

@@ -5,7 +5,7 @@
 
 #include "struct.h"
 
-class Database;
+class TrainDB;
 
 using namespace std;
 
@@ -108,7 +108,7 @@ class Align
       const unsigned numFrontWheels,
       const bool fullTrainFlag,
       const Imperfections& imperf,
-      const Database& db,
+      const TrainDB& trainDB,
       const string& country,
       const unsigned tops,
       const Control& control,

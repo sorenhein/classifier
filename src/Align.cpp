@@ -7,8 +7,10 @@
 #include <limits>
 
 #include "Align.h"
-#include "Database.h"
 #include "print.h"
+
+#include "database/TrainDB.h"
+
 #include "regress/PolynomialRegression.h"
 #include "util/Timers.h"
 
@@ -709,7 +711,7 @@ void Align::bestMatches(
   const unsigned numFrontWheels,
   const bool fullTrainFlag,
   const Imperfections& imperf,
-  const Database& db,
+  const TrainDB& trainDB,
   const string& country,
   const unsigned tops,
   const Control& control,
@@ -720,18 +722,18 @@ void Align::bestMatches(
   vector<double> refPeaks, scaledPeaks;
   matches.clear();
 
-  for (auto& refTrain: db)
+  for (auto& refTrain: trainDB)
   {
-    const int refTrainNo = db.lookupTrainNumber(refTrain);
+    const int refTrainNo = trainDB.lookupNumber(refTrain);
     const unsigned refTrainNoU = static_cast<unsigned>(refTrainNo);
 
-    if (Align::countTooDifferent(times, db.axleCount(refTrainNoU)))
+    if (Align::countTooDifferent(times, trainDB.numAxles(refTrainNoU)))
       continue;
 
-    if (! db.trainIsInCountry(refTrainNoU, country))
+    if (! trainDB.isInCountry(refTrainNoU, country))
       continue;
 
-    db.getPerfectPeaks(refTrainNoU, refPeaks);
+    trainDB.getPeakPositions(refTrainNoU, refPeaks);
 
 // cout << "refTrain " << refTrain << endl;
     const double trainLength = refPeaks.back() - refPeaks.front();
@@ -768,7 +770,7 @@ void Align::bestMatches(
   timers.stop(TIMER_ALIGN);
 
   if (control.verboseAlignMatches)
-    printMatches(db, matches);
+    printMatches(trainDB, matches);
 }
 
 

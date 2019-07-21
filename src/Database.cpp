@@ -62,23 +62,7 @@ bool Database::getPerfectPeaks(
   const unsigned trainNo,
   vector<double>& peaks) const // In m
 {
-  /*
-  PeakPos peak;
-  peak.value = 1.f;
-  peaks.clear();
-  
-  vector<double> peakPos;
-  */
   trainDB.getPeakPositions(trainNo, peaks);
-
-  /*
-  for (auto d: peakPos)
-  {
-    peak.pos = d;
-    peaks.push_back(peak);
-  }
-  */
-
   return true;
 }
 

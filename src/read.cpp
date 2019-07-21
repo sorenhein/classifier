@@ -5,6 +5,10 @@
 #include <algorithm>
 
 #include "Database.h"
+
+#include "database/SensorDB.h"
+#include "database/TrainDB.h"
+
 #include "TraceDB.h"
 #include "read.h"
 
@@ -180,7 +184,8 @@ void readSensorFile(
 
 bool readTraceTruth(
   const string& fname,
-  const Database& db,
+  const SensorDB& sensorDB,
+  const TrainDB& trainDB,
   TraceDB& tdb)
 {
   ifstream fin;
@@ -245,7 +250,7 @@ bool readTraceTruth(
     else
       return false;
 
-    tdb.log(truth, db);
+    tdb.log(truth, sensorDB, trainDB);
   }
   fin.close();
   return true;

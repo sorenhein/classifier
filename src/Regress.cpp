@@ -6,10 +6,13 @@
 #include <limits>
 
 #include "Regress.h"
-#include "Database.h"
 #include "Except.h"
 #include "print.h"
+
+#include "database/TrainDB.h"
+
 #include "regress/PolynomialRegression.h"
+
 #include "util/Timers.h"
 
 #define GOOD_RESIDUAL_LIMIT 50.0f
@@ -59,7 +62,7 @@ double Regress::residuals(
 
 void Regress::specificMatch(
   const vector<PeakTime>& times,
-  const Database& db,
+  const TrainDB& trainDB,
   const Alignment& match,
   vector<double>& coeffs,
   double& residuals) const
@@ -69,7 +72,7 @@ void Regress::specificMatch(
   vector<double> x, y;
   const unsigned lt = times.size();
 
-  db.getPerfectPeaks(match.trainNo, refPeaks);
+  trainDB.getPeakPositions(match.trainNo, refPeaks);
   const unsigned lr = refPeaks.size();
   const double trainLength = refPeaks.back() - refPeaks.front();
 
@@ -102,12 +105,12 @@ void Regress::specificMatch(
 
 void Regress::summarizeResiduals(
   const vector<PeakTime>& times,
-  const Database& db,
+  const TrainDB& trainDB,
   const vector<double>& coeffs,
   Alignment& match) const
 {
   vector<double> refPeaks;
-  db.getPerfectPeaks(match.trainNo, refPeaks);
+  trainDB.getPeakPositions(match.trainNo, refPeaks);
   const unsigned lr = refPeaks.size();
 
   vector<RegrEntry> x;
@@ -157,7 +160,7 @@ void Regress::summarizeResiduals(
 
 void Regress::bestMatch(
   const vector<PeakTime>& times,
-  const Database& db,
+  const TrainDB& trainDB,
   const unsigned order,
   const Control& control,
   vector<Alignment>& matches,
@@ -186,8 +189,8 @@ void Regress::bestMatch(
 
 // cout << db.lookupTrainName(ma.trainNo) << "\n";
 
-    Regress::specificMatch(times, db, ma, coeffs, residuals);
-    Regress::summarizeResiduals(times, db, coeffs, ma);
+    Regress::specificMatch(times, trainDB, ma, coeffs, residuals);
+    Regress::summarizeResiduals(times, trainDB, coeffs, ma);
 
     if (ma.dist - ma.distMatch + residuals < bestAlign.dist)
     {
@@ -216,12 +219,12 @@ void Regress::bestMatch(
   sort(matches.begin(), matches.end());
   bestAlign = matches.front();
 
-printMatches(db, matches);
+printMatches(trainDB, matches);
 
   if (control.verboseRegressMatch)
   {
     cout << "Regression alignment\n";
-    printAlignment(bestAlign, db.lookupTrainName(bestAlign.trainNo));
+    printAlignment(bestAlign, trainDB.lookupName(bestAlign.trainNo));
     cout << endl;
   }
 
