@@ -4,6 +4,16 @@
 void tokenize(
   const string& text,
   vector<string>& tokens,
+  const string& delimiters);
+
+unsigned countDelimiters(
+  const string& text,
+  const string& delimiters);
+
+
+void tokenize(
+  const string& text,
+  vector<string>& tokens,
   const string& delimiters)
 {
   // tokenize splits a string into tokens separated by delimiter.
@@ -112,14 +122,15 @@ bool parseBool(
 }
 
 
-void parseCommaString(
+void parseDelimitedString(
   const string& text,
+  const string& delimiter,
   vector<string>& fields)
 {
-  const size_t c = countDelimiters(text, ",");
+  const size_t c = countDelimiters(text, delimiter);
   fields.resize(c+1);
   fields.clear();
-  tokenize(text, fields, ",");
+  tokenize(text, fields, delimiter);
 }
 
 

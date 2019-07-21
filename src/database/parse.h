@@ -7,15 +7,6 @@
 using namespace std;
 
 
-void tokenize(
-  const string& text,
-  vector<string>& tokens,
-  const string& delimiters);
-
-unsigned countDelimiters(
-  const string& text,
-  const string& delimiters);
-
 bool parseInt(
   const string& text,
   int& value);
@@ -28,8 +19,9 @@ bool parseBool(
   const string& text,
   bool& value);
 
-void parseCommaString(
+void parseDelimitedString(
   const string& text,
+  const string& delimiter,
   vector<string>& fields);
 
 bool parseCarSpecifier(

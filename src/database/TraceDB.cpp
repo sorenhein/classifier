@@ -41,16 +41,13 @@ bool TraceDB::deriveOrigin(
 {
   const string& fname = entry.getString(TRACE_FILENAME);
 
-  const size_t c = countDelimiters(fname, "_");
-  if (c != 4)
+  vector<string> v;
+  parseDelimitedString(fname, "_", v);
+  if (v.size() != 5)
   {
     cout << "Can't parse trace origin " << fname << endl;
     return false;
   }
-
-  vector<string> v;
-  v.clear();
-  tokenize(fname, v, "_");
 
   entry.setString(TRACE_DATE, v[0]);
   entry.setString(TRACE_TIME, v[1]);

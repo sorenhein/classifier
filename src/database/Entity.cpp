@@ -57,7 +57,7 @@ bool Entity::parseField(
       }
       else if (field.corrType == CORRESPONDENCE_STRING_VECTOR)
       {
-        parseCommaString(value, stringVectors[field.no]);
+        parseDelimitedString(value, ",", stringVectors[field.no]);
       }
       else if (field.corrType == CORRESPONDENCE_INT)
       {
@@ -203,16 +203,13 @@ bool Entity::readCommaFile(
 
     const string err = "File " + fname + ": Bad line '" + line + "'";
 
-    const size_t c = countDelimiters(line, ",");
-    if (c != count)
+    parseDelimitedString(line, ",", v);
+    if (v.size() != count+1)
     {
       cout << err << endl;
       fin.close();
       return false;
     }
-
-    v.clear();
-    tokenize(line, v, ",");
 
     auto it = stringMap.find(v[0]);
     if (it != stringMap.end())
@@ -241,15 +238,13 @@ bool Entity::readCommaLine(
     if (line == "" || line.front() == '#')
       continue;
 
-    const size_t c = countDelimiters(line, ",");
-    if (c+1 != count)
+    parseDelimitedString(line, ",", v);
+    if (v.size() != count)
     {
       errFlag = true;
       return false;
     }
 
-    v.clear();
-    tokenize(line, v, ",");
     for (unsigned i = 0; i < count; i++)
       strings[i] = v[i];
 
