@@ -4,8 +4,6 @@
 #include <sstream>
 #include <algorithm>
 
-#include "Database.h"
-
 #include "database/SensorDB.h"
 #include "database/TrainDB.h"
 
@@ -16,18 +14,6 @@
 #include "util/misc.h"
 
 #define UNUSED(x) ((void)(true ? 0 : ((x), void(), 0)))
-
-
-void readCarFiles(
-  Database& db,
-  const string& dir)
-{
-  vector<string> textfiles;
-  getFilenames(dir, textfiles);
-
-  for (auto &f: textfiles)
-    db.readCarFile(f);
-}
 
 
 bool readControlFile(
@@ -152,33 +138,6 @@ bool readControlFile(
 
   fin.close();
   return true;
-}
-
-
-void readTrainFiles(
-  Database& db,
-  const string& dir,
-  const string& correctionDir)
-{
-  vector<string> correctionFiles;
-  getFilenames(correctionDir, correctionFiles);
-
-  for (auto &f: correctionFiles)
-    db.readCorrectionFile(f);
-
-  vector<string> textfiles;
-  getFilenames(dir, textfiles);
-
-  for (auto &f: textfiles)
-    db.readTrainFile(f);
-}
-
-
-void readSensorFile(
-  Database& db,
-  const string& fname)
-{
-  db.readSensorFile(fname);
 }
 
 

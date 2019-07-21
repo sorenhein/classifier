@@ -5,7 +5,6 @@ SOURCE_FILES    =                       \
                 CarModels.cpp           \
                 CarPeaks.cpp            \
                 CompStats.cpp           \
-                Database.cpp            \
                 Except.cpp              \
                 Peak.cpp                \
                 Peaks.cpp               \
