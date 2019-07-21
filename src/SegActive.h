@@ -11,6 +11,7 @@ using namespace std;
 
 class PeakStats;
 struct FilterDouble;
+struct FilterFloat;
 
 
 class SegActive
@@ -32,14 +33,14 @@ class SegActive
 
     void integrateFloat(
       const vector<float>& integrand,
+      const float sampleRate,
       const bool a2vflag, // true if accel->speed, false if speed->pos
       const unsigned startIndex,
       const unsigned len,
       vector<float>& result) const;
 
     void filterFloat(
-      const vector<float>& num,
-      const vector<float>& denom,
+      const FilterFloat& filter,
       vector<float>& integrand);
 
     void highpass(
@@ -56,6 +57,7 @@ class SegActive
 
     bool detect(
       const vector<double>& samples, // TODO: Should use times[]
+      const double sampleRate,
       const Interval& active,
       const Control& control,
       Imperfections& imperf);

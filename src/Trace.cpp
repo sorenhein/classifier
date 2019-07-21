@@ -7,8 +7,12 @@
 #include "Trace.h"
 #include "read.h"
 
+#include "database/Control2.h"
+
 #include "util/misc.h"
 #include "util/Timers.h"
+
+#define UNUSED(x) ((void)(true ? 0 : ((x), void(), 0)))
 
 extern Timers timers;
 
@@ -113,8 +117,12 @@ void Trace::read(const string& fname)
 
 void Trace::detect(
   const Control& control,
+  const Control2& control2,
+  const double sampleRate,
   Imperfections& imperf)
 {
+  UNUSED(control2);
+
   timers.start(TIMER_TRANSIENT);
   runs.clear();
   Trace::calcRuns();
@@ -136,7 +144,8 @@ void Trace::detect(
   if (control.verboseTransientMatch)
     cout << transient.str() << "\n";
 
-  (void) segActive.detect(samples, intAfterFront, control, imperf);
+  (void) segActive.detect(samples, sampleRate, intAfterFront, 
+    control, imperf);
 }
 
 

@@ -124,7 +124,7 @@ int main(int argc, char * argv[])
       // Refuse trace if sample rate is not 2000, maybe in SegActive
 
       trace.read(fname);
-      trace.detect(control, imperf);
+      trace.detect(control, control2, traceDB.sampleRate(t2no), imperf);
       trace.logPeakStats(posTrue, trainTrue, speedTrue, peakStats);
       trace.write(control);
 

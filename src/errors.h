@@ -25,8 +25,11 @@ enum Code
   ERR_ALGO_NO_WHEEL_GAP = 17,
   ERR_ALGO_PEAKPOOL_EMPTY = 18,
 
+  // From here on they are vetted
+  ERR_UNKNOWN_SAMPLE_RATE = 19,
 
-  ERR_PATTERN_BAD_FIX = 19
+
+  ERR_PATTERN_BAD_FIX = 20
 };
 
 

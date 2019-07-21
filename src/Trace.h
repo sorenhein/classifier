@@ -12,6 +12,7 @@
 using namespace std;
 
 class PeakStats;
+class Control2;
 
 
 class Trace
@@ -48,6 +49,8 @@ class Trace
 
     void detect(
       const Control& control,
+      const Control2& control2,
+      const double sampleRate,
       Imperfections& imperf);
 
     void logPeakStats(

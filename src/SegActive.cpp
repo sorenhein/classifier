@@ -8,8 +8,7 @@
 #include "write.h"
 #include "util/Timers.h"
 #include "const.h"
-
-#define SAMPLE_RATE 2000.f
+#include "Except.h"
 
 extern Timers timers;
 
@@ -40,6 +39,7 @@ void SegActive::doubleToFloat(
 
 void SegActive::integrateFloat(
   const vector<float>& integrand,
+  const float sampleRate,
   const bool a2vFlag,
   const unsigned startIndex,
   const unsigned len,
@@ -49,7 +49,7 @@ void SegActive::integrateFloat(
   // If speed -> position: Position is in 0.1 mm.
 
   const float factor =
-    (a2vFlag ? 100.f * G_FORCE / SAMPLE_RATE : 100.f / SAMPLE_RATE);
+    (a2vFlag ? 100.f * G_FORCE / sampleRate : 100.f / sampleRate);
 
   result[0] = factor * integrand[startIndex];
 
@@ -59,26 +59,25 @@ void SegActive::integrateFloat(
 
 
 void SegActive::filterFloat(
-  const vector<float>& num,
-  const vector<float>& denom,
+  const FilterFloat& filter,
   vector<float>& integrand)
 {
   const unsigned ls = integrand.size();
   vector<float> forward(ls);
 
-  const unsigned order = num.size()-1;
+  const unsigned order = filter.numerator.size()-1;
   vector<float> state(order+1);
   for (unsigned i = 0; i < order+1; i++)
     state[i] = 0.;
 
   for (unsigned i = 0; i < ls; i++)
   {
-    forward[i] = num[0] * integrand[i] + state[0];
+    forward[i] = filter.numerator[0] * integrand[i] + state[0];
 
     for (unsigned j = 0; j < order; j++)
     {
-      state[j] = num[j+1] * integrand[i] - 
-        denom[j+1] * forward[i] + state[j+1];
+      state[j] = filter.numerator[j+1] * integrand[i] - 
+        filter.denominator[j+1] * forward[i] + state[j+1];
     }
   }
 
@@ -89,12 +88,12 @@ void SegActive::filterFloat(
   {
     const unsigned irev = ls-1-i;
 
-    integrand[irev] = num[0] * forward[irev] + state[0];
+    integrand[irev] = filter.numerator[0] * forward[irev] + state[0];
 
     for (unsigned j = 0; j < order; j++)
     {
-      state[j] = num[j+1] * forward[irev] - 
-        denom[j+1] * integrand[irev] + state[j+1];
+      state[j] = filter.numerator[j+1] * forward[irev] - 
+        filter.denominator[j+1] * integrand[irev] + state[j+1];
     }
   }
 }
@@ -148,10 +147,15 @@ void SegActive::highpass(
 
 bool SegActive::detect(
   const vector<double>& samples,
+  const double sampleRate,
   const Interval& active,
   const Control& control,
   Imperfections& imperf)
 {
+  // TODO Don't use exact comparison
+  if (sampleRate != 2000.)
+    THROW(ERR_UNKNOWN_SAMPLE_RATE, "Unknown sample rate");
+
   timers.start(TIMER_CONDITION);
 
   writeInterval.first = active.first;
@@ -163,15 +167,15 @@ bool SegActive::detect(
 
   SegActive::doubleToFloat(samples, accelFloat);
 
-  SegActive::filterFloat(Butterworth5LPF_float.numerator,
-    Butterworth5LPF_float.denominator, accelFloat);
+  SegActive::filterFloat(Butterworth5LPF_float, accelFloat);
 
-  SegActive::integrateFloat(accelFloat, true, 
-    active.first, active.len, synthSpeed);
+  SegActive::integrateFloat(accelFloat, static_cast<float>(sampleRate), 
+    true, active.first, active.len, synthSpeed);
 
   SegActive::highpass(Butterworth5HPF_double, synthSpeed);
 
-  SegActive::integrateFloat(synthSpeed, false, 0, active.len, synthPos);
+  SegActive::integrateFloat(synthSpeed, static_cast<float>(sampleRate), 
+    false, 0, active.len, synthPos);
 
   SegActive::highpass(Butterworth5HPF_double, synthPos);
 
