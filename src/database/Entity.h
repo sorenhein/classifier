@@ -18,7 +18,8 @@ enum CorrespondenceType
   CORRESPONDENCE_INT_VECTOR = 3,
   CORRESPONDENCE_INT = 4,
   CORRESPONDENCE_BOOL = 5,
-  CORRESPONDENCE_SIZE = 6
+  CORRESPONDENCE_DOUBLE = 6,
+  CORRESPONDENCE_SIZE = 7
 };
 
 
@@ -40,6 +41,7 @@ class Entity
     vector<vector<int>> intVectors;
     vector<int> ints;
     deque<bool> bools;
+    vector<double> doubles;
 
     void init(const vector<unsigned>& fieldCounts);
 
@@ -76,6 +78,11 @@ class Entity
       const vector<unsigned>& fieldCounts,
       const unsigned count);
 
+    bool readCommaLine(
+      ifstream& fin,
+      bool& errFlag,
+      const unsigned count);
+
     int& operator [](const unsigned no); // Only the ints vector
     const int& operator [](const unsigned no) const;
 
@@ -96,6 +103,9 @@ class Entity
 
     bool getBool(const unsigned no) const;
 
+    double& getDouble(const unsigned no);
+    const double& getDouble(const unsigned no) const;
+
     unsigned sizeString(const unsigned no) const;
 
     unsigned sizeInt(const unsigned no) const;
@@ -115,6 +125,10 @@ class Entity
     void setBool(
       const unsigned no,
       const bool b);
+
+    void setDouble(
+      const unsigned no,
+      const double d);
 
     void reverseIntVector(const unsigned no);
 };

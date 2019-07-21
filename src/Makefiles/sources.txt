@@ -43,6 +43,7 @@ SOURCE_FILES    =                       \
                 database/CorrectionDB.cpp \
                 database/Entity.cpp     \
                 database/SensorDB.cpp   \
+                database/Trace2DB.cpp   \
                 database/TrainDB.cpp    \
                 database/parse.cpp      \
                                         \

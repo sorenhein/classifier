@@ -58,7 +58,8 @@ void TrainDB::configure()
     0,
     TRAIN_INT_VECTORS_SIZE,
     TRAIN_INTS_SIZE,
-    TRAIN_BOOLS_SIZE
+    TRAIN_BOOLS_SIZE,
+    0
   };
 }
 

@@ -38,6 +38,7 @@ void Entity::init(const vector<unsigned>& fieldCounts)
   intVectors.resize(fieldCounts[CORRESPONDENCE_INT_VECTOR]);
   ints.resize(fieldCounts[CORRESPONDENCE_INT], -1);
   bools.resize(fieldCounts[CORRESPONDENCE_BOOL]);
+  doubles.resize(fieldCounts[CORRESPONDENCE_DOUBLE]);
 }
 
 
@@ -226,6 +227,35 @@ bool Entity::readCommaFile(
 }
 
 
+bool Entity::readCommaLine(
+  ifstream& fin,
+  bool& errFlag,
+  const unsigned count)
+{
+  string line;
+  while (getline(fin, line))
+  {
+    line.erase(remove(line.begin(), line.end(), '\r'), line.end());
+    if (line == "" || line.front() == '#')
+      continue;
+
+    const size_t c = countDelimiters(line, ",");
+    if (c+1 != count)
+    {
+      errFlag = true;
+      return false;
+    }
+
+    strings.clear();
+    tokenize(line, strings, ",");
+    return true;
+  }
+
+  errFlag = false;
+  return false;
+}
+
+
 int& Entity::operator [](const unsigned no)
 {
   assert(no < ints.size());
@@ -306,6 +336,20 @@ bool Entity::getBool(const unsigned no) const
 }
 
 
+double& Entity::getDouble(const unsigned no)
+{
+  assert(no < doubles.size());
+  return doubles[no];
+}
+
+
+const double& Entity::getDouble(const unsigned no) const
+{
+  assert(no < doubles.size());
+  return doubles[no];
+}
+
+
 unsigned Entity::sizeString(const unsigned no) const
 {
   assert(no < stringVectors.size());
@@ -353,6 +397,15 @@ void Entity::setBool(
 {
   assert(no < bools.size());
   bools[no] = b;
+}
+
+
+void Entity::setDouble(
+  const unsigned no,
+  const double b)
+{
+  assert(no < doubles.size());
+  doubles[no] = b;
 }
 
 

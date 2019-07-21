@@ -167,3 +167,16 @@ bool parseCarSpecifier(
   return true;
 }
 
+
+string parseBasename(const string& text)
+{
+  if (text == "")
+    return "";
+
+  const auto p = text.find_last_of('/');
+  if (p == string::npos || p+1 == text.size())
+   return text;
+
+  return text.substr(p+1);
+}
+

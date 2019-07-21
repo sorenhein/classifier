@@ -38,4 +38,6 @@ bool parseCarSpecifier(
   bool& reverseFlag,
   unsigned& count);
 
+string parseBasename(const string& text);
+
 #endif

@@ -39,7 +39,8 @@ void CorrectionDB::configure()
     0,
     CORR_INT_VECTORS_SIZE,
     CORR_INTS_SIZE,
-    CORR_BOOLS_SIZE
+    CORR_BOOLS_SIZE,
+    0
   };
 }
 

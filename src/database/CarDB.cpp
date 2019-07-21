@@ -91,11 +91,12 @@ void CarDB::configure()
   fieldCounts =
   {
     CAR_STRINGS_SIZE,
-    CAR_VECTORS_SIZE,
+    CAR_STRING_VECTORS_SIZE,
     0,
     0,
     CAR_INTS_SIZE,
-    CAR_BOOLS_SIZE
+    CAR_BOOLS_SIZE,
+    0
   };
 }
 

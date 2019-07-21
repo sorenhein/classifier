@@ -22,7 +22,7 @@ enum CarFieldVectors
 {
   CAR_USAGE = 0,
   CAR_COUNTRIES = 1,
-  CAR_VECTORS_SIZE = 2
+  CAR_STRING_VECTORS_SIZE = 2
 };
 
 enum CarFieldInts
