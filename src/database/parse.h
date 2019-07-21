@@ -38,6 +38,4 @@ bool parseCarSpecifier(
   bool& reverseFlag,
   unsigned& count);
 
-void toUpper(string& text);
-
 #endif

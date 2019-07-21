@@ -7,13 +7,13 @@
 
 #include "database/SensorDB.h"
 #include "database/TrainDB.h"
+#include "database/parse.h"
 
 #include "Align.h"
 #include "Except.h"
 #include "read.h"
 #include "struct.h"
 
-#include "util/parse.h"
 
 #define SEPARATOR ";"
 

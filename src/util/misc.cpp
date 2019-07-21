@@ -4,10 +4,7 @@
 #include <sstream>
 #include <filesystem>
 
-#include "parse.h"
 #include "misc.h"
-
-#define UNUSED(x) ((void)(true ? 0 : ((x), void(), 0)))
 
 
 void getFilenames(
@@ -95,5 +92,12 @@ float ratioCappedFloat(
     return invMax;
   else
     return f;
+}
+
+
+void toUpper(string& text)
+{
+  for (unsigned i = 0; i < text.size(); i++)
+    text.at(i) = static_cast<char>(toupper(static_cast<int>(text.at(i))));
 }
 

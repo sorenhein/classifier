@@ -26,4 +26,6 @@ float ratioCappedFloat(
   const float denom,
   const float rMax);
 
+void toUpper(string& text);
+
 #endif

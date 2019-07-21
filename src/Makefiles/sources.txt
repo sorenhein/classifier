@@ -44,9 +44,9 @@ SOURCE_FILES    =                       \
                 database/Entity.cpp     \
                 database/SensorDB.cpp   \
                 database/TrainDB.cpp    \
+                database/parse.cpp      \
                                         \
                 util/misc.cpp           \
-                util/parse.cpp          \
                 util/Gap.cpp            \
                 util/Timer.cpp          \
                 util/Timers.cpp

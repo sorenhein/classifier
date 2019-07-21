@@ -6,7 +6,7 @@
 #include <cassert>
 
 #include "Entity.h"
-#include "../util/parse.h"
+#include "parse.h"
 
 
 Entity::Entity()

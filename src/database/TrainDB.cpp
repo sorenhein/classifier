@@ -6,10 +6,7 @@
 #include "CarDB.h"
 #include "CorrectionDB.h"
 #include "TrainDB.h"
-
-#include "../util/parse.h"
-
-#define UNUSED(x) ((void)(true ? 0 : ((x), void(), 0)))
+#include "parse.h"
 
 
 TrainDB::TrainDB()
@@ -42,11 +39,15 @@ void TrainDB::configure()
     { "NAME", CORRESPONDENCE_STRING, TRAIN_NAME },
 
     { "COUNTRIES", CORRESPONDENCE_STRING_VECTOR, TRAIN_COUNTRIES },
+    // A split of the input format intro strings; gets parsed further.
     { "ORDER", CORRESPONDENCE_STRING_VECTOR, TRAIN_CAR_ORDER },
 
+    // Year of introduction.
     { "INTRODUCTION", CORRESPONDENCE_INT, TRAIN_INTRODUCTION },
+    // Year of retirement.
     { "RETIREMENT", CORRESPONDENCE_INT, TRAIN_RETIREMENT },
 
+    // "true" or "false".
     { "SYMMETRY", CORRESPONDENCE_BOOL, TRAIN_SYMMETRY }
   };
 

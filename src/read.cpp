@@ -6,11 +6,11 @@
 
 #include "database/SensorDB.h"
 #include "database/TrainDB.h"
+#include "database/parse.h"
 
 #include "TraceDB.h"
 #include "read.h"
 
-#include "util/parse.h"
 #include "util/misc.h"
 
 #define UNUSED(x) ((void)(true ? 0 : ((x), void(), 0)))

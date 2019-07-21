@@ -167,10 +167,3 @@ bool parseCarSpecifier(
   return true;
 }
 
-
-void toUpper(string& text)
-{
-  for (unsigned i = 0; i < text.size(); i++)
-    text.at(i) = static_cast<char>(toupper(static_cast<int>(text.at(i))));
-}
-
