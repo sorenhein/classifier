@@ -43,6 +43,7 @@ SOURCE_FILES    =                       \
                 database/CarDB.cpp      \
                 database/CorrectionDB.cpp \
                 database/Entity.cpp     \
+                database/SensorDB.cpp   \
                 database/TrainDB.cpp    \
                                         \
                 util/misc.cpp           \

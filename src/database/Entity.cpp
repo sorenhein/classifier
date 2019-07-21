@@ -185,11 +185,9 @@ bool Entity::readSeriesFile(
 bool Entity::readCommaFile(
   const string& fname,
   const vector<unsigned>& fieldCounts,
-  const unsigned count,
-  const unsigned no)
+  const unsigned count)
 {
   Entity::init(fieldCounts);
-  assert(no < stringVectors.size());
   
   ifstream fin;
   fin.open(fname);

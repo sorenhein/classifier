@@ -9,6 +9,7 @@
 #include <list>
 #include <map>
 
+#include "database/SensorDB.h"
 #include "database/CarDB.h"
 #include "database/CorrectionDB.h"
 #include "database/TrainDB.h"
@@ -43,11 +44,14 @@ class Database
       string type;
     };
 
+    SensorDB sensorDB;
+
     CarDB carDB;
    
+    CorrectionDB correctionDB;
+
     TrainDB trainDB;
 
-    CorrectionDB correctionDB;
 
     map<string, DatabaseSensor> sensors;
 
@@ -57,6 +61,8 @@ class Database
     Database();
 
     ~Database();
+
+    void readSensorFile(const string& fname);
 
     void readCarFile(const string& fname);
 

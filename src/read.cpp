@@ -174,38 +174,7 @@ void readSensorFile(
   Database& db,
   const string& fname)
 {
-  ifstream fin;
-  fin.open(fname);
-  string line;
-  vector<string> v;
-
-  while (getline(fin, line))
-  {
-    line.erase(remove(line.begin(), line.end(), '\r'), line.end());
-    if (line == "" || line.front() == '#')
-      continue;
-
-    const string err = "File " + fname + ": Bad line '" + line + "'";
-
-    const size_t c = countDelimiters(line, ",");
-    if (c != 2)
-    {
-      cout << err << endl;
-      fin.close();
-      return;
-    }
-
-    v.clear();
-    tokenize(line, v, ",");
-
-    if (! db.logSensor(v[0], v[1], v[2]))
-    {
-      cout << err << endl;
-      fin.close();
-      return;
-    }
-  }
-  fin.close();
+  db.readSensorFile(fname);
 }
 
 

@@ -74,8 +74,7 @@ class Entity
     bool readCommaFile(
       const string& fname,
       const vector<unsigned>& fieldCounts,
-      const unsigned count,
-      const unsigned no);
+      const unsigned count);
 
     int& operator [](const unsigned no); // Only the ints vector
     const int& operator [](const unsigned no) const;

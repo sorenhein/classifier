@@ -44,19 +44,17 @@ void Database::readCorrectionFile(const string& fname)
 }
 
 
-bool Database::logSensor(
-  const string& name,
-  const string& country,
-  const string& stype)
-{
-  auto it = sensors.find(name);
-  if (it != sensors.end())
-    return false;
+// SENSOR
 
-  DatabaseSensor& sensor = sensors[name];
-  sensor.country = country;
-  sensor.type = stype;
-  return true;
+void Database::readSensorFile(const string& fname)
+{
+  sensorDB.readFile(fname);
+}
+
+
+string Database::lookupSensorCountry(const string& sensor) const
+{
+  return sensorDB.country(sensor);
 }
 
 
@@ -78,16 +76,6 @@ bool Database::getPerfectPeaks(
   }
 
   return true;
-}
-
-
-string Database::lookupSensorCountry(const string& sensor) const
-{
-  auto it = sensors.find(sensor);
-  if (it == sensors.end())
-    return "Bad sensor name";
-  else
-    return it->second.country;
 }
 
 
