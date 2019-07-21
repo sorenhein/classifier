@@ -1,5 +1,5 @@
-#ifndef TRAIN_TRACE2DB_H
-#define TRAIN_TRACE2DB_H
+#ifndef TRAIN_TRACEDB_H
+#define TRAIN_TRACEDB_H
 // Fix guard name
 
 #include <vector>
@@ -59,7 +59,7 @@ enum TraceFieldDoubles
 };
 
 
-class Trace2DB
+class TraceDB
 {
   private:
 
@@ -85,9 +85,9 @@ class Trace2DB
 
   public:
 
-    Trace2DB();
+    TraceDB();
 
-    ~Trace2DB();
+    ~TraceDB();
 
     void reset();
 

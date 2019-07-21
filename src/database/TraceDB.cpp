@@ -2,23 +2,23 @@
 #include <fstream>
 #include <cassert>
 
-#include "Trace2DB.h"
+#include "TraceDB.h"
 #include "SensorDB.h"
 #include "parse.h"
 
 
-Trace2DB::Trace2DB()
+TraceDB::TraceDB()
 {
-  Trace2DB::reset();
+  TraceDB::reset();
 }
 
 
-Trace2DB::~Trace2DB()
+TraceDB::~TraceDB()
 {
 }
 
 
-void Trace2DB::reset()
+void TraceDB::reset()
 {
   traceMap.clear();
 
@@ -35,7 +35,7 @@ void Trace2DB::reset()
 }
 
 
-bool Trace2DB::deriveOrigin(
+bool TraceDB::deriveOrigin(
   Entity& entry,
   const SensorDB& sensorDB) const
 {
@@ -60,7 +60,7 @@ bool Trace2DB::deriveOrigin(
 }
 
 
-bool Trace2DB::deriveName(Entity& entry) const
+bool TraceDB::deriveName(Entity& entry) const
 {
   if (! parseInt(entry.getString(TRACE_AXLES_STRING), entry[TRACE_AXLES]))
   {
@@ -98,7 +98,7 @@ bool Trace2DB::deriveName(Entity& entry) const
 }
 
 
-bool Trace2DB::derivePhysics(Entity& entry) const
+bool TraceDB::derivePhysics(Entity& entry) const
 {
   if (! parseDouble(entry.getString(TRACE_DISPLACEMENT_STRING),
     entry.getDouble(TRACE_DISPLACEMENT)))
@@ -127,24 +127,24 @@ bool Trace2DB::derivePhysics(Entity& entry) const
 }
 
 
-bool Trace2DB::complete(
+bool TraceDB::complete(
   Entity& entry,
   const SensorDB& sensorDB) const
 {
-  if (! Trace2DB::deriveOrigin(entry, sensorDB))
+  if (! TraceDB::deriveOrigin(entry, sensorDB))
     return false;
 
-  if (! Trace2DB::deriveName(entry))
+  if (! TraceDB::deriveName(entry))
     return false;
 
-  if (! Trace2DB::derivePhysics(entry))
+  if (! TraceDB::derivePhysics(entry))
     return false;
 
   return true;
 }
 
 
-bool Trace2DB::readFile(
+bool TraceDB::readFile(
   const string& fname,
   const SensorDB& sensorDB)
 {
@@ -166,7 +166,7 @@ bool Trace2DB::readFile(
   {
     traceMap[entry.getString(TRACE_FILENAME)] = entries.size();
 
-    if (! Trace2DB::complete(entry, sensorDB))
+    if (! TraceDB::complete(entry, sensorDB))
     {
       cout << "Could not complete trace truth file " << fname << endl;
       fin.close();
@@ -187,7 +187,7 @@ bool Trace2DB::readFile(
 }
 
 
-unsigned Trace2DB::traceNumber(const string& fname) const
+unsigned TraceDB::traceNumber(const string& fname) const
 {
   const string basename = parseBasename(fname);
   auto it = traceMap.find(basename);
@@ -197,28 +197,28 @@ unsigned Trace2DB::traceNumber(const string& fname) const
 }
 
 
-const string& Trace2DB::sensor(const unsigned traceNo) const
+const string& TraceDB::sensor(const unsigned traceNo) const
 {
   assert(traceNo < entries.size());
   return entries[traceNo].getString(TRACE_SENSOR);
 }
 
 
-const string& Trace2DB::time(const unsigned traceNo) const
+const string& TraceDB::time(const unsigned traceNo) const
 {
   assert(traceNo < entries.size());
   return entries[traceNo].getString(TRACE_TIME);
 }
 
 
-const string& Trace2DB::train(const unsigned traceNo) const
+const string& TraceDB::train(const unsigned traceNo) const
 {
   assert(traceNo < entries.size());
   return entries[traceNo].getString(TRACE_OFFICIAL_NAME);
 }
 
 
-double Trace2DB::speed(const unsigned traceNo) const
+double TraceDB::speed(const unsigned traceNo) const
 {
   assert(traceNo < entries.size());
   return entries[traceNo].getDouble(TRACE_SPEED);

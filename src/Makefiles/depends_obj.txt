@@ -63,23 +63,19 @@ Trace.obj: Trace.h SegTransient.h struct.h SegQuiet.h SegActive.h
 Trace.obj: PeakDetect.h Peak.h PeakPool.h Peaks.h PeakPtrs.h CarPeaks.h
 Trace.obj: PeakStructure.h CarDetect.h CarGaps.h PeakRange.h PeakProfile.h
 Trace.obj: CarModels.h read.h util/misc.h util/Timers.h util/Timer.h
-TraceDB.obj: TraceDB.h struct.h database/SensorDB.h database/Entity.h
-TraceDB.obj: database/TrainDB.h database/parse.h Align.h Except.h errors.h
-TraceDB.obj: read.h
 args.obj: args.h struct.h
 geometry.obj: database/TrainDB.h database/Entity.h Regress.h struct.h
 geometry.obj: geometry.h
 print.obj: print.h database/TrainDB.h database/Entity.h struct.h
-read.obj: database/SensorDB.h database/Entity.h database/TrainDB.h
-read.obj: database/parse.h TraceDB.h struct.h read.h util/misc.h
+read.obj: database/parse.h read.h struct.h util/misc.h
 write.obj: write.h struct.h
 driver.obj: args.h struct.h read.h Trace.h SegTransient.h SegQuiet.h
 driver.obj: SegActive.h PeakDetect.h Peak.h PeakPool.h Peaks.h PeakPtrs.h
 driver.obj: CarPeaks.h PeakStructure.h CarDetect.h CarGaps.h PeakRange.h
 driver.obj: PeakProfile.h CarModels.h database/SensorDB.h database/Entity.h
 driver.obj: database/CarDB.h database/CorrectionDB.h database/TrainDB.h
-driver.obj: TraceDB.h Regress.h Align.h CompStats.h PeakStats.h Except.h
-driver.obj: errors.h geometry.h print.h util/Timers.h util/Timer.h
+driver.obj: database/TraceDB.h Regress.h Align.h CompStats.h PeakStats.h
+driver.obj: Except.h errors.h geometry.h print.h util/Timers.h util/Timer.h
 driver.obj: util/misc.h
 regress/PolynomialRegression.obj: regress/PolynomialRegression.h
 completions/Completion.obj: completions/Completion.h
@@ -93,6 +89,8 @@ database/CarDB.obj: database/CarDB.h database/Entity.h
 database/CorrectionDB.obj: database/CorrectionDB.h database/Entity.h
 database/Entity.obj: database/Entity.h database/parse.h
 database/SensorDB.obj: database/SensorDB.h database/Entity.h
+database/TraceDB.obj: database/TraceDB.h database/Entity.h
+database/TraceDB.obj: database/SensorDB.h database/parse.h
 database/TrainDB.obj: database/CarDB.h database/Entity.h
 database/TrainDB.obj: database/CorrectionDB.h database/TrainDB.h
 database/TrainDB.obj: database/parse.h

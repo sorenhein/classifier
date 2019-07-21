@@ -5,12 +5,9 @@
 #include <algorithm>
 
 #include "database/parse.h"
-#include "database/SensorDB.h"
-#include "database/TrainDB.h"
-#include "database/Trace2DB.h"
 
-#include "TraceDB.h"
 #include "read.h"
+#include "struct.h"
 
 #include "util/misc.h"
 
@@ -137,84 +134,6 @@ bool readControlFile(
     }
   }
 
-  fin.close();
-  return true;
-}
-
-
-bool readTraceTruth(
-  const string& fname,
-  const SensorDB& sensorDB,
-  const TrainDB& trainDB,
-  TraceDB& tdb,
-  Trace2DB& tdb2)
-{
-  tdb2.readFile(fname, sensorDB);
-
-  ifstream fin;
-  fin.open(fname);
-  string line;
-  vector<string> v;
-  TraceTruth truth;
-
-  if (! getline(fin, line))
-  {
-    cout << "File " << fname << ": no first line\n";
-    return false;
-  }
-
-  while (getline(fin, line))
-  {
-    line.erase(remove(line.begin(), line.end(), '\r'), line.end());
-    if (line == "" || line.front() == '#')
-      continue;
-
-    const string err = "File " + fname + ": Bad line '" + line + "'";
-
-    const size_t c = countDelimiters(line, ",");
-    if (c != 16)
-    {
-      cout << err << endl;
-      fin.close();
-      return false;
-    }
-
-    v.clear();
-    tokenize(line, v, ",");
-
-    truth.filename = v[0];
-    truth.trainName = v[2];
-
-    if (! parseInt(v[3], truth.numAxles))
-    {
-      cout << err << endl;
-      fin.close();
-      return false;
-    }
-
-    if (! parseDouble(v[4], truth.speed))
-    {
-      cout << err << endl;
-      fin.close();
-      return false;
-    }
-
-    if (! parseDouble(v[5], truth.accel))
-    {
-      cout << err << endl;
-      fin.close();
-      return false;
-    }
-
-    if (v[6] == "1")
-      truth.reverseFlag = false;
-    else if (v[6] == "-1")
-      truth.reverseFlag = true;
-    else
-      return false;
-
-    tdb.log(truth, sensorDB, trainDB);
-  }
   fin.close();
   return true;
 }

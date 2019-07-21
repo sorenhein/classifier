@@ -27,7 +27,6 @@ SOURCE_FILES    =                       \
                 SegQuiet.cpp            \
                 SegTransient.cpp        \
                 Trace.cpp               \
-                TraceDB.cpp             \
                 args.cpp                \
                 geometry.cpp            \
                 print.cpp               \
@@ -43,7 +42,7 @@ SOURCE_FILES    =                       \
                 database/CorrectionDB.cpp \
                 database/Entity.cpp     \
                 database/SensorDB.cpp   \
-                database/Trace2DB.cpp   \
+                database/TraceDB.cpp    \
                 database/TrainDB.cpp    \
                 database/parse.cpp      \
                                         \

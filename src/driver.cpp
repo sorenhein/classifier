@@ -11,9 +11,8 @@
 #include "database/CarDB.h"
 #include "database/CorrectionDB.h"
 #include "database/TrainDB.h"
-#include "database/Trace2DB.h"
+#include "database/TraceDB.h"
 
-#include "TraceDB.h"
 #include "Regress.h"
 #include "Align.h"
 #include "CompStats.h"
@@ -78,8 +77,7 @@ int main(int argc, char * argv[])
 
   // This extracts peaks and then extracts train types from peaks.
   TraceDB traceDB;
-  Trace2DB trace2DB;
-  readTraceTruth(control.truthFile, sensorDB, trainDB, traceDB, trace2DB);
+  traceDB.readFile(control.truthFile, sensorDB);
 
   vector<string> datfiles;
   getFilenames(control.traceDir, datfiles, control.pickFileString);
@@ -94,9 +92,9 @@ int main(int argc, char * argv[])
 
   for (auto& fname: datfiles)
   {
-    const unsigned t2no = trace2DB.traceNumber(fname);
-    const string sensor = trace2DB.sensor(t2no);
-    const string trainTrue = trace2DB.train(t2no);
+    const unsigned t2no = traceDB.traceNumber(fname);
+    const string sensor = traceDB.sensor(t2no);
+    const string trainTrue = traceDB.train(t2no);
 
     const string country = sensorDB.country(sensor);
 
@@ -107,7 +105,7 @@ int main(int argc, char * argv[])
     cout << "File " << fname << ":\n\n";
 
     // This is only used for diagnostics in trace.
-    const double speedTrue = trace2DB.speed(t2no);
+    const double speedTrue = traceDB.speed(t2no);
     const int trainNoTrue = trainDB.lookupNumber(trainTrue);
     vector<double> posTrue;
       
@@ -155,7 +153,7 @@ int main(int argc, char * argv[])
 
       if (! control.pickTrainString.empty())
       {
-        const string s = sensor + "/" + trace2DB.time(t2no);
+        const string s = sensor + "/" + traceDB.time(t2no);
         dumpResiduals(times, trainDB, order, matchesAlign, s, trainTrue, 
           control.pickTrainString, 
           trainDB.numAxles(static_cast<unsigned>(trainNoTrue)));
