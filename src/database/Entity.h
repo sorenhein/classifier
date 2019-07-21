@@ -43,8 +43,6 @@ class Entity
     deque<bool> bools;
     vector<double> doubles;
 
-    void init(const vector<unsigned>& fieldCounts);
-
     bool parseField(
       const list<CorrespondenceEntry>& fields,
       const string& tag,
@@ -58,6 +56,8 @@ class Entity
     ~Entity();
 
     void clear();
+
+    void init(const vector<unsigned>& fieldCounts);
 
     // Tag-type file.
     bool readTagFile(

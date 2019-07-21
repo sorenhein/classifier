@@ -233,6 +233,8 @@ bool Entity::readCommaLine(
   const unsigned count)
 {
   string line;
+  vector<string> v;
+
   while (getline(fin, line))
   {
     line.erase(remove(line.begin(), line.end(), '\r'), line.end());
@@ -246,8 +248,11 @@ bool Entity::readCommaLine(
       return false;
     }
 
-    strings.clear();
-    tokenize(line, strings, ",");
+    v.clear();
+    tokenize(line, v, ",");
+    for (unsigned i = 0; i < count; i++)
+      strings[i] = v[i];
+
     return true;
   }
 

@@ -4,9 +4,10 @@
 #include <sstream>
 #include <algorithm>
 
+#include "database/parse.h"
 #include "database/SensorDB.h"
 #include "database/TrainDB.h"
-#include "database/parse.h"
+#include "database/Trace2DB.h"
 
 #include "TraceDB.h"
 #include "read.h"
@@ -145,8 +146,11 @@ bool readTraceTruth(
   const string& fname,
   const SensorDB& sensorDB,
   const TrainDB& trainDB,
-  TraceDB& tdb)
+  TraceDB& tdb,
+  Trace2DB& tdb2)
 {
+  tdb2.readFile(fname, sensorDB);
+
   ifstream fin;
   fin.open(fname);
   string line;

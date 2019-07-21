@@ -29,7 +29,8 @@ void Trace2DB::reset()
     0,
     0,
     TRACE_INTS_SIZE,
-    TRACE_BOOLS_SIZE
+    TRACE_BOOLS_SIZE,
+    TRACE_DOUBLES_SIZE
   };
 }
 
@@ -81,9 +82,9 @@ bool Trace2DB::deriveName(Entity& entry) const
   const string& trainType = entry.getString(TRACE_TYPE);
   string head;
   if (trainType == "ICE4_12")
-    head = "ICE4_";
+    head = "ICE4";
   else if (trainType == "BOB")
-    head = "MERIDIAN_";
+    head = "MERIDIAN";
   else
     head = trainType;
 
@@ -92,7 +93,7 @@ bool Trace2DB::deriveName(Entity& entry) const
     entry.getString(TRACE_AXLES_STRING) + "_" +
     (entry.getBool(TRACE_REVERSED) ? "R" : "N");
     
-  entry.setString(TRACE_OFFICIAL_NAME, head + tail);
+  entry.setString(TRACE_OFFICIAL_NAME, head + "_" + tail);
   return true;
 }
 
@@ -148,10 +149,19 @@ bool Trace2DB::readFile(
   const SensorDB& sensorDB)
 {
   Entity entry;
+  entry.init(fieldCounts);
+
   bool errFlag;
   ifstream fin;
 
   fin.open(fname);
+  if (! entry.readCommaLine(fin, errFlag, TRACE_VOLTAGE_STRING+1))
+  {
+    cout << "Could not skip first line of truth file " << fname << endl;
+    fin.close();
+    return false;
+}
+
   while (entry.readCommaLine(fin, errFlag, TRACE_VOLTAGE_STRING+1))
   {
     traceMap[entry.getString(TRACE_FILENAME)] = entries.size();
