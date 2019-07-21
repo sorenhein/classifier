@@ -46,7 +46,7 @@ void SegActive::integrateFloat(
   vector<float>& result) const
 {
   // If acceleration -> speed: Speed is in 0.01 m/s.
-  // If speed -> position: Position is in 0.1 mm.
+  // If speed -> position: Position is in 0.1 m.
 
   const float factor =
     (a2vFlag ? 100.f * G_FORCE / sampleRate : 100.f / sampleRate);

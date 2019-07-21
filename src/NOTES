@@ -25,6 +25,12 @@ Need scripts that are
 * Executable
 * Not in src (change path)
 
+Directories
+-----------
+misc.cpp spawns io.cpp (includes write.cpp)
+transient, split out from trace
+stats includes Timer and Timers, gets asserts
+
 
 cout more localized, not in parse.cpp but in the callers
 
