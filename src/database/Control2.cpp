@@ -114,18 +114,6 @@ const string& Control2::truthFile() const
 }
 
 
-const string& Control2::crosscountFile() const
-{
-  return entry.getString(CTRL_CROSSCOUNT_FILE);
-}
-
-
-const string& Control2::crosspercentFile() const
-{
-  return entry.getString(CTRL_CROSSPERCENT_FILE);
-}
-
-
 const string& Control2::overviewFile() const
 {
   return entry.getString(CTRL_OVERVIEW_FILE);

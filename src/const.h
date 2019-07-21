@@ -33,8 +33,8 @@ struct FilterDouble
 
 struct FilterFloat
 {
-  vector<double> numerator;
-  vector<double> denominator;
+  vector<float> numerator;
+  vector<float> denominator;
 };
 
 // The following filters are reasonable for a sample rate of 2000 Hz.

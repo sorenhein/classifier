@@ -54,8 +54,6 @@ class Control2
     const string& sensorCountry() const;
     const string& traceDir() const;
     const string& truthFile() const;
-    const string& crosscountFile() const;
-    const string& crosspercentFile() const;
     const string& overviewFile() const;
     const string& detailFile() const;
 };
