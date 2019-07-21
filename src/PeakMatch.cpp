@@ -44,14 +44,14 @@ void PeakMatch::reset()
 
 
 void PeakMatch::pos2time(
-  const vector<PeakPos>& posTrue, 
+  const vector<double>& posTrue, 
   const double speed,
   vector<PeakTime>& timesTrue) const
 {
   for (unsigned i = 0; i < posTrue.size(); i++)
   {
-    timesTrue[i].time = posTrue[i].pos / speed;
-    timesTrue[i].value = posTrue[i].value;
+    timesTrue[i].time = posTrue[i] / speed;
+    timesTrue[i].value = 1.;
   }
 }
 
@@ -290,7 +290,7 @@ void PeakMatch::correctTimesTrue(vector<PeakTime>& timesTrue) const
 
 void PeakMatch::logPeakStats(
   const PeakPool& peaks,
-  const vector<PeakPos>& posTrue,
+  const vector<double>& posTrue,
   const string& trainTrue,
   const double speedTrue,
   PeakStats& peakStats)

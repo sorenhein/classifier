@@ -93,7 +93,8 @@ class Database
 
     bool getPerfectPeaks(
       const unsigned trainNo,
-      vector<PeakPos>& peaks) const; // In m
+      vector<double>& peakPos) const; // In m
+      // vector<PeakPos>& peaks) const; // In m
 
     int lookupCarNumber(const string& offName) const;
 

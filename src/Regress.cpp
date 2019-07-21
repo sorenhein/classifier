@@ -65,13 +65,13 @@ void Regress::specificMatch(
   double& residuals) const
 {
   PolynomialRegression pol;
-  vector<PeakPos> refPeaks;
+  vector<double> refPeaks;
   vector<double> x, y;
   const unsigned lt = times.size();
 
   db.getPerfectPeaks(match.trainNo, refPeaks);
   const unsigned lr = refPeaks.size();
-  const double trainLength = refPeaks.back().pos - refPeaks.front().pos;
+  const double trainLength = refPeaks.back() - refPeaks.front();
 
   if (lr + match.numAdd != lt + match.numDelete)
     THROW(ERR_REGRESS, "Number of regression elements don't add up");
@@ -85,7 +85,7 @@ void Regress::specificMatch(
   {
     if (match.actualToRef[i] >= 0)
     {
-      y[p] = refPeaks[static_cast<unsigned>(match.actualToRef[i])].pos;
+      y[p] = refPeaks[static_cast<unsigned>(match.actualToRef[i])];
       x[p] = times[i].time;
       p++;
     }
@@ -106,7 +106,7 @@ void Regress::summarizeResiduals(
   const vector<double>& coeffs,
   Alignment& match) const
 {
-  vector<PeakPos> refPeaks;
+  vector<double> refPeaks;
   db.getPerfectPeaks(match.trainNo, refPeaks);
   const unsigned lr = refPeaks.size();
 
@@ -122,10 +122,10 @@ void Regress::summarizeResiduals(
       const unsigned refIndex = static_cast<unsigned>(match.actualToRef[i]);
       const double position = Regress::time2pos(times[i].time, coeffs);
 
-// cout << refIndex << ";" << refPeaks[refIndex].pos << ";" << position << "\n";
+// cout << refIndex << ";" << refPeaks[refIndex] << ";" << position << "\n";
 
       x[refIndex].index = refIndex;
-      x[refIndex].value = position - refPeaks[refIndex].pos;
+      x[refIndex].value = position - refPeaks[refIndex];
       x[refIndex].valueSq = x[refIndex].value * x[refIndex].value;
       sum += x[refIndex].valueSq;
     }
@@ -168,7 +168,7 @@ void Regress::bestMatch(
 
   PolynomialRegression pol;
 
-  vector<PeakPos> refPeaks;
+  vector<double> refPeaks;
 
   bestAlign.dist = numeric_limits<double>::max();
   vector<double> x, y, coeffs(order+1);

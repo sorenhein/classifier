@@ -234,10 +234,10 @@ void TrainDB::getPeakPositions(
 {
   assert(trainNo < entries.size());
   const vector<int>& axles = entries[trainNo].getIntVector(TRAIN_AXLES);
+
+  peakPositions.clear();
   for (int p: axles)
-  {
     peakPositions.push_back(p / 1000.); // In m
-  }
 }
 
 

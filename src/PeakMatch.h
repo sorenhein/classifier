@@ -35,7 +35,7 @@ class PeakMatch
     vector<Peak const *> trueMatches;
 
     void pos2time(
-      const vector<PeakPos>& posTrue,
+      const vector<double>& posTrue,
       const double speed,
       vector<PeakTime>& timesTrue) const;
 
@@ -73,7 +73,7 @@ class PeakMatch
 
     void logPeakStats(
       const PeakPool& peaks,
-      const vector<PeakPos>& posTrue,
+      const vector<double>& posTrue,
       const string& trainTrue,
       const double speedTrue,
       PeakStats& peakStats);

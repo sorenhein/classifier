@@ -37,7 +37,7 @@ void dumpResiduals(
   Regress regress;
   vector<double> coeffs(order+1);
   double residuals;
-  vector<PeakPos> posTrue;
+  vector<double> posTrue;
 // const unsigned numTrue = db.lookupTrainNumber(trainTrue);
 // db.getPerfectPeaks(numTrue, posTrue);
 
@@ -75,7 +75,7 @@ void dumpResiduals(
         cout << i << ";" << endl;
       else
         cout << i << ";" << fixed << setprecision(4) << 
-          pos[i] - posTrue[i].pos << endl;
+          pos[i] - posTrue[i] << endl;
     }
     cout << "ENDSPEC\n";
   }

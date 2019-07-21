@@ -17,12 +17,12 @@ void printDataLine(
 
 
 void printPeakPosCSV(
-  const vector<PeakPos>& peaks,
+  const vector<double>& peaks,
   const int level)
 {
   for (unsigned i = 0; i < peaks.size(); i++)
     cout << fixed << setprecision(4) << 
-      peaks[i].pos << ";" << level << endl;
+      peaks[i] << ";" << level << endl;
   cout << endl;
 }
 

@@ -10,7 +10,7 @@ using namespace std;
 
 
 void printPeakPosCSV(
-  const vector<PeakPos>& peaks,
+  const vector<double>& peaks,
   const int level);
 
 void printPeakTimeCSV(

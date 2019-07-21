@@ -44,8 +44,8 @@ Align::~Align()
 
 
 void Align::NeedlemanWunsch(
-  const vector<PeakPos>& refPeaks,
-  const vector<PeakPos>& scaledPeaks,
+  const vector<double>& refPeaks,
+  const vector<double>& scaledPeaks,
   const double peakScale,
   const Imperfections& imperf,
   const Shift& shift,
@@ -109,8 +109,8 @@ void Align::NeedlemanWunsch(
   {
     for (unsigned j = 1; j < lt+1; j++)
     {
-      const double d = refPeaks[i + shift.firstRefNo - 1].pos - 
-        scaledPeaks[j + shift.firstTimeNo - 1].pos;
+      const double d = refPeaks[i + shift.firstRefNo - 1] - 
+        scaledPeaks[j + shift.firstTimeNo - 1];
       const double match = matrix[i-1][j-1].dist + peakScale * d * d;
 
       // During the first few peaks we don't penalize a missed real peak
@@ -223,7 +223,7 @@ double Align::interpolateTime(
 
 
 void Align::estimateAlignedMotion(
-  const vector<PeakPos>& refPeaks,
+  const vector<double>& refPeaks,
   const vector<PeakTime>& times,
   const vector<int>& actualToRef,
   const int offsetRef,
@@ -250,7 +250,7 @@ void Align::estimateAlignedMotion(
     if (ri >= lr)
       break;
 
-    y[p] = refPeaks[ri].pos;
+    y[p] = refPeaks[ri];
     x[p] = times[i].time;
   }
 
@@ -259,7 +259,7 @@ void Align::estimateAlignedMotion(
 
 
 void Align::estimateMotion(
-  const vector<PeakPos>& refPeaks,
+  const vector<double>& refPeaks,
   const vector<PeakTime>& times,
   Shift& shift) const
 {
@@ -280,24 +280,24 @@ void Align::estimateMotion(
 
   const unsigned lp = refPeaks.size();
 
-  const double len = refPeaks[lp-1].pos - refPeaks[shift.firstRefNo].pos;
-  const double posMid = refPeaks[shift.firstRefNo].pos + len / 2.;
+  const double len = refPeaks[lp-1] - refPeaks[shift.firstRefNo];
+  const double posMid = refPeaks[shift.firstRefNo] + len / 2.;
 
   // Look for posMid in refPeaks.
   unsigned posLeft = 0;
-  while (posLeft+1 < lp && refPeaks[posLeft+1].pos <= posMid)
+  while (posLeft+1 < lp && refPeaks[posLeft+1] <= posMid)
     posLeft++;
 
 // if (flag)
 // cout << "posLeft " << posLeft << endl;
-  if (posLeft == 0 || posLeft == lp-1 || refPeaks[posLeft+1].pos <= posMid)
+  if (posLeft == 0 || posLeft == lp-1 || refPeaks[posLeft+1] <= posMid)
   {
     cout << "Should not happen:";
     cout << "posLeft " << posLeft << ", lp " << lp <<
       ", posMid " << posMid << endl;
   }
-  const double propRight = (posMid - refPeaks[posLeft].pos) /
-    (refPeaks[posLeft+1].pos - refPeaks[posLeft].pos);
+  const double propRight = (posMid - refPeaks[posLeft]) /
+    (refPeaks[posLeft+1] - refPeaks[posLeft]);
 
 // if (flag)
 // cout << "posMid " << posMid << " propRight " << propRight << endl;
@@ -357,7 +357,7 @@ void Align::estimateMotion(
 // cout << "len " << len << " tMid " << tMid << " tEnd " << tEnd <<
   // " accel " << motion[2] << " speed " << motion[1] << endl;
 
-  shift.motion[0] = refPeaks[shift.firstRefNo].pos -
+  shift.motion[0] = refPeaks[shift.firstRefNo] -
     (shift.motion[1] * times[shift.firstTimeNo].time +
       0.5 * shift.motion[2] * times[shift.firstTimeNo].time * 
         times[shift.firstTimeNo].time);
@@ -365,8 +365,8 @@ void Align::estimateMotion(
 
 
 double Align::simpleScore(
-  const vector<PeakPos>& refPeaks,
-  const vector<PeakPos>& shiftedPeaks) const
+  const vector<double>& refPeaks,
+  const vector<double>& shiftedPeaks) const
 {
   const unsigned lr = refPeaks.size();
   const unsigned ls = shiftedPeaks.size();
@@ -387,7 +387,7 @@ double Align::simpleScore(
 
   for (unsigned is = 0; is < ls; is++)
   {
-    double dleft = shiftedPeaks[is].pos - refPeaks[ir].pos;
+    double dleft = shiftedPeaks[is] - refPeaks[ir];
 
     if (dleft < 0.)
     {
@@ -401,13 +401,13 @@ double Align::simpleScore(
       double dright = numeric_limits<double>::max();
       while (ir+1 < lr)
       {
-        dright = refPeaks[ir+1].pos - shiftedPeaks[is].pos;
+        dright = refPeaks[ir+1] - shiftedPeaks[is];
         if (dright >= 0.)
           break;
         ir++;
       }
 
-      dleft = shiftedPeaks[is].pos - refPeaks[ir].pos;
+      dleft = shiftedPeaks[is] - refPeaks[ir];
       d = min(dleft, dright);
     }
     
@@ -576,13 +576,13 @@ bool Align::betterSimpleScore(
 
 
 void Align::scalePeaks(
-  const vector<PeakPos>& refPeaks,
+  const vector<double>& refPeaks,
   const vector<PeakTime>& times,
   const vector<int>& actualToRef,
   const unsigned numFrontWheels,
   const bool fullTrainFlag,
   Shift& shift,
-  vector<PeakPos>& scaledPeaks) const
+  vector<double>& scaledPeaks) const
 {
   // The shift is "subtracted" from scaledPeaks, so if the shift is
   // positive, we align the n'th scaled peak with the 0'th
@@ -640,7 +640,7 @@ void Align::scalePeaks(
   // we could also run Needleman-Wunsch, so this is a bit of an
   // optimization.
 
-  vector<PeakPos> candPeaks(lt);
+  vector<double> candPeaks(lt);
 
   unsigned bestIndex = 0;
   double bestScore = -1.;
@@ -667,7 +667,7 @@ cout << "motion " << cand.motion[0] << ", " <<
 
     for (unsigned j = 0; j < lt; j++)
     {
-      candPeaks[j].pos = cand.motion[0] +
+      candPeaks[j] = cand.motion[0] +
         cand.motion[1] * times[j].time +
         0.5 * cand.motion[2] * times[j].time * times[j].time;
     }
@@ -717,7 +717,7 @@ void Align::bestMatches(
 {
   timers.start(TIMER_ALIGN);
 
-  vector<PeakPos> refPeaks, scaledPeaks;
+  vector<double> refPeaks, scaledPeaks;
   matches.clear();
 
   for (auto& refTrain: db)
@@ -734,7 +734,7 @@ void Align::bestMatches(
     db.getPerfectPeaks(refTrainNoU, refPeaks);
 
 // cout << "refTrain " << refTrain << endl;
-    const double trainLength = refPeaks.back().pos - refPeaks.front().pos;
+    const double trainLength = refPeaks.back() - refPeaks.front();
     Shift shift;
     Align::scalePeaks(refPeaks, times, actualToRef, 
       numFrontWheels, fullTrainFlag, shift, scaledPeaks);
@@ -775,8 +775,8 @@ void Align::bestMatches(
 void Align::printAlignPeaks(
   const string& refTrain,
   const vector<PeakTime>& times,
-  const vector<PeakPos>& refPeaks,
-  const vector<PeakPos>& scaledPeaks) const
+  const vector<double>& refPeaks,
+  const vector<double>& scaledPeaks) const
 {
   cout << "refTrain " << refTrain << "\n\n";
 

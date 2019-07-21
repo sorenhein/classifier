@@ -61,7 +61,7 @@ class SegActive
       Imperfections& imperf);
 
     void logPeakStats(
-      const vector<PeakPos>& posTrue,
+      const vector<double>& posTrue,
       const string& trainTrue,
       const double speedTrue,
       PeakStats& peakStats);

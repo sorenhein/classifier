@@ -89,7 +89,7 @@ if (! control.pickTrainString.empty() &&
       // This is only used for diagnostics in trace.
       const double speedTrue = traceDB.lookupTrueSpeed(fname);
       const int trainNoTrue = db.lookupTrainNumber(trainTrue);
-      vector<PeakPos> posTrue;
+      vector<double> posTrue;
       
       try
       {

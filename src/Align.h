@@ -40,20 +40,20 @@ class Align
       const double index) const;
 
     void estimateAlignedMotion(
-      const vector<PeakPos>& refPeaks,
+      const vector<double>& refPeaks,
       const vector<PeakTime>& times,
       const vector<int>& actualToRef,
       const int offsetRef,
       Shift& shift) const;
       
     void estimateMotion(
-      const vector<PeakPos>& refPeaks,
+      const vector<double>& refPeaks,
       const vector<PeakTime>& times,
       Shift& shift) const;
       
     double simpleScore(
-      const vector<PeakPos>& refPeaks,
-      const vector<PeakPos>& shiftedPeaks) const;
+      const vector<double>& refPeaks,
+      const vector<double>& shiftedPeaks) const;
       
     void makeShiftCandidates(
       vector<Shift>& candidates,
@@ -73,17 +73,17 @@ class Align
       const unsigned lt) const;
 
     void scalePeaks(
-      const vector<PeakPos>& refPeaks,
+      const vector<double>& refPeaks,
       const vector<PeakTime>& times,
       const vector<int>& actualToRef,
       const unsigned numFrontWheels,
       const bool fullTrainFlag,
       Shift& shift,
-      vector<PeakPos>& scaledPeaks) const;
+      vector<double>& scaledPeaks) const;
 
     void NeedlemanWunsch(
-      const vector<PeakPos>& refPeaks,
-      const vector<PeakPos>& scaledPeaks,
+      const vector<double>& refPeaks,
+      const vector<double>& scaledPeaks,
       const double peakScale,
       const Imperfections& imperf,
       const Shift& shift,
@@ -92,8 +92,8 @@ class Align
     void printAlignPeaks(
       const string& refTrain,
       const vector<PeakTime>& times,
-      const vector<PeakPos>& refPeaks,
-      const vector<PeakPos>& scaledPeaks) const;
+      const vector<double>& refPeaks,
+      const vector<double>& scaledPeaks) const;
 
 
   public:
