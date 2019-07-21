@@ -24,6 +24,8 @@ void Entity::clear()
 {
   strings.clear();
   stringVectors.clear();
+  stringMap.clear();
+  intVectors.clear();
   ints.clear();
   bools.clear();
 }
@@ -85,7 +87,7 @@ bool Entity::parseField(
 }
 
 
-bool Entity::readFile(
+bool Entity::readTagFile(
   const string& fname,
   const list<CorrespondenceEntry>& fields,
   const vector<unsigned>& fieldCounts)
@@ -180,6 +182,52 @@ bool Entity::readSeriesFile(
 }
 
 
+bool Entity::readCommaFile(
+  const string& fname,
+  const vector<unsigned>& fieldCounts,
+  const unsigned count,
+  const unsigned no)
+{
+  Entity::init(fieldCounts);
+  assert(no < stringVectors.size());
+  
+  ifstream fin;
+  fin.open(fname);
+  string line;
+  vector<string> v;
+
+  while (getline(fin, line))
+  {
+    line.erase(remove(line.begin(), line.end(), '\r'), line.end());
+    if (line == "" || line.front() == '#')
+      continue;
+
+    const string err = "File " + fname + ": Bad line '" + line + "'";
+
+    const size_t c = countDelimiters(line, ",");
+    if (c != count)
+    {
+      cout << err << endl;
+      fin.close();
+      return false;
+    }
+
+    v.clear();
+    tokenize(line, v, ",");
+
+    auto it = stringMap.find(v[0]);
+    if (it != stringMap.end())
+      return false;
+
+    vector<string>& sm = stringMap[v[0]];
+    for (unsigned i = 1; i < count; i++)
+      sm.push_back(v[i]);
+  }
+  fin.close();
+  return true;
+}
+
+
 int& Entity::operator [](const unsigned no)
 {
   assert(no < ints.size());
@@ -219,6 +267,16 @@ const vector<string>& Entity::getStringVector(const unsigned no) const
 {
   assert(no < stringVectors.size());
   return stringVectors[no];
+}
+
+
+const string& Entity::getMap(
+  const string& str,
+  const unsigned no) const
+{
+  auto it = stringMap.find(str);
+  assert(it != stringMap.end());
+  return it->second[no];
 }
 
 

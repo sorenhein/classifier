@@ -93,6 +93,7 @@ void CarDB::configure()
     CAR_STRINGS_SIZE,
     CAR_VECTORS_SIZE,
     0,
+    0,
     CAR_INTS_SIZE,
     CAR_BOOLS_SIZE
   };
@@ -294,7 +295,7 @@ bool CarDB::complete(Entity& entry)
 bool CarDB::readFile(const string& fname)
 {
   Entity entry;
-  if (! entry.readFile(fname, fields, fieldCounts))
+  if (! entry.readTagFile(fname, fields, fieldCounts))
     return false;
 
   if (! CarDB::complete(entry))

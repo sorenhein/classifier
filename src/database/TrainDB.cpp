@@ -54,6 +54,7 @@ void TrainDB::configure()
   {
     TRAIN_STRINGS_SIZE,
     TRAIN_STRING_VECTORS_SIZE,
+    0,
     TRAIN_INT_VECTORS_SIZE,
     TRAIN_INTS_SIZE,
     TRAIN_BOOLS_SIZE
@@ -139,7 +140,7 @@ bool TrainDB::readFile(
   const string& fname)
 {
   Entity entry;
-  if (! entry.readFile(fname, fields, fieldCounts))
+  if (! entry.readTagFile(fname, fields, fieldCounts))
     return false;
 
   if (! TrainDB::complete(carDB, entry))

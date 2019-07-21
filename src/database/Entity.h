@@ -3,6 +3,7 @@
 
 #include <vector>
 #include <list>
+#include <map>
 #include <deque>
 #include <string>
 
@@ -13,10 +14,11 @@ enum CorrespondenceType
 {
   CORRESPONDENCE_STRING = 0,
   CORRESPONDENCE_STRING_VECTOR = 1,
-  CORRESPONDENCE_INT_VECTOR = 2,
-  CORRESPONDENCE_INT = 3,
-  CORRESPONDENCE_BOOL = 4,
-  CORRESPONDENCE_SIZE = 5
+  CORRESPONDENCE_STRING_MAP = 2,
+  CORRESPONDENCE_INT_VECTOR = 3,
+  CORRESPONDENCE_INT = 4,
+  CORRESPONDENCE_BOOL = 5,
+  CORRESPONDENCE_SIZE = 6
 };
 
 
@@ -34,6 +36,7 @@ class Entity
 
     vector<string> strings;
     vector<vector<string>> stringVectors;
+    map<string, vector<string>> stringMap;
     vector<vector<int>> intVectors;
     vector<int> ints;
     deque<bool> bools;
@@ -54,8 +57,8 @@ class Entity
 
     void clear();
 
-    // Key-type file.
-    bool readFile(
+    // Tag-type file.
+    bool readTagFile(
       const string& fname,
       const list<CorrespondenceEntry>& fields,
       const vector<unsigned>& fieldCounts);
@@ -67,6 +70,13 @@ class Entity
       const vector<unsigned>& fieldCounts,
       const unsigned no);
 
+    // Regular lines of comma-separated data.
+    bool readCommaFile(
+      const string& fname,
+      const vector<unsigned>& fieldCounts,
+      const unsigned count,
+      const unsigned no);
+
     int& operator [](const unsigned no); // Only the ints vector
     const int& operator [](const unsigned no) const;
 
@@ -75,6 +85,10 @@ class Entity
 
     vector<string>& getStringVector(const unsigned no);
     const vector<string>& getStringVector(const unsigned no) const;
+
+    const string& getMap(
+      const string& str,
+      const unsigned no) const;
 
     vector<int>& getIntVector(const unsigned no);
     const vector<int>& getIntVector(const unsigned no) const;

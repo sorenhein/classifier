@@ -159,12 +159,8 @@ void readTrainFiles(
   vector<string> correctionFiles;
   getFilenames(correctionDir, correctionFiles);
 
-  // map<string, vector<int>> corrections;
   for (auto &f: correctionFiles)
-  {
-    // readCorrectionFile(f, corrections);
     db.readCorrectionFile(f);
-  }
 
   vector<string> textfiles;
   getFilenames(dir, textfiles);
