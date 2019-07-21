@@ -39,6 +39,7 @@ SOURCE_FILES    =                       \
                 completions/PeakCompletion.cpp \
                                         \
                 database/CarDB.cpp      \
+                database/Control2.cpp   \
                 database/CorrectionDB.cpp \
                 database/Entity.cpp     \
                 database/SensorDB.cpp   \

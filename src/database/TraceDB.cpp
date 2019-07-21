@@ -137,6 +137,10 @@ bool TraceDB::complete(
   if (! TraceDB::derivePhysics(entry))
     return false;
 
+  // Set some defaults.
+  entry[TRACE_YEAR] = 2018;
+  entry.setDouble(TRACE_SAMPLE_RATE, 2000.);
+
   return true;
 }
 
@@ -191,6 +195,20 @@ unsigned TraceDB::traceNumber(const string& fname) const
   assert(it != traceMap.end());
 
   return it->second;
+}
+
+
+unsigned TraceDB::year(const unsigned traceNo) const
+{
+  assert(traceNo < entries.size());
+  return entries[traceNo].getInt(TRACE_YEAR);
+}
+
+
+double TraceDB::sampleRate(const unsigned traceNo) const
+{
+  assert(traceNo < entries.size());
+  return entries[traceNo].getDouble(TRACE_SAMPLE_RATE);
 }
 
 

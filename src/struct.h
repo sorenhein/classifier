@@ -23,7 +23,6 @@ struct Control
   string sensorFile; // File with sensor data
   string truthFile; // File with trace truth data
   string country; // Country of input traces
-  int year; // Year of input traces
   string traceDir; // In 32-bit format
   int simCount; // Number of simulations for a given train, v and a
   double speedMin; // Lower speed for simulation loop, in m/s

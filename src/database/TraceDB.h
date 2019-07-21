@@ -40,8 +40,9 @@ enum TraceFieldStrings
 
 enum TraceFieldInts
 {
-  TRACE_AXLES = 0,
-  TRACE_INTS_SIZE = 1
+  TRACE_YEAR = 0,
+  TRACE_AXLES = 1,
+  TRACE_INTS_SIZE = 2
 };
 
 enum TraceFieldBools
@@ -52,10 +53,11 @@ enum TraceFieldBools
 
 enum TraceFieldDoubles
 {
-  TRACE_DISPLACEMENT = 0,
-  TRACE_SPEED = 1, // In m/s
-  TRACE_ACCEL = 2,
-  TRACE_DOUBLES_SIZE = 3
+  TRACE_SAMPLE_RATE = 0,
+  TRACE_DISPLACEMENT = 1,
+  TRACE_SPEED = 2, // In m/s
+  TRACE_ACCEL = 3,
+  TRACE_DOUBLES_SIZE = 4
 };
 
 
@@ -97,6 +99,8 @@ class TraceDB
 
     unsigned traceNumber(const string& fname) const;
 
+    unsigned year(const unsigned traceNo) const;
+    double sampleRate(const unsigned traceNo) const;
     const string& sensor(const unsigned traceNo) const;
     const string& time(const unsigned traceNo) const;
     const string& train(const unsigned traceNo) const;

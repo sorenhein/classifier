@@ -12,6 +12,7 @@
 #include "database/CorrectionDB.h"
 #include "database/TrainDB.h"
 #include "database/TraceDB.h"
+#include "database/Control2.h"
 
 #include "Regress.h"
 #include "Align.h"
@@ -34,6 +35,7 @@ void setup(
   int argc, 
   char * argv[],
   Control& control,
+  Control2& control2,
   SensorDB& sensorDB,
   CarDB& carDB,
   TrainDB& trainDB);
@@ -47,12 +49,13 @@ unsigned lookupMatchRank(
 int main(int argc, char * argv[])
 {
   Control control;
+  Control2 control2;
 
   SensorDB sensorDB;
   CarDB carDB;
   TrainDB trainDB;
 
-  setup(argc, argv, control, sensorDB, carDB, trainDB);
+  setup(argc, argv, control, control2, sensorDB, carDB, trainDB);
 
   Imperfections imperf;
   Align align;
@@ -194,20 +197,33 @@ void setup(
   int argc, 
   char * argv[],
   Control& control,
+  Control2& control2,
   SensorDB& sensorDB,
   CarDB& carDB,
   TrainDB& trainDB)
 {
-  if (argc == 2)
-    control.controlFile = string(argv[1]);
-  else
-    readArgs(argc, argv, control);
+  readArgs(argc, argv, control);
 
   if (! readControlFile(control, control.controlFile))
   {
     cout << "Bad control file" << control.controlFile << endl;
     exit(0);
   }
+
+  if (! control2.readFile(control.controlFile))
+  {
+    cout << "Bad control2 file" << control.controlFile << endl;
+    exit(0);
+  }
+
+  if (control.carDir != control2.carDir())
+    cout << "CONTROLERR1\n";
+  if (control.correctionDir != control2.correctionDir())
+    cout << "CONTROLERR2\n";
+  if (control.trainDir != control2.trainDir())
+    cout << "CONTROLERR3\n";
+  if (control.sensorFile != control2.sensorFile())
+    cout << "CONTROLERR4\n";
 
   // carDB
   vector<string> textfiles;

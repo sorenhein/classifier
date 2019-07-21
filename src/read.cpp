@@ -53,14 +53,6 @@ bool readControlFile(
       c.truthFile = rest;
     else if (field == "COUNTRY")
       c.country = rest;
-    else if (field == "YEAR")
-    {
-      if ( ! parseInt(rest, c.year)) 
-      {
-        cout << err << endl;
-        break;
-      }
-    }
     else if (field == "TRACE_DIRECTORY")
       c.traceDir = rest;
     else if (field == "SIM_COUNT")

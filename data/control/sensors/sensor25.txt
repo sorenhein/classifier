@@ -5,7 +5,6 @@ TRACE_DIRECTORY ../../../mini_dataset_v012/data/sensors/099743/raw
 SENSOR_FILE ../../../mini_dataset_v012/sensors.txt
 TRUTH_FILE ../../../mini_dataset_v012/labels.csv
 COUNTRY DEU
-YEAR 2018
 CROSSCOUNT_FILE output/crosscount.csv
 CROSSPERCENT_FILE output/crosspercent.csv
 OVERVIEW_FILE output/overview.txt
