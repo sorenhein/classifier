@@ -44,10 +44,6 @@ void Control2::configure()
     { "TRACE_DIRECTORY", CORRESPONDENCE_STRING, CTRL_TRACE_DIRECTORY },
     // Example: ../../../mini_dataset_v012/labels.csv
     { "TRUTH_FILE", CORRESPONDENCE_STRING, CTRL_TRUTH_FILE },
-    // Example: output/crosscount.csv
-    { "CROSSCOUNT_FILE", CORRESPONDENCE_STRING, CTRL_CROSSCOUNT_FILE },
-    // Example: output/crosspercent.csv
-    { "CROSSPERCENT_FILE", CORRESPONDENCE_STRING, CTRL_CROSSPERCENT_FILE },
     // Example: output/overview.txt
     { "OVERVIEW_FILE", CORRESPONDENCE_STRING, CTRL_OVERVIEW_FILE },
     // Example: output/details.txt

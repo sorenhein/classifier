@@ -57,19 +57,6 @@ int main(int argc, char * argv[])
 
   setup(argc, argv, control, control2, sensorDB, carDB, trainDB);
 
-  Imperfections imperf;
-  Align align;
-  Regress regress;
-
-  vector<PeakPos> perfectPositions;
-  vector<Alignment> matchesAlign;
-  Alignment bestAlign;
-  
-  const unsigned order = 2;
-  vector<double> motionActual(order+1);
-  vector<double> motionEstimate(order+1);
-  motionActual[0] = 0.; // Offset in m
-
   if (control2.traceDir() == "")
   {
     // This was once use to generate synthetic, noisy peaks and
@@ -85,13 +72,28 @@ int main(int argc, char * argv[])
   vector<string> datfiles;
   getFilenames(control2.traceDir(), datfiles, control.pickFileString);
 
+  CompStats sensorStats, trainStats;
+  PeakStats peakStats;
+
+
+
+  Imperfections imperf;
+  Align align;
+  Regress regress;
+
+  vector<PeakPos> perfectPositions;
+  vector<Alignment> matchesAlign;
+  Alignment bestAlign;
+  
+  const unsigned order = 2;
+  vector<double> motionActual(order+1);
+  vector<double> motionEstimate(order+1);
+  motionActual[0] = 0.; // Offset in m
+
   Trace trace;
   vector<PeakTime> times;
   vector<int> actualToRef;
   unsigned numFrontWheels;
-
-  CompStats sensorStats, trainStats;
-  PeakStats peakStats;
 
   for (auto& fname: datfiles)
   {
@@ -118,6 +120,8 @@ int main(int argc, char * argv[])
         THROW(ERR_NO_PEAKS, "True train not known");
 
       trainDB.getPeakPositions(static_cast<unsigned>(trainNoTrue), posTrue);
+
+      // Refuse trace if sample rate is not 2000, maybe in SegActive
 
       trace.read(fname);
       trace.detect(control, imperf);

@@ -3,6 +3,7 @@
 #include <string>
 
 #include "print.h"
+#include "const.h"
 
 using namespace std;
 
@@ -98,7 +99,7 @@ void printMotion(const vector<double>& motionEstimate)
     setw(16) << left << "Speed" <<
     setw(8) << right << fixed << setprecision(2) << 
       motionEstimate[1] << " m/s   = " <<
-    setw(8) << 3.6 * motionEstimate[1] << " km/h\n";
+    setw(8) << MS_TO_KMH * motionEstimate[1] << " km/h\n";
 
   cout << 
     setw(16) << left << "Acceleration" <<

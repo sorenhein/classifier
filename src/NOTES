@@ -1,4 +1,30 @@
-tokenize to no longer use outside parse.cpp?
+args.cpp
+--------
+* Need something like fields, but for option parsing
+  singleDash    c
+  doubleDash    control
+  type          CORRESPONDENCE_STRING
+  text          "Input control file", could be multi-line with \n
+  default       (always a string which gets parsed)
+* Need a new Entity type, bitVector which gets parsed into an int vector
+* Undocumented shortcut: -c 00 means ../data/control/sensors/sensor00.txt
+
+Multi-threading
+---------------
+Need a scheduler
+* pickFileString
+* pickTrainString (dynamically)
+
+Need a function that gets names from scheduler and is autonomous
+
+Need vector of ofstreams in control2
+* Names are sensor00_0.txt etc.
+* Locations are in output
+
+Need scripts that are 
+* Executable
+* Not in src (change path)
+
 
 cout more localized, not in parse.cpp but in the callers
 

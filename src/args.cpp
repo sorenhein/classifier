@@ -46,9 +46,7 @@ void usage(
     basename.erase(0, l+1);
 
   cout <<
-    "Usage (simple): " << basename << " control-file\n" <<
-    "\n" <<
-    "Usage (elaborate): " << basename << " [options]\n\n" <<
+    "Usage: " << basename << " [options]\n\n" <<
     "-c, --control s    Input control file.\n" <<
     "\n" <<
     "-p, --pick s       If set, pick the first file among those set in\n" <<

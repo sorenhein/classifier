@@ -5,6 +5,10 @@
 #include "TraceDB.h"
 #include "SensorDB.h"
 #include "parse.h"
+#include "../const.h"
+
+#define YEAR_DEFAULT 2018
+#define SAMPLE_RATE_DEFAULT 2000.
 
 
 TraceDB::TraceDB()
@@ -111,7 +115,7 @@ bool TraceDB::derivePhysics(Entity& entry) const
     return false;
   }
   else
-    entry.setDouble(TRACE_SPEED, d / 3.6);
+    entry.setDouble(TRACE_SPEED, d / MS_TO_KMH);
 
   if (! parseDouble(entry.getString(TRACE_ACCEL_STRING), 
     entry.getDouble(TRACE_ACCEL)))
@@ -138,8 +142,8 @@ bool TraceDB::complete(
     return false;
 
   // Set some defaults.
-  entry[TRACE_YEAR] = 2018;
-  entry.setDouble(TRACE_SAMPLE_RATE, 2000.);
+  entry[TRACE_YEAR] = YEAR_DEFAULT;
+  entry.setDouble(TRACE_SAMPLE_RATE, SAMPLE_RATE_DEFAULT);
 
   return true;
 }

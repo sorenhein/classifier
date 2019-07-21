@@ -7,6 +7,7 @@
 #include "SegActive.h"
 #include "write.h"
 #include "util/Timers.h"
+#include "const.h"
 
 #define SAMPLE_RATE 2000.f
 
@@ -22,8 +23,6 @@ extern Timers timers;
 // from scipy import signal
 // num, denom = signal.butter(5, 0.005, btype='high')
 // numpy.set_printoptions(precision=16)
-
-// const unsigned order = 5;
 
 const vector<double> numNoDC
 {
@@ -268,10 +267,14 @@ bool SegActive::detect(
     active.first, active.len, synthSpeed);
 
   SegActive::highpass(numNoDC, denomNoDC, synthSpeed);
+  // SegActive::highpass(Butterworth5HPF_double.numerator, 
+    // Butterworth5HPF_double.denominator, synthSpeed);
 
   SegActive::integrateFloat(synthSpeed, false, 0, active.len, synthPos);
 
   SegActive::highpass(numNoDC, denomNoDC, synthPos);
+  // SegActive::highpass(Butterworth5HPF_double.numerator, 
+    // Butterworth5HPF_double.denominator, synthSpeed);
 
   // TODO Ideas:
   // - Get out of doubles in highpass(), use filterFloat
