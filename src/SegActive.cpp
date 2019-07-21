@@ -101,26 +101,26 @@ void SegActive::filterFloat(
 
 
 void SegActive::highpass(
-  const vector<double>& num,
-  const vector<double>& denom,
+  const FilterDouble& filter,
   vector<float>& integrand)
 {
   const unsigned ls = integrand.size();
   vector<double> forward(ls);
 
-  const unsigned order = num.size()-1;
+  const unsigned order = filter.numerator.size()-1;
   vector<double> state(order+1);
   for (unsigned i = 0; i < order+1; i++)
     state[i] = 0.;
 
   for (unsigned i = 0; i < ls; i++)
   {
-    forward[i] = num[0] * static_cast<double>(integrand[i]) + state[0];
+    forward[i] = filter.numerator[0] * 
+      static_cast<double>(integrand[i]) + state[0];
 
     for (unsigned j = 0; j < order; j++)
     {
-      state[j] = num[j+1] * static_cast<double>(integrand[i]) - 
-        denom[j+1] * forward[i] + state[j+1];
+      state[j] = filter.numerator[j+1] * static_cast<double>(integrand[i]) - 
+        filter.denominator[j+1] * forward[i] + state[j+1];
     }
   }
 
@@ -132,12 +132,12 @@ void SegActive::highpass(
   {
     const unsigned irev = ls-1-i;
 
-    backward[irev] = num[0] * forward[irev] + state[0];
+    backward[irev] = filter.numerator[0] * forward[irev] + state[0];
 
     for (unsigned j = 0; j < order; j++)
     {
-      state[j] = num[j+1] * forward[irev] - 
-        denom[j+1] * backward[irev] + state[j+1];
+      state[j] = filter.numerator[j+1] * forward[irev] - 
+        filter.denominator[j+1] * backward[irev] + state[j+1];
     }
   }
 
@@ -169,13 +169,11 @@ bool SegActive::detect(
   SegActive::integrateFloat(accelFloat, true, 
     active.first, active.len, synthSpeed);
 
-  SegActive::highpass(Butterworth5HPF_double.numerator, 
-    Butterworth5HPF_double.denominator, synthSpeed);
+  SegActive::highpass(Butterworth5HPF_double, synthSpeed);
 
   SegActive::integrateFloat(synthSpeed, false, 0, active.len, synthPos);
 
-  SegActive::highpass(Butterworth5HPF_double.numerator, 
-    Butterworth5HPF_double.denominator, synthPos);
+  SegActive::highpass(Butterworth5HPF_double, synthPos);
 
   // TODO Ideas:
   // - Get out of doubles in highpass(), use filterFloat

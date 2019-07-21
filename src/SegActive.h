@@ -10,6 +10,7 @@
 using namespace std;
 
 class PeakStats;
+struct FilterDouble;
 
 
 class SegActive
@@ -42,8 +43,7 @@ class SegActive
       vector<float>& integrand);
 
     void highpass(
-      const vector<double>& num,
-      const vector<double>& denom,
+      const FilterDouble& filter,
       vector<float>& integrand);
 
   public:
