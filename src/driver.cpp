@@ -70,7 +70,7 @@ int main(int argc, char * argv[])
   traceDB.readFile(control2.truthFile(), sensorDB);
 
   vector<string> datfiles;
-  getFilenames(control2.traceDir(), datfiles, control.pickFileString);
+  getFilenames(control2.traceDir(), datfiles, control2.pickFirst());
 
   CompStats sensorStats, trainStats;
   PeakStats peakStats;
@@ -103,8 +103,8 @@ int main(int argc, char * argv[])
 
     const string country = sensorDB.country(sensor);
 
-    if (! control.pickTrainString.empty() &&
-        ! nameMatch(trainTrue, control.pickTrainString))
+    if (! control2.pickAny().empty() &&
+        ! nameMatch(trainTrue, control2.pickAny()))
       continue;
 
     cout << "File " << fname << ":\n\n";
@@ -158,11 +158,11 @@ int main(int argc, char * argv[])
       regress.bestMatch(times, trainDB, order, control, matchesAlign,
         bestAlign, motionEstimate);
 
-      if (! control.pickTrainString.empty())
+      if (! control2.pickAny().empty())
       {
         const string s = sensor + "/" + traceDB.time(t2no);
         dumpResiduals(times, trainDB, order, matchesAlign, s, trainTrue, 
-          control.pickTrainString, 
+          control2.pickAny(), 
           trainDB.numAxles(static_cast<unsigned>(trainNoTrue)));
       }
 
@@ -219,6 +219,34 @@ void setup(
     cout << "Bad command line" << endl;
     exit(0);
   }
+
+if (control.writingTransient != control2.writeTransient())
+  cout << "WRIT1\n";
+if (control.writingBack != control2.writeBack())
+  cout << "WRIT2\n";
+if (control.writingFront != control2.writeFront())
+  cout << "WRIT3\n";
+if (control.writingSpeed != control2.writeSpeed())
+  cout << "WRIT4\n";
+if (control.writingPos != control2.writePos())
+  cout << "WRIT5\n";
+if (control.writingPeak != control2.writePeak())
+  cout << "WRIT6\n";
+if (control.writingOutline != control2.writeOutline())
+  cout << "WRIT7\n";
+
+if (control.verboseTransient != control2.verboseTransient())
+  cout << "VERB1\n";
+if (control.verboseAlignMatches != control2.verboseAlignMatches())
+  cout << "VERB2\n";
+if (control.verboseAlignPeaks != control2.verboseAlignPeaks())
+  cout << "VERB3\n";
+if (control.verboseRegressMatch != control2.verboseRegressMatch())
+  cout << "VERB4\n";
+if (control.verboseRegressMotion != control2.verboseRegressMotion())
+  cout << "VERB5\n";
+if (control.verbosePeakReduce != control2.verbosePeakReduce())
+  cout << "VERB6\n";
 
   // carDB
   vector<string> textfiles;

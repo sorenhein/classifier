@@ -198,6 +198,24 @@ const string& Control2::detailFile() const
 }
 
 
+const string& Control2::pickFirst() const
+{
+  return entry.getString(CTRL_PICK_FIRST);
+}
+
+
+const string& Control2::pickAny() const
+{
+  return entry.getString(CTRL_PICK_ANY);
+}
+
+
+const string& Control2::statsFile() const
+{
+  return entry.getString(CTRL_STATS_FILE);
+}
+
+
 bool Control2::writeTransient() const
 {
   return entry.getIntVector(CTRL_WRITE)[CTRL_WRITE_TRANSIENT];
