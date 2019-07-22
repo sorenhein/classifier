@@ -20,7 +20,24 @@ enum ControlFieldStrings
   CTRL_TRUTH_FILE = 6,
   CTRL_OVERVIEW_FILE = 7,
   CTRL_DETAIL_FILE = 8,
-  CTRL_STRINGS_SIZE = 9
+  CTRL_CONTROL_FILE = 9,
+  CTRL_PICK_FIRST = 10,
+  CTRL_PICK_ANY = 11,
+  CTRL_STATS_FILE = 12,
+  CTRL_STRINGS_SIZE = 13
+};
+
+enum ControlIntVectors
+{
+  CTRL_WRITE = 0,
+  CTRL_VERBOSE = 1,
+  CTRL_INT_VECTORS_SIZE = 2
+};
+
+enum ControlBoolStrings
+{
+  CTRL_APPEND = 0,
+  CTRL_BOOLS_SIZE = 1
 };
 
 
@@ -31,6 +48,8 @@ class Control2
     list<CorrespondenceEntry> fields;
 
     vector<unsigned> fieldCounts;
+
+    list<CommandLineEntry> commands;
 
     Entity entry;
 

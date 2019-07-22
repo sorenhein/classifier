@@ -8,6 +8,8 @@
 #include "Entity.h"
 #include "parse.h"
 
+#define UNUSED(x) ((void)(true ? 0 : ((x), void(), 0)))
+
 
 Entity::Entity()
 {
@@ -252,6 +254,16 @@ bool Entity::readCommaLine(
   }
 
   errFlag = false;
+  return false;
+}
+
+
+bool Entity::parseCommandLine(
+  const list<string>& commandLine,
+  const list<CommandLineEntry>& arguments)
+{
+  UNUSED(commandLine);
+  UNUSED(arguments);
   return false;
 }
 

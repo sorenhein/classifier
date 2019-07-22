@@ -60,6 +60,38 @@ void Control2::configure()
     0,
     0
   };
+
+  commands =
+  {
+    { "-c", "--control", CORRESPONDENCE_STRING, CTRL_CONTROL_FILE, "", 
+      "Input control file." },
+    { "-p", "--pick", CORRESPONDENCE_STRING, CTRL_PICK_FIRST, "", 
+      "If set, pick the first file among those set in\n"
+      "the input control file that contains 's'." },
+    { "-x", "--train", CORRESPONDENCE_STRING, CTRL_PICK_ANY, "",
+      "If set, pick reference trains containing s." },
+    { "-s", "--stats", CORRESPONDENCE_STRING, CTRL_STATS_FILE, "",
+      "Stats output file." },
+    { "-a", "--append", CORRESPONDENCE_BOOL, CTRL_APPEND, "false",
+      "If present, stats file is not rewritten." },
+    { "-w", "--writing", CORRESPONDENCE_BIT_VECTOR, CTRL_WRITE, "0x20",
+      "Binary output files (default: 0x20).  Bits:\n"
+      "0x01: transient\n" 
+      "0x02: back\n" 
+      "0x04: front\n"
+      "0x08: speed\n"
+      "0x10: pos\n"
+      "0x20: peak\n"
+      "0x40: outline\n" },
+    { "-v", "--verbose", CORRESPONDENCE_BIT_VECTOR, CTRL_VERBOSE, "0x0",
+      "Verbosity (default: 0x0).  Bits:\n"
+      "0x01: Transient match\n"
+      "0x02: Align matches\n"
+      "0x04: Align peaks\n"
+      "0x08: Regress match\n"
+      "0x10: Regress motion\n"
+      "0x20: Reduce peaks\n" }
+  };
 }
 
 

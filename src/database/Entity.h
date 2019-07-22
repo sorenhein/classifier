@@ -19,15 +19,25 @@ enum CorrespondenceType
   CORRESPONDENCE_INT = 4,
   CORRESPONDENCE_BOOL = 5,
   CORRESPONDENCE_DOUBLE = 6,
+  CORRESPONDENCE_BIT_VECTOR = 7, // No separate storage, so correct
   CORRESPONDENCE_SIZE = 7
 };
-
 
 struct CorrespondenceEntry
 {
   string tag;
   CorrespondenceType corrType;
   unsigned no;
+};
+
+struct CommandLineEntry
+{
+  string singleDash;
+  string DoubleDash;
+  CorrespondenceType corrType;
+  unsigned no;
+  string defaultValue;
+  string documentation;
 };
 
 
@@ -82,6 +92,10 @@ class Entity
       ifstream& fin,
       bool& errFlag,
       const unsigned count);
+
+    bool parseCommandLine(
+      const list<string>& commandLine,
+      const list<CommandLineEntry>& arguments);
 
     int& operator [](const unsigned no); // Only the ints vector
     const int& operator [](const unsigned no) const;

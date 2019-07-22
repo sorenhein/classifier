@@ -1,13 +1,9 @@
 args.cpp
 --------
-* Need something like fields, but for option parsing
-  singleDash    c
-  doubleDash    control
-  type          CORRESPONDENCE_STRING
-  text          "Input control file", could be multi-line with \n
-  default       (always a string which gets parsed)
-* Need a new Entity type, bitVector which gets parsed into an int vector
-* Undocumented shortcut: -c 00 means ../data/control/sensors/sensor00.txt
+Control2: usage(basename)
+Entity: Parse, use defaults, bit vector into int vector (<= 24 bits)
+-c 00 means ...
+
 
 Multi-threading
 ---------------
