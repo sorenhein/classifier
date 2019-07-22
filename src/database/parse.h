@@ -7,6 +7,11 @@
 using namespace std;
 
 
+void tokenize(
+  const string& text,
+  vector<string>& tokens,
+  const string& delimiters);
+
 bool parseInt(
   const string& text,
   int& value);

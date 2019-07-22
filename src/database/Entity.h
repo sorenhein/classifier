@@ -33,7 +33,7 @@ struct CorrespondenceEntry
 struct CommandLineEntry
 {
   string singleDash;
-  string DoubleDash;
+  string doubleDash;
   CorrespondenceType corrType;
   unsigned no;
   string defaultValue;
@@ -53,6 +53,12 @@ class Entity
     deque<bool> bools;
     vector<double> doubles;
 
+    bool parseValue(
+      const CorrespondenceType corrType,
+      const string& vlaue,
+      const unsigned no,
+      const bool boolExplicitFlag);
+
     bool parseField(
       const list<CorrespondenceEntry>& fields,
       const string& tag,
@@ -68,6 +74,9 @@ class Entity
     void clear();
 
     void init(const vector<unsigned>& fieldCounts);
+
+    bool setCommandLineDefaults(
+      const list<CommandLineEntry>& arguments);
 
     // Tag-type file.
     bool readTagFile(
@@ -94,7 +103,7 @@ class Entity
       const unsigned count);
 
     bool parseCommandLine(
-      const list<string>& commandLine,
+      const vector<string>& commandLine,
       const list<CommandLineEntry>& arguments);
 
     int& operator [](const unsigned no); // Only the ints vector
@@ -145,6 +154,10 @@ class Entity
       const double d);
 
     void reverseIntVector(const unsigned no);
+
+    string usage(
+      const string& basename,
+      const list<CommandLineEntry>& arguments) const;
 };
 
 #endif

@@ -1,11 +1,6 @@
 #include "parse.h"
 
 
-void tokenize(
-  const string& text,
-  vector<string>& tokens,
-  const string& delimiters);
-
 unsigned countDelimiters(
   const string& text,
   const string& delimiters);

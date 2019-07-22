@@ -44,6 +44,66 @@ void Entity::init(const vector<unsigned>& fieldCounts)
 }
 
 
+bool Entity::setCommandLineDefaults(
+  const list<CommandLineEntry>& arguments)
+{
+  for (auto& arg: arguments)
+  {
+    if (! Entity::parseValue(arg.corrType, arg.defaultValue, arg.no, true))
+      return false;
+  }
+  return true;
+}
+
+
+bool Entity::parseValue(
+  const CorrespondenceType corrType,
+  const string& value,
+  const unsigned no,
+  const bool boolExplicitFlag)
+{
+  if (corrType == CORRESPONDENCE_STRING)
+  {
+    strings[no] = value;
+  }
+  else if (corrType == CORRESPONDENCE_STRING_VECTOR)
+  {
+    parseDelimitedString(value, ",", stringVectors[no]);
+  }
+  else if (corrType == CORRESPONDENCE_INT)
+  {
+    if (! parseInt(value, ints[no]))
+    {
+      cout << "Bad integer" << endl;
+      return false;
+    }
+  }
+  else if (corrType == CORRESPONDENCE_BOOL)
+  {
+    if (boolExplicitFlag)
+    {
+      if (! parseBool(value, bools[no]))
+      {
+        cout << "Bad boolean" << endl;
+        return false;
+      }
+    }
+    else
+    {
+      // Opposity of default value.
+      bools[no] = ! bools[no];
+    }
+  }
+  else
+  {
+    cout << "Bad correspondence type " << endl;
+    return false;
+  }
+
+  return true;
+}
+
+
 bool Entity::parseField(
   const list<CorrespondenceEntry>& fields,
   const string& tag,
@@ -52,39 +112,7 @@ bool Entity::parseField(
   for (const auto& field: fields)
   {
     if (field.tag == tag)
-    {
-      if (field.corrType == CORRESPONDENCE_STRING)
-      {
-        strings[field.no] = value;
-      }
-      else if (field.corrType == CORRESPONDENCE_STRING_VECTOR)
-      {
-        parseDelimitedString(value, ",", stringVectors[field.no]);
-      }
-      else if (field.corrType == CORRESPONDENCE_INT)
-      {
-        if (! parseInt(value, ints[field.no]))
-        {
-          cout << "Bad integer" << endl;
-          return false;
-        }
-      }
-      else if (field.corrType == CORRESPONDENCE_BOOL)
-      {
-        if (! parseBool(value, bools[field.no]))
-        {
-          cout << "Bad boolean" << endl;
-          return false;
-        }
-      }
-      else
-      {
-        cout << "Bad correspondence type " << endl;
-        return false;
-      }
-
-      return true;
-    }
+      return Entity::parseValue(field.corrType, value, field.no, true);
   }
   return false;
 }
@@ -259,12 +287,52 @@ bool Entity::readCommaLine(
 
 
 bool Entity::parseCommandLine(
-  const list<string>& commandLine,
+  const vector<string>& commandLine,
   const list<CommandLineEntry>& arguments)
 {
-  UNUSED(commandLine);
-  UNUSED(arguments);
-  return false;
+  if (! Entity::setCommandLineDefaults(arguments))
+    return false;
+
+  unsigned i = 0;
+  while (i < commandLine.size())
+  {
+    const string& tag = commandLine[i];
+    bool foundFlag = false;
+    for (auto& arg: arguments)
+    {
+      if (arg.singleDash == tag || arg.doubleDash == tag)
+      {
+        string v;
+        if (arg.corrType == CORRESPONDENCE_BOOL)
+          v = "";
+        else if (i+1 < commandLine.size())
+          v = commandLine[i+1];
+        else
+        {
+          cout << "End of argument line error\n";
+          return false;
+        }
+
+        if (Entity::parseValue(arg.corrType, v, arg.no, false))
+        {
+          foundFlag = true;
+          break;
+        }
+        else
+          return false;
+      }
+
+      if (foundFlag)
+      {
+        if (arg.corrType == CORRESPONDENCE_BOOL)
+          i++;
+        else
+          i += 2;
+      }
+    }
+  }
+
+  return true;
 }
 
 
@@ -431,5 +499,27 @@ void Entity::reverseIntVector(const unsigned no)
   const unsigned la = axles.size();
   for (unsigned i = 0; i < la; i++)
     axles[i] = aLast - axlesOrig[la-i-1];
+}
+
+
+string Entity::usage(
+  const string& basename,
+  const list<CommandLineEntry>& arguments) const
+{
+  stringstream ss;
+  ss << "Usage: " << basename << " [options]\n\n'";
+
+  for (auto& arg: arguments)
+  {
+    vector<string> lines;
+    tokenize(arg.documentation, lines, "\n");
+
+    const string tags = arg.singleDash + ", " + arg.doubleDash;
+    ss << setw(20) << left << tags << lines[0] << "\n";
+    for (unsigned i = 1; i < lines.size(); i++)
+      ss << setw(20) << left << "" << lines[i] << "\n";
+    ss << "\n";
+  }
+  return ss.str();
 }
 
