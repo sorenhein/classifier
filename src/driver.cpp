@@ -21,7 +21,7 @@
 #include "print.h"
 
 #include "util/Timers.h"
-#include "util/misc.h"
+#include "util/io.h"
 
 using namespace std;
 
@@ -66,7 +66,11 @@ int main(int argc, char * argv[])
   traceDB.readFile(control.truthFile(), sensorDB);
 
   vector<string> datfiles;
-  getFilenames(control.traceDir(), datfiles, control.pickFirst());
+  if (! getFilenames(control.traceDir(), datfiles, control.pickFirst()))
+  {
+    cout << "Bad directory " << control.traceDir() << endl;
+    exit(0);
+  }
 
   CompStats sensorStats, trainStats;
   PeakStats peakStats;
@@ -209,20 +213,36 @@ void setup(
 
   // carDB
   vector<string> textfiles;
-  getFilenames(control.carDir(), textfiles);
+  if (! getFilenames(control.carDir(), textfiles))
+  {
+    cout << "Bad directory " << control.carDir() << endl;
+    exit(0);
+  }
+
   for (auto& fname: textfiles)
     carDB.readFile(fname);
 
   // correctionDB
   CorrectionDB correctionDB;
   vector<string> correctionFiles;
-  getFilenames(control.correctionDir(), correctionFiles);
+
+  if (! getFilenames(control.correctionDir(), correctionFiles))
+  {
+    cout << "Bad directory " << control.correctionDir() << endl;
+    exit(0);
+  }
+
   for (auto& fname: correctionFiles)
     correctionDB.readFile(fname);
 
   // trainDB
   textfiles.clear();
-  getFilenames(control.trainDir(), textfiles);
+  if (! getFilenames(control.trainDir(), textfiles))
+  {
+    cout << "Bad directory " << control.trainDir() << endl;
+    exit(0);
+  }
+
   for (auto& fname: textfiles)
     trainDB.readFile(carDB, correctionDB, fname);
 

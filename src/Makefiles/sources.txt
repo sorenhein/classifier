@@ -45,6 +45,7 @@ SOURCE_FILES    =                       \
                 database/TrainDB.cpp    \
                 database/parse.cpp      \
                                         \
+                util/io.cpp             \
                 util/misc.cpp           \
                 util/Gap.cpp            \
                 util/Timer.cpp          \
