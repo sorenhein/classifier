@@ -10,6 +10,7 @@
 #include "print.h"
 
 #include "database/TrainDB.h"
+#include "database/Control2.h"
 
 #include "regress/PolynomialRegression.h"
 
@@ -162,7 +163,7 @@ void Regress::bestMatch(
   const vector<PeakTime>& times,
   const TrainDB& trainDB,
   const unsigned order,
-  const Control& control,
+  const Control2& control,
   vector<Alignment>& matches,
   Alignment& bestAlign,
   vector<double>& motionEstimate) const
@@ -221,14 +222,14 @@ void Regress::bestMatch(
 
 printMatches(trainDB, matches);
 
-  if (control.verboseRegressMatch)
+  if (control.verboseRegressMatch())
   {
     cout << "Regression alignment\n";
     printAlignment(bestAlign, trainDB.lookupName(bestAlign.trainNo));
     cout << endl;
   }
 
-  if (control.verboseRegressMotion)
+  if (control.verboseRegressMotion())
   {
     cout << "Regression motion\n";
     printMotion(motionEstimate);

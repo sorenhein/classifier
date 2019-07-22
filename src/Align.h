@@ -6,6 +6,7 @@
 #include "struct.h"
 
 class TrainDB;
+class Control2;
 
 using namespace std;
 
@@ -111,7 +112,7 @@ class Align
       const TrainDB& trainDB,
       const string& country,
       const unsigned tops,
-      const Control& control,
+      const Control2& control,
       vector<Alignment>& matches) const;
 };
 

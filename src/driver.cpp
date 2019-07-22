@@ -146,7 +146,7 @@ int main(int argc, char * argv[])
         numFrontWheels = 4 - imperf.numSkipsOfSeen;
 
       align.bestMatches(times, actualToRef, numFrontWheels, fullTrainFlag,
-        imperf, trainDB, country, 10, control, matchesAlign);
+        imperf, trainDB, country, 10, control2, matchesAlign);
 
       if (matchesAlign.size() == 0)
       {
@@ -155,7 +155,7 @@ int main(int argc, char * argv[])
         continue;
       }
 
-      regress.bestMatch(times, trainDB, order, control, matchesAlign,
+      regress.bestMatch(times, trainDB, order, control2, matchesAlign,
         bestAlign, motionEstimate);
 
       if (! control2.pickAny().empty())
@@ -219,34 +219,6 @@ void setup(
     cout << "Bad command line" << endl;
     exit(0);
   }
-
-if (control.writingTransient != control2.writeTransient())
-  cout << "WRIT1\n";
-if (control.writingBack != control2.writeBack())
-  cout << "WRIT2\n";
-if (control.writingFront != control2.writeFront())
-  cout << "WRIT3\n";
-if (control.writingSpeed != control2.writeSpeed())
-  cout << "WRIT4\n";
-if (control.writingPos != control2.writePos())
-  cout << "WRIT5\n";
-if (control.writingPeak != control2.writePeak())
-  cout << "WRIT6\n";
-if (control.writingOutline != control2.writeOutline())
-  cout << "WRIT7\n";
-
-if (control.verboseTransientMatch != control2.verboseTransient())
-  cout << "VERB1\n";
-if (control.verboseAlignMatches != control2.verboseAlignMatches())
-  cout << "VERB2\n";
-if (control.verboseAlignPeaks != control2.verboseAlignPeaks())
-  cout << "VERB3\n";
-if (control.verboseRegressMatch != control2.verboseRegressMatch())
-  cout << "VERB4\n";
-if (control.verboseRegressMotion != control2.verboseRegressMotion())
-  cout << "VERB5\n";
-if (control.verbosePeakReduce != control2.verbosePeakReduce())
-  cout << "VERB6\n";
 
   // carDB
   vector<string> textfiles;

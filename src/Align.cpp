@@ -10,6 +10,7 @@
 #include "print.h"
 
 #include "database/TrainDB.h"
+#include "database/Control2.h"
 
 #include "regress/PolynomialRegression.h"
 #include "util/Timers.h"
@@ -714,7 +715,7 @@ void Align::bestMatches(
   const TrainDB& trainDB,
   const string& country,
   const unsigned tops,
-  const Control& control,
+  const Control2& control,
   vector<Alignment>& matches) const
 {
   timers.start(TIMER_ALIGN);
@@ -747,7 +748,7 @@ void Align::bestMatches(
       continue;
     // }
 
-    if (control.verboseAlignPeaks)
+    if (control.verboseAlignPeaks())
     {
       Align::printAlignPeaks(refTrain, times, refPeaks, scaledPeaks);
       // TODO Print shift.  
@@ -769,7 +770,7 @@ void Align::bestMatches(
 
   timers.stop(TIMER_ALIGN);
 
-  if (control.verboseAlignMatches)
+  if (control.verboseAlignMatches())
     printMatches(trainDB, matches);
 }
 

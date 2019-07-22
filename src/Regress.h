@@ -9,6 +9,7 @@
 using namespace std;
 
 class TrainDB;
+class Control2;
 
 
 class Regress
@@ -48,7 +49,7 @@ class Regress
       const vector<PeakTime>& times,
       const TrainDB& trainDB,
       const unsigned order,
-      const Control& control,
+      const Control2& control,
       vector<Alignment>& matches,
       Alignment& bestAlign,
       vector<double>& motionEstimate) const;
