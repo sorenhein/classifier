@@ -1,8 +1,12 @@
 #include <iostream>
 #include <iomanip>
 #include <sstream>
+#include <filesystem>
 
 #include "Control.h"
+
+// Undocumented expansion on my system.
+#define CONTROL_EXPANSION "../data/control/sensors/sensor"
 
 
 Control::Control()
@@ -82,7 +86,7 @@ void Control::configure()
       "0x08: speed\n"
       "0x10: pos\n"
       "0x20: peak\n"
-      "0x40: outline\n" },
+      "0x40: outline" },
     { "-v", "--verbose", CORRESPONDENCE_BIT_VECTOR, CTRL_VERBOSE, "0x1b",
       "Verbosity (default: 0x1b).  Bits:\n"
       "0x01: Transient match\n"
@@ -90,7 +94,7 @@ void Control::configure()
       "0x04: Align peaks\n"
       "0x08: Regress match\n"
       "0x10: Regress motion\n"
-      "0x20: Reduce peaks\n" }
+      "0x20: Reduce peaks" }
   };
 
   entry.init(fieldCounts);
@@ -107,11 +111,13 @@ bool Control::parseCommandLine(
     return false;
   }
 
-  const string basename = argv[0];
+  const string fullname = argv[0];
+  filesystem::path pathObj(fullname);
+  const string basename = pathObj.filename().string();
 
   if (argc <= 1)
   {
-    entry.usage(basename, commands);
+    cout << entry.usage(basename, commands);
     return false;
   }
 
@@ -121,13 +127,21 @@ bool Control::parseCommandLine(
 
   if (! entry.parseCommandLine(commandLine, commands))
   {
-    entry.usage(basename, commands);
+    cout << entry.usage(basename, commands);
     return false;
+  }
+
+  // Undocumented expansion of control file argument.
+  const string cfile = entry.getString(CTRL_CONTROL_FILE);
+  if (cfile.size() == 2)
+  {
+    entry.getString(CTRL_CONTROL_FILE) = CONTROL_EXPANSION +
+      cfile + ".txt";
   }
 
   if (! Control::readFile(entry.getString(CTRL_CONTROL_FILE)))
   {
-    entry.usage(basename, commands);
+    cout << entry.usage(basename, commands);
     return false;
   }
 

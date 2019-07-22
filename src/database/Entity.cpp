@@ -519,7 +519,7 @@ string Entity::usage(
   const list<CommandLineEntry>& arguments) const
 {
   stringstream ss;
-  ss << "Usage: " << basename << " [options]\n\n'";
+  ss << "Usage: " << basename << " [options]\n\n";
 
   for (auto& arg: arguments)
   {
