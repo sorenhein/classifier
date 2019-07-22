@@ -12,6 +12,7 @@
 #include "PeakMatch.h"
 #include "PeakStructure.h"
 #include "PeakStats.h"
+#include "database/Control2.h"
 #include "Except.h"
 
 
@@ -229,7 +230,7 @@ void PeakDetect::reduceSmallPeaks(
   const PeakParam param,
   const float paramLimit,
   const bool preserveKinksFlag,
-  const Control& control)
+  const Control2& control)
 {
   // We use this method for two reductions:
   // 1. Small areas (first, as a rough reduction).
@@ -305,7 +306,7 @@ void PeakDetect::reduceSmallPeaks(
       }
 
 
-if (control.verbosePeakReduce)
+if (control.verbosePeakReduce())
 {
 cout << "REDUCE " << (flagExtreme ? "MAX" : "MIN") << "\n";
 cout << peak->strHeader();
@@ -324,7 +325,7 @@ cout << "EXTREME " << peakExtreme->getIndex() + offset << endl << endl;
       {
         // peakExtreme and peakFirst have the same polarity.
         peakL = &*peakFirst;
-        if (control.verbosePeakReduce)
+        if (control.verbosePeakReduce())
           cout << "Left extent " << 
             peakExtreme->getIndex() - peakL->getIndex() << endl;
       }
@@ -346,7 +347,7 @@ cout << "EXTREME " << peakExtreme->getIndex() + offset << endl << endl;
             peakR = prev(peakR);
         }
 
-        if (control.verbosePeakReduce)
+        if (control.verbosePeakReduce())
           cout << "Right extent " << 
             peakR->getIndex() - peakExtreme->getIndex() << endl;
       }
@@ -356,7 +357,7 @@ cout << "EXTREME " << peakExtreme->getIndex() + offset << endl << endl;
       // Do the deletions.
       if (peakFirst != peakExtreme)
       {
-        if (control.verbosePeakReduce)
+        if (control.verbosePeakReduce())
           cout << PeakDetect::deleteStr(&*peakFirst, &*prev(peakExtreme));
         peaks.top().collapse(peakFirst, peakExtreme);
       }
@@ -364,7 +365,7 @@ cout << "EXTREME " << peakExtreme->getIndex() + offset << endl << endl;
       peakExtreme++;
       if (peakExtreme != peak)
       {
-        if (control.verbosePeakReduce)
+        if (control.verbosePeakReduce())
           cout << PeakDetect::deleteStr(&*peakExtreme, &*prev(peak));
         peaks.top().collapse(peakExtreme, peak);
       }
@@ -376,7 +377,7 @@ cout << "EXTREME " << peakExtreme->getIndex() + offset << endl << endl;
     {
       // Any kink on the negative side of the axis.
 
-if (control.verbosePeakReduce)
+if (control.verbosePeakReduce())
 {
 cout << "EXP " << (flagExtreme ? "MAXKINK" : "MINKINK") << "\n";
 cout << peak->strHeader();
@@ -401,7 +402,7 @@ cout << PeakDetect::deleteStr(&*peakFirst, &*prev(peak));
       // We have a kink.  It's debatable if this should lead to
       // an extent.  Here we just delete everything.
       
-if (control.verbosePeakReduce)
+if (control.verbosePeakReduce())
 {
 cout << "REDUCE " << (flagExtreme ? "MAXKINK" : "MINKINK") << "\n";
 cout << peak->strHeader();
@@ -531,7 +532,7 @@ void PeakDetect::completePeaks()
 
 
 void PeakDetect::reduce(
-  const Control& control,
+  const Control2& control,
   Imperfections& imperf)
 {
   if (peaks.top().empty())

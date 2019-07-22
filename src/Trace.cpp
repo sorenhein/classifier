@@ -116,13 +116,10 @@ void Trace::read(const string& fname)
 
 
 void Trace::detect(
-  const Control& control,
-  const Control2& control2,
+  const Control2& control,
   const double sampleRate,
   Imperfections& imperf)
 {
-  UNUSED(control2);
-
   timers.start(TIMER_TRANSIENT);
   runs.clear();
   Trace::calcRuns();
@@ -141,7 +138,7 @@ void Trace::detect(
     QUIET_FRONT, intAfterFront);
   timers.stop(TIMER_TRANSIENT);
 
-  if (control.verboseTransientMatch)
+  if (control.verboseTransient())
     cout << transient.str() << "\n";
 
   (void) segActive.detect(samples, sampleRate, intAfterFront, 
@@ -191,23 +188,23 @@ string Trace::strTransientCSV()
 }
 
 
-void Trace::write(const Control& control) const
+void Trace::write(const Control2& control) const
 {
   timers.start(TIMER_WRITE);
 
-  if (control.writingTransient)
+  if (control.writeTransient())
     transient.writeFile(filename, "transient");
-  if (control.writingBack)
+  if (control.writeBack())
     quietBack.writeFile(filename, "back");
-  if (control.writingFront)
+  if (control.writeFront())
     quietFront.writeFile(filename, "front");
-  if (control.writingSpeed)
+  if (control.writeSpeed())
     segActive.writeSpeed(filename, "speed");
-  if (control.writingPos)
+  if (control.writePos())
     segActive.writePos(filename, "pos");
-  if (control.writingPeak)
+  if (control.writePeak())
     segActive.writePeak(filename, "peak");
-  if (control.writingOutline)
+  if (control.writeOutline())
   {
     cout << "Not yet implemented\n";
     // TODO

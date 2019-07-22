@@ -48,8 +48,7 @@ class Trace
     void read(const string& fname);
 
     void detect(
-      const Control& control,
-      const Control2& control2,
+      const Control2& control,
       const double sampleRate,
       Imperfections& imperf);
 
@@ -68,7 +67,7 @@ class Trace
       vector<PeakTime>& times,
       unsigned& numFrontWheels) const;
 
-    void write(const Control& control) const;
+    void write(const Control2& control) const;
 
 };
 

@@ -124,9 +124,9 @@ int main(int argc, char * argv[])
       // Refuse trace if sample rate is not 2000, maybe in SegActive
 
       trace.read(fname);
-      trace.detect(control, control2, traceDB.sampleRate(t2no), imperf);
+      trace.detect(control2, traceDB.sampleRate(t2no), imperf);
       trace.logPeakStats(posTrue, trainTrue, speedTrue, peakStats);
-      trace.write(control);
+      trace.write(control2);
 
       bool fullTrainFlag;
       if (trace.getAlignment(times, actualToRef, numFrontWheels) &&
@@ -235,7 +235,7 @@ if (control.writingPeak != control2.writePeak())
 if (control.writingOutline != control2.writeOutline())
   cout << "WRIT7\n";
 
-if (control.verboseTransient != control2.verboseTransient())
+if (control.verboseTransientMatch != control2.verboseTransient())
   cout << "VERB1\n";
 if (control.verboseAlignMatches != control2.verboseAlignMatches())
   cout << "VERB2\n";

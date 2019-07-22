@@ -6,6 +6,7 @@
 
 #include "SegActive.h"
 #include "write.h"
+#include "database/Control2.h"
 #include "util/Timers.h"
 #include "const.h"
 #include "Except.h"
@@ -149,7 +150,7 @@ bool SegActive::detect(
   const vector<double>& samples,
   const double sampleRate,
   const Interval& active,
-  const Control& control,
+  const Control2& control,
   Imperfections& imperf)
 {
   // TODO Don't use exact comparison
