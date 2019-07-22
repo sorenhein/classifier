@@ -2,30 +2,30 @@
 #include <iomanip>
 #include <sstream>
 
-#include "Control2.h"
+#include "Control.h"
 
 
-Control2::Control2()
+Control::Control()
 {
-  Control2::reset();
+  Control::reset();
 }
 
 
-Control2::~Control2()
+Control::~Control()
 {
 }
 
 
-void Control2::reset()
+void Control::reset()
 {
   fields.clear();
   fieldCounts.clear();
 
-  Control2::configure();
+  Control::configure();
 }
 
 
-void Control2::configure()
+void Control::configure()
 {
   fields =
   {
@@ -97,7 +97,7 @@ void Control2::configure()
 }
 
 
-bool Control2::parseCommandLine(
+bool Control::parseCommandLine(
   int argc, 
   char * argv[])
 {
@@ -125,7 +125,7 @@ bool Control2::parseCommandLine(
     return false;
   }
 
-  if (! Control2::readFile(entry.getString(CTRL_CONTROL_FILE)))
+  if (! Control::readFile(entry.getString(CTRL_CONTROL_FILE)))
   {
     entry.usage(basename, commands);
     return false;
@@ -135,7 +135,7 @@ bool Control2::parseCommandLine(
 }
 
 
-bool Control2::readFile(const string& fname)
+bool Control::readFile(const string& fname)
 {
   if (! entry.readTagFile(fname, fields, fieldCounts))
     return false;
@@ -144,151 +144,151 @@ bool Control2::readFile(const string& fname)
 }
 
 
-const string& Control2::carDir() const
+const string& Control::carDir() const
 {
   return entry.getString(CTRL_CAR_DIRECTORY);
 }
 
 
-const string& Control2::trainDir() const
+const string& Control::trainDir() const
 {
   return entry.getString(CTRL_TRAIN_DIRECTORY);
 }
 
 
-const string& Control2::correctionDir() const
+const string& Control::correctionDir() const
 {
   return entry.getString(CTRL_CORRECTION_DIRECTORY);
 }
 
 
-const string& Control2::sensorFile() const
+const string& Control::sensorFile() const
 {
   return entry.getString(CTRL_SENSOR_FILE);
 }
 
 
-const string& Control2::sensorCountry() const
+const string& Control::sensorCountry() const
 {
   return entry.getString(CTRL_SENSOR_COUNTRY);
 }
 
 
-const string& Control2::traceDir() const
+const string& Control::traceDir() const
 {
   return entry.getString(CTRL_TRACE_DIRECTORY);
 }
 
 
-const string& Control2::truthFile() const
+const string& Control::truthFile() const
 {
   return entry.getString(CTRL_TRUTH_FILE);
 }
 
 
-const string& Control2::overviewFile() const
+const string& Control::overviewFile() const
 {
   return entry.getString(CTRL_OVERVIEW_FILE);
 }
 
 
-const string& Control2::detailFile() const
+const string& Control::detailFile() const
 {
   return entry.getString(CTRL_DETAIL_FILE);
 }
 
 
-const string& Control2::pickFirst() const
+const string& Control::pickFirst() const
 {
   return entry.getString(CTRL_PICK_FIRST);
 }
 
 
-const string& Control2::pickAny() const
+const string& Control::pickAny() const
 {
   return entry.getString(CTRL_PICK_ANY);
 }
 
 
-const string& Control2::statsFile() const
+const string& Control::statsFile() const
 {
   return entry.getString(CTRL_STATS_FILE);
 }
 
 
-bool Control2::writeTransient() const
+bool Control::writeTransient() const
 {
   return entry.getIntVector(CTRL_WRITE)[CTRL_WRITE_TRANSIENT];
 }
 
 
-bool Control2::writeBack() const
+bool Control::writeBack() const
 {
   return entry.getIntVector(CTRL_WRITE)[CTRL_WRITE_BACK];
 }
 
 
-bool Control2::writeFront() const
+bool Control::writeFront() const
 {
   return entry.getIntVector(CTRL_WRITE)[CTRL_WRITE_FRONT];
 }
 
 
-bool Control2::writeSpeed() const
+bool Control::writeSpeed() const
 {
   return entry.getIntVector(CTRL_WRITE)[CTRL_WRITE_SPEED];
 }
 
 
-bool Control2::writePos() const
+bool Control::writePos() const
 {
   return entry.getIntVector(CTRL_WRITE)[CTRL_WRITE_POS];
 }
 
 
-bool Control2::writePeak() const
+bool Control::writePeak() const
 {
   return entry.getIntVector(CTRL_WRITE)[CTRL_WRITE_PEAK];
 }
 
 
-bool Control2::writeOutline() const
+bool Control::writeOutline() const
 {
   return entry.getIntVector(CTRL_WRITE)[CTRL_WRITE_OUTLINE];
 }
 
 
-bool Control2::verboseTransient() const
+bool Control::verboseTransient() const
 {
   return entry.getIntVector(CTRL_VERBOSE)[CTRL_VERBOSE_TRANSIENT_MATCH];
 }
 
 
-bool Control2::verboseAlignMatches() const
+bool Control::verboseAlignMatches() const
 {
   return entry.getIntVector(CTRL_VERBOSE)[CTRL_VERBOSE_ALIGN_MATCHES];
 }
 
 
-bool Control2::verboseAlignPeaks() const
+bool Control::verboseAlignPeaks() const
 {
   return entry.getIntVector(CTRL_VERBOSE)[CTRL_VERBOSE_ALIGN_PEAKS];
 }
 
 
-bool Control2::verboseRegressMatch() const
+bool Control::verboseRegressMatch() const
 {
   return entry.getIntVector(CTRL_VERBOSE)[CTRL_VERBOSE_REGRESS_MATCH];
 }
 
 
-bool Control2::verboseRegressMotion() const
+bool Control::verboseRegressMotion() const
 {
   return entry.getIntVector(CTRL_VERBOSE)[CTRL_VERBOSE_REGRESS_MOTION];
 }
 
 
-bool Control2::verbosePeakReduce() const
+bool Control::verbosePeakReduce() const
 {
   return entry.getIntVector(CTRL_VERBOSE)[CTRL_VERBOSE_PEAK_REDUCE];
 }

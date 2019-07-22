@@ -3,8 +3,6 @@
 #include <string>
 #include <limits>
 
-#include "args.h"
-#include "read.h"
 #include "Trace.h"
 
 #include "database/SensorDB.h"
@@ -12,7 +10,7 @@
 #include "database/CorrectionDB.h"
 #include "database/TrainDB.h"
 #include "database/TraceDB.h"
-#include "database/Control2.h"
+#include "database/Control.h"
 
 #include "Regress.h"
 #include "Align.h"
@@ -35,7 +33,6 @@ void setup(
   int argc, 
   char * argv[],
   Control& control,
-  Control2& control2,
   SensorDB& sensorDB,
   CarDB& carDB,
   TrainDB& trainDB);
@@ -49,15 +46,14 @@ unsigned lookupMatchRank(
 int main(int argc, char * argv[])
 {
   Control control;
-  Control2 control2;
 
   SensorDB sensorDB;
   CarDB carDB;
   TrainDB trainDB;
 
-  setup(argc, argv, control, control2, sensorDB, carDB, trainDB);
+  setup(argc, argv, control, sensorDB, carDB, trainDB);
 
-  if (control2.traceDir() == "")
+  if (control.traceDir() == "")
   {
     // This was once use to generate synthetic, noisy peaks and
     // to classify them.
@@ -67,10 +63,10 @@ int main(int argc, char * argv[])
 
   // This extracts peaks and then extracts train types from peaks.
   TraceDB traceDB;
-  traceDB.readFile(control2.truthFile(), sensorDB);
+  traceDB.readFile(control.truthFile(), sensorDB);
 
   vector<string> datfiles;
-  getFilenames(control2.traceDir(), datfiles, control2.pickFirst());
+  getFilenames(control.traceDir(), datfiles, control.pickFirst());
 
   CompStats sensorStats, trainStats;
   PeakStats peakStats;
@@ -103,8 +99,8 @@ int main(int argc, char * argv[])
 
     const string country = sensorDB.country(sensor);
 
-    if (! control2.pickAny().empty() &&
-        ! nameMatch(trainTrue, control2.pickAny()))
+    if (! control.pickAny().empty() &&
+        ! nameMatch(trainTrue, control.pickAny()))
       continue;
 
     cout << "File " << fname << ":\n\n";
@@ -124,9 +120,9 @@ int main(int argc, char * argv[])
       // Refuse trace if sample rate is not 2000, maybe in SegActive
 
       trace.read(fname);
-      trace.detect(control2, traceDB.sampleRate(t2no), imperf);
+      trace.detect(control, traceDB.sampleRate(t2no), imperf);
       trace.logPeakStats(posTrue, trainTrue, speedTrue, peakStats);
-      trace.write(control2);
+      trace.write(control);
 
       bool fullTrainFlag;
       if (trace.getAlignment(times, actualToRef, numFrontWheels) &&
@@ -146,7 +142,7 @@ int main(int argc, char * argv[])
         numFrontWheels = 4 - imperf.numSkipsOfSeen;
 
       align.bestMatches(times, actualToRef, numFrontWheels, fullTrainFlag,
-        imperf, trainDB, country, 10, control2, matchesAlign);
+        imperf, trainDB, country, 10, control, matchesAlign);
 
       if (matchesAlign.size() == 0)
       {
@@ -155,14 +151,14 @@ int main(int argc, char * argv[])
         continue;
       }
 
-      regress.bestMatch(times, trainDB, order, control2, matchesAlign,
+      regress.bestMatch(times, trainDB, order, control, matchesAlign,
         bestAlign, motionEstimate);
 
-      if (! control2.pickAny().empty())
+      if (! control.pickAny().empty())
       {
         const string s = sensor + "/" + traceDB.time(t2no);
         dumpResiduals(times, trainDB, order, matchesAlign, s, trainTrue, 
-          control2.pickAny(), 
+          control.pickAny(), 
           trainDB.numAxles(static_cast<unsigned>(trainNoTrue)));
       }
 
@@ -201,20 +197,11 @@ void setup(
   int argc, 
   char * argv[],
   Control& control,
-  Control2& control2,
   SensorDB& sensorDB,
   CarDB& carDB,
   TrainDB& trainDB)
 {
-  readArgs(argc, argv, control);
-
-  if (! readControlFile(control, control.controlFile))
-  {
-    cout << "Bad control file" << control.controlFile << endl;
-    exit(0);
-  }
-
-  if (! control2.parseCommandLine(argc, argv))
+  if (! control.parseCommandLine(argc, argv))
   {
     cout << "Bad command line" << endl;
     exit(0);
@@ -222,26 +209,26 @@ void setup(
 
   // carDB
   vector<string> textfiles;
-  getFilenames(control2.carDir(), textfiles);
+  getFilenames(control.carDir(), textfiles);
   for (auto& fname: textfiles)
     carDB.readFile(fname);
 
   // correctionDB
   CorrectionDB correctionDB;
   vector<string> correctionFiles;
-  getFilenames(control2.correctionDir(), correctionFiles);
+  getFilenames(control.correctionDir(), correctionFiles);
   for (auto& fname: correctionFiles)
     correctionDB.readFile(fname);
 
   // trainDB
   textfiles.clear();
-  getFilenames(control2.trainDir(), textfiles);
+  getFilenames(control.trainDir(), textfiles);
   for (auto& fname: textfiles)
     trainDB.readFile(carDB, correctionDB, fname);
 
   // sensorDB
-  if (control2.sensorFile() != "")
-    sensorDB.readFile(control2.sensorFile());
+  if (control.sensorFile() != "")
+    sensorDB.readFile(control.sensorFile());
 
   if (! trainDB.selectByAxles({"ALL"}, 0, 100))
   {

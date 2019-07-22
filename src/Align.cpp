@@ -10,7 +10,7 @@
 #include "print.h"
 
 #include "database/TrainDB.h"
-#include "database/Control2.h"
+#include "database/Control.h"
 
 #include "regress/PolynomialRegression.h"
 #include "util/Timers.h"
@@ -715,7 +715,7 @@ void Align::bestMatches(
   const TrainDB& trainDB,
   const string& country,
   const unsigned tops,
-  const Control2& control,
+  const Control& control,
   vector<Alignment>& matches) const
 {
   timers.start(TIMER_ALIGN);

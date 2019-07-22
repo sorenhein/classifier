@@ -13,40 +13,6 @@ using namespace std;
 
 
 
-struct Control
-{
-  string carDir; // Directory of car files
-  string trainDir; // Directory of train files
-  string correctionDir; // Directory of residual correction files
-  string sensorFile; // File with sensor data
-  string truthFile; // File with trace truth data
-  string country; // Country of input traces
-  string traceDir; // In 32-bit format
-  string overviewFile; // Output file for overview train tables
-  string detailFile; // Output file for detailed train tables
-
-  string controlFile;
-  string pickFileString;
-  string pickTrainString;
-  string summaryFile;
-  bool summaryAppendFlag;
-
-  bool verboseTransientMatch;
-  bool verboseAlignMatches;
-  bool verboseAlignPeaks;
-  bool verboseRegressMatch;
-  bool verboseRegressMotion;
-  bool verbosePeakReduce;
-
-  bool writingTransient;
-  bool writingBack;
-  bool writingFront;
-  bool writingSpeed;
-  bool writingPos;
-  bool writingPeak;
-  bool writingOutline;
-};
-
 struct Log
 {
   bool flag;

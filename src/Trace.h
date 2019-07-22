@@ -12,7 +12,7 @@
 using namespace std;
 
 class PeakStats;
-class Control2;
+class Control;
 
 
 class Trace
@@ -48,7 +48,7 @@ class Trace
     void read(const string& fname);
 
     void detect(
-      const Control2& control,
+      const Control& control,
       const double sampleRate,
       Imperfections& imperf);
 
@@ -67,7 +67,7 @@ class Trace
       vector<PeakTime>& times,
       unsigned& numFrontWheels) const;
 
-    void write(const Control2& control) const;
+    void write(const Control& control) const;
 
 };
 

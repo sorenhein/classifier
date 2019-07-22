@@ -1,5 +1,6 @@
 Align.obj: Align.h struct.h print.h database/TrainDB.h database/Entity.h
-Align.obj: regress/PolynomialRegression.h util/Timers.h util/Timer.h
+Align.obj: database/Control.h regress/PolynomialRegression.h util/Timers.h
+Align.obj: util/Timer.h
 CarDetect.obj: CarDetect.h CarGaps.h Peak.h struct.h CarPeaks.h PeakRange.h
 CarDetect.obj: PeakProfile.h PeakPool.h Peaks.h PeakPtrs.h
 CarGaps.obj: CarGaps.h Peak.h struct.h PeakPtrs.h CarPeaks.h Except.h
@@ -14,8 +15,8 @@ Peaks.obj: Peaks.h Peak.h struct.h Except.h errors.h
 PeakDetect.obj: PeakDetect.h Peak.h struct.h PeakPool.h Peaks.h PeakPtrs.h
 PeakDetect.obj: CarPeaks.h PeakStructure.h CarDetect.h CarGaps.h PeakRange.h
 PeakDetect.obj: PeakProfile.h CarModels.h PeakSeeds.h PeakMinima.h
-PeakDetect.obj: PeakPieces.h PeakPiece.h PeakMatch.h PeakStats.h Except.h
-PeakDetect.obj: errors.h
+PeakDetect.obj: PeakPieces.h PeakPiece.h PeakMatch.h PeakStats.h
+PeakDetect.obj: database/Control.h database/Entity.h Except.h errors.h
 PeakMatch.obj: PeakMatch.h Peak.h struct.h PeakPool.h Peaks.h PeakPtrs.h
 PeakMatch.obj: CarPeaks.h PeakStats.h Except.h errors.h
 PeakMinima.obj: Peak.h struct.h PeakMinima.h PeakPool.h Peaks.h PeakPtrs.h
@@ -48,12 +49,13 @@ PeakStructure.obj: PeakProfile.h PeakPattern.h completions/Completions.h
 PeakStructure.obj: completions/Completion.h completions/PeakCompletion.h
 PeakStructure.obj: PeakSpacing.h CarModels.h Except.h errors.h
 Regress.obj: Regress.h struct.h Except.h errors.h print.h database/TrainDB.h
-Regress.obj: database/Entity.h regress/PolynomialRegression.h util/Timers.h
-Regress.obj: util/Timer.h
+Regress.obj: database/Entity.h database/Control.h
+Regress.obj: regress/PolynomialRegression.h util/Timers.h util/Timer.h
 SegActive.obj: SegActive.h PeakDetect.h Peak.h struct.h PeakPool.h Peaks.h
 SegActive.obj: PeakPtrs.h CarPeaks.h PeakStructure.h CarDetect.h CarGaps.h
-SegActive.obj: PeakRange.h PeakProfile.h CarModels.h write.h util/Timers.h
-SegActive.obj: util/Timer.h
+SegActive.obj: PeakRange.h PeakProfile.h CarModels.h write.h
+SegActive.obj: database/Control.h database/Entity.h util/Timers.h
+SegActive.obj: util/Timer.h const.h Except.h errors.h
 SegQuiet.obj: SegQuiet.h struct.h write.h
 SegTransient.obj: SegTransient.h struct.h Trace.h SegQuiet.h SegActive.h
 SegTransient.obj: PeakDetect.h Peak.h PeakPool.h Peaks.h PeakPtrs.h
@@ -62,21 +64,20 @@ SegTransient.obj: PeakRange.h PeakProfile.h CarModels.h write.h
 Trace.obj: Trace.h SegTransient.h struct.h SegQuiet.h SegActive.h
 Trace.obj: PeakDetect.h Peak.h PeakPool.h Peaks.h PeakPtrs.h CarPeaks.h
 Trace.obj: PeakStructure.h CarDetect.h CarGaps.h PeakRange.h PeakProfile.h
-Trace.obj: CarModels.h read.h util/misc.h util/Timers.h util/Timer.h
-args.obj: args.h struct.h
+Trace.obj: CarModels.h database/Control.h database/Entity.h util/misc.h
+Trace.obj: util/Timers.h util/Timer.h
 geometry.obj: database/TrainDB.h database/Entity.h Regress.h struct.h
 geometry.obj: geometry.h
-print.obj: print.h database/TrainDB.h database/Entity.h struct.h
-read.obj: database/parse.h read.h struct.h util/misc.h
+print.obj: print.h database/TrainDB.h database/Entity.h struct.h const.h
 write.obj: write.h struct.h
-driver.obj: args.h struct.h read.h Trace.h SegTransient.h SegQuiet.h
-driver.obj: SegActive.h PeakDetect.h Peak.h PeakPool.h Peaks.h PeakPtrs.h
-driver.obj: CarPeaks.h PeakStructure.h CarDetect.h CarGaps.h PeakRange.h
-driver.obj: PeakProfile.h CarModels.h database/SensorDB.h database/Entity.h
+driver.obj: Trace.h SegTransient.h struct.h SegQuiet.h SegActive.h
+driver.obj: PeakDetect.h Peak.h PeakPool.h Peaks.h PeakPtrs.h CarPeaks.h
+driver.obj: PeakStructure.h CarDetect.h CarGaps.h PeakRange.h PeakProfile.h
+driver.obj: CarModels.h database/SensorDB.h database/Entity.h
 driver.obj: database/CarDB.h database/CorrectionDB.h database/TrainDB.h
-driver.obj: database/TraceDB.h Regress.h Align.h CompStats.h PeakStats.h
-driver.obj: Except.h errors.h geometry.h print.h util/Timers.h util/Timer.h
-driver.obj: util/misc.h
+driver.obj: database/TraceDB.h database/Control.h Regress.h Align.h
+driver.obj: CompStats.h PeakStats.h Except.h errors.h geometry.h print.h
+driver.obj: util/Timers.h util/Timer.h util/misc.h
 regress/PolynomialRegression.obj: regress/PolynomialRegression.h
 completions/Completion.obj: completions/Completion.h
 completions/Completion.obj: completions/PeakCompletion.h Peak.h struct.h
@@ -86,11 +87,12 @@ completions/Completions.obj: completions/Completion.h
 completions/Completions.obj: completions/PeakCompletion.h Peak.h struct.h
 completions/PeakCompletion.obj: completions/PeakCompletion.h Peak.h struct.h
 database/CarDB.obj: database/CarDB.h database/Entity.h
+database/Control.obj: database/Control.h database/Entity.h
 database/CorrectionDB.obj: database/CorrectionDB.h database/Entity.h
 database/Entity.obj: database/Entity.h database/parse.h
 database/SensorDB.obj: database/SensorDB.h database/Entity.h
 database/TraceDB.obj: database/TraceDB.h database/Entity.h
-database/TraceDB.obj: database/SensorDB.h database/parse.h
+database/TraceDB.obj: database/SensorDB.h database/parse.h const.h
 database/TrainDB.obj: database/CarDB.h database/Entity.h
 database/TrainDB.obj: database/CorrectionDB.h database/TrainDB.h
 database/TrainDB.obj: database/parse.h

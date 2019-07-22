@@ -27,10 +27,8 @@ SOURCE_FILES    =                       \
                 SegQuiet.cpp            \
                 SegTransient.cpp        \
                 Trace.cpp               \
-                args.cpp                \
                 geometry.cpp            \
                 print.cpp               \
-                read.cpp                \
                 write.cpp               \
                 driver.cpp              \
                 regress/PolynomialRegression.cpp \
@@ -39,7 +37,7 @@ SOURCE_FILES    =                       \
                 completions/PeakCompletion.cpp \
                                         \
                 database/CarDB.cpp      \
-                database/Control2.cpp   \
+                database/Control.cpp    \
                 database/CorrectionDB.cpp \
                 database/Entity.cpp     \
                 database/SensorDB.cpp   \

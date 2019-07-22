@@ -10,7 +10,7 @@
 using namespace std;
 
 class PeakStats;
-class Control2;
+class Control;
 struct FilterDouble;
 struct FilterFloat;
 
@@ -60,7 +60,7 @@ class SegActive
       const vector<double>& samples, // TODO: Should use times[]
       const double sampleRate,
       const Interval& active,
-      const Control2& control,
+      const Control& control,
       Imperfections& imperf);
 
     void logPeakStats(

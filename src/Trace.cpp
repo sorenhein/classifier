@@ -5,9 +5,8 @@
 #include <sstream>
 
 #include "Trace.h"
-#include "read.h"
 
-#include "database/Control2.h"
+#include "database/Control.h"
 
 #include "util/misc.h"
 #include "util/Timers.h"
@@ -116,7 +115,7 @@ void Trace::read(const string& fname)
 
 
 void Trace::detect(
-  const Control2& control,
+  const Control& control,
   const double sampleRate,
   Imperfections& imperf)
 {
@@ -188,7 +187,7 @@ string Trace::strTransientCSV()
 }
 
 
-void Trace::write(const Control2& control) const
+void Trace::write(const Control& control) const
 {
   timers.start(TIMER_WRITE);
 

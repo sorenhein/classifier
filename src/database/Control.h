@@ -1,6 +1,5 @@
-#ifndef TRAIN_CONTROL2_H
-#define TRAIN_CONTROL2_H
-// TODO Change guard name back
+#ifndef TRAIN_CONTROL_H
+#define TRAIN_CONTROL_H
 
 #include <map>
 
@@ -62,7 +61,7 @@ enum ControlVerbose
 };
 
 
-class Control2
+class Control
 {
   private:
 
@@ -79,9 +78,9 @@ class Control2
 
   public:
 
-    Control2();
+    Control();
 
-    ~Control2();
+    ~Control();
 
     void reset();
 

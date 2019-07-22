@@ -15,7 +15,7 @@
 using namespace std;
 
 class PeakStats;
-class Control2;
+class Control;
 
 
 class PeakDetect
@@ -52,7 +52,7 @@ class PeakDetect
       const PeakParam param,
       const float paramLimit,
       const bool preserveKinksFlag,
-      const Control2& control);
+      const Control& control);
 
     void eliminateKinks();
 
@@ -85,7 +85,7 @@ class PeakDetect
       const unsigned offsetSamples);
 
     void reduce(
-      const Control2& control,
+      const Control& control,
       Imperfections& imperf);
 
     void logPeakStats(

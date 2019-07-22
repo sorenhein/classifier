@@ -12,7 +12,7 @@
 #include "PeakMatch.h"
 #include "PeakStructure.h"
 #include "PeakStats.h"
-#include "database/Control2.h"
+#include "database/Control.h"
 #include "Except.h"
 
 
@@ -230,7 +230,7 @@ void PeakDetect::reduceSmallPeaks(
   const PeakParam param,
   const float paramLimit,
   const bool preserveKinksFlag,
-  const Control2& control)
+  const Control& control)
 {
   // We use this method for two reductions:
   // 1. Small areas (first, as a rough reduction).
@@ -532,7 +532,7 @@ void PeakDetect::completePeaks()
 
 
 void PeakDetect::reduce(
-  const Control2& control,
+  const Control& control,
   Imperfections& imperf)
 {
   if (peaks.top().empty())
