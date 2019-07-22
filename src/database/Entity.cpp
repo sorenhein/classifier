@@ -8,6 +8,8 @@
 #include "Entity.h"
 #include "parse.h"
 
+#define BIT_VECTOR_SIZE 24
+
 #define UNUSED(x) ((void)(true ? 0 : ((x), void(), 0)))
 
 
@@ -92,6 +94,15 @@ bool Entity::parseValue(
     {
       // Opposity of default value.
       bools[no] = ! bools[no];
+    }
+  }
+  else if (corrType == CORRESPONDENCE_BIT_VECTOR)
+  {
+    intVectors[no].resize(BIT_VECTOR_SIZE);
+    if (! parseBitVector(value, intVectors[no], BIT_VECTOR_SIZE))
+    {
+      cout << "Bad bit vector" << endl;
+      return false;
     }
   }
   else
@@ -290,9 +301,7 @@ bool Entity::parseCommandLine(
   const vector<string>& commandLine,
   const list<CommandLineEntry>& arguments)
 {
-  if (! Entity::setCommandLineDefaults(arguments))
-    return false;
-
+cout << "parse command line\n";
   unsigned i = 0;
   while (i < commandLine.size())
   {
@@ -315,20 +324,23 @@ bool Entity::parseCommandLine(
 
         if (Entity::parseValue(arg.corrType, v, arg.no, false))
         {
+          if (arg.corrType == CORRESPONDENCE_BOOL)
+            i++;
+          else
+            i += 2;
+
           foundFlag = true;
           break;
         }
         else
           return false;
       }
+    }
 
-      if (foundFlag)
-      {
-        if (arg.corrType == CORRESPONDENCE_BOOL)
-          i++;
-        else
-          i += 2;
-      }
+    if (! foundFlag)
+    {
+      cout << "Could not parse option " << tag << endl;
+      return false;
     }
   }
 

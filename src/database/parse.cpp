@@ -59,7 +59,7 @@ bool parseInt(
   size_t pos;
   try
   {
-    i = stoi(text, &pos);
+    i = stoi(text, &pos, 0);
     if (pos != text.size())
       return false;
   }
@@ -126,6 +126,21 @@ void parseDelimitedString(
   fields.resize(c+1);
   fields.clear();
   tokenize(text, fields, delimiter);
+}
+
+
+bool parseBitVector(
+  const string& text,
+  vector<int>& bitVector,
+  const unsigned size)
+{
+  int v;
+  if (! parseInt(text, v))
+    return false;
+
+  for (unsigned i = 0, b = 1; i < size; i++, b <<= 1)
+   bitVector[i] = ((v & b) != 0);
+  return true;
 }
 
 

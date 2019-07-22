@@ -40,6 +40,27 @@ enum ControlBoolStrings
   CTRL_BOOLS_SIZE = 1
 };
 
+enum ControlWrite
+{
+  CTRL_WRITE_TRANSIENT = 0,
+  CTRL_WRITE_BACK = 1,
+  CTRL_WRITE_FRONT = 2,
+  CTRL_WRITE_SPEED = 3,
+  CTRL_WRITE_POS = 4,
+  CTRL_WRITE_PEAK = 5,
+  CTRL_WRITE_OUTLINE = 6
+};
+
+enum ControlVerbose
+{
+  CTRL_VERBOSE_TRANSIENT_MATCH = 0,
+  CTRL_VERBOSE_ALIGN_MATCHES = 1,
+  CTRL_VERBOSE_ALIGN_PEAKS = 2,
+  CTRL_VERBOSE_REGRESS_MATCH = 3,
+  CTRL_VERBOSE_REGRESS_MOTION = 4,
+  CTRL_VERBOSE_PEAK_REDUCE = 5
+};
+
 
 class Control2
 {
@@ -64,6 +85,10 @@ class Control2
 
     void reset();
 
+    bool parseCommandLine(
+      int argc,
+      char * argv[]);
+
     bool readFile(const string& fname);
 
     const string& carDir() const;
@@ -75,6 +100,24 @@ class Control2
     const string& truthFile() const;
     const string& overviewFile() const;
     const string& detailFile() const;
+    const string& pickFirst() const;
+    const string& pickAny() const;
+    const string& statsFile() const;
+
+    bool writeTransient() const;
+    bool writeBack() const;
+    bool writeFront() const;
+    bool writeSpeed() const;
+    bool writePos() const;
+    bool writePeak() const;
+    bool writeOutline() const;
+
+    bool verboseTransient() const;
+    bool verboseAlignMatches() const;
+    bool verboseAlignPeaks() const;
+    bool verboseRegressMatch() const;
+    bool verboseRegressMotion() const;
+    bool verbosePeakReduce() const;
 };
 
 #endif

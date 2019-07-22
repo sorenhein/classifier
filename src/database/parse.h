@@ -29,6 +29,11 @@ void parseDelimitedString(
   const string& delimiter,
   vector<string>& fields);
 
+bool parseBitVector(
+  const string& text,
+  vector<int>& bitVector,
+  const unsigned size);
+
 bool parseCarSpecifier(
   const string& text,
   string& offName,

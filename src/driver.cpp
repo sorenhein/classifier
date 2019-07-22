@@ -214,9 +214,9 @@ void setup(
     exit(0);
   }
 
-  if (! control2.readFile(control.controlFile))
+  if (! control2.parseCommandLine(argc, argv))
   {
-    cout << "Bad control2 file" << control.controlFile << endl;
+    cout << "Bad command line" << endl;
     exit(0);
   }
 

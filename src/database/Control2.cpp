@@ -55,9 +55,9 @@ void Control2::configure()
     CTRL_STRINGS_SIZE,
     0,
     0,
+    CTRL_INT_VECTORS_SIZE,
     0,
-    0,
-    0,
+    CTRL_BOOLS_SIZE,
     0
   };
 
@@ -72,7 +72,7 @@ void Control2::configure()
       "If set, pick reference trains containing s." },
     { "-s", "--stats", CORRESPONDENCE_STRING, CTRL_STATS_FILE, "",
       "Stats output file." },
-    { "-a", "--append", CORRESPONDENCE_BOOL, CTRL_APPEND, "false",
+    { "-a", "--append", CORRESPONDENCE_BOOL, CTRL_APPEND, "no",
       "If present, stats file is not rewritten." },
     { "-w", "--writing", CORRESPONDENCE_BIT_VECTOR, CTRL_WRITE, "0x20",
       "Binary output files (default: 0x20).  Bits:\n"
@@ -83,8 +83,8 @@ void Control2::configure()
       "0x10: pos\n"
       "0x20: peak\n"
       "0x40: outline\n" },
-    { "-v", "--verbose", CORRESPONDENCE_BIT_VECTOR, CTRL_VERBOSE, "0x0",
-      "Verbosity (default: 0x0).  Bits:\n"
+    { "-v", "--verbose", CORRESPONDENCE_BIT_VECTOR, CTRL_VERBOSE, "0x1b",
+      "Verbosity (default: 0x1b).  Bits:\n"
       "0x01: Transient match\n"
       "0x02: Align matches\n"
       "0x04: Align peaks\n"
@@ -92,6 +92,46 @@ void Control2::configure()
       "0x10: Regress motion\n"
       "0x20: Reduce peaks\n" }
   };
+
+  entry.init(fieldCounts);
+}
+
+
+bool Control2::parseCommandLine(
+  int argc, 
+  char * argv[])
+{
+  if (! entry.setCommandLineDefaults(commands))
+  {
+    cout << "Could not parse defaults\n";
+    return false;
+  }
+
+  const string basename = argv[0];
+
+  if (argc <= 1)
+  {
+    entry.usage(basename, commands);
+    return false;
+  }
+
+  vector<string> commandLine;
+  for (unsigned i = 1; i < static_cast<unsigned>(argc); i++)
+    commandLine.push_back(string(argv[i]));
+
+  if (! entry.parseCommandLine(commandLine, commands))
+  {
+    entry.usage(basename, commands);
+    return false;
+  }
+
+  if (! Control2::readFile(entry.getString(CTRL_CONTROL_FILE)))
+  {
+    entry.usage(basename, commands);
+    return false;
+  }
+
+  return true;
 }
 
 
@@ -156,4 +196,83 @@ const string& Control2::detailFile() const
 {
   return entry.getString(CTRL_DETAIL_FILE);
 }
+
+
+bool Control2::writeTransient() const
+{
+  return entry.getIntVector(CTRL_WRITE)[CTRL_WRITE_TRANSIENT];
+}
+
+
+bool Control2::writeBack() const
+{
+  return entry.getIntVector(CTRL_WRITE)[CTRL_WRITE_BACK];
+}
+
+
+bool Control2::writeFront() const
+{
+  return entry.getIntVector(CTRL_WRITE)[CTRL_WRITE_FRONT];
+}
+
+
+bool Control2::writeSpeed() const
+{
+  return entry.getIntVector(CTRL_WRITE)[CTRL_WRITE_SPEED];
+}
+
+
+bool Control2::writePos() const
+{
+  return entry.getIntVector(CTRL_WRITE)[CTRL_WRITE_POS];
+}
+
+
+bool Control2::writePeak() const
+{
+  return entry.getIntVector(CTRL_WRITE)[CTRL_WRITE_PEAK];
+}
+
+
+bool Control2::writeOutline() const
+{
+  return entry.getIntVector(CTRL_WRITE)[CTRL_WRITE_OUTLINE];
+}
+
+
+bool Control2::verboseTransient() const
+{
+  return entry.getIntVector(CTRL_VERBOSE)[CTRL_VERBOSE_TRANSIENT_MATCH];
+}
+
+
+bool Control2::verboseAlignMatches() const
+{
+  return entry.getIntVector(CTRL_VERBOSE)[CTRL_VERBOSE_ALIGN_MATCHES];
+}
+
+
+bool Control2::verboseAlignPeaks() const
+{
+  return entry.getIntVector(CTRL_VERBOSE)[CTRL_VERBOSE_ALIGN_PEAKS];
+}
+
+
+bool Control2::verboseRegressMatch() const
+{
+  return entry.getIntVector(CTRL_VERBOSE)[CTRL_VERBOSE_REGRESS_MATCH];
+}
+
+
+bool Control2::verboseRegressMotion() const
+{
+  return entry.getIntVector(CTRL_VERBOSE)[CTRL_VERBOSE_REGRESS_MOTION];
+}
+
+
+bool Control2::verbosePeakReduce() const
+{
+  return entry.getIntVector(CTRL_VERBOSE)[CTRL_VERBOSE_PEAK_REDUCE];
+}
+
 
