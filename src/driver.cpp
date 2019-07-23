@@ -39,6 +39,25 @@ void setupCars(
   const Control& control,
   CarDB& carDB);
 
+void setupCorrections(
+  const Control& control,
+  CorrectionDB& correctionDB);
+
+void setupTrains(
+  const Control& control,
+  const CarDB& carDB,
+  const CorrectionDB& correctionDB,
+  TrainDB& trainDB);
+
+void setupSensors(
+  const Control& control,
+  SensorDB& sensorDB);
+
+void setupTraces(
+  const Control& control,
+  const SensorDB& sensorDB,
+  TraceDB& traceDB);
+
 void setup(
   int argc, 
   char * argv[],
@@ -230,6 +249,72 @@ void setupCars(
 }
 
 
+void setupCorrections(
+  const Control& control,
+  CorrectionDB& correctionDB)
+{
+  vector<string> correctionFiles;
+  if (! getFilenames(control.correctionDir(), correctionFiles))
+  {
+    cout << "Bad directory " << control.correctionDir() << endl;
+    exit(0);
+  }
+
+  for (auto& fname: correctionFiles)
+    correctionDB.readFile(fname);
+}
+
+
+void setupTrains(
+  const Control& control,
+  const CarDB& carDB,
+  const CorrectionDB& correctionDB,
+  TrainDB& trainDB)
+{
+  vector<string> textfiles;
+  textfiles.clear();
+  if (! getFilenames(control.trainDir(), textfiles))
+  {
+    cout << "Bad directory " << control.trainDir() << endl;
+    exit(0);
+  }
+
+  for (auto& fname: textfiles)
+    trainDB.readFile(carDB, correctionDB, fname);
+
+  if (! trainDB.selectByAxles({"ALL"}, 0, 100))
+  {
+    cout << "No trains selected" << endl;
+    exit(0);
+  }
+}
+
+
+void setupSensors(
+  const Control& control,
+  SensorDB& sensorDB)
+{
+  if (control.sensorFile() != "")
+    sensorDB.readFile(control.sensorFile());
+}
+
+
+void setupTraces(
+  const Control& control,
+  const SensorDB& sensorDB,
+  TraceDB& traceDB)
+{
+  traceDB.readFile(control.truthFile(), sensorDB);
+
+  auto& datfiles = traceDB.getFilenames();
+  if (! getFilenames(control.traceDir(), datfiles, control.pickFirst()))
+  {
+    cout << "Bad directory " << control.traceDir() << endl;
+    exit(0);
+  }
+}
+
+
 void setup(
   int argc, 
   char * argv[],
@@ -243,52 +328,14 @@ void setup(
   CarDB carDB;
   setupCars(control, carDB);
 
-
-  // correctionDB
   CorrectionDB correctionDB;
-  vector<string> correctionFiles;
+  setupCorrections(control, correctionDB);
 
-  if (! getFilenames(control.correctionDir(), correctionFiles))
-  {
-    cout << "Bad directory " << control.correctionDir() << endl;
-    exit(0);
-  }
+  setupTrains(control, carDB, correctionDB, trainDB);
 
-  for (auto& fname: correctionFiles)
-    correctionDB.readFile(fname);
+  setupSensors(control, sensorDB);
 
-  // trainDB
-  vector<string> textfiles;
-  textfiles.clear();
-  if (! getFilenames(control.trainDir(), textfiles))
-  {
-    cout << "Bad directory " << control.trainDir() << endl;
-    exit(0);
-  }
-
-  for (auto& fname: textfiles)
-    trainDB.readFile(carDB, correctionDB, fname);
-
-  // sensorDB
-  if (control.sensorFile() != "")
-    sensorDB.readFile(control.sensorFile());
-
-  if (! trainDB.selectByAxles({"ALL"}, 0, 100))
-  {
-    cout << "No trains selected" << endl;
-    exit(0);
-  }
-
-  // traceDB
-  traceDB.readFile(control.truthFile(), sensorDB);
-
-  auto& datfiles = traceDB.getFilenames();
-  if (! getFilenames(control.traceDir(), datfiles, control.pickFirst()))
-  {
-    cout << "Bad directory " << control.traceDir() << endl;
-    exit(0);
-  }
-
+  setupTraces(control, sensorDB, traceDB);
 }
 
 
