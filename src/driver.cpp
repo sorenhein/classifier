@@ -35,8 +35,16 @@ void setup(
   char * argv[],
   Control& control,
   SensorDB& sensorDB,
-  CarDB& carDB,
   TrainDB& trainDB);
+
+void run(
+  const Control& control,
+  const SensorDB& sensorDB,
+  const TrainDB& trainDB,
+  const TraceDB& traceDB,
+  CompStats& sensorStats,
+  CompStats& trainStats,
+  PeakStats& peakStats);
 
 unsigned lookupMatchRank(
   const TrainDB& trainDB,
@@ -49,10 +57,9 @@ int main(int argc, char * argv[])
   Control control;
 
   SensorDB sensorDB;
-  CarDB carDB;
   TrainDB trainDB;
 
-  setup(argc, argv, control, sensorDB, carDB, trainDB);
+  setup(argc, argv, control, sensorDB, trainDB);
 
   if (control.traceDir() == "")
   {
@@ -78,26 +85,26 @@ int main(int argc, char * argv[])
 
 
 
-  Imperfections imperf;
-  Align align;
-  Regress regress;
-
-  vector<PeakPos> perfectPositions;
-  vector<Alignment> matchesAlign;
-  Alignment bestAlign;
-  
-  const unsigned order = 2;
-  vector<double> motionActual(order+1);
-  vector<double> motionEstimate(order+1);
-  motionActual[0] = 0.; // Offset in m
-
-  Trace trace;
-  vector<PeakTime> times;
-  vector<int> actualToRef;
-  unsigned numFrontWheels;
-
   for (auto& fname: datfiles)
   {
+    Imperfections imperf;
+    Align align;
+    Regress regress;
+
+    vector<PeakPos> perfectPositions;
+    vector<Alignment> matchesAlign;
+    Alignment bestAlign;
+  
+    const unsigned order = 2;
+    vector<double> motionActual(order+1);
+    vector<double> motionEstimate(order+1);
+    motionActual[0] = 0.; // Offset in m
+
+    Trace trace;
+    vector<PeakTime> times;
+    vector<int> actualToRef;
+    unsigned numFrontWheels;
+
     const unsigned t2no = traceDB.traceNumber(fname);
     const string sensor = traceDB.sensor(t2no);
     const string trainTrue = traceDB.train(t2no);
@@ -203,7 +210,6 @@ void setup(
   char * argv[],
   Control& control,
   SensorDB& sensorDB,
-  CarDB& carDB,
   TrainDB& trainDB)
 {
   if (! control.parseCommandLine(argc, argv))
@@ -220,6 +226,7 @@ void setup(
     exit(0);
   }
 
+  CarDB carDB;
   for (auto& fname: textfiles)
     carDB.readFile(fname);
 
