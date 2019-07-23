@@ -3,10 +3,14 @@
 #include <fstream>
 #include <sstream>
 #include <algorithm>
+#include <mutex>
 
 #include "CompStats.h"
+#include "const.h"
 
-#define SEPARATOR ";"
+#define BUCKETS 4u
+
+mutex mtx;
 
 
 CompStats::CompStats()
@@ -24,33 +28,32 @@ void CompStats::log(
   const unsigned rank,
   const double residuals)
 {
+  mtx.lock();
   auto it = stats.find(key);
   if (it == stats.end())
-  {
-    stats[key].resize(4);
-  }
+    stats[key].resize(BUCKETS);
 
-  const unsigned r = min(rank, 3u);
+  const unsigned r = min(rank, BUCKETS-1);
   vector<Entry>& v = stats[key];
   v[r].no++;
   v[r].sum += residuals;
+  mtx.unlock();
 }
 
 
-void CompStats::printHeader(
-  ofstream& fout,
-  const string& tag) const
+string CompStats::strHeader(const string& tag) const
 {
-  fout << 
-    setw(24) << left << tag <<
-    setw(4) << right << "#1" << 
-      setw(8) << "avg" <<
-    setw(4) << right << "#2" << 
-      setw(8) << "avg" <<
-    setw(4) << right << "#3" << 
-      setw(8) << "avg" <<
-    setw(4) << right << "4+" << 
-      setw(8) << "avg" << "\n";
+  stringstream ss;
+  ss << setw(24) << left << tag;
+  for (unsigned i = 1; i < BUCKETS; i++)
+  {
+    const string s = "#" + to_string(i);
+    ss << setw(4) << right << s << setw(8) << "avg";
+  }
+  const string s = to_string(BUCKETS) + "+";
+  ss << right << setw(4) << s << setw(8) << "avg" << "\n";
+
+  return ss.str();
 }
 
 
@@ -66,51 +69,51 @@ string CompStats::strEntry(const Entry& entry) const
 }
 
 
-void CompStats::print(
+void CompStats::write(
   const string& fname,
   const string& tag) const
 {
   ofstream fout;
   fout.open(fname);
 
-  CompStats::printHeader(fout, tag);
+  fout << CompStats::strHeader(tag);
 
-  vector<Entry> sumEntries(4);
+  vector<Entry> sumEntries(BUCKETS);
 
   for (auto& it: stats)
   {
-    fout <<
-      setw(24) << left << it.first <<
-      CompStats::strEntry(it.second[0]) <<
-      CompStats::strEntry(it.second[1]) <<
-      CompStats::strEntry(it.second[2]) <<
-      CompStats::strEntry(it.second[3]) << "\n";
+    fout << setw(24) << left << it.first;
+    for (unsigned i = 0; i < BUCKETS; i++)
+      fout << CompStats::strEntry(it.second[i]);
+    fout << "\n";
     
-    for (unsigned i = 0; i < 4; i++)
+    for (unsigned i = 0; i < BUCKETS; i++)
     {
       sumEntries[i].no += it.second[i].no;
       sumEntries[i].sum += it.second[i].sum;
     }
   }
 
-  const string dashes(72, '-');
+  const string dashes(24 + BUCKETS * 12, '-');
   fout << dashes << "\n";
-  fout <<
-    setw(24) << left << "Sum" <<
-    CompStats::strEntry(sumEntries[0]) <<
-    CompStats::strEntry(sumEntries[1]) <<
-    CompStats::strEntry(sumEntries[2]) <<
-    CompStats::strEntry(sumEntries[3]) << "\n";
+  fout << setw(24) << left << "Sum";
 
+  for (unsigned i = 0; i < BUCKETS; i++)
+    fout << CompStats::strEntry(sumEntries[i]);
+
+  fout << "\n";
   fout.close();
 }
 
 
-void CompStats::printHeaderCSV(
-  ofstream& fout,
-  const string& tag) const
+string CompStats::strHeaderCSV(const string& tag) const
 {
-  fout << tag << ";#1;avg;#2;avg;#3;avg;less;avg\n";
+  stringstream ss;
+  ss << tag << SEPARATOR;
+  for (unsigned i = 1; i < BUCKETS; i++)
+    ss << "#" << i << SEPARATOR << "avg" << SEPARATOR;
+  ss << BUCKETS << "+" << SEPARATOR << "avg" << "\n";
+  return ss.str();
 }
 
 
@@ -118,8 +121,7 @@ string CompStats::strEntryCSV(const Entry& entry) const
 {
   stringstream ss;
   if (entry.no > 0)
-    ss << SEPARATOR <<
-      entry.no << SEPARATOR << 
+    ss << SEPARATOR << entry.no << SEPARATOR << 
       fixed << setprecision(2) << entry.sum / entry.no;
   else
     ss << SEPARATOR << entry.no << SEPARATOR << "-";
@@ -127,25 +129,22 @@ string CompStats::strEntryCSV(const Entry& entry) const
 }
 
 
-void CompStats::printCSV(
+void CompStats::writeCSV(
   const string& fname,
   const string& tag) const
 {
   ofstream fout;
   fout.open(fname);
 
-  CompStats::printHeaderCSV(fout, tag);
+  fout << CompStats::strHeaderCSV(tag);
 
   for (auto& it: stats)
   {
-    fout <<
-      setw(24) << left << it.first <<
-      CompStats::strEntryCSV(it.second[0]) <<
-      CompStats::strEntryCSV(it.second[1]) <<
-      CompStats::strEntryCSV(it.second[2]) <<
-      CompStats::strEntryCSV(it.second[3]) << "\n";
+    fout << setw(24) << left << it.first;
+    for (unsigned i = 0; i < BUCKETS; i++)
+      fout << CompStats::strEntryCSV(it.second[0]);
+    fout << "\n";
   }
-
 
   fout.close();
 }

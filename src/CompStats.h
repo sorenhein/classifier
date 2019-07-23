@@ -1,3 +1,9 @@
+/*
+ * This class keeps track of the rank (1, 2, 3, ...) of the true
+ * solution among the detected ones.  The class can be used by
+ * sensor, by train type etc.
+ */
+
 #ifndef TRAIN_COMPSTATS_H
 #define TRAIN_COMPSTATS_H
 
@@ -22,15 +28,11 @@ class CompStats
 
     map<string, vector<Entry>> stats;
 
-    void printHeader(
-      ofstream& fout,
-      const string& tag) const;
+    string strHeader(const string& tag) const;
 
     string strEntry(const Entry& entry) const;
 
-    void printHeaderCSV(
-      ofstream& fout,
-      const string& tag) const;
+    string strHeaderCSV(const string& tag) const;
 
     string strEntryCSV(const Entry& entry) const;
 
@@ -45,11 +47,11 @@ class CompStats
       const unsigned rank,
       const double residuals);
 
-    void print(
+    void write(
       const string& fname,
       const string& tag) const;
 
-    void printCSV(
+    void writeCSV(
       const string& fname,
       const string& tag) const;
 };
