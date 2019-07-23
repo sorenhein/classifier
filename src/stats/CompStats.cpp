@@ -6,7 +6,7 @@
 #include <mutex>
 
 #include "CompStats.h"
-#include "const.h"
+#include "../const.h"
 
 #define BUCKETS 4u
 

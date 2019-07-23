@@ -4,7 +4,6 @@ SOURCE_FILES    =                       \
                 CarGaps.cpp             \
                 CarModels.cpp           \
                 CarPeaks.cpp            \
-                CompStats.cpp           \
                 Except.cpp              \
                 Peak.cpp                \
                 Peaks.cpp               \
@@ -20,7 +19,6 @@ SOURCE_FILES    =                       \
                 PeakRange.cpp           \
                 PeakSeeds.cpp           \
                 PeakSpacing.cpp         \
-                PeakStats.cpp           \
                 PeakStructure.cpp       \
                 Regress.cpp             \
                 SegActive.cpp           \
@@ -45,8 +43,11 @@ SOURCE_FILES    =                       \
                 database/TrainDB.cpp    \
                 database/parse.cpp      \
                                         \
+                stats/CompStats.cpp     \
+                stats/PeakStats.cpp     \
+                stats/Timer.cpp         \
+                stats/Timers.cpp        \
+                                        \
                 util/io.cpp             \
                 util/misc.cpp           \
-                util/Gap.cpp            \
-                util/Timer.cpp          \
-                util/Timers.cpp
+                util/Gap.cpp

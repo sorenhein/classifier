@@ -8,8 +8,9 @@
 
 #include "database/Control.h"
 
+#include "stats/Timers.h"
+
 #include "util/io.h"
-#include "util/Timers.h"
 
 #define UNUSED(x) ((void)(true ? 0 : ((x), void(), 0)))
 

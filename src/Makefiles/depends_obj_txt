@@ -14,10 +14,10 @@ Peaks.obj: Peaks.h Peak.h struct.h Except.h errors.h
 PeakDetect.obj: PeakDetect.h Peak.h struct.h PeakPool.h Peaks.h PeakPtrs.h
 PeakDetect.obj: CarPeaks.h PeakStructure.h CarDetect.h CarGaps.h PeakRange.h
 PeakDetect.obj: PeakProfile.h CarModels.h PeakSeeds.h PeakMinima.h
-PeakDetect.obj: PeakPieces.h PeakPiece.h PeakMatch.h database/Control.h
-PeakDetect.obj: database/Entity.h Except.h errors.h
+PeakDetect.obj: PeakPieces.h PeakPiece.h PeakMatch.h Except.h errors.h
+PeakDetect.obj: database/Control.h database/Entity.h stats/PeakStats.h
 PeakMatch.obj: PeakMatch.h Peak.h struct.h PeakPool.h Peaks.h PeakPtrs.h
-PeakMatch.obj: CarPeaks.h Except.h errors.h
+PeakMatch.obj: CarPeaks.h stats/PeakStats.h Except.h errors.h
 PeakMinima.obj: Peak.h struct.h PeakMinima.h PeakPool.h Peaks.h PeakPtrs.h
 PeakMinima.obj: CarPeaks.h PeakPieces.h PeakPiece.h Except.h errors.h
 PeakMinima.obj: util/Gap.h

@@ -5,6 +5,7 @@
 #include <limits>
 
 #include "PeakMatch.h"
+#include "stats/PeakStats.h"
 
 #include "Except.h"
 #include "errors.h"

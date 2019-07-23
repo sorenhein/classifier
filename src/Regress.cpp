@@ -14,7 +14,7 @@
 
 #include "regress/PolynomialRegression.h"
 
-#include "util/Timers.h"
+#include "stats/Timers.h"
 
 #define GOOD_RESIDUAL_LIMIT 50.0f
 

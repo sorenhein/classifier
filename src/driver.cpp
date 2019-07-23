@@ -14,13 +14,14 @@
 
 #include "Regress.h"
 #include "Align.h"
-#include "CompStats.h"
-#include "PeakStats.h"
 #include "Except.h"
 #include "geometry.h"
 #include "print.h"
 
-#include "util/Timers.h"
+#include "stats/CompStats.h"
+#include "stats/PeakStats.h"
+#include "stats/Timers.h"
+
 #include "util/io.h"
 
 using namespace std;

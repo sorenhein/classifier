@@ -13,7 +13,8 @@
 #include "database/Control.h"
 
 #include "regress/PolynomialRegression.h"
-#include "util/Timers.h"
+
+#include "stats/Timers.h"
 
 // Can adjust these.
 

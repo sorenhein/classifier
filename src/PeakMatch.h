@@ -7,9 +7,10 @@
 
 #include "Peak.h"
 #include "PeakPool.h"
-#include "PeakStats.h"
 
 #include "struct.h"
+
+class PeakStats;
 
 // This is only for output statistics.  It was particularly useful
 // when we were looking only at peak qualities, but now that we try

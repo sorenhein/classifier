@@ -11,9 +11,11 @@
 #include "PeakMinima.h"
 #include "PeakMatch.h"
 #include "PeakStructure.h"
-#include "PeakStats.h"
-#include "database/Control.h"
 #include "Except.h"
+
+#include "database/Control.h"
+
+#include "stats/PeakStats.h"
 
 
 #define KINK_RATIO 500.f

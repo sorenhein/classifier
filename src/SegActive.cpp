@@ -6,10 +6,12 @@
 
 #include "SegActive.h"
 #include "write.h"
-#include "database/Control.h"
-#include "util/Timers.h"
 #include "const.h"
 #include "Except.h"
+
+#include "database/Control.h"
+
+#include "stats/Timers.h"
 
 extern Timers timers;
 
