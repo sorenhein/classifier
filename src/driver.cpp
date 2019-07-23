@@ -30,12 +30,22 @@ Log logger;
 Timers timers;
 
 
+void setupControl(
+  int argc,
+  char * argv[],
+  Control& control);
+
+void setupCars(
+  const Control& control,
+  CarDB& carDB);
+
 void setup(
   int argc, 
   char * argv[],
   Control& control,
   SensorDB& sensorDB,
-  TrainDB& trainDB);
+  TrainDB& trainDB,
+  TraceDB& traceDB);
 
 void run(
   const Control& control,
@@ -55,37 +65,15 @@ unsigned lookupMatchRank(
 int main(int argc, char * argv[])
 {
   Control control;
-
   SensorDB sensorDB;
   TrainDB trainDB;
-
-  setup(argc, argv, control, sensorDB, trainDB);
-
-  if (control.traceDir() == "")
-  {
-    // This was once use to generate synthetic, noisy peaks and
-    // to classify them.
-    cout << "No traces specified.\n";
-    exit(0);
-  }
-
-  // This extracts peaks and then extracts train types from peaks.
   TraceDB traceDB;
-  traceDB.readFile(control.truthFile(), sensorDB);
-
-  vector<string> datfiles;
-  if (! getFilenames(control.traceDir(), datfiles, control.pickFirst()))
-  {
-    cout << "Bad directory " << control.traceDir() << endl;
-    exit(0);
-  }
+  setup(argc, argv, control, sensorDB, trainDB, traceDB);
 
   CompStats sensorStats, trainStats;
   PeakStats peakStats;
 
-
-
-  for (auto& fname: datfiles)
+  for (auto& fname: traceDB.getFilenames())
   {
     Imperfections imperf;
     Align align;
@@ -205,12 +193,10 @@ if (trainDetected != trainTrue)
 }
 
 
-void setup(
-  int argc, 
+void setupControl(
+  int argc,
   char * argv[],
-  Control& control,
-  SensorDB& sensorDB,
-  TrainDB& trainDB)
+  Control& control)
 {
   if (! control.parseCommandLine(argc, argv))
   {
@@ -218,7 +204,20 @@ void setup(
     exit(0);
   }
 
-  // carDB
+  if (control.traceDir() == "")
+  {
+    // This was once use to generate synthetic, noisy peaks and
+    // to classify them.
+    cout << "No traces specified.\n";
+    exit(0);
+  }
+}
+
+
+void setupCars(
+  const Control& control,
+  CarDB& carDB)
+{
   vector<string> textfiles;
   if (! getFilenames(control.carDir(), textfiles))
   {
@@ -226,9 +225,24 @@ void setup(
     exit(0);
   }
 
-  CarDB carDB;
   for (auto& fname: textfiles)
     carDB.readFile(fname);
+}
+
+
+void setup(
+  int argc, 
+  char * argv[],
+  Control& control,
+  SensorDB& sensorDB,
+  TrainDB& trainDB,
+  TraceDB& traceDB)
+{
+  setupControl(argc, argv, control);
+
+  CarDB carDB;
+  setupCars(control, carDB);
+
 
   // correctionDB
   CorrectionDB correctionDB;
@@ -244,6 +258,7 @@ void setup(
     correctionDB.readFile(fname);
 
   // trainDB
+  vector<string> textfiles;
   textfiles.clear();
   if (! getFilenames(control.trainDir(), textfiles))
   {
@@ -263,6 +278,17 @@ void setup(
     cout << "No trains selected" << endl;
     exit(0);
   }
+
+  // traceDB
+  traceDB.readFile(control.truthFile(), sensorDB);
+
+  auto& datfiles = traceDB.getFilenames();
+  if (! getFilenames(control.traceDir(), datfiles, control.pickFirst()))
+  {
+    cout << "Bad directory " << control.traceDir() << endl;
+    exit(0);
+  }
+
 }
 
 

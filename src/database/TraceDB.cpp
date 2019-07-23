@@ -192,6 +192,12 @@ bool TraceDB::readFile(
 }
 
 
+vector<string>& TraceDB::getFilenames()
+{
+  return filenames;
+}
+
+
 unsigned TraceDB::traceNumber(const string& fname) const
 {
   const string basename = parseBasename(fname);

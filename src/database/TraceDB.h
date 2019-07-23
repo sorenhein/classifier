@@ -71,6 +71,8 @@ class TraceDB
 
     map<string, unsigned> traceMap;
 
+    vector<string> filenames;
+
 
     bool deriveOrigin(
       Entity& entry,
@@ -97,6 +99,8 @@ class TraceDB
       const string& fname,
       const SensorDB& sensorDB);
 
+    vector<string>& getFilenames();
+
     unsigned traceNumber(const string& fname) const;
 
     unsigned year(const unsigned traceNo) const;
@@ -105,6 +109,7 @@ class TraceDB
     const string& time(const unsigned traceNo) const;
     const string& train(const unsigned traceNo) const;
     double speed(const unsigned traceNo) const;
+
 };
 
 #endif
