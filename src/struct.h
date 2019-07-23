@@ -178,24 +178,6 @@ struct Interval
   double mean;
 };
 
-enum PeakSeenType
-{
-  PEAK_SEEN_TOO_EARLY = 0,
-  PEAK_SEEN_EARLY = 1,
-  PEAK_SEEN_CORE = 2,
-  PEAK_SEEN_LATE = 3,
-  PEAK_SEEN_TOO_LATE = 4,
-  PEAK_SEEN_SIZE = 5
-};
-
-enum PeakTrueType
-{
-  PEAK_TRUE_TOO_EARLY = 0,
-  PEAK_TRUE_MISSED = 1,
-  PEAK_TRUE_TOO_LATE = 2,
-  PEAK_TRUE_SIZE = 3
-};
-
 enum PeakParam
 {
   PEAK_PARAM_AREA = 0,

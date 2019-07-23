@@ -2,10 +2,10 @@
 #include <iomanip>
 #include <fstream>
 #include <sstream>
-#include <algorithm>
 
 #include "PeakStats.h"
-#include "Except.h"
+
+#include "util/misc.h"
 
 
 PeakStats::PeakStats()
@@ -116,23 +116,7 @@ void PeakStats::logTrueMiss(
 }
 
 
-string PeakStats::percent(
-  const unsigned num,
-  const unsigned denom) const
-{
-  stringstream ss;
-
-  if (denom == 0 || num == 0)
-    ss << "-";
-  else
-    ss << fixed << setprecision(2) << 
-      100. * num / static_cast<double>(denom) << "%";
-  
-  return ss.str();
-}
-
-
-void PeakStats::printTrueHeader(ofstream& fout) const
+void PeakStats::writeTrueHeader(ofstream& fout) const
 {
   fout << setw(12) << left << "True peaks" <<
     setw(8) << right << "Sum" <<
@@ -148,7 +132,7 @@ void PeakStats::printTrueHeader(ofstream& fout) const
 }
 
 
-void PeakStats::printTrueLine(
+void PeakStats::writeTrueLine(
   ofstream& fout,
   const string& text,
   const Entry& e,
@@ -159,9 +143,9 @@ void PeakStats::printTrueLine(
   fout << setw(12) << left << text <<
     setw(8) << right << e.len <<
     setw(8) << e.good <<
-    setw(8) << PeakStats::percent(e.good, e.len) << 
+    setw(8) << percent(e.good, e.len, 2u) << 
     setw(8) << right << e.len - e.good <<
-    setw(8) << PeakStats::percent(e.len - e.good, e.len);
+    setw(8) << percent(e.len - e.good, e.len, 2u);
 
   ecum += e;
 
@@ -175,9 +159,9 @@ void PeakStats::printTrueLine(
 
 
 
-void PeakStats::printTrueTable(ofstream& fout) const
+void PeakStats::writeTrueTable(ofstream& fout) const
 {
-  PeakStats::printTrueHeader(fout);
+  PeakStats::writeTrueHeader(fout);
 
   Entry sumTrue;
   vector<unsigned> sumMisses;
@@ -185,12 +169,12 @@ void PeakStats::printTrueTable(ofstream& fout) const
 
   for (unsigned i = 0; i < statsTrueFront.size(); i++)
   {
-    PeakStats::printTrueLine(fout, to_string(i),
+    PeakStats::writeTrueLine(fout, to_string(i),
       statsTrueFront[i], missedTrueFront[i],
       sumTrue, sumMisses);
   }
 
-  PeakStats::printTrueLine(fout, "core",
+  PeakStats::writeTrueLine(fout, "core",
     statsTrueCore, missedTrueCore,
     sumTrue, sumMisses);
 
@@ -198,20 +182,20 @@ void PeakStats::printTrueTable(ofstream& fout) const
   {
     const unsigned rev = statsTrueBack.size() - i - 1;
 
-    PeakStats::printTrueLine(fout, "-" + to_string(rev),
+    PeakStats::writeTrueLine(fout, "-" + to_string(rev),
       statsTrueBack[rev], missedTrueBack[rev],
       sumTrue, sumMisses);
   }
 
   fout << string(76, '-') << "\n";
-  PeakStats::printTrueLine(fout, "Sum",
+  PeakStats::writeTrueLine(fout, "Sum",
     sumTrue, sumMisses,
     sumTrue, sumMisses);
   fout << "\n";
 }
 
 
-void PeakStats::printSeenHeader(ofstream& fout) const
+void PeakStats::writeSeenHeader(ofstream& fout) const
 {
   fout << setw(12) << left << "Seen peaks" <<
     setw(8) << right << "Sum" <<
@@ -223,45 +207,43 @@ void PeakStats::printSeenHeader(ofstream& fout) const
 }
 
 
-void PeakStats::printSeenLine(
+void PeakStats::writeSeenLine(
   ofstream& fout,
   const string& text,
   const Entry& e) const
 {
   fout << setw(12) << left << text <<
-  setw(8) << right << e.len <<
-  setw(8) << right << e.good <<
-  setw(8) << PeakStats::percent(e.good, e.len) << 
-  setw(8) << right << e.len - e.good <<
-  setw(8) << PeakStats::percent(e.len - e.good, e.len) << 
-  endl;
+    setw(8) << right << e.len <<
+    setw(8) << right << e.good <<
+    setw(8) << percent(e.good, e.len, 2u) << 
+    setw(8) << right << e.len - e.good <<
+    setw(8) << percent(e.len - e.good, e.len, 2u) << endl;
 }
 
 
-void PeakStats::printSeenTable(ofstream& fout) const
+void PeakStats::writeSeenTable(ofstream& fout) const
 {
-  PeakStats::printSeenHeader(fout);
+  PeakStats::writeSeenHeader(fout);
 
   Entry sumSeen;
   for (unsigned i = 0; i < statsSeen.size(); i++)
   {
-    PeakStats::printSeenLine(fout, typeNamesSeen[i], statsSeen[i]);
+    PeakStats::writeSeenLine(fout, typeNamesSeen[i], statsSeen[i]);
     sumSeen += statsSeen[i];
   }
 
   fout << string(52, '-') << "\n";
-  PeakStats::printSeenLine(fout, "Sum", sumSeen);
+  PeakStats::writeSeenLine(fout, "Sum", sumSeen);
 }
 
 
-void PeakStats::print(const string& fname) const
+void PeakStats::write(const string& fname) const
 {
   ofstream fout;
   fout.open(fname);
 
-  PeakStats::printTrueTable(fout);
-
-  PeakStats::printSeenTable(fout);
+  PeakStats::writeTrueTable(fout);
+  PeakStats::writeSeenTable(fout);
 
   fout.close();
 }

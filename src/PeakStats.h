@@ -4,12 +4,27 @@
 #include <vector>
 #include <string>
 
-#include "struct.h"
+using namespace std;
+
+enum PeakSeenType
+{
+  PEAK_SEEN_TOO_EARLY = 0,
+  PEAK_SEEN_EARLY = 1,
+  PEAK_SEEN_CORE = 2,
+  PEAK_SEEN_LATE = 3,
+  PEAK_SEEN_TOO_LATE = 4,
+  PEAK_SEEN_SIZE = 5
+};
+
+enum PeakTrueType
+{
+  PEAK_TRUE_TOO_EARLY = 0,
+  PEAK_TRUE_MISSED = 1,
+  PEAK_TRUE_TOO_LATE = 2,
+  PEAK_TRUE_SIZE = 3
+};
 
 #define PEAKSTATS_END_COUNT 4
-
-
-using namespace std;
 
 
 class PeakStats
@@ -50,13 +65,9 @@ class PeakStats
     vector<string> typeNamesSeen;
     vector<string> typeNamesTrue;
 
-    string percent(
-      const unsigned num,
-      const unsigned denom) const;
+    void writeTrueHeader(ofstream& fout) const;
 
-    void printTrueHeader(ofstream& fout) const;
-
-    void printTrueLine(
+    void writeTrueLine(
       ofstream& fout,
       const string& text,
       const Entry& e,
@@ -64,16 +75,16 @@ class PeakStats
       Entry& ecum,
       vector<unsigned>& vcum) const;
 
-    void printTrueTable(ofstream& fout) const;
+    void writeTrueTable(ofstream& fout) const;
 
-    void printSeenHeader(ofstream& fout) const;
+    void writeSeenHeader(ofstream& fout) const;
 
-    void printSeenLine(
+    void writeSeenLine(
       ofstream& fout,
       const string& text,
       const Entry& e) const;
 
-    void printSeenTable(ofstream& fout) const;
+    void writeSeenTable(ofstream& fout) const;
 
 
   public:
@@ -97,7 +108,7 @@ class PeakStats
       const unsigned trueLen,
       const PeakTrueType ttype);
 
-    void print(const string& fname) const;
+    void write(const string& fname) const;
 
 };
 

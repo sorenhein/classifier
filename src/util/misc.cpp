@@ -1,3 +1,7 @@
+#include <iostream>
+#include <iomanip>
+#include <sstream>
+
 #include "misc.h"
 
 
@@ -33,5 +37,22 @@ float ratioCappedFloat(
     return invMax;
   else
     return f;
+}
+
+
+string percent(
+  const unsigned num,
+  const unsigned denom,
+  const unsigned decimals)
+{
+  stringstream ss;
+
+  if (denom == 0 || num == 0)
+    ss << "-";
+  else
+    ss << fixed << setprecision(decimals) <<
+      100. * num / static_cast<double>(denom) << "%";
+
+  return ss.str();
 }
 

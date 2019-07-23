@@ -14,4 +14,9 @@ float ratioCappedFloat(
   const float denom,
   const float rMax);
 
+string percent(
+  const unsigned num,
+  const unsigned denom,
+  const unsigned decimals);
+
 #endif

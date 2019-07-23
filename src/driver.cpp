@@ -191,7 +191,7 @@ if (trainDetected != trainTrue)
 
   sensorStats.write("sensorstats.txt", "Sensor");
   trainStats.write("trainstats.txt", "Train");
-  peakStats.print("peakstats.txt");
+  peakStats.write("peakstats.txt");
 
   cout << timers.str(2) << endl;
 }
