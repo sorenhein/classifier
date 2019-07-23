@@ -2,10 +2,14 @@
 #include <iomanip>
 #include <fstream>
 #include <sstream>
+#include <mutex>
+#include <cassert>
 
 #include "PeakStats.h"
 
 #include "util/misc.h"
+
+mutex mtxPeakStats;
 
 
 PeakStats::PeakStats()
@@ -60,14 +64,20 @@ void PeakStats::reset()
 
 void PeakStats::logSeenHit(const PeakSeenType stype)
 {
+  assert(stype < PEAK_SEEN_SIZE);
+  mtxPeakStats.lock();
   statsSeen[stype].good++;
   statsSeen[stype].len++;
+  mtxPeakStats.unlock();
 }
 
 
 void PeakStats::logSeenMiss(const PeakSeenType stype)
 {
+  assert(stype < PEAK_SEEN_SIZE);
+  mtxPeakStats.lock();
   statsSeen[stype].len++;
+  mtxPeakStats.unlock();
 }
 
 
@@ -77,18 +87,24 @@ void PeakStats::logTrueHit(
 {
   if (trueNo < PEAKSTATS_END_COUNT)
   {
+    mtxPeakStats.lock();
     statsTrueFront[trueNo].good++;
     statsTrueFront[trueNo].len++;
+    mtxPeakStats.unlock();
   }
   else if (trueNo + (PEAKSTATS_END_COUNT+1) > trueLen)
   {
+    mtxPeakStats.lock();
     statsTrueBack[trueLen-1-trueNo].good++;
     statsTrueBack[trueLen-1-trueNo].len++;
+    mtxPeakStats.unlock();
   }
   else
   {
+    mtxPeakStats.lock();
     statsTrueCore.good++;
     statsTrueCore.len++;
+    mtxPeakStats.unlock();
   }
 }
 
@@ -100,18 +116,24 @@ void PeakStats::logTrueMiss(
 {
   if (trueNo < PEAKSTATS_END_COUNT)
   {
+    mtxPeakStats.lock();
     statsTrueFront[trueNo].len++;
     missedTrueFront[trueNo][ttype]++;
+    mtxPeakStats.unlock();
   }
   else if (trueNo + (PEAKSTATS_END_COUNT+1) > trueLen)
   {
+    mtxPeakStats.lock();
     statsTrueBack[trueLen-1-trueNo].len++;
     missedTrueBack[trueLen-1-trueNo][ttype]++;
+    mtxPeakStats.unlock();
   }
   else
   {
+    mtxPeakStats.lock();
     statsTrueCore.len++;
     missedTrueCore[ttype]++;
+    mtxPeakStats.unlock();
   }
 }
 

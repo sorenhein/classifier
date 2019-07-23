@@ -10,7 +10,7 @@
 
 #define BUCKETS 4u
 
-mutex mtx;
+mutex mtxCompStats;
 
 
 CompStats::CompStats()
@@ -28,7 +28,7 @@ void CompStats::log(
   const unsigned rank,
   const double residuals)
 {
-  mtx.lock();
+  mtxCompStats.lock();
   auto it = stats.find(key);
   if (it == stats.end())
     stats[key].resize(BUCKETS);
@@ -37,7 +37,7 @@ void CompStats::log(
   vector<Entry>& v = stats[key];
   v[r].no++;
   v[r].sum += residuals;
-  mtx.unlock();
+  mtxCompStats.unlock();
 }
 
 
