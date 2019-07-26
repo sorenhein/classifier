@@ -2,15 +2,8 @@ pickAny into setup
 
 traceDB: instead of vector<string> returning string:
 
-
 Multi-threading
 ---------------
-Need a scheduler
-* pickFileString
-* pickTrainString (dynamically)
-
-Need a function that gets names from scheduler and is autonomous
-
 Need vector of ofstreams in control2
 * Names are sensor00_0.txt etc.
 * Locations are in output

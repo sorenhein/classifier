@@ -1,25 +1,22 @@
 #include <iostream>
-#include <iomanip>
-#include <string>
 #include <limits>
-
-#include "setup.h"
-#include "run.h"
-#include "Trace.h"
 
 #include "database/TraceDB.h"
 #include "database/TrainDB.h"
 #include "database/Control.h"
 
-#include "Regress.h"
-#include "Align.h"
-#include "Except.h"
-#include "geometry.h"
-#include "print.h"
-
 #include "stats/CompStats.h"
 #include "stats/PeakStats.h"
 #include "stats/Timers.h"
+
+#include "Trace.h"
+#include "Regress.h"
+#include "Align.h"
+#include "Except.h"
+
+#include "geometry.h"
+#include "run.h"
+
 
 using namespace std;
 
