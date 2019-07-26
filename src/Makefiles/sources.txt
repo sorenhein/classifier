@@ -27,6 +27,7 @@ SOURCE_FILES    =                       \
                 Trace.cpp               \
                 geometry.cpp            \
                 print.cpp               \
+                run.cpp                 \
                 setup.cpp               \
                 write.cpp               \
                 driver.cpp              \

@@ -8,7 +8,7 @@
 
 #include "database/SensorDB.h"
 #include "database/CarDB.h"
-#include "database/CorrectionDB.h"
+// #include "database/CorrectionDB.h"
 #include "database/TrainDB.h"
 #include "database/TraceDB.h"
 #include "database/Control.h"
@@ -16,8 +16,9 @@
 #include "Regress.h"
 #include "Align.h"
 #include "Except.h"
-#include "geometry.h"
-#include "print.h"
+// #include "geometry.h"
+// #include "print.h"
+#include "run.h"
 
 #include "stats/CompStats.h"
 #include "stats/PeakStats.h"
@@ -31,6 +32,7 @@ Log logger;
 Timers timers;
 
 
+/*
 void run(
   const Control& control,
   const SensorDB& sensorDB,
@@ -44,6 +46,7 @@ unsigned lookupMatchRank(
   const TrainDB& trainDB,
   const vector<Alignment>& matches,
   const string& tag);
+  */
 
 
 int main(int argc, char * argv[])
@@ -63,6 +66,9 @@ int main(int argc, char * argv[])
     traceData.countrySensor = sensorDB.country(traceData.sensor);
     traceData.trainNoTrue = trainDB.lookupNumber(traceData.trainTrue);
 
+    run(control, trainDB, traceData, sensorStats, trainStats, peakStats);
+
+    /*
     Imperfections imperf;
     Align align;
     Regress regress;
@@ -163,6 +169,7 @@ if (trainDetected != traceData.trainTrue)
     {
       cout << "Unknown exception" << endl;
     }
+    */
   }
 
   sensorStats.write("sensorstats.txt", "Sensor");
@@ -173,6 +180,7 @@ if (trainDetected != traceData.trainTrue)
 }
 
 
+/*
 unsigned lookupMatchRank(
   const TrainDB& trainDB,
   const vector<Alignment>& matches,
@@ -187,3 +195,4 @@ unsigned lookupMatchRank(
   return numeric_limits<unsigned>::max();
 }
 
+*/
