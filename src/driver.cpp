@@ -12,6 +12,9 @@
 #include "setup.h"
 #include "run.h"
 
+CompStats sensorStats;
+CompStats trainStats;
+PeakStats peakStats;
 Timers timers;
 
 
@@ -23,16 +26,14 @@ int main(int argc, char * argv[])
   TraceDB traceDB;
   setup(argc, argv, control, sensorDB, trainDB, traceDB);
 
-  CompStats sensorStats, trainStats;
-  PeakStats peakStats;
-  
   TraceData traceData;
   while (traceDB.next(traceData))
   {
     traceData.countrySensor = sensorDB.country(traceData.sensor);
     traceData.trainNoTrue = trainDB.lookupNumber(traceData.trainTrue);
 
-    run(control, trainDB, traceData, sensorStats, trainStats, peakStats);
+    const unsigned thid = 0;
+    run(control, trainDB, traceData, thid);
 
   }
 

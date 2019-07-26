@@ -23,15 +23,14 @@
 
 using namespace std;
 
+#define UNUSED(x) ((void)(true ? 0 : ((x), void(), 0)))
+
+
+extern CompStats sensorStats;
+extern CompStats trainStats;
+extern PeakStats peakStats;
 extern Timers timers;
 
-
-void run(
-  const Control& control,
-  const TrainDB& trainDB,
-  CompStats& sensorStats,
-  CompStats& trainStats,
-  PeakStats& peakStats);
 
 unsigned lookupMatchRank(
   const TrainDB& trainDB,
@@ -43,10 +42,10 @@ void run(
   const Control& control,
   const TrainDB& trainDB,
   const TraceData& traceData,
-  CompStats& sensorStats,
-  CompStats& trainStats,
-  PeakStats& peakStats)
+  const unsigned thid)
 {
+  UNUSED(thid);
+
   Imperfections imperf;
   Align align;
   Regress regress;
