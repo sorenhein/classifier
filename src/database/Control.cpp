@@ -232,79 +232,79 @@ const string& Control::statsFile() const
 
 bool Control::writeTransient() const
 {
-  return entry.getIntVector(CTRL_WRITE)[CTRL_WRITE_TRANSIENT];
+  return (entry.getIntVector(CTRL_WRITE)[CTRL_WRITE_TRANSIENT] != 0);
 }
 
 
 bool Control::writeBack() const
 {
-  return entry.getIntVector(CTRL_WRITE)[CTRL_WRITE_BACK];
+  return (entry.getIntVector(CTRL_WRITE)[CTRL_WRITE_BACK] != 0);
 }
 
 
 bool Control::writeFront() const
 {
-  return entry.getIntVector(CTRL_WRITE)[CTRL_WRITE_FRONT];
+  return (entry.getIntVector(CTRL_WRITE)[CTRL_WRITE_FRONT] != 0);
 }
 
 
 bool Control::writeSpeed() const
 {
-  return entry.getIntVector(CTRL_WRITE)[CTRL_WRITE_SPEED];
+  return (entry.getIntVector(CTRL_WRITE)[CTRL_WRITE_SPEED] != 0);
 }
 
 
 bool Control::writePos() const
 {
-  return entry.getIntVector(CTRL_WRITE)[CTRL_WRITE_POS];
+  return (entry.getIntVector(CTRL_WRITE)[CTRL_WRITE_POS] != 0);
 }
 
 
 bool Control::writePeak() const
 {
-  return entry.getIntVector(CTRL_WRITE)[CTRL_WRITE_PEAK];
+  return (entry.getIntVector(CTRL_WRITE)[CTRL_WRITE_PEAK] != 0);
 }
 
 
 bool Control::writeOutline() const
 {
-  return entry.getIntVector(CTRL_WRITE)[CTRL_WRITE_OUTLINE];
+  return (entry.getIntVector(CTRL_WRITE)[CTRL_WRITE_OUTLINE] != 0);
 }
 
 
 bool Control::verboseTransient() const
 {
-  return entry.getIntVector(CTRL_VERBOSE)[CTRL_VERBOSE_TRANSIENT_MATCH];
+  return (entry.getIntVector(CTRL_VERBOSE)[CTRL_VERBOSE_TRANSIENT_MATCH] != 0);
 }
 
 
 bool Control::verboseAlignMatches() const
 {
-  return entry.getIntVector(CTRL_VERBOSE)[CTRL_VERBOSE_ALIGN_MATCHES];
+  return (entry.getIntVector(CTRL_VERBOSE)[CTRL_VERBOSE_ALIGN_MATCHES] != 0);
 }
 
 
 bool Control::verboseAlignPeaks() const
 {
-  return entry.getIntVector(CTRL_VERBOSE)[CTRL_VERBOSE_ALIGN_PEAKS];
+  return (entry.getIntVector(CTRL_VERBOSE)[CTRL_VERBOSE_ALIGN_PEAKS] != 0);
 }
 
 
 bool Control::verboseRegressMatch() const
 {
-  return entry.getIntVector(CTRL_VERBOSE)[CTRL_VERBOSE_REGRESS_MATCH];
+  return (entry.getIntVector(CTRL_VERBOSE)[CTRL_VERBOSE_REGRESS_MATCH] != 0);
 }
 
 
 bool Control::verboseRegressMotion() const
 {
-  return entry.getIntVector(CTRL_VERBOSE)[CTRL_VERBOSE_REGRESS_MOTION];
+  return (entry.getIntVector(CTRL_VERBOSE)[CTRL_VERBOSE_REGRESS_MOTION] != 0);
 }
 
 
 bool Control::verbosePeakReduce() const
 {
-  return entry.getIntVector(CTRL_VERBOSE)[CTRL_VERBOSE_PEAK_REDUCE];
+  return (entry.getIntVector(CTRL_VERBOSE)[CTRL_VERBOSE_PEAK_REDUCE] != 0);
 }
 
 

@@ -36,6 +36,8 @@ void TraceDB::reset()
     TRACE_BOOLS_SIZE,
     TRACE_DOUBLES_SIZE
   };
+
+  currTrace = -1;
 }
 
 
@@ -198,54 +200,31 @@ vector<string>& TraceDB::getFilenames()
 }
 
 
-unsigned TraceDB::traceNumber(const string& fname) const
+bool TraceDB::next(TraceData& traceData)
 {
-  const string basename = parseBasename(fname);
+  // Atomic.
+  int n = ++currTrace;
+cout << "n now " << n << " vs. " << filenames.size() << endl;
+  if (static_cast<unsigned>(n) >= filenames.size())
+    return false;
+
+  const string basename = parseBasename(filenames[n]);
   auto it = traceMap.find(basename);
   assert(it != traceMap.end());
+  const unsigned ng = it->second;
 
-  return it->second;
-}
+  auto& entry = entries[ng];
 
-
-unsigned TraceDB::year(const unsigned traceNo) const
-{
-  assert(traceNo < entries.size());
-  return entries[traceNo].getInt(TRACE_YEAR);
-}
-
-
-double TraceDB::sampleRate(const unsigned traceNo) const
-{
-  assert(traceNo < entries.size());
-  return entries[traceNo].getDouble(TRACE_SAMPLE_RATE);
-}
-
-
-const string& TraceDB::sensor(const unsigned traceNo) const
-{
-  assert(traceNo < entries.size());
-  return entries[traceNo].getString(TRACE_SENSOR);
-}
-
-
-const string& TraceDB::time(const unsigned traceNo) const
-{
-  assert(traceNo < entries.size());
-  return entries[traceNo].getString(TRACE_TIME);
-}
-
-
-const string& TraceDB::train(const unsigned traceNo) const
-{
-  assert(traceNo < entries.size());
-  return entries[traceNo].getString(TRACE_OFFICIAL_NAME);
-}
-
-
-double TraceDB::speed(const unsigned traceNo) const
-{
-  assert(traceNo < entries.size());
-  return entries[traceNo].getDouble(TRACE_SPEED);
+  traceData.filenameFull = filenames[n];
+  traceData.filename = basename;
+  traceData.traceNoGlobal = ng;
+  traceData.traceNoInRun = n;
+  traceData.sensor = entry.getString(TRACE_SENSOR);
+  traceData.time = entry.getString(TRACE_TIME);
+  traceData.trainTrue = entry.getString(TRACE_OFFICIAL_NAME);
+  traceData.speed = entry.getDouble(TRACE_SPEED);
+  traceData.sampleRate = entry.getDouble(TRACE_SAMPLE_RATE);
+  traceData.year = entry.getInt(TRACE_YEAR);
+  return true;
 }
 

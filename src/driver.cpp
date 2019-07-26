@@ -56,9 +56,13 @@ int main(int argc, char * argv[])
 
   CompStats sensorStats, trainStats;
   PeakStats peakStats;
-
-  for (auto& fname: traceDB.getFilenames())
+  
+  TraceData traceData;
+  while (traceDB.next(traceData))
   {
+    traceData.countrySensor = sensorDB.country(traceData.sensor);
+    traceData.trainNoTrue = trainDB.lookupNumber(traceData.trainTrue);
+
     Imperfections imperf;
     Align align;
     Regress regress;
@@ -77,35 +81,27 @@ int main(int argc, char * argv[])
     vector<int> actualToRef;
     unsigned numFrontWheels;
 
-    const unsigned t2no = traceDB.traceNumber(fname);
-    const string sensor = traceDB.sensor(t2no);
-    const string trainTrue = traceDB.train(t2no);
-
-    const string country = sensorDB.country(sensor);
-
     if (! control.pickAny().empty() &&
-        ! nameMatch(trainTrue, control.pickAny()))
+        ! nameMatch(traceData.trainTrue, control.pickAny()))
       continue;
 
-    cout << "File " << fname << ":\n\n";
+    cout << "File " << traceData.filename << ":\n\n";
 
-    // This is only used for diagnostics in trace.
-    const double speedTrue = traceDB.speed(t2no);
-    const int trainNoTrue = trainDB.lookupNumber(trainTrue);
     vector<double> posTrue;
       
     try
     {
-      if (trainNoTrue == -1)
+      if (traceData.trainNoTrue == -1)
         THROW(ERR_NO_PEAKS, "True train not known");
 
-      trainDB.getPeakPositions(static_cast<unsigned>(trainNoTrue), posTrue);
+      trainDB.getPeakPositions(traceData.trainNoTrue, posTrue);
 
       // Refuse trace if sample rate is not 2000, maybe in SegActive
 
-      trace.read(fname);
-      trace.detect(control, traceDB.sampleRate(t2no), imperf);
-      trace.logPeakStats(posTrue, trainTrue, speedTrue, peakStats);
+      trace.read(traceData.filenameFull);
+      trace.detect(control, traceData.sampleRate, imperf);
+      trace.logPeakStats(posTrue, traceData.trainTrue, 
+        traceData.speed, peakStats);
       trace.write(control);
 
       bool fullTrainFlag;
@@ -126,12 +122,12 @@ int main(int argc, char * argv[])
         numFrontWheels = 4 - imperf.numSkipsOfSeen;
 
       align.bestMatches(times, actualToRef, numFrontWheels, fullTrainFlag,
-        imperf, trainDB, country, 10, control, matchesAlign);
+        imperf, trainDB, traceData.countrySensor, 10, control, matchesAlign);
 
       if (matchesAlign.size() == 0)
       {
-        sensorStats.log(sensor, 10, 1000.);
-        trainStats.log(trainTrue, 10, 1000.);
+        sensorStats.log(traceData.sensor, 10, 1000.);
+        trainStats.log(traceData.trainTrue, 10, 1000.);
         continue;
       }
 
@@ -140,28 +136,28 @@ int main(int argc, char * argv[])
 
       if (! control.pickAny().empty())
       {
-        const string s = sensor + "/" + traceDB.time(t2no);
-        dumpResiduals(times, trainDB, order, matchesAlign, s, trainTrue, 
-          control.pickAny(), 
-          trainDB.numAxles(static_cast<unsigned>(trainNoTrue)));
+        const string s = traceData.sensor + "/" + traceData.time;
+        dumpResiduals(times, trainDB, order, matchesAlign, s, 
+          traceData.trainTrue, control.pickAny(), 
+          trainDB.numAxles(traceData.trainNoTrue));
       }
 
       const string trainDetected = trainDB.lookupName(bestAlign.trainNo);
       const unsigned rank = lookupMatchRank(trainDB, matchesAlign, 
-        trainTrue);
+        traceData.trainTrue);
 
-      sensorStats.log(sensor, rank, bestAlign.distMatch);
-      trainStats.log(trainTrue, rank, bestAlign.distMatch);
+      sensorStats.log(traceData.sensor, rank, bestAlign.distMatch);
+      trainStats.log(traceData.trainTrue, rank, bestAlign.distMatch);
 
-if (trainDetected != trainTrue)
+if (trainDetected != traceData.trainTrue)
   cout << "DRIVER MISMATCH\n";
 
     }
     catch (Except& ex)
     {
       ex.print(cout);
-      sensorStats.log(sensor, 10, 1000.);
-      trainStats.log(trainTrue, 10, 1000.);
+      sensorStats.log(traceData.sensor, 10, 1000.);
+      trainStats.log(traceData.trainTrue, 10, 1000.);
     }
     catch(...)
     {

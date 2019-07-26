@@ -1,9 +1,9 @@
 #ifndef TRAIN_TRACEDB_H
 #define TRAIN_TRACEDB_H
-// Fix guard name
 
 #include <vector>
 #include <map>
+#include <atomic>
 
 #include "Entity.h"
 
@@ -60,6 +60,22 @@ enum TraceFieldDoubles
   TRACE_DOUBLES_SIZE = 4
 };
 
+struct TraceData
+{
+  string filenameFull;
+  string filename;
+  unsigned traceNoGlobal;
+  unsigned traceNoInRun;
+  string sensor;
+  string time;
+  string countrySensor; // Needs sensorDB, so set externally
+  string trainTrue;
+  unsigned trainNoTrue; // Needs trainDB, so set externally
+  double speed; 
+  double sampleRate;
+  unsigned year;
+};
+
 
 class TraceDB
 {
@@ -72,6 +88,8 @@ class TraceDB
     map<string, unsigned> traceMap;
 
     vector<string> filenames;
+
+    atomic<int> currTrace;
 
 
     bool deriveOrigin(
@@ -101,15 +119,7 @@ class TraceDB
 
     vector<string>& getFilenames();
 
-    unsigned traceNumber(const string& fname) const;
-
-    unsigned year(const unsigned traceNo) const;
-    double sampleRate(const unsigned traceNo) const;
-    const string& sensor(const unsigned traceNo) const;
-    const string& time(const unsigned traceNo) const;
-    const string& train(const unsigned traceNo) const;
-    double speed(const unsigned traceNo) const;
-
+    bool next(TraceData& traceData);
 };
 
 #endif

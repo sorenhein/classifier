@@ -1,20 +1,6 @@
 pickAny into setup
 
 traceDB: instead of vector<string> returning string:
-struct TraceData
-{
-  string filenameFull;
-  string filename;
-  unsigned traceNoGlobal;
-  unsigned traceNoInRun;
-  string sensor;
-  string countrySensor; // Needs sensorDB
-  string trainTrue; // Needs trainDB
-  unsigned trainNoTrue;
-  double sampleRate;
-  unsigned year;
-
-};
 
 
 Multi-threading
