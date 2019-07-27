@@ -6,7 +6,8 @@
 
 #include "SegTransient.h"
 #include "Trace.h"
-#include "write.h"
+
+#include "util/io.h"
 
 
 // Current working definition of a transient:

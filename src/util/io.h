@@ -16,4 +16,9 @@ bool readBinaryTrace(
   const string& filename,
   vector<float>& samples);
 
+void writeBinary(
+  const string& filename,
+  const unsigned offset,
+  const vector<float>& sequence);
+
 #endif

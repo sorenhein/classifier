@@ -5,11 +5,12 @@
 #include <math.h>
 
 #include "SegActive.h"
-#include "write.h"
 #include "const.h"
 #include "Except.h"
 
 #include "database/Control.h"
+
+#include "util/io.h"
 
 #include "stats/Timers.h"
 

@@ -29,7 +29,6 @@ SOURCE_FILES    =                       \
                 print.cpp               \
                 run.cpp                 \
                 setup.cpp               \
-                write.cpp               \
                 driver.cpp              \
                 regress/PolynomialRegression.cpp \
                 completions/Completion.cpp  \

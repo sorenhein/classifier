@@ -6,7 +6,8 @@
 #include <math.h>
 
 #include "SegQuiet.h"
-#include "write.h"
+
+#include "util/io.h"
 
 #define SAMPLE_RATE 2000.
 
