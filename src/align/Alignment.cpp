@@ -54,3 +54,41 @@ bool Alignment::operator < (const Alignment& a2) const
   return (dist < a2.dist);
 }
 
+
+string Alignment::str() const
+{
+  stringstream ss;
+  ss << 
+    setw(24) << left << trainName <<
+    setw(10) << right << fixed << setprecision(2) << dist <<
+    setw(10) << right << fixed << setprecision(2) << distMatch <<
+    setw(8) << numAdd <<
+    setw(8) << numDelete << endl;
+  return ss.str();
+}
+
+
+string Alignment::strTopResiduals() const
+{
+  if (topResiduals.empty())
+    return "";
+
+  stringstream ss;
+  ss << "Top residuals\n";
+  ss << 
+    setw(6) << "index" <<
+    setw(8) << "value" <<
+    setw(8) << "valSq" <<
+    setw(8) << "frac" << "\n";
+
+  for (auto& r: topResiduals)
+  {
+    ss << 
+      setw(6) << r.index <<
+      setw(8) << fixed << setprecision(2) << r.value <<
+      setw(8) << fixed << setprecision(2) << r.valueSq <<
+      setw(7) << fixed << setprecision(2) << 100. * r.frac << "%\n";
+  }
+  return ss.str() + "\n";
+}
+

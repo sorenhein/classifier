@@ -82,6 +82,7 @@ void printCorrelation(
 }
 
 
+/*
 void printAlignment(
   const Alignment& match,
   const string& trainName)
@@ -92,6 +93,7 @@ void printAlignment(
     setw(8) << match.numAdd <<
     setw(8) << match.numDelete << endl;
 }
+*/
 
 
 void printMotion(const vector<double>& motionEstimate)
@@ -113,16 +115,16 @@ void printMotion(const vector<double>& motionEstimate)
 
 
 void printMatches(
-  const TrainDB& trainDB,
   const vector<Alignment>& matches)
 {
   cout << "Matching alignment\n";
   for (auto& match: matches)
-    printAlignment(match, trainDB.lookupName(match.trainNo));
+    cout << match.str();
   cout << "\n";
 }
 
 
+/*
 void printTopResiduals(const Alignment& match)
 {
   if (match.topResiduals.empty())
@@ -144,4 +146,5 @@ void printTopResiduals(const Alignment& match)
   }
   cout << endl;
 }
+*/
 

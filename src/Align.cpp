@@ -763,6 +763,7 @@ void Align::bestMatches(
 
     matches.push_back(Alignment());
     matches.back().trainNo = refTrainNoU;
+    matches.back().trainName = refTrain;
     Align::NeedlemanWunsch(refPeaks, scaledPeaks, peakScale, 
       imperf, shift, matches.back());
   }
@@ -775,7 +776,8 @@ void Align::bestMatches(
   timers.stop(TIMER_ALIGN);
 
   if (control.verboseAlignMatches())
-    printMatches(trainDB, matches);
+    // printMatches(trainDB, matches);
+    printMatches(matches);
 }
 
 

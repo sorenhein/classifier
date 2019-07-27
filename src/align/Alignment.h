@@ -2,6 +2,7 @@
 #define TRAIN_ALIGNMENT_H
 
 #include <vector>
+#include <string>
 
 using namespace std;
 
@@ -22,6 +23,7 @@ struct RegrEntry
 
 struct Alignment
 {
+  string trainName;
   unsigned trainNo;
 
   double dist;
@@ -42,6 +44,10 @@ struct Alignment
   void reset();
 
   bool operator < (const Alignment& a2) const;
+
+  string str() const;
+
+  string strTopResiduals() const;
 };
 
 #endif

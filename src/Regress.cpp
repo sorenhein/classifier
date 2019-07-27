@@ -222,12 +222,14 @@ void Regress::bestMatch(
   sort(matches.begin(), matches.end());
   bestAlign = matches.front();
 
-printMatches(trainDB, matches);
+// printMatches(trainDB, matches);
+printMatches(matches);
 
   if (control.verboseRegressMatch())
   {
     cout << "Regression alignment\n";
-    printAlignment(bestAlign, trainDB.lookupName(bestAlign.trainNo));
+    // printAlignment(bestAlign, trainDB.lookupName(bestAlign.trainNo));
+    cout << bestAlign.str();
     cout << endl;
   }
 
@@ -237,7 +239,8 @@ printMatches(trainDB, matches);
     printMotion(motionEstimate);
   }
 
-printTopResiduals(bestAlign);
+cout << bestAlign.strTopResiduals();
+// printTopResiduals(bestAlign);
 
 }
 
