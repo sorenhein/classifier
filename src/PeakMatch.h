@@ -38,31 +38,31 @@ class PeakMatch
     void pos2time(
       const vector<double>& posTrue,
       const double speed,
-      vector<PeakTime>& timesTrue) const;
+      vector<double>& timesTrue) const;
 
     bool advance(list<PeakWrapper>::iterator& peak) const;
 
     double simpleScore(
-      const vector<PeakTime>& timesTrue,
+      const vector<double>& timesTrue,
       const double offsetScore,
       const bool logFlag,
       double& shift);
 
     void setOffsets(
       const PeakPool& peaks,
-      const vector<PeakTime>& timesTrue,
+      const vector<double>& timesTrue,
       vector<double>& offsetList) const;
 
     bool findMatch(
       const PeakPool& peaks,
-      const vector<PeakTime>& timesTrue,
+      const vector<double>& timesTrue,
       double& shift);
 
-    void correctTimesTrue(vector<PeakTime>& timesTrue) const;
+    void correctTimesTrue(vector<double>& timesTrue) const;
 
     void printPeaks(
       const PeakPool& peaks,
-      const vector<PeakTime>& timesTrue) const;
+      const vector<double>& timesTrue) const;
 
   public:
 

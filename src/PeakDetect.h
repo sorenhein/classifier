@@ -64,7 +64,7 @@ class PeakDetect
       Peak const * pptr,
       const float tOffset,
       int& pnoNext,
-      vector<PeakTime>& times,
+      vector<double>& times,
       vector<int>& actualToRef) const;
 
     void printPeak(
@@ -97,15 +97,15 @@ class PeakDetect
     void makeSynthPeaks(vector<float>& synthPeaks) const;
 
     bool getAlignment(
-      vector<PeakTime>& times,
+      vector<double>& times,
       vector<int>& actualToRef,
       unsigned& numFrontWheels);
 
     void getPeakTimes(
-      vector<PeakTime>& times,
+      vector<double>& times,
       unsigned& numFrontWheels) const;
 
-    void printPeaksCSV(const vector<PeakTime>& timesTrue) const;
+    void printPeaksCSV(const vector<double>& timesTrue) const;
 
     // TMP
     string deleteStr(Peak const * p1, Peak const * p2) const;

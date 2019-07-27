@@ -28,7 +28,7 @@ void printPeakPosCSV(
   const int level);
 
 void printPeakTimeCSV(
-  const vector<PeakTime>& peaks,
+  const vector<double>& peaks,
   const int level);
 
 #endif

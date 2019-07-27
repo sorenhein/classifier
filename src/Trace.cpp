@@ -159,7 +159,7 @@ void Trace::logPeakStats(
 
 
 bool Trace::getAlignment(
-  vector<PeakTime>& times,
+  vector<double>& times,
   vector<int>& actualToRef,
   unsigned& numFrontWheels)
 {
@@ -168,7 +168,7 @@ bool Trace::getAlignment(
 
 
 void Trace::getTrace(
-  vector<PeakTime>& times,
+  vector<double>& times,
   unsigned& numFrontWheels) const
 {
   segActive.getPeakTimes(times, numFrontWheels);

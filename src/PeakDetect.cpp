@@ -622,15 +622,16 @@ void PeakDetect::pushPeak(
   Peak const * pptr,
   const float tOffset,
   int& pnoNext,
-  vector<PeakTime>& times,
+  vector<double>& times,
   vector<int>& actualToRef) const
 {
   // TODO times and actualRef should be a struct with this method
   if (pptr)
   {
-    times.emplace_back(PeakTime());
-    PeakTime& p = times.back();
-    p.time = pptr->getIndex() / SAMPLE_RATE - tOffset;
+    // times.emplace_back(PeakTime());
+    // PeakTime& p = times.back();
+    // p.time = pptr->getIndex() / SAMPLE_RATE - tOffset;
+    times.push_back(pptr->getIndex() / SAMPLE_RATE - tOffset);
 
     actualToRef.push_back(pnoNext);
   }
@@ -639,7 +640,7 @@ void PeakDetect::pushPeak(
 
 
 bool PeakDetect::getAlignment(
-  vector<PeakTime>& times,
+  vector<double>& times,
   vector<int>& actualToRef,
   unsigned& numFrontWheels)
 {
@@ -675,7 +676,7 @@ bool PeakDetect::getAlignment(
 
 
 void PeakDetect::getPeakTimes(
-  vector<PeakTime>& times,
+  vector<double>& times,
   unsigned& numFrontWheels) const
 {
   peaks.topConst().getTimes(&Peak::isSelected, times);
@@ -696,12 +697,12 @@ void PeakDetect::printPeak(
 }
 
 
-void PeakDetect::printPeaksCSV(const vector<PeakTime>& timesTrue) const
+void PeakDetect::printPeaksCSV(const vector<double>& timesTrue) const
 {
   cout << "true\n";
   unsigned i = 0;
   for (auto tt: timesTrue)
-    cout << i++ << ";" << fixed << setprecision(6) << tt.time << "\n";
+    cout << i++ << ";" << fixed << setprecision(6) << tt << "\n";
   cout << "\n";
 
   cout << peaks.topConst().strTimesCSV(&Peak::isSelected, "seen");

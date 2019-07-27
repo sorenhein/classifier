@@ -65,7 +65,7 @@ double Regress::residuals(
 
 
 void Regress::specificMatch(
-  const vector<PeakTime>& times,
+  const vector<double>& times,
   const TrainDB& trainDB,
   const Alignment& match,
   vector<double>& coeffs,
@@ -93,7 +93,7 @@ void Regress::specificMatch(
     if (match.actualToRef[i] >= 0)
     {
       y[p] = refPeaks[static_cast<unsigned>(match.actualToRef[i])];
-      x[p] = times[i].time;
+      x[p] = times[i];
       p++;
     }
   }
@@ -108,7 +108,7 @@ void Regress::specificMatch(
 
 
 void Regress::summarizeResiduals(
-  const vector<PeakTime>& times,
+  const vector<double>& times,
   const TrainDB& trainDB,
   const vector<double>& coeffs,
   Alignment& match) const
@@ -127,7 +127,7 @@ void Regress::summarizeResiduals(
     if (match.actualToRef[i] != -1)
     {
       const unsigned refIndex = static_cast<unsigned>(match.actualToRef[i]);
-      const double position = Regress::time2pos(times[i].time, coeffs);
+      const double position = Regress::time2pos(times[i], coeffs);
 
 // cout << refIndex << ";" << refPeaks[refIndex] << ";" << position << "\n";
 
@@ -163,7 +163,7 @@ void Regress::summarizeResiduals(
 
 
 void Regress::bestMatch(
-  const vector<PeakTime>& times,
+  const vector<double>& times,
   const TrainDB& trainDB,
   const Control& control,
   const unsigned thid,

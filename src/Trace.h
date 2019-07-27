@@ -61,12 +61,12 @@ class Trace
       PeakStats& peakStats);
 
     bool getAlignment(
-      vector<PeakTime>& times,
+      vector<double>& times,
       vector<int>& actualToRef,
       unsigned& numFrontWheels);
 
     void getTrace(
-      vector<PeakTime>& times,
+      vector<double>& times,
       unsigned& numFrontWheels) const;
 
     void write(

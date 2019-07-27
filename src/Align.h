@@ -34,23 +34,23 @@ class Align
 
 
     bool countTooDifferent(
-      const vector<PeakTime>& times,
+      const vector<double>& times,
       const unsigned refCount) const;
 
     double interpolateTime(
-      const vector<PeakTime>& times,
+      const vector<double>& times,
       const double index) const;
 
     void estimateAlignedMotion(
       const vector<double>& refPeaks,
-      const vector<PeakTime>& times,
+      const vector<double>& times,
       const vector<int>& actualToRef,
       const int offsetRef,
       Shift& shift) const;
       
     void estimateMotion(
       const vector<double>& refPeaks,
-      const vector<PeakTime>& times,
+      const vector<double>& times,
       Shift& shift) const;
       
     double simpleScore(
@@ -76,7 +76,7 @@ class Align
 
     void scalePeaks(
       const vector<double>& refPeaks,
-      const vector<PeakTime>& times,
+      const vector<double>& times,
       const vector<int>& actualToRef,
       const unsigned numFrontWheels,
       const bool fullTrainFlag,
@@ -93,7 +93,7 @@ class Align
 
     void printAlignPeaks(
       const string& refTrain,
-      const vector<PeakTime>& times,
+      const vector<double>& times,
       const vector<double>& refPeaks,
       const vector<double>& scaledPeaks) const;
 
@@ -105,7 +105,7 @@ class Align
     ~Align();
 
     void bestMatches(
-      const vector<PeakTime>& times,
+      const vector<double>& times,
       const vector<int>& actualToRef,
       const unsigned numFrontWheels,
       const bool fullTrainFlag,

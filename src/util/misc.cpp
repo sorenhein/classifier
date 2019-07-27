@@ -71,12 +71,12 @@ void printPeakPosCSV(
 
 
 void printPeakTimeCSV(
-  const vector<PeakTime>& peaks,
+  const vector<double>& peaks,
   const int level)
 {
   for (unsigned i = 0; i < peaks.size(); i++)
     cout << fixed << setprecision(4) <<
-      peaks[i].time << SEPARATOR << level << endl;
+      peaks[i] << SEPARATOR << level << endl;
   cout << endl;
 }
 

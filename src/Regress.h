@@ -28,7 +28,7 @@ class Regress
       const vector<double>& coeffs) const;
 
     void summarizeResiduals(
-      const vector<PeakTime>& times,
+      const vector<double>& times,
       const TrainDB& trainDB,
       const vector<double>& coeffs,
       Alignment& match) const;
@@ -41,14 +41,14 @@ class Regress
     ~Regress();
 
     void specificMatch(
-      const vector<PeakTime>& times,
+      const vector<double>& times,
       const TrainDB& trainDB,
       const Alignment& match,
       vector<double>& coeffs,
       double& residuals) const;
 
     void bestMatch(
-      const vector<PeakTime>& times,
+      const vector<double>& times,
       const TrainDB& trainDB,
       const Control& control,
       const unsigned thid,

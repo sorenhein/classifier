@@ -6,12 +6,6 @@
 using namespace std;
 
 
-struct PeakTime
-{
-  double time; // In s
-  double value;
-};
-
 enum QuietGrade
 {
   GRADE_GREEN = 0,

@@ -47,13 +47,10 @@ void PeakMatch::reset()
 void PeakMatch::pos2time(
   const vector<double>& posTrue, 
   const double speed,
-  vector<PeakTime>& timesTrue) const
+  vector<double>& timesTrue) const
 {
   for (unsigned i = 0; i < posTrue.size(); i++)
-  {
-    timesTrue[i].time = posTrue[i] / speed;
-    timesTrue[i].value = 1.;
-  }
+    timesTrue[i] = posTrue[i] / speed;
 }
 
 
@@ -66,7 +63,7 @@ bool PeakMatch::advance(list<PeakWrapper>::iterator& peak) const
 
 
 double PeakMatch::simpleScore(
-  const vector<PeakTime>& timesTrue,
+  const vector<double>& timesTrue,
   const double offsetScore,
   const bool logFlag,
   double& shift)
@@ -89,7 +86,7 @@ double PeakMatch::simpleScore(
 
   for (unsigned tno = 0; tno < timesTrue.size(); tno++)
   {
-    const double timeTrue = timesTrue[tno].time;
+    const double timeTrue = timesTrue[tno];
     double timeSeen = (peak == peaksWrapped.end() ?
       peakPrev->peakPtr->getTime() :
       peak->peakPtr->getTime()) - offsetScore;
@@ -175,7 +172,7 @@ double PeakMatch::simpleScore(
 
 void PeakMatch::setOffsets(
   const PeakPool& peaks,
-  const vector<PeakTime>& timesTrue,
+  const vector<double>& timesTrue,
   vector<double>& offsetList) const
 {
   const unsigned lp = peaks.topConst().size();
@@ -197,7 +194,7 @@ void PeakMatch::setOffsets(
     }
     while (peak != peaks.topConst().cbegin() && ! peak->isSelected());
 
-    offsetList[i] = peak->getTime() - timesTrue[lt-1].time;
+    offsetList[i] = peak->getTime() - timesTrue[lt-1];
   }
 
   peak = peaks.topConst().cend();
@@ -210,13 +207,13 @@ void PeakMatch::setOffsets(
   const double lastTime = peak->getTime();
 
   for (unsigned i = 1; i <= MAX_SHIFT_TRUE; i++)
-    offsetList[MAX_SHIFT_SEEN+i] = timesTrue[lt-1-i].time - lastTime;
+    offsetList[MAX_SHIFT_SEEN+i] = timesTrue[lt-1-i] - lastTime;
 }
 
 
 bool PeakMatch::findMatch(
   const PeakPool& peaks,
-  const vector<PeakTime>& timesTrue,
+  const vector<double>& timesTrue,
   double& shift)
 {
   vector<double> offsetList;
@@ -250,7 +247,7 @@ cout << "SCORE i " << i << " " << shiftNew << " " << scoreNew << endl;
 }
 
 
-void PeakMatch::correctTimesTrue(vector<PeakTime>& timesTrue) const
+void PeakMatch::correctTimesTrue(vector<double>& timesTrue) const
 {
   const unsigned lt = timesTrue.size();
 
@@ -281,11 +278,11 @@ void PeakMatch::correctTimesTrue(vector<PeakTime>& timesTrue) const
 
   const double factor = 
     (peakLast->getTime() - peakFirst->getTime()) /
-    (timesTrue[lt-1].time - timesTrue[lt-lp].time);
+    (timesTrue[lt-1] - timesTrue[lt-lp]);
 
-  const double base = timesTrue[0].time;
+  const double base = timesTrue[0];
   for (auto& t: timesTrue)
-    t.time = (t.time - base) * factor + base;
+    t = (t - base) * factor + base;
 }
   
 
@@ -303,7 +300,7 @@ void PeakMatch::logPeakStats(
   const unsigned lt = posTrue.size();
 
   // Scale true positions to true times.
-  vector<PeakTime> timesTrue;
+  vector<double> timesTrue;
   timesTrue.resize(lt);
   PeakMatch::pos2time(posTrue, speedTrue, timesTrue);
 
@@ -447,12 +444,12 @@ void PeakMatch::logPeakStats(
 
 void PeakMatch::printPeaks(
   const PeakPool& peaks,
-  const vector<PeakTime>& timesTrue) const
+  const vector<double>& timesTrue) const
 {
   cout << "true\n";
   for (unsigned i = 0; i < timesTrue.size(); i++)
     cout << i << ";" <<
-      fixed << setprecision(6) << timesTrue[i].time << "\n";
+      fixed << setprecision(6) << timesTrue[i] << "\n";
 
   cout << "\n" << peaks.topConst().strTimesCSV(&Peak::isCandidate, "seen");
 }

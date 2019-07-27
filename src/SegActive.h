@@ -71,12 +71,12 @@ class SegActive
       PeakStats& peakStats);
 
     bool getAlignment(
-      vector<PeakTime>& times,
+      vector<double>& times,
       vector<int>& actualToRef,
       unsigned& numFrontWheels);
 
     void getPeakTimes(
-      vector<PeakTime>& times,
+      vector<double>& times,
       unsigned& numFrontWheels) const; 
 
     void writeSpeed(const string& filename) const;

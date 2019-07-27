@@ -470,7 +470,7 @@ float Peaks::getFirstPeakTime(const PeakFncPtr& fptr) const
 
 void Peaks::getTimes(
   const PeakFncPtr& fptr,
-  vector<PeakTime>& times) const
+  vector<double>& times) const
 {
   times.clear();
   const float t0 = Peaks::getFirstPeakTime(fptr);
@@ -479,10 +479,11 @@ void Peaks::getTimes(
   {
     if ((peak.* fptr)())
     {
-      times.emplace_back(PeakTime());
-      PeakTime& p = times.back();
-      p.time = peak.getIndex() / SAMPLE_RATE - t0;
-      p.value = peak.getValue();
+      times.push_back(peak.getIndex() / SAMPLE_RATE - t0);
+      // times.emplace_back(PeakTime());
+      // PeakTime& p = times.back();
+      // p.time = peak.getIndex() / SAMPLE_RATE - t0;
+      // p.value = peak.getValue();
     }
   }
 }

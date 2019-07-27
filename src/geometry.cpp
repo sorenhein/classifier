@@ -19,7 +19,7 @@ bool nameMatch(
 
 
 void dumpResiduals(
-  const vector<PeakTime>& times,
+  const vector<double>& times,
   const TrainDB& trainDB,
   const unsigned order,
   const vector<Alignment>& matches,
@@ -57,7 +57,7 @@ void dumpResiduals(
     vector<double> pos(numWheels, 0.);
     for (unsigned i = 0; i < times.size(); i++)
     {
-      const double t = times[i].time;
+      const double t = times[i];
       const int j = ma.actualToRef[i];
       if (j != -1) 
         pos[static_cast<unsigned>(j)] = 

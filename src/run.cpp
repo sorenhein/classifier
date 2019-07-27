@@ -52,7 +52,7 @@ void run(
   Motion motion;
 
   Trace trace;
-  vector<PeakTime> times;
+  vector<double> times;
   vector<int> actualToRef;
   unsigned numFrontWheels;
 

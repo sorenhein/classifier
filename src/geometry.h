@@ -17,7 +17,7 @@ bool nameMatch(
   const string& searchString);
 
 void dumpResiduals(
-  const vector<PeakTime>& times,
+  const vector<double>& times,
   const TrainDB& trainDB,
   const unsigned order,
   const vector<Alignment>& matches,
