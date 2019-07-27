@@ -1,6 +1,5 @@
 pickAny into setup
 make stats on overall calendar time and speed-up
-make a dead-simple scheduler so traceDB can remain const
 move geometry.cpp somewhere
 output not to cout but to files there
 only output timing to cout

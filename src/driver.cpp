@@ -15,32 +15,35 @@
 #include "run.h"
 
 
-Scheduler scheduler;
+// Can also keep them local and pass them to runThread, but in
+// Visual Studio, for some reason the compiler does not like it
+// if the list of thread arguments becomes too long.
+
+Control control;
+TrainDB trainDB;
 TraceDB traceDB;
 
 CompStats sensorStats;
 CompStats trainStats;
 PeakStats peakStats;
+
+Scheduler scheduler;
+
 Timers timers;
 
 
 void runThread(
-  const Control& control,
-  const TrainDB& trainDB,
   unsigned thid);
 
 
 int main(int argc, char * argv[])
 {
-  Control control;
-  TrainDB trainDB;
-  // TraceDB traceDB;
   setup(argc, argv, control, trainDB, traceDB);
 
   vector<thread *> threads;
   threads.resize(control.numThreads());
   for (unsigned thid = 0; thid < control.numThreads(); thid++)
-    threads[thid] = new thread(&runThread, control, trainDB, thid);
+    threads[thid] = new thread(&runThread, thid);
 
   for (unsigned thid = 0; thid < control.numThreads(); thid++)
   {
@@ -57,10 +60,7 @@ int main(int argc, char * argv[])
 }
 
 
-void runThread(
-  const Control& control,
-  const TrainDB& trainDB,
-  unsigned thid)
+void runThread(unsigned thid)
 {
   TraceData traceData;
   scheduler.setMax(traceDB.numActive());

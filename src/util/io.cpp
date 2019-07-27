@@ -40,7 +40,6 @@ bool getFilenames(
     const auto& path = entry.path();
 
     string name = path.string();
-    // replace(name.begin(), name.end(), '\\', '/');
     string::size_type n = 0;
     while ((n = name.find("\\", n)) != string::npos)
       name.replace(n, 1, "/");
