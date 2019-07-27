@@ -46,7 +46,6 @@ void run(
   Align align;
   Regress regress;
 
-  vector<PeakPos> perfectPositions;
   vector<Alignment> matchesAlign;
   Alignment bestAlign;
   

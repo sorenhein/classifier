@@ -1,12 +1,14 @@
+rip out transient into a directory
 get rid of Imperf
+global array out output files, indexed by thid
+
+tabulate files.xlsx
 output not to cout but to files there
 only output timing to cout
 reover.pl to summarize from there instead
 delete directory contents every time before running
 summarize.pl to reorder by file number to have same order always
 outputs to be systematically controlled by flags
-rip out transient into a directory
-global array out output files, indexed by thid
 
 Multi-threading
 ---------------
@@ -17,11 +19,6 @@ Need vector of ofstreams in control2
 Need scripts that are 
 * Executable
 * Not in src (change path)
-
-Directories
------------
-transient, split out from trace
-
 
 cout more localized, not in parse.cpp but in the callers
 

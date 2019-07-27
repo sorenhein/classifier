@@ -6,12 +6,6 @@
 using namespace std;
 
 
-struct PeakPos
-{
-  double pos; // In m
-  double value;
-};
-
 struct PeakTime
 {
   double time; // In s
@@ -53,28 +47,6 @@ struct Interval
   unsigned len;
   QuietGrade grade;
   double mean;
-};
-
-enum PeakParam
-{
-  PEAK_PARAM_AREA = 0,
-  PEAK_PARAM_RANGE = 1,
-  PEAK_PARAM_SIZE = 2
-};
-
-enum WheelType
-{
-  WHEEL_LEFT = 0,
-  WHEEL_RIGHT = 1,
-  WHEEL_ONLY = 2,
-  WHEEL_SIZE = 3
-};
-
-enum BogieType
-{
-  BOGIE_LEFT = 0,
-  BOGIE_RIGHT = 1,
-  BOGIE_SIZE = 2
 };
 
 struct RecogEntry
