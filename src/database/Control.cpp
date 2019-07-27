@@ -24,6 +24,7 @@ void Control::reset()
 {
   fields.clear();
   fieldCounts.clear();
+  completions.clear();
 
   Control::configure();
 }
@@ -44,8 +45,25 @@ void Control::configure()
     { "SENSOR_FILE", CORRESPONDENCE_STRING, CTRL_SENSOR_FILE },
     // Example: DEU
     { "COUNTRY", CORRESPONDENCE_STRING, CTRL_SENSOR_COUNTRY },
-    // Example: ../../../mini_dataset_v012/data/sensors/062493/raw
-    { "TRACE_DIRECTORY", CORRESPONDENCE_STRING, CTRL_TRACE_DIRECTORY },
+
+    // Example: ../../../mini_dataset_v012/data/sensors/062493
+    { "BASE_DIRECTORY", CORRESPONDENCE_STRING, CTRL_BASE_DIRECTORY },
+    // Example: raw
+    { "TRACE_SUBDIR", CORRESPONDENCE_STRING, CTRL_TRACE_SUBDIR },
+    // Example: transient
+    { "TRANSIENT_SUBDIR", CORRESPONDENCE_STRING, CTRL_TRANSIENT_SUBDIR },
+    // Example: back
+    { "BACK_SUBDIR", CORRESPONDENCE_STRING, CTRL_BACK_SUBDIR },
+    // Example: front
+    { "FRONT_SUBDIR", CORRESPONDENCE_STRING, CTRL_FRONT_SUBDIR },
+    // Example: speed
+    { "SPEED_SUBDIR", CORRESPONDENCE_STRING, CTRL_SPEED_SUBDIR },
+    // Example: pos
+    { "POS_SUBDIR", CORRESPONDENCE_STRING, CTRL_POS_SUBDIR },
+    // Example: peak
+    { "PEAK_SUBDIR", CORRESPONDENCE_STRING, CTRL_PEAK_SUBDIR },
+
+    { "TRACE_SUBDIR", CORRESPONDENCE_STRING, CTRL_PEAK_SUBDIR },
     // Example: ../../../mini_dataset_v012/labels.csv
     { "TRUTH_FILE", CORRESPONDENCE_STRING, CTRL_TRUTH_FILE },
     // Example: output/overview.txt
@@ -60,9 +78,30 @@ void Control::configure()
     0,
     0,
     CTRL_INT_VECTORS_SIZE,
-    0,
+    CTRL_INTS_SIZE,
     CTRL_BOOLS_SIZE,
     0
+  };
+
+  completions =
+  {
+    { CTRL_WRITE_TRANSIENT, CTRL_BASE_DIRECTORY, 
+      CTRL_TRANSIENT_SUBDIR, CTRL_TRANSIENT_DIRECTORY },
+
+    { CTRL_WRITE_BACK, CTRL_BASE_DIRECTORY, 
+      CTRL_BACK_SUBDIR, CTRL_BACK_DIRECTORY },
+
+    { CTRL_WRITE_FRONT, CTRL_BASE_DIRECTORY, 
+      CTRL_FRONT_SUBDIR, CTRL_FRONT_DIRECTORY },
+
+    { CTRL_WRITE_SPEED, CTRL_BASE_DIRECTORY, 
+      CTRL_SPEED_SUBDIR, CTRL_SPEED_DIRECTORY },
+
+    { CTRL_WRITE_POS, CTRL_BASE_DIRECTORY, 
+      CTRL_POS_SUBDIR, CTRL_POS_DIRECTORY },
+
+    { CTRL_WRITE_PEAK, CTRL_BASE_DIRECTORY, 
+      CTRL_PEAK_SUBDIR, CTRL_PEAK_DIRECTORY }
   };
 
   commands =
@@ -78,6 +117,8 @@ void Control::configure()
       "Stats output file." },
     { "-a", "--append", CORRESPONDENCE_BOOL, CTRL_APPEND, "no",
       "If present, stats file is not rewritten." },
+    { "-t", "--threads", CORRESPONDENCE_INT, CTRL_THREADS, "1",
+      "Number of threads (default: 1)." },
     { "-w", "--writing", CORRESPONDENCE_BIT_VECTOR, CTRL_WRITE, "0x20",
       "Binary output files (default: 0x20).  Bits:\n"
       "0x01: transient\n" 
@@ -149,11 +190,27 @@ bool Control::parseCommandLine(
 }
 
 
+void Control::complete()
+{
+  entry.setString(CTRL_TRACE_DIRECTORY,
+    entry.getString(CTRL_BASE_DIRECTORY) + "/" +
+    entry.getString(CTRL_TRACE_SUBDIR));
+
+  for (auto& comp: completions)
+  {
+    if (entry.getIntVector(CTRL_WRITE)[comp.flag])
+      entry.setString(comp.result,
+        entry.getString(comp.base) + "/" + entry.getString(comp.tail));
+  }
+}
+
+
 bool Control::readFile(const string& fname)
 {
   if (! entry.readTagFile(fname, fields, fieldCounts))
     return false;
 
+  Control::complete();
   return true;
 }
 

@@ -1,2 +1,3 @@
 @INCLUDE common.txt
-TRACE_DIRECTORY ../../../mini_dataset_v012/data/sensors/063905/raw
+BASE_DIRECTORY ../../../mini_dataset_v012/data/sensors/063905
+COUNTRY DEU

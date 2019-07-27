@@ -15,15 +15,32 @@ enum ControlFieldStrings
   CTRL_CORRECTION_DIRECTORY = 2,
   CTRL_SENSOR_FILE = 3,
   CTRL_SENSOR_COUNTRY = 4,
-  CTRL_TRACE_DIRECTORY = 5,
-  CTRL_TRUTH_FILE = 6,
-  CTRL_OVERVIEW_FILE = 7,
-  CTRL_DETAIL_FILE = 8,
-  CTRL_CONTROL_FILE = 9,
-  CTRL_PICK_FIRST = 10,
-  CTRL_PICK_ANY = 11,
-  CTRL_STATS_FILE = 12,
-  CTRL_STRINGS_SIZE = 13
+
+  CTRL_BASE_DIRECTORY = 5,
+  CTRL_TRACE_SUBDIR = 6,
+  CTRL_TRANSIENT_SUBDIR = 7,
+  CTRL_BACK_SUBDIR = 8,
+  CTRL_FRONT_SUBDIR = 9,
+  CTRL_SPEED_SUBDIR = 10,
+  CTRL_POS_SUBDIR = 11,
+  CTRL_PEAK_SUBDIR = 12,
+
+  CTRL_TRACE_DIRECTORY = 13,
+  CTRL_TRANSIENT_DIRECTORY = 14,
+  CTRL_BACK_DIRECTORY = 15,
+  CTRL_FRONT_DIRECTORY = 16,
+  CTRL_SPEED_DIRECTORY = 17,
+  CTRL_POS_DIRECTORY = 18,
+  CTRL_PEAK_DIRECTORY = 19,
+
+  CTRL_TRUTH_FILE = 20,
+  CTRL_OVERVIEW_FILE = 21,
+  CTRL_DETAIL_FILE = 22,
+  CTRL_CONTROL_FILE = 23,
+  CTRL_PICK_FIRST = 24,
+  CTRL_PICK_ANY = 25,
+  CTRL_STATS_FILE = 26,
+  CTRL_STRINGS_SIZE = 27
 };
 
 enum ControlIntVectors
@@ -33,10 +50,16 @@ enum ControlIntVectors
   CTRL_INT_VECTORS_SIZE = 2
 };
 
-enum ControlBoolStrings
+enum ControlBools
 {
   CTRL_APPEND = 0,
   CTRL_BOOLS_SIZE = 1
+};
+
+enum ControlInts
+{
+  CTRL_THREADS = 0,
+  CTRL_INTS_SIZE = 1
 };
 
 enum ControlWrite
@@ -65,6 +88,15 @@ class Control
 {
   private:
 
+    struct Completion
+    {
+      ControlWrite flag;
+      ControlFieldStrings base;
+      ControlFieldStrings tail;
+      ControlFieldStrings result;
+    };
+
+
     list<CorrespondenceEntry> fields;
 
     vector<unsigned> fieldCounts;
@@ -73,7 +105,12 @@ class Control
 
     Entity entry;
 
+    list<Completion> completions;
+
+
     void configure();
+
+    void complete();
 
 
   public:
