@@ -3,6 +3,8 @@
 
 #include <list>
 #include <string>
+#include <iostream>
+#include <iomanip>
 
 #include "PeakProfile.h"
 #include "PeakPool.h"

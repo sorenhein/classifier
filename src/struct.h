@@ -2,40 +2,9 @@
 #define TRAIN_STRUCT_H
 
 #include <string>
-#include <vector>
-#include <iostream>
-#include <iomanip>
-#include <fstream>
-#include <sstream>
-#include <limits>
 
 using namespace std;
 
-
-
-struct Log
-{
-  bool flag;
-  ofstream flog;
-};
-
-struct TraceTruth
-{
-  string filename;
-  string trainName;
-  int numAxles;
-  double speed;
-  double accel;
-  bool reverseFlag;
-};
-
-struct TrainData
-{
-  string trainName;
-  int numAxles;
-  double speed;
-  double accel;
-};
 
 struct PeakPos
 {
@@ -47,35 +16,6 @@ struct PeakTime
 {
   double time; // In s
   double value;
-};
-
-enum FileFormat
-{
-  FILE_TXT = 0,
-  FILE_CSV = 1,
-  FILE_DAT = 2,
-  FILE_SIZE = 3
-};
-
-struct InputEntry
-{
-  int number;
-  string tag;
-  string date;
-  string time;
-  vector<PeakTime> actual;
-};
-
-struct HistMatch
-{
-  unsigned trainNo;
-  double scale;
-};
-
-struct HistWarp
-{
-  double dist;
-  double scale;
 };
 
 enum TransientType
@@ -248,9 +188,7 @@ struct DistEntry
 
   string str() const
   {
-    stringstream ss;
-    ss << "index " << index << "(" << indexHi << ")";
-    return ss.str();
+    return "index " + to_string(index) + "(" + to_string(indexHi) + ")";
   };
 };
 
