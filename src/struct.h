@@ -12,24 +12,6 @@ struct PeakTime
   double value;
 };
 
-enum TransientType
-{
-  TRANSIENT_NONE = 0,
-  TRANSIENT_SMALL = 1,
-  TRANSIENT_MEDIUM = 2,
-  TRANSIENT_LARGE_POS = 3,
-  TRANSIENT_LARGE_NEG = 4,
-  TRANSIENT_SIZE = 5
-};
-
-struct Run
-{
-  unsigned first;
-  unsigned len;
-  bool posFlag;
-  double cum;
-};
-
 enum QuietGrade
 {
   GRADE_GREEN = 0,
