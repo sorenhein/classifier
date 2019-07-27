@@ -1,5 +1,4 @@
 pickAny into setup
-make stat files into args in control file
 make stats on overall calendar time and speed-up
 make a dead-simple scheduler so traceDB can remain const
 move geometry.cpp somewhere
@@ -8,7 +7,6 @@ only output timing to cout
 reover.pl to summarize from there instead
 delete directory contents every time before running
 summarize.pl to reorder by file number to have same order always
-file output to have file number (to sort on)
 outputs to be systematically controlled by flags
 rip out transient into a directory
 global array out output files, indexed by thid

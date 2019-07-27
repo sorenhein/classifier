@@ -64,7 +64,8 @@ void run(
       ! nameMatch(traceData.trainTrue, control.pickAny()))
     return;
 
-  cout << "File " << traceData.filename << ":\n\n";
+  cout << "File " << traceData.filename << ": number " <<
+    traceData.traceNoInRun << "\n\n";
 
   vector<double> posTrue;
       
