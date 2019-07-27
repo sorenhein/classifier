@@ -1,3 +1,4 @@
+get rid of Imperf
 output not to cout but to files there
 only output timing to cout
 reover.pl to summarize from there instead

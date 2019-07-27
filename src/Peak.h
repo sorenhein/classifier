@@ -10,12 +10,12 @@ using namespace std;
 
 
 class Peak;
+class Gap;
+
 typedef void (Peak::*PeakRunFncPtr)();
 typedef bool (Peak::*PeakFncPtr)() const;
 typedef bool (Peak::*PeakPairFncPtr)(const Peak& peak2) const;
 typedef vector<Peak *> PeakPtrVector;
-
-class Gap;
 
 
 class Peak

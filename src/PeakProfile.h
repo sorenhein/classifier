@@ -12,6 +12,15 @@ class Peak;
 class PeakPtrs;
 
 
+enum PeakSource
+{
+  PEAK_SOURCE_FIRST = 1,
+  PEAK_SOURCE_INNER = 2,
+  PEAK_SOURCE_LAST = 4,
+  PEAK_SOURCE_SIZE = 8
+};
+
+
 class PeakProfile
 {
   private:

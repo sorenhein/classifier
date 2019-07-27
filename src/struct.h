@@ -115,14 +115,6 @@ struct Recognizer
   string text;
 };
 
-enum PeakSource
-{
-  PEAK_SOURCE_FIRST = 1,
-  PEAK_SOURCE_INNER = 2,
-  PEAK_SOURCE_LAST = 4,
-  PEAK_SOURCE_SIZE = 8
-};
-
 struct Imperfections
 {
   // These are estimates and do not make use of the "known" true peaks.
@@ -148,47 +140,6 @@ struct Imperfections
   Imperfections()
   {
     Imperfections::reset();
-  };
-};
-
-struct MatchData
-{
-  float distance;
-  unsigned index;
-  bool reverseFlag;
-
-  string strIndex() const
-  {
-    return to_string(index) + (reverseFlag ? "R" : "");
-  };
-};
-
-enum CarPosition
-{
-  CARPOSITION_FIRST = 0,
-  CARPOSITION_INNER_SINGLE = 1,
-  CARPOSITION_INNER_MULTI = 2,
-  CARPOSITION_LAST = 3,
-  CARPOSITION_SIZE = 4
-};
-
-struct DistEntry
-{
-  unsigned index;
-  unsigned indexHi; // Sometimes set to denote a range
-  int direction;
-  unsigned origin;
-  int count;
-  int cumul;
-
-  bool operator < (const DistEntry& de2)
-  {
-    return (index < de2.index);
-  };
-
-  string str() const
-  {
-    return "index " + to_string(index) + "(" + to_string(indexHi) + ")";
   };
 };
 
