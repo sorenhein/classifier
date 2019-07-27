@@ -1,6 +1,6 @@
 Align.obj: Align.h struct.h align/Alignment.h database/TrainDB.h
 Align.obj: database/Entity.h database/Control.h
-Align.obj: regress/PolynomialRegression.h util/misc.h stats/Timers.h
+Align.obj: regress/PolynomialRegression.h util/misc.h struct.h stats/Timers.h
 Align.obj: stats/Timer.h
 CarDetect.obj: CarDetect.h CarGaps.h Peak.h struct.h CarPeaks.h PeakRange.h
 CarDetect.obj: PeakProfile.h PeakPool.h Peaks.h PeakPtrs.h
@@ -78,14 +78,14 @@ run.obj: align/Alignment.h Except.h errors.h geometry.h run.h util/Motion.h
 setup.obj: database/SensorDB.h database/Entity.h database/CarDB.h
 setup.obj: database/CorrectionDB.h database/TrainDB.h database/TraceDB.h
 setup.obj: database/Control.h util/io.h
-driver.obj: database/Control.h database/Entity.h database/SensorDB.h
-driver.obj: database/TrainDB.h database/TraceDB.h stats/CompStats.h
+driver.obj: database/Control.h database/Entity.h database/TrainDB.h
+driver.obj: database/TraceDB.h util/Scheduler.h stats/CompStats.h
 driver.obj: stats/PeakStats.h stats/Timers.h stats/Timer.h setup.h run.h
 regress/PolynomialRegression.obj: regress/PolynomialRegression.h
 align/Alignment.obj: align/Alignment.h const.h
 completions/Completion.obj: completions/Completion.h
 completions/Completion.obj: completions/PeakCompletion.h Peak.h struct.h
-completions/Completion.obj: const.h util/misc.h
+completions/Completion.obj: const.h util/misc.h struct.h
 completions/Completions.obj: completions/Completions.h
 completions/Completions.obj: completions/Completion.h
 completions/Completions.obj: completions/PeakCompletion.h Peak.h struct.h
@@ -102,10 +102,10 @@ database/TrainDB.obj: database/CorrectionDB.h database/TrainDB.h
 database/TrainDB.obj: database/parse.h
 database/parse.obj: database/parse.h
 stats/CompStats.obj: stats/CompStats.h const.h
-stats/PeakStats.obj: stats/PeakStats.h util/misc.h
+stats/PeakStats.obj: stats/PeakStats.h util/misc.h struct.h
 stats/Timer.obj: stats/Timer.h
 stats/Timers.obj: stats/Timers.h stats/Timer.h
 util/io.obj: util/io.h
-util/misc.obj: util/misc.h const.h
+util/misc.obj: util/misc.h struct.h const.h
 util/Gap.obj: util/Gap.h const.h
 util/Motion.obj: util/Motion.h const.h

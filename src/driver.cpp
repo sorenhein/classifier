@@ -72,8 +72,6 @@ void runThread(
   while (scheduler.next(noInRun))
   {
     traceDB.getData(noInRun, traceData);
-    // traceData.countrySensor = sensorDB.country(traceData.sensor);
-    traceData.trainNoTrue = trainDB.lookupNumber(traceData.trainTrue);
     run(control, trainDB, traceData, thid);
   }
 }

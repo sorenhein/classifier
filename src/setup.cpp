@@ -39,6 +39,7 @@ void setupSensors(
 
 void setupTraces(
   const Control& control,
+  const TrainDB& trainDB,
   const SensorDB& sensorDB,
   TraceDB& traceDB);
 
@@ -132,10 +133,11 @@ void setupSensors(
 
 void setupTraces(
   const Control& control,
+  const TrainDB& trainDB,
   const SensorDB& sensorDB,
   TraceDB& traceDB)
 {
-  traceDB.readFile(control.truthFile(), sensorDB);
+  traceDB.readFile(control.truthFile(), trainDB, sensorDB);
 
   auto& datfiles = traceDB.getFilenames();
   if (! getFilenames(control.traceDir(), datfiles, control.pickFirst()))
@@ -166,6 +168,6 @@ void setup(
   SensorDB sensorDB;
   setupSensors(control, sensorDB);
 
-  setupTraces(control, sensorDB, traceDB);
+  setupTraces(control, trainDB, sensorDB, traceDB);
 }
 

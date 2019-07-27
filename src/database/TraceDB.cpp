@@ -2,8 +2,10 @@
 #include <fstream>
 #include <cassert>
 
-#include "TraceDB.h"
+#include "TrainDB.h"
 #include "SensorDB.h"
+#include "TraceDB.h"
+
 #include "parse.h"
 #include "../const.h"
 
@@ -132,6 +134,7 @@ bool TraceDB::derivePhysics(Entity& entry) const
 
 bool TraceDB::complete(
   Entity& entry,
+  const TrainDB& trainDB,
   const SensorDB& sensorDB) const
 {
   if (! TraceDB::deriveOrigin(entry, sensorDB))
@@ -150,12 +153,16 @@ bool TraceDB::complete(
   entry.setString(TRACE_COUNTRY_SENSOR, sensorDB.country(
     entry.getString(TRACE_SENSOR)));
 
+  entry[TRACE_TRAIN_NUMBER] = trainDB.lookupNumber(
+    entry.getString(TRACE_OFFICIAL_NAME));
+
   return true;
 }
 
 
 bool TraceDB::readFile(
   const string& fname,
+  const TrainDB& trainDB,
   const SensorDB& sensorDB)
 {
   Entity entry;
@@ -176,7 +183,7 @@ bool TraceDB::readFile(
   {
     traceMap[entry.getString(TRACE_FILENAME)] = entries.size();
 
-    if (! TraceDB::complete(entry, sensorDB))
+    if (! TraceDB::complete(entry, trainDB, sensorDB))
     {
       cout << "Could not complete trace truth file " << fname << endl;
       fin.close();
@@ -228,6 +235,7 @@ void TraceDB::getData(
   traceData.time = entry.getString(TRACE_TIME);
   traceData.trainTrue = entry.getString(TRACE_OFFICIAL_NAME);
   traceData.countrySensor = entry.getString(TRACE_COUNTRY_SENSOR);
+  traceData.trainNoTrue = entry[TRACE_TRAIN_NUMBER];
   traceData.speed = entry.getDouble(TRACE_SPEED);
   traceData.sampleRate = entry.getDouble(TRACE_SAMPLE_RATE);
   traceData.year = entry.getInt(TRACE_YEAR);

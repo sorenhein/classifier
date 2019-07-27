@@ -9,6 +9,7 @@
 
 using namespace std;
 
+class TrainDB;
 class SensorDB;
 
 
@@ -32,19 +33,19 @@ enum TraceFieldStrings
   TRACE_TEMPERATURE_STRING = 15,
   TRACE_VOLTAGE_STRING = 16, // End of 1:1 input fields
   TRACE_OFFICIAL_NAME = 17,
-  TRACE_TRAIN_NUMBER = 18,
-  TRACE_COUNTRY_SENSOR = 19,
-  TRACE_DATE = 20,
-  TRACE_TIME = 21,
-  TRACE_COUNTRY = 22,
-  TRACE_STRINGS_SIZE = 23
+  TRACE_COUNTRY_SENSOR = 18,
+  TRACE_DATE = 19,
+  TRACE_TIME = 20,
+  TRACE_COUNTRY = 21,
+  TRACE_STRINGS_SIZE = 22
 };
 
 enum TraceFieldInts
 {
   TRACE_YEAR = 0,
   TRACE_AXLES = 1,
-  TRACE_INTS_SIZE = 2
+  TRACE_TRAIN_NUMBER = 2,
+  TRACE_INTS_SIZE = 3
 };
 
 enum TraceFieldBools
@@ -104,6 +105,7 @@ class TraceDB
 
     bool complete(
       Entity& entry,
+      const TrainDB& trainDB,
       const SensorDB& sensorDB) const;
 
 
@@ -117,6 +119,7 @@ class TraceDB
 
     bool readFile(
       const string& fname,
+      const TrainDB& trainDB,
       const SensorDB& sensorDB);
 
     vector<string>& getFilenames();
