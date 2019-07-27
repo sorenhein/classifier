@@ -131,8 +131,16 @@ class Control
     const string& correctionDir() const;
     const string& sensorFile() const;
     const string& sensorCountry() const;
-    const string& traceDir() const;
+
     const string& baseDir() const;
+    const string& traceDir() const;
+    const string& transientDir() const;
+    const string& backDir() const;
+    const string& frontDir() const;
+    const string& speedDir() const;
+    const string& posDir() const;
+    const string& peakDir() const;
+
     const string& truthFile() const;
     const string& overviewFile() const;
     const string& detailFile() const;

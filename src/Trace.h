@@ -68,7 +68,6 @@ class Trace
 
     void write(
       const Control& control,
-      const string& filenameFull,
       const string& filename) const;
 
 };

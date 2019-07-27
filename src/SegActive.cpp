@@ -234,26 +234,20 @@ void SegActive::getPeakTimes(
 }
 
 
-void SegActive::writeSpeed(
-  const string& origname,
-  const string& dirname) const
+void SegActive::writeSpeed(const string& filename) const
 {
-  writeBinary(origname, dirname, writeInterval.first, synthSpeed);
+  writeBinary(filename, writeInterval.first, synthSpeed);
 }
 
 
-void SegActive::writePos(
-  const string& origname,
-  const string& dirname) const
+void SegActive::writePos(const string& filename) const
 {
-  writeBinary(origname, dirname, writeInterval.first, synthPos);
+  writeBinary(filename, writeInterval.first, synthPos);
 }
 
 
-void SegActive::writePeak(
-  const string& origname,
-  const string& dirname) const
+void SegActive::writePeak(const string& filename) const
 {
-  writeBinary(origname, dirname, writeInterval.first, synthPeaks);
+  writeBinary(filename, writeInterval.first, synthPeaks);
 }
 

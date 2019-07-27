@@ -102,9 +102,7 @@ class SegQuiet
       const QuietPlace direction,
       Interval& active);
 
-    void writeFile(
-      const string& origname,
-      const string& dirname) const;
+    void writeFile(const string& filename) const;
 };
 
 #endif

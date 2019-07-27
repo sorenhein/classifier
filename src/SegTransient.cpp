@@ -445,15 +445,13 @@ unsigned SegTransient::lastSampleNo() const
 }
 
 
-void SegTransient::writeFile(
-  const string& origname,
-  const string& transdir) const
+void SegTransient::writeFile(const string& filename) const
 {
   if (transientType == TRANSIENT_NONE ||
       transientType == TRANSIENT_SIZE)
     return;
 
-  writeBinary(origname, transdir, firstBuildupSample, synth);
+  writeBinary(filename, firstBuildupSample, synth);
 }
 
 

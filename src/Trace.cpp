@@ -189,27 +189,22 @@ string Trace::strTransientCSV()
 
 void Trace::write(
   const Control& control,
-  const string &filenameFull,
   const string& filename) const
 {
   timers.start(TIMER_WRITE);
 
   if (control.writeTransient())
-    transient.writeFile(filenameFull, "transient");
+    transient.writeFile(control.transientDir() + "/" + filename);
   if (control.writeBack())
-    quietBack.writeFile(filenameFull, "back");
+    quietBack.writeFile(control.backDir() + "/" + filename);
   if (control.writeFront())
-    quietFront.writeFile(filenameFull, "front");
+    quietFront.writeFile(control.frontDir() + "/" + filename);
   if (control.writeSpeed())
-    segActive.writeSpeed(filenameFull, "speed");
+    segActive.writePeak(control.speedDir() + "/" + filename);
   if (control.writePos())
-    segActive.writePos(filenameFull, "pos");
+    segActive.writePeak(control.posDir() + "/" + filename);
   if (control.writePeak())
-  {
-    segActive.writePeak(filenameFull, "peak");
-cout << "ALT      " << control.baseDir() + "/" + "peak" + "/" +
-  filename << endl;
-  }
+    segActive.writePeak(control.peakDir() + "/" + filename);
 
   timers.stop(TIMER_WRITE);
 }

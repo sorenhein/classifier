@@ -245,15 +245,51 @@ const string& Control::sensorCountry() const
 }
 
 
+const string& Control::baseDir() const
+{
+  return entry.getString(CTRL_BASE_DIRECTORY);
+}
+
+
 const string& Control::traceDir() const
 {
   return entry.getString(CTRL_TRACE_DIRECTORY);
 }
 
 
-const string& Control::baseDir() const
+const string& Control::transientDir() const
 {
-  return entry.getString(CTRL_BASE_DIRECTORY);
+  return entry.getString(CTRL_TRANSIENT_DIRECTORY);
+}
+
+
+const string& Control::backDir() const
+{
+  return entry.getString(CTRL_BACK_DIRECTORY);
+}
+
+
+const string& Control::frontDir() const
+{
+  return entry.getString(CTRL_FRONT_DIRECTORY);
+}
+
+
+const string& Control::speedDir() const
+{
+  return entry.getString(CTRL_SPEED_DIRECTORY);
+}
+
+
+const string& Control::posDir() const
+{
+  return entry.getString(CTRL_POS_DIRECTORY);
+}
+
+
+const string& Control::peakDir() const
+{
+  return entry.getString(CTRL_PEAK_DIRECTORY);
 }
 
 

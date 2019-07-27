@@ -412,10 +412,8 @@ void SegQuiet::printStats(
 }
 
 
-void SegQuiet::writeFile(
-  const string& origname,
-  const string& dirname) const
+void SegQuiet::writeFile(const string& filename) const
 {
-  writeBinary(origname, dirname, writeInterval.first, synth);
+  writeBinary(filename, writeInterval.first, synth);
 }
 

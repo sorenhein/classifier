@@ -2,14 +2,13 @@
 #define TRAIN_WRITE_H
 
 #include <vector>
-
-#include "struct.h"
+#include <string>
 
 using namespace std;
 
+
 void writeBinary(
-  const string& origname,
-  const string& newdirname,
+  const string& filename,
   const unsigned offset,
   const vector<float>& sequence);
 

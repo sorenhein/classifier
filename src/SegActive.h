@@ -78,17 +78,11 @@ class SegActive
       vector<PeakTime>& times,
       unsigned& numFrontWheels) const; 
 
-    void writeSpeed(
-      const string& origname,
-      const string& dirname) const;
+    void writeSpeed(const string& filename) const;
 
-    void writePos(
-      const string& origname,
-      const string& dirname) const;
+    void writePos(const string& filename) const;
 
-    void writePeak(
-      const string& origname,
-      const string& dirname) const;
+    void writePeak(const string& filename) const;
 };
 
 #endif

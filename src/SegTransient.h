@@ -85,9 +85,7 @@ class SegTransient
 
     unsigned lastSampleNo() const;
 
-    void writeFile(
-      const string& origname,
-      const string& transdir) const;
+    void writeFile(const string& filename) const;
 
     string str() const;
 
