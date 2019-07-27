@@ -82,20 +82,6 @@ void printCorrelation(
 }
 
 
-/*
-void printAlignment(
-  const Alignment& match,
-  const string& trainName)
-{
-  cout << setw(24) << left << trainName <<
-    setw(10) << right << fixed << setprecision(2) << match.dist <<
-    setw(10) << right << fixed << setprecision(2) << match.distMatch <<
-    setw(8) << match.numAdd <<
-    setw(8) << match.numDelete << endl;
-}
-*/
-
-
 void printMotion(const vector<double>& motionEstimate)
 {
   cout << 
@@ -122,29 +108,4 @@ void printMatches(
     cout << match.str();
   cout << "\n";
 }
-
-
-/*
-void printTopResiduals(const Alignment& match)
-{
-  if (match.topResiduals.empty())
-    return;
-
-  cout << "Top residuals" << endl;
-
-  cout << setw(6) << "index" <<
-    setw(8) << "value" <<
-    setw(8) << "valSq" <<
-    setw(8) << "frac" << endl;
-
-  for (auto& r: match.topResiduals)
-  {
-    cout << setw(6) << r.index <<
-      setw(8) << fixed << setprecision(2) << r.value <<
-      setw(8) << fixed << setprecision(2) << r.valueSq <<
-      setw(7) << fixed << setprecision(2) << 100. * r.frac << "%" << endl;
-  }
-  cout << endl;
-}
-*/
 

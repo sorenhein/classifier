@@ -24,15 +24,9 @@ void printCorrelation(
   const vector<double> actual,
   const vector<double> estimate);
 
-// void printAlignment(
-  // const Alignment& match,
-  // const string& trainName);
-
 void printMotion(
   const vector<double>& motionEstimate);
 
 void printMatches(const vector<Alignment>& matches);
-
-// void printTopResiduals(const Alignment& match);
 
 #endif

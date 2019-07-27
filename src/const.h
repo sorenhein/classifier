@@ -235,3 +235,26 @@ static list<CompletionCase> CompletionCases =
   { {true, 50.f}, {true, 0.6667f}, {true, 1.25f}, {true, 1.25f} }
 };
 
+
+////////////////////////////////////////////////////////////////////////
+//                                                                    //
+//                           Alignment                                //
+//                                                                    //
+////////////////////////////////////////////////////////////////////////
+
+// Regulates which alignment is preferred based on distances etc.
+// Probably needs to be updated and simplified.
+
+// Only apply special rules to match distances below this threshold.
+// Otherwise just go by overall distance.
+
+#define ALIGN_DISTMATCH_THRESHOLD 3.
+
+// Must be this much better to beat other alignment.
+
+#define ALIGN_DISTMATCH_BETTER 0.7
+
+// Must not be worse by more than this to still beat other alignment.
+
+#define ALIGN_DIST_NOT_WORSE 2.
+
