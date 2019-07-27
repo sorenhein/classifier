@@ -251,6 +251,12 @@ const string& Control::traceDir() const
 }
 
 
+const string& Control::baseDir() const
+{
+  return entry.getString(CTRL_BASE_DIRECTORY);
+}
+
+
 const string& Control::truthFile() const
 {
   return entry.getString(CTRL_TRUTH_FILE);
@@ -320,12 +326,6 @@ bool Control::writePos() const
 bool Control::writePeak() const
 {
   return (entry.getIntVector(CTRL_WRITE)[CTRL_WRITE_PEAK] != 0);
-}
-
-
-bool Control::writeOutline() const
-{
-  return (entry.getIntVector(CTRL_WRITE)[CTRL_WRITE_OUTLINE] != 0);
 }
 
 

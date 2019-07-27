@@ -82,7 +82,7 @@ void run(
     trace.detect(control, traceData.sampleRate, imperf);
     trace.logPeakStats(posTrue, traceData.trainTrue, 
       traceData.speed, peakStats);
-    trace.write(control);
+    trace.write(control, traceData.filenameFull, traceData.filename);
 
     bool fullTrainFlag;
     if (trace.getAlignment(times, actualToRef, numFrontWheels) &&

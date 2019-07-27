@@ -27,13 +27,12 @@ class Trace
     SegQuiet quietBack;
     SegActive segActive;
 
-    string filename;
     bool transientFlag;
     bool quietFlag;
 
     void calcRuns();
 
-    bool readBinary();
+    bool readBinary(const string& filenameFull);
 
     void printSamples(const string& title) const;
     string strTransientHeaderCSV();
@@ -67,7 +66,10 @@ class Trace
       vector<PeakTime>& times,
       unsigned& numFrontWheels) const;
 
-    void write(const Control& control) const;
+    void write(
+      const Control& control,
+      const string& filenameFull,
+      const string& filename) const;
 
 };
 

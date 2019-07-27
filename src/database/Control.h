@@ -69,8 +69,7 @@ enum ControlWrite
   CTRL_WRITE_FRONT = 2,
   CTRL_WRITE_SPEED = 3,
   CTRL_WRITE_POS = 4,
-  CTRL_WRITE_PEAK = 5,
-  CTRL_WRITE_OUTLINE = 6
+  CTRL_WRITE_PEAK = 5
 };
 
 enum ControlVerbose
@@ -133,6 +132,7 @@ class Control
     const string& sensorFile() const;
     const string& sensorCountry() const;
     const string& traceDir() const;
+    const string& baseDir() const;
     const string& truthFile() const;
     const string& overviewFile() const;
     const string& detailFile() const;
@@ -146,7 +146,6 @@ class Control
     bool writeSpeed() const;
     bool writePos() const;
     bool writePeak() const;
-    bool writeOutline() const;
 
     bool verboseTransient() const;
     bool verboseAlignMatches() const;

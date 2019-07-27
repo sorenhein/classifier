@@ -80,10 +80,10 @@ void Trace::calcRuns()
 }
 
 
-bool Trace::readBinary()
+bool Trace::readBinary(const string& filenameFull)
 {
   vector<float> fsamples;
-  if (! readBinaryTrace(filename, fsamples))
+  if (! readBinaryTrace(filenameFull, fsamples))
     return false;
 
   // TODO Leave samples as floats?
@@ -103,13 +103,12 @@ void Trace::printSamples(const string& title) const
 }
 
 
-void Trace::read(const string& fname)
+void Trace::read(const string& filenameFull)
 {
   timers.start(TIMER_READ);
 
-  filename = fname;
   samples.clear();
-  Trace::readBinary();
+  Trace::readBinary(filenameFull);
 
   timers.stop(TIMER_READ);
 }
@@ -188,26 +187,28 @@ string Trace::strTransientCSV()
 }
 
 
-void Trace::write(const Control& control) const
+void Trace::write(
+  const Control& control,
+  const string &filenameFull,
+  const string& filename) const
 {
   timers.start(TIMER_WRITE);
 
   if (control.writeTransient())
-    transient.writeFile(filename, "transient");
+    transient.writeFile(filenameFull, "transient");
   if (control.writeBack())
-    quietBack.writeFile(filename, "back");
+    quietBack.writeFile(filenameFull, "back");
   if (control.writeFront())
-    quietFront.writeFile(filename, "front");
+    quietFront.writeFile(filenameFull, "front");
   if (control.writeSpeed())
-    segActive.writeSpeed(filename, "speed");
+    segActive.writeSpeed(filenameFull, "speed");
   if (control.writePos())
-    segActive.writePos(filename, "pos");
+    segActive.writePos(filenameFull, "pos");
   if (control.writePeak())
-    segActive.writePeak(filename, "peak");
-  if (control.writeOutline())
   {
-    cout << "Not yet implemented\n";
-    // TODO
+    segActive.writePeak(filenameFull, "peak");
+cout << "ALT      " << control.baseDir() + "/" + "peak" + "/" +
+  filename << endl;
   }
 
   timers.stop(TIMER_WRITE);

@@ -32,6 +32,8 @@ void writeBinary(
   name.insert(p2, OFFSET + to_string(offset));
   name.replace(p1, string(ORIG_DIR).size(), "/" + newdirname + "/");
 
+cout << "BINWROTE " << name << endl;
+
   ofstream fout(name, std::ios::out | std::ios::binary);
   fout.write(reinterpret_cast<const char *>(sequence.data()),
     static_cast<long int>(sequence.size() * sizeof(float)));
