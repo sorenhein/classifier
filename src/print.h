@@ -20,13 +20,6 @@ void printPeakTimeCSV(
   const vector<PeakTime>& peaks,
   const int level);
 
-void printCorrelation(
-  const vector<double> actual,
-  const vector<double> estimate);
-
-void printMotion(
-  const vector<double>& motionEstimate);
-
 void printMatches(const vector<Alignment>& matches);
 
 #endif

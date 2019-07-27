@@ -17,6 +17,8 @@
 #include "geometry.h"
 #include "run.h"
 
+#include "util/Motion.h"
+
 
 using namespace std;
 
@@ -51,10 +53,7 @@ void run(
   vector<Alignment> matchesAlign;
   Alignment bestAlign;
   
-  const unsigned order = 2;
-  vector<double> motionActual(order+1);
-  vector<double> motionEstimate(order+1);
-  motionActual[0] = 0.; // Offset in m
+  Motion motion;
 
   Trace trace;
   vector<PeakTime> times;
@@ -111,13 +110,13 @@ void run(
       return;
     }
 
-    regress.bestMatch(times, trainDB, order, control, matchesAlign,
-      bestAlign, motionEstimate);
+    regress.bestMatch(times, trainDB, control, matchesAlign,
+      bestAlign, motion);
 
     if (! control.pickAny().empty())
     {
       const string s = traceData.sensor + "/" + traceData.time;
-      dumpResiduals(times, trainDB, order, matchesAlign, s, 
+      dumpResiduals(times, trainDB, motion.order, matchesAlign, s, 
         traceData.trainTrue, control.pickAny(), 
           trainDB.numAxles(traceData.trainNoTrue));
     }

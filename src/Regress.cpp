@@ -14,6 +14,8 @@
 
 #include "align/Alignment.h"
 
+#include "util/Motion.h"
+
 #include "regress/PolynomialRegression.h"
 
 #include "stats/Timers.h"
@@ -164,11 +166,10 @@ void Regress::summarizeResiduals(
 void Regress::bestMatch(
   const vector<PeakTime>& times,
   const TrainDB& trainDB,
-  const unsigned order,
   const Control& control,
   vector<Alignment>& matches,
   Alignment& bestAlign,
-  vector<double>& motionEstimate) const
+  Motion& motion) const
 {
   timers.start(TIMER_REGRESS);
 
@@ -177,7 +178,7 @@ void Regress::bestMatch(
   vector<double> refPeaks;
 
   bestAlign.dist = numeric_limits<double>::max();
-  vector<double> x, y, coeffs(order+1);
+  vector<double> x, y, coeffs(motion.order+1);
   double residuals;
 
   const unsigned lt = times.size();
@@ -204,9 +205,9 @@ void Regress::bestMatch(
       // TODO bestAlign should be a ref/pointer, not duplicated.
       ma = bestAlign;
 
-      motionEstimate[0] = coeffs[0];
-      motionEstimate[1] = coeffs[1];
-      motionEstimate[2] = 2. * coeffs[2];
+      motion.estimate[0] = coeffs[0];
+      motion.estimate[1] = coeffs[1];
+      motion.estimate[2] = 2. * coeffs[2];
       // As the regression estimates 0.5 * a in the physics formula.
     }
     else
@@ -235,8 +236,9 @@ printMatches(matches);
 
   if (control.verboseRegressMotion())
   {
-    cout << "Regression motion\n";
-    printMotion(motionEstimate);
+    // cout << "Regression motion\n";
+    cout << motion.strEstimate("Regression motion");
+    // printMotion(motionEstimate);
   }
 
 cout << bestAlign.strTopResiduals();

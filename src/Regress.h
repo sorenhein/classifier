@@ -11,6 +11,7 @@ using namespace std;
 class TrainDB;
 class Control;
 struct Alignment;
+struct Motion;
 
 
 class Regress
@@ -49,11 +50,10 @@ class Regress
     void bestMatch(
       const vector<PeakTime>& times,
       const TrainDB& trainDB,
-      const unsigned order,
       const Control& control,
       vector<Alignment>& matches,
       Alignment& bestAlign,
-      vector<double>& motionEstimate) const;
+      Motion& motion) const;
 
 };
 

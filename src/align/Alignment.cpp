@@ -3,6 +3,8 @@
 
 #include "Alignment.h"
 
+#include "../const.h"
+
 
 Alignment::Alignment()
 {
@@ -28,25 +30,26 @@ bool Alignment::operator < (const Alignment& a2) const
     return (dist < a2.dist);
 
   // Only look closely at good matches.
-  if (distMatch > 3. || a2.distMatch > 3.)
+  if (distMatch > ALIGN_DISTMATCH_THRESHOLD || 
+      a2.distMatch > ALIGN_DISTMATCH_THRESHOLD)
     return (dist < a2.dist);
 
   // One match distance is clearly better?
-  if (distMatch < 0.7 * a2.distMatch)
+  if (distMatch < ALIGN_DISTMATCH_BETTER * a2.distMatch)
     return true;
-  else if (a2.distMatch < 0.7 * distMatch)
+  else if (a2.distMatch < ALIGN_DISTMATCH_BETTER * distMatch)
     return false;
 
   if (numDelete + a2.numAdd > a2.numDelete + numAdd)
   {
     // This car has more wheels.
-    if (distMatch < a2.distMatch && dist < 2. * a2.dist)
+    if (distMatch < a2.distMatch && dist < ALIGN_DIST_NOT_WORSE * a2.dist)
       return true;
   }
   else
   {
     // a2 car has more wheels.
-    if (a2.distMatch < distMatch && a2.dist < 2. * dist)
+    if (a2.distMatch < distMatch && a2.dist < ALIGN_DIST_NOT_WORSE * dist)
       return false;
   }
 

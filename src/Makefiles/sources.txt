@@ -54,4 +54,5 @@ SOURCE_FILES    =                       \
                                         \
                 util/io.cpp             \
                 util/misc.cpp           \
-                util/Gap.cpp
+                util/Gap.cpp            \
+                util/Motion.cpp
