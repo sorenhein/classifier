@@ -329,6 +329,12 @@ const string& Control::statsFile() const
 }
 
 
+const unsigned Control::numThreads() const
+{
+  return entry[CTRL_THREADS];
+}
+
+
 bool Control::writeTransient() const
 {
   return (entry.getIntVector(CTRL_WRITE)[CTRL_WRITE_TRANSIENT] != 0);

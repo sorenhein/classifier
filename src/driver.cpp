@@ -22,8 +22,6 @@ CompStats trainStats;
 PeakStats peakStats;
 Timers timers;
 
-#define THREADS 1
-
 void runThread(
   const Control& control,
   const SensorDB& sensorDB,
@@ -39,12 +37,12 @@ int main(int argc, char * argv[])
   setup(argc, argv, control, sensorDB, trainDB, traceDB);
 
   vector<thread *> threads;
-  threads.resize(THREADS);
-  for (unsigned thid = 0; thid < THREADS; thid++)
+  threads.resize(control.numThreads());
+  for (unsigned thid = 0; thid < control.numThreads(); thid++)
     threads[thid] = new thread(&runThread, control, sensorDB, 
       trainDB, thid);
 
-  for (unsigned thid = 0; thid < THREADS; thid++)
+  for (unsigned thid = 0; thid < control.numThreads(); thid++)
   {
     threads[thid]->join();
     delete threads[thid];
@@ -54,6 +52,7 @@ int main(int argc, char * argv[])
   trainStats.write("trainstats.txt", "Train");
   peakStats.write("peakstats.txt");
 
+  cout << "Number of threads: " << control.numThreads() << endl;
   cout << timers.str(2) << endl;
 }
 

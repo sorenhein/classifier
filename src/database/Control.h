@@ -148,6 +148,8 @@ class Control
     const string& pickAny() const;
     const string& statsFile() const;
 
+    const unsigned numThreads() const;
+
     bool writeTransient() const;
     bool writeBack() const;
     bool writeFront() const;

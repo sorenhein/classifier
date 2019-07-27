@@ -204,7 +204,6 @@ bool TraceDB::next(TraceData& traceData)
 {
   // Atomic.
   int n = ++currTrace;
-cout << "n now " << n << " vs. " << filenames.size() << endl;
   if (static_cast<unsigned>(n) >= filenames.size())
     return false;
 
