@@ -12,6 +12,7 @@
 #include "Regress.h"
 #include "Align.h"
 #include "Except.h"
+#include "errors.h"
 
 #include "geometry.h"
 #include "run.h"
@@ -41,8 +42,6 @@ void run(
   const TraceData& traceData,
   const unsigned thid)
 {
-  UNUSED(thid);
-
   Imperfections imperf;
   Align align;
   Regress regress;
@@ -100,11 +99,7 @@ void run(
       matchesAlign);
 
     if (matchesAlign.size() == 0)
-    {
-      sensorStats.log(traceData.sensor, 10, 1000.);
-      trainStats.log(traceData.trainTrue, 10, 1000.);
-      return;
-    }
+      THROW(ERR_NO_ALIGN_MATCHES, "No alignment matches");
 
     regress.bestMatch(times, trainDB, control, thid, matchesAlign,
       bestAlign, motion);
@@ -131,8 +126,8 @@ if (trainDetected != traceData.trainTrue)
   catch (Except& ex)
   {
     ex.print(cout);
-    sensorStats.log(traceData.sensor, 10, 1000.);
-    trainStats.log(traceData.trainTrue, 10, 1000.);
+    sensorStats.fail(traceData.sensor);
+    trainStats.fail(traceData.trainTrue);
   }
   catch(...)
   {

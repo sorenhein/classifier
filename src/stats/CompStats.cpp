@@ -41,6 +41,12 @@ void CompStats::log(
 }
 
 
+void CompStats::fail(const string& key)
+{
+  CompStats::log(key, 10, 1000.);
+}
+
+
 string CompStats::strHeader(const string& tag) const
 {
   stringstream ss;

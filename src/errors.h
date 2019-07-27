@@ -27,9 +27,10 @@ enum Code
 
   // From here on they are vetted
   ERR_UNKNOWN_SAMPLE_RATE = 19,
+  ERR_NO_ALIGN_MATCHES = 20,
 
 
-  ERR_PATTERN_BAD_FIX = 20
+  ERR_PATTERN_BAD_FIX = 21
 };
 
 

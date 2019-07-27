@@ -47,6 +47,8 @@ class CompStats
       const unsigned rank,
       const double residuals);
 
+    void fail(const string& key);
+
     void write(
       const string& fname,
       const string& tag) const;
