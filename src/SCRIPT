@@ -7,8 +7,8 @@ foreach i (../data/control/sensors/sensor*.txt)
   grep "Except" $bn | wc >> overview.txt
   grep "File" $bn | wc >> overview.txt
   echo >> overview.txt
-  cat trainstats.txt >> overview.txt
+  cat output/trainstats.txt >> overview.txt
   echo >> overview.txt
-  cat peakstats.txt >> overview.txt
+  cat output/peakstats.txt >> overview.txt
   echo >> overview.txt
 end

@@ -14,6 +14,8 @@ SPEED_SUBDIR speed
 POS_SUBDIR pos
 PEAK_SUBDIR peak
 
-# Output text files.
-OVERVIEW_FILE output/overview.txt
-DETAIL_FILE output/details.txt
+# Output text files (files go to OUTPUT_DIRECTORY).
+OUTPUT_DIRECTORY output
+SENSORSTATS_FILE sensorstats.txt
+TRAINSTATS_FILE trainstats.txt
+PEAKSTATS_FILE peakstats.txt

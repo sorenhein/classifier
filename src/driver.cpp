@@ -48,9 +48,9 @@ int main(int argc, char * argv[])
     delete threads[thid];
   }
 
-  sensorStats.write("sensorstats.txt", "Sensor");
-  trainStats.write("trainstats.txt", "Train");
-  peakStats.write("peakstats.txt");
+  sensorStats.write(control.sensorstatsFile(), "Sensor");
+  trainStats.write(control.trainstatsFile(), "Train");
+  peakStats.write(control.peakstatsFile());
 
   cout << "Number of threads: " << control.numThreads() << endl;
   cout << timers.str(2) << endl;

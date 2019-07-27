@@ -3,8 +3,6 @@ make stat files into args in control file
 make stats on overall calendar time and speed-up
 make a dead-simple scheduler so traceDB can remain const
 move geometry.cpp somewhere
-make output directory selected by parameter in control file
-move stats files there
 output not to cout but to files there
 only output timing to cout
 reover.pl to summarize from there instead

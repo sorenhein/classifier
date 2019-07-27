@@ -63,13 +63,17 @@ void Control::configure()
     // Example: peak
     { "PEAK_SUBDIR", CORRESPONDENCE_STRING, CTRL_PEAK_SUBDIR },
 
-    { "TRACE_SUBDIR", CORRESPONDENCE_STRING, CTRL_PEAK_SUBDIR },
     // Example: ../../../mini_dataset_v012/labels.csv
     { "TRUTH_FILE", CORRESPONDENCE_STRING, CTRL_TRUTH_FILE },
-    // Example: output/overview.txt
-    { "OVERVIEW_FILE", CORRESPONDENCE_STRING, CTRL_OVERVIEW_FILE },
-    // Example: output/details.txt
-    { "DETAIL_FILE", CORRESPONDENCE_STRING, CTRL_DETAIL_FILE }
+
+    // Example: output
+    { "OUTPUT_DIRECTORY", CORRESPONDENCE_STRING, CTRL_OUTPUT_DIRECTORY },
+    // Example: sensorstats.txt (goes within output)
+    { "SENSORSTATS_FILE", CORRESPONDENCE_STRING, CTRL_SENSORSTATS_FILE },
+    // Example: trainstats.txt (goes within output)
+    { "TRAINSTATS_FILE", CORRESPONDENCE_STRING, CTRL_TRAINSTATS_FILE },
+    // Example: peakstats.txt (goes within output)
+    { "PEAKSTATS_FILE", CORRESPONDENCE_STRING, CTRL_PEAKSTATS_FILE }
   };
 
   fieldCounts =
@@ -202,6 +206,18 @@ void Control::complete()
       entry.setString(comp.result,
         entry.getString(comp.base) + "/" + entry.getString(comp.tail));
   }
+
+  entry.setString(CTRL_SENSORSTATS_FILEFULL,
+    entry.getString(CTRL_OUTPUT_DIRECTORY) + "/" +
+    entry.getString(CTRL_SENSORSTATS_FILE));
+
+  entry.setString(CTRL_TRAINSTATS_FILEFULL,
+    entry.getString(CTRL_OUTPUT_DIRECTORY) + "/" +
+    entry.getString(CTRL_TRAINSTATS_FILE));
+
+  entry.setString(CTRL_PEAKSTATS_FILEFULL,
+    entry.getString(CTRL_OUTPUT_DIRECTORY) + "/" +
+    entry.getString(CTRL_PEAKSTATS_FILE));
 }
 
 
@@ -299,15 +315,21 @@ const string& Control::truthFile() const
 }
 
 
-const string& Control::overviewFile() const
+const string& Control::sensorstatsFile() const
 {
-  return entry.getString(CTRL_OVERVIEW_FILE);
+  return entry.getString(CTRL_SENSORSTATS_FILEFULL);
 }
 
 
-const string& Control::detailFile() const
+const string& Control::trainstatsFile() const
 {
-  return entry.getString(CTRL_DETAIL_FILE);
+  return entry.getString(CTRL_TRAINSTATS_FILEFULL);
+}
+
+
+const string& Control::peakstatsFile() const
+{
+  return entry.getString(CTRL_PEAKSTATS_FILEFULL);
 }
 
 
