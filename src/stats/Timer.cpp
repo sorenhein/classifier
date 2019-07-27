@@ -46,9 +46,40 @@ void Timer::operator += (const Timer& timer2)
 }
 
 
+void Timer::accum(const Timer& timer2)
+{
+  if (no == 0)
+    no += timer2.no;
+  sum += timer2.sum;
+}
+
+
 bool Timer::empty() const
 {
   return (no == 0);
+}
+
+
+string Timer::strNumber() const
+{
+  stringstream ss;
+  ss << setw(6) << no;
+  return ss.str();
+}
+
+
+string Timer::strRatio(
+  const Timer& timerNum,
+  const int prec) const
+{
+  stringstream ss;
+  if (sum == 0.)
+    ss << setw(10) << "-";
+  else
+    ss << setw(7) << fixed << setprecision(prec) <<
+      timerNum.sum / sum << "  x";
+
+  return ss.str();
 }
 
 
@@ -60,7 +91,10 @@ string Timer::str(const int prec) const
   stringstream ss;
   ss << setw(7) << fixed << setprecision(prec) << 
     sum / 1000. << " ms";
-  if (no > 0)
+
+  ss << Timer::strNumber();
+
+  if (no > 1)
     ss << setw(7) << sum / (1000. * no) << " ms";
   return ss.str() + "\n";
 }

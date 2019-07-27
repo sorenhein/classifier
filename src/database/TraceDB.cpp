@@ -40,6 +40,8 @@ void TraceDB::reset()
   };
 
   currTrace = -1;
+
+  filenames.clear();
 }
 
 
@@ -204,9 +206,32 @@ bool TraceDB::readFile(
 }
 
 
-vector<string>& TraceDB::getFilenames()
+unsigned TraceDB::lookupNumber(const string& basename) const
 {
-  return filenames;
+  auto it = traceMap.find(basename);
+  assert(it != traceMap.end());
+  return it->second;
+}
+
+void TraceDB::pickFilenames(
+  const vector<string>& filenamesAll,
+  const string& pickAny)
+{
+  for (auto& f: filenamesAll)
+  {
+    if (pickAny == "")
+    {
+      filenames.push_back(f);
+      continue;
+    }
+
+    // If pickAny is set, pick those traces whose trains contain pickAny.
+    const unsigned ng = TraceDB::lookupNumber(parseBasename(f));
+    const string offName = entries[ng].getString(TRACE_OFFICIAL_NAME);
+
+    if (offName.find(pickAny) != string::npos)
+      filenames.push_back(f);
+  }
 }
 
 
@@ -221,9 +246,7 @@ void TraceDB::getData(
   TraceData& traceData) const
 {
   const string basename = parseBasename(filenames[noInRun]);
-  auto it = traceMap.find(basename);
-  assert(it != traceMap.end());
-  const unsigned ng = it->second;
+  const unsigned ng = TraceDB::lookupNumber(basename);
 
   auto& entry = entries[ng];
 

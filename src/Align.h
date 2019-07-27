@@ -114,6 +114,7 @@ class Align
       const string& country,
       const unsigned tops,
       const Control& control,
+      const unsigned thid,
       vector<Alignment>& matches) const;
 };
 

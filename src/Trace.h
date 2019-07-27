@@ -44,11 +44,14 @@ class Trace
 
     ~Trace();
 
-    void read(const string& fname);
+    void read(
+      const string& fname,
+      const unsigned thid);
 
     void detect(
       const Control& control,
       const double sampleRate,
+      const unsigned thid,
       Imperfections& imperf);
 
     void logPeakStats(
@@ -68,7 +71,8 @@ class Trace
 
     void write(
       const Control& control,
-      const string& filename) const;
+      const string& filename,
+      const unsigned thid) const;
 
 };
 

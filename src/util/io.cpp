@@ -49,13 +49,17 @@ bool getFilenames(
     if (ext != ".TXT" && ext != ".DAT")
       continue;
 
-    if (terminateMatch == "")
-      textfiles.push_back(name);
-    else if (name.find(terminateMatch) != string::npos)
+    if (terminateMatch != "")
     {
-      textfiles.push_back(name);
-      break;
+      if (name.find(terminateMatch) != string::npos)
+      {
+        // Only the first such file.
+        textfiles.push_back(name);
+        break;
+      }
     }
+    else
+      textfiles.push_back(name);
   }
   return true;
 }

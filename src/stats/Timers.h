@@ -23,7 +23,8 @@ enum TimerName
   TIMER_ALIGN = 4,
   TIMER_REGRESS = 5,
   TIMER_WRITE = 6,
-  TIMER_SIZE = 7
+  TIMER_ALL_THREADS = 7,
+  TIMER_SIZE = 8
 };
 
 
@@ -46,6 +47,8 @@ class Timers
     void start(const TimerName tname);
 
     void stop(const TimerName tname);
+
+    void operator += (const Timers& timers2);
 
     string str(const int prec = 1) const;
 };

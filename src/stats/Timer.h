@@ -36,9 +36,17 @@ class Timer
 
     void stop();
 
-    void operator += (const Timer& timer2);
+    void operator += (const Timer& timer2); // number changes
+
+    void accum(const Timer& timer2); // number unchanged
 
     bool empty() const;
+
+    string strNumber() const;
+
+    string strRatio(
+      const Timer& timerNum,
+      const int prec) const;
 
     string str(const int prec = 1) const;
 };

@@ -14,7 +14,7 @@
 
 #include "stats/Timers.h"
 
-extern Timers timers;
+extern vector<Timers> timers;
 
 
 SegActive::SegActive()
@@ -154,13 +154,14 @@ bool SegActive::detect(
   const double sampleRate,
   const Interval& active,
   const Control& control,
+  const unsigned thid,
   Imperfections& imperf)
 {
   // TODO Don't use exact comparison
   if (sampleRate != 2000.)
     THROW(ERR_UNKNOWN_SAMPLE_RATE, "Unknown sample rate");
 
-  timers.start(TIMER_CONDITION);
+  timers[thid].start(TIMER_CONDITION);
 
   writeInterval.first = active.first;
   writeInterval.len = active.len;
@@ -192,13 +193,13 @@ bool SegActive::detect(
   // SegActive::filterFloat(numNoDCFloat, denomNoDCFloat, synthSpeed);
   // SegActive::filterFloat(numNoDCFloat, denomNoDCFloat, synthPos);
 
-  timers.stop(TIMER_CONDITION);
+  timers[thid].stop(TIMER_CONDITION);
 
-  timers.start(TIMER_DETECT_PEAKS);
+  timers[thid].start(TIMER_DETECT_PEAKS);
   peakDetect.reset();
   peakDetect.log(synthPos, writeInterval.first);
   peakDetect.reduce(control, imperf);
-  timers.stop(TIMER_DETECT_PEAKS);
+  timers[thid].stop(TIMER_DETECT_PEAKS);
 
 
   synthPeaks.resize(writeInterval.len);

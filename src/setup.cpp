@@ -141,12 +141,14 @@ void setupTraces(
 {
   traceDB.readFile(control.truthFile(), trainDB, sensorDB);
 
-  auto& datfiles = traceDB.getFilenames();
-  if (! getFilenames(control.traceDir(), datfiles, control.pickFirst()))
+  vector<string> filenames;
+  if (! getFilenames(control.traceDir(), filenames, control.pickFirst()))
   {
     cout << "Bad directory " << control.traceDir() << endl;
     exit(0);
   }
+
+  traceDB.pickFilenames(filenames, control.pickAny());
 }
 
 

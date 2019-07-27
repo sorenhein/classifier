@@ -7,7 +7,6 @@
 
 #include "stats/CompStats.h"
 #include "stats/PeakStats.h"
-#include "stats/Timers.h"
 
 #include "Trace.h"
 #include "Regress.h"
@@ -28,7 +27,6 @@ using namespace std;
 extern CompStats sensorStats;
 extern CompStats trainStats;
 extern PeakStats peakStats;
-extern Timers timers;
 
 
 unsigned lookupMatchRank(
@@ -60,10 +58,6 @@ void run(
   vector<int> actualToRef;
   unsigned numFrontWheels;
 
-  if (! control.pickAny().empty() &&
-      ! nameMatch(traceData.trainTrue, control.pickAny()))
-    return;
-
   cout << "File " << traceData.filename << ": number " <<
     traceData.traceNoInRun << "\n\n";
 
@@ -78,11 +72,11 @@ void run(
 
     // Refuse trace if sample rate is not 2000, maybe in SegActive
 
-    trace.read(traceData.filenameFull);
-    trace.detect(control, traceData.sampleRate, imperf);
+    trace.read(traceData.filenameFull, thid);
+    trace.detect(control, traceData.sampleRate, thid, imperf);
     trace.logPeakStats(posTrue, traceData.trainTrue, 
       traceData.speed, peakStats);
-    trace.write(control, traceData.filename);
+    trace.write(control, traceData.filename, thid);
 
     bool fullTrainFlag;
     if (trace.getAlignment(times, actualToRef, numFrontWheels) &&
@@ -102,7 +96,8 @@ void run(
       numFrontWheels = 4 - imperf.numSkipsOfSeen;
 
     align.bestMatches(times, actualToRef, numFrontWheels, fullTrainFlag,
-      imperf, trainDB, traceData.countrySensor, 10, control, matchesAlign);
+      imperf, trainDB, traceData.countrySensor, 10, control, thid,
+      matchesAlign);
 
     if (matchesAlign.size() == 0)
     {
@@ -111,7 +106,7 @@ void run(
       return;
     }
 
-    regress.bestMatch(times, trainDB, control, matchesAlign,
+    regress.bestMatch(times, trainDB, control, thid, matchesAlign,
       bestAlign, motion);
 
     if (! control.pickAny().empty())

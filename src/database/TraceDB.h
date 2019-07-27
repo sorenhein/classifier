@@ -109,6 +109,8 @@ class TraceDB
       const TrainDB& trainDB,
       const SensorDB& sensorDB) const;
 
+    unsigned lookupNumber(const string& basename) const;
+
 
   public:
 
@@ -123,7 +125,9 @@ class TraceDB
       const TrainDB& trainDB,
       const SensorDB& sensorDB);
 
-    vector<string>& getFilenames();
+    void pickFilenames(
+      const vector<string>& filenamesAll,
+      const string& pickAny);
 
     unsigned numActive() const;
 

@@ -37,7 +37,7 @@
 
 #define UNUSED(x) ((void)(true ? 0 : ((x), void(), 0)))
 
-extern Timers timers;
+extern vector<Timers> timers;
 
 
 Align::Align()
@@ -721,9 +721,10 @@ void Align::bestMatches(
   const string& country,
   const unsigned tops,
   const Control& control,
+  const unsigned thid,
   vector<Alignment>& matches) const
 {
-  timers.start(TIMER_ALIGN);
+  timers[thid].start(TIMER_ALIGN);
 
   vector<double> refPeaks, scaledPeaks;
   matches.clear();
@@ -774,7 +775,7 @@ void Align::bestMatches(
   if (tops < matches.size())
     matches.resize(tops);
 
-  timers.stop(TIMER_ALIGN);
+  timers[thid].stop(TIMER_ALIGN);
 
   if (control.verboseAlignMatches())
   {

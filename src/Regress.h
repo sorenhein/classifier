@@ -51,6 +51,7 @@ class Regress
       const vector<PeakTime>& times,
       const TrainDB& trainDB,
       const Control& control,
+      const unsigned thid,
       vector<Alignment>& matches,
       Alignment& bestAlign,
       Motion& motion) const;

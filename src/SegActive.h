@@ -61,6 +61,7 @@ class SegActive
       const double sampleRate,
       const Interval& active,
       const Control& control,
+      const unsigned thid,
       Imperfections& imperf);
 
     void logPeakStats(

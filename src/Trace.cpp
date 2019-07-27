@@ -14,7 +14,7 @@
 
 #define UNUSED(x) ((void)(true ? 0 : ((x), void(), 0)))
 
-extern Timers timers;
+extern vector<Timers> timers;
 
 
 Trace::Trace()
@@ -103,23 +103,26 @@ void Trace::printSamples(const string& title) const
 }
 
 
-void Trace::read(const string& filenameFull)
+void Trace::read(
+  const string& filenameFull,
+  const unsigned thid)
 {
-  timers.start(TIMER_READ);
+  timers[thid].start(TIMER_READ);
 
   samples.clear();
   Trace::readBinary(filenameFull);
 
-  timers.stop(TIMER_READ);
+  timers[thid].stop(TIMER_READ);
 }
 
 
 void Trace::detect(
   const Control& control,
   const double sampleRate,
+  const unsigned thid,
   Imperfections& imperf)
 {
-  timers.start(TIMER_TRANSIENT);
+  timers[thid].start(TIMER_TRANSIENT);
   runs.clear();
   Trace::calcRuns();
   transientFlag = transient.detect(samples, runs);
@@ -135,13 +138,13 @@ void Trace::detect(
   Interval intAfterFront;
   (void) quietFront.detect(samples, intAfterBack, 
     QUIET_FRONT, intAfterFront);
-  timers.stop(TIMER_TRANSIENT);
+  timers[thid].stop(TIMER_TRANSIENT);
 
   if (control.verboseTransient())
     cout << transient.str() << "\n";
 
   (void) segActive.detect(samples, sampleRate, intAfterFront, 
-    control, imperf);
+    control, thid, imperf);
 }
 
 
@@ -189,9 +192,10 @@ string Trace::strTransientCSV()
 
 void Trace::write(
   const Control& control,
-  const string& filename) const
+  const string& filename,
+  const unsigned thid) const
 {
-  timers.start(TIMER_WRITE);
+  timers[thid].start(TIMER_WRITE);
 
   if (control.writeTransient())
     transient.writeFile(control.transientDir() + "/" + filename);
@@ -206,7 +210,6 @@ void Trace::write(
   if (control.writePeak())
     segActive.writePeak(control.peakDir() + "/" + filename);
 
-  timers.stop(TIMER_WRITE);
+  timers[thid].stop(TIMER_WRITE);
 }
-
 

@@ -1,6 +1,3 @@
-pickAny into setup
-make stats on overall calendar time and speed-up
-move geometry.cpp somewhere
 output not to cout but to files there
 only output timing to cout
 reover.pl to summarize from there instead

@@ -29,7 +29,7 @@ PeakStats peakStats;
 
 Scheduler scheduler;
 
-Timers timers;
+vector<Timers> timers;
 
 
 void runThread(
@@ -39,6 +39,9 @@ void runThread(
 int main(int argc, char * argv[])
 {
   setup(argc, argv, control, trainDB, traceDB);
+
+  timers.resize(control.numThreads());
+  timers[0].start(TIMER_ALL_THREADS);
 
   vector<thread *> threads;
   threads.resize(control.numThreads());
@@ -51,12 +54,18 @@ int main(int argc, char * argv[])
     delete threads[thid];
   }
 
+  timers[0].stop(TIMER_ALL_THREADS);
+
   sensorStats.write(control.sensorstatsFile(), "Sensor");
   trainStats.write(control.trainstatsFile(), "Train");
   peakStats.write(control.peakstatsFile());
 
-  cout << "Number of threads: " << control.numThreads() << endl;
-  cout << timers.str(2) << endl;
+  // Consolidate the thread timers.
+  for (unsigned i = 1; i < control.numThreads(); i++)
+    timers[0] += timers[i];
+
+  cout << "Number of threads: " << control.numThreads() << endl << endl;
+  cout << timers[0].str(2) << endl;
 }
 
 

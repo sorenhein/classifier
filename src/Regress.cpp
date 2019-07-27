@@ -21,7 +21,7 @@
 
 #define GOOD_RESIDUAL_LIMIT 50.0f
 
-extern Timers timers;
+extern vector<Timers> timers;
 
 
 Regress::Regress()
@@ -166,11 +166,12 @@ void Regress::bestMatch(
   const vector<PeakTime>& times,
   const TrainDB& trainDB,
   const Control& control,
+  const unsigned thid,
   vector<Alignment>& matches,
   Alignment& bestAlign,
   Motion& motion) const
 {
-  timers.start(TIMER_REGRESS);
+  timers[thid].start(TIMER_REGRESS);
 
   PolynomialRegression pol;
 
@@ -217,10 +218,10 @@ void Regress::bestMatch(
     }
   }
 
-  timers.stop(TIMER_REGRESS);
-
   sort(matches.begin(), matches.end());
   bestAlign = matches.front();
+
+  timers[thid].stop(TIMER_REGRESS);
 
   cout << "Matching alignment\n";
   for (auto& match: matches)
