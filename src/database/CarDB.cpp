@@ -277,7 +277,7 @@ bool CarDB::fillInDistances(Entity& entry) const
 
 bool CarDB::complete(Entity& entry)
 {
-  const unsigned dw = entry[CAR_DIST_WHEELS];
+  const int dw = entry[CAR_DIST_WHEELS];
   if (dw > 0)
   {
     if (entry[CAR_DIST_WHEELS1] == -1)
@@ -321,12 +321,12 @@ bool CarDB::appendAxles(
   bool reverseFlag;
   if (carNo > 0)
   {
-    index = carNo;
+    index = static_cast<unsigned>(carNo);
     reverseFlag = false;
   }
   else
   {
-    index = -carNo;
+    index = static_cast<unsigned>(-carNo);
     reverseFlag = true;
   }
 

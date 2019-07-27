@@ -1,3 +1,5 @@
+#include <algorithm>
+
 #include "parse.h"
 
 
@@ -138,7 +140,9 @@ bool parseBitVector(
   if (! parseInt(text, v))
     return false;
 
-  for (unsigned i = 0, b = 1; i < size; i++, b <<= 1)
+  unsigned i;
+  int b;
+  for (i = 0, b = 1; i < size; i++, b <<= 1)
    bitVector[i] = ((v & b) != 0);
   return true;
 }

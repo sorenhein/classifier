@@ -599,7 +599,7 @@ if (bracket.right.hasFlag)
     if (! bracket.left.hasFlag || ! bracket.right.hasFlag)
     {
 cout << "No complete bracket, giving up at level " << ldepth << endl;
-      return false;
+      return nullptr;
     }
 
     // Is one of them close enough?  If both, pick the lowest value.

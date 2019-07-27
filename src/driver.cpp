@@ -27,7 +27,6 @@ Timers timers;
 void runThread(
   const Control& control,
   const TrainDB& trainDB,
-  // const TraceDB& traceDB,
   unsigned thid);
 
 
@@ -41,8 +40,7 @@ int main(int argc, char * argv[])
   vector<thread *> threads;
   threads.resize(control.numThreads());
   for (unsigned thid = 0; thid < control.numThreads(); thid++)
-    threads[thid] = new thread(&runThread, control, 
-      trainDB, thid);
+    threads[thid] = new thread(&runThread, control, trainDB, thid);
 
   for (unsigned thid = 0; thid < control.numThreads(); thid++)
   {
@@ -62,7 +60,6 @@ int main(int argc, char * argv[])
 void runThread(
   const Control& control,
   const TrainDB& trainDB,
-  // const TraceDB& traceDB,
   unsigned thid)
 {
   TraceData traceData;

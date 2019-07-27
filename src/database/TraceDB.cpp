@@ -236,8 +236,9 @@ void TraceDB::getData(
   traceData.trainTrue = entry.getString(TRACE_OFFICIAL_NAME);
   traceData.countrySensor = entry.getString(TRACE_COUNTRY_SENSOR);
   traceData.trainNoTrue = entry[TRACE_TRAIN_NUMBER];
+  traceData.trainNoTrueU = static_cast<unsigned>(entry[TRACE_TRAIN_NUMBER]);
   traceData.speed = entry.getDouble(TRACE_SPEED);
   traceData.sampleRate = entry.getDouble(TRACE_SAMPLE_RATE);
-  traceData.year = entry.getInt(TRACE_YEAR);
+  traceData.year = static_cast<unsigned>(entry.getInt(TRACE_YEAR));
 }
 

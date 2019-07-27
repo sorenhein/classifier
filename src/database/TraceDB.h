@@ -73,7 +73,8 @@ struct TraceData
   string time;
   string countrySensor; // Needs sensorDB, so set externally
   string trainTrue;
-  unsigned trainNoTrue; // Needs trainDB, so set externally
+  int trainNoTrue; // Needs trainDB, so set externally
+  unsigned trainNoTrueU;
   double speed; 
   double sampleRate;
   unsigned year;

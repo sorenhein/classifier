@@ -21,8 +21,8 @@ void Completions::reset()
 
 Completion& Completions::emplace_back()
 {
-  Completion& miss = completions.emplace_back(Completion());
-  return miss;
+  completions.emplace_back(Completion());
+  return completions.back();
 }
 
 

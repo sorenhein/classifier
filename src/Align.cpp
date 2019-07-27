@@ -253,7 +253,7 @@ void Align::estimateAlignedMotion(
 
   for (unsigned p = 0; i < lt; i++, p++)
   {
-    const unsigned ri = actualToRef[i] + offsetRef;
+    const unsigned ri = static_cast<unsigned>(actualToRef[i] + offsetRef);
     if (ri >= lr)
       break;
 
@@ -444,7 +444,8 @@ void Align::makeShiftCandidates(
       // const unsigned m = actualToRef[
         // static_cast<int>(o.firstTimeNo) + offsetRef];
 
-      const unsigned m = actualToRef[o.firstTimeNo] + offsetRef;
+      const unsigned m = static_cast<unsigned>(
+        actualToRef[o.firstTimeNo] + offsetRef);
       if (m <= o.firstRefNo + 2 && m + 2 >= o.firstRefNo)
       {
         candidates.push_back(Shift());

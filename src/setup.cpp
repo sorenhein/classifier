@@ -8,6 +8,8 @@
 #include "database/TraceDB.h"
 #include "database/Control.h"
 
+#include "setup.h"
+
 #include "util/io.h"
 
 

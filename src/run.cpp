@@ -74,7 +74,7 @@ void run(
     if (traceData.trainNoTrue == -1)
       THROW(ERR_NO_PEAKS, "True train not known");
 
-    trainDB.getPeakPositions(traceData.trainNoTrue, posTrue);
+    trainDB.getPeakPositions(traceData.trainNoTrueU, posTrue);
 
     // Refuse trace if sample rate is not 2000, maybe in SegActive
 
@@ -119,7 +119,7 @@ void run(
       const string s = traceData.sensor + "/" + traceData.time;
       dumpResiduals(times, trainDB, motion.order, matchesAlign, s, 
         traceData.trainTrue, control.pickAny(), 
-          trainDB.numAxles(traceData.trainNoTrue));
+          trainDB.numAxles(traceData.trainNoTrueU));
     }
 
     const string trainDetected = trainDB.lookupName(bestAlign.trainNo);

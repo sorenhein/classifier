@@ -68,6 +68,7 @@ vector<int> const * CorrectionDB::getIntVector(
   if (c == correctionMap.end())
     return nullptr;
   else
-    return &entries[c->second].getIntVector(CORR_DELTAS);
+    return &entries[static_cast<unsigned>(c->second)].
+      getIntVector(CORR_DELTAS);
 }
 

@@ -38,12 +38,13 @@ WARN_FLAGS	= 		\
 	-Wno-long-long
 
 # COMPILE_FLAGS	= -O0 -flto -mtune=generic -fno-use-linker-plugin -ggdb
-COMPILE_FLAGS	= -O3 -flto -mtune=generic -fno-use-linker-plugin \
-		$(WARN_FLAGS) 
+COMPILE_FLAGS	= -O3 -flto -mtune=generic \
+		-fno-use-linker-plugin $(WARN_FLAGS) 
 
-LINK1_FLAGS	=
+LINK1_FLAGS	= 
 
 LINK2_FLAGS	= 		\
+	-lstdc++fs		\
 	-Wl,--dynamicbase 	\
 	-Wl,--nxcompat 		\
 	-Wl,--no-seh 		\

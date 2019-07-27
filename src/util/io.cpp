@@ -1,6 +1,13 @@
 #include <iostream>
 #include <fstream>
-#include <filesystem>
+
+#if defined(__CYGWIN__) && (__GNUC__ < 8)
+  #include <experimental/filesystem>
+  using namespace std::experimental::filesystem;
+#else
+  #include <filesystem>
+  using namespace std::filesystem;
+#endif
 
 #include "io.h"
 
@@ -22,18 +29,21 @@ bool getFilenames(
   vector<string>& textfiles,
   const string& terminateMatch)
 {
-  if (! std::filesystem::exists(dirName))
+  if (! exists(dirName))
   {
     cout << "Bad directory " << dirName << endl;
     return false;
   }
 
-  for (const auto& entry: std::filesystem::directory_iterator(dirName))
+  for (const auto& entry: directory_iterator(dirName))
   {
     const auto& path = entry.path();
 
     string name = path.string();
-    replace(name.begin(), name.end(), '\\', '/');
+    // replace(name.begin(), name.end(), '\\', '/');
+    string::size_type n = 0;
+    while ((n = name.find("\\", n)) != string::npos)
+      name.replace(n, 1, "/");
 
     string ext = path.extension().string();
     toUpper(ext);

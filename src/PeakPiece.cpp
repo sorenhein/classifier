@@ -338,7 +338,7 @@ bool PeakPiece::getGap(Gap& gap) const
   // It's not a given that this is the right centering.
   // But we generally get the stragglers later.
 
-  gap.set(p, _summary.cumul);
+  gap.set(p, static_cast<unsigned>(_summary.cumul));
   return true;
 }
 
@@ -354,7 +354,7 @@ void PeakPiece::getCombinedGap(
     (piece2._summary.index + piece2._summary.indexHi) / 2);
 
   const unsigned p = (p1 + p2) / 2;
-  gap.set(p, _summary.cumul);
+  gap.set(p, static_cast<unsigned>(_summary.cumul));
 }
 
 

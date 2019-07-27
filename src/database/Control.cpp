@@ -1,7 +1,15 @@
 #include <iostream>
 #include <iomanip>
 #include <sstream>
-#include <filesystem>
+
+#if defined(__CYGWIN__) && (__GNUC__ < 8)
+  #include <experimental/filesystem>
+  using namespace std::experimental::filesystem;
+#else
+  #include <filesystem>
+  using namespace std::filesystem;
+#endif
+
 
 #include "Control.h"
 
@@ -157,7 +165,8 @@ bool Control::parseCommandLine(
   }
 
   const string fullname = argv[0];
-  filesystem::path pathObj(fullname);
+  // filesystem::path pathObj(fullname);
+  path pathObj(fullname);
   const string basename = pathObj.filename().string();
 
   if (argc <= 1)
@@ -351,9 +360,9 @@ const string& Control::statsFile() const
 }
 
 
-const unsigned Control::numThreads() const
+unsigned Control::numThreads() const
 {
-  return entry[CTRL_THREADS];
+  return static_cast<unsigned>(entry[CTRL_THREADS]);
 }
 
 

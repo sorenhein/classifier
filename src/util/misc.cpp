@@ -52,7 +52,7 @@ string percent(
   if (denom == 0 || num == 0)
     ss << "-";
   else
-    ss << fixed << setprecision(decimals) <<
+    ss << fixed << setprecision(static_cast<int>(decimals)) <<
       100. * num / static_cast<double>(denom) << "%";
 
   return ss.str();

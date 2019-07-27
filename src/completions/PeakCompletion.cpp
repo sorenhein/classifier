@@ -159,7 +159,8 @@ void PeakCompletion::adjust(const int shift)
     return;
 
   // Avoid 0 as this is a sentinel.
-  adjusted = (shift >= static_cast<int>(mid) ? 1 : mid - shift);
+  adjusted = (shift >= static_cast<int>(mid) ? 1 : 
+    static_cast<unsigned>(static_cast<int>(mid) - shift));
 }
 
 

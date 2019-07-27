@@ -101,7 +101,7 @@ bool TrainDB::complete(
         return false;
       }
     }
-    _numCars += count;
+    _numCars += static_cast<int>(count);
   }
 
   entry[TRAIN_NUM_CARS] = _numCars;
@@ -185,7 +185,7 @@ unsigned TrainDB::numAxles(const unsigned trainNo) const
 unsigned TrainDB::numCars(const unsigned trainNo) const
 {
   assert(trainNo < entries.size());
-  return entries[trainNo][TRAIN_NUM_CARS];
+  return static_cast<unsigned>(entries[trainNo][TRAIN_NUM_CARS]);
 }
 
 
@@ -310,7 +310,7 @@ bool TrainDB::selectByCars(
     if (! allFlag && countryMap.find(offName) == countryMap.end())
       continue;
 
-    const unsigned l = entry[TRAIN_NUM_CARS];
+    const unsigned l = static_cast<unsigned>(entry[TRAIN_NUM_CARS]);
     if (l < minCars || l > maxCars)
       continue;
 
