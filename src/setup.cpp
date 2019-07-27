@@ -150,7 +150,6 @@ void setup(
   int argc, 
   char * argv[],
   Control& control,
-  SensorDB& sensorDB,
   TrainDB& trainDB,
   TraceDB& traceDB)
 {
@@ -164,6 +163,7 @@ void setup(
 
   setupTrains(control, carDB, correctionDB, trainDB);
 
+  SensorDB sensorDB;
   setupSensors(control, sensorDB);
 
   setupTraces(control, sensorDB, traceDB);

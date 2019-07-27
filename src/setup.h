@@ -2,7 +2,6 @@
 #define TRAIN_SETUP_H
 
 class Control;
-class SensorDB;
 class TrainDB;
 class TraceDB;
 
@@ -13,7 +12,6 @@ void setup(
   int argc,
   char * argv[],
   Control& control,
-  SensorDB& sensorDB,
   TrainDB& trainDB,
   TraceDB& traceDB);
 

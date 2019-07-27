@@ -147,6 +147,9 @@ bool TraceDB::complete(
   entry[TRACE_YEAR] = YEAR_DEFAULT;
   entry.setDouble(TRACE_SAMPLE_RATE, SAMPLE_RATE_DEFAULT);
 
+  entry.setString(TRACE_COUNTRY_SENSOR, sensorDB.country(
+    entry.getString(TRACE_SENSOR)));
+
   return true;
 }
 
@@ -200,30 +203,33 @@ vector<string>& TraceDB::getFilenames()
 }
 
 
-bool TraceDB::next(TraceData& traceData)
+unsigned TraceDB::numActive() const
 {
-  // Atomic.
-  int n = ++currTrace;
-  if (static_cast<unsigned>(n) >= filenames.size())
-    return false;
+  return filenames.size();
+}
 
-  const string basename = parseBasename(filenames[n]);
+
+void TraceDB::getData(
+  const unsigned noInRun,
+  TraceData& traceData) const
+{
+  const string basename = parseBasename(filenames[noInRun]);
   auto it = traceMap.find(basename);
   assert(it != traceMap.end());
   const unsigned ng = it->second;
 
   auto& entry = entries[ng];
 
-  traceData.filenameFull = filenames[n];
+  traceData.filenameFull = filenames[noInRun];
   traceData.filename = basename;
   traceData.traceNoGlobal = ng;
-  traceData.traceNoInRun = n;
+  traceData.traceNoInRun = noInRun;
   traceData.sensor = entry.getString(TRACE_SENSOR);
   traceData.time = entry.getString(TRACE_TIME);
   traceData.trainTrue = entry.getString(TRACE_OFFICIAL_NAME);
+  traceData.countrySensor = entry.getString(TRACE_COUNTRY_SENSOR);
   traceData.speed = entry.getDouble(TRACE_SPEED);
   traceData.sampleRate = entry.getDouble(TRACE_SAMPLE_RATE);
   traceData.year = entry.getInt(TRACE_YEAR);
-  return true;
 }
 

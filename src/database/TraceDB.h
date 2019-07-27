@@ -30,12 +30,14 @@ enum TraceFieldStrings
   TRACE_SENSOR = 13,
   TRACE_POSITION = 14,
   TRACE_TEMPERATURE_STRING = 15,
-  TRACE_VOLTAGE_STRING = 16,
+  TRACE_VOLTAGE_STRING = 16, // End of 1:1 input fields
   TRACE_OFFICIAL_NAME = 17,
-  TRACE_DATE = 18,
-  TRACE_TIME = 19,
-  TRACE_COUNTRY = 20,
-  TRACE_STRINGS_SIZE = 21
+  TRACE_TRAIN_NUMBER = 18,
+  TRACE_COUNTRY_SENSOR = 19,
+  TRACE_DATE = 20,
+  TRACE_TIME = 21,
+  TRACE_COUNTRY = 22,
+  TRACE_STRINGS_SIZE = 23
 };
 
 enum TraceFieldInts
@@ -119,7 +121,11 @@ class TraceDB
 
     vector<string>& getFilenames();
 
-    bool next(TraceData& traceData);
+    unsigned numActive() const;
+
+    void getData(
+      const unsigned noInRun,
+      TraceData& traceData) const;
 };
 
 #endif

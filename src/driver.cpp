@@ -2,9 +2,10 @@
 #include <thread>
 
 #include "database/Control.h"
-#include "database/SensorDB.h"
 #include "database/TrainDB.h"
 #include "database/TraceDB.h"
+
+#include "util/Scheduler.h"
 
 #include "stats/CompStats.h"
 #include "stats/PeakStats.h"
@@ -13,8 +14,8 @@
 #include "setup.h"
 #include "run.h"
 
-// Needs to be global as it keeps the counter for multi-threading,
-// and this needs to change during execution.
+
+Scheduler scheduler;
 TraceDB traceDB;
 
 CompStats sensorStats;
@@ -22,24 +23,25 @@ CompStats trainStats;
 PeakStats peakStats;
 Timers timers;
 
+
 void runThread(
   const Control& control,
-  const SensorDB& sensorDB,
   const TrainDB& trainDB,
-  const unsigned thid);
+  // const TraceDB& traceDB,
+  unsigned thid);
 
 
 int main(int argc, char * argv[])
 {
   Control control;
-  SensorDB sensorDB;
   TrainDB trainDB;
-  setup(argc, argv, control, sensorDB, trainDB, traceDB);
+  // TraceDB traceDB;
+  setup(argc, argv, control, trainDB, traceDB);
 
   vector<thread *> threads;
   threads.resize(control.numThreads());
   for (unsigned thid = 0; thid < control.numThreads(); thid++)
-    threads[thid] = new thread(&runThread, control, sensorDB, 
+    threads[thid] = new thread(&runThread, control, 
       trainDB, thid);
 
   for (unsigned thid = 0; thid < control.numThreads(); thid++)
@@ -59,14 +61,18 @@ int main(int argc, char * argv[])
 
 void runThread(
   const Control& control,
-  const SensorDB& sensorDB,
   const TrainDB& trainDB,
-  const unsigned thid)
+  // const TraceDB& traceDB,
+  unsigned thid)
 {
   TraceData traceData;
-  while (traceDB.next(traceData))
+  scheduler.setMax(traceDB.numActive());
+
+  unsigned noInRun;
+  while (scheduler.next(noInRun))
   {
-    traceData.countrySensor = sensorDB.country(traceData.sensor);
+    traceDB.getData(noInRun, traceData);
+    // traceData.countrySensor = sensorDB.country(traceData.sensor);
     traceData.trainNoTrue = trainDB.lookupNumber(traceData.trainTrue);
     run(control, trainDB, traceData, thid);
   }
