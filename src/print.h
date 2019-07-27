@@ -9,6 +9,8 @@
 
 using namespace std;
 
+struct Alignment;
+
 
 void printPeakPosCSV(
   const vector<double>& peaks,

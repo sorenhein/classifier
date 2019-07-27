@@ -12,6 +12,8 @@
 #include "database/TrainDB.h"
 #include "database/Control.h"
 
+#include "align/Alignment.h"
+
 #include "regress/PolynomialRegression.h"
 
 #include "stats/Timers.h"

@@ -9,6 +9,7 @@
 using namespace std;
 
 class TrainDB;
+struct Alignment;
 
 
 bool nameMatch(

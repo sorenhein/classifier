@@ -16,7 +16,6 @@ file output to have file number (to sort on)
 outputs to be systematically controlled by flags
 rip out transient into a directory
 global array out output files, indexed by thid
-write.cpp also has non-generic paths
 
 Multi-threading
 ---------------

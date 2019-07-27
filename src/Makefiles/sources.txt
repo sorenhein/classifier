@@ -31,6 +31,9 @@ SOURCE_FILES    =                       \
                 setup.cpp               \
                 driver.cpp              \
                 regress/PolynomialRegression.cpp \
+                                        \
+                align/Alignment.cpp     \
+                                        \
                 completions/Completion.cpp  \
                 completions/Completions.cpp    \
                 completions/PeakCompletion.cpp \

@@ -4,6 +4,7 @@
 
 #include "print.h"
 #include "const.h"
+#include "align/Alignment.h"
 
 using namespace std;
 

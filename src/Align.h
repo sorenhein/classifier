@@ -4,6 +4,7 @@
 #include <vector>
 
 #include "struct.h"
+#include "align/Alignment.h"
 
 class TrainDB;
 class Control;

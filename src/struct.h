@@ -78,6 +78,7 @@ struct HistWarp
   double scale;
 };
 
+/*
 struct RegrEntry
 {
   unsigned index;
@@ -140,6 +141,7 @@ struct Alignment
     return (dist < a2.dist);
   }
 };
+*/
 
 enum TransientType
 {

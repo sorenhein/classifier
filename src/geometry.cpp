@@ -5,6 +5,7 @@
 #include "database/TrainDB.h"
 #include "Regress.h"
 #include "geometry.h"
+#include "align/Alignment.h"
 
 using namespace std;
 

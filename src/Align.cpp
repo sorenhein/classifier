@@ -9,8 +9,11 @@
 #include "Align.h"
 #include "print.h"
 
+
 #include "database/TrainDB.h"
 #include "database/Control.h"
+
+#include "align/Alignment.h"
 
 #include "regress/PolynomialRegression.h"
 

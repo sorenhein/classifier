@@ -10,6 +10,7 @@ using namespace std;
 
 class TrainDB;
 class Control;
+struct Alignment;
 
 
 class Regress
