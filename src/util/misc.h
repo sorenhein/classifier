@@ -1,6 +1,10 @@
 #ifndef TRAIN_MISC_H
 #define TRAIN_MISC_H
 
+#include <vector>
+
+#include "../struct.h"
+
 using namespace std;
 
 
@@ -18,5 +22,13 @@ string percent(
   const unsigned num,
   const unsigned denom,
   const unsigned decimals);
+
+void printPeakPosCSV(
+  const vector<double>& peaks,
+  const int level);
+
+void printPeakTimeCSV(
+  const vector<PeakTime>& peaks,
+  const int level);
 
 #endif

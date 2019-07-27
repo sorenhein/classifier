@@ -3,7 +3,6 @@ make stat files into args in control file
 make #threads into command-line argument
 make stats on overall calendar time and speed-up
 make a dead-simple scheduler so traceDB can remain const
-move print.cpp functions into methods
 move geometry.cpp somewhere
 make output directory selected by parameter in control file
 move stats files there

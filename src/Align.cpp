@@ -7,8 +7,6 @@
 #include <limits>
 
 #include "Align.h"
-#include "print.h"
-
 
 #include "database/TrainDB.h"
 #include "database/Control.h"
@@ -16,6 +14,8 @@
 #include "align/Alignment.h"
 
 #include "regress/PolynomialRegression.h"
+
+#include "util/misc.h"
 
 #include "stats/Timers.h"
 
@@ -776,8 +776,12 @@ void Align::bestMatches(
   timers.stop(TIMER_ALIGN);
 
   if (control.verboseAlignMatches())
-    // printMatches(trainDB, matches);
-    printMatches(matches);
+  {
+    cout << "Matching alignment\n";
+    for (auto& match: matches)
+      cout << match.str();
+    cout << "\n";
+  }
 }
 
 

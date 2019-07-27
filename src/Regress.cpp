@@ -7,7 +7,6 @@
 
 #include "Regress.h"
 #include "Except.h"
-#include "print.h"
 
 #include "database/TrainDB.h"
 #include "database/Control.h"
@@ -223,26 +222,22 @@ void Regress::bestMatch(
   sort(matches.begin(), matches.end());
   bestAlign = matches.front();
 
-// printMatches(trainDB, matches);
-printMatches(matches);
+  cout << "Matching alignment\n";
+  for (auto& match: matches)
+    cout << match.str();
+  cout << "\n";
 
   if (control.verboseRegressMatch())
   {
     cout << "Regression alignment\n";
-    // printAlignment(bestAlign, trainDB.lookupName(bestAlign.trainNo));
     cout << bestAlign.str();
     cout << endl;
   }
 
   if (control.verboseRegressMotion())
-  {
-    // cout << "Regression motion\n";
     cout << motion.strEstimate("Regression motion");
-    // printMotion(motionEstimate);
-  }
 
-cout << bestAlign.strTopResiduals();
-// printTopResiduals(bestAlign);
+  cout << bestAlign.strTopResiduals();
 
 }
 
