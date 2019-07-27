@@ -1,0 +1,8 @@
+CAR_DIRECTORY ../data/cars
+TRAIN_DIRECTORY ../data/trains
+CORRECTION_DIRECTORY ../data/residuals
+SENSOR_FILE ../../../mini_dataset_v012/sensors.txt
+TRUTH_FILE ../../../mini_dataset_v012/labels.csv
+COUNTRY DEU
+OVERVIEW_FILE output/overview.txt
+DETAIL_FILE output/details.txt

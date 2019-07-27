@@ -157,7 +157,16 @@ bool Entity::readTagFile(
     const string& tag = line.substr(0, sp);
     const string& value = line.substr(sp+1);
 
-    if (! Entity::parseField(fields, tag, value))
+    if (tag == "@INCLUDE")
+    {
+      const string fnameInc = parsePath(fname) + value;
+      if (! readTagFile(fnameInc, fields, fieldCounts))
+      {
+        cout << "Could not parse included file " << fnameInc << endl;
+        return false;
+      }
+    }
+    else if (! Entity::parseField(fields, tag, value))
     {
       cout << err << endl;
       fin.close();
@@ -301,7 +310,6 @@ bool Entity::parseCommandLine(
   const vector<string>& commandLine,
   const list<CommandLineEntry>& arguments)
 {
-cout << "parse command line\n";
   unsigned i = 0;
   while (i < commandLine.size())
   {

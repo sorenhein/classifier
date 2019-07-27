@@ -1,6 +1,22 @@
 pickAny into setup
-
-traceDB: instead of vector<string> returning string:
+make stat files into args in control file
+make #threads into command-line argument
+make stats on overall calendar time and speed-up
+make a dead-simple scheduler so traceDB can remain const
+move print.cpp functions into methods
+move geometry.cpp somewhere
+make output directory selected by parameter in control file
+move stats files there
+output not to cout but to files there
+only output timing to cout
+reover.pl to summarize from there instead
+delete directory contents every time before running
+summarize.pl to reorder by file number to have same order always
+file output to have file number (to sort on)
+outputs to be systematically controlled by flags
+rip out transient into a directory
+global array out output files, indexed by thid
+write.cpp also has non-generic paths
 
 Multi-threading
 ---------------

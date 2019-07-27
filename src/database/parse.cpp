@@ -189,6 +189,19 @@ bool parseCarSpecifier(
 }
 
 
+string parsePath(const string& text)
+{
+  if (text == "")
+    return "";
+
+  const auto p = text.find_last_of('/');
+  if (p == string::npos || p == 0 || p+1 == text.size())
+   return text;
+
+  return text.substr(0, p+1);
+}
+
+
 string parseBasename(const string& text)
 {
   if (text == "")

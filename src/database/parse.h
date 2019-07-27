@@ -40,6 +40,8 @@ bool parseCarSpecifier(
   bool& reverseFlag,
   unsigned& count);
 
+string parsePath(const string& text);
+
 string parseBasename(const string& text);
 
 #endif
