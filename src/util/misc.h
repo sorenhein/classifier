@@ -23,11 +23,8 @@ string percent(
   const unsigned denom,
   const unsigned decimals);
 
-void printPeakPosCSV(
-  const vector<double>& peaks,
-  const int level);
-
-void printPeakTimeCSV(
+void printVectorCSV(
+  const string& title,
   const vector<double>& peaks,
   const int level);
 

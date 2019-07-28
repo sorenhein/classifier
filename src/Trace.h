@@ -32,9 +32,6 @@ class Trace
     bool transientFlag;
     bool quietFlag;
 
-    void calcRuns();
-
-    void printSamples(const string& title) const;
     string strTransientHeaderCSV();
     string strTransientCSV();
 

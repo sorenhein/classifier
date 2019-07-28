@@ -59,23 +59,14 @@ string percent(
 }
 
 
-void printPeakPosCSV(
+void printVectorCSV(
+  const string& title,
   const vector<double>& peaks,
   const int level)
 {
+  cout << title << "\n";
   for (unsigned i = 0; i < peaks.size(); i++)
     cout << fixed << setprecision(4) << 
-      peaks[i] << SEPARATOR << level << endl;
-  cout << endl;
-}
-
-
-void printPeakTimeCSV(
-  const vector<double>& peaks,
-  const int level)
-{
-  for (unsigned i = 0; i < peaks.size(); i++)
-    cout << fixed << setprecision(4) <<
       peaks[i] << SEPARATOR << level << endl;
   cout << endl;
 }

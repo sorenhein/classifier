@@ -795,13 +795,8 @@ void Align::printAlignPeaks(
 {
   cout << "refTrain " << refTrain << "\n\n";
 
-  cout << "times\n";
-  printPeakTimeCSV(times, 0);
-
-  cout << "refPeaks\n";
-  printPeakPosCSV(refPeaks, 1);
-
-  cout << "scaledPeaks " << "\n";
-  printPeakPosCSV(scaledPeaks, 2);
+  printVectorCSV("times", times, 0);
+  printVectorCSV("refPeaks", refPeaks, 1);
+  printVectorCSV("scaledPeaks", scaledPeaks, 2);
 }
 

@@ -27,70 +27,6 @@ Trace::~Trace()
 }
 
 
-/*
-void Trace::calcRuns()
-{
-  Run run;
-  run.first = 0;
-  run.len = 1;
-  if (samples[0] >= 0.)
-  {
-    run.posFlag = true;
-    run.cum = samples[0];
-  }
-  else
-  {
-    run.posFlag = false;
-    run.cum = -samples[0];
-  }
-
-  const unsigned l = samples.size();
-  for (unsigned i = 1; i < l; i++)
-  {
-    if (run.posFlag)
-    {
-      if (samples[i] >= 0.)
-      {
-        run.len++;
-        run.cum += samples[i];
-      }
-      else
-      {
-        runs.push_back(run);
-        run.first = i;
-        run.len = 1;
-        run.posFlag = false;
-        run.cum = -samples[i];
-      }
-    }
-    else if (samples[i] < 0.)
-    {
-      run.len++;
-      run.cum -= samples[i];
-    }
-    else
-    {
-      runs.push_back(run);
-      run.first = i;
-      run.len = 1;
-      run.posFlag = true;
-      run.cum = samples[i];
-    }
-  }
-  runs.push_back(run);
-}
-*/
-
-
-void Trace::printSamples(const string& title) const
-{
-  cout << title << "\n";
-  for (unsigned i = 0; i < samples.size(); i++)
-    cout << i << ";" << samples[i] << "\n";
-  cout << "\n";
-}
-
-
 void Trace::detect(
   const Control& control,
   const double sampleRate,
@@ -105,9 +41,6 @@ void Trace::detect(
   for (unsigned i = 0; i < fsamples.size(); i++)
     samples[i] = fsamples[i];
 
-  // runs.clear();
-  // Trace::calcRuns();
-  // transientFlag = transient.detect(samples, runs);
   transientFlag = transient.detect(samples);
 
   Interval intAfterTransient;
