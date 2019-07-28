@@ -1,5 +1,11 @@
 #include <iostream>
+#include <sstream>
 #include <limits>
+
+#include "transient/Transient.h"
+#include "transient/Quiet.h"
+
+#include "SegActive.h"
 
 #include "database/TraceDB.h"
 #include "database/TrainDB.h"
@@ -9,7 +15,7 @@
 #include "stats/PeakStats.h"
 #include "stats/Timers.h"
 
-#include "Trace.h"
+// #include "Trace.h"
 #include "Regress.h"
 #include "Align.h"
 #include "Except.h"
@@ -48,6 +54,19 @@ void runRead(
   vector<float>& samples);
 
 
+string runHeader(const TraceData& traceData)
+{
+  stringstream ss;
+  ss << "File " << traceData.filename << 
+    ": number " << traceData.traceNoInRun;
+
+  const unsigned l = ss.str().size();
+  ss << "\n" << string(l, '=') << "\n\n";
+
+  return ss.str();
+}
+
+
 void runRead(
   const string& filename,
   const unsigned thid,
@@ -59,19 +78,6 @@ void runRead(
     THROW(ERR_NO_TRACE_FILE, "Trace file not read");
 
   timers[thid].stop(TIMER_READ);
-}
-
-
-string runHeader(const TraceData& traceData)
-{
-  stringstream ss;
-  ss << "File " << traceData.filename << 
-    ": number " << traceData.traceNoInRun;
-
-  const unsigned l = ss.str().size();
-  ss << "\n" << string(l, '=') << "\n\n";
-
-  return ss.str();
 }
 
 
@@ -90,15 +96,18 @@ void run(
   
   Motion motion;
 
-  Trace trace;
+  // Trace trace;
+
+  Transient transient;
+  Quiet quietFront;
+  Quiet quietBack;
+  SegActive segActive;
+
   vector<double> times;
   vector<int> actualToRef;
   unsigned numFrontWheels;
 
-
   cout << runHeader(traceData);
-  // cout << "File " << traceData.filename << ": number " <<
-    // traceData.traceNoInRun << "\n\n";
 
   vector<double> posTrue;
       
@@ -112,16 +121,74 @@ void run(
 
     // Refuse trace if sample rate is not 2000, maybe in SegActive
 
-    trace.detect(control, traceData.sampleRate, samples, thid, imperf);
+    // trace.detect(control, traceData.sampleRate, samples, thid, imperf);
+
+  timers[thid].start(TIMER_TRANSIENT);
+
+  unsigned lastIndex;
+  transient.detect(samples, traceData.sampleRate, lastIndex);
+
+  if (control.verboseTransient())
+    cout << transient.str() << "\n";
+
+  timers[thid].stop(TIMER_TRANSIENT);
+
+  timers[thid].start(TIMER_QUIET);
+
+  Interval intAfterTransient;
+  intAfterTransient.first = lastIndex;
+  intAfterTransient.len = samples.size() - lastIndex;
+
+  quietBack.detect(samples, traceData.sampleRate, true, intAfterTransient);
+  quietFront.detect(samples, traceData.sampleRate, false, intAfterTransient);
+
+  timers[thid].stop(TIMER_QUIET);
+
+  // TODO Leave as floats for a while longer.
+  vector<double> dsamples;
+  dsamples.resize(samples.size());
+  for (unsigned i = 0; i < samples.size(); i++)
+    dsamples[i] = samples[i];
+
+
+  (void) segActive.detect(dsamples, traceData.sampleRate, intAfterTransient,
+    control, thid, imperf);
+
+
+
+
 
     trainDB.getPeakPositions(traceData.trainNoTrueU, posTrue);
-    trace.logPeakStats(posTrue, traceData.trainTrue, 
+
+    // trace.logPeakStats(posTrue, traceData.trainTrue, 
+      // traceData.speed, peakStats);
+    segActive.logPeakStats(posTrue, traceData.trainTrue, 
       traceData.speed, peakStats);
 
-    trace.write(control, traceData.filename, thid);
+    // trace.write(control, traceData.filename, thid);
+
+  timers[thid].start(TIMER_WRITE);
+
+  if (control.writeTransient())
+    transient.writeFile(control.transientDir() + "/" + traceData.filename);
+  if (control.writeBack())
+    quietBack.writeFile(control.backDir() + "/" + traceData.filename);
+  if (control.writeFront())
+    quietFront.writeFile(control.frontDir() + "/" + traceData.filename);
+  if (control.writeSpeed())
+    segActive.writePeak(control.speedDir() + "/" + traceData.filename);
+  if (control.writePos())
+    segActive.writePeak(control.posDir() + "/" + traceData.filename);
+  if (control.writePeak())
+    segActive.writePeak(control.peakDir() + "/" + traceData.filename);
+
+  timers[thid].stop(TIMER_WRITE);
+
 
     bool fullTrainFlag;
-    if (trace.getAlignment(times, actualToRef, numFrontWheels) &&
+    // if (trace.getAlignment(times, actualToRef, numFrontWheels) &&
+        // ! actualToRef.empty())
+    if (segActive.getAlignment(times, actualToRef, numFrontWheels) &&
         ! actualToRef.empty())
     {
       cout << "FULLALIGN\n";
@@ -129,7 +196,13 @@ void run(
     }
     else
     {
-      trace.getTrace(times, numFrontWheels);
+      // trace.getTrace(times, numFrontWheels);
+  segActive.getPeakTimes(times, numFrontWheels);
+
+cout << "Got " << times.size() << " peaks, " <<
+  numFrontWheels << " front wheels\n\n";
+
+
       fullTrainFlag = false;
     }
 
