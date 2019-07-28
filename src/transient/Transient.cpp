@@ -5,22 +5,18 @@
 #include <math.h>
 
 #include "Transient.h"
+#include "Candidate.h"
 
 #include "../util/io.h"
 
 
 // Current working definition of a transient:
-// * One of the first 5 runs.
-// * Covers at least 20 samples.
-// * Average at least 0.3g.
+// * As in Candidate.h
 // * Ratio between beginning and end values is at least 3.
 // * Ratio between beginning and middle values is at least 1.7.
 // * Has a bit of a slope towards zero, at least.
 // * TODO: Should be independent of sample rate.
 
-#define TRANSIENT_RANGE 5
-#define TRANSIENT_MIN_LENGTH 20
-#define TRANSIENT_MIN_AVG 0.3
 #define TRANSIENT_RATIO_FULL 3.
 #define TRANSIENT_RATIO_MID 1.7
 #define TRANSIENT_SMALL_RUN 3
@@ -54,85 +50,6 @@ void Transient::reset()
   transientLength = 0;
   transientAmpl = 0.;
   timeConstant = 0.;
-}
-
-
-void Transient::calcRuns(const vector<float>& samples)
-{
-  // A run is a sequence of samples with the same sign.
-  Run run;
-  run.first = 0;
-  run.len = 1;
-  if (samples[0] >= 0.)
-  {
-    run.posFlag = true;
-    run.cum = samples[0];
-  }
-  else
-  {
-    run.posFlag = false;
-    run.cum = -samples[0];
-  }
-
-  const unsigned l = samples.size();
-  for (unsigned i = 1; i < l; i++)
-  {
-    if (run.posFlag)
-    {
-      if (samples[i] >= 0.)
-      {
-        run.len++;
-        run.cum += samples[i];
-      }
-      else
-      {
-        runs.push_back(run);
-        run.first = i;
-        run.len = 1;
-        run.posFlag = false;
-        run.cum = -samples[i];
-      }
-    }
-    else if (samples[i] < 0.)
-    {
-      run.len++;
-      run.cum -= samples[i];
-    }
-    else
-    {
-      runs.push_back(run);
-      run.first = i;
-      run.len = 1;
-      run.posFlag = true;
-      run.cum = samples[i];
-    }
-  }
-  runs.push_back(run);
-}
-
-
-bool Transient::detectPossibleRun(unsigned& rno)
-{
-  if (runs.size() < TRANSIENT_RANGE)
-  {
-    status = TSTATUS_TOO_FEW_RUNS;
-    return false;
-  }
-
-  for (unsigned i = 0; i < TRANSIENT_RANGE; i++)
-  {
-    if (runs[i].len < TRANSIENT_MIN_LENGTH)
-      continue;
-
-    if (runs[i].cum < TRANSIENT_MIN_AVG * runs[i].len)
-      continue;
-    
-    rno = i;
-    return true;
-  } 
-
-  status = TSTATUS_NO_CANDIDATE_RUN;
-  return false;
 }
 
 
@@ -408,45 +325,21 @@ bool Transient::largeSynthDeviation(
 }
 
 
-#include "Candidate.h"
 
 bool Transient::detect(
   const vector<float>& samples,
   const double sampleRate)
 {
   Transient::reset();
+  Candidate candidate;
+  Run run;
 
-Candidate candidate;
-Run runCand;
-TransientType ttype;
-TransientStatus tstatus;
-bool detFlag = candidate.detect(samples, sampleRate, runCand,
-  ttype, tstatus);
-
-  // Chop up the samples into runs (whose values have the same signs).
-  Transient::calcRuns(samples);
-
-  unsigned rno;
-  if (! Transient::detectPossibleRun(rno))
+  if (! candidate.detect(samples, sampleRate, run, 
+      transientType, status))
   {
     transientType = TRANSIENT_NONE;
-if (detFlag)
-  cout << "TRANSERR 1\n";
-if (transientType != ttype)
-  cout << "TRANSERR 2\n";
     return false;
   }
-
-  const Run& run = runs[rno];
-
-if (run.first != runCand.first)
-  cout << "TRANSERR 3\n";
-if (run.len != runCand.len)
-  cout << "TRANSERR 4\n";
-if (run.posFlag != runCand.posFlag)
-  cout << "TRANSERR 5\n";
-if (run.cum / runCand.cum < 0.999 || run.cum / runCand.cum > 1.001)
-  cout << "TRANSERR 6\n";
 
   if (! Transient::findEarlyPeak(samples, run))
   {

@@ -13,8 +13,6 @@ class Transient
 {
   private:
 
-    vector<Run> runs;
-
     TransientStatus status;
     TransientType transientType;
 
