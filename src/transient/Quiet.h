@@ -57,8 +57,6 @@ class Quiet
     unsigned curate(const vector<QuietStats>& qstats) const;
 
     void setFinetuneRange(
-      const Interval& interval,
-      const vector<float>& samples,
       const Interval& intervalFine,
       const bool fromBackFlag,
       vector<QuietStats>& fineStarts) const;
