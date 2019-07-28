@@ -81,7 +81,9 @@
 
 // We divide up the signal into intervals of this duration in seconds.
 
-#define QUIET_DURATION 0.05
+#define QUIET_DURATION_COARSE 0.05
+#define QUIET_DURATION_FINE 0.005
+
 
 ////////////////////////////////////////////////////////////////////////
 //                                                                    //

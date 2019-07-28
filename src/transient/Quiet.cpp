@@ -49,10 +49,10 @@ Quiet::~Quiet()
 void Quiet::makeStarts(
   const Interval& interval,
   const bool fromBackFlag,
-  const unsigned chunkSize,
+  const unsigned duration,
   vector<QuietStats>& startList) const
 {
-  const unsigned numInts = interval.len / chunkSize;
+  const unsigned numInts = interval.len / duration;
 
   if (! fromBackFlag)
   {
@@ -62,10 +62,9 @@ void Quiet::makeStarts(
     {
       startList.emplace_back(QuietStats());
       QuietStats& q = startList.back();
-      q.start = i * chunkSize;
-      q.len = chunkSize;
+      q.start = i * duration;
+      q.len = duration;
       q.grade = GRADE_SIZE;
-      // startList.push_back(i * chunkSize);
     }
   }
   else
@@ -75,10 +74,9 @@ void Quiet::makeStarts(
     {
       startList.emplace_back(QuietStats());
       QuietStats& q = startList.back();
-      q.start = interval.len - (i+1) * chunkSize;
-      q.len = chunkSize;
+      q.start = interval.len - (i+1) * duration;
+      q.len = duration;
       q.grade = GRADE_SIZE;
-      // startList.push_back(interval.len - (i+1) * chunkSize);
     }
   }
 }
@@ -140,6 +138,7 @@ void Quiet::addQuiet(
 }
 
 
+/*
 unsigned Quiet::curate() const
 {
   const unsigned l = quiet.size();
@@ -162,12 +161,43 @@ unsigned Quiet::curate() const
 
   return l;
 }
+*/
+
+
+unsigned Quiet::curate(const vector<QuietStats>& qstats) const
+{
+  const unsigned l = qstats.size();
+
+  for (unsigned i = 0; i < l; i++)
+  {
+    if (qstats[i].grade == GRADE_DEEP_RED ||
+        qstats[i].grade == GRADE_SIZE)
+      return i;
+
+    // Skip a single red not followed so quickly by another one.
+    if (qstats[i].grade == GRADE_RED)
+    {
+      if (i + NUM_QUIET_FOLLOWERS >= l ||
+          qstats[i + NUM_QUIET_FOLLOWERS].grade == GRADE_DEEP_RED ||
+          qstats[i + NUM_QUIET_FOLLOWERS].grade == GRADE_SIZE)
+        return i;
+
+      for (unsigned j = i+1; j <= i+NUM_QUIET_FOLLOWERS; j++)
+      {
+        if (qstats[j].grade == GRADE_RED)
+          return i;
+      }
+    }
+  }
+
+  return l;
+}
 
 
 void Quiet::setFinetuneRange(
+  const Interval& interval,
   const vector<float>& samples,
   const bool fromBackFlag,
-  const Interval& quietInt,
   vector<QuietStats>& fineStarts) const
 {
   // This matters very little, as we add samples to the
@@ -177,7 +207,7 @@ void Quiet::setFinetuneRange(
   unsigned first, last;
   if (! fromBackFlag)
   {
-    first = quietInt.first;
+    first = interval.first;
 
     if (first + 2 * INT_LENGTH >= ls)
       last = ls;
@@ -186,7 +216,6 @@ void Quiet::setFinetuneRange(
 
     for (unsigned i = first; i < last; i += INT_FINE_LENGTH)
     {
-      // fineStarts.push_back(i);
       fineStarts.emplace_back(QuietStats());
       QuietStats& q = fineStarts.back();
       q.start = i;
@@ -196,10 +225,10 @@ void Quiet::setFinetuneRange(
   }
   else
   {
-    if (quietInt.first < INT_LENGTH)
+    if (interval.first < INT_LENGTH)
       first = 0;
     else
-      first = quietInt.first - INT_LENGTH;
+      first = interval.first - INT_LENGTH;
 
     if (first + 2 * INT_LENGTH >= ls)
       last = ls;
@@ -208,7 +237,6 @@ void Quiet::setFinetuneRange(
 
     for (unsigned i = first; i < last; i += INT_FINE_LENGTH)
     {
-      // fineStarts.push_back(last - INT_FINE_LENGTH - (i - first));
       fineStarts.emplace_back(QuietStats());
       QuietStats& q = fineStarts.back();
       q.start = last - INT_FINE_LENGTH - (i - first);
@@ -268,8 +296,7 @@ void Quiet::finetune(
   // more accurately.
 
   vector<QuietStats> fineStarts;
-  // fineStarts.clear();
-  Quiet::setFinetuneRange(samples, fromBackFlag, quietInt, fineStarts);
+  Quiet::setFinetuneRange(quietInt, samples, fromBackFlag, fineStarts);
 
   vector<QuietStats> fineList(fineStarts.size());
   float sdevThreshold;
@@ -380,14 +407,19 @@ bool Quiet::detect(
   const bool fromBackFlag,
   Interval& active)
 {
+  durationCoarse = 
+    static_cast<unsigned>(sampleRate * QUIET_DURATION_COARSE);
+  durationFine = 
+    static_cast<unsigned>(sampleRate * QUIET_DURATION_FINE);
+
   QuietStats qstats;
-  qstats.len = static_cast<unsigned>(sampleRate * QUIET_DURATION);
+  qstats.len = durationCoarse;
   quiet.clear();
 
   // Chop up the interval into chunks of size qstats.len, starting
   // either from the front or the back depending on fromBackFlag.
   vector<QuietStats> startList;
-  Quiet::makeStarts(available, fromBackFlag, qstats.len, startList);
+  Quiet::makeStarts(available, fromBackFlag, durationCoarse, startList);
     
   unsigned runReds = 0, totalReds = 0;
 
@@ -414,8 +446,40 @@ bool Quiet::detect(
       break;
   }
 
-  const unsigned n = Quiet::curate();
+  /*
+  cout << "Start list\n";
+  unsigned i = 0;
+  for (auto& q: startList)
+  {
+    cout << 
+      setw(3) << i << 
+      setw(6) << q.start <<
+      setw(6) << q.len <<
+      setw(8) << fixed << setprecision(2) << q.mean <<
+      setw(8) << fixed << setprecision(2) << q.sdev <<
+      setw(4) << q.grade << endl;
+    i++;
+  }
+
+  cout << "\nOld list\n";
+  i = 0;
+  for (auto& q: quiet)
+  {
+    cout << 
+      setw(3) << i << 
+      setw(6) << q.first <<
+      setw(6) << q.len <<
+      setw(8) << fixed << setprecision(2) << q.mean <<
+      setw(4) << q.grade << endl;
+    i++;
+  }
+  */
+
+  const unsigned n = Quiet::curate(startList);
+
   quiet.resize(n);
+  startList.resize(n);
+
   if (n > 0)
     Quiet::finetune(samples, fromBackFlag, quiet.back());
 

@@ -13,6 +13,9 @@ class Quiet
 {
   private:
 
+    unsigned durationCoarse;
+    unsigned durationFine;
+
     struct QuietStats
     {
       unsigned start;
@@ -29,10 +32,11 @@ class Quiet
     Interval writeInterval;
     Interval activeInterval;
 
+
     void makeStarts(
       const Interval& interval,
       const bool fromBackFlag,
-      const unsigned chunkSize,
+      const unsigned duration,
       vector<QuietStats>& startList) const;
 
     void makeStats(
@@ -48,12 +52,14 @@ class Quiet
       const QuietGrade grade,
       const float mean);
 
-    unsigned curate() const;
+    // unsigned curate() const;
+
+    unsigned curate(const vector<QuietStats>& qstats) const;
 
     void setFinetuneRange(
+      const Interval& interval,
       const vector<float>& samples,
       const bool fromBackFlag,
-      const Interval& quietInt,
       vector<QuietStats>& fineStarts) const;
 
     void getFinetuneStatistics(
