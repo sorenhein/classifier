@@ -18,23 +18,13 @@ class Quiet
     unsigned durationCoarse;
     unsigned durationFine;
 
-    /*
-    struct QuietStats
-    {
-      unsigned start;
-      unsigned len;
-      float mean;
-      float sdev;
-      QuietGrade grade;
-    };
-    */
-
     list<QuietData> quietCoarse;
-
 
     vector<float> synth;
 
+    // The interval for synthetic output.
     Interval writeInterval;
+
     Interval activeInterval;
 
 
@@ -52,7 +42,7 @@ class Quiet
       const vector<float>& samples,
       list<QuietData>& quietList) const;
 
-    unsigned curate(const list<QuietData>& quietList) const;
+    unsigned findSize(const list<QuietData>& quietList) const;
 
     void getFinetuneStatistics(
       const vector<float>& samples,
@@ -80,7 +70,7 @@ class Quiet
       const Interval& avail,
       const bool fromBackFlag);
 
-    void makeSynth(const list<QuietData>& quietList);
+    void synthesize(const list<QuietData>& quietList);
 
 
   public:

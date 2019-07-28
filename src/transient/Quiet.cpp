@@ -1,18 +1,10 @@
-#include <iostream>
-#include <iomanip>
-#include <fstream>
-#include <sstream>
 #include <limits>
-#include <math.h>
 
 #include "Quiet.h"
 
 #include "../const.h"
 
 #include "../util/io.h"
-
-#define NUM_NON_QUIET_RUNS 2
-#define NUM_QUIET_FOLLOWERS 4
 
 
 Quiet::Quiet()
@@ -90,8 +82,6 @@ void Quiet::annotateList(
   {
     Quiet::makeStats(samples, quiet);
     quiet.setGrade();
-    // const QuietGrade grade = Quiet::isQuiet(quiet);
-    // quiet.grade = grade;
 
     if (quiet.grade == GRADE_DEEP_RED)
       break;
@@ -110,7 +100,7 @@ void Quiet::annotateList(
 }
 
 
-unsigned Quiet::curate(const list<QuietData>& quietList) const
+unsigned Quiet::findSize(const list<QuietData>& quietList) const
 {
   const unsigned l = quietList.size();
 
@@ -223,17 +213,16 @@ void Quiet::finetune(
   float sdevThreshold;
   Quiet::getFinetuneStatistics(samples, fineStarts, sdevThreshold);
 
+  // Look for the first fine interval to have above-average activity.
   for (auto& fine: fineStarts)
   {
-    if (fine.sdev >= sdevThreshold ||
-        ! fine.isVeryQuiet())
+    if (fine.sdev >= sdevThreshold || ! fine.isVeryQuiet())
     {
       Quiet::adjustIntervals(fromBackFlag, qstats, fine.start);
       return;
     }
   }
-  cout << "Odd error\n";
-  return;
+  // Should not get here.
 }
 
 
@@ -246,15 +235,16 @@ void Quiet::adjustOutputIntervals(
 
   if (! fromBackFlag)
   {
-    writeInterval.first = avail.first;
     if (quietList.empty())
     {
+      writeInterval.first = avail.first;
       writeInterval.len = 0;
       activeInterval.first = avail.first;
       activeInterval.len = avail.len;
       return;
     }
 
+    writeInterval.first = avail.first;
     writeInterval.len = quietList.back().start + quietList.back().len -
       writeInterval.first;
 
@@ -271,7 +261,7 @@ void Quiet::adjustOutputIntervals(
     if (quietList.empty())
     {
       writeInterval.first = avail.first;
-      writeInterval.len = avail.first;
+      writeInterval.len = 0;
       activeInterval.first = avail.first;
       activeInterval.len = avail.len;
       return;
@@ -297,11 +287,10 @@ void Quiet::adjustOutputIntervals(
 }
 
 
-void Quiet::makeSynth(const list<QuietData>& quietList)
+void Quiet::synthesize(const list<QuietData>& quietList)
 {
+  synth.clear();
   synth.resize(writeInterval.len);
-  for (unsigned i = 0; i < writeInterval.len; i++)
-    synth[i] = 0.;
 
   for (auto& quiet: quietList)
   {
@@ -334,7 +323,7 @@ bool Quiet::detect(
   // dubious chunks in succession.
   Quiet::annotateList(samples, quietCoarse);
 
-  const unsigned n = Quiet::curate(quietCoarse);
+  const unsigned n = Quiet::findSize(quietCoarse);
   quietCoarse.resize(n);
 
   if (n > 0)
@@ -343,7 +332,8 @@ bool Quiet::detect(
   // Make output a bit longer in order to better see.
   Quiet::adjustOutputIntervals(quietCoarse, available, fromBackFlag);
 
-  Quiet::makeSynth(quietCoarse);
+  // Make a synthetic step signal to visualize the quietness levels.
+  Quiet::synthesize(quietCoarse);
 
   active = activeInterval;
   return true;
