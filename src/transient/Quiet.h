@@ -80,7 +80,7 @@ class Quiet
       const Interval& avail,
       const bool fromBackFlag);
 
-    void makeSynth();
+    void makeSynth(const vector<QuietStats>& startList);
 
     void printStats(
       const QuietStats& qstats,

@@ -324,24 +324,24 @@ void Quiet::adjustOutputIntervals(
 }
 
 
-void Quiet::makeSynth()
+void Quiet::makeSynth(const vector<QuietStats>& startList)
 {
   synth.resize(writeInterval.len);
   for (unsigned i = 0; i < writeInterval.len; i++)
     synth[i] = 0.;
 
-  for (unsigned i = 0; i < quiet.size(); i++)
+  for (unsigned i = 0; i < startList.size(); i++)
   {
     float g;
-    if (quiet[i].grade == GRADE_GREEN)
+    if (startList[i].grade == GRADE_GREEN)
       g = OUTPUT_VERY_QUIET;
-    else if (quiet[i].grade == GRADE_AMBER)
+    else if (startList[i].grade == GRADE_AMBER)
       g = OUTPUT_SOMEWHAT_QUIET;
     else
       g = 0.;
 
-    for (unsigned j = quiet[i].first; 
-        j < quiet[i].first + quiet[i].len; j++)
+    for (unsigned j = startList[i].start; 
+        j < startList[i].start + startList[i].len; j++)
       synth[j - writeInterval.first] = g;
   }
 }
@@ -404,7 +404,7 @@ bool Quiet::detect(
   // Make output a bit longer in order to better see.
   Quiet::adjustOutputIntervals(available, fromBackFlag);
 
-  Quiet::makeSynth();
+  Quiet::makeSynth(startList);
 
   active = activeInterval;
   return true;
