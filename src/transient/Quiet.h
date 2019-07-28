@@ -52,13 +52,12 @@ class Quiet
       const QuietGrade grade,
       const float mean);
 
-    // unsigned curate() const;
-
     unsigned curate(const vector<QuietStats>& qstats) const;
 
     void setFinetuneRange(
       const Interval& intervalFine,
       const bool fromBackFlag,
+      const unsigned duration,
       vector<QuietStats>& fineStarts) const;
 
     void getFinetuneStatistics(

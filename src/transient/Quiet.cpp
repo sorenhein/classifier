@@ -138,32 +138,6 @@ void Quiet::addQuiet(
 }
 
 
-/*
-unsigned Quiet::curate() const
-{
-  const unsigned l = quiet.size();
-
-  for (unsigned i = 0; i < l; i++)
-  {
-    // Skip a single red not followed so quickly by another one.
-    if (quiet[i].grade == GRADE_RED)
-    {
-      if (i + NUM_QUIET_FOLLOWERS >= l)
-        return i;
-
-      for (unsigned j = i+1; j <= i+NUM_QUIET_FOLLOWERS; j++)
-      {
-        if (quiet[j].grade == GRADE_RED)
-          return i;
-      }
-    }
-  }
-
-  return l;
-}
-*/
-
-
 unsigned Quiet::curate(const vector<QuietStats>& qstats) const
 {
   const unsigned l = qstats.size();
@@ -197,34 +171,33 @@ unsigned Quiet::curate(const vector<QuietStats>& qstats) const
 void Quiet::setFinetuneRange(
   const Interval& intervalFine,
   const bool fromBackFlag,
+  const unsigned duration,
   vector<QuietStats>& fineStarts) const
 {
   // This matters very little, as we add samples to the
   // end anyway.
 
+  const unsigned numInts = intervalFine.len / duration;
+
   if (! fromBackFlag)
   {
-    for (unsigned i = intervalFine.first; 
-        i < intervalFine.first + intervalFine.len; i += INT_FINE_LENGTH)
+    for (unsigned i = 0; i < numInts; i++)
     {
       fineStarts.emplace_back(QuietStats());
       QuietStats& q = fineStarts.back();
-      q.start = i;
-      q.len = INT_FINE_LENGTH;
+      q.start = intervalFine.first + i * duration;
+      q.len = duration;
       q.grade = GRADE_SIZE;
     }
   }
   else
   {
-    // for (unsigned i = first; i < last; i += INT_FINE_LENGTH)
-    for (unsigned i = intervalFine.first; 
-        i < intervalFine.first + intervalFine.len; i += INT_FINE_LENGTH)
+    for (unsigned i = 0; i < numInts; i++)
     {
       fineStarts.emplace_back(QuietStats());
       QuietStats& q = fineStarts.back();
-      q.start = intervalFine.first + intervalFine.len - INT_FINE_LENGTH - 
-        (i - intervalFine.first);
-      q.len = INT_FINE_LENGTH;
+      q.start = intervalFine.first + intervalFine.len - (i+1) * duration;
+      q.len = duration;
       q.grade = GRADE_SIZE;
     }
   }
@@ -302,7 +275,8 @@ void Quiet::finetune(
   vector<QuietStats> fineStarts;
 Interval intervalFine;
 Quiet::setFineInterval(quietInt, fromBackFlag, samples.size(), intervalFine);
-  Quiet::setFinetuneRange(intervalFine, fromBackFlag, fineStarts);
+  Quiet::setFinetuneRange(intervalFine, fromBackFlag, 
+    durationFine, fineStarts);
 
   vector<QuietStats> fineList(fineStarts.size());
   float sdevThreshold;
