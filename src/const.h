@@ -62,6 +62,17 @@
 
 #define TRANSIENT_LARGE_BUMP 0.4
 
+// A transient should decline by at least a factor TRANSIENT_RATIO_FULL
+// between beginning and end.
+
+#define TRANSIENT_RATIO_FULL 3.
+
+// A transient should decline by at least a factor TRANSIENT_RATIO_MID
+// between beginning and end (roughly the square root of the other).
+
+#define TRANSIENT_RATIO_MID 1.7
+
+
 ////////////////////////////////////////////////////////////////////////
 //                                                                    //
 //                            Filters                                 //

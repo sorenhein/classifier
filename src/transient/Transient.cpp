@@ -13,14 +13,8 @@
 
 
 // Current working definition of a transient:
-// * As in Candidate.h
-// * Ratio between beginning and end values is at least 3.
-// * Ratio between beginning and middle values is at least 1.7.
 // * Has a bit of a slope towards zero, at least.
 // * TODO: Should be independent of sample rate.
-
-#define TRANSIENT_RATIO_FULL 3.
-#define TRANSIENT_RATIO_MID 1.7
 
 #define TRANSIENT_LARGE_DEV 10.
 #define SAMPLE_RATE 2000.
@@ -111,7 +105,7 @@ bool Transient::findEarlyPeak(
 }
 
 
-bool Transient::largeActualDeviation(
+bool Transient::largeBump(
   const vector<float>& samples,
   const Run& run,
   unsigned& bumpPosition) const
@@ -202,6 +196,7 @@ bool Transient::checkDecline(
 
 void Transient::estimateTransientParams(
   const vector<float>& samples,
+  const double sampleRate,
   const Run& run)
 {
   // This doesn't have to be so accurate, so the basic idea
@@ -216,11 +211,13 @@ void Transient::estimateTransientParams(
     cum += samples[i];
     vcum += (i - f) * samples[i];
   }
-  cum /= SAMPLE_RATE;
-  vcum /= (SAMPLE_RATE * SAMPLE_RATE);
+
+  const float fsFloat = static_cast<float>(sampleRate);
+  cum /= fsFloat;
+  vcum /= (fsFloat * fsFloat);
 
   // Actually we can also just use the first sample.
-  // Because the math is so pretty, we average the two,
+  // Because the math is so pretty, we weight the two,
   // but in truth cand2 is probably better...
 
   const float cand1 = cum * cum / vcum;
@@ -240,7 +237,10 @@ void Transient::estimateTransientParams(
     transientType = TRANSIENT_LARGE_NEG;
   else if (transientAmpl >= 15. && 
       timeConstant >= 5. && timeConstant <= 17.)
-    transientType = TRANSIENT_MEDIUM;
+    transientType = TRANSIENT_MEDIUM_POS;
+  else if (transientAmpl <= -15. && 
+      timeConstant >= 5. && timeConstant <= 17.)
+    transientType = TRANSIENT_MEDIUM_NEG;
   else if (transientAmpl <= 3. && transientAmpl >= -3.)
     transientType = TRANSIENT_SMALL;
   else
@@ -341,13 +341,15 @@ bool Transient::detect(
 
   // Could be a large bump away from the zero line (a wheel);
   unsigned bumpPosition;
-  if (Transient::largeActualDeviation(samples, run, bumpPosition))
+  if (Transient::largeBump(samples, run, bumpPosition))
   {
     run.len = bumpPosition - run.first;
     transientLength = run.len - buildupLength;
     status = TSTATUS_BACK_CORRECTED;
   }
 
+  // Check that the transient covers a relevant range of values,
+  // i.e. that it declines by enough.
   if (! Transient::checkDecline(samples, run))
   {
     // Could be a very choppy trace where it makes sense
@@ -367,7 +369,7 @@ bool Transient::detect(
     }
   }
 
-  Transient::estimateTransientParams(samples, run);
+  Transient::estimateTransientParams(samples, sampleRate, run);
 
   Transient::synthesize();
 
@@ -378,7 +380,7 @@ bool Transient::detect(
     status = TSTATUS_BACK_SYNTH_CORR;
 
     // Redo the estimation.
-    Transient::estimateTransientParams(samples, run);
+    Transient::estimateTransientParams(samples, sampleRate, run);
 
     Transient::synthesize();
   }

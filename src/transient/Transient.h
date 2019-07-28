@@ -39,7 +39,7 @@ class Transient
       const double sampleRate,
       const Run& run);
 
-    bool largeActualDeviation(
+    bool largeBump(
       const vector<float>& samples,
       const Run& run,
       unsigned& bumpPosition) const;
@@ -50,6 +50,7 @@ class Transient
 
     void estimateTransientParams(
       const vector<float>& samples,
+      const double sampleRate,
       const Run& run);
 
     void synthesize();
