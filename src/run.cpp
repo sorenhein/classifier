@@ -52,6 +52,23 @@ void runRead(
   const unsigned thid,
   vector<float>& samples);
 
+void runTransient(
+  const Control& control,
+  const vector<float>& samples,
+  const double sampleRate,
+  const unsigned thid,
+  Transient& transient,
+  unsigned& lastIndex);
+
+void runQuiet(
+  const vector<float>& samples,
+  const double sampleRate,
+  const unsigned lastIndex,
+  const unsigned thid,
+  Quiet& quietBack,
+  Quiet& quietFront,
+  Interval& interval);
+
 
 string runHeader(const TraceData& traceData)
 {
@@ -80,6 +97,74 @@ void runRead(
 }
 
 
+void runTransient(
+  const Control& control,
+  const vector<float>& samples,
+  const double sampleRate,
+  const unsigned thid,
+  Transient& transient,
+  unsigned& lastIndex)
+{
+  timers[thid].start(TIMER_TRANSIENT);
+
+  transient.detect(samples, sampleRate, lastIndex);
+
+  if (control.verboseTransient())
+    cout << transient.str() << "\n";
+
+  timers[thid].stop(TIMER_TRANSIENT);
+}
+
+
+void runQuiet(
+  const vector<float>& samples,
+  const double sampleRate,
+  const unsigned lastIndex,
+  const unsigned thid,
+  Quiet& quietBack,
+  Quiet& quietFront,
+  Interval& interval)
+{
+  timers[thid].start(TIMER_QUIET);
+
+  interval.first = lastIndex;
+  interval.len = samples.size() - lastIndex;
+
+  quietBack.detect(samples, sampleRate, true, interval);
+  quietFront.detect(samples, sampleRate, false, interval);
+
+  timers[thid].stop(TIMER_QUIET);
+}
+
+
+void runWrite(
+  const Control& control,
+  const Transient& transient,
+  const Quiet& quietBack,
+  const Quiet& quietFront,
+  const SegActive& segActive,
+  const string& filename,
+  const unsigned thid)
+{
+  timers[thid].start(TIMER_WRITE);
+
+  if (control.writeTransient())
+    transient.writeFile(control.transientDir() + "/" + filename);
+  if (control.writeBack())
+    quietBack.writeFile(control.backDir() + "/" + filename);
+  if (control.writeFront())
+    quietFront.writeFile(control.frontDir() + "/" + filename);
+  if (control.writeSpeed())
+    segActive.writePeak(control.speedDir() + "/" + filename);
+  if (control.writePos())
+    segActive.writePeak(control.posDir() + "/" + filename);
+  if (control.writePeak())
+    segActive.writePeak(control.peakDir() + "/" + filename);
+
+  timers[thid].stop(TIMER_WRITE);
+}
+
+
 void run(
   const Control& control,
   const TrainDB& trainDB,
@@ -104,6 +189,7 @@ void run(
   vector<int> actualToRef;
   unsigned numFrontWheels;
 
+  // TODO If something?
   cout << runHeader(traceData);
 
   vector<double> posTrue;
@@ -116,28 +202,14 @@ void run(
     vector<float> samples;
     runRead(traceData.filenameFull, thid, samples);
 
-    // Refuse trace if sample rate is not 2000, maybe in SegActive
+    unsigned lastIndex;
+    runTransient(control, samples, traceData.sampleRate, thid, 
+      transient, lastIndex);
 
-  timers[thid].start(TIMER_TRANSIENT);
+    Interval interval;
+    runQuiet(samples, traceData.sampleRate, lastIndex, thid,
+      quietBack, quietFront, interval);
 
-  unsigned lastIndex;
-  transient.detect(samples, traceData.sampleRate, lastIndex);
-
-  if (control.verboseTransient())
-    cout << transient.str() << "\n";
-
-  timers[thid].stop(TIMER_TRANSIENT);
-
-  timers[thid].start(TIMER_QUIET);
-
-  Interval intAfterTransient;
-  intAfterTransient.first = lastIndex;
-  intAfterTransient.len = samples.size() - lastIndex;
-
-  quietBack.detect(samples, traceData.sampleRate, true, intAfterTransient);
-  quietFront.detect(samples, traceData.sampleRate, false, intAfterTransient);
-
-  timers[thid].stop(TIMER_QUIET);
 
   // TODO Leave as floats for a while longer.
   vector<double> dsamples;
@@ -145,36 +217,18 @@ void run(
   for (unsigned i = 0; i < samples.size(); i++)
     dsamples[i] = samples[i];
 
+    // Refuse trace if sample rate is not 2000, maybe in SegActive
 
-  (void) segActive.detect(dsamples, traceData.sampleRate, intAfterTransient,
+  (void) segActive.detect(dsamples, traceData.sampleRate, interval,
     control, thid, imperf);
-
-
-
-
 
     trainDB.getPeakPositions(traceData.trainNoTrueU, posTrue);
 
     segActive.logPeakStats(posTrue, traceData.trainTrue, 
       traceData.speed, peakStats);
 
-  timers[thid].start(TIMER_WRITE);
-
-  if (control.writeTransient())
-    transient.writeFile(control.transientDir() + "/" + traceData.filename);
-  if (control.writeBack())
-    quietBack.writeFile(control.backDir() + "/" + traceData.filename);
-  if (control.writeFront())
-    quietFront.writeFile(control.frontDir() + "/" + traceData.filename);
-  if (control.writeSpeed())
-    segActive.writePeak(control.speedDir() + "/" + traceData.filename);
-  if (control.writePos())
-    segActive.writePeak(control.posDir() + "/" + traceData.filename);
-  if (control.writePeak())
-    segActive.writePeak(control.peakDir() + "/" + traceData.filename);
-
-  timers[thid].stop(TIMER_WRITE);
-
+    runWrite(control, transient, quietBack, quietFront, segActive,
+      traceData.filename, thid);
 
     bool fullTrainFlag;
     if (segActive.getAlignment(times, actualToRef, numFrontWheels) &&

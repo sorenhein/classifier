@@ -1,3 +1,7 @@
+continue with run.cpp
+---------------------
+Split SegActive into filter and detect
+
 get rid of Imperf
 global array of output files, indexed by thid
 
