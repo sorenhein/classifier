@@ -55,10 +55,6 @@ class Transient
 
     void synthesize(const double sampleRate);
 
-    bool largeSynthDeviation(
-      const vector<float>& samples,
-      unsigned& devpos) const;
-
     bool errorIsSmall(const vector<float>& samples);
 
     string strHeader() const;
@@ -75,7 +71,8 @@ class Transient
 
     bool detect(
       const vector<float>& samples,
-      const double sampleRate);
+      const double sampleRate,
+      unsigned& lastIndex);
 
     unsigned lastSampleNo() const;
 

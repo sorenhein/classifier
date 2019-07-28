@@ -262,61 +262,17 @@ bool Transient::errorIsSmall(const vector<float>& samples)
 }
 
 
-bool Transient::largeSynthDeviation(
-  const vector<float>& samples,
-  unsigned& devpos) const
-{
-  // We also consider two consecutive, large deviations from
-  // the synthesized transient to signal the end.
-
-  for (unsigned i = 1; i+1 < synth.size(); i++)
-  {
-    const unsigned j = firstBuildupSample + i;
-    if (j >= samples.size())
-      return false;
-
-    float diff1 = samples[j] - synth[i];
-    float diff2 = samples[j+1] - synth[i+1];
-
-    if (samples[j] < 0.)
-    {
-      diff1 = -diff1;
-      diff2 = -diff2;
-    }
-
-    if (//samples[j] < 0. && 
-        diff1 > TRANSIENT_LARGE_DEV &&
-        diff2 > TRANSIENT_LARGE_DEV)
-    {
-      devpos = i-1;
-      return true;
-    }
-    /*
-    else if (samples[j] > 0. && 
-        diff1 > TRANSIENT_LARGE_DEV &&
-        diff2 > TRANSIENT_LARGE_DEV)
-    {
-      devpos = i-1;
-      return true;
-    }
-    */
-  }
-  return false;
-}
-
-
-
 bool Transient::detect(
   const vector<float>& samples,
-  const double sampleRate)
+  const double sampleRate,
+  unsigned& lastIndex)
 {
   Transient::reset();
   Candidate candidate;
   Run run;
 
   // Look for a candidate run with the same polarity.
-  if (! candidate.detect(samples, sampleRate, run, 
-      transientType, status))
+  if (! candidate.detect(samples, sampleRate, run, transientType, status))
   {
     transientType = TRANSIENT_NONE;
     return false;
@@ -336,7 +292,6 @@ bool Transient::detect(
   {
     run.len = bumpPosition - run.first;
     transientLength = run.len - buildupLength;
-    status = TSTATUS_BACK_CORRECTED;
   }
 
   // Check that the transient covers a relevant range of values,
@@ -351,7 +306,6 @@ bool Transient::detect(
       firstBuildupSample = run.first;
       buildupStart = 0.;
       transientLength = run.len;
-      status = TSTATUS_FRONT_ACTUAL_CORR;
     }
     else
     {
@@ -367,17 +321,6 @@ bool Transient::detect(
   // Make the synthetic transient.
   Transient::synthesize(sampleRate);
 
-  if (Transient::largeSynthDeviation(samples, bumpPosition))
-  {
-    run.len = bumpPosition;
-    transientLength = bumpPosition - buildupLength;
-    status = TSTATUS_BACK_SYNTH_CORR;
-
-    // Redo the estimation.
-    Transient::estimateTransientParams(samples, sampleRate, run);
-    Transient::synthesize(sampleRate);
-  }
-
   if (! Transient::errorIsSmall(samples))
   {
     // Currently not possible.  fitError is probably an
@@ -387,6 +330,7 @@ bool Transient::detect(
     return false;
   }
 
+  lastIndex = firstBuildupSample + buildupLength + transientLength;
   return true;
 }
 
@@ -435,6 +379,8 @@ string Transient::str() const
       ss << "Didn't decline enough over full run";
     else if (status == TSTATUS_NO_MID_DECLINE)
       ss << "Didn't decline enough in the middle";
+    else if (status == TSTATUS_BAD_FIT)
+      ss << "Bad fit to exponential transient";
     else
       ss << "Reason not known (ERROR)";
     return ss.str() + "\n\n";
