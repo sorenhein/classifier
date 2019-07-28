@@ -228,28 +228,28 @@ void Quiet::finetune(
 
 void Quiet::adjustOutputIntervals(
   const QuietData& quiet,
-  const Interval& avail,
-  const bool fromBackFlag)
+  const bool fromBackFlag,
+  Interval& available)
 {
-  const unsigned availEnd = avail.first + avail.len;
+  const unsigned availEnd = available.first + available.len;
 
   if (! fromBackFlag)
   {
     const unsigned quietEnd = quiet.start + quiet.len;
 
-    writeInterval.first = avail.first;
-    writeInterval.len = quietEnd - avail.first;
+    writeInterval.first = available.first;
+    writeInterval.len = quietEnd - available.first;
 
     // We also write some samples after the quiet interval for clarity.
     if (quietEnd + padSamples < availEnd)
       writeInterval.len += padSamples;
     else
-      writeInterval.len = avail.len;
+      writeInterval.len = available.len;
 
     // We don't go earlier than quietEnd, as we would often
     // get into the real transient.
-    activeInterval.first = quietEnd;
-    activeInterval.len = availEnd - quietEnd;
+    available.first = quietEnd;
+    available.len = availEnd - quietEnd;
   }
   else
   {
@@ -263,16 +263,11 @@ void Quiet::adjustOutputIntervals(
 
     writeInterval.len = availEnd - writeInterval.first;
 
-    activeInterval.first = avail.first;
-    activeInterval.len = quiet.start - avail.first;
-
     // Here we can go beyond the start of the quiet interval,
     // as nothing much happens here in general.  So we might as well
     // give the filter some quiet data to work with.
     if (quiet.start + padSamples < availEnd)
-      activeInterval.len += padSamples;
-    else
-      activeInterval.len = avail.len;
+      available.len = quiet.start + padSamples - available.first;
   }
 }
 
@@ -295,9 +290,8 @@ void Quiet::synthesize(const list<QuietData>& quietList)
 bool Quiet::detect(
   const vector<float>& samples,
   const double sampleRate,
-  const Interval& available,
   const bool fromBackFlag,
-  Interval& active)
+  Interval& available)
 {
   durationCoarse = 
     static_cast<unsigned>(sampleRate * QUIET_DURATION_COARSE);
@@ -323,21 +317,18 @@ bool Quiet::detect(
     Quiet::finetune(samples, fromBackFlag, quietCoarse.back());
 
     // Make output a bit longer in order to better see.
-    Quiet::adjustOutputIntervals(quietCoarse.back(), available, 
-      fromBackFlag);
+    Quiet::adjustOutputIntervals(quietCoarse.back(), fromBackFlag,
+      available);
   }
   else
   {
     writeInterval.first = available.first;
     writeInterval.len = 0;
-    activeInterval.first = available.first;
-    activeInterval.len = available.len;
   }
 
   // Make a synthetic step signal to visualize the quietness levels.
   Quiet::synthesize(quietCoarse);
 
-  active = activeInterval;
   return true;
 }
 

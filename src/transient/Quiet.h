@@ -26,8 +26,6 @@ class Quiet
     // The interval for synthetic output.
     Interval writeInterval;
 
-    Interval activeInterval;
-
 
     void makeStarts(
       const Interval& interval,
@@ -68,8 +66,8 @@ class Quiet
 
     void adjustOutputIntervals(
       const QuietData& quietList,
-      const Interval& avail,
-      const bool fromBackFlag);
+      const bool fromBackFlag,
+      Interval& avail);
 
     void synthesize(const list<QuietData>& quietList);
 
@@ -83,9 +81,8 @@ class Quiet
     bool detect(
       const vector<float>& samples,
       const double sampleRate,
-      const Interval& available,
       const bool fromBackFlag,
-      Interval& active);
+      Interval& available);
 
     void writeFile(const string& filename) const;
 };

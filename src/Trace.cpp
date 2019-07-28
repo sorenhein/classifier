@@ -46,13 +46,11 @@ void Trace::detect(
   intAfterTransient.first = lastIndex;
   intAfterTransient.len = fsamples.size() - lastIndex;
 
-  Interval intAfterBack;
-  quietFlag = quietBack.detect(fsamples, sampleRate, intAfterTransient, 
-    true, intAfterBack);
+  quietFlag = quietBack.detect(fsamples, sampleRate, 
+    true, intAfterTransient);
 
-  Interval intAfterFront;
-  (void) quietFront.detect(fsamples, sampleRate, intAfterBack, 
-    false, intAfterFront);
+  (void) quietFront.detect(fsamples, sampleRate, 
+    false, intAfterTransient);
   timers[thid].stop(TIMER_TRANSIENT);
 
   // TODO Leave as floats for a while longer.
@@ -61,7 +59,7 @@ void Trace::detect(
     samples[i] = fsamples[i];
 
 
-  (void) segActive.detect(samples, sampleRate, intAfterFront, 
+  (void) segActive.detect(samples, sampleRate, intAfterTransient, 
     control, thid, imperf);
 }
 
