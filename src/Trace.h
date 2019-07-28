@@ -5,8 +5,8 @@
 #include <string>
 
 #include "transient/Transient.h"
+#include "transient/Quiet.h"
 
-#include "SegQuiet.h"
 #include "SegActive.h"
 #include "struct.h"
 
@@ -24,15 +24,14 @@ class Trace
     vector<Run> runs;
 
     Transient transient;
-    SegQuiet quietFront;
-    SegQuiet quietBack;
+    Quiet quietFront;
+    Quiet quietBack;
 
     SegActive segActive;
 
     bool transientFlag;
     bool quietFlag;
 
-    // string strTransientHeaderCSV();
     string strTransientCSV();
 
   public:

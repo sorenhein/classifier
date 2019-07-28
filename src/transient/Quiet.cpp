@@ -5,9 +5,9 @@
 #include <limits>
 #include <math.h>
 
-#include "SegQuiet.h"
+#include "Quiet.h"
 
-#include "util/io.h"
+#include "../util/io.h"
 
 #define SAMPLE_RATE 2000.
 
@@ -34,23 +34,23 @@
 #define SEPARATOR ";"
 
 
-SegQuiet::SegQuiet()
+Quiet::Quiet()
 {
 }
 
 
-SegQuiet::~SegQuiet()
+Quiet::~Quiet()
 {
 }
 
 
-void SegQuiet::reset()
+void Quiet::reset()
 {
   quiet.clear();
 }
 
 
-void SegQuiet::makeStarts(
+void Quiet::makeStarts(
   const Interval& interval,
   const QuietPlace direction,
   vector<unsigned>& startList) const
@@ -71,7 +71,7 @@ void SegQuiet::makeStarts(
 }
 
 
-void SegQuiet::makeStats(
+void Quiet::makeStats(
   const vector<float>& samples,
   const unsigned first,
   const unsigned len,
@@ -90,7 +90,7 @@ void SegQuiet::makeStats(
 }
 
 
-QuietGrade SegQuiet::isQuiet(const QuietStats& qstats) const
+QuietGrade Quiet::isQuiet(const QuietStats& qstats) const
 {
   if (abs(qstats.mean) < MEAN_VERY_QUIET &&
       qstats.sdev < SDEV_VERY_QUIET)
@@ -109,7 +109,7 @@ QuietGrade SegQuiet::isQuiet(const QuietStats& qstats) const
 }
 
 
-void SegQuiet::addQuiet(
+void Quiet::addQuiet(
   const unsigned start, 
   const unsigned len,
   const QuietGrade grade,
@@ -124,7 +124,7 @@ void SegQuiet::addQuiet(
 }
 
 
-unsigned SegQuiet::curate() const
+unsigned Quiet::curate() const
 {
   const unsigned l = quiet.size();
 
@@ -148,7 +148,7 @@ unsigned SegQuiet::curate() const
 }
 
 
-void SegQuiet::setFinetuneRange(
+void Quiet::setFinetuneRange(
   const vector<float>& samples,
   const QuietPlace direction,
   const Interval& quietInt,
@@ -189,7 +189,7 @@ void SegQuiet::setFinetuneRange(
 }
 
 
-void SegQuiet::getFinetuneStatistics(
+void Quiet::getFinetuneStatistics(
   const vector<float>& samples,
   vector<unsigned>& fineStarts,
   vector<QuietStats>& fineList,
@@ -198,7 +198,7 @@ void SegQuiet::getFinetuneStatistics(
   float sdevMax = 0., sdevMin = numeric_limits<float>::max();
   for (unsigned i = 0; i < fineStarts.size(); i++)
   {
-    SegQuiet::makeStats(samples, fineStarts[i], 
+    Quiet::makeStats(samples, fineStarts[i], 
       INT_FINE_LENGTH, fineList[i]);
     if (fineList[i].sdev > sdevMax)
       sdevMax = fineList[i].sdev;
@@ -209,7 +209,7 @@ void SegQuiet::getFinetuneStatistics(
 }
 
 
-void SegQuiet::adjustIntervals(
+void Quiet::adjustIntervals(
   const QuietPlace direction,
   Interval& quietInt,
   const unsigned index)
@@ -230,7 +230,7 @@ void SegQuiet::adjustIntervals(
 
 
 
-void SegQuiet::finetune(
+void Quiet::finetune(
   const vector<float>& samples,
   const QuietPlace direction,
   Interval& quietInt)
@@ -240,12 +240,12 @@ void SegQuiet::finetune(
 
   vector<unsigned> fineStarts;
   fineStarts.clear();
-  SegQuiet::setFinetuneRange(samples, direction, 
+  Quiet::setFinetuneRange(samples, direction, 
     quietInt, fineStarts);
 
   vector<QuietStats> fineList(fineStarts.size());
   float sdevThreshold;
-  SegQuiet::getFinetuneStatistics(samples, fineStarts, 
+  Quiet::getFinetuneStatistics(samples, fineStarts, 
     fineList, sdevThreshold);
 
   for (unsigned i = 0; i < fineStarts.size(); i++)
@@ -253,7 +253,7 @@ void SegQuiet::finetune(
     if (fineList[i].sdev >= sdevThreshold ||
         abs(fineList[i].mean) >= MEAN_SOMEWHAT_QUIET)
     {
-      SegQuiet::adjustIntervals(direction, quietInt, fineStarts[i]);
+      Quiet::adjustIntervals(direction, quietInt, fineStarts[i]);
       return;
     }
   }
@@ -262,7 +262,7 @@ void SegQuiet::finetune(
 }
 
 
-void SegQuiet::adjustOutputIntervals(
+void Quiet::adjustOutputIntervals(
   const Interval& avail,
   const QuietPlace direction)
 {
@@ -322,7 +322,7 @@ void SegQuiet::adjustOutputIntervals(
 }
 
 
-void SegQuiet::makeSynth()
+void Quiet::makeSynth()
 {
   synth.resize(writeInterval.len);
   for (unsigned i = 0; i < writeInterval.len; i++)
@@ -345,7 +345,7 @@ void SegQuiet::makeSynth()
 }
 
 
-bool SegQuiet::detect(
+bool Quiet::detect(
   const vector<float>& samples,
   const Interval& available,
   const QuietPlace direction,
@@ -359,19 +359,19 @@ bool SegQuiet::detect(
   quiet.clear();
 
   vector<unsigned> startList;
-  SegQuiet::makeStarts(available, direction, startList);
+  Quiet::makeStarts(available, direction, startList);
     
   unsigned runReds = 0, totalReds = 0;
 
   for (unsigned start: startList)
   {
-    SegQuiet::makeStats(samples, start, INT_LENGTH, qstats);
-    const QuietGrade grade = SegQuiet::isQuiet(qstats);
+    Quiet::makeStats(samples, start, INT_LENGTH, qstats);
+    const QuietGrade grade = Quiet::isQuiet(qstats);
 
     if (grade == GRADE_DEEP_RED)
       break;
 
-    SegQuiet::addQuiet(start, INT_LENGTH, grade, qstats.mean);
+    Quiet::addQuiet(start, INT_LENGTH, grade, qstats.mean);
 
     if (grade == GRADE_RED)
     {
@@ -385,22 +385,22 @@ bool SegQuiet::detect(
       break;
   }
 
-  const unsigned n = SegQuiet::curate();
+  const unsigned n = Quiet::curate();
   quiet.resize(n);
   if (n > 0)
-    SegQuiet::finetune(samples, direction, quiet.back());
+    Quiet::finetune(samples, direction, quiet.back());
 
   // Make output a bit longer in order to better see.
-  SegQuiet::adjustOutputIntervals(available, direction);
+  Quiet::adjustOutputIntervals(available, direction);
 
-  SegQuiet::makeSynth();
+  Quiet::makeSynth();
 
   active = activeInterval;
   return true;
 }
 
 
-void SegQuiet::printStats(
+void Quiet::printStats(
   const QuietStats& qstats,
   const unsigned first,
   const bool flag) const
@@ -413,7 +413,7 @@ void SegQuiet::printStats(
 }
 
 
-void SegQuiet::writeFile(const string& filename) const
+void Quiet::writeFile(const string& filename) const
 {
   writeBinary(filename, writeInterval.first, synth);
 }

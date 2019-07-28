@@ -6,6 +6,7 @@
 using namespace std;
 
 
+/*
 enum QuietGrade
 {
   GRADE_GREEN = 0,
@@ -24,6 +25,7 @@ struct Interval
   QuietGrade grade;
   double mean;
 };
+*/
 
 struct RecogEntry
 {

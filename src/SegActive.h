@@ -5,6 +5,9 @@
 #include <string>
 
 #include "PeakDetect.h"
+
+#include "transient/trans.h"
+
 #include "struct.h"
 
 using namespace std;

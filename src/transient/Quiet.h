@@ -1,10 +1,10 @@
-#ifndef TRAIN_SEGQUIET_H
-#define TRAIN_SEGQUIET_H
+#ifndef TRAIN_QUIET_H
+#define TRAIN_QUIET_H
 
 #include <vector>
 #include <string>
 
-#include "struct.h"
+#include "trans.h"
 
 using namespace std;
 
@@ -16,7 +16,7 @@ enum QuietPlace
   QUIET_SIZE = 2
 };
 
-class SegQuiet
+class Quiet
 {
   private:
 
@@ -90,9 +90,9 @@ class SegQuiet
 
   public:
 
-    SegQuiet();
+    Quiet();
 
-    ~SegQuiet();
+    ~Quiet();
 
     void reset();
 

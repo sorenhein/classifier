@@ -12,7 +12,6 @@ enum TransientStatus
   TSTATUS_SIZE = 5
 };
 
-
 enum TransientType
 {
   TRANSIENT_NONE = 0,
@@ -20,13 +19,29 @@ enum TransientType
   TRANSIENT_SIZE = 6
 };
 
-
 struct Run
 {
   unsigned first;
   unsigned len;
   bool posFlag;
   float cum;
+};
+
+enum QuietGrade
+{
+  GRADE_GREEN = 0,
+  GRADE_AMBER = 1,
+  GRADE_RED = 2,
+  GRADE_DEEP_RED = 3,
+  GRADE_SIZE = 4
+};
+
+struct Interval
+{
+  unsigned first;
+  unsigned len;
+  QuietGrade grade;
+  double mean;
 };
 
 #endif
