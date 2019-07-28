@@ -274,6 +274,7 @@ bool Transient::detect(
   // Look for a candidate run with the same polarity.
   if (! candidate.detect(samples, sampleRate, run, transientType, status))
   {
+    lastIndex = 0;
     transientType = TRANSIENT_NONE;
     return false;
   }
@@ -309,6 +310,7 @@ bool Transient::detect(
     }
     else
     {
+      lastIndex = firstBuildupSample + transientLength;
       transientType = TRANSIENT_NONE;
       return false;
     }
@@ -317,6 +319,7 @@ bool Transient::detect(
   // Estimate amplitude and time constant.
   Transient::estimateTransientParams(samples, sampleRate, run);
   transientType = TRANSIENT_FOUND;
+  lastIndex = firstBuildupSample + buildupLength + transientLength;
 
   // Make the synthetic transient.
   Transient::synthesize(sampleRate);
@@ -330,7 +333,6 @@ bool Transient::detect(
     return false;
   }
 
-  lastIndex = firstBuildupSample + buildupLength + transientLength;
   return true;
 }
 
