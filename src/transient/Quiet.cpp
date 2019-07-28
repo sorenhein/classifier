@@ -123,21 +123,6 @@ QuietGrade Quiet::isQuiet(const QuietStats& qstats) const
 }
 
 
-void Quiet::addQuiet(
-  const unsigned start, 
-  const unsigned len,
-  const QuietGrade grade,
-  const float mean)
-{
-  Interval interval;
-  interval.first = start;
-  interval.len = len;
-  interval.grade = grade;
-  interval.mean = mean;
-  quiet.push_back(interval);
-}
-
-
 unsigned Quiet::curate(const vector<QuietStats>& qstats) const
 {
   const unsigned l = qstats.size();
@@ -362,7 +347,6 @@ bool Quiet::detect(
 
   QuietStats qstats;
   qstats.len = durationCoarse;
-  quiet.clear();
 
   // Chop up the interval into chunks of size qstats.len, starting
   // either from the front or the back depending on fromBackFlag.
@@ -383,7 +367,6 @@ bool Quiet::detect(
     // TODO Don't add a deep red to startList after all
     // TODO startList as a list instead of a vector?
     // TODO startList global?
-    Quiet::addQuiet(st.start, INT_LENGTH, grade, qstats.mean);
 
     if (grade == GRADE_RED)
     {
@@ -399,7 +382,6 @@ bool Quiet::detect(
 
   const unsigned n = Quiet::curate(startList);
 
-  quiet.resize(n);
   startList.resize(n);
 
   if (n > 0)

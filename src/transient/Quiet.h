@@ -25,7 +25,7 @@ class Quiet
       QuietGrade grade;
     };
 
-    vector<Interval> quiet;
+    // vector<Interval> quiet;
 
     vector<float> synth;
 
@@ -45,12 +45,6 @@ class Quiet
       QuietStats& qstats) const;
 
     QuietGrade isQuiet(const QuietStats& qstats) const;
-
-    void addQuiet(
-      const unsigned start,
-      const unsigned len,
-      const QuietGrade grade,
-      const float mean);
 
     unsigned curate(const vector<QuietStats>& qstats) const;
 
