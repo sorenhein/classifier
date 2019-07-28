@@ -231,38 +231,48 @@ void Quiet::adjustOutputIntervals(
   const Interval& avail,
   const bool fromBackFlag)
 {
-  const unsigned l = avail.first + avail.len;
+  const unsigned availEnd = avail.first + avail.len;
+
   if (! fromBackFlag)
   {
+    const unsigned quietEnd = quiet.start + quiet.len;
+
     writeInterval.first = avail.first;
-    writeInterval.len = quiet.start + quiet.len - writeInterval.first;
+    writeInterval.len = quietEnd - avail.first;
 
-    activeInterval.first = writeInterval.first + writeInterval.len;
-    activeInterval.len = l - activeInterval.first;
-
-    if (activeInterval.first + 1000 < l)
-      writeInterval.len += 1000;
+    // We also write some samples after the quiet interval for clarity.
+    if (quietEnd + padSamples < availEnd)
+      writeInterval.len += padSamples;
     else
-      writeInterval.len = l - writeInterval.first;
+      writeInterval.len = avail.len;
+
+    // We don't go earlier than quietEnd, as we would often
+    // get into the real transient.
+    activeInterval.first = quietEnd;
+    activeInterval.len = availEnd - quietEnd;
   }
   else
   {
     writeInterval.first = quiet.start;
 
-    activeInterval.first = avail.first;
-    activeInterval.len = writeInterval.first - avail.first;
-
-    // TODO 500 is enough here.  Should depend on filter.
-    if (activeInterval.first + activeInterval.len + 1000 < l)
-      activeInterval.len += 1000;
-    else
-      activeInterval.len = avail.len;
-
-    if (writeInterval.first >= 1000)
-      writeInterval.first -= 1000;
+    // We also write some samples before the quiet interval for clarity.
+    if (writeInterval.first >= padSamples)
+      writeInterval.first -= padSamples;
     else
       writeInterval.first = 0;
-    writeInterval.len = l - writeInterval.first;
+
+    writeInterval.len = availEnd - writeInterval.first;
+
+    activeInterval.first = avail.first;
+    activeInterval.len = quiet.start - avail.first;
+
+    // Here we can go beyond the start of the quiet interval,
+    // as nothing much happens here in general.  So we might as well
+    // give the filter some quiet data to work with.
+    if (quiet.start + padSamples < availEnd)
+      activeInterval.len += padSamples;
+    else
+      activeInterval.len = avail.len;
   }
 }
 
@@ -293,6 +303,8 @@ bool Quiet::detect(
     static_cast<unsigned>(sampleRate * QUIET_DURATION_COARSE);
   durationFine = 
     static_cast<unsigned>(sampleRate * QUIET_DURATION_FINE);
+  padSamples = 
+    static_cast<unsigned>(sampleRate * QUIET_DURATION_PADDING);
 
   // Chop up the interval into chunks of size qstats.len, starting
   // either from the front or the back depending on fromBackFlag.

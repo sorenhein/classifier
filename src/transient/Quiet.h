@@ -17,6 +17,7 @@ class Quiet
 
     unsigned durationCoarse;
     unsigned durationFine;
+    unsigned padSamples;
 
     list<QuietData> quietCoarse;
 

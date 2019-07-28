@@ -111,6 +111,11 @@
 
 #define NUM_QUIET_FOLLOWERS 4
 
+// When writing output, pad this much time in seconds beyond the 
+// detected end.
+
+#define QUIET_DURATION_PADDING 0.5
+
 
 ////////////////////////////////////////////////////////////////////////
 //                                                                    //
