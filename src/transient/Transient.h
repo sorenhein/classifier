@@ -39,6 +39,11 @@ class Transient
       const double sampleRate,
       const Run& run);
 
+    bool largeActualDeviation(
+      const vector<float>& samples,
+      const Run& run,
+      unsigned& bumpPosition) const;
+
     bool checkDecline(
       const vector<float>& samples,
       const Run& run);
@@ -48,11 +53,6 @@ class Transient
       const Run& run);
 
     void synthesize();
-
-    bool largeActualDeviation(
-      const vector<float>& samples,
-      const Run& run,
-      unsigned& devpos) const;
 
     bool largeSynthDeviation(
       const vector<float>& samples,

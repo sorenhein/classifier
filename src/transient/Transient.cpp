@@ -114,7 +114,7 @@ bool Transient::findEarlyPeak(
 bool Transient::largeActualDeviation(
   const vector<float>& samples,
   const Run& run,
-  unsigned& devpos) const
+  unsigned& bumpPosition) const
 {
   // We stop the transient if there's a big bump away from
   // the middle in the actual trace.  A big bump is four
@@ -139,7 +139,7 @@ bool Transient::largeActualDeviation(
 
     if (ratio3 > TRANSIENT_LARGE_BUMP)
     {
-      devpos = i;
+      bumpPosition = i;
       return true;
     }
   }
@@ -339,27 +339,25 @@ bool Transient::detect(
     transientLength = run.len;
   }
 
-  // Could be a large signal away from zero towards the end.
-  unsigned devpos;
-  Run runcorr = run;
-
-  if (Transient::largeActualDeviation(samples, run, devpos))
+  // Could be a large bump away from the zero line (a wheel);
+  unsigned bumpPosition;
+  if (Transient::largeActualDeviation(samples, run, bumpPosition))
   {
-    runcorr.len = devpos - run.first;
-    transientLength = devpos - run.first - buildupLength;
+    run.len = bumpPosition - run.first;
+    transientLength = run.len - buildupLength;
     status = TSTATUS_BACK_CORRECTED;
   }
 
-  if (! Transient::checkDecline(samples, runcorr))
+  if (! Transient::checkDecline(samples, run))
   {
     // Could be a very choppy trace where it makes sense
     // to start from the beginning.
     buildupLength = 0;
-    if (Transient::checkDecline(samples, runcorr))
+    if (Transient::checkDecline(samples, run))
     {
-      firstBuildupSample = runcorr.first;
+      firstBuildupSample = run.first;
       buildupStart = 0.;
-      transientLength = runcorr.len;
+      transientLength = run.len;
       status = TSTATUS_FRONT_ACTUAL_CORR;
     }
     else
@@ -369,18 +367,18 @@ bool Transient::detect(
     }
   }
 
-  Transient::estimateTransientParams(samples, runcorr);
+  Transient::estimateTransientParams(samples, run);
 
   Transient::synthesize();
 
-  if (Transient::largeSynthDeviation(samples, devpos))
+  if (Transient::largeSynthDeviation(samples, bumpPosition))
   {
-    runcorr.len = devpos;
-    transientLength = devpos - buildupLength;
+    run.len = bumpPosition;
+    transientLength = bumpPosition - buildupLength;
     status = TSTATUS_BACK_SYNTH_CORR;
 
     // Redo the estimation.
-    Transient::estimateTransientParams(samples, runcorr);
+    Transient::estimateTransientParams(samples, run);
 
     Transient::synthesize();
   }
