@@ -265,6 +265,7 @@ void Quiet::finetune(
 
 
 void Quiet::adjustOutputIntervals(
+  const vector<QuietStats>& startList,
   const Interval& avail,
   const bool fromBackFlag)
 {
@@ -273,7 +274,7 @@ void Quiet::adjustOutputIntervals(
   if (! fromBackFlag)
   {
     writeInterval.first = avail.first;
-    if (quiet.size() == 0)
+    if (startList.empty())
     {
       writeInterval.len = 0;
       activeInterval.first = avail.first;
@@ -281,7 +282,7 @@ void Quiet::adjustOutputIntervals(
       return;
     }
 
-    writeInterval.len = quiet.back().first + quiet.back().len -
+    writeInterval.len = startList.back().start + startList.back().len -
       writeInterval.first;
 
     activeInterval.first = writeInterval.first + writeInterval.len;
@@ -295,7 +296,7 @@ void Quiet::adjustOutputIntervals(
   }
   else
   {
-    if (quiet.size() == 0)
+    if (startList.empty())
     {
       writeInterval.first = avail.first;
       writeInterval.len = avail.first;
@@ -304,7 +305,7 @@ void Quiet::adjustOutputIntervals(
       return;
     }
 
-    writeInterval.first = quiet.back().first;
+    writeInterval.first = startList.back().start;
 
     activeInterval.first = avail.first;
     activeInterval.len = writeInterval.first - avail.first;
@@ -379,6 +380,9 @@ bool Quiet::detect(
     if (grade == GRADE_DEEP_RED)
       break;
 
+    // TODO Don't add a deep red to startList after all
+    // TODO startList as a list instead of a vector?
+    // TODO startList global?
     Quiet::addQuiet(st.start, INT_LENGTH, grade, qstats.mean);
 
     if (grade == GRADE_RED)
@@ -402,7 +406,7 @@ bool Quiet::detect(
     Quiet::finetune(samples, fromBackFlag, startList.back());
 
   // Make output a bit longer in order to better see.
-  Quiet::adjustOutputIntervals(available, fromBackFlag);
+  Quiet::adjustOutputIntervals(startList, available, fromBackFlag);
 
   Quiet::makeSynth(startList);
 
