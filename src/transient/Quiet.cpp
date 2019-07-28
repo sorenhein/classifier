@@ -227,26 +227,15 @@ void Quiet::finetune(
 
 
 void Quiet::adjustOutputIntervals(
-  const list<QuietData>& quietList,
+  const QuietData& quiet,
   const Interval& avail,
   const bool fromBackFlag)
 {
   const unsigned l = avail.first + avail.len;
-
   if (! fromBackFlag)
   {
-    if (quietList.empty())
-    {
-      writeInterval.first = avail.first;
-      writeInterval.len = 0;
-      activeInterval.first = avail.first;
-      activeInterval.len = avail.len;
-      return;
-    }
-
     writeInterval.first = avail.first;
-    writeInterval.len = quietList.back().start + quietList.back().len -
-      writeInterval.first;
+    writeInterval.len = quiet.start + quiet.len - writeInterval.first;
 
     activeInterval.first = writeInterval.first + writeInterval.len;
     activeInterval.len = l - activeInterval.first;
@@ -258,16 +247,7 @@ void Quiet::adjustOutputIntervals(
   }
   else
   {
-    if (quietList.empty())
-    {
-      writeInterval.first = avail.first;
-      writeInterval.len = 0;
-      activeInterval.first = avail.first;
-      activeInterval.len = avail.len;
-      return;
-    }
-
-    writeInterval.first = quietList.back().start;
+    writeInterval.first = quiet.start;
 
     activeInterval.first = avail.first;
     activeInterval.len = writeInterval.first - avail.first;
@@ -327,10 +307,20 @@ bool Quiet::detect(
   quietCoarse.resize(n);
 
   if (n > 0)
+  {
     Quiet::finetune(samples, fromBackFlag, quietCoarse.back());
 
-  // Make output a bit longer in order to better see.
-  Quiet::adjustOutputIntervals(quietCoarse, available, fromBackFlag);
+    // Make output a bit longer in order to better see.
+    Quiet::adjustOutputIntervals(quietCoarse.back(), available, 
+      fromBackFlag);
+  }
+  else
+  {
+    writeInterval.first = available.first;
+    writeInterval.len = 0;
+    activeInterval.first = available.first;
+    activeInterval.len = available.len;
+  }
 
   // Make a synthetic step signal to visualize the quietness levels.
   Quiet::synthesize(quietCoarse);

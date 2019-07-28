@@ -66,7 +66,7 @@ class Quiet
       QuietData& qstats);
 
     void adjustOutputIntervals(
-      const list<QuietData>& quietList,
+      const QuietData& quietList,
       const Interval& avail,
       const bool fromBackFlag);
 
