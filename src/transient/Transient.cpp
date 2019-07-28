@@ -5,7 +5,6 @@
 #include <math.h>
 
 #include "Transient.h"
-// #include "Trace.h"
 
 #include "../util/io.h"
 
@@ -60,6 +59,7 @@ void Transient::reset()
 
 void Transient::calcRuns(const vector<float>& samples)
 {
+  // A run is a sequence of samples with the same sign.
   Run run;
   run.first = 0;
   run.len = 1;
@@ -411,6 +411,8 @@ bool Transient::largeSynthDeviation(
 bool Transient::detect(const vector<float>& samples)
 {
   Transient::reset();
+
+  // Chop up the samples into runs (whose values have the same signs).
   Transient::calcRuns(samples);
 
   unsigned rno;
@@ -525,24 +527,24 @@ string Transient::str() const
 {
   stringstream ss;
   ss << "Transient\n";
+  ss << string(9, '-') << "\n\n";
 
   if (transientType == TRANSIENT_NONE)
   {
-    string s = "No transient found: ";
     if (status == TSTATUS_TOO_FEW_RUNS)
-      s += "Too few runs found\n";
+      ss << "Too few runs found";
     else if (status == TSTATUS_NO_CANDIDATE_RUN)
-      s += "No candidate run found\n";
+      ss << "No candidate run found";
     else if (status == TSTATUS_NO_FULL_DECLINE)
-      s += "Didn't decline enough over full run\n";
+      ss << "Didn't decline enough over full run";
     else if (status == TSTATUS_NO_MID_DECLINE)
-      s += "Didn't decline enough in the middle\n";
+      ss << "Didn't decline enough in the middle";
     else
-      s += "Reason not known (ERROR)\n";
-    return ss.str() + s;
+      ss << "Reason not known (ERROR)";
+    return ss.str() + "\n\n";
   }
   else if (transientType == TRANSIENT_SIZE)
-    return ss.str() + "Search for transient not run\n";
+    return ss.str() + "Search for transient not run\n\n";
 
   ss << Transient::strHeader();
   ss << 
@@ -551,13 +553,13 @@ string Transient::str() const
     setw(10) << fixed << setprecision(2) << buildupStart <<
     setw(6) << transientLength <<
     setw(10) << fixed << setprecision(2) << transientAmpl <<
-    setw(10) << fixed << setprecision(2) << timeConstant << "\n";
+    setw(10) << fixed << setprecision(2) << timeConstant << "\n\n";
 
   return ss.str();
 }
 
 
-string Transient::headerCSV() const
+string Transient::strHeaderCSV() const
 {
   stringstream ss;
   ss << 
@@ -578,6 +580,7 @@ string Transient::strCSV() const
 {
   stringstream ss;
   ss << 
+    Transient::strHeaderCSV() <<
     static_cast<unsigned>(status) << SEPARATOR <<
     static_cast<unsigned>(transientType) << SEPARATOR <<
     firstBuildupSample << SEPARATOR <<

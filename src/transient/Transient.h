@@ -4,22 +4,9 @@
 #include <vector>
 #include <string>
 
-// #include "struct.h"
+#include "trans.h"
 
 using namespace std;
-
-enum TransientStatus
-{
-  TSTATUS_TOO_FEW_RUNS = 0,
-  TSTATUS_NO_CANDIDATE_RUN = 1,
-  TSTATUS_NO_FULL_DECLINE = 2,
-  TSTATUS_NO_MID_DECLINE = 3,
-  TSTATUS_BACK_ACTUAL_CORR = 4,
-  TSTATUS_FRONT_ACTUAL_CORR = 5,
-  TSTATUS_BACK_SYNTH_CORR = 6,
-  TSTATUS_BAD_FIT = 7,
-  TSTATUS_SIZE = 8
-};
 
 struct Run
 {
@@ -34,17 +21,6 @@ struct Run
 class Transient
 {
   private:
-
-    enum TransientType
-    {
-      TRANSIENT_NONE = 0,
-      TRANSIENT_SMALL = 1,
-      TRANSIENT_MEDIUM = 2,
-      TRANSIENT_LARGE_POS = 3,
-      TRANSIENT_LARGE_NEG = 4,
-      TRANSIENT_SIZE = 5
-    };
-
 
     vector<Run> runs;
 
@@ -94,6 +70,8 @@ class Transient
 
     string strHeader() const;
 
+    string strHeaderCSV() const;
+
   public:
 
     Transient();
@@ -109,8 +87,6 @@ class Transient
     void writeFile(const string& filename) const;
 
     string str() const;
-
-    string headerCSV() const;
 
     string strCSV() const;
 };

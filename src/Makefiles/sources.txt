@@ -50,6 +50,7 @@ SOURCE_FILES    =                       \
                 stats/Timer.cpp         \
                 stats/Timers.cpp        \
                                         \
+                transient/Candidate.cpp \
                 transient/Transient.cpp \
                                         \
                 util/io.cpp             \

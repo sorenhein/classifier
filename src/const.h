@@ -29,6 +29,25 @@
 
 ////////////////////////////////////////////////////////////////////////
 //                                                                    //
+//                           Transients                               //
+//                                                                    //
+////////////////////////////////////////////////////////////////////////
+
+// A transient must be among the first TRANSIENT_RANGE runs.
+
+#define TRANSIENT_RANGE 5
+
+// A transient must cover at least TRANSIENT_MIN_LENGTH seconds.
+
+#define TRANSIENT_MIN_DURATION 0.01
+
+// A transient must have a g average of at least TRANSIENT_MIN_AVG.
+
+#define TRANSIENT_MIN_AVG 0.3
+
+
+////////////////////////////////////////////////////////////////////////
+//                                                                    //
 //                            Filters                                 //
 //                                                                    //
 ////////////////////////////////////////////////////////////////////////

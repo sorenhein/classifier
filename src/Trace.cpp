@@ -94,12 +94,6 @@ cout << "Got " << times.size() << " peaks, " <<
 }
 
 
-string Trace::strTransientHeaderCSV()
-{
-  return transient.headerCSV();
-}
-
-
 string Trace::strTransientCSV()
 {
   return transient.strCSV();

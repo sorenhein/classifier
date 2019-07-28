@@ -32,7 +32,7 @@ class Trace
     bool transientFlag;
     bool quietFlag;
 
-    string strTransientHeaderCSV();
+    // string strTransientHeaderCSV();
     string strTransientCSV();
 
   public:

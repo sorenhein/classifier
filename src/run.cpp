@@ -40,6 +40,8 @@ unsigned lookupMatchRank(
   const string& tag);
 
 
+string runHeader(const TraceData& traceData);
+
 void runRead(
   const string& filename,
   const unsigned thid,
@@ -57,6 +59,19 @@ void runRead(
     THROW(ERR_NO_TRACE_FILE, "Trace file not read");
 
   timers[thid].stop(TIMER_READ);
+}
+
+
+string runHeader(const TraceData& traceData)
+{
+  stringstream ss;
+  ss << "File " << traceData.filename << 
+    ": number " << traceData.traceNoInRun;
+
+  const unsigned l = ss.str().size();
+  ss << "\n" << string(l, '=') << "\n\n";
+
+  return ss.str();
 }
 
 
@@ -80,8 +95,10 @@ void run(
   vector<int> actualToRef;
   unsigned numFrontWheels;
 
-  cout << "File " << traceData.filename << ": number " <<
-    traceData.traceNoInRun << "\n\n";
+
+  cout << runHeader(traceData);
+  // cout << "File " << traceData.filename << ": number " <<
+    // traceData.traceNoInRun << "\n\n";
 
   vector<double> posTrue;
       
