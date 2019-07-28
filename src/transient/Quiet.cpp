@@ -62,7 +62,7 @@ void Quiet::makeStarts(
     {
       startList.emplace_back(QuietStats());
       QuietStats& q = startList.back();
-      q.start = i * duration;
+      q.start = interval.first + i * duration;
       q.len = duration;
       q.grade = GRADE_SIZE;
     }
@@ -74,7 +74,7 @@ void Quiet::makeStarts(
     {
       startList.emplace_back(QuietStats());
       QuietStats& q = startList.back();
-      q.start = interval.len - (i+1) * duration;
+      q.start = interval.first + interval.len - (i+1) * duration;
       q.len = duration;
       q.grade = GRADE_SIZE;
     }
