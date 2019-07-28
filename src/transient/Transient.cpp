@@ -225,30 +225,10 @@ void Transient::estimateTransientParams(
 
   transientAmpl = 0.85f * cand2 + 0.15f * cand1;
   timeConstant = 1000.f * cum / transientAmpl;
-
-  // This is purely informational, so the values are not
-  // so important.  It probably tends to say something about
-  // the sensor hardware.
-  if (transientAmpl >= 40. && 
-      timeConstant >= 5. && timeConstant <= 17.)
-    transientType = TRANSIENT_LARGE_POS;
-  else if (transientAmpl <= -40. && 
-      timeConstant >= 5. && timeConstant <= 17.)
-    transientType = TRANSIENT_LARGE_NEG;
-  else if (transientAmpl >= 15. && 
-      timeConstant >= 5. && timeConstant <= 17.)
-    transientType = TRANSIENT_MEDIUM_POS;
-  else if (transientAmpl <= -15. && 
-      timeConstant >= 5. && timeConstant <= 17.)
-    transientType = TRANSIENT_MEDIUM_NEG;
-  else if (transientAmpl <= 3. && transientAmpl >= -3.)
-    transientType = TRANSIENT_SMALL;
-  else
-    transientType = TRANSIENT_SIZE;
 }
 
 
-void Transient::synthesize()
+void Transient::synthesize(const double sampleRate)
 {
   const unsigned l = buildupLength + transientLength;
   synth.resize(l);
@@ -261,8 +241,8 @@ void Transient::synthesize()
   // Synthesize the quasi-exponential part.
   for (unsigned i = buildupLength; i < l; i++)
     synth[i] = static_cast<float> (transientAmpl * exp(
-      - static_cast<float>(i - buildupLength) / SAMPLE_RATE / 
-          (timeConstant / 1000.)));
+      - static_cast<float>(i - buildupLength) / 
+      (sampleRate * (timeConstant / 1000.))));
 }
 
 
@@ -289,19 +269,29 @@ bool Transient::largeSynthDeviation(
   // We also consider two consecutive, large deviations from
   // the synthesized transient to signal the end.
 
-  for (unsigned i = 1; i < synth.size()-1; i++)
+  for (unsigned i = 1; i+1 < synth.size(); i++)
   {
     const unsigned j = firstBuildupSample + i;
-    const float diff1 = samples[j] - synth[i];
-    const float diff2 = samples[j+1] - synth[i+1];
+    if (j >= samples.size())
+      return false;
 
-    if (samples[j] < 0. && 
-        diff1 < -TRANSIENT_LARGE_DEV &&
-        diff2 < -TRANSIENT_LARGE_DEV)
+    float diff1 = samples[j] - synth[i];
+    float diff2 = samples[j+1] - synth[i+1];
+
+    if (samples[j] < 0.)
+    {
+      diff1 = -diff1;
+      diff2 = -diff2;
+    }
+
+    if (//samples[j] < 0. && 
+        diff1 > TRANSIENT_LARGE_DEV &&
+        diff2 > TRANSIENT_LARGE_DEV)
     {
       devpos = i-1;
       return true;
     }
+    /*
     else if (samples[j] > 0. && 
         diff1 > TRANSIENT_LARGE_DEV &&
         diff2 > TRANSIENT_LARGE_DEV)
@@ -309,6 +299,7 @@ bool Transient::largeSynthDeviation(
       devpos = i-1;
       return true;
     }
+    */
   }
   return false;
 }
@@ -369,9 +360,12 @@ bool Transient::detect(
     }
   }
 
+  // Estimate amplitude and time constant.
   Transient::estimateTransientParams(samples, sampleRate, run);
+  transientType = TRANSIENT_FOUND;
 
-  Transient::synthesize();
+  // Make the synthetic transient.
+  Transient::synthesize(sampleRate);
 
   if (Transient::largeSynthDeviation(samples, bumpPosition))
   {
@@ -381,8 +375,7 @@ bool Transient::detect(
 
     // Redo the estimation.
     Transient::estimateTransientParams(samples, sampleRate, run);
-
-    Transient::synthesize();
+    Transient::synthesize(sampleRate);
   }
 
   if (! Transient::errorIsSmall(samples))
@@ -406,11 +399,8 @@ unsigned Transient::lastSampleNo() const
 
 void Transient::writeFile(const string& filename) const
 {
-  if (transientType == TRANSIENT_NONE ||
-      transientType == TRANSIENT_SIZE)
-    return;
-
-  writeBinary(filename, firstBuildupSample, synth);
+  if (transientType == TRANSIENT_FOUND)
+    writeBinary(filename, firstBuildupSample, synth);
 }
 
 

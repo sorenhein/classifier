@@ -53,7 +53,7 @@ class Transient
       const double sampleRate,
       const Run& run);
 
-    void synthesize();
+    void synthesize(const double sampleRate);
 
     bool largeSynthDeviation(
       const vector<float>& samples,
