@@ -11,29 +11,8 @@
 
 #include "../util/io.h"
 
-#define SAMPLE_RATE 2000.
-
-// TODO Move to times, not sample numbers
-#define INT_LENGTH 100
-#define INT_FINE_LENGTH 10
-
-#define OUTPUT_VERY_QUIET 3.f
-#define OUTPUT_SOMEWHAT_QUIET 1.5f
-
-// Model parameters.
-#define MEAN_VERY_QUIET 0.2
-#define SDEV_VERY_QUIET 0.06
-
-#define MEAN_SOMEWHAT_QUIET 0.2
-#define SDEV_SOMEWHAT_QUIET 0.2
-
-#define MEAN_QUIET_LIMIT 0.3
-#define SDEV_QUIET_LIMIT 0.3
-
 #define NUM_NON_QUIET_RUNS 2
 #define NUM_QUIET_FOLLOWERS 4
-
-#define SEPARATOR ";"
 
 
 Quiet::Quiet()
@@ -50,7 +29,7 @@ void Quiet::makeStarts(
   const Interval& interval,
   const bool fromBackFlag,
   const unsigned duration,
-  list<QuietStats>& quietList) const
+  list<QuietData>& quietList) const
 {
   const unsigned numInts = interval.len / duration;
 
@@ -60,8 +39,8 @@ void Quiet::makeStarts(
     // any partial chunk at the end.
     for (unsigned i = 0; i < numInts; i++)
     {
-      quietList.emplace_back(QuietStats());
-      QuietStats& q = quietList.back();
+      quietList.emplace_back(QuietData());
+      QuietData& q = quietList.back();
       q.start = interval.first + i * duration;
       q.len = duration;
       q.grade = GRADE_SIZE;
@@ -72,8 +51,8 @@ void Quiet::makeStarts(
     // Backwards from the end.
     for (unsigned i = 0; i < numInts; i++)
     {
-      quietList.emplace_back(QuietStats());
-      QuietStats& q = quietList.back();
+      quietList.emplace_back(QuietData());
+      QuietData& q = quietList.back();
       q.start = interval.first + interval.len - (i+1) * duration;
       q.len = duration;
       q.grade = GRADE_SIZE;
@@ -84,7 +63,7 @@ void Quiet::makeStarts(
 
 void Quiet::makeStats(
   const vector<float>& samples,
-  QuietStats& qentry) const
+  QuietData& qentry) const
 {
   float sum = 0.;
   float sumsq = 0.;
@@ -100,26 +79,38 @@ void Quiet::makeStats(
 }
 
 
-QuietGrade Quiet::isQuiet(const QuietStats& qstats) const
+void Quiet::annotateList(
+  const vector<float>& samples,
+  list<QuietData>& quietList) const
 {
-  if (abs(qstats.mean) < MEAN_VERY_QUIET &&
-      qstats.sdev < SDEV_VERY_QUIET)
-    return GRADE_GREEN;
-  else if (abs(qstats.mean) < MEAN_SOMEWHAT_QUIET &&
-      qstats.sdev < SDEV_SOMEWHAT_QUIET)
-    return GRADE_AMBER;
-  else if (abs(qstats.mean) < MEAN_QUIET_LIMIT &&
-      qstats.sdev < SDEV_SOMEWHAT_QUIET)
-    return GRADE_RED;
-  else if (abs(qstats.mean) < MEAN_SOMEWHAT_QUIET &&
-      qstats.sdev < SDEV_QUIET_LIMIT)
-    return GRADE_RED;
-  else
-    return GRADE_DEEP_RED;
+  unsigned runReds = 0;
+  unsigned totalReds = 0;
+
+  for (auto& quiet: quietList)
+  {
+    Quiet::makeStats(samples, quiet);
+    quiet.setGrade();
+    // const QuietGrade grade = Quiet::isQuiet(quiet);
+    // quiet.grade = grade;
+
+    if (quiet.grade == GRADE_DEEP_RED)
+      break;
+
+    if (quiet.grade == GRADE_RED)
+    {
+      runReds++;
+      totalReds++;
+    }
+    else
+      runReds = 0;
+
+    if (runReds == NUM_NON_QUIET_RUNS)
+      break;
+  }
 }
 
 
-unsigned Quiet::curate(const list<QuietStats>& quietList) const
+unsigned Quiet::curate(const list<QuietData>& quietList) const
 {
   const unsigned l = quietList.size();
 
@@ -136,7 +127,6 @@ unsigned Quiet::curate(const list<QuietStats>& quietList) const
       if (i + NUM_QUIET_FOLLOWERS >= l)
         return i;
 
-      // TODO Check off-by-one?
       auto nqit = next(qit);
       for (unsigned j = 0; j < NUM_QUIET_FOLLOWERS; j++)
       {
@@ -156,7 +146,7 @@ unsigned Quiet::curate(const list<QuietStats>& quietList) const
 
 void Quiet::getFinetuneStatistics(
   const vector<float>& samples,
-  list<QuietStats>& fineStarts,
+  list<QuietData>& fineStarts,
   float& sdevThreshold) const
 {
   float sdevMax = 0., sdevMin = numeric_limits<float>::max();
@@ -174,7 +164,7 @@ void Quiet::getFinetuneStatistics(
 
 void Quiet::adjustIntervals(
   const bool fromBackFlag,
-  QuietStats& qstatsCoarse,
+  QuietData& qstatsCoarse,
   const unsigned index)
 {
   if (! fromBackFlag)
@@ -193,7 +183,7 @@ void Quiet::adjustIntervals(
 
 
 void Quiet::setFineInterval(
-  const QuietStats& qstatsCoarse,
+  const QuietData& qstatsCoarse,
   const bool fromBackFlag,
   const unsigned sampleSize,
   Interval& intervalFine) const
@@ -216,7 +206,7 @@ void Quiet::setFineInterval(
 void Quiet::finetune(
   const vector<float>& samples,
   const bool fromBackFlag,
-  QuietStats& qstats)
+  QuietData& qstats)
 {
   // Attempt to find the point of departure from general noise
   // more accurately.
@@ -226,7 +216,7 @@ void Quiet::finetune(
     intervalFine);
 
   // This matters very little, as we add samples to the end anyway.
-  list<QuietStats> fineStarts;
+  list<QuietData> fineStarts;
   Quiet::makeStarts(intervalFine, fromBackFlag, 
     durationFine, fineStarts);
 
@@ -236,7 +226,7 @@ void Quiet::finetune(
   for (auto& fine: fineStarts)
   {
     if (fine.sdev >= sdevThreshold ||
-        abs(fine.mean) >= MEAN_SOMEWHAT_QUIET)
+        ! fine.isVeryQuiet())
     {
       Quiet::adjustIntervals(fromBackFlag, qstats, fine.start);
       return;
@@ -248,7 +238,7 @@ void Quiet::finetune(
 
 
 void Quiet::adjustOutputIntervals(
-  const list<QuietStats>& quietList,
+  const list<QuietData>& quietList,
   const Interval& avail,
   const bool fromBackFlag)
 {
@@ -307,7 +297,7 @@ void Quiet::adjustOutputIntervals(
 }
 
 
-void Quiet::makeSynth(const list<QuietStats>& quietList)
+void Quiet::makeSynth(const list<QuietData>& quietList)
 {
   synth.resize(writeInterval.len);
   for (unsigned i = 0; i < writeInterval.len; i++)
@@ -315,13 +305,7 @@ void Quiet::makeSynth(const list<QuietStats>& quietList)
 
   for (auto& quiet: quietList)
   {
-    float g;
-    if (quiet.grade == GRADE_GREEN)
-      g = OUTPUT_VERY_QUIET;
-    else if (quiet.grade == GRADE_AMBER)
-      g = OUTPUT_SOMEWHAT_QUIET;
-    else
-      g = 0.;
+    const float g = quiet.writeLevel();
 
     for (unsigned j = quiet.start; j < quiet.start + quiet.len; j++)
       synth[j - writeInterval.first] = g;
@@ -344,32 +328,13 @@ bool Quiet::detect(
   // Chop up the interval into chunks of size qstats.len, starting
   // either from the front or the back depending on fromBackFlag.
   Quiet::makeStarts(available, fromBackFlag, durationCoarse, quietCoarse);
-    
-  unsigned runReds = 0, totalReds = 0;
 
-  for (auto& st: quietCoarse)
-  {
-    Quiet::makeStats(samples, st);
-    const QuietGrade grade = Quiet::isQuiet(st);
-    st.grade = grade;
-
-    if (grade == GRADE_DEEP_RED)
-      break;
-
-    if (grade == GRADE_RED)
-    {
-      runReds++;
-      totalReds++;
-    }
-    else
-      runReds = 0;
-
-    if (runReds == NUM_NON_QUIET_RUNS)
-      break;
-  }
+  // Fill out statistics of each chunk, ending when we reach a
+  // chunk that is clearly not quiet, or when we have a couple of
+  // dubious chunks in succession.
+  Quiet::annotateList(samples, quietCoarse);
 
   const unsigned n = Quiet::curate(quietCoarse);
-
   quietCoarse.resize(n);
 
   if (n > 0)
@@ -382,19 +347,6 @@ bool Quiet::detect(
 
   active = activeInterval;
   return true;
-}
-
-
-void Quiet::printStats(
-  const QuietStats& qstats,
-  const unsigned first,
-  const bool flag) const
-{
-  cout << 
-    first << SEPARATOR <<
-    qstats.mean << SEPARATOR <<
-    qstats.sdev << SEPARATOR <<
-    flag << "\n";
 }
 
 

@@ -84,6 +84,23 @@
 #define QUIET_DURATION_COARSE 0.05
 #define QUIET_DURATION_FINE 0.005
 
+// An interval is very quiet if (mean, sdev) is below both these,
+// measured in g.  This will depend in general on the sensor.
+
+#define MEAN_VERY_QUIET 0.2
+#define SDEV_VERY_QUIET 0.06
+
+// The interval is somewhat quiet if (mean, sdev) is below both these.
+
+#define MEAN_SOMEWHAT_QUIET 0.2
+#define SDEV_SOMEWHAT_QUIET 0.2
+
+// The interval is not a complete write-off if one parameter is below
+// the somewhat-quiet parameter and the other is below these.
+
+#define MEAN_QUIET_LIMIT 0.3
+#define SDEV_QUIET_LIMIT 0.3
+
 
 ////////////////////////////////////////////////////////////////////////
 //                                                                    //

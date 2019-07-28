@@ -5,6 +5,7 @@
 #include <list>
 #include <string>
 
+#include "QuietData.h"
 #include "trans.h"
 
 using namespace std;
@@ -17,6 +18,7 @@ class Quiet
     unsigned durationCoarse;
     unsigned durationFine;
 
+    /*
     struct QuietStats
     {
       unsigned start;
@@ -25,8 +27,9 @@ class Quiet
       float sdev;
       QuietGrade grade;
     };
+    */
 
-    list<QuietStats> quietCoarse;
+    list<QuietData> quietCoarse;
 
 
     vector<float> synth;
@@ -39,28 +42,30 @@ class Quiet
       const Interval& interval,
       const bool fromBackFlag,
       const unsigned duration,
-      list<QuietStats>& quietList) const;
+      list<QuietData>& quietList) const;
 
     void makeStats(
       const vector<float>& samples,
-      QuietStats& qentry) const;
+      QuietData& qentry) const;
 
-    QuietGrade isQuiet(const QuietStats& qstats) const;
+    void annotateList(
+      const vector<float>& samples,
+      list<QuietData>& quietList) const;
 
-    unsigned curate(const list<QuietStats>& quietList) const;
+    unsigned curate(const list<QuietData>& quietList) const;
 
     void getFinetuneStatistics(
       const vector<float>& samples,
-      list<QuietStats>& fineStarts,
+      list<QuietData>& fineStarts,
       float& sdevThreshold) const;
 
     void adjustIntervals(
       const bool fromBackFlag,
-      QuietStats& qstatsCoarse,
+      QuietData& qstatsCoarse,
       const unsigned index);
 
     void setFineInterval(
-      const QuietStats& qstatsCoarse,
+      const QuietData& qstatsCoarse,
       const bool fromBackFlag,
       const unsigned sampleSize,
       Interval& intervalFine) const;
@@ -68,19 +73,15 @@ class Quiet
     void finetune(
       const vector<float>& samples,
       const bool fromBackFlag,
-      QuietStats& qstats);
+      QuietData& qstats);
 
     void adjustOutputIntervals(
-      const list<QuietStats>& quietList,
+      const list<QuietData>& quietList,
       const Interval& avail,
       const bool fromBackFlag);
 
-    void makeSynth(const list<QuietStats>& quietList);
+    void makeSynth(const list<QuietData>& quietList);
 
-    void printStats(
-      const QuietStats& qstats,
-      const unsigned first,
-      const bool flag) const;
 
   public:
 
