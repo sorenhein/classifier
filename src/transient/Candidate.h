@@ -15,16 +15,6 @@
 using namespace std;
 
 
-struct Run
-{
-  unsigned first;
-  unsigned len;
-  bool posFlag;
-  float cum;
-};
-
-
-
 class Candidate
 {
   private:

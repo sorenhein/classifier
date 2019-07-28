@@ -36,7 +36,7 @@ void Trace::detect(
 {
   timers[thid].start(TIMER_TRANSIENT);
 
-  transientFlag = transient.detect(fsamples);
+  transientFlag = transient.detect(fsamples, sampleRate);
 
   Interval intAfterTransient;
   intAfterTransient.first = transient.lastSampleNo();

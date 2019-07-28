@@ -26,4 +26,13 @@ enum TransientType
   TRANSIENT_SIZE = 5
 };
 
+
+struct Run
+{
+  unsigned first;
+  unsigned len;
+  bool posFlag;
+  float cum;
+};
+
 #endif

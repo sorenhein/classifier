@@ -408,9 +408,20 @@ bool Transient::largeSynthDeviation(
 }
 
 
-bool Transient::detect(const vector<float>& samples)
+#include "Candidate.h"
+
+bool Transient::detect(
+  const vector<float>& samples,
+  const double sampleRate)
 {
   Transient::reset();
+
+Candidate candidate;
+Run runCand;
+TransientType ttype;
+TransientStatus tstatus;
+bool detFlag = candidate.detect(samples, sampleRate, runCand,
+  ttype, tstatus);
 
   // Chop up the samples into runs (whose values have the same signs).
   Transient::calcRuns(samples);
@@ -419,10 +430,24 @@ bool Transient::detect(const vector<float>& samples)
   if (! Transient::detectPossibleRun(rno))
   {
     transientType = TRANSIENT_NONE;
+if (detFlag)
+  cout << "TRANSERR 1\n";
+if (transientType != ttype)
+  cout << "TRANSERR 2\n";
     return false;
   }
 
   const Run& run = runs[rno];
+
+if (run.first != runCand.first)
+  cout << "TRANSERR 3\n";
+if (run.len != runCand.len)
+  cout << "TRANSERR 4\n";
+if (run.posFlag != runCand.posFlag)
+  cout << "TRANSERR 5\n";
+if (run.cum / runCand.cum < 0.999 || run.cum / runCand.cum > 1.001)
+  cout << "TRANSERR 6\n";
+
   if (! Transient::findEarlyPeak(samples, run))
   {
     // We won't reject the entire transient just because we

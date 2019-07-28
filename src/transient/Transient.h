@@ -8,15 +8,6 @@
 
 using namespace std;
 
-struct Run
-{
-  unsigned first;
-  unsigned len;
-  bool posFlag;
-  float cum;
-};
-
-
 
 class Transient
 {
@@ -80,7 +71,9 @@ class Transient
 
     void reset();
 
-    bool detect(const vector<float>& samples);
+    bool detect(
+      const vector<float>& samples,
+      const double sampleRate);
 
     unsigned lastSampleNo() const;
 
