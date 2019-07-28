@@ -59,6 +59,7 @@ class Quiet
     void setFinetuneRange(
       const Interval& interval,
       const vector<float>& samples,
+      const Interval& intervalFine,
       const bool fromBackFlag,
       vector<QuietStats>& fineStarts) const;
 
@@ -72,6 +73,12 @@ class Quiet
       const bool fromBackFlag,
       Interval& quietInt,
       const unsigned index);
+
+    void setFineInterval(
+      const Interval& intervalCoarse,
+      const bool fromBackFlag,
+      const unsigned sampleSize,
+      Interval& intervalFine) const;
 
     void finetune(
       const vector<float>& samples,

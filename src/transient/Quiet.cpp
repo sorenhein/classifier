@@ -197,6 +197,7 @@ unsigned Quiet::curate(const vector<QuietStats>& qstats) const
 void Quiet::setFinetuneRange(
   const Interval& interval,
   const vector<float>& samples,
+  const Interval& intervalFine,
   const bool fromBackFlag,
   vector<QuietStats>& fineStarts) const
 {
@@ -213,6 +214,11 @@ void Quiet::setFinetuneRange(
       last = ls;
     else
       last = first + 2 * INT_LENGTH;
+
+if (first != intervalFine.first)
+  cout << "QERR1\n";
+if (last != intervalFine.first + intervalFine.len)
+  cout << "QERR2\n";
 
     for (unsigned i = first; i < last; i += INT_FINE_LENGTH)
     {
@@ -234,6 +240,11 @@ void Quiet::setFinetuneRange(
       last = ls;
     else
       last = first + 2 * INT_LENGTH;
+
+if (first != intervalFine.first)
+  cout << "QERR3\n";
+if (last != intervalFine.first + intervalFine.len)
+  cout << "QERR4\n";
 
     for (unsigned i = first; i < last; i += INT_FINE_LENGTH)
     {
@@ -286,6 +297,26 @@ void Quiet::adjustIntervals(
 }
 
 
+void Quiet::setFineInterval(
+  const Interval& intervalCoarse,
+  const bool fromBackFlag,
+  const unsigned sampleSize,
+  Interval& intervalFine) const
+{
+  if (! fromBackFlag)
+    intervalFine.first = intervalCoarse.first;
+  else if (intervalCoarse.first < durationCoarse)
+    intervalFine.first = 0;
+  else
+    intervalFine.first = intervalCoarse.first - durationCoarse;
+
+  unsigned last = intervalFine.first + 2 * durationCoarse;
+  if (last >= sampleSize)
+    last = sampleSize;
+
+  intervalFine.len = last - intervalFine.first;
+}
+
 
 void Quiet::finetune(
   const vector<float>& samples,
@@ -296,7 +327,9 @@ void Quiet::finetune(
   // more accurately.
 
   vector<QuietStats> fineStarts;
-  Quiet::setFinetuneRange(quietInt, samples, fromBackFlag, fineStarts);
+Interval intervalFine;
+Quiet::setFineInterval(quietInt, fromBackFlag, samples.size(), intervalFine);
+  Quiet::setFinetuneRange(quietInt, samples, intervalFine, fromBackFlag, fineStarts);
 
   vector<QuietStats> fineList(fineStarts.size());
   float sdevThreshold;
