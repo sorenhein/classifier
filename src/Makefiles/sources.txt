@@ -22,7 +22,6 @@ SOURCE_FILES    =                       \
                 PeakStructure.cpp       \
                 Regress.cpp             \
                 SegActive.cpp           \
-                Trace.cpp               \
                 geometry.cpp            \
                 run.cpp                 \
                 setup.cpp               \

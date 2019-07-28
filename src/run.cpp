@@ -15,7 +15,6 @@
 #include "stats/PeakStats.h"
 #include "stats/Timers.h"
 
-// #include "Trace.h"
 #include "Regress.h"
 #include "Align.h"
 #include "Except.h"
@@ -96,8 +95,6 @@ void run(
   
   Motion motion;
 
-  // Trace trace;
-
   Transient transient;
   Quiet quietFront;
   Quiet quietBack;
@@ -120,8 +117,6 @@ void run(
     runRead(traceData.filenameFull, thid, samples);
 
     // Refuse trace if sample rate is not 2000, maybe in SegActive
-
-    // trace.detect(control, traceData.sampleRate, samples, thid, imperf);
 
   timers[thid].start(TIMER_TRANSIENT);
 
@@ -160,12 +155,8 @@ void run(
 
     trainDB.getPeakPositions(traceData.trainNoTrueU, posTrue);
 
-    // trace.logPeakStats(posTrue, traceData.trainTrue, 
-      // traceData.speed, peakStats);
     segActive.logPeakStats(posTrue, traceData.trainTrue, 
       traceData.speed, peakStats);
-
-    // trace.write(control, traceData.filename, thid);
 
   timers[thid].start(TIMER_WRITE);
 
@@ -186,8 +177,6 @@ void run(
 
 
     bool fullTrainFlag;
-    // if (trace.getAlignment(times, actualToRef, numFrontWheels) &&
-        // ! actualToRef.empty())
     if (segActive.getAlignment(times, actualToRef, numFrontWheels) &&
         ! actualToRef.empty())
     {
@@ -196,7 +185,6 @@ void run(
     }
     else
     {
-      // trace.getTrace(times, numFrontWheels);
   segActive.getPeakTimes(times, numFrontWheels);
 
 cout << "Got " << times.size() << " peaks, " <<
