@@ -7,6 +7,8 @@
 #include "Transient.h"
 #include "Candidate.h"
 
+#include "../const.h"
+
 #include "../util/io.h"
 
 
@@ -19,8 +21,6 @@
 
 #define TRANSIENT_RATIO_FULL 3.
 #define TRANSIENT_RATIO_MID 1.7
-#define TRANSIENT_SMALL_RUN 3
-#define TRANSIENT_STEP 0.98
 
 #define TRANSIENT_LARGE_DEV 10.
 #define SAMPLE_RATE 2000.
@@ -46,8 +46,8 @@ void Transient::reset()
   firstBuildupSample = 0;
   buildupLength = 0;
   buildupStart = 0.;
-
   transientLength = 0;
+
   transientAmpl = 0.;
   timeConstant = 0.;
 }
@@ -55,11 +55,20 @@ void Transient::reset()
 
 bool Transient::findEarlyPeak(
   const vector<float>& samples,
+  const double sampleRate,
   const Run& run)
 {
-  // There might be a quasi-linear piece before the actual
+  // There might be a quasi-linear piece (buildup) before the actual
   // transient.  The transient itself then starts when a 
   // number of samples in a row are moving towards zero.
+
+  // If the transient drops as exp(-t/tau), then in a single time
+  // step of 1/fs (sample frequency), it drops by a factor of
+  // exp(-1 / (fs * tau)) ~= 1 - 1/(fs * tau) when fs is large
+  // relative to 1/tau.
+
+  const float ratioLimit = 
+    1.f - 1.f / (static_cast<float>(sampleRate) * TRANSIENT_MAX_TAU);
 
   float diff = samples[run.first+1] - samples[run.first];
   bool posSlopeFlag = (diff >= 0. ? true : false);
@@ -67,42 +76,23 @@ bool Transient::findEarlyPeak(
 
   for (unsigned i = run.first + 2; i < run.first + run.len; i++)
   {
-    // TODO Combine this code at the cost of abstraction
     diff = samples[i] - samples[i-1];
-    if (posSlopeFlag)
-    {
-      if (diff >= 0.)
-        runLen++;
-      else if (! run.posFlag && 
-          runLen >= TRANSIENT_SMALL_RUN &&
-          samples[i-1] / samples[i-runLen] <= TRANSIENT_STEP)
-      {
-        // This is not a great test, as it could happen
-        // that we get a spurious early run followed by the
-        // actual run.
 
-        // It's a negative transient, and we've got enough
-        // positively sloping samples.
-        firstBuildupSample = run.first;
-        buildupLength = i - run.first - runLen;
-        buildupStart = samples[run.first];
-        transientLength = run.len - buildupLength;
-        return true;
-      }
-      else
-      {
-        posSlopeFlag = false;
-        runLen = 2;
-      }
-    }
-    else if (diff < 0.)
-      runLen++;
-    else if (run.posFlag && 
-        runLen >= TRANSIENT_SMALL_RUN &&
-        samples[i-1] / samples[i-runLen] <= TRANSIENT_STEP)
+    if ((posSlopeFlag && diff >= 0.) || (! posSlopeFlag && diff < 0.))
     {
-      // It's a positive transient, and we've got enough
-      // negatively sloping samples.
+      // Continuing the slope towards the zero line.
+      runLen++;
+    }
+    else if (posSlopeFlag != run.posFlag &&
+        runLen >= TRANSIENT_SMALL_RUN &&
+        samples[i-1] / samples[i-runLen] <= ratioLimit)
+    {
+      // This is either a negative transient heading positive,
+      // or a positive transient heading negative.  In either case
+      // it is trending toward the zero line.  It is not a great test, 
+      // as it could happen that we get a spurious early run followed 
+      // by the actual run.
+
       firstBuildupSample = run.first;
       buildupLength = i - run.first - runLen;
       buildupStart = samples[run.first];
@@ -111,7 +101,7 @@ bool Transient::findEarlyPeak(
     }
     else
     {
-      posSlopeFlag = true;
+      posSlopeFlag = ! posSlopeFlag;
       runLen = 2;
     }
   }
@@ -334,6 +324,7 @@ bool Transient::detect(
   Candidate candidate;
   Run run;
 
+  // Look for a candidate run with the same polarity.
   if (! candidate.detect(samples, sampleRate, run, 
       transientType, status))
   {
@@ -341,13 +332,11 @@ bool Transient::detect(
     return false;
   }
 
-  if (! Transient::findEarlyPeak(samples, run))
+  // Look for the place within the run to start the transient.
+  if (! Transient::findEarlyPeak(samples, sampleRate, run))
   {
-    // We won't reject the entire transient just because we
-    // can't easily find the pattern.
+    // We won't give up yet.
     firstBuildupSample = run.first;
-    buildupLength = 0;
-    buildupStart = 0.;
     transientLength = run.len;
   }
 

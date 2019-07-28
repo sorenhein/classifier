@@ -16,11 +16,16 @@ class Transient
     TransientStatus status;
     TransientType transientType;
 
+    // Within a run, a transient might have a quasi-linear piece
+    // that builds up from firstBuildupSample (value buildupStart)
+    // for a length of buildupLength, leaving only transientLength
+    // samples for the actual transient.
+
     unsigned firstBuildupSample;
     unsigned buildupLength;
     float buildupStart;
-
     unsigned transientLength;
+
     float transientAmpl; // In g
     float timeConstant; // In ms
 
@@ -28,12 +33,9 @@ class Transient
     float fitError;
 
 
-    void calcRuns(const vector<float>& samples);
-
-    bool detectPossibleRun(unsigned& rno);
-
     bool findEarlyPeak(
       const vector<float>& samples,
+      const double sampleRate,
       const Run& run);
 
     bool checkDecline(

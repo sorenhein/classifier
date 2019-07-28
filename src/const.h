@@ -45,6 +45,15 @@
 
 #define TRANSIENT_MIN_AVG 0.3
 
+// The specific onset of a transient consists of at least
+// TRANSIENT_SMALL_RUN samples trending towards the zero line.
+
+#define TRANSIENT_SMALL_RUN 3
+
+// The transient has to drop off with a time constant of at most this
+// many seconds.
+
+#define TRANSIENT_MAX_TAU 0.025f
 
 ////////////////////////////////////////////////////////////////////////
 //                                                                    //
