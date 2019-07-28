@@ -7,6 +7,8 @@
 
 #include "Quiet.h"
 
+#include "../const.h"
+
 #include "../util/io.h"
 
 #define SAMPLE_RATE 2000.
@@ -53,20 +55,21 @@ void Quiet::reset()
 void Quiet::makeStarts(
   const Interval& interval,
   const bool fromBackFlag,
+  const unsigned chunkSize,
   vector<unsigned>& startList) const
 {
-  const unsigned numInts = interval.len / INT_LENGTH;
+  const unsigned numInts = interval.len / chunkSize;
 
   if (! fromBackFlag)
   {
     for (unsigned i = 0; i < numInts; i++)
-      startList.push_back(i * INT_LENGTH);
+      startList.push_back(i * chunkSize);
   }
   else
   {
     // Backwards from the end.
     for (unsigned i = 0; i < numInts; i++)
-      startList.push_back(interval.len - (i+1) * INT_LENGTH);
+      startList.push_back(interval.len - (i+1) * chunkSize);
   }
 }
 
@@ -346,16 +349,17 @@ void Quiet::makeSynth()
 
 bool Quiet::detect(
   const vector<float>& samples,
+  const double sampleRate,
   const Interval& available,
   const bool fromBackFlag,
   Interval& active)
 {
   QuietStats qstats;
-  qstats.len = INT_LENGTH;
+  qstats.len = static_cast<unsigned>(sampleRate * QUIET_DURATION);
   quiet.clear();
 
   vector<unsigned> startList;
-  Quiet::makeStarts(available, fromBackFlag, startList);
+  Quiet::makeStarts(available, fromBackFlag, qstats.len, startList);
     
   unsigned runReds = 0, totalReds = 0;
 

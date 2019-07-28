@@ -30,6 +30,7 @@ class Quiet
     void makeStarts(
       const Interval& interval,
       const bool fromBackFlag,
+      const unsigned chunkSize,
       vector<unsigned>& startList) const;
 
     void makeStats(
@@ -91,6 +92,7 @@ class Quiet
 
     bool detect(
       const vector<float>& samples,
+      const double sampleRate,
       const Interval& available,
       const bool fromBackFlag,
       Interval& active);
