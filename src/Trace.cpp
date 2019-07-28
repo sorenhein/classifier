@@ -80,6 +80,7 @@ void Trace::calcRuns()
 }
 
 
+/*
 bool Trace::readBinary(const string& filenameFull)
 {
   vector<float> fsamples;
@@ -92,6 +93,7 @@ bool Trace::readBinary(const string& filenameFull)
     samples[i] = fsamples[i];
   return true;
 }
+*/
 
 
 void Trace::printSamples(const string& title) const
@@ -103,6 +105,7 @@ void Trace::printSamples(const string& title) const
 }
 
 
+/*
 void Trace::read(
   const string& filenameFull,
   const unsigned thid)
@@ -114,15 +117,22 @@ void Trace::read(
 
   timers[thid].stop(TIMER_READ);
 }
+*/
 
 
 void Trace::detect(
   const Control& control,
   const double sampleRate,
+  const vector<float>& fsamples,
   const unsigned thid,
   Imperfections& imperf)
 {
   timers[thid].start(TIMER_TRANSIENT);
+
+  samples.resize(fsamples.size());
+  for (unsigned i = 0; i < fsamples.size(); i++)
+    samples[i] = fsamples[i];
+
   runs.clear();
   Trace::calcRuns();
   transientFlag = transient.detect(samples, runs);

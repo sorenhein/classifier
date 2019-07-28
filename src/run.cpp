@@ -7,6 +7,7 @@
 
 #include "stats/CompStats.h"
 #include "stats/PeakStats.h"
+#include "stats/Timers.h"
 
 #include "Trace.h"
 #include "Regress.h"
@@ -17,6 +18,7 @@
 #include "geometry.h"
 #include "run.h"
 
+#include "util/io.h"
 #include "util/Motion.h"
 
 
@@ -29,11 +31,33 @@ extern CompStats sensorStats;
 extern CompStats trainStats;
 extern PeakStats peakStats;
 
+extern vector<Timers> timers;
+
 
 unsigned lookupMatchRank(
   const TrainDB& trainDB,
   const vector<Alignment>& matches,
   const string& tag);
+
+
+void runRead(
+  const string& filename,
+  const unsigned thid,
+  vector<float>& samples);
+
+
+void runRead(
+  const string& filename,
+  const unsigned thid,
+  vector<float>& samples)
+{
+  timers[thid].start(TIMER_READ);
+
+  if (! readBinaryTrace(filename, samples))
+    THROW(ERR_NO_TRACE_FILE, "Trace file not read");
+
+  timers[thid].stop(TIMER_READ);
+}
 
 
 void run(
@@ -64,16 +88,19 @@ void run(
   try
   {
     if (traceData.trainNoTrue == -1)
-      THROW(ERR_NO_PEAKS, "True train not known");
+      THROW(ERR_TRUE_TRAIN_UNKNOWN, "True train not known");
 
-    trainDB.getPeakPositions(traceData.trainNoTrueU, posTrue);
+    vector<float> samples;
+    runRead(traceData.filenameFull, thid, samples);
 
     // Refuse trace if sample rate is not 2000, maybe in SegActive
 
-    trace.read(traceData.filenameFull, thid);
-    trace.detect(control, traceData.sampleRate, thid, imperf);
+    trace.detect(control, traceData.sampleRate, samples, thid, imperf);
+
+    trainDB.getPeakPositions(traceData.trainNoTrueU, posTrue);
     trace.logPeakStats(posTrue, traceData.trainTrue, 
       traceData.speed, peakStats);
+
     trace.write(control, traceData.filename, thid);
 
     bool fullTrainFlag;

@@ -1,6 +1,6 @@
 rip out transient into a directory
 get rid of Imperf
-global array out output files, indexed by thid
+global array of output files, indexed by thid
 
 tabulate files.xlsx
 output not to cout but to files there
@@ -12,9 +12,10 @@ outputs to be systematically controlled by flags
 
 Multi-threading
 ---------------
-Need vector of ofstreams in control2
+Need vector of ofstreams in driver.cpp
 * Names are sensor00_0.txt etc.
 * Locations are in output
+* control file dictates output file name
 
 Need scripts that are 
 * Executable

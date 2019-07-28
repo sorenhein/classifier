@@ -32,8 +32,6 @@ class Trace
 
     void calcRuns();
 
-    bool readBinary(const string& filenameFull);
-
     void printSamples(const string& title) const;
     string strTransientHeaderCSV();
     string strTransientCSV();
@@ -44,13 +42,10 @@ class Trace
 
     ~Trace();
 
-    void read(
-      const string& fname,
-      const unsigned thid);
-
     void detect(
       const Control& control,
       const double sampleRate,
+      const vector<float>& fsamples,
       const unsigned thid,
       Imperfections& imperf);
 

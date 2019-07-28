@@ -32,8 +32,7 @@ Scheduler scheduler;
 vector<Timers> timers;
 
 
-void runThread(
-  unsigned thid);
+void runThread(unsigned thid);
 
 
 int main(int argc, char * argv[])
