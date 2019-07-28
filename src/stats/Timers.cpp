@@ -26,6 +26,7 @@ void Timers::reset()
   
   names[TIMER_READ] = "Read";
   names[TIMER_TRANSIENT] = "Transient";
+  names[TIMER_QUIET] = "Quiet";
   names[TIMER_CONDITION] = "Condition";
   names[TIMER_DETECT_PEAKS] = "Detect peaks";
   names[TIMER_ALIGN] = "Alignment";

@@ -21,16 +21,12 @@ class Trace
   private:
 
     vector<double> samples;
-    vector<Run> runs;
 
     Transient transient;
     Quiet quietFront;
     Quiet quietBack;
 
     SegActive segActive;
-
-    bool transientFlag;
-    bool quietFlag;
 
     string strTransientCSV();
 

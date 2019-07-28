@@ -1,4 +1,3 @@
-rip out transient into a directory
 get rid of Imperf
 global array of output files, indexed by thid
 
