@@ -189,36 +189,36 @@ void Quiet::getFinetuneStatistics(
 
 void Quiet::adjustIntervals(
   const bool fromBackFlag,
-  Interval& quietInt,
+  QuietStats& qstatsCoarse,
   const unsigned index)
 {
   if (! fromBackFlag)
   {
     // Shrink or extend the last interval, as the case may be.
     // Could shrink to zero!
-    quietInt.len = index - quietInt.first;
+    qstatsCoarse.len = index - qstatsCoarse.start;
   }
   else
   {
     // Shrink or extend the last interval, as the case may be.
-    quietInt.len = quietInt.first + quietInt.len - index;
-    quietInt.first = index;
+    qstatsCoarse.len = qstatsCoarse.start + qstatsCoarse.len - index;
+    qstatsCoarse.start = index;
   }
 }
 
 
 void Quiet::setFineInterval(
-  const Interval& intervalCoarse,
+  const QuietStats& qstatsCoarse,
   const bool fromBackFlag,
   const unsigned sampleSize,
   Interval& intervalFine) const
 {
   if (! fromBackFlag)
-    intervalFine.first = intervalCoarse.first;
-  else if (intervalCoarse.first < durationCoarse)
+    intervalFine.first = qstatsCoarse.start;
+  else if (qstatsCoarse.start < durationCoarse)
     intervalFine.first = 0;
   else
-    intervalFine.first = intervalCoarse.first - durationCoarse;
+    intervalFine.first = qstatsCoarse.start - durationCoarse;
 
   unsigned last = intervalFine.first + 2 * durationCoarse;
   if (last >= sampleSize)
@@ -231,16 +231,17 @@ void Quiet::setFineInterval(
 void Quiet::finetune(
   const vector<float>& samples,
   const bool fromBackFlag,
-  Interval& quietInt)
+  QuietStats& qstats)
 {
   // Attempt to find the point of departure from general noise
   // more accurately.
 
+  Interval intervalFine;
+  Quiet::setFineInterval(qstats, fromBackFlag, samples.size(), 
+    intervalFine);
+
+  // This matters very little, as we add samples to the end anyway.
   vector<QuietStats> fineStarts;
-Interval intervalFine;
-Quiet::setFineInterval(quietInt, fromBackFlag, samples.size(), intervalFine);
-  // This matters very little, as we add samples to the
-  // end anyway.
   Quiet::makeStarts(intervalFine, fromBackFlag, 
     durationFine, fineStarts);
 
@@ -254,7 +255,7 @@ Quiet::setFineInterval(quietInt, fromBackFlag, samples.size(), intervalFine);
     if (fineList[i].sdev >= sdevThreshold ||
         abs(fineList[i].mean) >= MEAN_SOMEWHAT_QUIET)
     {
-      Quiet::adjustIntervals(fromBackFlag, quietInt, fineStarts[i].start);
+      Quiet::adjustIntervals(fromBackFlag, qstats, fineStarts[i].start);
       return;
     }
   }
@@ -392,42 +393,13 @@ bool Quiet::detect(
       break;
   }
 
-  /*
-  cout << "Start list\n";
-  unsigned i = 0;
-  for (auto& q: startList)
-  {
-    cout << 
-      setw(3) << i << 
-      setw(6) << q.start <<
-      setw(6) << q.len <<
-      setw(8) << fixed << setprecision(2) << q.mean <<
-      setw(8) << fixed << setprecision(2) << q.sdev <<
-      setw(4) << q.grade << endl;
-    i++;
-  }
-
-  cout << "\nOld list\n";
-  i = 0;
-  for (auto& q: quiet)
-  {
-    cout << 
-      setw(3) << i << 
-      setw(6) << q.first <<
-      setw(6) << q.len <<
-      setw(8) << fixed << setprecision(2) << q.mean <<
-      setw(4) << q.grade << endl;
-    i++;
-  }
-  */
-
   const unsigned n = Quiet::curate(startList);
 
   quiet.resize(n);
   startList.resize(n);
 
   if (n > 0)
-    Quiet::finetune(samples, fromBackFlag, quiet.back());
+    Quiet::finetune(samples, fromBackFlag, startList.back());
 
   // Make output a bit longer in order to better see.
   Quiet::adjustOutputIntervals(available, fromBackFlag);
