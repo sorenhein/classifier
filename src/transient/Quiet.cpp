@@ -63,6 +63,8 @@ void Quiet::makeStarts(
       startList.emplace_back(QuietStats());
       QuietStats& q = startList.back();
       q.start = i * chunkSize;
+      q.len = chunkSize;
+      q.grade = GRADE_SIZE;
       // startList.push_back(i * chunkSize);
     }
   }
@@ -74,6 +76,8 @@ void Quiet::makeStarts(
       startList.emplace_back(QuietStats());
       QuietStats& q = startList.back();
       q.start = interval.len - (i+1) * chunkSize;
+      q.len = chunkSize;
+      q.grade = GRADE_SIZE;
       // startList.push_back(interval.len - (i+1) * chunkSize);
     }
   }
@@ -82,20 +86,23 @@ void Quiet::makeStarts(
 
 void Quiet::makeStats(
   const vector<float>& samples,
-  const unsigned first,
-  const unsigned len,
+  QuietStats& qentry,
   QuietStats& qstats) const
 {
   float sum = 0.;
   float sumsq = 0.;
-  for (unsigned i = first; i < first+len; i++)
+  for (unsigned i = qentry.start; i < qentry.start + qentry.len; i++)
   {
     sum += samples[i];
     sumsq += samples[i] * samples[i];
   }
 
-  qstats.mean = sum / len;
-  qstats.sdev = sqrt((len * sumsq - sum * sum) / (len * (len-1.f)));
+  qstats.mean = sum / qentry.len;
+  qstats.sdev = sqrt((qentry.len * sumsq - sum * sum) / 
+    (qentry.len * (qentry.len-1.f)));
+
+  qentry.mean = qstats.mean;
+  qentry.sdev = qstats.sdev;
 }
 
 
@@ -161,7 +168,7 @@ void Quiet::setFinetuneRange(
   const vector<float>& samples,
   const bool fromBackFlag,
   const Interval& quietInt,
-  vector<unsigned>& fineStarts) const
+  vector<QuietStats>& fineStarts) const
 {
   // This matters very little, as we add samples to the
   // end anyway.
@@ -178,7 +185,14 @@ void Quiet::setFinetuneRange(
       last = first + 2 * INT_LENGTH;
 
     for (unsigned i = first; i < last; i += INT_FINE_LENGTH)
-      fineStarts.push_back(i);
+    {
+      // fineStarts.push_back(i);
+      fineStarts.emplace_back(QuietStats());
+      QuietStats& q = fineStarts.back();
+      q.start = i;
+      q.len = INT_FINE_LENGTH;
+      q.grade = GRADE_SIZE;
+    }
   }
   else
   {
@@ -193,22 +207,28 @@ void Quiet::setFinetuneRange(
       last = first + 2 * INT_LENGTH;
 
     for (unsigned i = first; i < last; i += INT_FINE_LENGTH)
-      fineStarts.push_back(last - INT_FINE_LENGTH - (i - first));
+    {
+      // fineStarts.push_back(last - INT_FINE_LENGTH - (i - first));
+      fineStarts.emplace_back(QuietStats());
+      QuietStats& q = fineStarts.back();
+      q.start = last - INT_FINE_LENGTH - (i - first);
+      q.len = INT_FINE_LENGTH;
+      q.grade = GRADE_SIZE;
+    }
   }
 }
 
 
 void Quiet::getFinetuneStatistics(
   const vector<float>& samples,
-  vector<unsigned>& fineStarts,
+  vector<QuietStats>& fineStarts,
   vector<QuietStats>& fineList,
   float& sdevThreshold) const
 {
   float sdevMax = 0., sdevMin = numeric_limits<float>::max();
   for (unsigned i = 0; i < fineStarts.size(); i++)
   {
-    Quiet::makeStats(samples, fineStarts[i], 
-      INT_FINE_LENGTH, fineList[i]);
+    Quiet::makeStats(samples, fineStarts[i], fineList[i]);
     if (fineList[i].sdev > sdevMax)
       sdevMax = fineList[i].sdev;
     if (fineList[i].sdev < sdevMin)
@@ -247,8 +267,8 @@ void Quiet::finetune(
   // Attempt to find the point of departure from general noise
   // more accurately.
 
-  vector<unsigned> fineStarts;
-  fineStarts.clear();
+  vector<QuietStats> fineStarts;
+  // fineStarts.clear();
   Quiet::setFinetuneRange(samples, fromBackFlag, quietInt, fineStarts);
 
   vector<QuietStats> fineList(fineStarts.size());
@@ -261,7 +281,7 @@ void Quiet::finetune(
     if (fineList[i].sdev >= sdevThreshold ||
         abs(fineList[i].mean) >= MEAN_SOMEWHAT_QUIET)
     {
-      Quiet::adjustIntervals(fromBackFlag, quietInt, fineStarts[i]);
+      Quiet::adjustIntervals(fromBackFlag, quietInt, fineStarts[i].start);
       return;
     }
   }
@@ -373,8 +393,9 @@ bool Quiet::detect(
 
   for (auto& st: startList)
   {
-    Quiet::makeStats(samples, st.start, INT_LENGTH, qstats);
+    Quiet::makeStats(samples, st, qstats);
     const QuietGrade grade = Quiet::isQuiet(qstats);
+    st.grade = grade;
 
     if (grade == GRADE_DEEP_RED)
       break;

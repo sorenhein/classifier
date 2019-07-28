@@ -19,6 +19,7 @@ class Quiet
       unsigned len;
       float mean;
       float sdev;
+      QuietGrade grade;
     };
 
     vector<Interval> quiet;
@@ -36,8 +37,7 @@ class Quiet
 
     void makeStats(
       const vector<float>& samples,
-      const unsigned first,
-      const unsigned len,
+      QuietStats& qentry,
       QuietStats& qstats) const;
 
     QuietGrade isQuiet(const QuietStats& qstats) const;
@@ -54,11 +54,11 @@ class Quiet
       const vector<float>& samples,
       const bool fromBackFlag,
       const Interval& quietInt,
-      vector<unsigned>& fineStarts) const;
+      vector<QuietStats>& fineStarts) const;
 
     void getFinetuneStatistics(
       const vector<float>& samples,
-      vector<unsigned>& fineStarts,
+      vector<QuietStats>& fineStarts,
       vector<QuietStats>& fineList,
       float& sdevThreshold) const;
 
