@@ -22,8 +22,8 @@ class SegQuiet
 
     struct QuietStats
     {
-      double mean;
-      double sdev;
+      float mean;
+      float sdev;
       unsigned len;
     };
 
@@ -40,7 +40,7 @@ class SegQuiet
       vector<unsigned>& startList) const;
 
     void makeStats(
-      const vector<double>& samples,
+      const vector<float>& samples,
       const unsigned first,
       const unsigned len,
       QuietStats& qstats) const;
@@ -51,21 +51,21 @@ class SegQuiet
       const unsigned start,
       const unsigned len,
       const QuietGrade grade,
-      const double mean);
+      const float mean);
 
     unsigned curate() const;
 
     void setFinetuneRange(
-      const vector<double>& samples,
+      const vector<float>& samples,
       const QuietPlace direction,
       const Interval& quietInt,
       vector<unsigned>& fineStarts) const;
 
     void getFinetuneStatistics(
-      const vector<double>& samples,
+      const vector<float>& samples,
       vector<unsigned>& fineStarts,
       vector<QuietStats>& fineList,
-      double& sdevThreshold) const;
+      float& sdevThreshold) const;
 
     void adjustIntervals(
       const QuietPlace direction,
@@ -73,7 +73,7 @@ class SegQuiet
       const unsigned index);
 
     void finetune(
-      const vector<double>& samples,
+      const vector<float>& samples,
       const QuietPlace direction,
       Interval& quietInt);
 
@@ -97,7 +97,7 @@ class SegQuiet
     void reset();
 
     bool detect(
-      const vector<double>& samples, // TODO: Should use times[]
+      const vector<float>& samples,
       const Interval& available,
       const QuietPlace direction,
       Interval& active);

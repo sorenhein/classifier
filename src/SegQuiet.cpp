@@ -72,13 +72,13 @@ void SegQuiet::makeStarts(
 
 
 void SegQuiet::makeStats(
-  const vector<double>& samples,
+  const vector<float>& samples,
   const unsigned first,
   const unsigned len,
   QuietStats& qstats) const
 {
-  double sum = 0.;
-  double sumsq = 0.;
+  float sum = 0.;
+  float sumsq = 0.;
   for (unsigned i = first; i < first+len; i++)
   {
     sum += samples[i];
@@ -86,7 +86,7 @@ void SegQuiet::makeStats(
   }
 
   qstats.mean = sum / len;
-  qstats.sdev = sqrt((len * sumsq - sum * sum) / (len * (len-1.)));
+  qstats.sdev = sqrt((len * sumsq - sum * sum) / (len * (len-1.f)));
 }
 
 
@@ -113,7 +113,7 @@ void SegQuiet::addQuiet(
   const unsigned start, 
   const unsigned len,
   const QuietGrade grade,
-  const double mean)
+  const float mean)
 {
   Interval interval;
   interval.first = start;
@@ -149,7 +149,7 @@ unsigned SegQuiet::curate() const
 
 
 void SegQuiet::setFinetuneRange(
-  const vector<double>& samples,
+  const vector<float>& samples,
   const QuietPlace direction,
   const Interval& quietInt,
   vector<unsigned>& fineStarts) const
@@ -190,12 +190,12 @@ void SegQuiet::setFinetuneRange(
 
 
 void SegQuiet::getFinetuneStatistics(
-  const vector<double>& samples,
+  const vector<float>& samples,
   vector<unsigned>& fineStarts,
   vector<QuietStats>& fineList,
-  double& sdevThreshold) const
+  float& sdevThreshold) const
 {
-  double sdevMax = 0., sdevMin = numeric_limits<double>::max();
+  float sdevMax = 0., sdevMin = numeric_limits<float>::max();
   for (unsigned i = 0; i < fineStarts.size(); i++)
   {
     SegQuiet::makeStats(samples, fineStarts[i], 
@@ -205,7 +205,7 @@ void SegQuiet::getFinetuneStatistics(
     if (fineList[i].sdev < sdevMin)
       sdevMin = fineList[i].sdev;
   }
-  sdevThreshold = (sdevMin + sdevMax) / 2.;
+  sdevThreshold = (sdevMin + sdevMax) / 2.f;
 }
 
 
@@ -231,7 +231,7 @@ void SegQuiet::adjustIntervals(
 
 
 void SegQuiet::finetune(
-  const vector<double>& samples,
+  const vector<float>& samples,
   const QuietPlace direction,
   Interval& quietInt)
 {
@@ -244,7 +244,7 @@ void SegQuiet::finetune(
     quietInt, fineStarts);
 
   vector<QuietStats> fineList(fineStarts.size());
-  double sdevThreshold;
+  float sdevThreshold;
   SegQuiet::getFinetuneStatistics(samples, fineStarts, 
     fineList, sdevThreshold);
 
@@ -346,7 +346,7 @@ void SegQuiet::makeSynth()
 
 
 bool SegQuiet::detect(
-  const vector<double>& samples,
+  const vector<float>& samples,
   const Interval& available,
   const QuietPlace direction,
   Interval& active)

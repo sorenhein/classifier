@@ -39,26 +39,27 @@ void Trace::detect(
   unsigned lastIndex;
   transient.detect(fsamples, sampleRate, lastIndex);
 
+  if (control.verboseTransient())
+    cout << transient.str() << "\n";
+
   Interval intAfterTransient;
   intAfterTransient.first = lastIndex;
   intAfterTransient.len = fsamples.size() - lastIndex;
+
+  Interval intAfterBack;
+  quietFlag = quietBack.detect(fsamples, intAfterTransient, 
+    QUIET_BACK, intAfterBack);
+
+  Interval intAfterFront;
+  (void) quietFront.detect(fsamples, intAfterBack, 
+    QUIET_FRONT, intAfterFront);
+  timers[thid].stop(TIMER_TRANSIENT);
 
   // TODO Leave as floats for a while longer.
   samples.resize(fsamples.size());
   for (unsigned i = 0; i < fsamples.size(); i++)
     samples[i] = fsamples[i];
 
-  Interval intAfterBack;
-  quietFlag = quietBack.detect(samples, intAfterTransient, 
-    QUIET_BACK, intAfterBack);
-
-  Interval intAfterFront;
-  (void) quietFront.detect(samples, intAfterBack, 
-    QUIET_FRONT, intAfterFront);
-  timers[thid].stop(TIMER_TRANSIENT);
-
-  if (control.verboseTransient())
-    cout << transient.str() << "\n";
 
   (void) segActive.detect(samples, sampleRate, intAfterFront, 
     control, thid, imperf);
