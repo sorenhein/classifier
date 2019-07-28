@@ -2,6 +2,7 @@
 #define TRAIN_QUIET_H
 
 #include <vector>
+#include <list>
 #include <string>
 
 #include "trans.h"
@@ -25,7 +26,8 @@ class Quiet
       QuietGrade grade;
     };
 
-    // vector<Interval> quiet;
+    list<QuietStats> quietCoarse;
+
 
     vector<float> synth;
 
@@ -37,21 +39,19 @@ class Quiet
       const Interval& interval,
       const bool fromBackFlag,
       const unsigned duration,
-      vector<QuietStats>& startList) const;
+      list<QuietStats>& quietList) const;
 
     void makeStats(
       const vector<float>& samples,
-      QuietStats& qentry,
-      QuietStats& qstats) const;
+      QuietStats& qentry) const;
 
     QuietGrade isQuiet(const QuietStats& qstats) const;
 
-    unsigned curate(const vector<QuietStats>& qstats) const;
+    unsigned curate(const list<QuietStats>& quietList) const;
 
     void getFinetuneStatistics(
       const vector<float>& samples,
-      vector<QuietStats>& fineStarts,
-      vector<QuietStats>& fineList,
+      list<QuietStats>& fineStarts,
       float& sdevThreshold) const;
 
     void adjustIntervals(
@@ -71,11 +71,11 @@ class Quiet
       QuietStats& qstats);
 
     void adjustOutputIntervals(
-      const vector<QuietStats>& startList,
+      const list<QuietStats>& quietList,
       const Interval& avail,
       const bool fromBackFlag);
 
-    void makeSynth(const vector<QuietStats>& startList);
+    void makeSynth(const list<QuietStats>& quietList);
 
     void printStats(
       const QuietStats& qstats,
