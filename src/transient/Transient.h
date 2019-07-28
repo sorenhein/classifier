@@ -26,7 +26,7 @@ struct Run
   unsigned first;
   unsigned len;
   bool posFlag;
-  double cum;
+  float cum;
 };
 
 
@@ -53,44 +53,44 @@ class Transient
 
     unsigned firstBuildupSample;
     unsigned buildupLength;
-    double buildupStart;
+    float buildupStart;
 
     unsigned transientLength;
-    double transientAmpl; // In g
-    double timeConstant; // In ms
+    float transientAmpl; // In g
+    float timeConstant; // In ms
 
     vector<float> synth;
-    double fitError;
+    float fitError;
 
 
-    void calcRuns(const vector<double>& samples);
+    void calcRuns(const vector<float>& samples);
 
     bool detectPossibleRun(unsigned& rno);
 
     bool findEarlyPeak(
-      const vector<double>& samples,
+      const vector<float>& samples,
       const Run& run);
 
     bool checkDecline(
-      const vector<double>& samples,
+      const vector<float>& samples,
       const Run& run);
 
     void estimateTransientParams(
-      const vector<double>& samples,
+      const vector<float>& samples,
       const Run& run);
 
     void synthesize();
 
     bool largeActualDeviation(
-      const vector<double>& samples,
+      const vector<float>& samples,
       const Run& run,
       unsigned& devpos) const;
 
     bool largeSynthDeviation(
-      const vector<double>& samples,
+      const vector<float>& samples,
       unsigned& devpos) const;
 
-    bool errorIsSmall(const vector<double>& samples);
+    bool errorIsSmall(const vector<float>& samples);
 
     string strHeader() const;
 
@@ -102,7 +102,7 @@ class Transient
 
     void reset();
 
-    bool detect(const vector<double>& samples);
+    bool detect(const vector<float>& samples);
 
     unsigned lastSampleNo() const;
 

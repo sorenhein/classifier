@@ -58,7 +58,7 @@ void Transient::reset()
 }
 
 
-void Transient::calcRuns(const vector<double>& samples)
+void Transient::calcRuns(const vector<float>& samples)
 {
   Run run;
   run.first = 0;
@@ -137,14 +137,14 @@ bool Transient::detectPossibleRun(unsigned& rno)
 
 
 bool Transient::findEarlyPeak(
-  const vector<double>& samples,
+  const vector<float>& samples,
   const Run& run)
 {
   // There might be a quasi-linear piece before the actual
   // transient.  The transient itself then starts when a 
   // number of samples in a row are moving towards zero.
 
-  double diff = samples[run.first+1] - samples[run.first];
+  float diff = samples[run.first+1] - samples[run.first];
   bool posSlopeFlag = (diff >= 0. ? true : false);
   unsigned runLen = 2;
 
@@ -203,7 +203,7 @@ bool Transient::findEarlyPeak(
 
 
 bool Transient::checkDecline(
-  const vector<double>& samples,
+  const vector<float>& samples,
   const Run& run)
 {
   // A good transient moves from large to medium to small
@@ -213,7 +213,7 @@ bool Transient::checkDecline(
   const unsigned last = run.first + run.len;
   const unsigned mid = (first + last - TRANSIENT_SMALL_RUN) >> 1;
 
-  double sumFront = 0., sumMid = 0., 
+  float sumFront = 0., sumMid = 0., 
     sumBack = 0., sumAlmostBack = 0.;
 
   for (unsigned i = first; i < first + TRANSIENT_SMALL_RUN; i++)
@@ -256,7 +256,7 @@ bool Transient::checkDecline(
 
 
 void Transient::estimateTransientParams(
-  const vector<double>& samples,
+  const vector<float>& samples,
   const Run& run)
 {
   // This doesn't have to be so accurate, so the basic idea
@@ -264,7 +264,7 @@ void Transient::estimateTransientParams(
   // integral of A * t * exp(-t/tau).  The first one is
   // approximately A * tau, and the second one A * tau^2.
 
-  double cum = 0., vcum = 0.;
+  float cum = 0., vcum = 0.;
   const unsigned f = firstBuildupSample + buildupLength;
   for (unsigned i = f; i < f + run.len; i++)
   {
@@ -278,11 +278,11 @@ void Transient::estimateTransientParams(
   // Because the math is so pretty, we average the two,
   // but in truth cand2 is probably better...
 
-  const double cand1 = cum * cum / vcum;
-  const double cand2 = samples[f];
+  const float cand1 = cum * cum / vcum;
+  const float cand2 = samples[f];
 
-  transientAmpl = 0.85 * cand2 + 0.15 * cand1;
-  timeConstant = 1000. * cum / transientAmpl;
+  transientAmpl = 0.85f * cand2 + 0.15f * cand1;
+  timeConstant = 1000.f * cum / transientAmpl;
 
   // This is purely informational, so the values are not
   // so important.  It probably tends to say something about
@@ -316,18 +316,18 @@ void Transient::synthesize()
   // Synthesize the quasi-exponential part.
   for (unsigned i = buildupLength; i < l; i++)
     synth[i] = static_cast<float> (transientAmpl * exp(
-      - static_cast<double>(i - buildupLength) / SAMPLE_RATE / 
+      - static_cast<float>(i - buildupLength) / SAMPLE_RATE / 
           (timeConstant / 1000.)));
 }
 
 
-bool Transient::errorIsSmall(const vector<double>& samples)
+bool Transient::errorIsSmall(const vector<float>& samples)
 {
   const unsigned l = synth.size();
-  double err = 0.;
+  float err = 0.;
   for (unsigned i = 0; i < l; i++)
   {
-    const double diff = synth[i] - samples[firstBuildupSample + i];
+    const float diff = synth[i] - samples[firstBuildupSample + i];
     err += diff * diff;
   }
 
@@ -338,7 +338,7 @@ bool Transient::errorIsSmall(const vector<double>& samples)
 
 
 bool Transient::largeActualDeviation(
-  const vector<double>& samples,
+  const vector<float>& samples,
   const Run& run,
   unsigned& devpos) const
 {
@@ -349,9 +349,9 @@ bool Transient::largeActualDeviation(
   for (unsigned i = firstBuildupSample + buildupLength;
     i < run.first + run.len - 3; i++)
   {
-    double diff1 = samples[i+1] - samples[i];
-    double diff2 = samples[i+2] - samples[i];
-    double diff3 = samples[i+3] - samples[i];
+    float diff1 = samples[i+1] - samples[i];
+    float diff2 = samples[i+2] - samples[i];
+    float diff3 = samples[i+3] - samples[i];
     if (samples[i] < 0.)
     {
       diff1 = -diff1;
@@ -377,7 +377,7 @@ bool Transient::largeActualDeviation(
 
 
 bool Transient::largeSynthDeviation(
-  const vector<double>& samples,
+  const vector<float>& samples,
   unsigned& devpos) const
 {
   // We also consider two consecutive, large deviations from
@@ -386,8 +386,8 @@ bool Transient::largeSynthDeviation(
   for (unsigned i = 1; i < synth.size()-1; i++)
   {
     const unsigned j = firstBuildupSample + i;
-    const double diff1 = samples[j] - synth[i];
-    const double diff2 = samples[j+1] - synth[i+1];
+    const float diff1 = samples[j] - synth[i];
+    const float diff2 = samples[j+1] - synth[i+1];
 
     if (samples[j] < 0. && 
         diff1 < -TRANSIENT_LARGE_DEV &&
@@ -408,7 +408,7 @@ bool Transient::largeSynthDeviation(
 }
 
 
-bool Transient::detect(const vector<double>& samples)
+bool Transient::detect(const vector<float>& samples)
 {
   Transient::reset();
   Transient::calcRuns(samples);

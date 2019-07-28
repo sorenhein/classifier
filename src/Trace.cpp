@@ -36,16 +36,16 @@ void Trace::detect(
 {
   timers[thid].start(TIMER_TRANSIENT);
 
+  transientFlag = transient.detect(fsamples);
+
+  Interval intAfterTransient;
+  intAfterTransient.first = transient.lastSampleNo();
+  intAfterTransient.len = fsamples.size() - intAfterTransient.first;
+
   // TODO Leave as floats for a while longer.
   samples.resize(fsamples.size());
   for (unsigned i = 0; i < fsamples.size(); i++)
     samples[i] = fsamples[i];
-
-  transientFlag = transient.detect(samples);
-
-  Interval intAfterTransient;
-  intAfterTransient.first = transient.lastSampleNo();
-  intAfterTransient.len = samples.size() - intAfterTransient.first;
 
   Interval intAfterBack;
   quietFlag = quietBack.detect(samples, intAfterTransient, 
