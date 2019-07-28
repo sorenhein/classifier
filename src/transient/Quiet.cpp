@@ -168,42 +168,6 @@ unsigned Quiet::curate(const vector<QuietStats>& qstats) const
 }
 
 
-void Quiet::setFinetuneRange(
-  const Interval& intervalFine,
-  const bool fromBackFlag,
-  const unsigned duration,
-  vector<QuietStats>& fineStarts) const
-{
-  // This matters very little, as we add samples to the
-  // end anyway.
-
-  const unsigned numInts = intervalFine.len / duration;
-
-  if (! fromBackFlag)
-  {
-    for (unsigned i = 0; i < numInts; i++)
-    {
-      fineStarts.emplace_back(QuietStats());
-      QuietStats& q = fineStarts.back();
-      q.start = intervalFine.first + i * duration;
-      q.len = duration;
-      q.grade = GRADE_SIZE;
-    }
-  }
-  else
-  {
-    for (unsigned i = 0; i < numInts; i++)
-    {
-      fineStarts.emplace_back(QuietStats());
-      QuietStats& q = fineStarts.back();
-      q.start = intervalFine.first + intervalFine.len - (i+1) * duration;
-      q.len = duration;
-      q.grade = GRADE_SIZE;
-    }
-  }
-}
-
-
 void Quiet::getFinetuneStatistics(
   const vector<float>& samples,
   vector<QuietStats>& fineStarts,
@@ -275,7 +239,9 @@ void Quiet::finetune(
   vector<QuietStats> fineStarts;
 Interval intervalFine;
 Quiet::setFineInterval(quietInt, fromBackFlag, samples.size(), intervalFine);
-  Quiet::setFinetuneRange(intervalFine, fromBackFlag, 
+  // This matters very little, as we add samples to the
+  // end anyway.
+  Quiet::makeStarts(intervalFine, fromBackFlag, 
     durationFine, fineStarts);
 
   vector<QuietStats> fineList(fineStarts.size());
