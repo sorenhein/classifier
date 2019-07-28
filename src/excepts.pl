@@ -31,7 +31,7 @@ for my $file (@ARGV)
 
     if ($line =~ /^File/)
     {
-      $line =~ /^File.*\/([0-9_]*)_001_channel1.dat:/;
+      $line =~ /^File ([0-9_]*)_001_channel1.dat:/;
       my @a = split /_/, $1;
 
       $fileno++;

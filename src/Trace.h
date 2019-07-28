@@ -4,7 +4,8 @@
 #include <vector>
 #include <string>
 
-#include "SegTransient.h"
+#include "transient/Transient.h"
+
 #include "SegQuiet.h"
 #include "SegActive.h"
 #include "struct.h"
@@ -22,9 +23,10 @@ class Trace
     vector<double> samples;
     vector<Run> runs;
 
-    SegTransient transient;
+    Transient transient;
     SegQuiet quietFront;
     SegQuiet quietBack;
+
     SegActive segActive;
 
     bool transientFlag;

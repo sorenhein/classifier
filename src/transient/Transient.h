@@ -1,10 +1,10 @@
-#ifndef TRAIN_SEGTRANSIENT_H
-#define TRAIN_SEGTRANSIENT_H
+#ifndef TRAIN_TRANSIENT_H
+#define TRAIN_TRANSIENT_H
 
 #include <vector>
 #include <string>
 
-#include "struct.h"
+// #include "struct.h"
 
 using namespace std;
 
@@ -31,8 +31,7 @@ struct Run
 
 
 
-
-class SegTransient
+class Transient
 {
   private:
 
@@ -46,6 +45,8 @@ class SegTransient
       TRANSIENT_SIZE = 5
     };
 
+
+    vector<Run> runs;
 
     TransientStatus status;
     TransientType transientType;
@@ -61,9 +62,10 @@ class SegTransient
     vector<float> synth;
     double fitError;
 
-    bool detectPossibleRun(
-      const vector<Run>& runs,
-      unsigned& rno);
+
+    void calcRuns(const vector<double>& samples);
+
+    bool detectPossibleRun(unsigned& rno);
 
     bool findEarlyPeak(
       const vector<double>& samples,
@@ -94,15 +96,13 @@ class SegTransient
 
   public:
 
-    SegTransient();
+    Transient();
 
-    ~SegTransient();
+    ~Transient();
 
     void reset();
 
-    bool detect(
-      const vector<double>& samples, // TODO: Should use times[]
-      const vector<Run>& runs);
+    bool detect(const vector<double>& samples);
 
     unsigned lastSampleNo() const;
 

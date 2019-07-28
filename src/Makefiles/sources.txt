@@ -23,7 +23,6 @@ SOURCE_FILES    =                       \
                 Regress.cpp             \
                 SegActive.cpp           \
                 SegQuiet.cpp            \
-                SegTransient.cpp        \
                 Trace.cpp               \
                 geometry.cpp            \
                 run.cpp                 \
@@ -50,6 +49,8 @@ SOURCE_FILES    =                       \
                 stats/PeakStats.cpp     \
                 stats/Timer.cpp         \
                 stats/Timers.cpp        \
+                                        \
+                transient/Transient.cpp \
                                         \
                 util/io.cpp             \
                 util/misc.cpp           \

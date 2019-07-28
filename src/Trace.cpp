@@ -27,6 +27,7 @@ Trace::~Trace()
 }
 
 
+/*
 void Trace::calcRuns()
 {
   Run run;
@@ -78,21 +79,6 @@ void Trace::calcRuns()
   }
   runs.push_back(run);
 }
-
-
-/*
-bool Trace::readBinary(const string& filenameFull)
-{
-  vector<float> fsamples;
-  if (! readBinaryTrace(filenameFull, fsamples))
-    return false;
-
-  // TODO Leave samples as floats?
-  samples.resize(fsamples.size());
-  for (unsigned i = 0; i < fsamples.size(); i++)
-    samples[i] = fsamples[i];
-  return true;
-}
 */
 
 
@@ -105,21 +91,6 @@ void Trace::printSamples(const string& title) const
 }
 
 
-/*
-void Trace::read(
-  const string& filenameFull,
-  const unsigned thid)
-{
-  timers[thid].start(TIMER_READ);
-
-  samples.clear();
-  Trace::readBinary(filenameFull);
-
-  timers[thid].stop(TIMER_READ);
-}
-*/
-
-
 void Trace::detect(
   const Control& control,
   const double sampleRate,
@@ -129,13 +100,15 @@ void Trace::detect(
 {
   timers[thid].start(TIMER_TRANSIENT);
 
+  // TODO Leave as floats for a while longer.
   samples.resize(fsamples.size());
   for (unsigned i = 0; i < fsamples.size(); i++)
     samples[i] = fsamples[i];
 
-  runs.clear();
-  Trace::calcRuns();
-  transientFlag = transient.detect(samples, runs);
+  // runs.clear();
+  // Trace::calcRuns();
+  // transientFlag = transient.detect(samples, runs);
+  transientFlag = transient.detect(samples);
 
   Interval intAfterTransient;
   intAfterTransient.first = transient.lastSampleNo();

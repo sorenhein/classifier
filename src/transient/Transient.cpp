@@ -4,10 +4,10 @@
 #include <sstream>
 #include <math.h>
 
-#include "SegTransient.h"
-#include "Trace.h"
+#include "Transient.h"
+// #include "Trace.h"
 
-#include "util/io.h"
+#include "../util/io.h"
 
 
 // Current working definition of a transient:
@@ -33,17 +33,17 @@
 #define SEPARATOR ";"
 
 
-SegTransient::SegTransient()
+Transient::Transient()
 {
 }
 
 
-SegTransient::~SegTransient()
+Transient::~Transient()
 {
 }
 
 
-void SegTransient::reset()
+void Transient::reset()
 {
   transientType = TRANSIENT_NONE;
   status = TSTATUS_SIZE;
@@ -58,9 +58,60 @@ void SegTransient::reset()
 }
 
 
-bool SegTransient::detectPossibleRun(
-  const vector<Run>& runs,
-  unsigned& rno)
+void Transient::calcRuns(const vector<double>& samples)
+{
+  Run run;
+  run.first = 0;
+  run.len = 1;
+  if (samples[0] >= 0.)
+  {
+    run.posFlag = true;
+    run.cum = samples[0];
+  }
+  else
+  {
+    run.posFlag = false;
+    run.cum = -samples[0];
+  }
+
+  const unsigned l = samples.size();
+  for (unsigned i = 1; i < l; i++)
+  {
+    if (run.posFlag)
+    {
+      if (samples[i] >= 0.)
+      {
+        run.len++;
+        run.cum += samples[i];
+      }
+      else
+      {
+        runs.push_back(run);
+        run.first = i;
+        run.len = 1;
+        run.posFlag = false;
+        run.cum = -samples[i];
+      }
+    }
+    else if (samples[i] < 0.)
+    {
+      run.len++;
+      run.cum -= samples[i];
+    }
+    else
+    {
+      runs.push_back(run);
+      run.first = i;
+      run.len = 1;
+      run.posFlag = true;
+      run.cum = samples[i];
+    }
+  }
+  runs.push_back(run);
+}
+
+
+bool Transient::detectPossibleRun(unsigned& rno)
 {
   if (runs.size() < TRANSIENT_RANGE)
   {
@@ -85,7 +136,7 @@ bool SegTransient::detectPossibleRun(
 }
 
 
-bool SegTransient::findEarlyPeak(
+bool Transient::findEarlyPeak(
   const vector<double>& samples,
   const Run& run)
 {
@@ -151,7 +202,7 @@ bool SegTransient::findEarlyPeak(
 }
 
 
-bool SegTransient::checkDecline(
+bool Transient::checkDecline(
   const vector<double>& samples,
   const Run& run)
 {
@@ -204,7 +255,7 @@ bool SegTransient::checkDecline(
 }
 
 
-void SegTransient::estimateTransientParams(
+void Transient::estimateTransientParams(
   const vector<double>& samples,
   const Run& run)
 {
@@ -252,7 +303,7 @@ void SegTransient::estimateTransientParams(
 }
 
 
-void SegTransient::synthesize()
+void Transient::synthesize()
 {
   const unsigned l = buildupLength + transientLength;
   synth.resize(l);
@@ -270,7 +321,7 @@ void SegTransient::synthesize()
 }
 
 
-bool SegTransient::errorIsSmall(const vector<double>& samples)
+bool Transient::errorIsSmall(const vector<double>& samples)
 {
   const unsigned l = synth.size();
   double err = 0.;
@@ -286,7 +337,7 @@ bool SegTransient::errorIsSmall(const vector<double>& samples)
 }
 
 
-bool SegTransient::largeActualDeviation(
+bool Transient::largeActualDeviation(
   const vector<double>& samples,
   const Run& run,
   unsigned& devpos) const
@@ -325,7 +376,7 @@ bool SegTransient::largeActualDeviation(
 }
 
 
-bool SegTransient::largeSynthDeviation(
+bool Transient::largeSynthDeviation(
   const vector<double>& samples,
   unsigned& devpos) const
 {
@@ -357,21 +408,20 @@ bool SegTransient::largeSynthDeviation(
 }
 
 
-bool SegTransient::detect(
-  const vector<double>& samples,
-  const vector<Run>& runs)
+bool Transient::detect(const vector<double>& samples)
 {
-  SegTransient::reset();
+  Transient::reset();
+  Transient::calcRuns(samples);
 
   unsigned rno;
-  if (! SegTransient::detectPossibleRun(runs, rno))
+  if (! Transient::detectPossibleRun(rno))
   {
     transientType = TRANSIENT_NONE;
     return false;
   }
 
   const Run& run = runs[rno];
-  if (! SegTransient::findEarlyPeak(samples, run))
+  if (! Transient::findEarlyPeak(samples, run))
   {
     // We won't reject the entire transient just because we
     // can't easily find the pattern.
@@ -385,19 +435,19 @@ bool SegTransient::detect(
   unsigned devpos;
   Run runcorr = run;
 
-  if (SegTransient::largeActualDeviation(samples, run, devpos))
+  if (Transient::largeActualDeviation(samples, run, devpos))
   {
     runcorr.len = devpos - run.first;
     transientLength = devpos - run.first - buildupLength;
     status = TSTATUS_BACK_ACTUAL_CORR;
   }
 
-  if (! SegTransient::checkDecline(samples, runcorr))
+  if (! Transient::checkDecline(samples, runcorr))
   {
     // Could be a very choppy trace where it makes sense
     // to start from the beginning.
     buildupLength = 0;
-    if (SegTransient::checkDecline(samples, runcorr))
+    if (Transient::checkDecline(samples, runcorr))
     {
       firstBuildupSample = runcorr.first;
       buildupStart = 0.;
@@ -411,23 +461,23 @@ bool SegTransient::detect(
     }
   }
 
-  SegTransient::estimateTransientParams(samples, runcorr);
+  Transient::estimateTransientParams(samples, runcorr);
 
-  SegTransient::synthesize();
+  Transient::synthesize();
 
-  if (SegTransient::largeSynthDeviation(samples, devpos))
+  if (Transient::largeSynthDeviation(samples, devpos))
   {
     runcorr.len = devpos;
     transientLength = devpos - buildupLength;
     status = TSTATUS_BACK_SYNTH_CORR;
 
     // Redo the estimation.
-    SegTransient::estimateTransientParams(samples, runcorr);
+    Transient::estimateTransientParams(samples, runcorr);
 
-    SegTransient::synthesize();
+    Transient::synthesize();
   }
 
-  if (! SegTransient::errorIsSmall(samples))
+  if (! Transient::errorIsSmall(samples))
   {
     // Currently not possible.  fitError is probably an
     // indication of a signal being present during the transient.
@@ -440,13 +490,13 @@ bool SegTransient::detect(
 }
 
 
-unsigned SegTransient::lastSampleNo() const
+unsigned Transient::lastSampleNo() const
 {
   return firstBuildupSample + buildupLength + transientLength;
 }
 
 
-void SegTransient::writeFile(const string& filename) const
+void Transient::writeFile(const string& filename) const
 {
   if (transientType == TRANSIENT_NONE ||
       transientType == TRANSIENT_SIZE)
@@ -456,7 +506,7 @@ void SegTransient::writeFile(const string& filename) const
 }
 
 
-string SegTransient::strHeader() const
+string Transient::strHeader() const
 {
   stringstream ss;
   ss << 
@@ -471,7 +521,7 @@ string SegTransient::strHeader() const
 }
 
 
-string SegTransient::str() const
+string Transient::str() const
 {
   stringstream ss;
   ss << "Transient\n";
@@ -494,7 +544,7 @@ string SegTransient::str() const
   else if (transientType == TRANSIENT_SIZE)
     return ss.str() + "Search for transient not run\n";
 
-  ss << SegTransient::strHeader();
+  ss << Transient::strHeader();
   ss << 
     setw(8) << firstBuildupSample <<
     setw(8) << buildupLength <<
@@ -507,7 +557,7 @@ string SegTransient::str() const
 }
 
 
-string SegTransient::headerCSV() const
+string Transient::headerCSV() const
 {
   stringstream ss;
   ss << 
@@ -524,7 +574,7 @@ string SegTransient::headerCSV() const
 }
 
 
-string SegTransient::strCSV() const
+string Transient::strCSV() const
 {
   stringstream ss;
   ss << 

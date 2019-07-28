@@ -57,11 +57,7 @@ SegActive.obj: PeakRange.h PeakProfile.h CarModels.h const.h Except.h
 SegActive.obj: errors.h database/Control.h database/Entity.h util/io.h
 SegActive.obj: stats/Timers.h stats/Timer.h
 SegQuiet.obj: SegQuiet.h struct.h util/io.h
-SegTransient.obj: SegTransient.h struct.h Trace.h SegQuiet.h SegActive.h
-SegTransient.obj: PeakDetect.h Peak.h PeakPool.h Peaks.h PeakPtrs.h
-SegTransient.obj: CarPeaks.h PeakStructure.h CarDetect.h CarGaps.h
-SegTransient.obj: PeakRange.h PeakProfile.h CarModels.h util/io.h
-Trace.obj: Trace.h SegTransient.h struct.h SegQuiet.h SegActive.h
+Trace.obj: Trace.h transient/Transient.h struct.h SegQuiet.h SegActive.h
 Trace.obj: PeakDetect.h Peak.h PeakPool.h Peaks.h PeakPtrs.h CarPeaks.h
 Trace.obj: PeakStructure.h CarDetect.h CarGaps.h PeakRange.h PeakProfile.h
 Trace.obj: CarModels.h database/Control.h database/Entity.h stats/Timers.h
@@ -69,11 +65,13 @@ Trace.obj: stats/Timer.h util/io.h
 geometry.obj: database/TrainDB.h database/Entity.h Regress.h struct.h
 geometry.obj: geometry.h align/Alignment.h
 run.obj: database/TraceDB.h database/Entity.h database/TrainDB.h
-run.obj: database/Control.h stats/CompStats.h stats/PeakStats.h Trace.h
-run.obj: SegTransient.h struct.h SegQuiet.h SegActive.h PeakDetect.h Peak.h
-run.obj: PeakPool.h Peaks.h PeakPtrs.h CarPeaks.h PeakStructure.h CarDetect.h
-run.obj: CarGaps.h PeakRange.h PeakProfile.h CarModels.h Regress.h Align.h
-run.obj: align/Alignment.h Except.h errors.h geometry.h run.h util/Motion.h
+run.obj: database/Control.h stats/CompStats.h stats/PeakStats.h
+run.obj: stats/Timers.h stats/Timer.h Trace.h transient/Transient.h struct.h
+run.obj: SegQuiet.h SegActive.h PeakDetect.h Peak.h PeakPool.h Peaks.h
+run.obj: PeakPtrs.h CarPeaks.h PeakStructure.h CarDetect.h CarGaps.h
+run.obj: PeakRange.h PeakProfile.h CarModels.h Regress.h Align.h
+run.obj: align/Alignment.h Except.h errors.h geometry.h run.h util/io.h
+run.obj: util/Motion.h
 setup.obj: database/SensorDB.h database/Entity.h database/CarDB.h
 setup.obj: database/CorrectionDB.h database/TrainDB.h database/TraceDB.h
 setup.obj: database/Control.h setup.h util/io.h
