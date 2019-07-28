@@ -52,21 +52,21 @@ void Quiet::reset()
 
 void Quiet::makeStarts(
   const Interval& interval,
-  const QuietPlace direction,
+  const bool fromBackFlag,
   vector<unsigned>& startList) const
 {
   const unsigned numInts = interval.len / INT_LENGTH;
 
-  if (direction == QUIET_BACK)
+  if (! fromBackFlag)
+  {
+    for (unsigned i = 0; i < numInts; i++)
+      startList.push_back(i * INT_LENGTH);
+  }
+  else
   {
     // Backwards from the end.
     for (unsigned i = 0; i < numInts; i++)
       startList.push_back(interval.len - (i+1) * INT_LENGTH);
-  }
-  else if (direction == QUIET_FRONT)
-  {
-    for (unsigned i = 0; i < numInts; i++)
-      startList.push_back(i * INT_LENGTH);
   }
 }
 
@@ -150,7 +150,7 @@ unsigned Quiet::curate() const
 
 void Quiet::setFinetuneRange(
   const vector<float>& samples,
-  const QuietPlace direction,
+  const bool fromBackFlag,
   const Interval& quietInt,
   vector<unsigned>& fineStarts) const
 {
@@ -159,7 +159,7 @@ void Quiet::setFinetuneRange(
 
   const unsigned ls = samples.size();
   unsigned first, last;
-  if (direction == QUIET_FRONT)
+  if (! fromBackFlag)
   {
     first = quietInt.first;
 
@@ -171,7 +171,7 @@ void Quiet::setFinetuneRange(
     for (unsigned i = first; i < last; i += INT_FINE_LENGTH)
       fineStarts.push_back(i);
   }
-  else if (direction == QUIET_BACK)
+  else
   {
     if (quietInt.first < INT_LENGTH)
       first = 0;
@@ -210,17 +210,17 @@ void Quiet::getFinetuneStatistics(
 
 
 void Quiet::adjustIntervals(
-  const QuietPlace direction,
+  const bool fromBackFlag,
   Interval& quietInt,
   const unsigned index)
 {
-  if (direction == QUIET_FRONT)
+  if (! fromBackFlag)
   {
     // Shrink or extend the last interval, as the case may be.
     // Could shrink to zero!
     quietInt.len = index - quietInt.first;
   }
-  else if (direction == QUIET_BACK)
+  else
   {
     // Shrink or extend the last interval, as the case may be.
     quietInt.len = quietInt.first + quietInt.len - index;
@@ -232,7 +232,7 @@ void Quiet::adjustIntervals(
 
 void Quiet::finetune(
   const vector<float>& samples,
-  const QuietPlace direction,
+  const bool fromBackFlag,
   Interval& quietInt)
 {
   // Attempt to find the point of departure from general noise
@@ -240,8 +240,7 @@ void Quiet::finetune(
 
   vector<unsigned> fineStarts;
   fineStarts.clear();
-  Quiet::setFinetuneRange(samples, direction, 
-    quietInt, fineStarts);
+  Quiet::setFinetuneRange(samples, fromBackFlag, quietInt, fineStarts);
 
   vector<QuietStats> fineList(fineStarts.size());
   float sdevThreshold;
@@ -253,7 +252,7 @@ void Quiet::finetune(
     if (fineList[i].sdev >= sdevThreshold ||
         abs(fineList[i].mean) >= MEAN_SOMEWHAT_QUIET)
     {
-      Quiet::adjustIntervals(direction, quietInt, fineStarts[i]);
+      Quiet::adjustIntervals(fromBackFlag, quietInt, fineStarts[i]);
       return;
     }
   }
@@ -264,11 +263,11 @@ void Quiet::finetune(
 
 void Quiet::adjustOutputIntervals(
   const Interval& avail,
-  const QuietPlace direction)
+  const bool fromBackFlag)
 {
   const unsigned l = avail.first + avail.len;
 
-  if (direction == QUIET_FRONT)
+  if (! fromBackFlag)
   {
     writeInterval.first = avail.first;
     if (quiet.size() == 0)
@@ -291,7 +290,7 @@ void Quiet::adjustOutputIntervals(
       writeInterval.len = l - writeInterval.first;
 
   }
-  else if (direction == QUIET_BACK)
+  else
   {
     if (quiet.size() == 0)
     {
@@ -348,18 +347,15 @@ void Quiet::makeSynth()
 bool Quiet::detect(
   const vector<float>& samples,
   const Interval& available,
-  const QuietPlace direction,
+  const bool fromBackFlag,
   Interval& active)
 {
-  if (direction != QUIET_FRONT && direction != QUIET_BACK)
-    return false;
-
   QuietStats qstats;
   qstats.len = INT_LENGTH;
   quiet.clear();
 
   vector<unsigned> startList;
-  Quiet::makeStarts(available, direction, startList);
+  Quiet::makeStarts(available, fromBackFlag, startList);
     
   unsigned runReds = 0, totalReds = 0;
 
@@ -388,10 +384,10 @@ bool Quiet::detect(
   const unsigned n = Quiet::curate();
   quiet.resize(n);
   if (n > 0)
-    Quiet::finetune(samples, direction, quiet.back());
+    Quiet::finetune(samples, fromBackFlag, quiet.back());
 
   // Make output a bit longer in order to better see.
-  Quiet::adjustOutputIntervals(available, direction);
+  Quiet::adjustOutputIntervals(available, fromBackFlag);
 
   Quiet::makeSynth();
 

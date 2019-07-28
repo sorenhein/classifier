@@ -9,13 +9,6 @@
 using namespace std;
 
 
-enum QuietPlace
-{
-  QUIET_FRONT = 0,
-  QUIET_BACK = 1,
-  QUIET_SIZE = 2
-};
-
 class Quiet
 {
   private:
@@ -36,7 +29,7 @@ class Quiet
 
     void makeStarts(
       const Interval& interval,
-      const QuietPlace direction,
+      const bool fromBackFlag,
       vector<unsigned>& startList) const;
 
     void makeStats(
@@ -57,7 +50,7 @@ class Quiet
 
     void setFinetuneRange(
       const vector<float>& samples,
-      const QuietPlace direction,
+      const bool fromBackFlag,
       const Interval& quietInt,
       vector<unsigned>& fineStarts) const;
 
@@ -68,18 +61,18 @@ class Quiet
       float& sdevThreshold) const;
 
     void adjustIntervals(
-      const QuietPlace direction,
+      const bool fromBackFlag,
       Interval& quietInt,
       const unsigned index);
 
     void finetune(
       const vector<float>& samples,
-      const QuietPlace direction,
+      const bool fromBackFlag,
       Interval& quietInt);
 
     void adjustOutputIntervals(
       const Interval& avail,
-      const QuietPlace direction);
+      const bool fromBackFlag);
 
     void makeSynth();
 
@@ -99,7 +92,7 @@ class Quiet
     bool detect(
       const vector<float>& samples,
       const Interval& available,
-      const QuietPlace direction,
+      const bool fromBackFlag,
       Interval& active);
 
     void writeFile(const string& filename) const;

@@ -48,11 +48,10 @@ void Trace::detect(
 
   Interval intAfterBack;
   quietFlag = quietBack.detect(fsamples, intAfterTransient, 
-    QUIET_BACK, intAfterBack);
+    true, intAfterBack);
 
   Interval intAfterFront;
-  (void) quietFront.detect(fsamples, intAfterBack, 
-    QUIET_FRONT, intAfterFront);
+  (void) quietFront.detect(fsamples, intAfterBack, false, intAfterFront);
   timers[thid].stop(TIMER_TRANSIENT);
 
   // TODO Leave as floats for a while longer.
