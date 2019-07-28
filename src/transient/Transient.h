@@ -24,6 +24,7 @@ class Transient
     unsigned firstBuildupSample;
     unsigned buildupLength;
     float buildupStart;
+    float buildupPeak;
     unsigned transientLength;
 
     float transientAmpl; // In g

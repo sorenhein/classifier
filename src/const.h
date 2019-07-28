@@ -55,6 +55,13 @@
 
 #define TRANSIENT_MAX_TAU 0.025f
 
+// If the average deviation away from the zero line of four
+// consecutive samples exceeds this factor times the value of the
+// transient peak, then we consider that there is a wheel and we
+// should stop the transient.
+
+#define TRANSIENT_LARGE_BUMP 0.4
+
 ////////////////////////////////////////////////////////////////////////
 //                                                                    //
 //                            Filters                                 //

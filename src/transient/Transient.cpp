@@ -46,6 +46,7 @@ void Transient::reset()
   firstBuildupSample = 0;
   buildupLength = 0;
   buildupStart = 0.;
+  buildupPeak = 0.;
   transientLength = 0;
 
   transientAmpl = 0.;
@@ -96,6 +97,7 @@ bool Transient::findEarlyPeak(
       firstBuildupSample = run.first;
       buildupLength = i - run.first - runLen;
       buildupStart = samples[run.first];
+      buildupPeak = samples[run.first + buildupLength];
       transientLength = run.len - buildupLength;
       return true;
     }
@@ -103,6 +105,42 @@ bool Transient::findEarlyPeak(
     {
       posSlopeFlag = ! posSlopeFlag;
       runLen = 2;
+    }
+  }
+  return false;
+}
+
+
+bool Transient::largeActualDeviation(
+  const vector<float>& samples,
+  const Run& run,
+  unsigned& devpos) const
+{
+  // We stop the transient if there's a big bump away from
+  // the middle in the actual trace.  A big bump is four
+  // consecutive samples with enough mass.
+
+  for (unsigned i = firstBuildupSample + buildupLength;
+    i+3 < run.first + run.len; i++)
+  {
+    float diff1 = samples[i+1] - samples[i];
+    float diff2 = samples[i+2] - samples[i];
+    float diff3 = samples[i+3] - samples[i];
+    if (samples[i] < 0.)
+    {
+      diff1 = -diff1;
+      diff2 = -diff2;
+      diff3 = -diff3;
+    }
+
+    const float babs = (buildupPeak > 0. ? buildupPeak : -buildupPeak);
+    const float davg = (diff1 + diff2 + diff3) / 3.f;
+    const float ratio3 = davg / babs;
+
+    if (ratio3 > TRANSIENT_LARGE_BUMP)
+    {
+      devpos = i;
+      return true;
     }
   }
   return false;
@@ -244,45 +282,6 @@ bool Transient::errorIsSmall(const vector<float>& samples)
 }
 
 
-bool Transient::largeActualDeviation(
-  const vector<float>& samples,
-  const Run& run,
-  unsigned& devpos) const
-{
-  // We stop the transient if there's a big bump away from
-  // the middle in the actual trace.  A big bump is two 
-  // consecutive samples or three with enough mass.
-
-  for (unsigned i = firstBuildupSample + buildupLength;
-    i < run.first + run.len - 3; i++)
-  {
-    float diff1 = samples[i+1] - samples[i];
-    float diff2 = samples[i+2] - samples[i];
-    float diff3 = samples[i+3] - samples[i];
-    if (samples[i] < 0.)
-    {
-      diff1 = -diff1;
-      diff2 = -diff2;
-      diff3 = -diff3;
-    }
-
-    if (diff1 > TRANSIENT_LARGE_DEV &&
-        diff2 > TRANSIENT_LARGE_DEV)
-    {
-      devpos = i;
-      return true;
-    }
-    else if (diff1 > 0 && diff2 > 0 && diff3 > 0 &&
-        diff1 + diff2 + diff3 > 2. * TRANSIENT_LARGE_DEV)
-    {
-      devpos = i;
-      return true;
-    }
-  }
-  return false;
-}
-
-
 bool Transient::largeSynthDeviation(
   const vector<float>& samples,
   unsigned& devpos) const
@@ -348,7 +347,7 @@ bool Transient::detect(
   {
     runcorr.len = devpos - run.first;
     transientLength = devpos - run.first - buildupLength;
-    status = TSTATUS_BACK_ACTUAL_CORR;
+    status = TSTATUS_BACK_CORRECTED;
   }
 
   if (! Transient::checkDecline(samples, runcorr))
