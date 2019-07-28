@@ -74,8 +74,6 @@ class Transient
       const double sampleRate,
       unsigned& lastIndex);
 
-    unsigned lastSampleNo() const;
-
     void writeFile(const string& filename) const;
 
     string str() const;

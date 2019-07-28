@@ -1,8 +1,6 @@
 #include <iostream>
 #include <iomanip>
-#include <fstream>
 #include <sstream>
-#include <math.h>
 
 #include "Transient.h"
 #include "Candidate.h"
@@ -10,16 +8,6 @@
 #include "../const.h"
 
 #include "../util/io.h"
-
-
-// Current working definition of a transient:
-// * Has a bit of a slope towards zero, at least.
-// * TODO: Should be independent of sample rate.
-
-#define TRANSIENT_LARGE_DEV 10.
-#define SAMPLE_RATE 2000.
-
-#define SEPARATOR ";"
 
 
 Transient::Transient()
@@ -334,12 +322,6 @@ bool Transient::detect(
   }
 
   return true;
-}
-
-
-unsigned Transient::lastSampleNo() const
-{
-  return firstBuildupSample + buildupLength + transientLength;
 }
 
 
