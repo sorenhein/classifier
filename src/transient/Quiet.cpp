@@ -46,30 +46,36 @@ Quiet::~Quiet()
 }
 
 
-void Quiet::reset()
-{
-  quiet.clear();
-}
-
-
 void Quiet::makeStarts(
   const Interval& interval,
   const bool fromBackFlag,
   const unsigned chunkSize,
-  vector<unsigned>& startList) const
+  vector<QuietStats>& startList) const
 {
   const unsigned numInts = interval.len / chunkSize;
 
   if (! fromBackFlag)
   {
+    // Divide up the interval into chunks of equal size, leaving off
+    // any partial chunk at the end.
     for (unsigned i = 0; i < numInts; i++)
-      startList.push_back(i * chunkSize);
+    {
+      startList.emplace_back(QuietStats());
+      QuietStats& q = startList.back();
+      q.start = i * chunkSize;
+      // startList.push_back(i * chunkSize);
+    }
   }
   else
   {
     // Backwards from the end.
     for (unsigned i = 0; i < numInts; i++)
-      startList.push_back(interval.len - (i+1) * chunkSize);
+    {
+      startList.emplace_back(QuietStats());
+      QuietStats& q = startList.back();
+      q.start = interval.len - (i+1) * chunkSize;
+      // startList.push_back(interval.len - (i+1) * chunkSize);
+    }
   }
 }
 
@@ -358,20 +364,22 @@ bool Quiet::detect(
   qstats.len = static_cast<unsigned>(sampleRate * QUIET_DURATION);
   quiet.clear();
 
-  vector<unsigned> startList;
+  // Chop up the interval into chunks of size qstats.len, starting
+  // either from the front or the back depending on fromBackFlag.
+  vector<QuietStats> startList;
   Quiet::makeStarts(available, fromBackFlag, qstats.len, startList);
     
   unsigned runReds = 0, totalReds = 0;
 
-  for (unsigned start: startList)
+  for (auto& st: startList)
   {
-    Quiet::makeStats(samples, start, INT_LENGTH, qstats);
+    Quiet::makeStats(samples, st.start, INT_LENGTH, qstats);
     const QuietGrade grade = Quiet::isQuiet(qstats);
 
     if (grade == GRADE_DEEP_RED)
       break;
 
-    Quiet::addQuiet(start, INT_LENGTH, grade, qstats.mean);
+    Quiet::addQuiet(st.start, INT_LENGTH, grade, qstats.mean);
 
     if (grade == GRADE_RED)
     {

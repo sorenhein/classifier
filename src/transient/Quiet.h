@@ -15,9 +15,10 @@ class Quiet
 
     struct QuietStats
     {
+      unsigned start;
+      unsigned len;
       float mean;
       float sdev;
-      unsigned len;
     };
 
     vector<Interval> quiet;
@@ -31,7 +32,7 @@ class Quiet
       const Interval& interval,
       const bool fromBackFlag,
       const unsigned chunkSize,
-      vector<unsigned>& startList) const;
+      vector<QuietStats>& startList) const;
 
     void makeStats(
       const vector<float>& samples,
@@ -87,8 +88,6 @@ class Quiet
     Quiet();
 
     ~Quiet();
-
-    void reset();
 
     bool detect(
       const vector<float>& samples,
