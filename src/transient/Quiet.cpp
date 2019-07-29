@@ -66,8 +66,8 @@ void Quiet::makeStats(
   }
 
   qentry.mean = sum / qentry.len;
-  qentry.sdev = sqrt((qentry.len * sumsq - sum * sum) / 
-    (qentry.len * (qentry.len-1.f)));
+  qentry.sdev = static_cast<float>(sqrt((qentry.len * sumsq - sum * sum) / 
+    (qentry.len * (qentry.len-1.f))));
 }
 
 

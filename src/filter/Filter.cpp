@@ -27,15 +27,6 @@ void Filter::reset()
 }
 
 
-void Filter::doubleToFloat(
-  const vector<double>& samples,
-  vector<float>& samplesFloat)
-{
-  for (unsigned i = 0; i < samples.size(); i++)
-    samplesFloat[i] = static_cast<float>(samples[i]);
-}
-
-
 void Filter::integrateFloat(
   const vector<float>& integrand,
   const float sampleRate,
@@ -145,7 +136,6 @@ void Filter::highpass(
 
 
 bool Filter::detect(
-  const vector<double>& samples,
   const double sampleRate,
   const unsigned start,
   const unsigned len)
@@ -157,11 +147,8 @@ bool Filter::detect(
   startInterval = start;
   lenInterval = len;
 
-  accelFloat.resize(samples.size());
   synthSpeed.resize(lenInterval);
   synthPos.resize(lenInterval);
-
-  Filter::doubleToFloat(samples, accelFloat);
 
   Filter::filterFloat(Butterworth5LPF_float, accelFloat);
 
@@ -185,6 +172,12 @@ bool Filter::detect(
   // Filter::filterFloat(numNoDCFloat, denomNoDCFloat, synthPos);
 
   return true;
+}
+
+
+vector<float>& Filter::getAccel()
+{
+  return accelFloat;
 }
 
 

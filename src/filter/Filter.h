@@ -22,10 +22,6 @@ class Filter
     unsigned lenInterval;
 
 
-    void doubleToFloat(
-      const vector<double>& samples,
-      vector<float>& samplesFloat);
-
     void integrateFloat(
       const vector<float>& integrand,
       const float sampleRate,
@@ -51,10 +47,11 @@ class Filter
     void reset();
 
     bool detect(
-      const vector<double>& samples,
       const double sampleRate,
       const unsigned start,
       const unsigned len);
+
+    vector<float>& getAccel();
 
     const vector<float>& getDeflection() const;
 

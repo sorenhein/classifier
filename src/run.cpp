@@ -52,18 +52,18 @@ string runHeader(const TraceData& traceData);
 void runRead(
   const string& filename,
   const unsigned thid,
-  vector<float>& samples);
+  vector<float>& accel);
 
 void runTransient(
   const Control& control,
-  const vector<float>& samples,
+  const vector<float>& accel,
   const double sampleRate,
   const unsigned thid,
   Transient& transient,
   unsigned& lastIndex);
 
 void runQuiet(
-  const vector<float>& samples,
+  const vector<float>& accel,
   const double sampleRate,
   const unsigned lastIndex,
   const unsigned thid,
@@ -88,11 +88,11 @@ string runHeader(const TraceData& traceData)
 void runRead(
   const string& filename,
   const unsigned thid,
-  vector<float>& samples)
+  vector<float>& accel)
 {
   timers[thid].start(TIMER_READ);
 
-  if (! readBinaryTrace(filename, samples))
+  if (! readBinaryTrace(filename, accel))
     THROW(ERR_NO_TRACE_FILE, "Trace file not read");
 
   timers[thid].stop(TIMER_READ);
@@ -101,7 +101,7 @@ void runRead(
 
 void runTransient(
   const Control& control,
-  const vector<float>& samples,
+  const vector<float>& accel,
   const double sampleRate,
   const unsigned thid,
   Transient& transient,
@@ -109,7 +109,7 @@ void runTransient(
 {
   timers[thid].start(TIMER_TRANSIENT);
 
-  transient.detect(samples, sampleRate, lastIndex);
+  transient.detect(accel, sampleRate, lastIndex);
 
   if (control.verboseTransient())
     cout << transient.str() << "\n";
@@ -119,7 +119,7 @@ void runTransient(
 
 
 void runQuiet(
-  const vector<float>& samples,
+  const vector<float>& accel,
   const double sampleRate,
   const unsigned lastIndex,
   const unsigned thid,
@@ -130,10 +130,10 @@ void runQuiet(
   timers[thid].start(TIMER_QUIET);
 
   interval.first = lastIndex;
-  interval.len = samples.size() - lastIndex;
+  interval.len = accel.size() - lastIndex;
 
-  quietBack.detect(samples, sampleRate, true, interval);
-  quietFront.detect(samples, sampleRate, false, interval);
+  quietBack.detect(accel, sampleRate, true, interval);
+  quietFront.detect(accel, sampleRate, false, interval);
 
   timers[thid].stop(TIMER_QUIET);
 }
@@ -203,27 +203,20 @@ void run(
     if (traceData.trainNoTrue == -1)
       THROW(ERR_TRUE_TRAIN_UNKNOWN, "True train not known");
 
-    vector<float> samples;
-    runRead(traceData.filenameFull, thid, samples);
+    vector<float>& accel = filter.getAccel();
+    runRead(traceData.filenameFull, thid, accel);
 
     unsigned lastIndex;
-    runTransient(control, samples, traceData.sampleRate, thid, 
+    runTransient(control, accel, traceData.sampleRate, thid, 
       transient, lastIndex);
 
     Interval interval;
-    runQuiet(samples, traceData.sampleRate, lastIndex, thid,
+    runQuiet(accel, traceData.sampleRate, lastIndex, thid,
       quietBack, quietFront, interval);
 
 
-  // TODO Leave as floats for a while longer.
-  vector<double> dsamples;
-  dsamples.resize(samples.size());
-  for (unsigned i = 0; i < samples.size(); i++)
-    dsamples[i] = samples[i];
-
   timers[thid].start(TIMER_CONDITION);
-  (void) filter.detect(dsamples, traceData.sampleRate, 
-    interval.first, interval.len);
+  (void) filter.detect(traceData.sampleRate, interval.first, interval.len);
   timers[thid].stop(TIMER_CONDITION);
 
   const vector<float>& synthPos = filter.getDeflection();
