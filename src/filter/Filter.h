@@ -38,6 +38,14 @@ class Filter
       const FilterDouble& filter,
       vector<float>& integrand);
 
+    void makeIntegratingFilter(
+      const FilterFloat& filterFloatIn,
+      FilterFloat& filterFloat) const;
+
+    void makeIntegratingFilterDouble(
+      const FilterDouble& filterDoubleIn,
+      FilterDouble& filterDouble) const;
+
   public:
 
     Filter();

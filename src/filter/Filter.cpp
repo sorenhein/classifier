@@ -41,6 +41,8 @@ void Filter::integrateFloat(
     result[i] = result[i-1] + factor * integrand[startIndex + i];
 }
 
+#include <iostream>
+#include <iomanip>
 
 void Filter::filterFloat(
   const FilterFloat& filter,
@@ -63,6 +65,10 @@ void Filter::filterFloat(
       state[j] = filter.numerator[j+1] * integrand[i] - 
         filter.denominator[j+1] * forward[i] + state[j+1];
     }
+// if (i < 10)
+  // cout << "FORWARD " << i << ": " << forward[i] << "\n";
+// if (i + 10 >= ls)
+  // cout << "FORWARD LAST " << i << ": " << forward[i] << "\n";
   }
 
   for (unsigned i = 0; i < order+1; i++)
@@ -73,6 +79,15 @@ void Filter::filterFloat(
     const unsigned irev = ls-1-i;
 
     integrand[irev] = filter.numerator[0] * forward[irev] + state[0];
+/*
+if (i < 10)
+{
+  cout << "REVERSE " << i << ", irev " << irev << ": " << integrand[irev] << "\n";
+  cout << "num0 " << filter.numerator[0] << ", fwd " <<
+    forward[irev] << ", state " << state[0] << endl;
+}
+*/
+
 
     for (unsigned j = 0; j < order; j++)
     {
@@ -129,6 +144,48 @@ void Filter::highpass(
 }
 
 
+void Filter::makeIntegratingFilter(
+  const FilterFloat& filterFloatIn,
+  FilterFloat& filterFloat) const
+{
+  const unsigned orderIn = filterFloatIn.numerator.size() - 1;
+  filterFloat.numerator.resize(orderIn + 1);
+  filterFloat.denominator.resize(orderIn + 1);
+
+  // Cancel out one DC zero in the numerator.
+  filterFloat.numerator[0] = filterFloatIn.numerator[0];
+  for (unsigned i = 1; i < orderIn; i++)
+  {
+    filterFloat.numerator[i] = filterFloat.numerator[i-1] +
+      filterFloatIn.numerator[i];
+  }
+
+  for (unsigned i = 0; i <= orderIn; i++)
+    filterFloat.denominator[i] = filterFloatIn.denominator[i];
+}
+
+
+void Filter::makeIntegratingFilterDouble(
+  const FilterDouble& filterDoubleIn,
+  FilterDouble& filterDouble) const
+{
+  const unsigned orderIn = filterDoubleIn.numerator.size() - 1;
+  filterDouble.numerator.resize(orderIn + 1);
+  filterDouble.denominator.resize(orderIn + 1);
+
+  // Cancel out one DC zero in the numerator.
+  filterDouble.numerator[0] = filterDoubleIn.numerator[0];
+  for (unsigned i = 1; i < orderIn; i++)
+  {
+    filterDouble.numerator[i] = filterDouble.numerator[i-1] +
+      filterDoubleIn.numerator[i];
+  }
+
+  for (unsigned i = 0; i <= orderIn; i++)
+    filterDouble.denominator[i] = filterDoubleIn.denominator[i];
+}
+
+
 void Filter::detect(
   const double sampleRate,
   const unsigned start,
@@ -146,6 +203,31 @@ void Filter::detect(
 
   Filter::filterFloat(Butterworth5LPF_float, accelFloat);
 
+/*
+vector<float> accelCopy;
+accelCopy.resize(accelFloat.size());
+for (unsigned i = 0; i < accelFloat.size(); i++)
+  accelCopy[i] = accelFloat[i];
+
+FilterFloat Butterworth6HPF_integr;
+Filter::makeIntegratingFilter(Butterworth5HPF_float,
+  Butterworth6HPF_integr);
+  */
+
+/*
+FilterDouble Butterworth6HPF_integr;
+Filter::makeIntegratingFilterDouble(Butterworth5HPF_double,
+  Butterworth6HPF_integr);
+
+cout << "NEW FILTER\n";
+for (unsigned i = 0; i < Butterworth6HPF_integr.numerator.size(); i++)
+  cout << i << ";" << Butterworth6HPF_integr.numerator[i] << ";" <<
+  Butterworth6HPF_integr.denominator[i] << endl << endl;
+  */
+
+// Filter::filterFloat(Butterworth6HPF_integr, accelCopy);
+// Filter::highpass(Butterworth6HPF_integr, accelCopy);
+
   Filter::integrateFloat(accelFloat, static_cast<float>(sampleRate), 
     true, start, len, synthSpeed);
 
@@ -155,6 +237,15 @@ void Filter::detect(
     false, 0, len, synthPos);
 
   Filter::highpass(Butterworth5HPF_double, synthPos);
+
+/*
+cout << "COMPARISON\n";
+for (unsigned i = 0; i < synthPos.size(); i++)
+{
+  cout << i << ";" << fixed << setprecision(4) << synthPos[i] << ";" <<
+    fixed << setprecision(4) << accelCopy[i] << "\n";
+}
+*/
 
   // TODO Ideas:
   // - Get out of doubles in highpass(), use filterFloat

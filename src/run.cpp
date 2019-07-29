@@ -247,8 +247,8 @@ void run(
   peakDetect.reduce(control, imperf);
   timers[thid].stop(TIMER_DETECT_PEAKS);
 
-  vector<float> synthPeaks;
-  synthPeaks.resize(interval.len);
+  // vector<float> synthPeaks;
+  // synthPeaks.resize(interval.len);
   peakDetect.makeSynthPeaks(interval.first, interval.len);
 
 
