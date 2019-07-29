@@ -31,6 +31,9 @@ class PeakDetect
     list<CarDetect> cars;
     PeakStructure pstruct;
 
+    vector<float> synthPeaks;
+    unsigned synthFirst; // Same as offset?!
+
 
     float integrate(
       const vector<float>& samples,
@@ -94,7 +97,10 @@ class PeakDetect
       const double speedTrue,
       PeakStats& peakStats);
 
-    void makeSynthPeaks(vector<float>& synthPeaks) const;
+    // void makeSynthPeaks(vector<float>& synthPeaks) const;
+    void makeSynthPeaks(
+      const unsigned first,
+      const unsigned slen);
 
     bool getAlignment(
       vector<double>& times,
@@ -109,6 +115,8 @@ class PeakDetect
 
     // TMP
     string deleteStr(Peak const * p1, Peak const * p2) const;
+
+    void writePeak(const string& filename) const;
 
 };
 

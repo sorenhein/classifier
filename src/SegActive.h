@@ -25,11 +25,11 @@ class SegActive
     vector<float> accelFloat;
     vector<float> synthSpeed;
     vector<float> synthPos;
-    vector<float> synthPeaks;
+    // vector<float> synthPeaks;
 
     Interval writeInterval;
 
-    PeakDetect peakDetect;
+    // PeakDetect peakDetect;
 
     void doubleToFloat(
       const vector<double>& samples,
@@ -63,12 +63,13 @@ class SegActive
       const vector<double>& samples, // TODO: Should use times[]
       const double sampleRate,
       const Interval& active,
-      const Control& control,
-      const unsigned thid,
-      Imperfections& imperf);
+      // const Control& control,
+      const unsigned thid);
+      // Imperfections& imperf);
 
     const vector<float>& getDeflection() const;
 
+    /*
     void logPeakStats(
       const vector<double>& posTrue,
       const string& trainTrue,
@@ -83,6 +84,7 @@ class SegActive
     void getPeakTimes(
       vector<double>& times,
       unsigned& numFrontWheels) const; 
+      */
 
     void writeSpeed(const string& filename) const;
 

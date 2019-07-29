@@ -153,9 +153,9 @@ bool SegActive::detect(
   const vector<double>& samples,
   const double sampleRate,
   const Interval& active,
-  const Control& control,
-  const unsigned thid,
-  Imperfections& imperf)
+  // const Control& control,
+  const unsigned thid)
+  // Imperfections& imperf)
 {
   // TODO Don't use exact comparison
   if (sampleRate != 2000.)
@@ -195,21 +195,6 @@ bool SegActive::detect(
 
   timers[thid].stop(TIMER_CONDITION);
 
-  /*
-  timers[thid].start(TIMER_DETECT_PEAKS);
-  peakDetect.reset();
-  peakDetect.log(synthPos, writeInterval.first);
-  peakDetect.reduce(control, imperf);
-  timers[thid].stop(TIMER_DETECT_PEAKS);
-
-
-  synthPeaks.resize(writeInterval.len);
-  peakDetect.makeSynthPeaks(synthPeaks);
-  */
-
-#define UNUSED(x) ((void)(true ? 0 : ((x), void(), 0)));
-  UNUSED(imperf);
-  UNUSED(control);
   return true;
 }
 
@@ -220,6 +205,7 @@ const vector<float>& SegActive::getDeflection() const
 }
 
 
+/*
 void SegActive::logPeakStats(
   const vector<double>& posTrue,
   const string& trainTrue,
@@ -245,6 +231,7 @@ void SegActive::getPeakTimes(
 {
   peakDetect.getPeakTimes(times, numFrontWheels);
 }
+*/
 
 
 void SegActive::writeSpeed(const string& filename) const
@@ -259,8 +246,9 @@ void SegActive::writePos(const string& filename) const
 }
 
 
+/*
 void SegActive::writePeak(const string& filename) const
 {
   writeBinary(filename, writeInterval.first, synthPeaks);
 }
-
+*/

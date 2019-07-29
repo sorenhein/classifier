@@ -144,6 +144,7 @@ void runWrite(
   const Quiet& quietBack,
   const Quiet& quietFront,
   const SegActive& segActive,
+  const PeakDetect& peakDetect,
   const string& filename,
   const unsigned thid)
 {
@@ -156,11 +157,11 @@ void runWrite(
   if (control.writeFront())
     quietFront.writeFile(control.frontDir() + "/" + filename);
   if (control.writeSpeed())
-    segActive.writePeak(control.speedDir() + "/" + filename);
+    segActive.writeSpeed(control.speedDir() + "/" + filename);
   if (control.writePos())
-    segActive.writePeak(control.posDir() + "/" + filename);
+    segActive.writePos(control.posDir() + "/" + filename);
   if (control.writePeak())
-    segActive.writePeak(control.peakDir() + "/" + filename);
+    peakDetect.writePeak(control.peakDir() + "/" + filename);
 
   timers[thid].stop(TIMER_WRITE);
 }
@@ -219,8 +220,7 @@ void run(
   for (unsigned i = 0; i < samples.size(); i++)
     dsamples[i] = samples[i];
 
-  (void) segActive.detect(dsamples, traceData.sampleRate, interval,
-    control, thid, imperf);
+  (void) segActive.detect(dsamples, traceData.sampleRate, interval, thid);
 
   const vector<float>& synthPos = segActive.getDeflection();
 
@@ -232,7 +232,7 @@ void run(
 
   vector<float> synthPeaks;
   synthPeaks.resize(interval.len);
-  peakDetect.makeSynthPeaks(synthPeaks);
+  peakDetect.makeSynthPeaks(interval.first, interval.len);
 
 
     trainDB.getPeakPositions(traceData.trainNoTrueU, posTrue);
@@ -244,7 +244,7 @@ void run(
       traceData.speed, peakStats);
 
     runWrite(control, transient, quietBack, quietFront, segActive,
-      traceData.filename, thid);
+      peakDetect, traceData.filename, thid);
 
     bool fullTrainFlag;
     // if (segActive.getAlignment(times, actualToRef, numFrontWheels) &&

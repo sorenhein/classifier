@@ -17,6 +17,8 @@
 
 #include "stats/PeakStats.h"
 
+#include "util/io.h"
+
 
 #define KINK_RATIO 500.f
 #define KINK_RATIO_CONSIDER 20.f
@@ -612,10 +614,12 @@ void PeakDetect::logPeakStats(
 }
 
 
+/*
 void PeakDetect::makeSynthPeaks(vector<float>& synthPeaks) const
 {
   peaks.topConst().getSamples(&Peak::isSelected, synthPeaks);
 }
+*/
 
 
 void PeakDetect::pushPeak(
@@ -675,6 +679,17 @@ bool PeakDetect::getAlignment(
 }
 
 
+void PeakDetect::makeSynthPeaks(
+  const unsigned first,
+  const unsigned slen)
+{
+  synthFirst = first;
+  synthPeaks.resize(slen);
+
+  peaks.topConst().getSamples(&Peak::isSelected, synthPeaks);
+}
+
+
 void PeakDetect::getPeakTimes(
   vector<double>& times,
   unsigned& numFrontWheels) const
@@ -706,5 +721,11 @@ void PeakDetect::printPeaksCSV(const vector<double>& timesTrue) const
   cout << "\n";
 
   cout << peaks.topConst().strTimesCSV(&Peak::isSelected, "seen");
+}
+
+
+void PeakDetect::writePeak(const string& filename) const
+{
+  writeBinary(filename, synthFirst, synthPeaks);
 }
 
