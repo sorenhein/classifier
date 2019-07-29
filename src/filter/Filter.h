@@ -1,17 +1,11 @@
-#ifndef TRAIN_SEGACTIVE_H
-#define TRAIN_SEGACTIVE_H
+#ifndef TRAIN_FILTER_H
+#define TRAIN_FILTER_H
 
 #include <vector>
-// #include <string>
-
-// #include "transient/trans.h"
-
-// #include "struct.h"
+#include <string>
 
 using namespace std;
 
-// class PeakStats;
-// class Control;
 struct FilterDouble;
 struct FilterFloat;
 
@@ -60,8 +54,7 @@ class Filter
       const vector<double>& samples,
       const double sampleRate,
       const unsigned start,
-      const unsigned len,
-      const unsigned thid);
+      const unsigned len);
 
     const vector<float>& getDeflection() const;
 

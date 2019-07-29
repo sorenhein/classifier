@@ -221,8 +221,10 @@ void run(
   for (unsigned i = 0; i < samples.size(); i++)
     dsamples[i] = samples[i];
 
+  timers[thid].start(TIMER_CONDITION);
   (void) filter.detect(dsamples, traceData.sampleRate, 
-    interval.first, interval.len, thid);
+    interval.first, interval.len);
+  timers[thid].stop(TIMER_CONDITION);
 
   const vector<float>& synthPos = filter.getDeflection();
 

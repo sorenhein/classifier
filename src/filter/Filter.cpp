@@ -1,18 +1,13 @@
 #include <iostream>
-#include <iomanip>
-#include <fstream>
-#include <sstream>
-#include <math.h>
 
 #include "Filter.h"
+
 #include "../const.h"
 #include "../Except.h"
 
-// #include "database/Control.h"
+#include "../stats/Timers.h"
 
 #include "../util/io.h"
-
-#include "../stats/Timers.h"
 
 extern vector<Timers> timers;
 
@@ -153,14 +148,11 @@ bool Filter::detect(
   const vector<double>& samples,
   const double sampleRate,
   const unsigned start,
-  const unsigned len,
-  const unsigned thid)
+  const unsigned len)
 {
   // TODO Don't use exact comparison
   if (sampleRate != 2000.)
     THROW(ERR_UNKNOWN_SAMPLE_RATE, "Unknown sample rate");
-
-  timers[thid].start(TIMER_CONDITION);
 
   startInterval = start;
   lenInterval = len;
@@ -191,8 +183,6 @@ bool Filter::detect(
   //
   // Filter::filterFloat(numNoDCFloat, denomNoDCFloat, synthSpeed);
   // Filter::filterFloat(numNoDCFloat, denomNoDCFloat, synthPos);
-
-  timers[thid].stop(TIMER_CONDITION);
 
   return true;
 }
