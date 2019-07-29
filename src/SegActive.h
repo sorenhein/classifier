@@ -67,6 +67,8 @@ class SegActive
       const unsigned thid,
       Imperfections& imperf);
 
+    const vector<float>& getDeflection() const;
+
     void logPeakStats(
       const vector<double>& posTrue,
       const string& trainTrue,

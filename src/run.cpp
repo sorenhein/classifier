@@ -6,6 +6,7 @@
 #include "transient/Quiet.h"
 
 #include "SegActive.h"
+#include "PeakDetect.h"
 
 #include "database/TraceDB.h"
 #include "database/TrainDB.h"
@@ -184,6 +185,7 @@ void run(
   Quiet quietFront;
   Quiet quietBack;
   SegActive segActive;
+  PeakDetect peakDetect;
 
   vector<double> times;
   vector<int> actualToRef;
@@ -217,21 +219,37 @@ void run(
   for (unsigned i = 0; i < samples.size(); i++)
     dsamples[i] = samples[i];
 
-    // Refuse trace if sample rate is not 2000, maybe in SegActive
-
   (void) segActive.detect(dsamples, traceData.sampleRate, interval,
     control, thid, imperf);
 
+  const vector<float>& synthPos = segActive.getDeflection();
+
+  timers[thid].start(TIMER_DETECT_PEAKS);
+  peakDetect.reset();
+  peakDetect.log(synthPos, interval.first);
+  peakDetect.reduce(control, imperf);
+  timers[thid].stop(TIMER_DETECT_PEAKS);
+
+  vector<float> synthPeaks;
+  synthPeaks.resize(interval.len);
+  peakDetect.makeSynthPeaks(synthPeaks);
+
+
     trainDB.getPeakPositions(traceData.trainNoTrueU, posTrue);
 
-    segActive.logPeakStats(posTrue, traceData.trainTrue, 
+    // segActive.logPeakStats(posTrue, traceData.trainTrue, 
+      // traceData.speed, peakStats);
+
+    peakDetect.logPeakStats(posTrue, traceData.trainTrue, 
       traceData.speed, peakStats);
 
     runWrite(control, transient, quietBack, quietFront, segActive,
       traceData.filename, thid);
 
     bool fullTrainFlag;
-    if (segActive.getAlignment(times, actualToRef, numFrontWheels) &&
+    // if (segActive.getAlignment(times, actualToRef, numFrontWheels) &&
+        // ! actualToRef.empty())
+    if (peakDetect.getAlignment(times, actualToRef, numFrontWheels) &&
         ! actualToRef.empty())
     {
       cout << "FULLALIGN\n";
@@ -239,7 +257,9 @@ void run(
     }
     else
     {
-  segActive.getPeakTimes(times, numFrontWheels);
+      // segActive.getPeakTimes(times, numFrontWheels);
+
+      peakDetect.getPeakTimes(times, numFrontWheels);
 
 cout << "Got " << times.size() << " peaks, " <<
   numFrontWheels << " front wheels\n\n";

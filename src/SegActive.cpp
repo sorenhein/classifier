@@ -195,6 +195,7 @@ bool SegActive::detect(
 
   timers[thid].stop(TIMER_CONDITION);
 
+  /*
   timers[thid].start(TIMER_DETECT_PEAKS);
   peakDetect.reset();
   peakDetect.log(synthPos, writeInterval.first);
@@ -204,8 +205,18 @@ bool SegActive::detect(
 
   synthPeaks.resize(writeInterval.len);
   peakDetect.makeSynthPeaks(synthPeaks);
+  */
 
+#define UNUSED(x) ((void)(true ? 0 : ((x), void(), 0)));
+  UNUSED(imperf);
+  UNUSED(control);
   return true;
+}
+
+
+const vector<float>& SegActive::getDeflection() const
+{
+  return synthPos;
 }
 
 
