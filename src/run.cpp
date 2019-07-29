@@ -71,6 +71,13 @@ void runQuiet(
   Quiet& quietFront,
   Interval& interval);
 
+void runFilter(
+  const double sampleRate,
+  const unsigned start,
+  const unsigned len,
+  const unsigned thid,
+  Filter& filter);
+
 
 string runHeader(const TraceData& traceData)
 {
@@ -136,6 +143,21 @@ void runQuiet(
   quietFront.detect(accel, sampleRate, false, interval);
 
   timers[thid].stop(TIMER_QUIET);
+}
+
+
+void runFilter(
+  const double sampleRate,
+  const unsigned start,
+  const unsigned len,
+  const unsigned thid,
+  Filter& filter)
+{
+  timers[thid].start(TIMER_FILTER);
+
+  filter.detect(sampleRate, start, len);
+
+  timers[thid].stop(TIMER_FILTER);
 }
 
 
@@ -214,10 +236,8 @@ void run(
     runQuiet(accel, traceData.sampleRate, lastIndex, thid,
       quietBack, quietFront, interval);
 
-
-  timers[thid].start(TIMER_CONDITION);
-  (void) filter.detect(traceData.sampleRate, interval.first, interval.len);
-  timers[thid].stop(TIMER_CONDITION);
+    runFilter(traceData.sampleRate, interval.first, interval.len, thid, 
+      filter);
 
   const vector<float>& synthPos = filter.getDeflection();
 

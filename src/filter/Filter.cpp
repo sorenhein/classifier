@@ -1,15 +1,9 @@
-#include <iostream>
-
 #include "Filter.h"
 
 #include "../const.h"
 #include "../Except.h"
 
-#include "../stats/Timers.h"
-
 #include "../util/io.h"
-
-extern vector<Timers> timers;
 
 
 Filter::Filter()
@@ -135,7 +129,7 @@ void Filter::highpass(
 }
 
 
-bool Filter::detect(
+void Filter::detect(
   const double sampleRate,
   const unsigned start,
   const unsigned len)
@@ -170,8 +164,6 @@ bool Filter::detect(
   //
   // Filter::filterFloat(numNoDCFloat, denomNoDCFloat, synthSpeed);
   // Filter::filterFloat(numNoDCFloat, denomNoDCFloat, synthPos);
-
-  return true;
 }
 
 

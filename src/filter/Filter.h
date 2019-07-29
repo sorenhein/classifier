@@ -46,7 +46,7 @@ class Filter
 
     void reset();
 
-    bool detect(
+    void detect(
       const double sampleRate,
       const unsigned start,
       const unsigned len);
