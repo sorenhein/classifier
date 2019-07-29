@@ -237,9 +237,6 @@ void run(
 
     trainDB.getPeakPositions(traceData.trainNoTrueU, posTrue);
 
-    // segActive.logPeakStats(posTrue, traceData.trainTrue, 
-      // traceData.speed, peakStats);
-
     peakDetect.logPeakStats(posTrue, traceData.trainTrue, 
       traceData.speed, peakStats);
 
@@ -247,8 +244,6 @@ void run(
       peakDetect, traceData.filename, thid);
 
     bool fullTrainFlag;
-    // if (segActive.getAlignment(times, actualToRef, numFrontWheels) &&
-        // ! actualToRef.empty())
     if (peakDetect.getAlignment(times, actualToRef, numFrontWheels) &&
         ! actualToRef.empty())
     {
@@ -257,8 +252,6 @@ void run(
     }
     else
     {
-      // segActive.getPeakTimes(times, numFrontWheels);
-
       peakDetect.getPeakTimes(times, numFrontWheels);
 
 cout << "Got " << times.size() << " peaks, " <<

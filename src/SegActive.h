@@ -25,11 +25,9 @@ class SegActive
     vector<float> accelFloat;
     vector<float> synthSpeed;
     vector<float> synthPos;
-    // vector<float> synthPeaks;
 
     Interval writeInterval;
 
-    // PeakDetect peakDetect;
 
     void doubleToFloat(
       const vector<double>& samples,
@@ -60,37 +58,16 @@ class SegActive
     void reset();
 
     bool detect(
-      const vector<double>& samples, // TODO: Should use times[]
+      const vector<double>& samples,
       const double sampleRate,
       const Interval& active,
-      // const Control& control,
       const unsigned thid);
-      // Imperfections& imperf);
 
     const vector<float>& getDeflection() const;
-
-    /*
-    void logPeakStats(
-      const vector<double>& posTrue,
-      const string& trainTrue,
-      const double speedTrue,
-      PeakStats& peakStats);
-
-    bool getAlignment(
-      vector<double>& times,
-      vector<int>& actualToRef,
-      unsigned& numFrontWheels);
-
-    void getPeakTimes(
-      vector<double>& times,
-      unsigned& numFrontWheels) const; 
-      */
 
     void writeSpeed(const string& filename) const;
 
     void writePos(const string& filename) const;
-
-    void writePeak(const string& filename) const;
 };
 
 #endif

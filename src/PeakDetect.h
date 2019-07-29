@@ -97,7 +97,6 @@ class PeakDetect
       const double speedTrue,
       PeakStats& peakStats);
 
-    // void makeSynthPeaks(vector<float>& synthPeaks) const;
     void makeSynthPeaks(
       const unsigned first,
       const unsigned slen);
