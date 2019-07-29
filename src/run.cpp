@@ -5,12 +5,13 @@
 #include "transient/Transient.h"
 #include "transient/Quiet.h"
 
-#include "SegActive.h"
 #include "PeakDetect.h"
 
 #include "database/TraceDB.h"
 #include "database/TrainDB.h"
 #include "database/Control.h"
+
+#include "filter/Filter.h"
 
 #include "stats/CompStats.h"
 #include "stats/PeakStats.h"
@@ -143,7 +144,7 @@ void runWrite(
   const Transient& transient,
   const Quiet& quietBack,
   const Quiet& quietFront,
-  const SegActive& segActive,
+  const Filter& filter,
   const PeakDetect& peakDetect,
   const string& filename,
   const unsigned thid)
@@ -157,9 +158,9 @@ void runWrite(
   if (control.writeFront())
     quietFront.writeFile(control.frontDir() + "/" + filename);
   if (control.writeSpeed())
-    segActive.writeSpeed(control.speedDir() + "/" + filename);
+    filter.writeSpeed(control.speedDir() + "/" + filename);
   if (control.writePos())
-    segActive.writePos(control.posDir() + "/" + filename);
+    filter.writePos(control.posDir() + "/" + filename);
   if (control.writePeak())
     peakDetect.writePeak(control.peakDir() + "/" + filename);
 
@@ -185,7 +186,7 @@ void run(
   Transient transient;
   Quiet quietFront;
   Quiet quietBack;
-  SegActive segActive;
+  Filter filter;
   PeakDetect peakDetect;
 
   vector<double> times;
@@ -220,9 +221,10 @@ void run(
   for (unsigned i = 0; i < samples.size(); i++)
     dsamples[i] = samples[i];
 
-  (void) segActive.detect(dsamples, traceData.sampleRate, interval, thid);
+  (void) filter.detect(dsamples, traceData.sampleRate, 
+    interval.first, interval.len, thid);
 
-  const vector<float>& synthPos = segActive.getDeflection();
+  const vector<float>& synthPos = filter.getDeflection();
 
   timers[thid].start(TIMER_DETECT_PEAKS);
   peakDetect.reset();
@@ -240,7 +242,7 @@ void run(
     peakDetect.logPeakStats(posTrue, traceData.trainTrue, 
       traceData.speed, peakStats);
 
-    runWrite(control, transient, quietBack, quietFront, segActive,
+    runWrite(control, transient, quietBack, quietFront, filter,
       peakDetect, traceData.filename, thid);
 
     bool fullTrainFlag;

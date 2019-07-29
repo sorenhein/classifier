@@ -4,35 +4,35 @@
 #include <sstream>
 #include <math.h>
 
-#include "SegActive.h"
-#include "const.h"
-#include "Except.h"
+#include "Filter.h"
+#include "../const.h"
+#include "../Except.h"
 
-#include "database/Control.h"
+// #include "database/Control.h"
 
-#include "util/io.h"
+#include "../util/io.h"
 
-#include "stats/Timers.h"
+#include "../stats/Timers.h"
 
 extern vector<Timers> timers;
 
 
-SegActive::SegActive()
+Filter::Filter()
 {
 }
 
 
-SegActive::~SegActive()
+Filter::~Filter()
 {
 }
 
 
-void SegActive::reset()
+void Filter::reset()
 {
 }
 
 
-void SegActive::doubleToFloat(
+void Filter::doubleToFloat(
   const vector<double>& samples,
   vector<float>& samplesFloat)
 {
@@ -41,7 +41,7 @@ void SegActive::doubleToFloat(
 }
 
 
-void SegActive::integrateFloat(
+void Filter::integrateFloat(
   const vector<float>& integrand,
   const float sampleRate,
   const bool a2vFlag,
@@ -62,7 +62,7 @@ void SegActive::integrateFloat(
 }
 
 
-void SegActive::filterFloat(
+void Filter::filterFloat(
   const FilterFloat& filter,
   vector<float>& integrand)
 {
@@ -103,7 +103,7 @@ void SegActive::filterFloat(
 }
 
 
-void SegActive::highpass(
+void Filter::highpass(
   const FilterDouble& filter,
   vector<float>& integrand)
 {
@@ -149,10 +149,11 @@ void SegActive::highpass(
 }
 
 
-bool SegActive::detect(
+bool Filter::detect(
   const vector<double>& samples,
   const double sampleRate,
-  const Interval& active,
+  const unsigned start,
+  const unsigned len,
   const unsigned thid)
 {
   // TODO Don't use exact comparison
@@ -161,26 +162,26 @@ bool SegActive::detect(
 
   timers[thid].start(TIMER_CONDITION);
 
-  writeInterval.first = active.first;
-  writeInterval.len = active.len;
+  startInterval = start;
+  lenInterval = len;
 
   accelFloat.resize(samples.size());
-  synthSpeed.resize(writeInterval.len);
-  synthPos.resize(writeInterval.len);
+  synthSpeed.resize(lenInterval);
+  synthPos.resize(lenInterval);
 
-  SegActive::doubleToFloat(samples, accelFloat);
+  Filter::doubleToFloat(samples, accelFloat);
 
-  SegActive::filterFloat(Butterworth5LPF_float, accelFloat);
+  Filter::filterFloat(Butterworth5LPF_float, accelFloat);
 
-  SegActive::integrateFloat(accelFloat, static_cast<float>(sampleRate), 
-    true, active.first, active.len, synthSpeed);
+  Filter::integrateFloat(accelFloat, static_cast<float>(sampleRate), 
+    true, start, len, synthSpeed);
 
-  SegActive::highpass(Butterworth5HPF_double, synthSpeed);
+  Filter::highpass(Butterworth5HPF_double, synthSpeed);
 
-  SegActive::integrateFloat(synthSpeed, static_cast<float>(sampleRate), 
-    false, 0, active.len, synthPos);
+  Filter::integrateFloat(synthSpeed, static_cast<float>(sampleRate), 
+    false, 0, len, synthPos);
 
-  SegActive::highpass(Butterworth5HPF_double, synthPos);
+  Filter::highpass(Butterworth5HPF_double, synthPos);
 
   // TODO Ideas:
   // - Get out of doubles in highpass(), use filterFloat
@@ -188,8 +189,8 @@ bool SegActive::detect(
   //   Note that the filter is run twice, so it will also integrate twice.
   //   Therefore it ought to combine three function calls.
   //
-  // SegActive::filterFloat(numNoDCFloat, denomNoDCFloat, synthSpeed);
-  // SegActive::filterFloat(numNoDCFloat, denomNoDCFloat, synthPos);
+  // Filter::filterFloat(numNoDCFloat, denomNoDCFloat, synthSpeed);
+  // Filter::filterFloat(numNoDCFloat, denomNoDCFloat, synthPos);
 
   timers[thid].stop(TIMER_CONDITION);
 
@@ -197,20 +198,20 @@ bool SegActive::detect(
 }
 
 
-const vector<float>& SegActive::getDeflection() const
+const vector<float>& Filter::getDeflection() const
 {
   return synthPos;
 }
 
 
-void SegActive::writeSpeed(const string& filename) const
+void Filter::writeSpeed(const string& filename) const
 {
-  writeBinary(filename, writeInterval.first, synthSpeed);
+  writeBinary(filename, startInterval, synthSpeed);
 }
 
 
-void SegActive::writePos(const string& filename) const
+void Filter::writePos(const string& filename) const
 {
-  writeBinary(filename, writeInterval.first, synthPos);
+  writeBinary(filename, startInterval, synthPos);
 }
 

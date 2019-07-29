@@ -21,7 +21,6 @@ SOURCE_FILES    =                       \
                 PeakSpacing.cpp         \
                 PeakStructure.cpp       \
                 Regress.cpp             \
-                SegActive.cpp           \
                 geometry.cpp            \
                 run.cpp                 \
                 setup.cpp               \
@@ -42,6 +41,8 @@ SOURCE_FILES    =                       \
                 database/TraceDB.cpp    \
                 database/TrainDB.cpp    \
                 database/parse.cpp      \
+                                        \
+                filter/Filter.cpp       \
                                         \
                 stats/CompStats.cpp     \
                 stats/PeakStats.cpp     \

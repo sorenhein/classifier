@@ -2,23 +2,21 @@
 #define TRAIN_SEGACTIVE_H
 
 #include <vector>
-#include <string>
+// #include <string>
 
-#include "PeakDetect.h"
+// #include "transient/trans.h"
 
-#include "transient/trans.h"
-
-#include "struct.h"
+// #include "struct.h"
 
 using namespace std;
 
-class PeakStats;
-class Control;
+// class PeakStats;
+// class Control;
 struct FilterDouble;
 struct FilterFloat;
 
 
-class SegActive
+class Filter
 {
   private:
 
@@ -26,7 +24,8 @@ class SegActive
     vector<float> synthSpeed;
     vector<float> synthPos;
 
-    Interval writeInterval;
+    unsigned startInterval;
+    unsigned lenInterval;
 
 
     void doubleToFloat(
@@ -51,16 +50,17 @@ class SegActive
 
   public:
 
-    SegActive();
+    Filter();
 
-    ~SegActive();
+    ~Filter();
 
     void reset();
 
     bool detect(
       const vector<double>& samples,
       const double sampleRate,
-      const Interval& active,
+      const unsigned start,
+      const unsigned len,
       const unsigned thid);
 
     const vector<float>& getDeflection() const;
