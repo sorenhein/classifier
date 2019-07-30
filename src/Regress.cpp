@@ -17,12 +17,6 @@
 
 #include "regress/PolynomialRegression.h"
 
-#include "stats/Timers.h"
-
-#define GOOD_RESIDUAL_LIMIT 50.0f
-
-extern vector<Timers> timers;
-
 
 Regress::Regress()
 {
@@ -166,13 +160,10 @@ void Regress::bestMatch(
   const vector<double>& times,
   const TrainDB& trainDB,
   const Control& control,
-  const unsigned thid,
   vector<Alignment>& matches,
   Alignment& bestAlign,
   Motion& motion) const
 {
-  timers[thid].start(TIMER_REGRESS);
-
   PolynomialRegression pol;
 
   vector<double> refPeaks;
@@ -205,10 +196,7 @@ void Regress::bestMatch(
       // TODO bestAlign should be a ref/pointer, not duplicated.
       ma = bestAlign;
 
-      motion.estimate[0] = coeffs[0];
-      motion.estimate[1] = coeffs[1];
-      motion.estimate[2] = 2. * coeffs[2];
-      // As the regression estimates 0.5 * a in the physics formula.
+      motion.setEstimate(coeffs);
     }
     else
     {
@@ -220,8 +208,6 @@ void Regress::bestMatch(
 
   sort(matches.begin(), matches.end());
   bestAlign = matches.front();
-
-  timers[thid].stop(TIMER_REGRESS);
 
   cout << "Matching alignment\n";
   for (auto& match: matches)

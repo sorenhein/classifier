@@ -27,9 +27,8 @@ class PeakDetect
 
     PeakPool peaks;
 
-    CarModels models;
-    list<CarDetect> cars;
-    PeakStructure pstruct;
+    // TODO No local scale as well, just use this one
+    Peak scaleStore;
 
     vector<float> synthPeaks;
     unsigned synthFirst; // Same as offset?!
@@ -87,9 +86,7 @@ class PeakDetect
       const vector<float>& samples,
       const unsigned offsetSamples);
 
-    void reduce(
-      const Control& control,
-      Imperfections& imperf);
+    void extract(const Control& control);
 
     void logPeakStats(
       const vector<double>& posTrue,
@@ -101,10 +98,12 @@ class PeakDetect
       const unsigned first,
       const unsigned slen);
 
+    /*
     bool getAlignment(
       vector<double>& times,
       vector<int>& actualToRef,
       unsigned& numFrontWheels);
+      */
 
     void getPeakTimes(
       vector<double>& times,
@@ -116,6 +115,10 @@ class PeakDetect
     string deleteStr(Peak const * p1, Peak const * p2) const;
 
     void writePeak(const string& filename) const;
+
+    PeakPool& getPeaks();
+
+    Peak& getScale();
 
 };
 

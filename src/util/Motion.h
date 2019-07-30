@@ -20,6 +20,8 @@ struct Motion
 
   void reset();
 
+  void setEstimate(const vector<double>& coeffs);
+
   string strLine(
     const string& text,
     const double act,

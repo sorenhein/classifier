@@ -190,6 +190,47 @@ const FilterFloat Butterworth5HPF_float =
   }
 };
 
+// The same filter as a series of second-order filters.  As the order
+// is 5, one of the sections is of order 1.  All the zeroes are at DC.
+// One of them will cancel out against an integrator.
+//
+// signal.butter(5, 0.005, btype='high', output='sos')
+
+const vector<FilterFloat> Butterworth5HPF_SOS_float =
+{
+  { 
+    { 0.9749039346036602f, -0.9749039346036602f,  0.f                },
+    { 1.f                , -0.9844141274160969f,  0.f                }
+  },
+  { 
+    { 1.f                , -2.f                ,  1.f                },
+    { 1.f                , -1.9746602956354231f,  0.9749039346327976f},
+  },
+  { 
+    { 1.f                , -2.f                ,  1.f                },
+    { 1.f                , -1.9900936925050869f,  0.9903392357172509f}
+  }
+};
+
+const vector<FilterDouble> Butterworth5HPF_SOS_double =
+{
+  // #1
+  { 
+    { 0.9749039346036602 , -0.9749039346036602 ,  0.                 },
+    { 1.                 , -0.9844141274160969 ,  0.                 }
+  },
+  // #2
+  { 
+    { 1.                 , -2.                 ,  1.                 },
+    { 1.                 , -1.9746602956354231 ,  0.9749039346327976 },
+  },
+  // #3
+  { 
+    { 1.                 , -2.                 ,  1.                 },
+    { 1.                 , -1.9900936925050869 ,  0.9903392357172509 }
+  }
+};
+
 // Fifth-order low-pass Butterworth filter.  Eliminates
 // high frequencies which probably contribute to jitter and drift.
 //

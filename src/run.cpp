@@ -6,6 +6,8 @@
 #include "transient/Quiet.h"
 
 #include "PeakDetect.h"
+#include "PeakSeeds.h"
+#include "PeakMinima.h"
 
 #include "database/TraceDB.h"
 #include "database/TrainDB.h"
@@ -77,6 +79,30 @@ void runFilter(
   const unsigned len,
   const unsigned thid,
   Filter& filter);
+
+void runPeakDetect(
+  const Control& control,
+  const vector<float>& deflection,
+  const unsigned offset,
+  const unsigned thid,
+  PeakDetect& peakDetect);
+
+void runPeakLabel(
+  PeakPool& peaks, 
+  const float scale,
+  const unsigned offset,
+  const unsigned thid,
+  PeakMinima& peakMinima);
+
+void runWrite(
+  const Control& control,
+  const Transient& transient,
+  const Quiet& quietBack,
+  const Quiet& quietFront,
+  const Filter& filter,
+  const PeakDetect& peakDetect,
+  const string& filename,
+  const unsigned thid);
 
 
 string runHeader(const TraceData& traceData)
@@ -155,9 +181,42 @@ void runFilter(
 {
   timers[thid].start(TIMER_FILTER);
 
-  filter.detect(sampleRate, start, len);
+  filter.process(sampleRate, start, len);
 
   timers[thid].stop(TIMER_FILTER);
+}
+
+
+void runPeakDetect(
+  const Control& control,
+  const vector<float>& deflection,
+  const unsigned offset,
+  const unsigned thid,
+  PeakDetect& peakDetect)
+{
+  timers[thid].start(TIMER_EXTRACT_PEAKS);
+
+  peakDetect.reset();
+  peakDetect.log(deflection, offset);
+
+  peakDetect.extract(control);
+
+  timers[thid].stop(TIMER_EXTRACT_PEAKS);
+}
+
+
+void runPeakLabel(
+  PeakPool& peaks, 
+  const float scale,
+  const unsigned offset,
+  const unsigned thid,
+  PeakMinima& peakMinima)
+{
+  timers[thid].start(TIMER_LABEL_PEAKS);
+
+  peakMinima.mark(peaks, scale, offset);
+
+  timers[thid].stop(TIMER_LABEL_PEAKS);
 }
 
 
@@ -196,7 +255,73 @@ void run(
   const TraceData& traceData,
   const unsigned thid)
 {
-  Imperfections imperf;
+  try
+  {
+    // TODO If something?
+    cout << runHeader(traceData);
+
+    if (traceData.trainNoTrue == -1)
+      THROW(ERR_TRUE_TRAIN_UNKNOWN, "True train not known");
+
+    // Write directly into filter storage.
+    Filter filter;
+    vector<float>& accel = filter.getAccel();
+
+    // Read the trace.
+    runRead(traceData.filenameFull, thid, accel);
+
+    // Detect any leading transient.
+    Transient transient;
+    unsigned lastIndex;
+    runTransient(control, accel, traceData.sampleRate, thid, 
+      transient, lastIndex);
+
+    // Detect any leading or trailing quiet periods.
+    Quiet quietBack;
+    Quiet quietFront;
+    Interval interval;
+    runQuiet(accel, traceData.sampleRate, lastIndex, thid,
+      quietBack, quietFront, interval);
+
+    // Integrate and condition the signal.
+    runFilter(traceData.sampleRate, interval.first, interval.len, thid, 
+      filter);
+
+    // Extract immediate peaks from the signal.
+    PeakDetect peakDetect;
+    runPeakDetect(control, filter.getDeflection(), interval.first, thid,
+      peakDetect);
+
+    // Label some negative mimina as wheels, bogies etc.
+    PeakPool& peaks = peakDetect.getPeaks();
+    PeakMinima peakMinima;
+    runPeakLabel(peaks, peakDetect.getScale().getRange(), 
+      interval.first, thid, peakMinima);
+
+
+
+  const unsigned offset = interval.first;
+    timers[thid].start(TIMER_EXTRACT_CARS);
+
+
+  PeakStructure pstruct;
+
+  // Use the labels to extract the car structure from the peaks.
+  pstruct.markCars(peaks, offset);
+
+    Imperfections imperf;
+
+  if (! pstruct.markImperfections(imperf))
+    cout << "WARNING: Failed to mark imperfections\n";
+
+cout << "PEAKPOOL\n";
+cout << peaks.strCounts();
+
+
+    timers[thid].stop(TIMER_EXTRACT_CARS);
+
+
+
   Align align;
   Regress regress;
 
@@ -205,50 +330,17 @@ void run(
   
   Motion motion;
 
-  Transient transient;
-  Quiet quietFront;
-  Quiet quietBack;
-  Filter filter;
-  PeakDetect peakDetect;
 
   vector<double> times;
   vector<int> actualToRef;
   unsigned numFrontWheels;
 
-  // TODO If something?
-  cout << runHeader(traceData);
 
   vector<double> posTrue;
+
       
-  try
-  {
-    if (traceData.trainNoTrue == -1)
-      THROW(ERR_TRUE_TRAIN_UNKNOWN, "True train not known");
 
-    vector<float>& accel = filter.getAccel();
-    runRead(traceData.filenameFull, thid, accel);
 
-    unsigned lastIndex;
-    runTransient(control, accel, traceData.sampleRate, thid, 
-      transient, lastIndex);
-
-    Interval interval;
-    runQuiet(accel, traceData.sampleRate, lastIndex, thid,
-      quietBack, quietFront, interval);
-
-    runFilter(traceData.sampleRate, interval.first, interval.len, thid, 
-      filter);
-
-  const vector<float>& synthPos = filter.getDeflection();
-
-  timers[thid].start(TIMER_DETECT_PEAKS);
-  peakDetect.reset();
-  peakDetect.log(synthPos, interval.first);
-  peakDetect.reduce(control, imperf);
-  timers[thid].stop(TIMER_DETECT_PEAKS);
-
-  // vector<float> synthPeaks;
-  // synthPeaks.resize(interval.len);
   peakDetect.makeSynthPeaks(interval.first, interval.len);
 
 
@@ -261,7 +353,7 @@ void run(
       peakDetect, traceData.filename, thid);
 
     bool fullTrainFlag;
-    if (peakDetect.getAlignment(times, actualToRef, numFrontWheels) &&
+    if (pstruct.getAlignment(times, actualToRef, numFrontWheels) &&
         ! actualToRef.empty())
     {
       cout << "FULLALIGN\n";
@@ -269,7 +361,9 @@ void run(
     }
     else
     {
-      peakDetect.getPeakTimes(times, numFrontWheels);
+
+  peaks.topConst().getTimes(&Peak::isSelected, times);
+  numFrontWheels = pstruct.getNumFrontWheels();
 
 cout << "Got " << times.size() << " peaks, " <<
   numFrontWheels << " front wheels\n\n";
@@ -289,8 +383,12 @@ cout << "Got " << times.size() << " peaks, " <<
     if (matchesAlign.size() == 0)
       THROW(ERR_NO_ALIGN_MATCHES, "No alignment matches");
 
-    regress.bestMatch(times, trainDB, control, thid, matchesAlign,
+    timers[thid].start(TIMER_REGRESS);
+
+    regress.bestMatch(times, trainDB, control, matchesAlign,
       bestAlign, motion);
+
+    timers[thid].stop(TIMER_REGRESS);
 
     if (! control.pickAny().empty())
     {

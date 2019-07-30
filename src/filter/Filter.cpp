@@ -46,7 +46,7 @@ void Filter::integrateFloat(
 
 void Filter::filterFloat(
   const FilterFloat& filter,
-  vector<float>& integrand)
+  vector<float>& integrand) const
 {
   const unsigned ls = integrand.size();
   vector<float> forward(ls);
@@ -65,10 +65,6 @@ void Filter::filterFloat(
       state[j] = filter.numerator[j+1] * integrand[i] - 
         filter.denominator[j+1] * forward[i] + state[j+1];
     }
-// if (i < 10)
-  // cout << "FORWARD " << i << ": " << forward[i] << "\n";
-// if (i + 10 >= ls)
-  // cout << "FORWARD LAST " << i << ": " << forward[i] << "\n";
   }
 
   for (unsigned i = 0; i < order+1; i++)
@@ -79,15 +75,6 @@ void Filter::filterFloat(
     const unsigned irev = ls-1-i;
 
     integrand[irev] = filter.numerator[0] * forward[irev] + state[0];
-/*
-if (i < 10)
-{
-  cout << "REVERSE " << i << ", irev " << irev << ": " << integrand[irev] << "\n";
-  cout << "num0 " << filter.numerator[0] << ", fwd " <<
-    forward[irev] << ", state " << state[0] << endl;
-}
-*/
-
 
     for (unsigned j = 0; j < order; j++)
     {
@@ -186,12 +173,107 @@ void Filter::makeIntegratingFilterDouble(
 }
 
 
-void Filter::detect(
+void Filter::runIntegratingFilterFloat(
+  const vector<FilterFloat>& filterFloatIn,
+  const double sampleRate,
+  vector<float>& pos) const
+{
+  /* 
+     Conceptually speaking, we conduct the following steps:
+
+     1. Integrate from acceleration to speed.
+        As the acceleration is in units of g, we multiply by
+          100.f * G_FORCE / sampleRate
+        in order to get a speed unit of 0.01 m/s.
+     2. High-pass filter the speed in order to reduce or remove
+        the numerical drift in the integration.
+     3. Integrate from speed to position.
+        We multiply by
+          100.f / sampleRate
+        in order to get a position unit of 0.1 mm.
+     4. High-pass filter the position in order to reduce or remove
+        the numerical drift in the integration.
+
+     The high-pass filter has a number of zeroes at DC.
+     Therefore we can accomplish an integration by cancelling out
+     one of those zeroes.
+
+     The high-pass filter is run once from left to right and once from
+     right to left in order to have zero phase overall.  Therefore
+     if we cancel out one zero at DC, we get two integrations.
+
+     In summary we can conduct all four steps by cancelling out
+     a single zero at DC, and scaling the signal by the product of
+     the two constants.  I'm not quite sure about the negative sign
+     to be honest, but it makes the deflections towards the ground
+     have negative signs.
+
+     The filter is implemented for numerical stability as the product
+     of several second-order sections ("SOS" in Python-speak).
+   */
+
+  const float sampleRateF = static_cast<float>(sampleRate);
+  const float factor = - (100.f * G_FORCE / sampleRateF) *
+    (100.f / sampleRateF);
+
+  pos.resize(lenInterval);
+  for (unsigned i = 0; i < lenInterval; i++)
+    pos[i] = factor * accelFloat[startInterval + i];
+
+  // Filter by each of the second-order stages in succession.
+  for (auto& f: filterFloatIn)
+    Filter::filterFloat(f, pos);
+}
+
+
+void Filter::runIntegratingFilterDouble(
+  const vector<FilterDouble>& filterDoubleIn,
+  const double sampleRate,
+  vector<float>& pos)
+{
+  const float sampleRateF = static_cast<float>(sampleRate);
+  const float factor = - (100.f * G_FORCE / sampleRateF) *
+    (100.f / sampleRateF);
+
+  pos.resize(lenInterval);
+  for (unsigned i = 0; i < lenInterval; i++)
+    pos[i] = factor * accelFloat[startInterval + i];
+
+  // Filter by each of the second-order stages in succession.
+  for (auto& f: filterDoubleIn)
+    Filter::highpass(f, pos);
+}
+
+
+void Filter::runIntegrationSeparately(
+  const FilterDouble& filterDouble,
+  const double sampleRate,
+  vector<float>& pos)
+{
+  Filter::integrateFloat(accelFloat, static_cast<float>(sampleRate), 
+    true, startInterval, lenInterval, synthSpeed);
+
+  Filter::highpass(filterDouble, synthSpeed);
+
+  Filter::integrateFloat(synthSpeed, static_cast<float>(sampleRate), 
+    false, 0, lenInterval, pos);
+
+  Filter::highpass(filterDouble, pos);
+}
+
+
+void Filter::process(
   const double sampleRate,
   const unsigned start,
   const unsigned len)
 {
-  // TODO Don't use exact comparison
+  // TODO 
+  // * Don't use exact comparison with 2000.
+  // * Keep the original signal as well?
+  // * Flag in Control if attempting to write speed (now gone).
+  // * Flag same in member function below.
+  // * No double, Double, DOUBLE anywhere in the program.
+
   if (sampleRate != 2000.)
     THROW(ERR_UNKNOWN_SAMPLE_RATE, "Unknown sample rate");
 
@@ -201,60 +283,66 @@ void Filter::detect(
   synthSpeed.resize(lenInterval);
   synthPos.resize(lenInterval);
 
+  // First we low-pass filter the acceleration in order to remove
+  // some of the jitter.
   Filter::filterFloat(Butterworth5LPF_float, accelFloat);
 
-/*
-vector<float> accelCopy;
-accelCopy.resize(accelFloat.size());
-for (unsigned i = 0; i < accelFloat.size(); i++)
-  accelCopy[i] = accelFloat[i];
+  // Cancel out one zero at DC in the first section (for example).
+  vector<FilterFloat> Butterworth5HPF_SOS_integr = 
+    Butterworth5HPF_SOS_float;
+  Filter::makeIntegratingFilter(Butterworth5HPF_SOS_float[0],
+    Butterworth5HPF_SOS_integr[0]);
 
-FilterFloat Butterworth6HPF_integr;
-Filter::makeIntegratingFilter(Butterworth5HPF_float,
-  Butterworth6HPF_integr);
-  */
+  // Cancel out one zero at DC in the first section (for example).
+  // vector<FilterDouble> Butterworth5HPF_SOS_integr_double = 
+    // Butterworth5HPF_SOS_double;
 
-/*
-FilterDouble Butterworth6HPF_integr;
-Filter::makeIntegratingFilterDouble(Butterworth5HPF_double,
-  Butterworth6HPF_integr);
+  /*
+  vector<FilterDouble> Butterworth5HPF_SOS_integr_double;
+  Butterworth5HPF_SOS_integr_double.resize(3);
+  Butterworth5HPF_SOS_integr_double[0] = Butterworth5HPF_SOS_double[1];
+  Butterworth5HPF_SOS_integr_double[1] = Butterworth5HPF_SOS_double[0];
+  Butterworth5HPF_SOS_integr_double[2] = Butterworth5HPF_SOS_double[2];
 
-cout << "NEW FILTER\n";
-for (unsigned i = 0; i < Butterworth6HPF_integr.numerator.size(); i++)
-  cout << i << ";" << Butterworth6HPF_integr.numerator[i] << ";" <<
-  Butterworth6HPF_integr.denominator[i] << endl << endl;
-  */
+  Filter::makeIntegratingFilterDouble(Butterworth5HPF_SOS_double[0],
+    Butterworth5HPF_SOS_integr_double[0]);
+    */
 
-// Filter::filterFloat(Butterworth6HPF_integr, accelCopy);
-// Filter::highpass(Butterworth6HPF_integr, accelCopy);
+  // vector<float> synthPosNew;
+  // Filter::runIntegratingFilterDouble(Butterworth5HPF_SOS_integr_double,
+    // sampleRate, synthPos);
 
-  Filter::integrateFloat(accelFloat, static_cast<float>(sampleRate), 
-    true, start, len, synthSpeed);
+  // vector<float> synthPosNew;
+  // Filter::runIntegratingFilterFloat(Butterworth5HPF_SOS_integr, sampleRate,
+    // synthPos);
 
-  Filter::highpass(Butterworth5HPF_double, synthSpeed);
-
-  Filter::integrateFloat(synthSpeed, static_cast<float>(sampleRate), 
-    false, 0, len, synthPos);
-
-  Filter::highpass(Butterworth5HPF_double, synthPos);
+  Filter::runIntegrationSeparately(Butterworth5HPF_double, sampleRate,
+    synthPos);
 
 /*
 cout << "COMPARISON\n";
 for (unsigned i = 0; i < synthPos.size(); i++)
 {
   cout << i << ";" << fixed << setprecision(4) << synthPos[i] << ";" <<
-    fixed << setprecision(4) << accelCopy[i] << "\n";
+    fixed << setprecision(4) << synthPosNew[i] << "\n";
 }
 */
 
-  // TODO Ideas:
-  // - Get out of doubles in highpass(), use filterFloat
-  // - Combine integration with a highpass filter.
-  //   Note that the filter is run twice, so it will also integrate twice.
-  //   Therefore it ought to combine three function calls.
-  //
-  // Filter::filterFloat(numNoDCFloat, denomNoDCFloat, synthSpeed);
-  // Filter::filterFloat(numNoDCFloat, denomNoDCFloat, synthPos);
+/*
+   Effects of new, simpler float filter:
+   - 24 fewer correct traces.
+     
+   - 20 more exceptions.
+     sensor08: 0 -> 4 (all correct traces)
+     sensor10: 2 -> 5 (all correct traces)
+     sensor13: 0 -> 8 (all correct, plus two new errors)
+     sensor19: 8 -> 17 (mostly errors anyway)
+     sensor22: 8 -> 16 (mostly correct traces)
+     sensor24: 28 -> 32 (lose 7 correct traces)
+     sensor25: 24 -> 18 (so "better", but still wrong)
+     sensor31: 16 -> 8 (all correct, so good)
+     sensor32: 31 -> 28 (all correct, so good)
+*/
 }
 
 

@@ -506,6 +506,12 @@ cout << "Adding to peaks\n";
     else
     {
 cout << "Not adding to peaks\n";
+if (pl >= PEAKSEEDS_ADD * peakCount)
+{
+cout << "Level " << peakAvg.getValue() << " vs. " <<
+  PEAKSEEDS_VALUE * peakCenters.front().getValue()<< "\n";
+cout << "Count " << pl << " vs. " << PEAKSEEDS_ADD * peakCount << endl;
+}
       numIter = iter;
       break;
     }

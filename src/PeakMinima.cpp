@@ -794,9 +794,15 @@ void PeakMinima::makePieceList(
 
 void PeakMinima::mark(
   PeakPool& peaks,
-  const vector<Peak>& peakCenters,
+  const float scale,
   const unsigned offsetIn)
 {
+  vector<Peak> peakCenters;
+  seeds.mark(peaks, peakCenters, offsetIn, scale);
+  cout << seeds.str(offsetIn, "after pruning");
+
+  peaks.makeCandidates();
+
   offset = offsetIn;
 
   PeakMinima::markSinglePeaks(peaks, peakCenters);

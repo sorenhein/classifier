@@ -7,6 +7,7 @@
 
 #include "PeakPool.h"
 #include "PeakPieces.h"
+#include "PeakSeeds.h"
 
 #include "struct.h"
 
@@ -22,6 +23,8 @@ class PeakMinima
   private:
 
     typedef void (PeakMinima::*MinFncPtr)(Peak& p1, Peak& p2) const;
+
+    PeakSeeds seeds;
 
     PeakPieces peakPieces;
 
@@ -146,7 +149,7 @@ class PeakMinima
 
     void mark(
       PeakPool& peaks,
-      const vector<Peak>& peakCenters,
+      const float scale,
       const unsigned offsetIn);
 
 };

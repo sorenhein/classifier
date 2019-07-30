@@ -32,7 +32,7 @@ class Filter
 
     void filterFloat(
       const FilterFloat& filter,
-      vector<float>& integrand);
+      vector<float>& integrand) const;
 
     void highpass(
       const FilterDouble& filter,
@@ -46,6 +46,22 @@ class Filter
       const FilterDouble& filterDoubleIn,
       FilterDouble& filterDouble) const;
 
+    void runIntegratingFilterFloat(
+      const vector<FilterFloat>& filterFloatIn,
+      const double sampleRate,
+      vector<float>& pos) const;
+
+    void runIntegratingFilterDouble(
+      const vector<FilterDouble>& filterDoubleIn,
+      const double sampleRate,
+      vector<float>& pos);
+
+    void runIntegrationSeparately(
+      const FilterDouble& filterDouble,
+      const double sampleRate,
+      vector<float>& pos);
+
+
   public:
 
     Filter();
@@ -54,7 +70,7 @@ class Filter
 
     void reset();
 
-    void detect(
+    void process(
       const double sampleRate,
       const unsigned start,
       const unsigned len);

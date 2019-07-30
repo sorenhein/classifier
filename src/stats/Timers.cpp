@@ -28,7 +28,9 @@ void Timers::reset()
   names[TIMER_TRANSIENT] = "Transient";
   names[TIMER_QUIET] = "Quiet";
   names[TIMER_FILTER] = "Filter";
-  names[TIMER_DETECT_PEAKS] = "Detect peaks";
+  names[TIMER_EXTRACT_PEAKS] = "Extract peaks";
+  names[TIMER_LABEL_PEAKS] = "Label peaks";
+  names[TIMER_EXTRACT_CARS] = "Extract cars";
   names[TIMER_ALIGN] = "Alignment";
   names[TIMER_REGRESS] = "Regression";
   names[TIMER_WRITE] = "Write";

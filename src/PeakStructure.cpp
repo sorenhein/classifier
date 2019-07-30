@@ -78,11 +78,12 @@ PeakStructure::~PeakStructure()
 
 void PeakStructure::reset()
 {
+  models.reset();
+  cars.clear();
 }
 
 
 bool PeakStructure::findNumberedWheeler(
-  const CarModels& models,
   const PeakRange& range,
   PeakPtrs& peakPtrs,
   const unsigned numWheels,
@@ -110,9 +111,7 @@ bool PeakStructure::findNumberedWheeler(
 }
 
 
-void PeakStructure::updateCarDistances(
-  const CarModels& models,
-  list<CarDetect>& cars) const
+void PeakStructure::updateCarDistances()
 {
   // TODO Move to car.updateDistance.  Warning shouldn't happen?
   MatchData match;
@@ -129,9 +128,7 @@ void PeakStructure::updateCarDistances(
 }
 
 
-void PeakStructure::updateModels(
-  CarModels& models,
-  CarDetect& car) const
+void PeakStructure::updateModels(CarDetect& car)
 {
   MatchData match;
 
@@ -182,12 +179,10 @@ bool PeakStructure::fillPartialSides(
 
 
 FindCarType PeakStructure::findCarByOrder(
-  const CarModels& models,
   PeakPool& peaks,
   PeakRange& range,
   CarDetect& car) const
 {
-  UNUSED(models);
   UNUSED(peaks);
 
   if (range.looksEmpty())
@@ -225,12 +220,11 @@ FindCarType PeakStructure::findCarByOrder(
 
 
 FindCarType PeakStructure::findCarByPeaks(
-  const CarModels& models,
   const PeakRange& range,
   PeakPtrs& peakPtrs,
   CarDetect& car) const
 {
-  if (PeakStructure::findNumberedWheeler(models, range, peakPtrs, 4, car))
+  if (PeakStructure::findNumberedWheeler(range, peakPtrs, 4, car))
   {
     // We deal with the edges later.
     PeakRange rangeLocal;
@@ -247,7 +241,6 @@ FindCarType PeakStructure::findCarByPeaks(
 
 
 FindCarType PeakStructure::findCarByQuality(
-  const CarModels& models,
   PeakPool& peaks,
   PeakRange& range,
   CarDetect& car) const
@@ -259,7 +252,7 @@ FindCarType PeakStructure::findCarByQuality(
   PeakPtrs peakPtrsUsed, peakPtrsUnused;
   range.split(&Peak::greatQuality, peakPtrsUsed, peakPtrsUnused);
 
-  if (PeakStructure::findCarByPeaks(models, range, peakPtrsUsed, car) ==
+  if (PeakStructure::findCarByPeaks(range, peakPtrsUsed, car) ==
       FIND_CAR_MATCH)
     return FIND_CAR_MATCH;
 
@@ -268,12 +261,10 @@ FindCarType PeakStructure::findCarByQuality(
 
 
 FindCarType PeakStructure::findEmptyRange(
-  const CarModels& models,
   PeakPool& peaks,
   PeakRange& range,
   CarDetect& car) const
 {
-  UNUSED(models);
   UNUSED(peaks);
   UNUSED(car);
 
@@ -292,7 +283,6 @@ cout << range.strProfile();
 
 
 FindCarType PeakStructure::findCarByPattern(
-  const CarModels& models,
   PeakPool& peaks,
   PeakRange& range,
   CarDetect& car) const
@@ -340,7 +330,6 @@ FindCarType PeakStructure::findCarByPattern(
 
 
 FindCarType PeakStructure::findCarBySpacing(
-  const CarModels& models,
   PeakPool& peaks,
   PeakRange& range,
   CarDetect& car) const
@@ -378,9 +367,7 @@ FindCarType PeakStructure::findCarBySpacing(
 
 CarListIter PeakStructure::updateRecords(
   const PeakRange& range,
-  const CarDetect& car,
-  CarModels& models,
-  list<CarDetect>& cars)
+  const CarDetect& car)
 {
   // TODO There is too much updating going on here.
 
@@ -391,7 +378,7 @@ CarListIter PeakStructure::updateRecords(
     auto prevcit = prev(newcit);
     PeakStructure::fillPartialSides(* prevcit, * newcit);
     if (prevcit->hasRightGap())
-      PeakStructure::updateModels(models, * prevcit);
+      PeakStructure::updateModels(* prevcit);
   }
 
   auto nextCarIt = next(newcit);
@@ -400,14 +387,14 @@ CarListIter PeakStructure::updateRecords(
     const bool hasLeft = nextCarIt->hasLeftGap();
     PeakStructure::fillPartialSides(* newcit, * nextCarIt);
     if (nextCarIt->hasLeftGap() != hasLeft)
-      PeakStructure::updateModels(models, * nextCarIt);
+      PeakStructure::updateModels(* nextCarIt);
   }
 
-  PeakStructure::updateModels(models, * newcit);
+  PeakStructure::updateModels(* newcit);
 
   models.recalculate(cars);
 
-  PeakStructure::updateCarDistances(models, cars);
+  PeakStructure::updateCarDistances();
 
   return newcit;
 }
@@ -457,8 +444,6 @@ list<PeakRange>::iterator PeakStructure::updateRanges(
 
 
 bool PeakStructure::loopOverMethods(
-  CarModels& models,
-  list<CarDetect>& cars,
   PeakPool& peaks,
   const list<FncGroup>& findCarMethods,
   const bool onceFlag)
@@ -483,7 +468,7 @@ bool PeakStructure::loopOverMethods(
     for (auto& fgroup: findCarMethods)
     {
       cout << "Try " << fgroup.name << endl;
-      findFlag = (this->* fgroup.fptr)(models, peaks, range, car);
+      findFlag = (this->* fgroup.fptr)(peaks, range, car);
       if (findFlag != FIND_CAR_NO_MATCH)
       {
         cout << "Hit " << fgroup.name << endl;
@@ -511,13 +496,13 @@ bool PeakStructure::loopOverMethods(
     CarListIter newcit;
     if (findFlag == FIND_CAR_MATCH ||
         findFlag == FIND_CAR_PARTIAL)
-      newcit = PeakStructure::updateRecords(range, car, models, cars);
+      newcit = PeakStructure::updateRecords(range, car);
 
     rit = PeakStructure::updateRanges(newcit, rit, findFlag);
 
     PeakStructure::printWheelCount(peaks, "Counting");
-    PeakStructure::printCars(cars, "after range");
-    PeakStructure::printCarStats(models, "after range");
+    PeakStructure::printCars("after range");
+    PeakStructure::printCarStats("after range");
 
     if (ranges.empty())
       break;
@@ -533,7 +518,6 @@ bool PeakStructure::loopOverMethods(
 
 
 void PeakStructure::fixSpuriousInterPeaks(
-  const list<CarDetect>& cars,
   PeakPool& peaks) const
 {
   // It can happen that there are spurious peaks between the starting
@@ -575,8 +559,6 @@ void PeakStructure::fixSpuriousInterPeaks(
 
 
 void PeakStructure::markCars(
-  CarModels& models,
-  list<CarDetect>& cars,
   PeakPool& peaks,
   const unsigned offsetIn)
 {
@@ -590,14 +572,14 @@ void PeakStructure::markCars(
     hits[i] = 0;
 
   // The first group only needs to be run once.
-  PeakStructure::loopOverMethods(models, cars, peaks, findMethods[0], false);
+  PeakStructure::loopOverMethods(peaks, findMethods[0], false);
 
   while (true)
   {
     bool foundFlag = false;
     for (unsigned mg = 1; mg < NUM_METHOD_GROUPS; mg++)
     {
-      bool loopFlag = PeakStructure::loopOverMethods(models, cars, peaks, 
+      bool loopFlag = PeakStructure::loopOverMethods(peaks, 
           findMethods[mg], mg == 3); // As little geometry as possible
       if (loopFlag)
         foundFlag = true;
@@ -615,7 +597,7 @@ void PeakStructure::markCars(
   }
 
 
-  PeakStructure::fixSpuriousInterPeaks(cars, peaks);
+  PeakStructure::fixSpuriousInterPeaks(peaks);
 
   if (! ranges.empty())
   {
@@ -673,7 +655,6 @@ bool PeakStructure::hasGaps() const
 
 
 bool PeakStructure::markImperfections(
-  const list<CarDetect>& cars,
   Imperfections& imperf) const
 {
   // Based on the cars we recognized, make an educated guess of the
@@ -704,9 +685,7 @@ void PeakStructure::printWheelCount(
 }
 
 
-void PeakStructure::printCars(
-  const list<CarDetect>& cars,
-  const string& text) const
+void PeakStructure::printCars(const string& text) const
 {
   if (cars.empty())
     return;
@@ -729,10 +708,81 @@ void PeakStructure::printCars(
 
 
 void PeakStructure::printCarStats(
-  const CarModels& models,
   const string& text) const
 {
   cout << "Car stats " << text << "\n";
   cout << models.str();
+}
+
+
+
+/////////////////// stuff to clean up /////////////////////////////////////
+
+
+#define SAMPLE_RATE 2000.f
+
+void PeakStructure::pushPeak(
+  Peak const * pptr,
+  const float tOffset,
+  int& pnoNext,
+  vector<double>& times,
+  vector<int>& actualToRef) const
+{
+  // TODO times and actualRef should be a struct with this method
+  if (pptr)
+  {
+    // times.emplace_back(PeakTime());
+    // PeakTime& p = times.back();
+    // p.time = pptr->getIndex() / SAMPLE_RATE - tOffset;
+    times.push_back(pptr->getIndex() / SAMPLE_RATE - tOffset);
+
+    actualToRef.push_back(pnoNext);
+  }
+  pnoNext++;
+}
+
+
+bool PeakStructure::getAlignment(
+  vector<double>& times,
+  vector<int>& actualToRef,
+  unsigned& numFrontWheels)
+{
+  if (PeakStructure::hasGaps())
+    return false;
+
+  if (cars.empty())
+    return false;
+
+  times.clear();
+  actualToRef.clear();
+
+  const float t0 = cars.front().firstPeak() / SAMPLE_RATE;
+  int pnoNext = 0;
+
+  for (auto& car: cars)
+  {
+    const CarPeaksPtr cptr = car.getPeaksPtr();
+    PeakStructure::pushPeak(cptr.firstBogieLeftPtr, t0, pnoNext,
+      times, actualToRef);
+    PeakStructure::pushPeak(cptr.firstBogieRightPtr, t0, pnoNext,
+      times, actualToRef);
+    PeakStructure::pushPeak(cptr.secondBogieLeftPtr, t0, pnoNext,
+      times, actualToRef);
+    PeakStructure::pushPeak(cptr.secondBogieRightPtr, t0, pnoNext,
+      times, actualToRef);
+  }
+
+  numFrontWheels = cars.front().numFrontWheels();
+
+  return true;
+}
+
+
+unsigned PeakStructure::getNumFrontWheels() const 
+{
+  if (cars.empty())
+    return 0;
+  else
+    return cars.front().numFrontWheels();
 }
 

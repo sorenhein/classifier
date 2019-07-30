@@ -1,3 +1,18 @@
+Filter
+------
+* The new integrating filter works about as well in float and double.
+* But it doesn't work quite as well as the old way, 1392 vs 1417.
+* When it gets thrown off, it's probably often in PeakSeeds/gaps.
+
+Errors:
+* The SOS order (1-0-2) causes infinite loop for s19 144716
+* Fixing a section other than 0 causes segfaults
+
+
+
+Rename PeakMinima to PeakLabel
+
+
 continue with run.cpp
 ---------------------
 Split SegActive into filter and detect

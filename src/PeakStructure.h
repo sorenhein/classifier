@@ -5,6 +5,7 @@
 #include <string>
 
 #include "CarDetect.h"
+#include "CarModels.h"
 #include "PeakPool.h"
 #include "PeakRange.h"
 
@@ -12,7 +13,6 @@
 
 using namespace std;
 
-class CarModels;
 class PeakProfile;
 class Peak;
 
@@ -23,7 +23,6 @@ class PeakStructure
 
     // Only a few methods actually change peaks.
     typedef FindCarType (PeakStructure::*FindCarPtr)(
-      const CarModels& models,
       PeakPool& peaks,
       PeakRange& range,
       CarDetect& car) const;
@@ -36,6 +35,11 @@ class PeakStructure
     };
 
 
+    CarModels models;
+
+    list<CarDetect> cars;
+
+
     vector<list<FncGroup>> findMethods;
 
     list<PeakRange> ranges;
@@ -46,19 +50,14 @@ class PeakStructure
 
 
     bool findNumberedWheeler(
-      const CarModels& models,
       const PeakRange& range,
       PeakPtrs& peakPtrs,
       const unsigned numWheels,
       CarDetect& car) const;
 
-    void updateCarDistances(
-      const CarModels& models,
-      list<CarDetect>& cars) const;
+    void updateCarDistances();
 
-    void updateModels(
-      CarModels& models,
-      CarDetect& car) const;
+    void updateModels(CarDetect& car);
 
     bool fillPartialSides(
       CarDetect& car1,
@@ -66,37 +65,31 @@ class PeakStructure
 
 
     FindCarType findCarByOrder(
-      const CarModels& models,
       PeakPool& peaks,
       PeakRange& range,
       CarDetect& car) const;
 
     FindCarType findCarByPeaks(
-      const CarModels& models,
       const PeakRange& range,
       PeakPtrs& peakPtrs,
       CarDetect& car) const;
 
     FindCarType findCarByQuality(
-      const CarModels& models,
       PeakPool& peaks,
       PeakRange& range,
       CarDetect& car) const;
 
     FindCarType findEmptyRange(
-      const CarModels& models,
       PeakPool& peaks,
       PeakRange& range,
       CarDetect& car) const;
 
     FindCarType findCarByPattern(
-      const CarModels& models,
       PeakPool& peaks,
       PeakRange& range,
       CarDetect& car) const;
 
     FindCarType findCarBySpacing(
-      const CarModels& models,
       PeakPool& peaks,
       PeakRange& range,
       CarDetect& car) const;
@@ -104,9 +97,7 @@ class PeakStructure
 
     CarListIter updateRecords(
       const PeakRange& range,
-      const CarDetect& car,
-      CarModels& models,
-      list<CarDetect>& cars);
+      const CarDetect& car);
 
     list<PeakRange>::iterator updateRanges(
       const CarListIter& carIt,
@@ -114,28 +105,20 @@ class PeakStructure
       const FindCarType& findFlag);
 
     bool loopOverMethods(
-      CarModels& models,
-      list<CarDetect>& cars,
       PeakPool& peaks,
       const list<FncGroup>& findCarMethods,
       const bool onceFlag);
 
-    void fixSpuriousInterPeaks(
-      const list<CarDetect>& cars,
-      PeakPool& peaks) const;
+    void fixSpuriousInterPeaks(PeakPool& peaks) const;
 
 
     void printWheelCount(
       const PeakPool& peaks,
       const string& text) const;
 
-    void printCars(
-      const list<CarDetect>& cars,
-      const string& text) const;
+    void printCars(const string& text) const;
 
-    void printCarStats(
-      const CarModels& models,
-      const string& text) const;
+    void printCarStats(const string& text) const;
 
   public:
 
@@ -146,16 +129,29 @@ class PeakStructure
     void reset();
 
     void markCars(
-      CarModels& models,
-      list<CarDetect>& cars,
       PeakPool& peaks,
       const unsigned offsetIn);
 
     bool hasGaps() const;
     
     bool markImperfections(
-      const list<CarDetect>& cars,
       Imperfections& imperf) const;
+
+    // to clean up
+
+    void pushPeak(
+      Peak const * pptr,
+      const float toffset,
+      int& pnoNext,
+      vector<double>& times,
+      vector<int>& actualToRef) const;
+
+    bool getAlignment(
+      vector<double>& times,
+      vector<int>& actualToRef,
+      unsigned& numFrontWheels);
+
+    unsigned getNumFrontWheels() const;
 };
 
 #endif

@@ -7,10 +7,7 @@
 #include <cmath>
 
 #include "PeakDetect.h"
-#include "PeakSeeds.h"
-#include "PeakMinima.h"
 #include "PeakMatch.h"
-#include "PeakStructure.h"
 #include "Except.h"
 
 #include "database/Control.h"
@@ -42,8 +39,10 @@ void PeakDetect::reset()
   len = 0;
   offset = 0;
   peaks.clear();
+  /*
   models.reset();
   pstruct.reset();
+  */
 }
 
 
@@ -535,9 +534,7 @@ void PeakDetect::completePeaks()
 }
 
 
-void PeakDetect::reduce(
-  const Control& control,
-  Imperfections& imperf)
+void PeakDetect::extract(const Control& control)
 {
   if (peaks.top().empty())
     return;
@@ -579,27 +576,7 @@ void PeakDetect::reduce(
 
   PeakDetect::completePeaks();
 
-  // Mark some tall peaks as seeds.
-  PeakSeeds seeds;
-  vector<Peak> peakCenters;
-  seeds.mark(peaks, peakCenters, offset, scale.getRange());
-  cout << seeds.str(offset, "after pruning");
-
-  peaks.makeCandidates();
-
-  // Label the negative minima as wheels, bogies etc.
-  PeakMinima minima;
-  minima.mark(peaks, peakCenters, offset);
-
-  // Use the labels to extract the car structure from the peaks.
-  cars.clear();
-  pstruct.markCars(models, cars, peaks, offset);
-
-  if (! pstruct.markImperfections(cars, imperf))
-    cout << "WARNING: Failed to mark imperfections\n";
-
-cout << "PEAKPOOL\n";
-cout << peaks.strCounts();
+  scaleStore = scale;
 }
 
 
@@ -614,71 +591,6 @@ void PeakDetect::logPeakStats(
 }
 
 
-/*
-void PeakDetect::makeSynthPeaks(vector<float>& synthPeaks) const
-{
-  peaks.topConst().getSamples(&Peak::isSelected, synthPeaks);
-}
-*/
-
-
-void PeakDetect::pushPeak(
-  Peak const * pptr,
-  const float tOffset,
-  int& pnoNext,
-  vector<double>& times,
-  vector<int>& actualToRef) const
-{
-  // TODO times and actualRef should be a struct with this method
-  if (pptr)
-  {
-    // times.emplace_back(PeakTime());
-    // PeakTime& p = times.back();
-    // p.time = pptr->getIndex() / SAMPLE_RATE - tOffset;
-    times.push_back(pptr->getIndex() / SAMPLE_RATE - tOffset);
-
-    actualToRef.push_back(pnoNext);
-  }
-  pnoNext++;
-}
-
-
-bool PeakDetect::getAlignment(
-  vector<double>& times,
-  vector<int>& actualToRef,
-  unsigned& numFrontWheels)
-{
-  if (pstruct.hasGaps())
-    return false;
-
-  if (cars.empty())
-    return false;
-
-  times.clear();
-  actualToRef.clear();
-
-  const float t0 = cars.front().firstPeak() / SAMPLE_RATE;
-  int pnoNext = 0;
-
-  for (auto& car: cars)
-  {
-    const CarPeaksPtr cptr = car.getPeaksPtr();
-    PeakDetect::pushPeak(cptr.firstBogieLeftPtr, t0, pnoNext, 
-      times, actualToRef);
-    PeakDetect::pushPeak(cptr.firstBogieRightPtr, t0, pnoNext, 
-      times, actualToRef);
-    PeakDetect::pushPeak(cptr.secondBogieLeftPtr, t0, pnoNext, 
-      times, actualToRef);
-    PeakDetect::pushPeak(cptr.secondBogieRightPtr, t0, pnoNext, 
-      times, actualToRef);
-  }
-
-  numFrontWheels = cars.front().numFrontWheels();
-
-  return true;
-}
-
-
 void PeakDetect::makeSynthPeaks(
   const unsigned first,
   const unsigned slen)
@@ -687,18 +599,6 @@ void PeakDetect::makeSynthPeaks(
   synthPeaks.resize(slen);
 
   peaks.topConst().getSamples(&Peak::isSelected, synthPeaks);
-}
-
-
-void PeakDetect::getPeakTimes(
-  vector<double>& times,
-  unsigned& numFrontWheels) const
-{
-  peaks.topConst().getTimes(&Peak::isSelected, times);
-  if (cars.empty())
-    numFrontWheels = 0;
-  else
-    numFrontWheels = cars.front().numFrontWheels();
 }
 
 
@@ -727,5 +627,16 @@ void PeakDetect::printPeaksCSV(const vector<double>& timesTrue) const
 void PeakDetect::writePeak(const string& filename) const
 {
   writeBinary(filename, synthFirst, synthPeaks);
+}
+
+
+PeakPool& PeakDetect::getPeaks()
+{
+  return peaks;
+}
+
+Peak& PeakDetect::getScale()
+{
+  return scaleStore;
 }
 

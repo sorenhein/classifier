@@ -25,6 +25,22 @@ void Motion::reset()
 }
 
 
+void Motion::setEstimate(const vector<double>& coeffs)
+{
+  // The regression coefficients are of the form:
+  //   position = c2 * time^2 + c1 * time + c0.
+  //
+  // In the physics formula, we have
+  //   position = 0.5 * a * time^2 + v * time + pos0.
+  // 
+  // As we store the physical quantities here, a = 2 * c2.
+  
+  estimate[0] = coeffs[0];
+  estimate[1] = coeffs[1];
+  estimate[2] = 2. * coeffs[2];
+}
+
+
 string Motion::strLine(
   const string& text,
   const double act,
