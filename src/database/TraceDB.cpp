@@ -34,6 +34,7 @@ void TraceDB::reset()
     0,
     0,
     0,
+    0,
     TRACE_INTS_SIZE,
     TRACE_BOOLS_SIZE,
     TRACE_DOUBLES_SIZE

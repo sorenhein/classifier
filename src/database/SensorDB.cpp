@@ -24,6 +24,7 @@ void SensorDB::reset()
     0,
     0,
     0,
+    0,
     0
   };
 }

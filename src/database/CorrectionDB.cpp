@@ -38,6 +38,7 @@ void CorrectionDB::configure()
     CORR_STRING_VECTORS_SIZE,
     0,
     CORR_INT_VECTORS_SIZE,
+    0,
     CORR_INTS_SIZE,
     CORR_BOOLS_SIZE,
     0

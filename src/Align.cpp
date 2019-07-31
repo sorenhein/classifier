@@ -727,7 +727,7 @@ void Align::bestMatches(
 {
   timers[thid].start(TIMER_ALIGN);
 
-  vector<float> refPeaks, scaledPeaks;
+  vector<float> scaledPeaks;
   matches.clear();
 
   for (auto& refTrain: trainDB)
@@ -741,7 +741,10 @@ void Align::bestMatches(
     if (! trainDB.isInCountry(refTrainNoU, country))
       continue;
 
-    trainDB.getPeakPositions(refTrainNoU, refPeaks);
+    // const vector<float>& refPeaks =
+      // trainDB.getPeakPositions(refTrainNoU);
+    vector<float> refPeaks;
+    trainDB.getPeakPositionsOld(refTrainNoU, refPeaks);
 
 // cout << "refTrain " << refTrain << endl;
     const float trainLength = refPeaks.back() - refPeaks.front();

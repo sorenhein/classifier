@@ -57,6 +57,7 @@ void TrainDB::configure()
     TRAIN_STRING_VECTORS_SIZE,
     0,
     TRAIN_INT_VECTORS_SIZE,
+    TRAIN_FLOAT_VECTORS_SIZE,
     TRAIN_INTS_SIZE,
     TRAIN_BOOLS_SIZE,
     0
@@ -105,6 +106,11 @@ bool TrainDB::complete(
   }
 
   entry[TRAIN_NUM_CARS] = _numCars;
+
+  auto& positions = entry.getFloatVector(TRAIN_POSITIONS);
+  for (int p: axles)
+    positions.push_back(p / 1000.f); // In m
+
   return true;
 }
 
@@ -230,16 +236,23 @@ bool TrainDB::isInCountry(
 }
 
 
-void TrainDB::getPeakPositions(
+const vector<float>& TrainDB::getPeakPositions(const unsigned trainNo) const
+{
+  assert(trainNo < entries.size());
+  return entries[trainNo].getFloatVector(TRAIN_POSITIONS);
+}
+
+
+void TrainDB::getPeakPositionsOld(
   const unsigned trainNo,
-  vector<float>& peakPositions) const
+  vector<float>& positions) const
 {
   assert(trainNo < entries.size());
   const vector<int>& axles = entries[trainNo].getIntVector(TRAIN_AXLES);
 
-  peakPositions.clear();
+  positions.clear();
   for (int p: axles)
-    peakPositions.push_back(p / 1000.f); // In m
+    positions.push_back(p / 1000.f); // In m
 }
 
 

@@ -173,8 +173,10 @@ void Regress::bestMatch(
       continue;
     }
 
+    // const vector<float>& refPeaks =
+      // trainDB.getPeakPositions(ma.trainNo);
     vector<float> refPeaks;
-    trainDB.getPeakPositions(ma.trainNo, refPeaks);
+    trainDB.getPeakPositionsOld(ma.trainNo, refPeaks);
 
 // cout << db.lookupTrainName(ma.trainNo) << "\n";
 

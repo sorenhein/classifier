@@ -32,6 +32,12 @@ enum TrainFieldIntVectors
   TRAIN_INT_VECTORS_SIZE = 1
 };
 
+enum TrainFieldFloatVectors
+{
+  TRAIN_POSITIONS = 0,
+  TRAIN_FLOAT_VECTORS_SIZE = 1
+};
+
 enum TrainFieldInts
 {
   TRAIN_INTRODUCTION = 0,
@@ -99,9 +105,12 @@ class TrainDB
       const unsigned trainNo,
       const string& country) const;
 
-    void getPeakPositions(
+    // In m
+    const vector<float>& getPeakPositions(const unsigned trainNo) const;
+
+    void getPeakPositionsOld(
       const unsigned trainNo,
-      vector<float>& peakPositions) const; // In m
+      vector<float>& positions) const;
 
     bool selectByAxles(
       const list<string>& countries,

@@ -38,7 +38,7 @@ void dumpResiduals(
   Regress regress;
   vector<float> coeffs(order+1);
   float residuals;
-  vector<float> posTrue;
+  // vector<float> posTrue;
 // const unsigned numTrue = db.lookupTrainNumber(trainTrue);
 // db.getPerfectPeaks(numTrue, posTrue);
 
@@ -52,8 +52,8 @@ void dumpResiduals(
     if (ma.distMatch > 3.)
       continue;
 
-    vector<float> refPeaks;
-    trainDB.getPeakPositions(ma.trainNo, refPeaks);
+    const vector<float>& refPeaks =
+      trainDB.getPeakPositions(ma.trainNo);
     regress.specificMatch(times, refPeaks, ma, coeffs, residuals);
 
     vector<float> pos(numWheels, 0.f);
@@ -66,7 +66,7 @@ void dumpResiduals(
           coeffs[0] + coeffs[1] * t + coeffs[2] * t * t;
     }
 
-    trainDB.getPeakPositions(ma.trainNo, posTrue);
+    const vector<float>& posTrue = trainDB.getPeakPositions(ma.trainNo);
 
     cout << "SPECTRAIN " << trainTrue << " " << tname << endl;
     cout << heading << "/" << 

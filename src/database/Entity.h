@@ -16,11 +16,12 @@ enum CorrespondenceType
   CORRESPONDENCE_STRING_VECTOR = 1,
   CORRESPONDENCE_STRING_MAP = 2,
   CORRESPONDENCE_INT_VECTOR = 3,
-  CORRESPONDENCE_INT = 4,
-  CORRESPONDENCE_BOOL = 5,
-  CORRESPONDENCE_DOUBLE = 6,
-  CORRESPONDENCE_BIT_VECTOR = 7, // No separate storage, so correct
-  CORRESPONDENCE_SIZE = 7
+  CORRESPONDENCE_FLOAT_VECTOR = 4,
+  CORRESPONDENCE_INT = 5,
+  CORRESPONDENCE_BOOL = 6,
+  CORRESPONDENCE_DOUBLE = 7,
+  CORRESPONDENCE_BIT_VECTOR = 8, // No separate storage, so correct
+  CORRESPONDENCE_SIZE = 9
 };
 
 struct CorrespondenceEntry
@@ -49,6 +50,7 @@ class Entity
     vector<vector<string>> stringVectors;
     map<string, vector<string>> stringMap;
     vector<vector<int>> intVectors;
+    vector<vector<float>> floatVectors;
     vector<int> ints;
     deque<bool> bools;
     vector<double> doubles;
@@ -121,6 +123,9 @@ class Entity
 
     vector<int>& getIntVector(const unsigned no);
     const vector<int>& getIntVector(const unsigned no) const;
+
+    vector<float>& getFloatVector(const unsigned no);
+    const vector<float>& getFloatVector(const unsigned no) const;
 
     int getInt(const unsigned no) const;
 

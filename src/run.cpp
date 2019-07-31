@@ -336,15 +336,13 @@ cout << peaks.strCounts();
   unsigned numFrontWheels;
 
 
-  vector<float> posTrue;
-
-      
 
 
   peakDetect.makeSynthPeaks(interval.first, interval.len);
 
 
-    trainDB.getPeakPositions(traceData.trainNoTrueU, posTrue);
+    const vector<float>& posTrue = 
+      trainDB.getPeakPositions(traceData.trainNoTrueU);
 
     peakDetect.logPeakStats(posTrue, traceData.trainTrue, 
       traceData.speed, peakStats);

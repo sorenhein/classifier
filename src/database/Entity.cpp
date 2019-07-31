@@ -30,6 +30,7 @@ void Entity::clear()
   stringVectors.clear();
   stringMap.clear();
   intVectors.clear();
+  floatVectors.clear();
   ints.clear();
   bools.clear();
 }
@@ -40,6 +41,7 @@ void Entity::init(const vector<unsigned>& fieldCounts)
   strings.resize(fieldCounts[CORRESPONDENCE_STRING]);
   stringVectors.resize(fieldCounts[CORRESPONDENCE_STRING_VECTOR]);
   intVectors.resize(fieldCounts[CORRESPONDENCE_INT_VECTOR]);
+  floatVectors.resize(fieldCounts[CORRESPONDENCE_FLOAT_VECTOR]);
   ints.resize(fieldCounts[CORRESPONDENCE_INT], -1);
   bools.resize(fieldCounts[CORRESPONDENCE_BOOL]);
   doubles.resize(fieldCounts[CORRESPONDENCE_DOUBLE]);
@@ -419,6 +421,20 @@ const vector<int>& Entity::getIntVector(const unsigned no) const
 {
   assert(no < intVectors.size());
   return intVectors[no];
+}
+
+
+vector<float>& Entity::getFloatVector(const unsigned no)
+{
+  assert(no < floatVectors.size());
+  return floatVectors[no];
+}
+
+
+const vector<float>& Entity::getFloatVector(const unsigned no) const
+{
+  assert(no < floatVectors.size());
+  return floatVectors[no];
 }
 
 

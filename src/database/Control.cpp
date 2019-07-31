@@ -90,6 +90,7 @@ void Control::configure()
     0,
     0,
     CTRL_INT_VECTORS_SIZE,
+    0,
     CTRL_INTS_SIZE,
     CTRL_BOOLS_SIZE,
     0

@@ -31,7 +31,7 @@ struct Alignment
 
   unsigned numAdd;
   unsigned numDelete;
-  
+
   vector<int> actualToRef;
 
   vector<RegrEntry> topResiduals;
