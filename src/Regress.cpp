@@ -34,7 +34,6 @@ float Regress::time2pos(
 {
   float res = 0.;
   float pow = 1.;
-  // for (unsigned c = 0; c <= coeffs.size(); c++)
   for (unsigned c = 0; c < coeffs.size(); c++)
   {
     res += coeffs[c] * pow;
@@ -61,17 +60,15 @@ float Regress::residuals(
 
 void Regress::specificMatch(
   const vector<float>& times,
-  const TrainDB& trainDB,
+  const vector<float>& refPeaks,
   const Alignment& match,
   vector<float>& coeffs,
   float& residuals) const
 {
   PolynomialRegression pol;
-  vector<float> refPeaks;
   vector<float> x, y;
   const unsigned lt = times.size();
 
-  trainDB.getPeakPositions(match.trainNo, refPeaks);
   const unsigned lr = refPeaks.size();
   const float trainLength = refPeaks.back() - refPeaks.front();
 
@@ -88,7 +85,7 @@ void Regress::specificMatch(
     if (match.actualToRef[i] >= 0)
     {
       y[p] = refPeaks[static_cast<unsigned>(match.actualToRef[i])];
-      x[p] = static_cast<float>(times[i]);
+      x[p] = times[i];
       p++;
     }
   }
@@ -104,12 +101,10 @@ void Regress::specificMatch(
 
 void Regress::summarizeResiduals(
   const vector<float>& times,
-  const TrainDB& trainDB,
+  const vector<float>& refPeaks,
   const vector<float>& coeffs,
   Alignment& match) const
 {
-  vector<float> refPeaks;
-  trainDB.getPeakPositions(match.trainNo, refPeaks);
   const unsigned lr = refPeaks.size();
 
   vector<RegrEntry> x;
@@ -123,8 +118,6 @@ void Regress::summarizeResiduals(
     {
       const unsigned refIndex = static_cast<unsigned>(match.actualToRef[i]);
       const float position = Regress::time2pos(times[i], coeffs);
-
-// cout << refIndex << ";" << refPeaks[refIndex] << ";" << position << "\n";
 
       x[refIndex].index = refIndex;
       x[refIndex].value = position - refPeaks[refIndex];
@@ -180,10 +173,13 @@ void Regress::bestMatch(
       continue;
     }
 
+    vector<float> refPeaks;
+    trainDB.getPeakPositions(ma.trainNo, refPeaks);
+
 // cout << db.lookupTrainName(ma.trainNo) << "\n";
 
-    Regress::specificMatch(times, trainDB, ma, coeffs, residuals);
-    Regress::summarizeResiduals(times, trainDB, coeffs, ma);
+    Regress::specificMatch(times, refPeaks, ma, coeffs, residuals);
+    Regress::summarizeResiduals(times, refPeaks, coeffs, ma);
 
     ma.dist += residuals - ma.distMatch;
     ma.distMatch = residuals;

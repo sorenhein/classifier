@@ -52,7 +52,9 @@ void dumpResiduals(
     if (ma.distMatch > 3.)
       continue;
 
-    regress.specificMatch(times, trainDB, ma, coeffs, residuals);
+    vector<float> refPeaks;
+    trainDB.getPeakPositions(ma.trainNo, refPeaks);
+    regress.specificMatch(times, refPeaks, ma, coeffs, residuals);
 
     vector<float> pos(numWheels, 0.f);
     for (unsigned i = 0; i < times.size(); i++)

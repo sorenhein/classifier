@@ -29,7 +29,7 @@ class Regress
 
     void summarizeResiduals(
       const vector<float>& times,
-      const TrainDB& trainDB,
+      const vector<float>& refPeaks,
       const vector<float>& coeffs,
       Alignment& match) const;
 
@@ -42,7 +42,7 @@ class Regress
 
     void specificMatch(
       const vector<float>& times,
-      const TrainDB& trainDB,
+      const vector<float>& refPeaks,
       const Alignment& match,
       vector<float>& coeffs,
       float& residuals) const;
