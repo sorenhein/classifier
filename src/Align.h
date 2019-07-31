@@ -23,7 +23,7 @@ class Align
       int firstHalfNetInsert;
       int secondHalfNetInsert;
 
-      vector<double> motion;
+      vector<float> motion;
     };
 
     struct OverallShift
@@ -34,28 +34,28 @@ class Align
 
 
     bool countTooDifferent(
-      const vector<double>& times,
+      const vector<float>& times,
       const unsigned refCount) const;
 
-    double interpolateTime(
-      const vector<double>& times,
-      const double index) const;
+    float interpolateTime(
+      const vector<float>& times,
+      const float index) const;
 
     void estimateAlignedMotion(
-      const vector<double>& refPeaks,
-      const vector<double>& times,
+      const vector<float>& refPeaks,
+      const vector<float>& times,
       const vector<int>& actualToRef,
       const int offsetRef,
       Shift& shift) const;
       
     void estimateMotion(
-      const vector<double>& refPeaks,
-      const vector<double>& times,
+      const vector<float>& refPeaks,
+      const vector<float>& times,
       Shift& shift) const;
       
-    double simpleScore(
-      const vector<double>& refPeaks,
-      const vector<double>& shiftedPeaks) const;
+    float simpleScore(
+      const vector<float>& refPeaks,
+      const vector<float>& shiftedPeaks) const;
       
     void makeShiftCandidates(
       vector<Shift>& candidates,
@@ -67,35 +67,35 @@ class Align
       const bool makeShiftFlag) const;
 
     bool betterSimpleScore(
-      const double score,
+      const float score,
       const unsigned index,
-      const double bestScore,
+      const float bestScore,
       const unsigned bestIndex,
       const vector<Shift>& candidates,
       const unsigned lt) const;
 
     void scalePeaks(
-      const vector<double>& refPeaks,
-      const vector<double>& times,
+      const vector<float>& refPeaks,
+      const vector<float>& times,
       const vector<int>& actualToRef,
       const unsigned numFrontWheels,
       const bool fullTrainFlag,
       Shift& shift,
-      vector<double>& scaledPeaks) const;
+      vector<float>& scaledPeaks) const;
 
     void NeedlemanWunsch(
-      const vector<double>& refPeaks,
-      const vector<double>& scaledPeaks,
-      const double peakScale,
+      const vector<float>& refPeaks,
+      const vector<float>& scaledPeaks,
+      const float peakScale,
       const Imperfections& imperf,
       const Shift& shift,
       Alignment& alignment) const;
 
     void printAlignPeaks(
       const string& refTrain,
-      const vector<double>& times,
-      const vector<double>& refPeaks,
-      const vector<double>& scaledPeaks) const;
+      const vector<float>& times,
+      const vector<float>& refPeaks,
+      const vector<float>& scaledPeaks) const;
 
 
   public:
@@ -105,7 +105,7 @@ class Align
     ~Align();
 
     void bestMatches(
-      const vector<double>& times,
+      const vector<float>& times,
       const vector<int>& actualToRef,
       const unsigned numFrontWheels,
       const bool fullTrainFlag,

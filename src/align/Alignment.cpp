@@ -63,8 +63,8 @@ string Alignment::str() const
   stringstream ss;
   ss << 
     setw(24) << left << trainName <<
-    setw(10) << right << fixed << setprecision(2) << dist <<
-    setw(10) << right << fixed << setprecision(2) << distMatch <<
+    setw(10) << right << fixed << setprecision(2) << static_cast<double>(dist )<<
+    setw(10) << right << fixed << setprecision(2) << static_cast<double>(distMatch) <<
     setw(8) << numAdd <<
     setw(8) << numDelete << endl;
   return ss.str();

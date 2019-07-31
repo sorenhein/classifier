@@ -143,11 +143,11 @@ class PeakStructure
       Peak const * pptr,
       const float toffset,
       int& pnoNext,
-      vector<double>& times,
+      vector<float>& times,
       vector<int>& actualToRef) const;
 
     bool getAlignment(
-      vector<double>& times,
+      vector<float>& times,
       vector<int>& actualToRef,
       unsigned& numFrontWheels);
 

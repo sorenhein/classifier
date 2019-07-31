@@ -101,7 +101,7 @@ class TrainDB
 
     void getPeakPositions(
       const unsigned trainNo,
-      vector<double>& peakPositions) const; // In m
+      vector<float>& peakPositions) const; // In m
 
     bool selectByAxles(
       const list<string>& countries,

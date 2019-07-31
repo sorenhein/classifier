@@ -27,7 +27,7 @@ class PeakMatch
     struct PeakWrapper
     {
       Peak const * peakPtr;
-      double bestDistance;
+      float bestDistance;
       int match;
     };
 
@@ -36,33 +36,33 @@ class PeakMatch
     vector<Peak const *> trueMatches;
 
     void pos2time(
-      const vector<double>& posTrue,
+      const vector<float>& posTrue,
       const double speed,
-      vector<double>& timesTrue) const;
+      vector<float>& timesTrue) const;
 
     bool advance(list<PeakWrapper>::iterator& peak) const;
 
-    double simpleScore(
-      const vector<double>& timesTrue,
-      const double offsetScore,
+    float simpleScore(
+      const vector<float>& timesTrue,
+      const float offsetScore,
       const bool logFlag,
-      double& shift);
+      float& shift);
 
     void setOffsets(
       const PeakPool& peaks,
-      const vector<double>& timesTrue,
-      vector<double>& offsetList) const;
+      const vector<float>& timesTrue,
+      vector<float>& offsetList) const;
 
     bool findMatch(
       const PeakPool& peaks,
-      const vector<double>& timesTrue,
-      double& shift);
+      const vector<float>& timesTrue,
+      float& shift);
 
-    void correctTimesTrue(vector<double>& timesTrue) const;
+    void correctTimesTrue(vector<float>& timesTrue) const;
 
     void printPeaks(
       const PeakPool& peaks,
-      const vector<double>& timesTrue) const;
+      const vector<float>& timesTrue) const;
 
   public:
 
@@ -74,7 +74,7 @@ class PeakMatch
 
     void logPeakStats(
       const PeakPool& peaks,
-      const vector<double>& posTrue,
+      const vector<float>& posTrue,
       const string& trainTrue,
       const double speedTrue,
       PeakStats& peakStats);

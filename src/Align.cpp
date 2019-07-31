@@ -21,19 +21,19 @@
 
 // Can adjust these.
 
-#define INSERT_PENALTY 100.
-#define DELETE_PENALTY 100.
-#define EARLY_MISS_PENALTY 0.
-#define EARLY_DELETE_PENALTY 0.
+#define INSERT_PENALTY 100.f
+#define DELETE_PENALTY 100.f
+#define EARLY_MISS_PENALTY 0.f
+#define EARLY_DELETE_PENALTY 0.f
 #define MAX_EARLY_MISSES 7
 
-#define EARLY_SHIFTS_PENALTY 0.25
+#define EARLY_SHIFTS_PENALTY 0.25f
 
 #define MAX_AXLE_DIFFERENCE_OK 7
 
 // In meters, see below.
 
-#define PROXIMITY_PARAMETER 1.5
+#define PROXIMITY_PARAMETER 1.5f
 
 #define UNUSED(x) ((void)(true ? 0 : ((x), void(), 0)))
 
@@ -51,9 +51,9 @@ Align::~Align()
 
 
 void Align::NeedlemanWunsch(
-  const vector<double>& refPeaks,
-  const vector<double>& scaledPeaks,
-  const double peakScale,
+  const vector<float>& refPeaks,
+  const vector<float>& scaledPeaks,
+  const float peakScale,
   const Imperfections& imperf,
   const Shift& shift,
   Alignment& alignment) const
@@ -89,7 +89,7 @@ void Align::NeedlemanWunsch(
 
   struct Mentry
   {
-    double dist;
+    float dist;
     Origin origin;
   };
 
@@ -116,9 +116,9 @@ void Align::NeedlemanWunsch(
   {
     for (unsigned j = 1; j < lt+1; j++)
     {
-      const double d = refPeaks[i + shift.firstRefNo - 1] - 
+      const float d = refPeaks[i + shift.firstRefNo - 1] - 
         scaledPeaks[j + shift.firstTimeNo - 1];
-      const double match = matrix[i-1][j-1].dist + peakScale * d * d;
+      const float match = matrix[i-1][j-1].dist + peakScale * d * d;
 
       // During the first few peaks we don't penalize a missed real peak
       // as heavily, as it could be due to transients etc.
@@ -130,12 +130,12 @@ void Align::NeedlemanWunsch(
       // [2, 1] (miss the second real peak by number here, which is
       // really the third peak).
 
-      const double del = matrix[i-1][j].dist + 
+      const float del = matrix[i-1][j].dist + 
         (shift.firstRefNo <= 1 && 
          i > 1 && i <= 3 - shift.firstRefNo &&
          j < i ? EARLY_DELETE_PENALTY : DELETE_PENALTY); // Ref
 
-      const double ins = matrix[i][j-1].dist + INSERT_PENALTY; // Time
+      const float ins = matrix[i][j-1].dist + INSERT_PENALTY; // Time
 
       if (match <= del)
       {
@@ -209,9 +209,9 @@ void Align::NeedlemanWunsch(
 }
 
 
-double Align::interpolateTime(
-  const vector<double>& times,
-  const double index) const
+float Align::interpolateTime(
+  const vector<float>& times,
+  const float index) const
 {
   const unsigned lt = times.size();
 
@@ -223,21 +223,21 @@ double Align::interpolateTime(
   }
 
   const unsigned iRight = iLeft + 1;
-  const double frac = index - iLeft;
+  const float frac = index - iLeft;
 
-  return (1.-frac) * times[iLeft] + frac * times[iRight];
+  return (1.f - frac) * times[iLeft] + frac * times[iRight];
 }
 
 
 void Align::estimateAlignedMotion(
-  const vector<double>& refPeaks,
-  const vector<double>& times,
+  const vector<float>& refPeaks,
+  const vector<float>& times,
   const vector<int>& actualToRef,
   const int offsetRef,
   Shift& shift) const
 {
   PolynomialRegression pol;
-  vector<double> x, y;
+  vector<float> x, y;
 
   const unsigned lt = times.size();
 
@@ -258,7 +258,7 @@ void Align::estimateAlignedMotion(
       break;
 
     y[p] = refPeaks[ri];
-    x[p] = times[i];
+    x[p] = static_cast<float>(times[i]);
   }
 
   pol.fitIt(x, y, 2, shift.motion);
@@ -266,8 +266,8 @@ void Align::estimateAlignedMotion(
 
 
 void Align::estimateMotion(
-  const vector<double>& refPeaks,
-  const vector<double>& times,
+  const vector<float>& refPeaks,
+  const vector<float>& times,
   Shift& shift) const
 {
   /*
@@ -287,8 +287,8 @@ void Align::estimateMotion(
 
   const unsigned lp = refPeaks.size();
 
-  const double len = refPeaks[lp-1] - refPeaks[shift.firstRefNo];
-  const double posMid = refPeaks[shift.firstRefNo] + len / 2.;
+  const float len = refPeaks[lp-1] - refPeaks[shift.firstRefNo];
+  const float posMid = refPeaks[shift.firstRefNo] + len / 2.f;
 
   // Look for posMid in refPeaks.
   unsigned posLeft = 0;
@@ -303,7 +303,7 @@ void Align::estimateMotion(
     cout << "posLeft " << posLeft << ", lp " << lp <<
       ", posMid " << posMid << endl;
   }
-  const double propRight = (posMid - refPeaks[posLeft]) /
+  const float propRight = (posMid - refPeaks[posLeft]) /
     (refPeaks[posLeft+1] - refPeaks[posLeft]);
 
 // if (flag)
@@ -327,53 +327,54 @@ void Align::estimateMotion(
   // that lt is 1 lower, but we don't add 1.
 
   const unsigned lt = times.size();
-  const double tOffset = times[shift.firstTimeNo];
-  double tEnd = times.back() - tOffset;
+  const float tOffset = times[shift.firstTimeNo];
+  float tEnd = times.back() - tOffset;
 
-  const double lpeff = lp - shift.firstRefNo;
-  const double lteff = static_cast<int>(lt) - 
-    static_cast<int>(shift.firstTimeNo) -
+  const float lpeff = static_cast<float>(lp) - 
+    static_cast<float>(shift.firstRefNo);
+  const float lteff = static_cast<float>(lt) - 
+    static_cast<float>(shift.firstTimeNo) -
     shift.firstHalfNetInsert - shift.secondHalfNetInsert;
 
-  const double tpos0 = 
+  const float tpos0 = 
     static_cast<int>(shift.firstTimeNo) + 
     shift.firstHalfNetInsert +
-    static_cast<double>(posLeft - shift.firstRefNo) * 
-      (lteff - 1.) / (lpeff - 1.);
+    static_cast<float>(posLeft - shift.firstRefNo) * 
+      (lteff - 1.f) / (lpeff - 1.f);
 
-  const double tpos1 = 
+  const float tpos1 = 
     static_cast<int>(shift.firstTimeNo) + 
     shift.firstHalfNetInsert +
-    static_cast<double>(posLeft + 1 - shift.firstRefNo) * 
-      (lteff - 1.) / (lpeff - 1.);
+    static_cast<float>(posLeft + 1 - shift.firstRefNo) * 
+      (lteff - 1.f) / (lpeff - 1.f);
 
-  const double tMid0 = Align::interpolateTime(times, tpos0);
-  const double tMid1 = Align::interpolateTime(times, tpos1);
+  const float tMid0 = Align::interpolateTime(times, tpos0);
+  const float tMid1 = Align::interpolateTime(times, tpos1);
 
-  const double tMid = (1.-propRight) * tMid0 + propRight * tMid1 -
+  const float tMid = (1.f-propRight) * tMid0 + propRight * tMid1 -
     tOffset;
   
   // From here on it is just the calculation of accelation (2),
   // speed (1) and offset (0).
 
-  shift.motion[2] = len * (2.*tMid - tEnd) /
+  shift.motion[2] = len * (2.f*tMid - tEnd) /
     (tMid * tEnd * (tEnd - tMid));
 
-  shift.motion[1] = (len - 0.5 * shift.motion[2] * tEnd * tEnd) / tEnd;
+  shift.motion[1] = (len - 0.5f * shift.motion[2] * tEnd * tEnd) / tEnd;
 // if (flag)
 // cout << "len " << len << " tMid " << tMid << " tEnd " << tEnd <<
   // " accel " << motion[2] << " speed " << motion[1] << endl;
 
   shift.motion[0] = refPeaks[shift.firstRefNo] -
     (shift.motion[1] * times[shift.firstTimeNo] +
-      0.5 * shift.motion[2] * times[shift.firstTimeNo] * 
+      0.5f * shift.motion[2] * times[shift.firstTimeNo] * 
         times[shift.firstTimeNo]);
 }
 
 
-double Align::simpleScore(
-  const vector<double>& refPeaks,
-  const vector<double>& shiftedPeaks) const
+float Align::simpleScore(
+  const vector<float>& refPeaks,
+  const vector<float>& shiftedPeaks) const
 {
   const unsigned lr = refPeaks.size();
   const unsigned ls = shiftedPeaks.size();
@@ -389,12 +390,12 @@ double Align::simpleScore(
   // A distance of d counts as max(0, (1.5 m - d) / 1.5 m).
 
   unsigned ir = 0;
-  double score = 0.;
-  double d = PROXIMITY_PARAMETER;
+  float score = 0.;
+  float d = PROXIMITY_PARAMETER;
 
   for (unsigned is = 0; is < ls; is++)
   {
-    double dleft = shiftedPeaks[is] - refPeaks[ir];
+    float dleft = shiftedPeaks[is] - refPeaks[ir];
 
     if (dleft < 0.)
     {
@@ -405,7 +406,7 @@ double Align::simpleScore(
     }
     else
     {
-      double dright = numeric_limits<double>::max();
+      float dright = numeric_limits<float>::max();
       while (ir+1 < lr)
       {
         dright = refPeaks[ir+1] - shiftedPeaks[is];
@@ -520,9 +521,9 @@ void Align::makeShiftCandidates(
 
 
 bool Align::betterSimpleScore(
-  const double score, 
+  const float score, 
   const unsigned index,
-  const double bestScore,
+  const float bestScore,
   const unsigned bestIndex,
   const vector<Shift>& candidates,
   const unsigned lt) const
@@ -584,13 +585,13 @@ bool Align::betterSimpleScore(
 
 
 void Align::scalePeaks(
-  const vector<double>& refPeaks,
-  const vector<double>& times,
+  const vector<float>& refPeaks,
+  const vector<float>& times,
   const vector<int>& actualToRef,
   const unsigned numFrontWheels,
   const bool fullTrainFlag,
   Shift& shift,
-  vector<double>& scaledPeaks) const
+  vector<float>& scaledPeaks) const
 {
   // The shift is "subtracted" from scaledPeaks, so if the shift is
   // positive, we align the n'th scaled peak with the 0'th
@@ -648,10 +649,10 @@ void Align::scalePeaks(
   // we could also run Needleman-Wunsch, so this is a bit of an
   // optimization.
 
-  vector<double> candPeaks(lt);
+  vector<float> candPeaks(lt);
 
   unsigned bestIndex = 0;
-  double bestScore = -1.;
+  float bestScore = -1.;
 
   // scaledPeaks.resize(lt);
 
@@ -677,10 +678,10 @@ cout << "motion " << cand.motion[0] << ", " <<
     {
       candPeaks[j] = cand.motion[0] +
         cand.motion[1] * times[j] +
-        0.5 * cand.motion[2] * times[j] * times[j];
+        0.5f * cand.motion[2] * times[j] * times[j];
     }
 
-    double score = Align::simpleScore(refPeaks, candPeaks);
+    float score = Align::simpleScore(refPeaks, candPeaks);
 // cout << "i: " << i << ", score " << score << "\n";
 // if (i == 8)
 // {
@@ -702,7 +703,7 @@ cout << "motion " << cand.motion[0] << ", " <<
 
 
 bool Align::countTooDifferent(
-  const vector<double>& times,
+  const vector<float>& times,
   const unsigned refCount) const
 {
   const unsigned lt = times.size();
@@ -712,7 +713,7 @@ bool Align::countTooDifferent(
 
 
 void Align::bestMatches(
-  const vector<double>& times,
+  const vector<float>& times,
   const vector<int>& actualToRef,
   const unsigned numFrontWheels,
   const bool fullTrainFlag,
@@ -726,7 +727,7 @@ void Align::bestMatches(
 {
   timers[thid].start(TIMER_ALIGN);
 
-  vector<double> refPeaks, scaledPeaks;
+  vector<float> refPeaks, scaledPeaks;
   matches.clear();
 
   for (auto& refTrain: trainDB)
@@ -743,7 +744,7 @@ void Align::bestMatches(
     trainDB.getPeakPositions(refTrainNoU, refPeaks);
 
 // cout << "refTrain " << refTrain << endl;
-    const double trainLength = refPeaks.back() - refPeaks.front();
+    const float trainLength = refPeaks.back() - refPeaks.front();
     Shift shift;
     Align::scalePeaks(refPeaks, times, actualToRef, 
       numFrontWheels, fullTrainFlag, shift, scaledPeaks);
@@ -761,7 +762,7 @@ void Align::bestMatches(
     }
 
     // Normalize the distance score to a 200m long train.
-    const double peakScale = 200. * 200. / (trainLength * trainLength);
+    const float peakScale = 200.f * 200.f / (trainLength * trainLength);
 
     matches.push_back(Alignment());
     matches.back().trainNo = refTrainNoU;
@@ -789,9 +790,9 @@ void Align::bestMatches(
 
 void Align::printAlignPeaks(
   const string& refTrain,
-  const vector<double>& times,
-  const vector<double>& refPeaks,
-  const vector<double>& scaledPeaks) const
+  const vector<float>& times,
+  const vector<float>& refPeaks,
+  const vector<float>& scaledPeaks) const
 {
   cout << "refTrain " << refTrain << "\n\n";
 

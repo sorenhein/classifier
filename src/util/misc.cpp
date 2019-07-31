@@ -61,7 +61,7 @@ string percent(
 
 void printVectorCSV(
   const string& title,
-  const vector<double>& peaks,
+  const vector<float>& peaks,
   const int level)
 {
   cout << title << "\n";

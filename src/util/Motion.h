@@ -10,8 +10,8 @@ using namespace std;
 struct Motion
 {
   unsigned order;
-  vector<double> actual;
-  vector<double> estimate;
+  vector<float> actual;
+  vector<float> estimate;
 
 
   Motion();
@@ -20,12 +20,12 @@ struct Motion
 
   void reset();
 
-  void setEstimate(const vector<double>& coeffs);
+  void setEstimate(const vector<float>& coeffs);
 
   string strLine(
     const string& text,
-    const double act,
-    const double est) const;
+    const float act,
+    const float est) const;
 
   string strEstimate(const string& title) const;
 

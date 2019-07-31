@@ -20,10 +20,10 @@ PolynomialRegression::~PolynomialRegression()
 
 
 bool PolynomialRegression::fitIt( 
-  const vector<double> & x,
-  const vector<double> & y,
-  const int &order,
-  std::vector<double> &coeffs)
+  const vector<float>& x,
+  const vector<float>& y,
+  const int order,
+  std::vector<float> &coeffs)
 {
   // The size of xValues and yValues should be same
   if (x.size() != y.size()) 
@@ -44,34 +44,34 @@ bool PolynomialRegression::fitIt(
   unsigned np1 = n + 1;
   unsigned np2 = n + 2;
   unsigned tnp1 = 2 * n + 1;
-  double tmp;
+  float tmp;
 
   // X = vector that stores values of sigma(xi^2n)
-  vector<double> X(tnp1);
+  vector<float> X(tnp1);
   for (unsigned i = 0; i < tnp1; ++i) 
   {
     X[i] = 0;
     for (unsigned j = 0; j < N; ++j)
-      X[i] += static_cast<double>(pow(x[j], i));
+      X[i] += static_cast<float>(pow(x[j], i));
   }
 
   // a = vector to store final coefficients.
-  std::vector<double> a(np1);
+  std::vector<float> a(np1);
 
   // B = normal augmented matrix that stores the equations.
-  vector<vector<double>> B(np1, vector<double> (np2, 0));
+  vector<vector<float>> B(np1, vector<float> (np2, 0));
 
   for (unsigned i = 0; i <= n; ++i) 
     for (unsigned j = 0; j <= n; ++j) 
       B[i][j] = X[i + j];
 
   // Y = vector to store values of sigma(xi^n * yi)
-  vector<double> Y(np1);
+  vector<float> Y(np1);
   for (unsigned i = 0; i < np1; ++i) 
   {
     Y[i] = 0.;
     for (unsigned j = 0; j < N; ++j) 
-      Y[i] += static_cast<double>(pow(x[j], i) * y[j]);
+      Y[i] += static_cast<float>(pow(x[j], i) * y[j]);
   }
 
   // Load values of Y as last column of B
@@ -98,7 +98,7 @@ bool PolynomialRegression::fitIt(
   for (unsigned i = 0; i < nm1; ++i)
     for (unsigned k = i+1; k < n; ++k) 
     {
-      double t = B[k][i] / B[i][i];
+      float t = B[k][i] / B[i][i];
       for (unsigned j = 0; j <= n; ++j)
         B[k][j] -= t*B[i][j];         // (1)
     }
@@ -110,11 +110,11 @@ bool PolynomialRegression::fitIt(
   for (int i = static_cast<int>(nm1); i >= 0; --i) 
   {
     const unsigned iu = static_cast<unsigned>(i);
-    a[iu] = static_cast<double>(B[iu][n]);                   // (1)
+    a[iu] = static_cast<float>(B[iu][n]);                   // (1)
     for (unsigned j = 0; j < n; ++j)
       if (static_cast<int>(j) != i)
-        a[iu] -= static_cast<double>(B[iu][j]) * a[j];       // (2)
-    a[iu] /= static_cast<double>(B[iu][iu]); // (3)
+        a[iu] -= static_cast<float>(B[iu][j]) * a[j];       // (2)
+    a[iu] /= static_cast<float>(B[iu][iu]); // (3)
   }
 
   coeffs.resize(a.size());

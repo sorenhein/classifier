@@ -136,7 +136,7 @@ class Peaks
 
     void getTimes(
       const PeakFncPtr& fptr,
-      vector<double>& times) const;
+      vector<float>& times) const;
 
 
     bool check() const;

@@ -581,7 +581,7 @@ void PeakDetect::extract(const Control& control)
 
 
 void PeakDetect::logPeakStats(
-  const vector<double>& posTrue,
+  const vector<float>& posTrue,
   const string& trainTrue,
   const double speedTrue,
   PeakStats& peakStats)

@@ -18,19 +18,19 @@ class Regress
 {
   private:
 
-    double time2pos(
-      const double& time,
-      const vector<double>& coeffs) const;
+    float time2pos(
+      const float& time,
+      const vector<float>& coeffs) const;
 
-    double residuals(
-      const vector<double>& x,
-      const vector<double>& y,
-      const vector<double>& coeffs) const;
+    float residuals(
+      const vector<float>& x,
+      const vector<float>& y,
+      const vector<float>& coeffs) const;
 
     void summarizeResiduals(
-      const vector<double>& times,
+      const vector<float>& times,
       const TrainDB& trainDB,
-      const vector<double>& coeffs,
+      const vector<float>& coeffs,
       Alignment& match) const;
 
 
@@ -41,14 +41,14 @@ class Regress
     ~Regress();
 
     void specificMatch(
-      const vector<double>& times,
+      const vector<float>& times,
       const TrainDB& trainDB,
       const Alignment& match,
-      vector<double>& coeffs,
-      double& residuals) const;
+      vector<float>& coeffs,
+      float& residuals) const;
 
     void bestMatch(
-      const vector<double>& times,
+      const vector<float>& times,
       const TrainDB& trainDB,
       const Control& control,
       vector<Alignment>& matches,

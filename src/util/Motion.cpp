@@ -25,7 +25,7 @@ void Motion::reset()
 }
 
 
-void Motion::setEstimate(const vector<double>& coeffs)
+void Motion::setEstimate(const vector<float>& coeffs)
 {
   // The regression coefficients are of the form:
   //   position = c2 * time^2 + c1 * time + c0.
@@ -37,22 +37,22 @@ void Motion::setEstimate(const vector<double>& coeffs)
   
   estimate[0] = coeffs[0];
   estimate[1] = coeffs[1];
-  estimate[2] = 2. * coeffs[2];
+  estimate[2] = 2.f * coeffs[2];
 }
 
 
 string Motion::strLine(
   const string& text,
-  const double act,
-  const double est) const
+  const float act,
+  const float est) const
 {
-  double dev;
+  float dev;
   if (act == 0.)
     dev = 0.;
   else
   {
-    const double f = (act - est) / act;
-    dev = 100. * (f >= 0. ? f : -f);
+    const float f = (act - est) / act;
+    dev = 100.f * (f >= 0. ? f : -f);
   }
 
   stringstream ss;

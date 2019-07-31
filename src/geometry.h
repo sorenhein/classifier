@@ -17,7 +17,7 @@ bool nameMatch(
   const string& searchString);
 
 void dumpResiduals(
-  const vector<double>& times,
+  const vector<float>& times,
   const TrainDB& trainDB,
   const unsigned order,
   const vector<Alignment>& matches,

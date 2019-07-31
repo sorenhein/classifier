@@ -33,10 +33,10 @@ class PolynomialRegression
     ~PolynomialRegression();
 
     bool fitIt(
-      const vector<double> & x,
-      const vector<double> & y,
-      const int &order,
-      vector<double>& coeffs);
+      const vector<float>& x,
+      const vector<float>& y,
+      const int order,
+      vector<float>& coeffs);
 };
 
 #endif

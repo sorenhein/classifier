@@ -331,12 +331,12 @@ cout << peaks.strCounts();
   Motion motion;
 
 
-  vector<double> times;
+  vector<float> times;
   vector<int> actualToRef;
   unsigned numFrontWheels;
 
 
-  vector<double> posTrue;
+  vector<float> posTrue;
 
       
 

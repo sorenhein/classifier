@@ -8,7 +8,7 @@
 #include "Except.h"
 
 
-#define SAMPLE_RATE 2000.
+#define SAMPLE_RATE 2000.f
 
 
 Peaks::Peaks()
@@ -470,7 +470,7 @@ float Peaks::getFirstPeakTime(const PeakFncPtr& fptr) const
 
 void Peaks::getTimes(
   const PeakFncPtr& fptr,
-  vector<double>& times) const
+  vector<float>& times) const
 {
   times.clear();
   const float t0 = Peaks::getFirstPeakTime(fptr);

@@ -1,3 +1,20 @@
+Alignment
+---------
+Work on Regress
+- matches not so much in run.cpp, return & if needed
+- outputs in Regress.cpp, as str() from Regress
+- Align.cpp: get rid of Imperf
+
+Rename PeakMinima to PeakLabel
+
+Old plan for Align.cpp:
+- Pass in a more elaborate alignment struct
+  - numFrontWheels as before, in case nothing else suits
+  - struct: noObs, noRef, flag
+  - One for the first, middle and last peak that we assume
+
+tabulate files.xlsx
+
 Filter
 ------
 * The new integrating filter works about as well in float and double.
@@ -9,18 +26,9 @@ Errors:
 * Fixing a section other than 0 causes segfaults
 
 
-
-Rename PeakMinima to PeakLabel
-
-
 continue with run.cpp
 ---------------------
-Split SegActive into filter and detect
-
-get rid of Imperf
 global array of output files, indexed by thid
-
-tabulate files.xlsx
 output not to cout but to files there
 only output timing to cout
 reover.pl to summarize from there instead
@@ -80,7 +88,7 @@ PeakPiece:
 Do we need summary(), modality()?
 
 Odd lengths
--  1: 11.5 out of 14 cars
+-  1: 11.5 out of 14 cars (too long transient?!)
 -  1: 12 out of 14 cars
 -  1: 60 out of 56 peaks?
 
@@ -103,14 +111,6 @@ Vision:
   - speed of train
   - physics of switch
 
-
-Plan 2019-04-15
----------------
-Align.cpp
-- Pass in a more elaborate alignment struct
-  - numFrontWheels as before, in case nothing else suits
-  - struct: noObs, noRef, flag
-  - One for the first, middle and last peak that we assume
 
 Plan 2019-02-27
 ---------------
@@ -219,13 +219,6 @@ Give out the whole PeakList, don't copy into PeakTime?
 ----------
 Maybe transients can be reduced with filter padding as in filtfilt.
 
-
-2018-09-02
-----------
-* Add separate timers for pre-align and align
-* And for peak extraction
-
-* Clean up driver.cpp
 
 2018-07-17
 ----------

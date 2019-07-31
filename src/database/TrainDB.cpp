@@ -232,14 +232,14 @@ bool TrainDB::isInCountry(
 
 void TrainDB::getPeakPositions(
   const unsigned trainNo,
-  vector<double>& peakPositions) const
+  vector<float>& peakPositions) const
 {
   assert(trainNo < entries.size());
   const vector<int>& axles = entries[trainNo].getIntVector(TRAIN_AXLES);
 
   peakPositions.clear();
   for (int p: axles)
-    peakPositions.push_back(p / 1000.); // In m
+    peakPositions.push_back(p / 1000.f); // In m
 }
 
 

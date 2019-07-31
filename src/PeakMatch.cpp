@@ -13,7 +13,7 @@
 // A measure (in s) of how close we would like real and seen peaks
 // to be, for purposes of guessing the right shift between seen and
 // true peaks.
-#define TIME_PROXIMITY 0.03
+#define TIME_PROXIMITY 0.03f
 
 // This fraction of the seen peaks should count in the sipmle score.
 // Effectively this fraction of the peaks must match up in order for
@@ -45,12 +45,12 @@ void PeakMatch::reset()
 
 
 void PeakMatch::pos2time(
-  const vector<double>& posTrue, 
+  const vector<float>& posTrue, 
   const double speed,
-  vector<double>& timesTrue) const
+  vector<float>& timesTrue) const
 {
   for (unsigned i = 0; i < posTrue.size(); i++)
-    timesTrue[i] = posTrue[i] / speed;
+    timesTrue[i] = posTrue[i] / static_cast<float>(speed);
 }
 
 
@@ -62,11 +62,11 @@ bool PeakMatch::advance(list<PeakWrapper>::iterator& peak) const
 }
 
 
-double PeakMatch::simpleScore(
-  const vector<double>& timesTrue,
-  const double offsetScore,
+float PeakMatch::simpleScore(
+  const vector<float>& timesTrue,
+  const float offsetScore,
   const bool logFlag,
-  double& shift)
+  float& shift)
 {
   // This is similar to Align::simpleScore.
   // For each true peak, we find the closest seen peak.
@@ -81,18 +81,18 @@ double PeakMatch::simpleScore(
     THROW(ERR_ALGO_PEAK_MATCH, "No peaks present or selected");
 
   list<PeakWrapper>::iterator peakBest, peakPrev;
-  double score = 0.;
+  float score = 0.f;
   unsigned numScores = 0;
 
   for (unsigned tno = 0; tno < timesTrue.size(); tno++)
   {
-    const double timeTrue = timesTrue[tno];
-    double timeSeen = (peak == peaksWrapped.end() ?
-      peakPrev->peakPtr->getTime() :
-      peak->peakPtr->getTime()) - offsetScore;
+    const float timeTrue = timesTrue[tno];
+    float timeSeen = (peak == peaksWrapped.end() ?
+      static_cast<float>(peakPrev->peakPtr->getTime()) :
+      static_cast<float>(peak->peakPtr->getTime())) - offsetScore;
 
-    double d = timeSeen - timeTrue;
-    double dabs = TIME_PROXIMITY;
+    float d = timeSeen - timeTrue;
+    float dabs = TIME_PROXIMITY;
     if (d >= 0.)
     {
       dabs = d;
@@ -105,11 +105,11 @@ double PeakMatch::simpleScore(
     }
     else
     {
-      double dleft = numeric_limits<double>::max();
-      double dright = numeric_limits<double>::max();
+      float dleft = numeric_limits<float>::max();
+      float dright = numeric_limits<float>::max();
       while (PeakMatch::advance(peak))
       {
-        timeSeen = peak->peakPtr->getTime() - offsetScore;
+        timeSeen = static_cast<float>(peak->peakPtr->getTime()) - offsetScore;
         dright = timeSeen - timeTrue;
         if (dright >= 0.)
           break;
@@ -129,7 +129,8 @@ double PeakMatch::simpleScore(
       }
       else 
       {
-        dleft = timeTrue - (peakPrev->peakPtr->getTime() - offsetScore);
+        dleft = timeTrue - (static_cast<float>(peakPrev->peakPtr->getTime()) 
+          - offsetScore);
         if (dleft <= dright)
         {
           dabs = dleft;
@@ -172,8 +173,8 @@ double PeakMatch::simpleScore(
 
 void PeakMatch::setOffsets(
   const PeakPool& peaks,
-  const vector<double>& timesTrue,
-  vector<double>& offsetList) const
+  const vector<float>& timesTrue,
+  vector<float>& offsetList) const
 {
   const unsigned lp = peaks.topConst().size();
   const unsigned lt = timesTrue.size();
@@ -194,7 +195,7 @@ void PeakMatch::setOffsets(
     }
     while (peak != peaks.topConst().cbegin() && ! peak->isSelected());
 
-    offsetList[i] = peak->getTime() - timesTrue[lt-1];
+    offsetList[i] = static_cast<float>(peak->getTime()) - timesTrue[lt-1];
   }
 
   peak = peaks.topConst().cend();
@@ -204,7 +205,7 @@ void PeakMatch::setOffsets(
   }
   while (peak != peaks.topConst().cbegin() && ! peak->isSelected());
 
-  const double lastTime = peak->getTime();
+  const float lastTime = static_cast<float>(peak->getTime());
 
   for (unsigned i = 1; i <= MAX_SHIFT_TRUE; i++)
     offsetList[MAX_SHIFT_SEEN+i] = timesTrue[lt-1-i] - lastTime;
@@ -213,19 +214,19 @@ void PeakMatch::setOffsets(
 
 bool PeakMatch::findMatch(
   const PeakPool& peaks,
-  const vector<double>& timesTrue,
-  double& shift)
+  const vector<float>& timesTrue,
+  float& shift)
 {
-  vector<double> offsetList;
+  vector<float> offsetList;
   PeakMatch::setOffsets(peaks, timesTrue, offsetList);
 
-  double score = 0.;
+  float score = 0.f;
   unsigned ino = 0;
   shift = 0.;
   for (unsigned i = 0; i < offsetList.size(); i++)
   {
-    double shiftNew = 0.;
-    double scoreNew = 
+    float shiftNew = 0.f;
+    float scoreNew = 
       PeakMatch::simpleScore(timesTrue, offsetList[i], false, shiftNew);
 
 cout << "SCORE i " << i << " " << shiftNew << " " << scoreNew << endl;
@@ -240,14 +241,14 @@ cout << "SCORE i " << i << " " << shiftNew << " " << scoreNew << endl;
   // We detected a shift from the offset in the list above.
   // We compensate for this and do a final calcuation.
   shift += offsetList[ino];
-  double tmp;
+  float tmp;
   score = PeakMatch::simpleScore(timesTrue, shift, true, tmp);
 
   return (score >= SCORE_CUTOFF * timesTrue.size());
 }
 
 
-void PeakMatch::correctTimesTrue(vector<double>& timesTrue) const
+void PeakMatch::correctTimesTrue(vector<float>& timesTrue) const
 {
   const unsigned lt = timesTrue.size();
 
@@ -276,11 +277,11 @@ void PeakMatch::correctTimesTrue(vector<double>& timesTrue) const
   // Line up the ending peaks, assuming that any missing peaks
   // are at the beginning.
 
-  const double factor = 
-    (peakLast->getTime() - peakFirst->getTime()) /
+  const float factor = 
+    static_cast<float>((peakLast->getTime() - peakFirst->getTime())) /
     (timesTrue[lt-1] - timesTrue[lt-lp]);
 
-  const double base = timesTrue[0];
+  const float base = timesTrue[0];
   for (auto& t: timesTrue)
     t = (t - base) * factor + base;
 }
@@ -288,7 +289,7 @@ void PeakMatch::correctTimesTrue(vector<double>& timesTrue) const
 
 void PeakMatch::logPeakStats(
   const PeakPool& peaks,
-  const vector<double>& posTrue,
+  const vector<float>& posTrue,
   const string& trainTrue,
   const double speedTrue,
   PeakStats& peakStats)
@@ -300,7 +301,7 @@ void PeakMatch::logPeakStats(
   const unsigned lt = posTrue.size();
 
   // Scale true positions to true times.
-  vector<double> timesTrue;
+  vector<float> timesTrue;
   timesTrue.resize(lt);
   PeakMatch::pos2time(posTrue, speedTrue, timesTrue);
 
@@ -322,7 +323,7 @@ void PeakMatch::logPeakStats(
   }
 
   // Find a good line-up.
-  double shift = 0.;
+  float shift = 0.;
   if (! PeakMatch::findMatch(peaks, timesTrue, shift))
   {
     // Could be that the "true" speed is off enough to cause a
@@ -444,7 +445,7 @@ void PeakMatch::logPeakStats(
 
 void PeakMatch::printPeaks(
   const PeakPool& peaks,
-  const vector<double>& timesTrue) const
+  const vector<float>& timesTrue) const
 {
   cout << "true\n";
   for (unsigned i = 0; i < timesTrue.size(); i++)

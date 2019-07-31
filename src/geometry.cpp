@@ -19,7 +19,7 @@ bool nameMatch(
 
 
 void dumpResiduals(
-  const vector<double>& times,
+  const vector<float>& times,
   const TrainDB& trainDB,
   const unsigned order,
   const vector<Alignment>& matches,
@@ -36,9 +36,9 @@ void dumpResiduals(
   }
 
   Regress regress;
-  vector<double> coeffs(order+1);
-  double residuals;
-  vector<double> posTrue;
+  vector<float> coeffs(order+1);
+  float residuals;
+  vector<float> posTrue;
 // const unsigned numTrue = db.lookupTrainNumber(trainTrue);
 // db.getPerfectPeaks(numTrue, posTrue);
 
@@ -54,10 +54,10 @@ void dumpResiduals(
 
     regress.specificMatch(times, trainDB, ma, coeffs, residuals);
 
-    vector<double> pos(numWheels, 0.);
+    vector<float> pos(numWheels, 0.f);
     for (unsigned i = 0; i < times.size(); i++)
     {
-      const double t = times[i];
+      const float t = times[i];
       const int j = ma.actualToRef[i];
       if (j != -1) 
         pos[static_cast<unsigned>(j)] = 

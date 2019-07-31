@@ -10,9 +10,9 @@ using namespace std;
 struct RegrEntry
 {
   unsigned index;
-  double value;
-  double valueSq;
-  double frac;
+  float value;
+  float valueSq;
+  float frac;
 
   bool operator < (const RegrEntry& regr2)
   {
@@ -26,8 +26,8 @@ struct Alignment
   string trainName;
   unsigned trainNo;
 
-  double dist;
-  double distMatch;
+  float dist;
+  float distMatch;
 
   unsigned numAdd;
   unsigned numDelete;

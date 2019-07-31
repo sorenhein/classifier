@@ -725,7 +725,7 @@ void PeakStructure::pushPeak(
   Peak const * pptr,
   const float tOffset,
   int& pnoNext,
-  vector<double>& times,
+  vector<float>& times,
   vector<int>& actualToRef) const
 {
   // TODO times and actualRef should be a struct with this method
@@ -743,7 +743,7 @@ void PeakStructure::pushPeak(
 
 
 bool PeakStructure::getAlignment(
-  vector<double>& times,
+  vector<float>& times,
   vector<int>& actualToRef,
   unsigned& numFrontWheels)
 {
