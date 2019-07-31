@@ -1,6 +1,4 @@
 #include <iostream>
-#include <iomanip>
-#include <fstream>
 #include <sstream>
 #include <algorithm>
 #include <limits>
@@ -8,14 +6,14 @@
 #include "Regress.h"
 #include "Except.h"
 
-#include "database/TrainDB.h"
-#include "database/Control.h"
-
 #include "align/Alignment.h"
 
-#include "util/Motion.h"
+#include "database/Control.h"
+#include "database/TrainDB.h"
 
 #include "regress/PolynomialRegression.h"
+
+#include "util/Motion.h"
 
 
 Regress::Regress()
@@ -103,13 +101,10 @@ void Regress::specificMatch(
 
 
 void Regress::bestMatch(
-  const vector<float>& times,
   const TrainDB& trainDB,
-  const Control& control,
+  const vector<float>& times,
   vector<Alignment>& matches) const
 {
-  // PolynomialRegression pol;
-
   float bestDist = numeric_limits<float>::max();
 
   for (auto& ma: matches)
@@ -118,38 +113,44 @@ void Regress::bestMatch(
     if (ma.distOther > bestDist)
       continue;
 
-    const vector<float>& refPeaks =
-      trainDB.getPeakPositions(ma.trainNo);
-
-// cout << db.lookupTrainName(ma.trainNo) << "\n";
-
-    Regress::specificMatch(times, refPeaks, ma);
-
-    ma.setTopResiduals();
+    Regress::specificMatch(times, trainDB.getPeakPositions(ma.trainNo), ma);
 
     if (ma.dist < bestDist)
       bestDist = ma.dist;
+
+    ma.setTopResiduals();
   }
 
   sort(matches.begin(), matches.end());
-  auto& bestAlign = matches.front();
+}
 
-  cout << "Matching alignment\n";
-  for (auto& match: matches)
-    cout << match.str();
-  cout << "\n";
+
+string Regress::str(
+  const Control& control,
+  const vector<Alignment>& matches) const
+{
+  stringstream ss;
+
+  const auto& bestAlign = matches.front();
 
   if (control.verboseRegressMatch())
   {
-    cout << "Regression alignment\n";
-    cout << bestAlign.str();
-    cout << endl;
+    ss << "Matching alignment\n";
+    for (auto& match: matches)
+      ss << match.str();
+    ss << "\n";
+
+    ss << "Regression alignment\n";
+    ss << bestAlign.str();
+    ss << endl;
   }
 
   if (control.verboseRegressMotion())
-    cout << bestAlign.motion.strEstimate("Regression motion");
+    ss << bestAlign.motion.strEstimate("Regression motion");
 
-  cout << bestAlign.strTopResiduals();
+  if (control.verboseRegressTopResiduals())
+    ss << bestAlign.strTopResiduals();
+  
+  return ss.str();
 }
-
 

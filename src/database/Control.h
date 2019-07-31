@@ -86,7 +86,8 @@ enum ControlVerbose
   CTRL_VERBOSE_ALIGN_PEAKS = 2,
   CTRL_VERBOSE_REGRESS_MATCH = 3,
   CTRL_VERBOSE_REGRESS_MOTION = 4,
-  CTRL_VERBOSE_PEAK_REDUCE = 5
+  CTRL_VERBOSE_REGRESS_TOPS = 5,
+  CTRL_VERBOSE_PEAK_REDUCE = 6
 };
 
 
@@ -172,6 +173,7 @@ class Control
     bool verboseAlignPeaks() const;
     bool verboseRegressMatch() const;
     bool verboseRegressMotion() const;
+    bool verboseRegressTopResiduals() const;
     bool verbosePeakReduce() const;
 };
 

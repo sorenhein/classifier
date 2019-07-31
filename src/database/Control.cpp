@@ -141,14 +141,15 @@ void Control::configure()
       "0x10: pos\n"
       "0x20: peak\n"
       "0x40: outline" },
-    { "-v", "--verbose", CORRESPONDENCE_BIT_VECTOR, CTRL_VERBOSE, "0x1b",
-      "Verbosity (default: 0x1b).  Bits:\n"
+    { "-v", "--verbose", CORRESPONDENCE_BIT_VECTOR, CTRL_VERBOSE, "0x3b",
+      "Verbosity (default: 0x3b).  Bits:\n"
       "0x01: Transient match\n"
       "0x02: Align matches\n"
       "0x04: Align peaks\n"
       "0x08: Regress match\n"
       "0x10: Regress motion\n"
-      "0x20: Reduce peaks" }
+      "0x20: Regress tops\n"
+      "0x40: Reduce peaks" }
   };
 
   entry.init(fieldCounts);
@@ -430,6 +431,12 @@ bool Control::verboseRegressMatch() const
 bool Control::verboseRegressMotion() const
 {
   return (entry.getIntVector(CTRL_VERBOSE)[CTRL_VERBOSE_REGRESS_MOTION] != 0);
+}
+
+
+bool Control::verboseRegressTopResiduals() const
+{
+  return (entry.getIntVector(CTRL_VERBOSE)[CTRL_VERBOSE_REGRESS_TOPS] != 0);
 }
 
 

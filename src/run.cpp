@@ -381,8 +381,10 @@ cout << "Got " << times.size() << " peaks, " <<
 
     timers[thid].start(TIMER_REGRESS);
 
-    regress.bestMatch(times, trainDB, control, matchesAlign);
+    regress.bestMatch(trainDB, times, matchesAlign);
     const auto& bestAlign = matchesAlign.front();
+
+    cout << regress.str(control, matchesAlign);
 
     timers[thid].stop(TIMER_REGRESS);
 

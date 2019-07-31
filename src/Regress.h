@@ -4,14 +4,11 @@
 #include <vector>
 #include <string>
 
-#include "struct.h"
-
 using namespace std;
 
-class TrainDB;
 class Control;
+class TrainDB;
 struct Alignment;
-struct Motion;
 
 
 class Regress
@@ -21,17 +18,6 @@ class Regress
     float time2pos(
       const float& time,
       const vector<float>& coeffs) const;
-
-    float residuals(
-      const vector<float>& x,
-      const vector<float>& y,
-      const vector<float>& coeffs) const;
-
-    void summarizeResiduals(
-      const vector<float>& times,
-      const vector<float>& refPeaks,
-      const vector<float>& coeffs,
-      Alignment& match) const;
 
 
   public:
@@ -46,11 +32,13 @@ class Regress
       Alignment& match) const;
 
     void bestMatch(
-      const vector<float>& times,
       const TrainDB& trainDB,
-      const Control& control,
+      const vector<float>& times,
       vector<Alignment>& matches) const;
 
+    string str(
+      const Control& control,
+      const vector<Alignment>& matches) const;
 };
 
 #endif
