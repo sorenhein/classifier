@@ -49,8 +49,7 @@ class Regress
       const vector<float>& times,
       const TrainDB& trainDB,
       const Control& control,
-      vector<Alignment>& matches,
-      Alignment& bestAlign) const;
+      vector<Alignment>& matches) const;
 
 };
 

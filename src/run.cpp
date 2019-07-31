@@ -326,7 +326,7 @@ cout << peaks.strCounts();
   Regress regress;
 
   vector<Alignment> matchesAlign;
-  Alignment bestAlign;
+  // Alignment bestAlign;
   
 
   vector<float> times;
@@ -381,7 +381,8 @@ cout << "Got " << times.size() << " peaks, " <<
 
     timers[thid].start(TIMER_REGRESS);
 
-    regress.bestMatch(times, trainDB, control, matchesAlign, bestAlign);
+    regress.bestMatch(times, trainDB, control, matchesAlign);
+    const auto& bestAlign = matchesAlign.front();
 
     timers[thid].stop(TIMER_REGRESS);
 

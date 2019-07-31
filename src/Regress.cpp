@@ -106,10 +106,9 @@ void Regress::bestMatch(
   const vector<float>& times,
   const TrainDB& trainDB,
   const Control& control,
-  vector<Alignment>& matches,
-  Alignment& bestAlign) const
+  vector<Alignment>& matches) const
 {
-  PolynomialRegression pol;
+  // PolynomialRegression pol;
 
   float bestDist = numeric_limits<float>::max();
 
@@ -133,7 +132,7 @@ void Regress::bestMatch(
   }
 
   sort(matches.begin(), matches.end());
-  bestAlign = matches.front();
+  auto& bestAlign = matches.front();
 
   cout << "Matching alignment\n";
   for (auto& match: matches)
@@ -152,4 +151,5 @@ void Regress::bestMatch(
 
   cout << bestAlign.strTopResiduals();
 }
+
 
