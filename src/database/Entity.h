@@ -159,6 +159,7 @@ class Entity
       const double d);
 
     void reverseIntVector(const unsigned no);
+    void reverseFloatVector(const unsigned no);
 
     string usage(
       const string& basename,

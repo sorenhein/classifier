@@ -61,9 +61,8 @@ float Regress::residuals(
 void Regress::specificMatch(
   const vector<float>& times,
   const vector<float>& refPeaks,
-  const Alignment& match,
-  vector<float>& coeffs,
-  float& residuals) const
+  Alignment& match,
+  vector<float>& coeffs) const
 {
   PolynomialRegression pol;
   vector<float> x, y;
@@ -94,8 +93,35 @@ void Regress::specificMatch(
 
   // Normalize the distance score to a 200m long train.
   const float peakScale = 200.f * 200.f / (trainLength * trainLength);
+
+  // Store the residuals.
+  match.distMatch = 0.f;
+  match.residuals.resize(lcommon);
+  for (unsigned i = 0, p = 0; i < lt; i++)
+  {
+    if (match.actualToRef[i] >= 0)
+    {
+      const float pos = Regress::time2pos(x[p], coeffs);
+      const float res = y[p] - pos;
+
+      match.residuals[p].index = i;
+      match.residuals[p].value = res;
+      match.residuals[p].valueSq = peakScale * res * res;
+
+      match.distMatch += match.residuals[p].valueSq;
+
+      p++;
+    }
+  }
+
+  /*
   residuals = peakScale * 
     Regress::residuals(x, y, coeffs);
+
+  const float r = residuals / match.distMatch2;
+  if (r < 0.999f || r > 1.001f)
+    cout << "RESDIFF\n";
+    */
 }
 
 
@@ -161,7 +187,6 @@ void Regress::bestMatch(
   PolynomialRegression pol;
 
   vector<float> coeffs(motion.order+1);
-  float residuals;
 
   float bestDist = numeric_limits<float>::max();
 
@@ -173,18 +198,15 @@ void Regress::bestMatch(
       continue;
     }
 
-    // const vector<float>& refPeaks =
-      // trainDB.getPeakPositions(ma.trainNo);
-    vector<float> refPeaks;
-    trainDB.getPeakPositionsOld(ma.trainNo, refPeaks);
+    const vector<float>& refPeaks =
+      trainDB.getPeakPositions(ma.trainNo);
 
 // cout << db.lookupTrainName(ma.trainNo) << "\n";
 
-    Regress::specificMatch(times, refPeaks, ma, coeffs, residuals);
+    Regress::specificMatch(times, refPeaks, ma, coeffs);
     Regress::summarizeResiduals(times, refPeaks, coeffs, ma);
 
-    ma.dist += residuals - ma.distMatch;
-    ma.distMatch = residuals;
+    ma.dist = ma.distMatch + ma.distOther;
 
     if (ma.dist < bestDist)
     {

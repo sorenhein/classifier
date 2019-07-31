@@ -538,6 +538,19 @@ void Entity::reverseIntVector(const unsigned no)
 }
 
 
+void Entity::reverseFloatVector(const unsigned no)
+{
+  assert(no < floatVectors.size());
+  vector<float> posOrig = floatVectors[no];
+  vector<float>& pos = floatVectors[no];
+
+  const float pLast = pos.back();
+  const unsigned la = pos.size();
+  for (unsigned i = 0; i < la; i++)
+    pos[i] = pLast - posOrig[la-i-1];
+}
+
+
 string Entity::usage(
   const string& basename,
   const list<CommandLineEntry>& arguments) const

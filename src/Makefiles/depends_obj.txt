@@ -13,16 +13,15 @@ Except.obj: Except.h errors.h
 Peak.obj: Peak.h struct.h util/Gap.h Except.h errors.h
 Peaks.obj: Peaks.h Peak.h struct.h Except.h errors.h
 PeakDetect.obj: PeakDetect.h Peak.h struct.h PeakPool.h Peaks.h PeakPtrs.h
-PeakDetect.obj: CarPeaks.h PeakStructure.h CarDetect.h CarGaps.h PeakRange.h
-PeakDetect.obj: PeakProfile.h CarModels.h PeakSeeds.h PeakMinima.h
-PeakDetect.obj: PeakPieces.h PeakPiece.h PeakMatch.h Except.h errors.h
+PeakDetect.obj: CarPeaks.h PeakStructure.h CarDetect.h CarGaps.h CarModels.h
+PeakDetect.obj: PeakRange.h PeakProfile.h PeakMatch.h Except.h errors.h
 PeakDetect.obj: database/Control.h database/Entity.h stats/PeakStats.h
 PeakDetect.obj: util/io.h
 PeakMatch.obj: PeakMatch.h Peak.h struct.h PeakPool.h Peaks.h PeakPtrs.h
 PeakMatch.obj: CarPeaks.h stats/PeakStats.h Except.h errors.h
 PeakMinima.obj: Peak.h struct.h PeakMinima.h PeakPool.h Peaks.h PeakPtrs.h
-PeakMinima.obj: CarPeaks.h PeakPieces.h PeakPiece.h Except.h errors.h
-PeakMinima.obj: util/Gap.h
+PeakMinima.obj: CarPeaks.h PeakPieces.h PeakPiece.h PeakSeeds.h Except.h
+PeakMinima.obj: errors.h util/Gap.h
 PeakPattern.obj: PeakPattern.h PeakRange.h PeakProfile.h struct.h PeakPool.h
 PeakPattern.obj: Peaks.h Peak.h PeakPtrs.h CarPeaks.h
 PeakPattern.obj: completions/Completions.h completions/Completion.h
@@ -44,24 +43,25 @@ PeakSpacing.obj: CarModels.h CarDetect.h CarGaps.h Peak.h struct.h CarPeaks.h
 PeakSpacing.obj: PeakSpacing.h PeakRange.h PeakProfile.h PeakPool.h Peaks.h
 PeakSpacing.obj: PeakPtrs.h Except.h errors.h
 PeakStructure.obj: PeakStructure.h CarDetect.h CarGaps.h Peak.h struct.h
-PeakStructure.obj: CarPeaks.h PeakPool.h Peaks.h PeakPtrs.h PeakRange.h
-PeakStructure.obj: PeakProfile.h PeakPattern.h completions/Completions.h
-PeakStructure.obj: completions/Completion.h completions/PeakCompletion.h
-PeakStructure.obj: PeakSpacing.h CarModels.h Except.h errors.h
+PeakStructure.obj: CarPeaks.h CarModels.h PeakPool.h Peaks.h PeakPtrs.h
+PeakStructure.obj: PeakRange.h PeakProfile.h PeakPattern.h
+PeakStructure.obj: completions/Completions.h completions/Completion.h
+PeakStructure.obj: completions/PeakCompletion.h PeakSpacing.h Except.h
+PeakStructure.obj: errors.h
 Regress.obj: Regress.h struct.h Except.h errors.h database/TrainDB.h
 Regress.obj: database/Entity.h database/Control.h align/Alignment.h
-Regress.obj: util/Motion.h regress/PolynomialRegression.h stats/Timers.h
-Regress.obj: stats/Timer.h
+Regress.obj: util/Motion.h regress/PolynomialRegression.h
 geometry.obj: database/TrainDB.h database/Entity.h Regress.h struct.h
 geometry.obj: geometry.h align/Alignment.h
 run.obj: transient/Transient.h transient/trans.h transient/Quiet.h
 run.obj: transient/QuietData.h PeakDetect.h Peak.h struct.h PeakPool.h
 run.obj: Peaks.h PeakPtrs.h CarPeaks.h PeakStructure.h CarDetect.h CarGaps.h
-run.obj: PeakRange.h PeakProfile.h CarModels.h database/TraceDB.h
-run.obj: database/Entity.h database/TrainDB.h database/Control.h
-run.obj: filter/Filter.h stats/CompStats.h stats/PeakStats.h stats/Timers.h
-run.obj: stats/Timer.h Regress.h Align.h align/Alignment.h Except.h errors.h
-run.obj: geometry.h run.h util/io.h util/Motion.h
+run.obj: CarModels.h PeakRange.h PeakProfile.h PeakSeeds.h PeakMinima.h
+run.obj: PeakPieces.h PeakPiece.h database/TraceDB.h database/Entity.h
+run.obj: database/TrainDB.h database/Control.h filter/Filter.h
+run.obj: stats/CompStats.h stats/PeakStats.h stats/Timers.h stats/Timer.h
+run.obj: Regress.h Align.h align/Alignment.h Except.h errors.h geometry.h
+run.obj: run.h util/io.h util/Motion.h
 setup.obj: database/SensorDB.h database/Entity.h database/CarDB.h
 setup.obj: database/CorrectionDB.h database/TrainDB.h database/TraceDB.h
 setup.obj: database/Control.h setup.h util/io.h
@@ -89,9 +89,7 @@ database/TrainDB.obj: database/CarDB.h database/Entity.h
 database/TrainDB.obj: database/CorrectionDB.h database/TrainDB.h
 database/TrainDB.obj: database/parse.h
 database/parse.obj: database/parse.h
-filter/Filter.obj: filter/Filter.h const.h Except.h errors.h
-filter/Filter.obj: database/Control.h database/Entity.h util/io.h
-filter/Filter.obj: stats/Timers.h stats/Timer.h
+filter/Filter.obj: filter/Filter.h const.h Except.h errors.h util/io.h
 stats/CompStats.obj: stats/CompStats.h const.h
 stats/PeakStats.obj: stats/PeakStats.h util/misc.h struct.h
 stats/Timer.obj: stats/Timer.h

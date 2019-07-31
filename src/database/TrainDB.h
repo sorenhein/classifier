@@ -108,10 +108,6 @@ class TrainDB
     // In m
     const vector<float>& getPeakPositions(const unsigned trainNo) const;
 
-    void getPeakPositionsOld(
-      const unsigned trainNo,
-      vector<float>& positions) const;
-
     bool selectByAxles(
       const list<string>& countries,
       const unsigned minAxles,

@@ -4,6 +4,9 @@
 #include <vector>
 #include <string>
 
+#include "../util/Motion.h"
+
+
 using namespace std;
 
 
@@ -27,12 +30,17 @@ struct Alignment
   unsigned trainNo;
 
   float dist;
+  float distOther;
   float distMatch;
 
   unsigned numAdd;
   unsigned numDelete;
 
   vector<int> actualToRef;
+
+  Motion motion;
+
+  vector<RegrEntry> residuals;
 
   vector<RegrEntry> topResiduals;
 

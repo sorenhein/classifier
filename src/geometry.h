@@ -20,7 +20,7 @@ void dumpResiduals(
   const vector<float>& times,
   const TrainDB& trainDB,
   const unsigned order,
-  const vector<Alignment>& matches,
+  vector<Alignment>& matches,
   const string& heading,
   const string& trainTrue,
   const string& trainSelect,

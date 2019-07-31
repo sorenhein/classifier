@@ -173,6 +173,7 @@ bool TrainDB::readFile(
     entry.getString(TRAIN_OFFICIAL_NAME) = officialName + "_R";
     entry.setBool(TRAIN_REVERSED, true);
     entry.reverseIntVector(TRAIN_AXLES);
+    entry.reverseFloatVector(TRAIN_POSITIONS);
     offTrainMap[entry.getString(TRAIN_OFFICIAL_NAME)] = entries.size();
     entries.push_back(entry);
   }
@@ -240,19 +241,6 @@ const vector<float>& TrainDB::getPeakPositions(const unsigned trainNo) const
 {
   assert(trainNo < entries.size());
   return entries[trainNo].getFloatVector(TRAIN_POSITIONS);
-}
-
-
-void TrainDB::getPeakPositionsOld(
-  const unsigned trainNo,
-  vector<float>& positions) const
-{
-  assert(trainNo < entries.size());
-  const vector<int>& axles = entries[trainNo].getIntVector(TRAIN_AXLES);
-
-  positions.clear();
-  for (int p: axles)
-    positions.push_back(p / 1000.f); // In m
 }
 
 

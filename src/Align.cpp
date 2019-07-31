@@ -204,6 +204,8 @@ void Align::NeedlemanWunsch(
   // If it's more than "average", go with (3, 1), otherwise (2, 0).
   alignment.dist += shift.firstRefNo * EARLY_SHIFTS_PENALTY +
     shift.firstTimeNo * EARLY_SHIFTS_PENALTY;
+
+  alignment.distOther = alignment.dist - alignment.distMatch;
   
   UNUSED(imperf);
 }
@@ -741,10 +743,8 @@ void Align::bestMatches(
     if (! trainDB.isInCountry(refTrainNoU, country))
       continue;
 
-    // const vector<float>& refPeaks =
-      // trainDB.getPeakPositions(refTrainNoU);
-    vector<float> refPeaks;
-    trainDB.getPeakPositionsOld(refTrainNoU, refPeaks);
+    const vector<float>& refPeaks =
+      trainDB.getPeakPositions(refTrainNoU);
 
 // cout << "refTrain " << refTrain << endl;
     const float trainLength = refPeaks.back() - refPeaks.front();
@@ -753,10 +753,7 @@ void Align::bestMatches(
       numFrontWheels, fullTrainFlag, shift, scaledPeaks);
 
     if (scaledPeaks.empty())
-    // {
-// cout << "empty\n";
       continue;
-    // }
 
     if (control.verboseAlignPeaks())
     {
