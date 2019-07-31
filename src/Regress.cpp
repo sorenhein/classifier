@@ -46,8 +46,7 @@ float Regress::time2pos(
 void Regress::specificMatch(
   const vector<float>& times,
   const vector<float>& refPeaks,
-  Alignment& match,
-  vector<float>& coeffs) const
+  Alignment& match) const
 {
   PolynomialRegression pol;
   vector<float> x, y;
@@ -74,7 +73,7 @@ void Regress::specificMatch(
     }
   }
 
-  pol.fitIt(x, y, 2, coeffs);
+  pol.fitIt(x, y, 2, match.motion.estimate);
 
   // Normalize the distance score to a 200m long train.
   const float peakScale = 200.f * 200.f / (trainLength * trainLength);
@@ -86,7 +85,7 @@ void Regress::specificMatch(
   {
     if (match.actualToRef[i] >= 0)
     {
-      const float pos = Regress::time2pos(x[p], coeffs);
+      const float pos = Regress::time2pos(x[p], match.motion.estimate);
       const float res = pos - y[p];
 
       match.residuals[p].index = static_cast<unsigned>(match.actualToRef[i]);
@@ -102,7 +101,7 @@ void Regress::specificMatch(
   match.dist = match.distMatch + match.distOther;
 }
 
-#define UNUSED(x) ((void)(true ? 0 : ((x), void(), 0)))
+
 void Regress::bestMatch(
   const vector<float>& times,
   const TrainDB& trainDB,
@@ -125,7 +124,7 @@ void Regress::bestMatch(
 
 // cout << db.lookupTrainName(ma.trainNo) << "\n";
 
-    Regress::specificMatch(times, refPeaks, ma, ma.motion.estimate);
+    Regress::specificMatch(times, refPeaks, ma);
 
     ma.setTopResiduals();
 

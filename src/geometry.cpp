@@ -53,7 +53,7 @@ void dumpResiduals(
 
     const vector<float>& refPeaks =
       trainDB.getPeakPositions(ma.trainNo);
-    regress.specificMatch(times, refPeaks, ma, coeffs);
+    regress.specificMatch(times, refPeaks, ma);
 
     vector<float> pos(numWheels, 0.f);
     for (unsigned i = 0; i < times.size(); i++)
@@ -62,7 +62,9 @@ void dumpResiduals(
       const int j = ma.actualToRef[i];
       if (j != -1) 
         pos[static_cast<unsigned>(j)] = 
-          coeffs[0] + coeffs[1] * t + coeffs[2] * t * t;
+          ma.motion.estimate[0] +
+          ma.motion.estimate[1] * t +
+          ma.motion.estimate[2] * t * t;
     }
 
     const vector<float>& posTrue = trainDB.getPeakPositions(ma.trainNo);
