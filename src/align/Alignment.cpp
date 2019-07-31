@@ -20,7 +20,7 @@ Alignment::~Alignment()
 
 void Alignment::reset()
 {
-  topResiduals2.clear();
+  topResiduals.clear();
 }
 
 
@@ -78,13 +78,13 @@ void Alignment::setTopResiduals()
     i++;
   }
 
-  topResiduals2.clear();
+  topResiduals.clear();
   if (last != numeric_limits<unsigned>::max())
   {
     for (i = 0; i <= last; i++)
     {
       residuals[i].frac = residuals[i].valueSq / distMatch;
-      topResiduals2.push_back(residuals[i]);
+      topResiduals.push_back(residuals[i]);
     }
   }
 
@@ -104,9 +104,9 @@ string Alignment::str() const
 }
 
 
-string Alignment::strTopResiduals2() const
+string Alignment::strTopResiduals() const
 {
-  if (topResiduals2.empty())
+  if (topResiduals.empty())
     return "";
 
   stringstream ss;
@@ -117,7 +117,7 @@ string Alignment::strTopResiduals2() const
     setw(8) << "valSq" <<
     setw(8) << "frac" << "\n";
 
-  for (auto& r: topResiduals2)
+  for (auto& r: topResiduals)
   {
     ss << 
       setw(6) << r.index <<

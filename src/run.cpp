@@ -328,8 +328,6 @@ cout << peaks.strCounts();
   vector<Alignment> matchesAlign;
   Alignment bestAlign;
   
-  Motion motion;
-
 
   vector<float> times;
   vector<int> actualToRef;
@@ -383,15 +381,15 @@ cout << "Got " << times.size() << " peaks, " <<
 
     timers[thid].start(TIMER_REGRESS);
 
-    regress.bestMatch(times, trainDB, control, matchesAlign,
-      bestAlign, motion);
+    regress.bestMatch(times, trainDB, control, matchesAlign, bestAlign);
 
     timers[thid].stop(TIMER_REGRESS);
 
     if (! control.pickAny().empty())
     {
       const string s = traceData.sensor + "/" + traceData.time;
-      dumpResiduals(times, trainDB, motion.order, matchesAlign, s, 
+      // dumpResiduals(times, trainDB, motion.order, matchesAlign, s, 
+      dumpResiduals(times, trainDB, 2, matchesAlign, s, 
         traceData.trainTrue, control.pickAny(), 
           trainDB.numAxles(traceData.trainNoTrueU));
     }

@@ -51,8 +51,7 @@ class Regress
       const TrainDB& trainDB,
       const Control& control,
       vector<Alignment>& matches,
-      Alignment& bestAlign,
-      Motion& motion) const;
+      Alignment& bestAlign) const;
 
 };
 

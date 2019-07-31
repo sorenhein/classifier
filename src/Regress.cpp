@@ -102,45 +102,35 @@ void Regress::specificMatch(
   match.dist = match.distMatch + match.distOther;
 }
 
-
+#define UNUSED(x) ((void)(true ? 0 : ((x), void(), 0)))
 void Regress::bestMatch(
   const vector<float>& times,
   const TrainDB& trainDB,
   const Control& control,
   vector<Alignment>& matches,
-  Alignment& bestAlign,
-  Motion& motion) const
+  Alignment& bestAlign) const
 {
   PolynomialRegression pol;
-
-  vector<float> coeffs(motion.order+1);
 
   float bestDist = numeric_limits<float>::max();
 
   for (auto& ma: matches)
   {
-    if (ma.dist - ma.distMatch > bestDist)
-    {
-      // Can never beat bestAlign.
+    // Can we still beat bestAlign?
+    if (ma.distOther > bestDist)
       continue;
-    }
 
     const vector<float>& refPeaks =
       trainDB.getPeakPositions(ma.trainNo);
 
 // cout << db.lookupTrainName(ma.trainNo) << "\n";
 
-    Regress::specificMatch(times, refPeaks, ma, coeffs);
+    Regress::specificMatch(times, refPeaks, ma, ma.motion.estimate);
 
     ma.setTopResiduals();
 
-    ma.dist = ma.distMatch + ma.distOther;
-
     if (ma.dist < bestDist)
-    {
       bestDist = ma.dist;
-      motion.setEstimate(coeffs);
-    }
   }
 
   sort(matches.begin(), matches.end());
@@ -159,8 +149,8 @@ void Regress::bestMatch(
   }
 
   if (control.verboseRegressMotion())
-    cout << motion.strEstimate("Regression motion");
+    cout << bestAlign.motion.strEstimate("Regression motion");
 
-  cout << bestAlign.strTopResiduals2();
+  cout << bestAlign.strTopResiduals();
 }
 

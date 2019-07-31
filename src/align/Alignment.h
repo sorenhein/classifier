@@ -42,7 +42,7 @@ struct Alignment
 
   vector<RegrEntry> residuals;
 
-  vector<RegrEntry> topResiduals2;
+  vector<RegrEntry> topResiduals;
 
 
   Alignment();
@@ -57,7 +57,7 @@ struct Alignment
 
   string str() const;
 
-  string strTopResiduals2() const;
+  string strTopResiduals() const;
 };
 
 #endif
