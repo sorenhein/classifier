@@ -1,5 +1,6 @@
 #include <iomanip>
 #include <sstream>
+#include <algorithm>
 
 #include "Alignment.h"
 
@@ -19,7 +20,7 @@ Alignment::~Alignment()
 
 void Alignment::reset()
 {
-  topResiduals.clear();
+  topResiduals2.clear();
 }
 
 
@@ -58,6 +59,38 @@ bool Alignment::operator < (const Alignment& a2) const
 }
 
 
+void Alignment::setTopResiduals()
+{
+  if (residuals.empty())
+    return;
+
+  sort(residuals.rbegin(), residuals.rend());
+
+  const unsigned lr = residuals.size();
+  const float average = distMatch / lr;
+
+  unsigned i = 0;
+  unsigned last = numeric_limits<unsigned>::max();
+  while (i+1 < lr && residuals[i].valueSq > 2. * average)
+  {
+    if (residuals[i].valueSq > residuals[i+1].valueSq + 0.5 * average)
+      last = i;
+    i++;
+  }
+
+  topResiduals2.clear();
+  if (last != numeric_limits<unsigned>::max())
+  {
+    for (i = 0; i <= last; i++)
+    {
+      residuals[i].frac = residuals[i].valueSq / distMatch;
+      topResiduals2.push_back(residuals[i]);
+    }
+  }
+
+}
+
+
 string Alignment::str() const
 {
   stringstream ss;
@@ -71,9 +104,9 @@ string Alignment::str() const
 }
 
 
-string Alignment::strTopResiduals() const
+string Alignment::strTopResiduals2() const
 {
-  if (topResiduals.empty())
+  if (topResiduals2.empty())
     return "";
 
   stringstream ss;
@@ -84,7 +117,7 @@ string Alignment::strTopResiduals() const
     setw(8) << "valSq" <<
     setw(8) << "frac" << "\n";
 
-  for (auto& r: topResiduals)
+  for (auto& r: topResiduals2)
   {
     ss << 
       setw(6) << r.index <<

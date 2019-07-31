@@ -43,21 +43,6 @@ float Regress::time2pos(
 }
 
 
-float Regress::residuals(
-  const vector<float>& x,
-  const vector<float>& y,
-  const vector<float>& coeffs) const
-{
-  float res = 0.;
-  for (unsigned i = 0; i < x.size(); i++)
-  {
-    float pos = Regress::time2pos(x[i], coeffs);
-    res += (y[i] - pos) * (y[i] - pos);
-  }
-  return res;
-}
-
-
 void Regress::specificMatch(
   const vector<float>& times,
   const vector<float>& refPeaks,
@@ -102,9 +87,9 @@ void Regress::specificMatch(
     if (match.actualToRef[i] >= 0)
     {
       const float pos = Regress::time2pos(x[p], coeffs);
-      const float res = y[p] - pos;
+      const float res = pos - y[p];
 
-      match.residuals[p].index = i;
+      match.residuals[p].index = static_cast<unsigned>(match.actualToRef[i]);
       match.residuals[p].value = res;
       match.residuals[p].valueSq = peakScale * res * res;
 
@@ -114,65 +99,7 @@ void Regress::specificMatch(
     }
   }
 
-  /*
-  residuals = peakScale * 
-    Regress::residuals(x, y, coeffs);
-
-  const float r = residuals / match.distMatch2;
-  if (r < 0.999f || r > 1.001f)
-    cout << "RESDIFF\n";
-    */
-}
-
-
-void Regress::summarizeResiduals(
-  const vector<float>& times,
-  const vector<float>& refPeaks,
-  const vector<float>& coeffs,
-  Alignment& match) const
-{
-  const unsigned lr = refPeaks.size();
-
-  vector<RegrEntry> x;
-  x.resize(lr);
-
-  const unsigned lt = times.size();
-  float sum = 0.;
-  for (unsigned i = 0; i < lt; i++)
-  {
-    if (match.actualToRef[i] != -1)
-    {
-      const unsigned refIndex = static_cast<unsigned>(match.actualToRef[i]);
-      const float position = Regress::time2pos(times[i], coeffs);
-
-      x[refIndex].index = refIndex;
-      x[refIndex].value = position - refPeaks[refIndex];
-      x[refIndex].valueSq = x[refIndex].value * x[refIndex].value;
-      sum += x[refIndex].valueSq;
-    }
-  }
-
-  sort(x.rbegin(), x.rend());
-
-  const float average = sum / lt;
-
-  unsigned i = 0;
-  unsigned last = numeric_limits<unsigned>::max();
-  while (i+1 < lt && x[i].valueSq > 2. * average)
-  {
-    if (x[i].valueSq > x[i+1].valueSq + 0.5 * average)
-      last = i;
-    i++;
-  }
-
-  if (last != numeric_limits<unsigned>::max())
-  {
-    for (i = 0; i <= last; i++)
-    {
-      x[i].frac = x[i].valueSq / sum;
-      match.topResiduals.push_back(x[i]);
-    }
-  }
+  match.dist = match.distMatch + match.distOther;
 }
 
 
@@ -204,7 +131,8 @@ void Regress::bestMatch(
 // cout << db.lookupTrainName(ma.trainNo) << "\n";
 
     Regress::specificMatch(times, refPeaks, ma, coeffs);
-    Regress::summarizeResiduals(times, refPeaks, coeffs, ma);
+
+    ma.setTopResiduals();
 
     ma.dist = ma.distMatch + ma.distOther;
 
@@ -233,7 +161,6 @@ void Regress::bestMatch(
   if (control.verboseRegressMotion())
     cout << motion.strEstimate("Regression motion");
 
-  cout << bestAlign.strTopResiduals();
-
+  cout << bestAlign.strTopResiduals2();
 }
 

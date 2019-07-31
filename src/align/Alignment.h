@@ -42,7 +42,7 @@ struct Alignment
 
   vector<RegrEntry> residuals;
 
-  vector<RegrEntry> topResiduals;
+  vector<RegrEntry> topResiduals2;
 
 
   Alignment();
@@ -53,9 +53,11 @@ struct Alignment
 
   bool operator < (const Alignment& a2) const;
 
+  void setTopResiduals();
+
   string str() const;
 
-  string strTopResiduals() const;
+  string strTopResiduals2() const;
 };
 
 #endif
