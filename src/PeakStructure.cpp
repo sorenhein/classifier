@@ -9,6 +9,7 @@
 #include "PeakPattern.h"
 #include "PeakSpacing.h"
 #include "PeakProfile.h"
+#include "PeakPool.h"
 #include "CarModels.h"
 #include "Except.h"
 
@@ -744,6 +745,26 @@ void PeakStructure::pushPeak(
 }
 
 
+void PeakStructure::pushInfo(
+  Peak const * pptr,
+  const float tOffset,
+  const float sampleRate,
+  PeaksInfo& peaksInfo,
+  PeakInfo& infoNext) const
+{
+  if (pptr)
+  {
+    vector<PeakInfo>& infos = peaksInfo.infos;
+    PeakInfo& infoNew = infos.back();
+    infoNew = infoNext;
+    infoNew.time = pptr->getIndex() / sampleRate - tOffset;
+  }
+
+  infoNext.peakNo++;
+  infoNext.peakNoInCar++;
+}
+
+
 bool PeakStructure::getAlignment(
   vector<float>& times,
   vector<int>& actualToRef,
@@ -786,5 +807,54 @@ unsigned PeakStructure::getNumFrontWheels() const
     return 0;
   else
     return cars.front().numFrontWheels();
+}
+
+
+void PeakStructure::getPeaksInfo(
+  const PeakPool& peaks,
+  PeaksInfo& peaksInfo,
+  const float sampleRate) const
+{
+  peaksInfo.numCars = cars.size();
+
+  if (cars.empty())
+  {
+    // Not so elegant.
+    vector<float> times;
+    peaks.topConst().getTimes(&Peak::isSelected, times);
+
+    peaksInfo.infos.resize(times.size());
+    for (unsigned i = 0; i < times.size(); i++)
+      peaksInfo.infos[i].time = times[i];
+  }
+  else
+  {
+    const float t0 = cars.front().firstPeak() / sampleRate;
+    PeakInfo infoNext;
+    infoNext.time = 0.f;
+    infoNext.carNo = 0;
+    infoNext.peakNo = 0;
+    infoNext.peakNoInCar = 0;
+
+    for (auto& car: cars)
+    {
+      const CarPeaksPtr cptr = car.getPeaksPtr();
+
+      PeakStructure::pushInfo(cptr.firstBogieLeftPtr, sampleRate, t0, 
+        peaksInfo, infoNext);
+      PeakStructure::pushInfo(cptr.firstBogieRightPtr, sampleRate, t0, 
+        peaksInfo, infoNext);
+      PeakStructure::pushInfo(cptr.secondBogieLeftPtr, sampleRate, t0, 
+        peaksInfo, infoNext);
+      PeakStructure::pushInfo(cptr.secondBogieRightPtr, sampleRate, t0, 
+        peaksInfo, infoNext);
+
+      infoNext.carNo++;
+      infoNext.peakNoInCar = 0;
+    }
+
+    peaksInfo.numPeaks = infoNext.peakNo;
+    peaksInfo.numFrontWheels = cars.front().numFrontWheels();
+  }
 }
 

@@ -9,6 +9,7 @@
 #include "PeakPool.h"
 #include "PeakRange.h"
 #include "PeakPattern.h"
+#include "PeakGeneral.h"
 
 using namespace std;
 
@@ -153,6 +154,20 @@ class PeakStructure
       unsigned& numFrontWheels);
 
     unsigned getNumFrontWheels() const;
+
+    void getPeaksInfo(PeaksInfo& peaksInfo) const;
+
+    void pushInfo(
+      Peak const * pptr,
+      const float tOffset,
+      const float sampleRate,
+      PeaksInfo& peaksInfo,
+      PeakInfo& infoNext) const;
+
+    void getPeaksInfo(
+      const PeakPool& peaks,
+      PeaksInfo& peaksInfo,
+      const float sampleRate) const;
 };
 
 #endif

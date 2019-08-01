@@ -290,7 +290,7 @@ void run(
     runPeakDetect(control, filter.getDeflection(), interval.first, 
       interval.len, thid, peakDetect);
 
-    // Label some negative mimina as wheels, bogies etc.
+    // abel some negative mimina as wheels, bogies etc.
     PeakPool& peaks = peakDetect.getPeaks();
     PeakMinima peakMinima;
     runPeakLabel(peaks, peakDetect.getScale().getRange(), 

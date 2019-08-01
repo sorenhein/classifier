@@ -478,13 +478,7 @@ void Peaks::getTimes(
   for (auto& peak: peaks)
   {
     if ((peak.* fptr)())
-    {
       times.push_back(peak.getIndex() / SAMPLE_RATE - t0);
-      // times.emplace_back(PeakTime());
-      // PeakTime& p = times.back();
-      // p.time = peak.getIndex() / SAMPLE_RATE - t0;
-      // p.value = peak.getValue();
-    }
   }
 }
 
