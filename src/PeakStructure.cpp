@@ -654,6 +654,7 @@ bool PeakStructure::hasGaps() const
 }
 
 
+/*
 bool PeakStructure::markImperfections(
   Imperfections& imperf) const
 {
@@ -669,11 +670,12 @@ bool PeakStructure::markImperfections(
   for (auto& range: ranges)
     range.updateImperfections(cars, imperf);
 
-  cout << "IMPERF " <<
-    imperf.numSkipsOfReal << "-" << imperf.numSkipsOfSeen << ", " <<
-    imperf.numSpuriousLater << "-" << imperf.numMissingLater << endl;
+  // cout << "IMPERF " <<
+    // imperf.numSkipsOfReal << "-" << imperf.numSkipsOfSeen << ", " <<
+    // imperf.numSpuriousLater << "-" << imperf.numMissingLater << endl;
   return true;
 }
+*/
 
 
 void PeakStructure::printWheelCount(

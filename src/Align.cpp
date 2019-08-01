@@ -17,8 +17,6 @@
 
 #include "util/misc.h"
 
-#include "stats/Timers.h"
-
 // Can adjust these.
 
 #define INSERT_PENALTY 100.f
@@ -37,8 +35,6 @@
 
 #define UNUSED(x) ((void)(true ? 0 : ((x), void(), 0)))
 
-extern vector<Timers> timers;
-
 
 Align::Align()
 {
@@ -54,7 +50,6 @@ void Align::NeedlemanWunsch(
   const vector<float>& refPeaks,
   const vector<float>& scaledPeaks,
   const float peakScale,
-  const Imperfections& imperf,
   const Shift& shift,
   Alignment& alignment) const
 {
@@ -206,8 +201,6 @@ void Align::NeedlemanWunsch(
     shift.firstTimeNo * EARLY_SHIFTS_PENALTY;
 
   alignment.distOther = alignment.dist - alignment.distMatch;
-  
-  UNUSED(imperf);
 }
 
 
@@ -715,20 +708,16 @@ bool Align::countTooDifferent(
 
 
 void Align::bestMatches(
+  const Control& control,
+  const TrainDB& trainDB,
+  const string& sensorCountry,
+
   const vector<float>& times,
   const vector<int>& actualToRef,
   const unsigned numFrontWheels,
   const bool fullTrainFlag,
-  const Imperfections& imperf,
-  const TrainDB& trainDB,
-  const string& country,
-  const unsigned tops,
-  const Control& control,
-  const unsigned thid,
   vector<Alignment>& matches) const
 {
-  timers[thid].start(TIMER_ALIGN);
-
   vector<float> scaledPeaks;
   matches.clear();
 
@@ -740,7 +729,7 @@ void Align::bestMatches(
     if (Align::countTooDifferent(times, trainDB.numAxles(refTrainNoU)))
       continue;
 
-    if (! trainDB.isInCountry(refTrainNoU, country))
+    if (! trainDB.isInCountry(refTrainNoU, sensorCountry))
       continue;
 
     const vector<float>& refPeaks =
@@ -770,15 +759,10 @@ void Align::bestMatches(
     matches.back().numAxles = trainDB.numAxles(refTrainNoU);
 
     Align::NeedlemanWunsch(refPeaks, scaledPeaks, peakScale, 
-      imperf, shift, matches.back());
+      shift, matches.back());
   }
 
   sort(matches.begin(), matches.end());
-
-  if (tops < matches.size())
-    matches.resize(tops);
-
-  timers[thid].stop(TIMER_ALIGN);
 
   if (control.verboseAlignMatches())
   {

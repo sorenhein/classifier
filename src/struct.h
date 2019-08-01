@@ -65,6 +65,7 @@ struct Recognizer
   string text;
 };
 
+/*
 struct Imperfections
 {
   // These are estimates and do not make use of the "known" true peaks.
@@ -92,6 +93,7 @@ struct Imperfections
     Imperfections::reset();
   };
 };
+*/
 
 enum FindCarType
 {

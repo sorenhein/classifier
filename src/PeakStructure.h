@@ -134,8 +134,10 @@ class PeakStructure
 
     bool hasGaps() const;
     
+    /*
     bool markImperfections(
       Imperfections& imperf) const;
+      */
 
     // to clean up
 

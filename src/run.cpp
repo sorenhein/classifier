@@ -302,10 +302,6 @@ void run(
     timers[thid].start(TIMER_EXTRACT_CARS);
     pstruct.markCars(peaks, interval.first);
 
-    Imperfections imperf;
-    if (! pstruct.markImperfections(imperf))
-      cout << "WARNING: Failed to mark imperfections\n";
-
     cout << "PEAKPOOL\n";
     cout << peaks.strCounts();
     timers[thid].stop(TIMER_EXTRACT_CARS);
@@ -334,20 +330,18 @@ void run(
       fullTrainFlag = false;
     }
 
-    // TODO Kludge.  Should be in PeakDetect or so.
-    if (imperf.numSkipsOfSeen > 0)
-      numFrontWheels = 4 - imperf.numSkipsOfSeen;
-
-
     Align align;
     Regress regress;
 
     // The storage is in Regress, but it is first used in Align.
     auto& matches = regress.getMatches();
 
-    align.bestMatches(times, actualToRef, numFrontWheels, fullTrainFlag,
-      imperf, trainDB, traceData.countrySensor, 10, control, thid,
-      matches);
+    timers[thid].start(TIMER_ALIGN);
+
+    align.bestMatches(control, trainDB, traceData.countrySensor,
+      times, actualToRef, numFrontWheels, fullTrainFlag, matches);
+
+    timers[thid].stop(TIMER_ALIGN);
 
     if (matches.size() == 0)
       THROW(ERR_NO_ALIGN_MATCHES, "No alignment matches");

@@ -330,6 +330,7 @@ bool PeakRange::looksEmptyLast() const
 }
 
 
+/*
 bool PeakRange::updateImperfections(
   const list<CarDetect>& cars,
   Imperfections& imperf) const
@@ -352,6 +353,7 @@ bool PeakRange::updateImperfections(
 
   return true;
 }
+*/
 
 
 string PeakRange::strInterval(

@@ -87,7 +87,7 @@ class Align
       const vector<float>& refPeaks,
       const vector<float>& scaledPeaks,
       const float peakScale,
-      const Imperfections& imperf,
+      // const Imperfections& imperf,
       const Shift& shift,
       Alignment& alignment) const;
 
@@ -105,16 +105,16 @@ class Align
     ~Align();
 
     void bestMatches(
+      const Control& control,
+      const TrainDB& trainDB,
+      const string& country,
+
       const vector<float>& times,
       const vector<int>& actualToRef,
       const unsigned numFrontWheels,
       const bool fullTrainFlag,
-      const Imperfections& imperf,
-      const TrainDB& trainDB,
-      const string& country,
-      const unsigned tops,
-      const Control& control,
-      const unsigned thid,
+      // const Imperfections& imperf,
+      // const unsigned tops,
       vector<Alignment>& matches) const;
 };
 
