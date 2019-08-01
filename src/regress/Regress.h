@@ -4,7 +4,7 @@
 #include <vector>
 #include <string>
 
-#include "align/Alignment.h"
+#include "../align/Alignment.h"
 
 using namespace std;
 

@@ -20,7 +20,8 @@
 #include "PeakMinima.h"
 #include "PeakMatch.h"
 
-#include "Regress.h"
+#include "regress/Regress.h"
+
 #include "Align.h"
 #include "Except.h"
 #include "errors.h"

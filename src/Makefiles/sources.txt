@@ -20,12 +20,9 @@ SOURCE_FILES    =                       \
                 PeakSeeds.cpp           \
                 PeakSpacing.cpp         \
                 PeakStructure.cpp       \
-                Regress.cpp             \
                 run.cpp                 \
                 setup.cpp               \
                 driver.cpp              \
-                regress/PolynomialRegression.cpp \
-                                        \
                 align/Alignment.cpp     \
                                         \
                 completions/Completion.cpp  \
@@ -42,6 +39,9 @@ SOURCE_FILES    =                       \
                 database/parse.cpp      \
                                         \
                 filter/Filter.cpp       \
+                                        \
+                regress/PolynomialRegression.cpp \
+                regress/Regress.cpp     \
                                         \
                 stats/CompStats.cpp     \
                 stats/PeakStats.cpp     \

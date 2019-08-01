@@ -1,7 +1,6 @@
 Align.obj: Align.h struct.h align/Alignment.h util/Motion.h
 Align.obj: database/TrainDB.h database/Entity.h database/Control.h
-Align.obj: regress/PolynomialRegression.h util/misc.h struct.h stats/Timers.h
-Align.obj: stats/Timer.h
+Align.obj: regress/PolynomialRegression.h util/misc.h struct.h
 CarDetect.obj: CarDetect.h CarGaps.h Peak.h struct.h CarPeaks.h PeakRange.h
 CarDetect.obj: PeakProfile.h PeakPool.h Peaks.h PeakPtrs.h
 CarGaps.obj: CarGaps.h Peak.h struct.h PeakPtrs.h CarPeaks.h Except.h
@@ -48,9 +47,6 @@ PeakStructure.obj: PeakRange.h PeakProfile.h PeakPattern.h
 PeakStructure.obj: completions/Completions.h completions/Completion.h
 PeakStructure.obj: completions/PeakCompletion.h PeakSpacing.h Except.h
 PeakStructure.obj: errors.h
-Regress.obj: Regress.h Except.h errors.h const.h align/Alignment.h
-Regress.obj: util/Motion.h database/Control.h database/Entity.h
-Regress.obj: database/TrainDB.h regress/PolynomialRegression.h
 run.obj: database/TraceDB.h database/Entity.h database/TrainDB.h
 run.obj: database/Control.h transient/Transient.h transient/trans.h
 run.obj: transient/Quiet.h transient/QuietData.h filter/Filter.h
@@ -58,8 +54,8 @@ run.obj: stats/CompStats.h stats/PeakStats.h stats/Timers.h stats/Timer.h
 run.obj: PeakDetect.h Peak.h struct.h PeakPool.h Peaks.h PeakPtrs.h
 run.obj: CarPeaks.h PeakStructure.h CarDetect.h CarGaps.h CarModels.h
 run.obj: PeakRange.h PeakProfile.h PeakSeeds.h PeakMinima.h PeakPieces.h
-run.obj: PeakPiece.h Regress.h Align.h align/Alignment.h util/Motion.h
-run.obj: Except.h errors.h run.h util/io.h
+run.obj: PeakPiece.h PeakMatch.h regress/Regress.h align/Alignment.h
+run.obj: util/Motion.h Align.h Except.h errors.h run.h util/io.h
 setup.obj: database/SensorDB.h database/Entity.h database/CarDB.h
 setup.obj: database/CorrectionDB.h database/TrainDB.h database/TraceDB.h
 setup.obj: database/Control.h setup.h util/io.h

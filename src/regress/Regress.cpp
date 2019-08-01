@@ -5,17 +5,15 @@
 #include <limits>
 #include <cassert>
 
+#include "../database/Control.h"
+#include "../database/TrainDB.h"
+
+#include "PolynomialRegression.h"
 #include "Regress.h"
-#include "Except.h"
 
-#include "const.h"
+#include "../Except.h"
+#include "../const.h"
 
-#include "align/Alignment.h"
-
-#include "database/Control.h"
-#include "database/TrainDB.h"
-
-#include "regress/PolynomialRegression.h"
 
 
 Regress::Regress()
