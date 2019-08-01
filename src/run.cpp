@@ -77,6 +77,7 @@ void runPeakDetect(
   const Control& control,
   const vector<float>& deflection,
   const unsigned offset,
+  const unsigned len,
   const unsigned thid,
   PeakDetect& peakDetect);
 
@@ -184,6 +185,7 @@ void runPeakDetect(
   const Control& control,
   const vector<float>& deflection,
   const unsigned offset,
+  const unsigned len,
   const unsigned thid,
   PeakDetect& peakDetect)
 {
@@ -193,6 +195,8 @@ void runPeakDetect(
   peakDetect.log(deflection, offset);
 
   peakDetect.extract(control);
+
+  peakDetect.makeSynthPeaks(offset, len);
 
   timers[thid].stop(TIMER_EXTRACT_PEAKS);
 }
@@ -282,8 +286,8 @@ void run(
 
     // Extract immediate peaks from the signal.
     PeakDetect peakDetect;
-    runPeakDetect(control, filter.getDeflection(), interval.first, thid,
-      peakDetect);
+    runPeakDetect(control, filter.getDeflection(), interval.first, 
+      interval.len, thid, peakDetect);
 
     // Label some negative mimina as wheels, bogies etc.
     PeakPool& peaks = peakDetect.getPeaks();
@@ -307,29 +311,10 @@ void run(
     timers[thid].stop(TIMER_EXTRACT_CARS);
 
 
-
-  Align align;
-  Regress regress;
-
-  vector<float> times;
-  vector<int> actualToRef;
-  unsigned numFrontWheels;
-
-
-
-
-  peakDetect.makeSynthPeaks(interval.first, interval.len);
-
-
-    const vector<float>& posTrue = 
-      trainDB.getPeakPositions(traceData.trainNoTrueU);
-
-    PeakMatch peakMatch;
-    peakMatch.logPeakStats(peaks, posTrue, traceData.trainTrue,
-      traceData.speed, peakStats);
-
-    runWrite(control, transient, quietBack, quietFront, filter,
-      peakDetect, traceData.filename, thid);
+    // Get PeakStruct results in a useful format for Alignment.
+    vector<float> times;
+    vector<int> actualToRef;
+    unsigned numFrontWheels;
 
     bool fullTrainFlag;
     if (pstruct.getAlignment(times, actualToRef, numFrontWheels) &&
@@ -340,13 +325,11 @@ void run(
     }
     else
     {
+      peaks.topConst().getTimes(&Peak::isSelected, times);
+      numFrontWheels = pstruct.getNumFrontWheels();
 
-  peaks.topConst().getTimes(&Peak::isSelected, times);
-  numFrontWheels = pstruct.getNumFrontWheels();
-
-cout << "Got " << times.size() << " peaks, " <<
-  numFrontWheels << " front wheels\n\n";
-
+      cout << "Got " << times.size() << " peaks, " <<
+        numFrontWheels << " front wheels\n\n";
 
       fullTrainFlag = false;
     }
@@ -354,6 +337,10 @@ cout << "Got " << times.size() << " peaks, " <<
     // TODO Kludge.  Should be in PeakDetect or so.
     if (imperf.numSkipsOfSeen > 0)
       numFrontWheels = 4 - imperf.numSkipsOfSeen;
+
+
+    Align align;
+    Regress regress;
 
     // The storage is in Regress, but it is first used in Align.
     auto& matches = regress.getMatches();
@@ -383,7 +370,18 @@ cout << "Got " << times.size() << " peaks, " <<
     timers[thid].stop(TIMER_REGRESS);
 
 
+    // Write any binary output files.
+    runWrite(control, transient, quietBack, quietFront, filter,
+      peakDetect, traceData.filename, thid);
+
     // Update statistics.
+    const vector<float>& posTrue = 
+      trainDB.getPeakPositions(traceData.trainNoTrueU);
+
+    PeakMatch peakMatch;
+    peakMatch.logPeakStats(peaks, posTrue, traceData.trainTrue,
+      traceData.speed, peakStats);
+
     string trainDetected;
     float distDetected;
     unsigned rankDetected;
