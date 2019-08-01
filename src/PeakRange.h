@@ -9,8 +9,6 @@
 #include "PeakProfile.h"
 #include "PeakPool.h"
 
-#include "struct.h"
-
 using namespace std;
 
 class CarModels;

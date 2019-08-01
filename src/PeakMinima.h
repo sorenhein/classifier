@@ -9,8 +9,6 @@
 #include "PeakPieces.h"
 #include "PeakSeeds.h"
 
-#include "struct.h"
-
 using namespace std;
 
 class Peak;

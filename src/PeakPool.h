@@ -30,7 +30,6 @@
 
 #include "Peaks.h"
 #include "PeakPtrs.h"
-#include "struct.h"
 
 using namespace std;
 

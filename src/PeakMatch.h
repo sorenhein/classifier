@@ -8,8 +8,6 @@
 #include "Peak.h"
 #include "PeakPool.h"
 
-#include "struct.h"
-
 class PeakStats;
 
 // This is only for output statistics.  It was particularly useful

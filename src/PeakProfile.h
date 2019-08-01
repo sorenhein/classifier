@@ -4,11 +4,10 @@
 #include <vector>
 #include <string>
 
-#include "struct.h"
+#include "Peak.h"
 
 using namespace std;
 
-class Peak;
 class PeakPtrs;
 
 
@@ -19,6 +18,33 @@ enum PeakSource
   PEAK_SOURCE_LAST = 4,
   PEAK_SOURCE_SIZE = 8
 };
+
+struct RecogEntry
+{
+  bool flag;
+  unsigned value;
+
+  bool match(const unsigned actual) const
+  {
+    return (! flag || value == actual);
+  };
+};
+
+struct RecogParams
+{
+  RecogEntry source;
+  RecogEntry sumGreat;
+  RecogEntry starsGood;
+};
+
+struct Recognizer
+{
+  RecogParams params;
+  unsigned numWheels;
+  PeakQuality quality;
+  string text;
+};
+
 
 
 class PeakProfile

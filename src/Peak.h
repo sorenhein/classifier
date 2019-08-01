@@ -4,8 +4,6 @@
 #include <string>
 #include <vector>
 
-#include "struct.h"
-
 using namespace std;
 
 
@@ -39,6 +37,18 @@ enum BogieType
   BOGIE_RIGHT = 1,
   BOGIE_SIZE = 2
 };
+
+enum PeakQuality
+{
+  PEAK_QUALITY_FANTASTIC = 0,
+  PEAK_QUALITY_GREAT = 1,
+  PEAK_QUALITY_GOOD = 2,
+  PEAK_QUALITY_ACCEPTABLE = 3,
+  PEAK_QUALITY_BORDERLINE = 4,
+  PEAK_QUALITY_POOR = 5,
+  PEAK_QUALITY_SIZE = 6
+};
+
 
 
 class Peak

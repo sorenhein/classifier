@@ -4,8 +4,6 @@
 #include <list>
 #include <string>
 
-#include "struct.h"
-
 using namespace std;
 
 class Gap;

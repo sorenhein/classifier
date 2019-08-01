@@ -10,7 +10,6 @@
 #include "PeakPool.h"
 #include "PeakStructure.h"
 #include "CarModels.h"
-#include "struct.h"
 
 using namespace std;
 

@@ -8,8 +8,7 @@
 #include "CarModels.h"
 #include "PeakPool.h"
 #include "PeakRange.h"
-
-#include "struct.h"
+#include "PeakPattern.h"
 
 using namespace std;
 
