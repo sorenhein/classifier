@@ -172,21 +172,18 @@ string Regress::strMatchingResiduals(
     ss << heading << "/" <<
       fixed << setprecision(2) << ma.distMatch << "/#" << mno << "\n";
 
-    unsigned refNext = 0;
-    for (unsigned p = 0; p < ma.actualToRef.size(); p++)
+    // The match data may have been sorted by residual size.
+    // This works regardless.
+    vector<float> pos(ma.numAxles);
+    for (auto& re: ma.residuals)
+      pos[re.index] = re.value;
+
+    for (unsigned i = 0; i < pos.size(); i++)
     {
-      if (ma.actualToRef[p] == -1)
-        continue;
-
-      const unsigned r = static_cast<unsigned>(ma.actualToRef[p]);
-
-      for (unsigned i = refNext; i < r; i++)
+      if (pos[i] == 0.)
         ss << i << ";" << endl;
-
-      ss << r << ";" << fixed << setprecision(4) <<
-        ma.residuals[r].value << endl;
-      
-      refNext = r+1;
+      else
+        ss << i << ";" << fixed << setprecision(4) << pos[i] << endl;
     }
     ss << "ENDSPEC\n";
   }
