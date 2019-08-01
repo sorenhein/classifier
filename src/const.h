@@ -402,3 +402,9 @@ static list<CompletionCase> CompletionCases =
 // that it influences the absolute value of the residuals.
 
 #define TRAIN_REF_LENGTH 200.f
+
+// A matching residual below this threshold is considered very good.
+// At the moment this is only for output purposes and not relevant
+// for the algorithmic performance.
+
+#define REGRESS_GREAT_SCORE 3.0f

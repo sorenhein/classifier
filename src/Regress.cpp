@@ -165,10 +165,10 @@ string Regress::strMatchingResiduals(
     mno++;
     if (ma.trainName.find(pickAny) == string::npos)
       continue;
-    if (ma.distMatch > 3.)
+    if (ma.distMatch > REGRESS_GREAT_SCORE)
       continue;
 
-    ss << "SPECTRAIN_NEW " << trainTrue << " " << ma.trainName << endl;
+    ss << "SPECTRAIN" << trainTrue << " " << ma.trainName << endl;
     ss << heading << "/" <<
       fixed << setprecision(2) << ma.distMatch << "/#" << mno << "\n";
 

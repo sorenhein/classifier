@@ -21,7 +21,6 @@ SOURCE_FILES    =                       \
                 PeakSpacing.cpp         \
                 PeakStructure.cpp       \
                 Regress.cpp             \
-                geometry.cpp            \
                 run.cpp                 \
                 setup.cpp               \
                 driver.cpp              \

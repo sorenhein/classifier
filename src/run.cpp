@@ -2,16 +2,12 @@
 #include <sstream>
 #include <limits>
 
-#include "transient/Transient.h"
-#include "transient/Quiet.h"
-
-#include "PeakDetect.h"
-#include "PeakSeeds.h"
-#include "PeakMinima.h"
-
 #include "database/TraceDB.h"
 #include "database/TrainDB.h"
 #include "database/Control.h"
+
+#include "transient/Transient.h"
+#include "transient/Quiet.h"
 
 #include "filter/Filter.h"
 
@@ -19,16 +15,19 @@
 #include "stats/PeakStats.h"
 #include "stats/Timers.h"
 
+#include "PeakDetect.h"
+#include "PeakSeeds.h"
+#include "PeakMinima.h"
+
 #include "Regress.h"
 #include "Align.h"
 #include "Except.h"
 #include "errors.h"
 
-#include "geometry.h"
 #include "run.h"
 
 #include "util/io.h"
-#include "util/Motion.h"
+// #include "util/Motion.h"
 
 
 using namespace std;
