@@ -767,6 +767,8 @@ void Align::bestMatches(
     matches.push_back(Alignment());
     matches.back().trainNo = refTrainNoU;
     matches.back().trainName = refTrain;
+    matches.back().numAxles = trainDB.numAxles(refTrainNoU);
+
     Align::NeedlemanWunsch(refPeaks, scaledPeaks, peakScale, 
       imperf, shift, matches.back());
   }

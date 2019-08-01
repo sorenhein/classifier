@@ -41,6 +41,12 @@ class Regress
     string str(
       const Control& control,
       const vector<Alignment>& matches) const;
+
+    string strMatchingResiduals(
+      const string& trainTrue,
+      const string& pickAny,
+      const string& heading,
+      const vector<Alignment>& matches) const;
 };
 
 #endif

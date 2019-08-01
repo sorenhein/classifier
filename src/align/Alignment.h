@@ -26,8 +26,10 @@ struct RegrEntry
 
 struct Alignment
 {
+  // Alignment is against this train (which may or may not be right).
   string trainName;
   unsigned trainNo;
+  unsigned numAxles;
 
   float dist;
   float distOther;

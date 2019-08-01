@@ -391,10 +391,16 @@ cout << "Got " << times.size() << " peaks, " <<
     if (! control.pickAny().empty())
     {
       const string s = traceData.sensor + "/" + traceData.time;
+
+      cout << regress.strMatchingResiduals(traceData.trainTrue,
+        control.pickAny(), s, matchesAlign);
+
       // dumpResiduals(times, trainDB, motion.order, matchesAlign, s, 
       dumpResiduals(times, trainDB, 2, matchesAlign, s, 
         traceData.trainTrue, control.pickAny(), 
           trainDB.numAxles(traceData.trainNoTrueU));
+
+
     }
 
     const string trainDetected = trainDB.lookupName(bestAlign.trainNo);

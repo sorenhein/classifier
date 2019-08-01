@@ -1,4 +1,5 @@
 #include <iostream>
+#include <iomanip>
 #include <sstream>
 #include <algorithm>
 #include <limits>
@@ -15,8 +16,6 @@
 #include "database/TrainDB.h"
 
 #include "regress/PolynomialRegression.h"
-
-#include "util/Motion.h"
 
 
 Regress::Regress()
@@ -44,7 +43,8 @@ void Regress::storeResiduals(
       const float pos = match.time2pos(x[p]);
       const float res = pos - y[p];
 
-      match.residuals[p].index = static_cast<unsigned>(match.actualToRef[i]);
+      const unsigned refIndex = static_cast<unsigned>(match.actualToRef[i]);
+      match.residuals[p].index = refIndex;
       match.residuals[p].value = res;
       match.residuals[p].valueSq = peakScale * res * res;
 
@@ -147,6 +147,50 @@ string Regress::str(
   if (control.verboseRegressTopResiduals())
     ss << bestAlign.strTopResiduals();
   
+  return ss.str();
+}
+
+
+string Regress::strMatchingResiduals(
+  const string& trainTrue,
+  const string& pickAny,
+  const string& heading,
+  const vector<Alignment>& matches) const
+{
+  stringstream ss;
+
+  unsigned mno = 0;
+  for (auto& ma: matches)
+  {
+    mno++;
+    if (ma.trainName.find(pickAny) == string::npos)
+      continue;
+    if (ma.distMatch > 3.)
+      continue;
+
+    ss << "SPECTRAIN_NEW " << trainTrue << " " << ma.trainName << endl;
+    ss << heading << "/" <<
+      fixed << setprecision(2) << ma.distMatch << "/#" << mno << "\n";
+
+    unsigned refNext = 0;
+    for (unsigned p = 0; p < ma.actualToRef.size(); p++)
+    {
+      if (ma.actualToRef[p] == -1)
+        continue;
+
+      const unsigned r = static_cast<unsigned>(ma.actualToRef[p]);
+
+      for (unsigned i = refNext; i < r; i++)
+        ss << i << ";" << endl;
+
+      ss << r << ";" << fixed << setprecision(4) <<
+        ma.residuals[r].value << endl;
+      
+      refNext = r+1;
+    }
+    ss << "ENDSPEC\n";
+  }
+
   return ss.str();
 }
 
