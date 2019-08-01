@@ -4,16 +4,20 @@
 #include <vector>
 #include <string>
 
+#include "align/Alignment.h"
+
 using namespace std;
 
 class Control;
 class TrainDB;
-struct Alignment;
 
 
 class Regress
 {
   private:
+
+    vector<Alignment> matches;
+
     
     void storeResiduals(
       const vector<float>& x,
@@ -35,18 +39,24 @@ class Regress
 
     void bestMatch(
       const TrainDB& trainDB,
-      const vector<float>& times,
-      vector<Alignment>& matches) const;
+      const vector<float>& times);
 
-    string str(
-      const Control& control,
-      const vector<Alignment>& matches) const;
+    vector<Alignment>& getMatches();
+
+    void getBest(
+      const unsigned& trainNoTrue,
+      string& trainDetected,
+      float& distDetected,
+      unsigned& rankDetected) const;
+
+    string strMatches(const string& title) const;
+
+    string str(const Control& control) const;
 
     string strMatchingResiduals(
       const string& trainTrue,
       const string& pickAny,
-      const string& heading,
-      const vector<Alignment>& matches) const;
+      const string& heading) const;
 };
 
 #endif

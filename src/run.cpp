@@ -18,6 +18,7 @@
 #include "PeakDetect.h"
 #include "PeakSeeds.h"
 #include "PeakMinima.h"
+#include "PeakMatch.h"
 
 #include "Regress.h"
 #include "Align.h"
@@ -27,7 +28,6 @@
 #include "run.h"
 
 #include "util/io.h"
-// #include "util/Motion.h"
 
 
 using namespace std;
@@ -40,12 +40,6 @@ extern CompStats trainStats;
 extern PeakStats peakStats;
 
 extern vector<Timers> timers;
-
-
-unsigned lookupMatchRank(
-  const TrainDB& trainDB,
-  const vector<Alignment>& matches,
-  const string& tag);
 
 
 string runHeader(const TraceData& traceData);
@@ -299,34 +293,23 @@ void run(
 
 
 
-  const unsigned offset = interval.first;
+    // Use the labels to extract the car structure from the peaks.
+    PeakStructure pstruct;
     timers[thid].start(TIMER_EXTRACT_CARS);
-
-
-  PeakStructure pstruct;
-
-  // Use the labels to extract the car structure from the peaks.
-  pstruct.markCars(peaks, offset);
+    pstruct.markCars(peaks, interval.first);
 
     Imperfections imperf;
+    if (! pstruct.markImperfections(imperf))
+      cout << "WARNING: Failed to mark imperfections\n";
 
-  if (! pstruct.markImperfections(imperf))
-    cout << "WARNING: Failed to mark imperfections\n";
-
-cout << "PEAKPOOL\n";
-cout << peaks.strCounts();
-
-
+    cout << "PEAKPOOL\n";
+    cout << peaks.strCounts();
     timers[thid].stop(TIMER_EXTRACT_CARS);
 
 
 
   Align align;
   Regress regress;
-
-  vector<Alignment> matchesAlign;
-  // Alignment bestAlign;
-  
 
   vector<float> times;
   vector<int> actualToRef;
@@ -341,7 +324,8 @@ cout << peaks.strCounts();
     const vector<float>& posTrue = 
       trainDB.getPeakPositions(traceData.trainNoTrueU);
 
-    peakDetect.logPeakStats(posTrue, traceData.trainTrue, 
+    PeakMatch peakMatch;
+    peakMatch.logPeakStats(peaks, posTrue, traceData.trainTrue,
       traceData.speed, peakStats);
 
     runWrite(control, transient, quietBack, quietFront, filter,
@@ -371,40 +355,46 @@ cout << "Got " << times.size() << " peaks, " <<
     if (imperf.numSkipsOfSeen > 0)
       numFrontWheels = 4 - imperf.numSkipsOfSeen;
 
+    // The storage is in Regress, but it is first used in Align.
+    auto& matches = regress.getMatches();
+
     align.bestMatches(times, actualToRef, numFrontWheels, fullTrainFlag,
       imperf, trainDB, traceData.countrySensor, 10, control, thid,
-      matchesAlign);
+      matches);
 
-    if (matchesAlign.size() == 0)
+    if (matches.size() == 0)
       THROW(ERR_NO_ALIGN_MATCHES, "No alignment matches");
 
+
+    // Run the regression with the given alignment.
     timers[thid].start(TIMER_REGRESS);
 
-    regress.bestMatch(trainDB, times, matchesAlign);
-    const auto& bestAlign = matchesAlign.front();
+    regress.bestMatch(trainDB, times);
+    cout << regress.str(control);
 
-    cout << regress.str(control, matchesAlign);
-
-    timers[thid].stop(TIMER_REGRESS);
 
     if (! control.pickAny().empty())
     {
       const string s = traceData.sensor + "/" + traceData.time;
-
       cout << regress.strMatchingResiduals(traceData.trainTrue,
-        control.pickAny(), s, matchesAlign);
+        control.pickAny(), s);
     }
 
-    const string trainDetected = trainDB.lookupName(bestAlign.trainNo);
-    const unsigned rank = lookupMatchRank(trainDB, matchesAlign, 
-      traceData.trainTrue);
+    timers[thid].stop(TIMER_REGRESS);
 
-    sensorStats.log(traceData.sensor, rank, bestAlign.distMatch);
-    trainStats.log(traceData.trainTrue, rank, bestAlign.distMatch);
 
-if (trainDetected != traceData.trainTrue)
-  cout << "DRIVER MISMATCH\n";
+    // Update statistics.
+    string trainDetected;
+    float distDetected;
+    unsigned rankDetected;
+    regress.getBest(traceData.trainNoTrueU,
+      trainDetected, distDetected, rankDetected);
 
+    sensorStats.log(traceData.sensor, rankDetected, distDetected);
+    trainStats.log(traceData.trainTrue, rankDetected, distDetected);
+
+    if (trainDetected != traceData.trainTrue)
+      cout << "DRIVER MISMATCH\n";
   }
   catch (Except& ex)
   {
@@ -416,20 +406,5 @@ if (trainDetected != traceData.trainTrue)
   {
     cout << "Unknown exception" << endl;
   }
-}
-
-
-unsigned lookupMatchRank(
-  const TrainDB& trainDB,
-  const vector<Alignment>& matches,
-  const string& tag)
-{
-  const unsigned tno = static_cast<unsigned>(trainDB.lookupNumber(tag));
-  for (unsigned i = 0; i < matches.size(); i++)
-  {
-    if (matches[i].trainNo == tno)
-      return i;
-  }
-  return numeric_limits<unsigned>::max();
 }
 

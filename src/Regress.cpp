@@ -98,8 +98,7 @@ void Regress::specificMatch(
 
 void Regress::bestMatch(
   const TrainDB& trainDB,
-  const vector<float>& times,
-  vector<Alignment>& matches) const
+  const vector<float>& times)
 {
   float bestDist = numeric_limits<float>::max();
 
@@ -121,9 +120,49 @@ void Regress::bestMatch(
 }
 
 
-string Regress::str(
-  const Control& control,
-  const vector<Alignment>& matches) const
+vector<Alignment>& Regress::getMatches()
+{
+  return matches;
+}
+
+
+void Regress::getBest(
+  const unsigned& trainNoTrue,
+  string& trainDetected,
+  float& distDetected,
+  unsigned& rankDetected) const
+{
+  bool foundFlag = false;
+  for (unsigned i = 0; i < matches.size(); i++)
+  {
+    if (matches[i].trainNo == trainNoTrue)
+    {
+      foundFlag = true;
+      rankDetected = i;
+      break;
+    }
+  }
+
+  if (! foundFlag)
+    rankDetected = matches.size();
+
+  trainDetected = matches.front().trainName;
+  distDetected = matches.front().distMatch;
+}
+
+
+string Regress::strMatches(const string& title) const
+{
+  stringstream ss;
+  ss << title << "\n";
+  for (auto& match: matches)
+    ss << match.str();
+  ss << "\n";
+  return ss.str();
+}
+
+
+string Regress::str(const Control& control) const
 {
   stringstream ss;
 
@@ -131,10 +170,7 @@ string Regress::str(
 
   if (control.verboseRegressMatch())
   {
-    ss << "Matching alignment\n";
-    for (auto& match: matches)
-      ss << match.str();
-    ss << "\n";
+    ss << Regress::strMatches("Matching alignment");
 
     ss << "Regression alignment\n";
     ss << bestAlign.str();
@@ -154,8 +190,7 @@ string Regress::str(
 string Regress::strMatchingResiduals(
   const string& trainTrue,
   const string& pickAny,
-  const string& heading,
-  const vector<Alignment>& matches) const
+  const string& heading) const
 {
   stringstream ss;
 
