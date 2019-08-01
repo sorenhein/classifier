@@ -53,6 +53,8 @@ struct Alignment
 
   bool operator < (const Alignment& a2) const;
 
+  float time2pos(const float time) const;
+
   void setTopResiduals();
 
   string str() const;

@@ -389,3 +389,16 @@ static list<CompletionCase> CompletionCases =
 
 #define ALIGN_DIST_NOT_WORSE 2.
 
+
+////////////////////////////////////////////////////////////////////////
+//                                                                    //
+//                           Regression                               //
+//                                                                    //
+////////////////////////////////////////////////////////////////////////
+
+// Normalization factor to make residuals from different-length trains
+// comparable.  Residuals are normalized to a train of this length
+// in meters.  The value of this constant doesn't really matter except 
+// that it influences the absolute value of the residuals.
+
+#define TRAIN_REF_LENGTH 200.f

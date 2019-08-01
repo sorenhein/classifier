@@ -59,6 +59,19 @@ bool Alignment::operator < (const Alignment& a2) const
 }
 
 
+float Alignment::time2pos(const float time) const
+{
+  float res = 0.;
+  float pow = 1.;
+  for (unsigned c = 0; c < motion.estimate.size(); c++)
+  {
+    res += motion.estimate[c] * pow;
+    pow *= time;
+  }
+  return res;
+}
+
+
 void Alignment::setTopResiduals()
 {
   if (residuals.empty())
@@ -96,8 +109,8 @@ string Alignment::str() const
   stringstream ss;
   ss << 
     setw(24) << left << trainName <<
-    setw(10) << right << fixed << setprecision(2) << static_cast<double>(dist )<<
-    setw(10) << right << fixed << setprecision(2) << static_cast<double>(distMatch) <<
+    setw(10) << right << fixed << setprecision(2) << dist <<
+    setw(10) << right << fixed << setprecision(2) << distMatch <<
     setw(8) << numAdd <<
     setw(8) << numDelete << endl;
   return ss.str();
