@@ -290,7 +290,7 @@ void run(
     runPeakDetect(control, filter.getDeflection(), interval.first, 
       interval.len, thid, peakDetect);
 
-    // abel some negative mimina as wheels, bogies etc.
+    // Label some negative mimina as wheels, bogies etc.
     PeakPool& peaks = peakDetect.getPeaks();
     PeakMinima peakMinima;
     runPeakLabel(peaks, peakDetect.getScale().getRange(), 
@@ -312,39 +312,16 @@ void run(
     PeaksInfo peaksInfo;
     pstruct.getPeaksInfo(peaks, peaksInfo, traceData.sampleRate);
 
-    vector<float> times;
-    vector<int> actualToRef;
-    unsigned numFrontWheels;
-
-    bool fullTrainFlag;
-    if (pstruct.getAlignment(times, actualToRef, numFrontWheels) &&
-        ! actualToRef.empty())
-    {
-      cout << "FULLALIGN\n";
-      fullTrainFlag = true;
-    }
-    else
-    {
-      peaks.topConst().getTimes(&Peak::isSelected, times);
-      numFrontWheels = pstruct.getNumFrontWheels();
-
-      cout << "Got " << times.size() << " peaks, " <<
-        numFrontWheels << " front wheels\n\n";
-
-      fullTrainFlag = false;
-    }
-
-    Align align;
-    Regress regress;
 
     // The storage is in Regress, but it is first used in Align.
+    Regress regress;
     auto& matches = regress.getMatches();
 
     timers[thid].start(TIMER_ALIGN);
 
+    Align align;
     align.bestMatches(control, trainDB, traceData.countrySensor,
-      // times, 
-      actualToRef, numFrontWheels, fullTrainFlag, peaksInfo, matches);
+      peaksInfo, matches);
 
     timers[thid].stop(TIMER_ALIGN);
 
@@ -355,7 +332,7 @@ void run(
     // Run the regression with the given alignment.
     timers[thid].start(TIMER_REGRESS);
 
-    regress.bestMatch(trainDB, times);
+    regress.bestMatch(trainDB, peaksInfo.times);
     cout << regress.str(control);
 
 

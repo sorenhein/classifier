@@ -44,7 +44,7 @@ class Align
     void estimateAlignedMotion(
       const vector<float>& refPeaks,
       const vector<float>& times,
-      const vector<int>& actualToRef,
+      const vector<unsigned>& actualToRef,
       const int offsetRef,
       Shift& shift) const;
       
@@ -62,7 +62,7 @@ class Align
       const vector<OverallShift>& shifts,
       const unsigned lt,
       const unsigned lp,
-      const vector<int>& actualToRef,
+      const vector<unsigned>& actualToRef,
       const int offsetRef,
       const bool makeShiftFlag) const;
 
@@ -77,7 +77,7 @@ class Align
     void scalePeaks(
       const vector<float>& refPeaks,
       const vector<float>& times,
-      const vector<int>& actualToRef,
+      const vector<unsigned>& actualToRef,
       const unsigned numFrontWheels,
       const bool fullTrainFlag,
       Shift& shift,
@@ -87,7 +87,6 @@ class Align
       const vector<float>& refPeaks,
       const vector<float>& scaledPeaks,
       const float peakScale,
-      // const Imperfections& imperf,
       const Shift& shift,
       Alignment& alignment) const;
 
@@ -108,11 +107,6 @@ class Align
       const Control& control,
       const TrainDB& trainDB,
       const string& country,
-
-      // const vector<float>& times,
-      const vector<int>& actualToRef,
-      const unsigned numFrontWheels,
-      const bool fullTrainFlag,
       const PeaksInfo& peaksInfo,
       vector<Alignment>& matches) const;
 };

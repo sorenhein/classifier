@@ -228,7 +228,7 @@ float Align::interpolateTime(
 void Align::estimateAlignedMotion(
   const vector<float>& refPeaks,
   const vector<float>& times,
-  const vector<int>& actualToRef,
+  const vector<unsigned>& actualToRef,
   const int offsetRef,
   Shift& shift) const
 {
@@ -239,7 +239,7 @@ void Align::estimateAlignedMotion(
 
   // If offsetRef is negative, skip over presumed spurious first car.
   unsigned i = 0;
-  while (i < lt && actualToRef[i] + offsetRef < 0)
+  while (i < lt && static_cast<int>(actualToRef[i]) + offsetRef < 0)
     i++;
 
   const unsigned lr = refPeaks.size();
@@ -428,7 +428,7 @@ void Align::makeShiftCandidates(
   const vector<OverallShift>& shifts,
   const unsigned lt,
   const unsigned lp,
-  const vector<int>& actualToRef,
+  const vector<unsigned>& actualToRef,
   const int offsetRef,
   const bool fullTrainFlag) const
 {
@@ -583,7 +583,8 @@ bool Align::betterSimpleScore(
 void Align::scalePeaks(
   const vector<float>& refPeaks,
   const vector<float>& times,
-  const vector<int>& actualToRef,
+  // const vector<int>& actualToRef,
+  const vector<unsigned>& actualToRef,
   const unsigned numFrontWheels,
   const bool fullTrainFlag,
   Shift& shift,
@@ -712,47 +713,9 @@ void Align::bestMatches(
   const Control& control,
   const TrainDB& trainDB,
   const string& sensorCountry,
-
-  const vector<int>& actualToRef,
-  const unsigned numFrontWheels,
-  const bool fullTrainFlag,
   const PeaksInfo& peaksInfo,
   vector<Alignment>& matches) const
 {
-    if (numFrontWheels != peaksInfo.numFrontWheels)
-      cout << "ALIGN WHEELS " << numFrontWheels << " vs. " <<
-        peaksInfo.numFrontWheels << ", " <<
-        peaksInfo.numCars << 
-        endl;
-
-  if (peaksInfo.numCars && ! fullTrainFlag)
-    cout << "ALIGN only numCars set\n";
-  else if (! peaksInfo.numCars && fullTrainFlag)
-    cout << "ALIGN only fullTrainFlag set\n";
-  else if (peaksInfo.numCars)
-  {
-
-    if (actualToRef.size() != peaksInfo.peakNumbers.size())
-      cout << "ALIGN A2R " << actualToRef.size() << " vs. " <<
-        peaksInfo.peakNumbers.size() << endl;
-    else
-    {
-      for (unsigned i = 0; i < actualToRef.size(); i++)
-      {
-        if (actualToRef[i] < 0)
-          cout << "ALIGN A2R i " << i << ": " << actualToRef[i] <<
-            " vs. " << peaksInfo.peakNumbers[i] << " (negative)\n";
-        else
-        {
-          const unsigned a = static_cast<unsigned>(actualToRef[i]);
-          if (a != peaksInfo.peakNumbers[i])
-            cout << "ALIGN PI " << i << ": " << actualToRef[i] <<
-            " vs. " << peaksInfo.peakNumbers[i] << "\n";
-        }
-      }
-    }
-  }
-
   vector<float> scaledPeaks;
   matches.clear();
 
@@ -773,8 +736,8 @@ void Align::bestMatches(
 // cout << "refTrain " << refTrain << endl;
     const float trainLength = refPeaks.back() - refPeaks.front();
     Shift shift;
-    Align::scalePeaks(refPeaks, peaksInfo.times, actualToRef, 
-      numFrontWheels, fullTrainFlag, shift, scaledPeaks);
+    Align::scalePeaks(refPeaks, peaksInfo.times, peaksInfo.peakNumbers,
+      peaksInfo.numFrontWheels, peaksInfo.numCars > 0, shift, scaledPeaks);
 
     if (scaledPeaks.empty())
       continue;
