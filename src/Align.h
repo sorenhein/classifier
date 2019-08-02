@@ -7,6 +7,7 @@
 
 class TrainDB;
 class Control;
+struct PeaksInfo;
 
 using namespace std;
 
@@ -108,12 +109,11 @@ class Align
       const TrainDB& trainDB,
       const string& country,
 
-      const vector<float>& times,
+      // const vector<float>& times,
       const vector<int>& actualToRef,
       const unsigned numFrontWheels,
       const bool fullTrainFlag,
-      // const Imperfections& imperf,
-      // const unsigned tops,
+      const PeaksInfo& peaksInfo,
       vector<Alignment>& matches) const;
 };
 

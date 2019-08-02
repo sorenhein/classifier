@@ -747,21 +747,24 @@ void PeakStructure::pushPeak(
 
 void PeakStructure::pushInfo(
   Peak const * pptr,
+  const double sampleRate,
   const float tOffset,
-  const float sampleRate,
-  PeaksInfo& peaksInfo,
-  PeakInfo& infoNext) const
+  const unsigned carNo,
+  unsigned& peakNo,
+  unsigned& peakNoInCar,
+  PeaksInfo& peaksInfo) const
 {
   if (pptr)
   {
-    vector<PeakInfo>& infos = peaksInfo.infos;
-    PeakInfo& infoNew = infos.back();
-    infoNew = infoNext;
-    infoNew.time = pptr->getIndex() / sampleRate - tOffset;
+    peaksInfo.times.push_back(
+      pptr->getIndex() / static_cast<float>(sampleRate) - tOffset);
+    peaksInfo.carNumbers.push_back(carNo);
+    peaksInfo.peakNumbers.push_back(peakNo);
+    peaksInfo.peakNumbersInCar.push_back(peakNoInCar);
   }
 
-  infoNext.peakNo++;
-  infoNext.peakNoInCar++;
+  peakNo++;
+  peakNoInCar++;
 }
 
 
@@ -813,47 +816,41 @@ unsigned PeakStructure::getNumFrontWheels() const
 void PeakStructure::getPeaksInfo(
   const PeakPool& peaks,
   PeaksInfo& peaksInfo,
-  const float sampleRate) const
+  const double sampleRate) const
 {
   peaksInfo.numCars = cars.size();
 
-  if (cars.empty())
+  if (cars.empty() || PeakStructure::hasGaps())
   {
-    // Not so elegant.
-    vector<float> times;
-    peaks.topConst().getTimes(&Peak::isSelected, times);
-
-    peaksInfo.infos.resize(times.size());
-    for (unsigned i = 0; i < times.size(); i++)
-      peaksInfo.infos[i].time = times[i];
+    peaks.topConst().getTimes(&Peak::isSelected, peaksInfo.times);
+    peaksInfo.numFrontWheels = 0;
   }
   else
   {
-    const float t0 = cars.front().firstPeak() / sampleRate;
-    PeakInfo infoNext;
-    infoNext.time = 0.f;
-    infoNext.carNo = 0;
-    infoNext.peakNo = 0;
-    infoNext.peakNoInCar = 0;
+    const float t0 = cars.front().firstPeak() / 
+      static_cast<float>(sampleRate);
+    unsigned carNo = 0;
+    unsigned peakNo = 0;
+    unsigned peakNoInCar = 0;
 
     for (auto& car: cars)
     {
       const CarPeaksPtr cptr = car.getPeaksPtr();
 
       PeakStructure::pushInfo(cptr.firstBogieLeftPtr, sampleRate, t0, 
-        peaksInfo, infoNext);
+        carNo, peakNo, peakNoInCar, peaksInfo);
       PeakStructure::pushInfo(cptr.firstBogieRightPtr, sampleRate, t0, 
-        peaksInfo, infoNext);
+        carNo, peakNo, peakNoInCar, peaksInfo);
       PeakStructure::pushInfo(cptr.secondBogieLeftPtr, sampleRate, t0, 
-        peaksInfo, infoNext);
+        carNo, peakNo, peakNoInCar, peaksInfo);
       PeakStructure::pushInfo(cptr.secondBogieRightPtr, sampleRate, t0, 
-        peaksInfo, infoNext);
+        carNo, peakNo, peakNoInCar, peaksInfo);
 
-      infoNext.carNo++;
-      infoNext.peakNoInCar = 0;
+      carNo++;
+      peakNoInCar = 0;
     }
 
-    peaksInfo.numPeaks = infoNext.peakNo;
+    peaksInfo.numPeaks = peakNo;
     peaksInfo.numFrontWheels = cars.front().numFrontWheels();
   }
 }

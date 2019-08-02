@@ -6,18 +6,13 @@
 using namespace std;
 
 
-struct PeakInfo
-{
-  float time;
-  unsigned carNo;
-  unsigned peakNo; // 0-
-  unsigned peakNoInCar; // 0-3
-};
-
-
 struct PeaksInfo
 {
-  vector<PeakInfo> infos;
+  vector<float> times;
+  vector<unsigned> carNumbers;
+  vector<unsigned> peakNumbers; // 0+
+  vector<unsigned> peakNumbersInCar; // 0-3
+
 
   unsigned numCars; // If > 0, the next two are set and meaningful
   unsigned numPeaks;

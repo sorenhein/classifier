@@ -159,15 +159,17 @@ class PeakStructure
 
     void pushInfo(
       Peak const * pptr,
+      const double sampleRate,
       const float tOffset,
-      const float sampleRate,
-      PeaksInfo& peaksInfo,
-      PeakInfo& infoNext) const;
+      const unsigned carNo,
+      unsigned& peakNo,
+      unsigned& peakNoInCar,
+      PeaksInfo& peaksInfo) const;
 
     void getPeaksInfo(
       const PeakPool& peaks,
       PeaksInfo& peaksInfo,
-      const float sampleRate) const;
+      const double sampleRate) const;
 };
 
 #endif

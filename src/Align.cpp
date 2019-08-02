@@ -6,6 +6,7 @@
 #include <algorithm>
 #include <limits>
 
+#include "PeakGeneral.h"
 #include "Align.h"
 
 #include "database/TrainDB.h"
@@ -712,12 +713,62 @@ void Align::bestMatches(
   const TrainDB& trainDB,
   const string& sensorCountry,
 
-  const vector<float>& times,
+  // const vector<float>& times,
   const vector<int>& actualToRef,
   const unsigned numFrontWheels,
   const bool fullTrainFlag,
+  const PeaksInfo& peaksInfo,
   vector<Alignment>& matches) const
 {
+  // UNUSED(times);
+
+  /*
+  if (times.size() != peaksInfo.times.size())
+    cout << "ALIGNTIMES " << times.size() << " vs. " <<
+      peaksInfo.times.size() << endl;
+  else
+  {
+    for (unsigned i = 0; i < times.size(); i++)
+    {
+      const float r = times[i] / peaksInfo.times[i];
+      if (r < 0.999 || r > 1.001)
+        cout << "ALIGNTIMES " << i << ": " <<
+         times[i] << " vs. " << peaksInfo.times[i] << endl;
+    }
+  }
+  */
+
+  if (peaksInfo.numCars && ! fullTrainFlag)
+    cout << "ALIGN only numCars set\n";
+  else if (! peaksInfo.numCars && fullTrainFlag)
+    cout << "ALIGN only fullTrainFlag set\n";
+  else if (peaksInfo.numCars)
+  {
+    if (numFrontWheels != peaksInfo.numFrontWheels)
+      cout << "ALIGN WHEELS " << numFrontWheels << " vs. " <<
+        peaksInfo.numFrontWheels << endl;
+
+    if (actualToRef.size() != peaksInfo.peakNumbers.size())
+      cout << "ALIGN A2R " << actualToRef.size() << " vs. " <<
+        peaksInfo.peakNumbers.size() << endl;
+    else
+    {
+      for (unsigned i = 0; i < actualToRef.size(); i++)
+      {
+        if (actualToRef[i] < 0)
+          cout << "ALIGN A2R i " << i << ": " << actualToRef[i] <<
+            " vs. " << peaksInfo.peakNumbers[i] << " (negative)\n";
+        else
+        {
+          const unsigned a = static_cast<unsigned>(actualToRef[i]);
+          if (a != peaksInfo.peakNumbers[i])
+            cout << "ALLIGN PI " << i << ": " << actualToRef[i] <<
+            " vs. " << peaksInfo.peakNumbers[i] << "\n";
+        }
+      }
+    }
+  }
+
   vector<float> scaledPeaks;
   matches.clear();
 
@@ -726,7 +777,7 @@ void Align::bestMatches(
     const int refTrainNo = trainDB.lookupNumber(refTrain);
     const unsigned refTrainNoU = static_cast<unsigned>(refTrainNo);
 
-    if (Align::countTooDifferent(times, trainDB.numAxles(refTrainNoU)))
+    if (Align::countTooDifferent(peaksInfo.times, trainDB.numAxles(refTrainNoU)))
       continue;
 
     if (! trainDB.isInCountry(refTrainNoU, sensorCountry))
@@ -738,7 +789,7 @@ void Align::bestMatches(
 // cout << "refTrain " << refTrain << endl;
     const float trainLength = refPeaks.back() - refPeaks.front();
     Shift shift;
-    Align::scalePeaks(refPeaks, times, actualToRef, 
+    Align::scalePeaks(refPeaks, peaksInfo.times, actualToRef, 
       numFrontWheels, fullTrainFlag, shift, scaledPeaks);
 
     if (scaledPeaks.empty())
@@ -746,7 +797,7 @@ void Align::bestMatches(
 
     if (control.verboseAlignPeaks())
     {
-      Align::printAlignPeaks(refTrain, times, refPeaks, scaledPeaks);
+      Align::printAlignPeaks(refTrain, peaksInfo.times, refPeaks, scaledPeaks);
       // TODO Print shift.  
     }
 

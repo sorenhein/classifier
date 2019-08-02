@@ -309,6 +309,9 @@ void run(
 
 
     // Get PeakStruct results in a useful format for Alignment.
+    PeaksInfo peaksInfo;
+    pstruct.getPeaksInfo(peaks, peaksInfo, traceData.sampleRate);
+
     vector<float> times;
     vector<int> actualToRef;
     unsigned numFrontWheels;
@@ -340,7 +343,8 @@ void run(
     timers[thid].start(TIMER_ALIGN);
 
     align.bestMatches(control, trainDB, traceData.countrySensor,
-      times, actualToRef, numFrontWheels, fullTrainFlag, matches);
+      // times, 
+      actualToRef, numFrontWheels, fullTrainFlag, peaksInfo, matches);
 
     timers[thid].stop(TIMER_ALIGN);
 
