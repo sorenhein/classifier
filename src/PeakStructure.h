@@ -134,26 +134,7 @@ class PeakStructure
 
     bool hasGaps() const;
     
-    /*
-    bool markImperfections(
-      Imperfections& imperf) const;
-      */
-
     // to clean up
-
-    void pushPeak(
-      Peak const * pptr,
-      const float toffset,
-      int& pnoNext,
-      vector<float>& times,
-      vector<int>& actualToRef) const;
-
-    bool getAlignment(
-      vector<float>& times,
-      vector<int>& actualToRef,
-      unsigned& numFrontWheels);
-
-    unsigned getNumFrontWheels() const;
 
     void getPeaksInfo(PeaksInfo& peaksInfo) const;
 

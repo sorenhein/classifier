@@ -722,29 +722,6 @@ void PeakStructure::printCarStats(
 /////////////////// stuff to clean up /////////////////////////////////////
 
 
-#define SAMPLE_RATE 2000.f
-
-void PeakStructure::pushPeak(
-  Peak const * pptr,
-  const float tOffset,
-  int& pnoNext,
-  vector<float>& times,
-  vector<int>& actualToRef) const
-{
-  // TODO times and actualRef should be a struct with this method
-  if (pptr)
-  {
-    // times.emplace_back(PeakTime());
-    // PeakTime& p = times.back();
-    // p.time = pptr->getIndex() / SAMPLE_RATE - tOffset;
-    times.push_back(pptr->getIndex() / SAMPLE_RATE - tOffset);
-
-    actualToRef.push_back(pnoNext);
-  }
-  pnoNext++;
-}
-
-
 void PeakStructure::pushInfo(
   Peak const * pptr,
   const double sampleRate,
@@ -765,51 +742,6 @@ void PeakStructure::pushInfo(
 
   peakNo++;
   peakNoInCar++;
-}
-
-
-bool PeakStructure::getAlignment(
-  vector<float>& times,
-  vector<int>& actualToRef,
-  unsigned& numFrontWheels)
-{
-  if (PeakStructure::hasGaps())
-    return false;
-
-  if (cars.empty())
-    return false;
-
-  times.clear();
-  actualToRef.clear();
-
-  const float t0 = cars.front().firstPeak() / SAMPLE_RATE;
-  int pnoNext = 0;
-
-  for (auto& car: cars)
-  {
-    const CarPeaksPtr cptr = car.getPeaksPtr();
-    PeakStructure::pushPeak(cptr.firstBogieLeftPtr, t0, pnoNext,
-      times, actualToRef);
-    PeakStructure::pushPeak(cptr.firstBogieRightPtr, t0, pnoNext,
-      times, actualToRef);
-    PeakStructure::pushPeak(cptr.secondBogieLeftPtr, t0, pnoNext,
-      times, actualToRef);
-    PeakStructure::pushPeak(cptr.secondBogieRightPtr, t0, pnoNext,
-      times, actualToRef);
-  }
-
-  numFrontWheels = cars.front().numFrontWheels();
-
-  return true;
-}
-
-
-unsigned PeakStructure::getNumFrontWheels() const 
-{
-  if (cars.empty())
-    return 0;
-  else
-    return cars.front().numFrontWheels();
 }
 
 
