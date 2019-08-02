@@ -818,15 +818,17 @@ void PeakStructure::getPeaksInfo(
   PeaksInfo& peaksInfo,
   const double sampleRate) const
 {
-  peaksInfo.numCars = cars.size();
-
   if (cars.empty() || PeakStructure::hasGaps())
   {
+    peaksInfo.numCars = 0;
     peaks.topConst().getTimes(&Peak::isSelected, peaksInfo.times);
-    peaksInfo.numFrontWheels = 0;
+    peaksInfo.numFrontWheels = 
+      (cars.empty() ? 0 : cars.front().numFrontWheels());
   }
   else
   {
+    peaksInfo.numCars = cars.size();
+
     const float t0 = cars.front().firstPeak() / 
       static_cast<float>(sampleRate);
     unsigned carNo = 0;
