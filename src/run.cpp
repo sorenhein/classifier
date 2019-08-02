@@ -89,6 +89,14 @@ void runPeakLabel(
   const unsigned thid,
   PeakMinima& peakMinima);
 
+void runPeakExtract(
+  PeakPool& peaks, 
+  const double sampleRate,
+  const unsigned offset,
+  const unsigned thid,
+  PeakStructure& pstruct,
+  PeaksInfo& peaksInfo);
+
 void runWrite(
   const Control& control,
   const Transient& transient,
@@ -218,6 +226,27 @@ void runPeakLabel(
 }
 
 
+
+void runPeakExtract(
+  PeakPool& peaks, 
+  const double sampleRate,
+  const unsigned offset,
+  const unsigned thid,
+  PeakStructure& pstruct,
+  PeaksInfo& peaksInfo)
+{
+  timers[thid].start(TIMER_EXTRACT_CARS);
+
+  pstruct.markCars(peaks, offset);
+
+  // Get PeakStruct results in a useful format for Alignment.
+  pstruct.getPeaksInfo(peaks, peaksInfo, sampleRate);
+
+  timers[thid].stop(TIMER_EXTRACT_CARS);
+}
+
+
+
 void runWrite(
   const Control& control,
   const Transient& transient,
@@ -297,20 +326,15 @@ void run(
       interval.first, thid, peakMinima);
 
 
-
     // Use the labels to extract the car structure from the peaks.
     PeakStructure pstruct;
-    timers[thid].start(TIMER_EXTRACT_CARS);
-    pstruct.markCars(peaks, interval.first);
+    PeaksInfo peaksInfo;
+    runPeakExtract(peaks, traceData.sampleRate, interval.first, 
+      thid, pstruct, peaksInfo);
 
+    // Put in runPeakExtract, controlled by new Control flag
     cout << "PEAKPOOL\n";
     cout << peaks.strCounts();
-    timers[thid].stop(TIMER_EXTRACT_CARS);
-
-
-    // Get PeakStruct results in a useful format for Alignment.
-    PeaksInfo peaksInfo;
-    pstruct.getPeaksInfo(peaks, peaksInfo, traceData.sampleRate);
 
 
     // The storage is in Regress, but it is first used in Align.
