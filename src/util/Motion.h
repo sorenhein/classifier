@@ -20,7 +20,7 @@ struct Motion
 
   void reset();
 
-  void setEstimate(const vector<float>& coeffs);
+  float time2pos(const float time) const;
 
   string strLine(
     const string& text,

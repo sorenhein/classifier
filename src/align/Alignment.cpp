@@ -61,6 +61,8 @@ bool Alignment::operator < (const Alignment& a2) const
 
 float Alignment::time2pos(const float time) const
 {
+  return motion.time2pos(time);
+  /*
   float res = 0.;
   float pow = 1.;
   for (unsigned c = 0; c < motion.estimate.size(); c++)
@@ -69,6 +71,7 @@ float Alignment::time2pos(const float time) const
     pow *= time;
   }
   return res;
+  */
 }
 
 

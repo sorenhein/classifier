@@ -1,11 +1,10 @@
-Write a new binary file:  The matched peaks ("train")
+* In SUMM, how can there be 3 expections among the top traces?
+  Does something fail after matching cars?
+* Write a new binary file:  The matched peaks ("train")
+* Fix segfault for "bad" filter [2]
+* Find loose contact
+* Switch Align to only work when cars are complete(?)
 
-Alignment
----------
-Work on Regress
-- matches not so much in run.cpp, return & if needed
-- outputs in Regress.cpp, as str() from Regress
-- Align.cpp: get rid of Imperf
 
 Rename PeakMinima to PeakLabel
 

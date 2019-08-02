@@ -18,6 +18,8 @@
 
 #include "util/misc.h"
 
+#include "const.h"
+
 // Can adjust these.
 
 #define INSERT_PENALTY 100.f
@@ -29,6 +31,7 @@
 #define EARLY_SHIFTS_PENALTY 0.25f
 
 #define MAX_AXLE_DIFFERENCE_OK 7
+#define MAX_CAR_DIFFERENCE_OK 1
 
 // In meters, see below.
 
@@ -47,10 +50,35 @@ Align::~Align()
 }
 
 
+bool Align::trainMightFit(
+  const PeaksInfo& peaksInfo,
+  const string& sensorCountry,
+  const TrainDB& trainDB,
+  const Alignment& match) const
+{
+  if (peaksInfo.numCars > 0)
+  {
+    // Match is good enough to go by number of cars.
+    if (peaksInfo.numCars > match.numCars + MAX_CAR_DIFFERENCE_OK ||
+        peaksInfo.numCars + MAX_CAR_DIFFERENCE_OK < match.numCars)
+      return false;
+  }
+  else
+  {
+    // Fall back on nmber of peaks detected.
+    if (peaksInfo.numPeaks > match.numAxles + MAX_AXLE_DIFFERENCE_OK ||
+        peaksInfo.numPeaks + MAX_AXLE_DIFFERENCE_OK < match.numAxles)
+      return false;
+  }
+
+  return trainDB.isInCountry(match.trainNo, sensorCountry);
+}
+
+
 void Align::NeedlemanWunsch(
   const vector<float>& refPeaks,
   const vector<float>& scaledPeaks,
-  const float peakScale,
+  // const float peakScale,
   const Shift& shift,
   Alignment& alignment) const
 {
@@ -74,6 +102,11 @@ void Align::NeedlemanWunsch(
   
   const unsigned lr = refPeaks.size() - shift.firstRefNo;
   const unsigned lt = scaledPeaks.size() - shift.firstTimeNo;
+
+  // Normalize the distance score to a 200m long train.
+  const float trainLength = refPeaks.back() - refPeaks.front();
+  const float peakScale = TRAIN_REF_LENGTH * TRAIN_REF_LENGTH / 
+    (trainLength * trainLength);
 
   // Set up the matrix.
   enum Origin
@@ -257,7 +290,7 @@ void Align::estimateAlignedMotion(
     x[p] = static_cast<float>(times[i]);
   }
 
-  pol.fitIt(x, y, 2, shift.motion);
+  pol.fitIt(x, y, 2, shift.motion.estimate);
 }
 
 
@@ -353,18 +386,23 @@ void Align::estimateMotion(
   // From here on it is just the calculation of accelation (2),
   // speed (1) and offset (0).
 
-  shift.motion[2] = len * (2.f*tMid - tEnd) /
+  const float accel = len * (2.f*tMid - tEnd) /
     (tMid * tEnd * (tEnd - tMid));
 
-  shift.motion[1] = (len - 0.5f * shift.motion[2] * tEnd * tEnd) / tEnd;
+  shift.motion.estimate[1] = (len - 0.5f * accel * tEnd * tEnd) / tEnd;
 // if (flag)
 // cout << "len " << len << " tMid " << tMid << " tEnd " << tEnd <<
   // " accel " << motion[2] << " speed " << motion[1] << endl;
 
-  shift.motion[0] = refPeaks[shift.firstRefNo] -
-    (shift.motion[1] * times[shift.firstTimeNo] +
-      0.5f * shift.motion[2] * times[shift.firstTimeNo] * 
+  shift.motion.estimate[0] = refPeaks[shift.firstRefNo] -
+    (shift.motion.estimate[1] * times[shift.firstTimeNo] +
+      0.5f * accel * times[shift.firstTimeNo] * 
         times[shift.firstTimeNo]);
+  
+  shift.motion.estimate[2] = 0.5f * accel;
+
+  // TODO Does this work as intended?  Later we use time2pos to
+  // expand (no 0.5 factor).
 }
 
 
@@ -580,13 +618,9 @@ bool Align::betterSimpleScore(
 }
 
 
-void Align::scalePeaks(
+bool Align::scalePeaks(
   const vector<float>& refPeaks,
-  const vector<float>& times,
-  // const vector<int>& actualToRef,
-  const vector<unsigned>& actualToRef,
-  const unsigned numFrontWheels,
-  const bool fullTrainFlag,
+  const PeaksInfo& peaksInfo,
   Shift& shift,
   vector<float>& scaledPeaks) const
 {
@@ -611,18 +645,21 @@ void Align::scalePeaks(
     { {0, 0}, {4, 0} }
   };
 
-  const unsigned lt = times.size();
+  const unsigned lt = peaksInfo.times.size();
   const unsigned lp = refPeaks.size();
 
   vector<Shift> candidates;
 
   // Guess whether we're missing the whole first car.
   int offsetRef;
-  if (actualToRef.empty())
+
+  if (peaksInfo.numCars == 0)
+  {
     offsetRef = 0;
+  }
   else
   {
-    const unsigned aback = static_cast<unsigned>(actualToRef.back());
+    const unsigned aback = static_cast<unsigned>(peaksInfo.peakNumbers.back());
     if (aback + 4 <= lp)
       offsetRef = 4;
     else if (aback >= lp && aback <= lp + 4)
@@ -631,16 +668,12 @@ void Align::scalePeaks(
       offsetRef = 0;
   }
 
-// cout << "asize " << actualToRef.size() << " offset " << offsetRef << endl;
-  if (numFrontWheels <= 4)
-    Align::makeShiftCandidates(candidates, likelyShifts[numFrontWheels], 
-      lt, lp, actualToRef, offsetRef, fullTrainFlag);
+  if (peaksInfo.numFrontWheels <= 4)
+    Align::makeShiftCandidates(candidates, likelyShifts[peaksInfo.numFrontWheels], 
+      lt, lp, peaksInfo.peakNumbers, offsetRef, peaksInfo.numCars > 0);
 
   if (candidates.empty())
-  // {
-// cout << "no cand " << endl;
-    return;
-  // }
+    return false;
 
   // We calculate a simple score for this shift.  In fact
   // we could also run Needleman-Wunsch, so this is a bit of an
@@ -656,13 +689,12 @@ void Align::scalePeaks(
   for (unsigned i = 0; i < candidates.size(); i++)
   {
     Shift& cand = candidates[i];
-    cand.motion.resize(3);
 
-    if (fullTrainFlag)
-      Align::estimateAlignedMotion(refPeaks, times, actualToRef, 
+    if (peaksInfo.numCars > 0)
+      Align::estimateAlignedMotion(refPeaks, peaksInfo.times, peaksInfo.peakNumbers, 
         offsetRef, cand);
     else
-      Align::estimateMotion(refPeaks, times, cand);
+      Align::estimateMotion(refPeaks, peaksInfo.times, cand);
 
 /*
 cout << "i " << i << ": " << cand.firstRefNo << ", " << cand.firstTimeNo <<
@@ -672,11 +704,7 @@ cout << "motion " << cand.motion[0] << ", " <<
   */
 
     for (unsigned j = 0; j < lt; j++)
-    {
-      candPeaks[j] = cand.motion[0] +
-        cand.motion[1] * times[j] +
-        0.5f * cand.motion[2] * times[j] * times[j];
-    }
+      candPeaks[j] = cand.motion.time2pos(peaksInfo.times[j]);
 
     float score = Align::simpleScore(refPeaks, candPeaks);
 // cout << "i: " << i << ", score " << score << "\n";
@@ -686,7 +714,6 @@ cout << "motion " << cand.motion[0] << ", " <<
 // }
     if (Align::betterSimpleScore(score, i, bestScore, bestIndex, 
         candidates, lt))
-    // if (score > bestScore)
     {
       bestIndex = i;
       bestScore = score;
@@ -696,16 +723,7 @@ cout << "motion " << cand.motion[0] << ", " <<
 
 // cout << "bestIndex: " << bestIndex << endl;
   shift = candidates[bestIndex];
-}
-
-
-bool Align::countTooDifferent(
-  const vector<float>& times,
-  const unsigned refCount) const
-{
-  const unsigned lt = times.size();
-  return (refCount > lt + MAX_AXLE_DIFFERENCE_OK || 
-      lt > refCount + MAX_AXLE_DIFFERENCE_OK);
+  return true;
 }
 
 
@@ -717,58 +735,33 @@ void Align::bestMatches(
   vector<Alignment>& matches) const
 {
   vector<float> scaledPeaks;
+  Alignment match;
+  Shift shift;
   matches.clear();
 
   for (auto& refTrain: trainDB)
   {
-    const int refTrainNo = trainDB.lookupNumber(refTrain);
-    const unsigned refTrainNoU = static_cast<unsigned>(refTrainNo);
+    match.trainName = refTrain;
+    match.trainNo =  static_cast<unsigned>(trainDB.lookupNumber(refTrain));
+    match.numCars = trainDB.numCars(match.trainNo);
+    match.numAxles = trainDB.numAxles(match.trainNo);
 
-    if (Align::countTooDifferent(peaksInfo.times, trainDB.numAxles(refTrainNoU)))
+    if (! Align::trainMightFit(peaksInfo, sensorCountry, trainDB, match))
       continue;
 
-    if (! trainDB.isInCountry(refTrainNoU, sensorCountry))
+    const vector<float>& refPeaks = trainDB.getPeakPositions(match.trainNo);
+    if (! Align::scalePeaks(refPeaks, peaksInfo, shift, scaledPeaks))
       continue;
 
-    const vector<float>& refPeaks =
-      trainDB.getPeakPositions(refTrainNoU);
-
-// cout << "refTrain " << refTrain << endl;
-    const float trainLength = refPeaks.back() - refPeaks.front();
-    Shift shift;
-    Align::scalePeaks(refPeaks, peaksInfo.times, peaksInfo.peakNumbers,
-      peaksInfo.numFrontWheels, peaksInfo.numCars > 0, shift, scaledPeaks);
-
-    if (scaledPeaks.empty())
-      continue;
-
+    // TODO Print shift.  
     if (control.verboseAlignPeaks())
-    {
       Align::printAlignPeaks(refTrain, peaksInfo.times, refPeaks, scaledPeaks);
-      // TODO Print shift.  
-    }
 
-    // Normalize the distance score to a 200m long train.
-    const float peakScale = 200.f * 200.f / (trainLength * trainLength);
-
-    matches.push_back(Alignment());
-    matches.back().trainNo = refTrainNoU;
-    matches.back().trainName = refTrain;
-    matches.back().numAxles = trainDB.numAxles(refTrainNoU);
-
-    Align::NeedlemanWunsch(refPeaks, scaledPeaks, peakScale, 
-      shift, matches.back());
+    Align::NeedlemanWunsch(refPeaks, scaledPeaks, shift, match);
+    matches.push_back(match);
   }
 
   sort(matches.begin(), matches.end());
-
-  if (control.verboseAlignMatches())
-  {
-    cout << "Matching alignment\n";
-    for (auto& match: matches)
-      cout << match.str();
-    cout << "\n";
-  }
 }
 
 

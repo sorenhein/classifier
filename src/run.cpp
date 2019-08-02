@@ -332,9 +332,23 @@ void run(
     runPeakExtract(peaks, traceData.sampleRate, interval.first, 
       thid, pstruct, peaksInfo);
 
+    if (peaksInfo.numPeaks == 0)
+      THROW(ERR_NO_PEAKS_IN_STRUCTURE, "No peaks in structure");
+
     // Put in runPeakExtract, controlled by new Control flag
     cout << "PEAKPOOL\n";
     cout << peaks.strCounts();
+
+    // Should come later.  But it also outputs the "True train"
+    // needed in summarize.pl...
+
+    // Update statistics.
+    const vector<float>& posTrue = 
+      trainDB.getPeakPositions(traceData.trainNoTrueU);
+
+    PeakMatch peakMatch;
+    peakMatch.logPeakStats(peaks, posTrue, traceData.trainTrue,
+      traceData.speed, peakStats);
 
 
     // The storage is in Regress, but it is first used in Align.
@@ -346,6 +360,9 @@ void run(
     Align align;
     align.bestMatches(control, trainDB, traceData.countrySensor,
       peaksInfo, matches);
+
+    if (control.verboseAlignMatches())
+      cout << regress.strMatches("Matching alignment");
 
     timers[thid].stop(TIMER_ALIGN);
 
@@ -373,14 +390,6 @@ void run(
     // Write any binary output files.
     runWrite(control, transient, quietBack, quietFront, filter,
       peakDetect, traceData.filename, thid);
-
-    // Update statistics.
-    const vector<float>& posTrue = 
-      trainDB.getPeakPositions(traceData.trainNoTrueU);
-
-    PeakMatch peakMatch;
-    peakMatch.logPeakStats(peaks, posTrue, traceData.trainTrue,
-      traceData.speed, peakStats);
 
     string trainDetected;
     float distDetected;

@@ -5,6 +5,8 @@
 
 #include "align/Alignment.h"
 
+#include "util/Motion.h"
+
 class TrainDB;
 class Control;
 struct PeaksInfo;
@@ -23,7 +25,8 @@ class Align
       int firstHalfNetInsert;
       int secondHalfNetInsert;
 
-      vector<float> motion;
+      // vector<float> motion;
+      Motion motion;
     };
 
     struct OverallShift
@@ -33,9 +36,11 @@ class Align
     };
 
 
-    bool countTooDifferent(
-      const vector<float>& times,
-      const unsigned refCount) const;
+    bool trainMightFit(
+      const PeaksInfo& peaksInfo,
+      const string& sensorCountry,
+      const TrainDB& trainDB,
+      const Alignment& match) const;
 
     float interpolateTime(
       const vector<float>& times,
@@ -74,19 +79,16 @@ class Align
       const vector<Shift>& candidates,
       const unsigned lt) const;
 
-    void scalePeaks(
+    bool scalePeaks(
       const vector<float>& refPeaks,
-      const vector<float>& times,
-      const vector<unsigned>& actualToRef,
-      const unsigned numFrontWheels,
-      const bool fullTrainFlag,
+      const PeaksInfo& peaksInfo,
       Shift& shift,
       vector<float>& scaledPeaks) const;
 
     void NeedlemanWunsch(
       const vector<float>& refPeaks,
       const vector<float>& scaledPeaks,
-      const float peakScale,
+      // const float peakScale,
       const Shift& shift,
       Alignment& alignment) const;
 

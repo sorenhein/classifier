@@ -754,6 +754,7 @@ void PeakStructure::getPeaksInfo(
   {
     peaksInfo.numCars = 0;
     peaks.topConst().getTimes(&Peak::isSelected, peaksInfo.times);
+    peaksInfo.numPeaks = peaksInfo.times.size();
     peaksInfo.numFrontWheels = 
       (cars.empty() ? 0 : cars.front().numFrontWheels());
   }

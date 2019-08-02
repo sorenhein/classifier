@@ -30,6 +30,7 @@ struct Alignment
   string trainName;
   unsigned trainNo;
   unsigned numAxles;
+  unsigned numCars;
 
   float dist;
   float distOther;

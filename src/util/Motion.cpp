@@ -25,22 +25,17 @@ void Motion::reset()
 }
 
 
-/*
-void Motion::setEstimate(const vector<float>& coeffs)
+float Motion::time2pos(const float time) const
 {
-  // The regression coefficients are of the form:
-  //   position = c2 * time^2 + c1 * time + c0.
-  //
-  // In the physics formula, we have
-  //   position = 0.5 * a * time^2 + v * time + pos0.
-  // 
-  // As we store the physical quantities here, a = 2 * c2.
-  
-  estimate[0] = coeffs[0];
-  estimate[1] = coeffs[1];
-  estimate[2] = 2.f * coeffs[2];
+  float res = 0.;
+  float pow = 1.;
+  for (unsigned c = 0; c < estimate.size(); c++)
+  {
+    res += estimate[c] * pow;
+    pow *= time;
+  }
+  return res;
 }
-*/
 
 
 string Motion::strLine(
