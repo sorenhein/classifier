@@ -582,12 +582,12 @@ void PeakDetect::extract(const Control& control)
 
 void PeakDetect::logPeakStats(
   const vector<float>& posTrue,
-  const string& trainTrue,
   const double speedTrue,
   PeakStats& peakStats)
 {
   PeakMatch matches;
-  matches.logPeakStats(peaks, posTrue, trainTrue, speedTrue, peakStats);
+  matches.logPeakStats(peaks, posTrue, // trainTrue, 
+    speedTrue, peakStats);
 }
 
 

@@ -89,20 +89,12 @@ class PeakDetect
 
     void logPeakStats(
       const vector<float>& posTrue,
-      const string& trainTrue,
       const double speedTrue,
       PeakStats& peakStats);
 
     void makeSynthPeaks(
       const unsigned first,
       const unsigned slen);
-
-    /*
-    bool getAlignment(
-      vector<double>& times,
-      vector<int>& actualToRef,
-      unsigned& numFrontWheels);
-      */
 
     void getPeakTimes(
       vector<double>& times,

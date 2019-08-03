@@ -614,9 +614,6 @@ void PeakStructure::markCars(
 cout << peaks.candidates().strQuality(
   "All selected peaks at end of PeakStructure", offset, &Peak::isSelected);
 
-  if (ranges.empty() && ! cars.empty())
-    cout << "FULLHOUSE\n\n";
-
   // Output statistics of partials.
   unsigned numTrainsWithWarnings = 0;
   unsigned numTrainsWithPartials = 0;
@@ -653,30 +650,6 @@ bool PeakStructure::hasGaps() const
 {
   return (! ranges.empty());
 }
-
-
-/*
-bool PeakStructure::markImperfections(
-  Imperfections& imperf) const
-{
-  // Based on the cars we recognized, make an educated guess of the
-  // number of peaks of different types that we may not have got
-  // exactly right.
-  
-  // For now we assume cars of exactly 4 peaks each.
-  // This doesn't really work well yet.
-  // TODO
-
-  imperf.reset();
-  for (auto& range: ranges)
-    range.updateImperfections(cars, imperf);
-
-  // cout << "IMPERF " <<
-    // imperf.numSkipsOfReal << "-" << imperf.numSkipsOfSeen << ", " <<
-    // imperf.numSpuriousLater << "-" << imperf.numMissingLater << endl;
-  return true;
-}
-*/
 
 
 void PeakStructure::printWheelCount(

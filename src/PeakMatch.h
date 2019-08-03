@@ -73,7 +73,7 @@ class PeakMatch
     void logPeakStats(
       const PeakPool& peaks,
       const vector<float>& posTrue,
-      const string& trainTrue,
+      // const string& trainTrue,
       const double speedTrue,
       PeakStats& peakStats);
 

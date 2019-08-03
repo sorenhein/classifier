@@ -1,6 +1,3 @@
-* In SUMM, how can there be 3 exceptions among the top traces?
-  Does something fail after matching cars?
-
 * Write a new binary file:  The matched peaks ("train")
 
 * Stats go only in sensor??.txt file, get parsed from there

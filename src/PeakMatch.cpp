@@ -290,7 +290,7 @@ void PeakMatch::correctTimesTrue(vector<float>& timesTrue) const
 void PeakMatch::logPeakStats(
   const PeakPool& peaks,
   const vector<float>& posTrue,
-  const string& trainTrue,
+  // const string& trainTrue,
   const double speedTrue,
   PeakStats& peakStats)
 {
@@ -346,9 +346,9 @@ void PeakMatch::logPeakStats(
       {
         cout << "Warning: No good match to real " << 
           posTrue.size() << " peaks.\n";
-        cout << "\nTrue train " << trainTrue << " at " << 
-          fixed << setprecision(2) << speedTrue << " m/s" << 
-          endl << endl;
+        // cout << "\nTrue train " << trainTrue << " at " << 
+          // fixed << setprecision(2) << speedTrue << " m/s" << 
+          // endl << endl;
       }
       // Falling through to statistics anyway.
     }
@@ -434,8 +434,8 @@ void PeakMatch::logPeakStats(
 
   if (debug)
   {
-    cout << "True train " << trainTrue << " at " << 
-      fixed << setprecision(2) << speedTrue << " m/s\n\n";
+    // cout << "True train " << trainTrue << " at " << 
+      // fixed << setprecision(2) << speedTrue << " m/s\n\n";
 
     cout << seen << " of the observed peaks are close to true ones (" << 
       posTrue.size() << " true peaks)" << endl;

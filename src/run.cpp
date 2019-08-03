@@ -339,16 +339,9 @@ void run(
     cout << "PEAKPOOL\n";
     cout << peaks.strCounts();
 
-    // Should come later.  But it also outputs the "True train"
-    // needed in summarize.pl...
-
     // Update statistics.
     const vector<float>& posTrue = 
       trainDB.getPeakPositions(traceData.trainNoTrueU);
-
-    PeakMatch peakMatch;
-    peakMatch.logPeakStats(peaks, posTrue, traceData.trainTrue,
-      traceData.speed, peakStats);
 
 
     // The storage is in Regress, but it is first used in Align.
@@ -361,13 +354,19 @@ void run(
     align.bestMatches(control, trainDB, traceData.countrySensor,
       peaksInfo, matches);
 
+    if (matches.size() == 0)
+      THROW(ERR_NO_ALIGN_MATCHES, "No alignment matches");
+
+    if (peaksInfo.numCars > 0)
+      cout << "FULLHOUSE\n\n";
+
+    cout << "True train " << traceData.trainTrue << " at " <<
+      fixed << setprecision(2) << traceData.speed << " m/s\n\n";
+
     if (control.verboseAlignMatches())
       cout << regress.strMatches("Matching alignment");
 
     timers[thid].stop(TIMER_ALIGN);
-
-    if (matches.size() == 0)
-      THROW(ERR_NO_ALIGN_MATCHES, "No alignment matches");
 
 
     // Run the regression with the given alignment.
@@ -385,6 +384,10 @@ void run(
     }
 
     timers[thid].stop(TIMER_REGRESS);
+
+    PeakMatch peakMatch;
+    peakMatch.logPeakStats(peaks, posTrue, // traceData.trainTrue,
+      traceData.speed, peakStats);
 
 
     // Write any binary output files.
