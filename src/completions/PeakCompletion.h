@@ -68,6 +68,10 @@ class PeakCompletion
 
     bool consistentWith(const PeakCompletion& pc2);
 
+    bool isOversized(
+      const unsigned first,
+      const unsigned last) const;
+
     CompletionType source() const;
 
     Peak * ptr();

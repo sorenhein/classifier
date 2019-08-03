@@ -32,6 +32,13 @@ Completion& Completions::back()
 }
 
 
+void Completions::pop_back()
+{
+  if (! completions.empty())
+    completions.pop_back();
+}
+
+
 void Completions::markWith(
   Peak& peak,
   const CompletionType type,

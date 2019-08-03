@@ -34,6 +34,8 @@ class Completions
 
     Completion& back();
 
+    void pop_back();
+
     void markWith(
       Peak& peak,
       const CompletionType type,

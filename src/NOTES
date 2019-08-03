@@ -1,9 +1,8 @@
 * In SUMM, how can there be 3 expections among the top traces?
   Does something fail after matching cars?
 * Write a new binary file:  The matched peaks ("train")
-* Fix segfault for "bad" filter [2]
-* Find loose contact
 * Switch Align to only work when cars are complete(?)
+* BIGNUM
 
 
 Rename PeakMinima to PeakLabel

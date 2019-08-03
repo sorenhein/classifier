@@ -106,6 +106,14 @@ bool PeakCompletion::consistentWith(const PeakCompletion& pc2)
 }
 
 
+bool PeakCompletion::isOversized(
+  const unsigned first,
+  const unsigned last) const
+{
+  return (lower < first || upper > last);
+}
+
+
 CompletionType PeakCompletion::source() const
 {
   return _type;

@@ -6,6 +6,9 @@
 #include "PeakSeeds.h"
 #include "PeakPtrs.h"
 
+#include "Except.h"
+#include "errors.h"
+
 #define PEAKSEEDS_ITER 4
 #define PEAKSEEDS_VALUE 0.7f
 #define PEAKSEEDS_ADD 0.1f
@@ -479,6 +482,9 @@ void PeakSeeds::mark(
     // TODO Input flag
     if (false)
       cout << PeakSeeds::str(offset, "after pruning");
+
+    if (nestedIntervals.empty())
+      THROW(ERR_NO_NESTED_INTERVALS, "No nested intervals");
 
     PeakSeeds::markSeeds(peaks, peaksToSelect, peakAvg);
     const unsigned pl = peaksToSelect.size();

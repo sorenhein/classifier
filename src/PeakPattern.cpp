@@ -175,6 +175,11 @@ bool PeakPattern::addModelTargets(
     {
       seenFlag = true;
     }
+    else
+    {
+      // Not very elegant, but it happens rather rarely.
+      completions.pop_back();
+    }
   }
 
   if (! symmetryFlag && car.hasRightGap())
@@ -193,6 +198,8 @@ bool PeakPattern::addModelTargets(
     {
       seenFlag = true;
     }
+    else
+      completions.pop_back();
   }
 
   return seenFlag;
