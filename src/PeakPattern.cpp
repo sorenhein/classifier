@@ -363,6 +363,10 @@ void PeakPattern::guessBothSingleShort(const CarModels& models)
       rangeData.lenRange > lenShortHi)
     return;
 
+  // Mid gap should be at least as large as side gap.
+  if (3 * sideTypical + 2 * bogieTypical >= rangeData.lenRange)
+    return;
+
   // Guess that particularly the middle part is shorter in a short car.
   list<unsigned> carPoints;
   carPoints.push_back(0);

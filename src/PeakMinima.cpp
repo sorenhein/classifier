@@ -208,7 +208,6 @@ void PeakMinima::makeCarAverages(
   const PeakPool& peaks,
   vector<Peak>& wheels) const
 {
-
   wheels.clear();
   wheels.resize(4);
 
@@ -254,6 +253,9 @@ void PeakMinima::makeCarAverages(
     if (count[i])
       wheels[i] /= count[i];
   }
+
+  if (count[0] == 0)
+    THROW(ERR_NO_LABEL_SCALE, "No peak scale found when labeling");
 }
 
 

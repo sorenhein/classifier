@@ -995,11 +995,11 @@ string Peak::str(const unsigned offset) const
     setw(6) << std::right << index + offset <<
     setw(9) << fixed << setprecision(2) << value <<
     setw(5) << (maxFlag ? "max" : "min") <<
-    setw(7) << fixed << setprecision(2) << left.len <<
-    setw(7) << fixed << setprecision(2) << left.range <<
-    setw(8) << fixed << setprecision(2) << left.area <<
-    setw(8) << fixed << setprecision(2) << 100.f * left.gradient <<
-    setw(8) << fixed << setprecision(2) << left.fill <<
+    setw(7) << Peak::strLarge(left.len) <<
+    setw(7) << Peak::strLarge(left.range) <<
+    setw(8) << Peak::strLarge(left.area) <<
+    setw(8) << Peak::strLarge(100.f * left.gradient) <<
+    setw(8) << Peak::strLarge(left.fill) <<
     "\n";
   return ss.str();
 }
@@ -1024,8 +1024,8 @@ string Peak::strQuality(const unsigned offset) const
     setw(5) << std::right << index + offset <<
     setw(8) << Peak::strExtent() << 
     setw(7) << fixed << setprecision(2) << value <<
-    setw(7) << fixed << setprecision(2) << left.range <<
-    setw(7) << fixed << setprecision(2) << right.range <<
+    setw(7) << Peak::strLarge(left.range) <<
+    setw(7) << Peak::strLarge(right.range) <<
     setw(6) << Peak::strLarge(100.f * left.gradient) <<
     setw(6) << Peak::strLarge(100.f * right.gradient) <<
     setw(7) << Peak::strLarge(qualityShape) <<
