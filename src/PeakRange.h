@@ -181,12 +181,6 @@ class PeakRange
     bool looksEmpty() const;
     bool looksEmptyLast() const;
 
-    /*
-    bool updateImperfections(
-      const list<CarDetect>& cars,
-      Imperfections& imperf) const;
-      */
-
     string strInterval(
       const unsigned offset,
       const string& text) const;

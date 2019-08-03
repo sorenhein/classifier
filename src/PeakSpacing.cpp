@@ -134,6 +134,10 @@ cout << "FAIL on mid ratio\n";
   if (gapRatio < 0.3f || gapRatio > 2.f)
   {
 cout << "FAIL on gap ratio: gap " << gap << endl;
+cout << "leftFlag " << leftFlag << ", indices " << index1 << ", " << 
+  index2 << endl;
+cout << "indexLeft " << rangeData.indexLeft << ", left " <<
+  spacings[index1].peakLeft->getIndex();
     return false;
   }
 
@@ -338,14 +342,21 @@ bool PeakSpacing::locate(
   PeakPtrs& peakPtrsUsed,
   PeakPtrs& peakPtrsUnused)
 {
+  if (peakPtrsUsed.size() <= 2)
+    return false;
+
   if (! PeakSpacing::setGlobals(models, range, offsetIn))
+    return false;
+
+  // Car has too large front gap.
+  if (peakPtrsUsed.front()->getIndex() < rangeData.indexLeft)
+    return false;
+
+  if (peakPtrsUsed.back()->getIndex() > rangeData.indexRight)
     return false;
 
 cout << peakPtrsUsed.strQuality("Used", offset);
 cout << peakPtrsUnused.strQuality("Unused", offset);
-
-  if (peakPtrsUsed.size() <= 2)
-    return false;
 
   if (rangeData.qualBest != QUALITY_NONE)
   {

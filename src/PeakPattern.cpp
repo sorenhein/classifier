@@ -784,6 +784,7 @@ void PeakPattern::fillCompletions(
         if (ptr->absurdQuality())
         {
 cout << "Rejecting reconstructed peak\n";
+          pc.unrepair();
           continue;
         }
 
