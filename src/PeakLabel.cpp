@@ -7,7 +7,7 @@
 #include <cmath>
 
 #include "Peak.h"
-#include "PeakMinima.h"
+#include "PeakLabel.h"
 #include "Except.h"
 #include "util/Gap.h"
 
@@ -19,24 +19,24 @@
 #define UNUSED(x) ((void)(true ? 0 : ((x), void(), 0)))
 
 
-PeakMinima::PeakMinima()
+PeakLabel::PeakLabel()
 {
-  PeakMinima::reset();
+  PeakLabel::reset();
 }
 
 
-PeakMinima::~PeakMinima()
+PeakLabel::~PeakLabel()
 {
 }
 
 
-void PeakMinima::reset()
+void PeakLabel::reset()
 {
   offset = 0;
 }
 
 
-void PeakMinima::markWheelPair(
+void PeakLabel::markWheelPair(
   Peak& p1,
   Peak& p2) const
 {
@@ -46,7 +46,7 @@ void PeakMinima::markWheelPair(
 
 
 
-void PeakMinima::markBogieShortGap(
+void PeakLabel::markBogieShortGap(
   Peak& p1,
   Peak& p2) const
 {
@@ -55,7 +55,7 @@ void PeakMinima::markBogieShortGap(
 }
 
 
-void PeakMinima::markBogieLongGap(
+void PeakLabel::markBogieLongGap(
   Peak& p1,
   Peak& p2) const
 {
@@ -64,7 +64,7 @@ void PeakMinima::markBogieLongGap(
 }
 
 
-void PeakMinima::reseedWheelUsingQuality(PeakPool& peaks) const
+void PeakLabel::reseedWheelUsingQuality(PeakPool& peaks) const
 {
   PeakPtrs& candidates = peaks.candidates();
   PPLiterator cbegin = candidates.begin();
@@ -84,7 +84,7 @@ void PeakMinima::reseedWheelUsingQuality(PeakPool& peaks) const
 }
 
 
-void PeakMinima::reseedBogiesUsingQuality(
+void PeakLabel::reseedBogiesUsingQuality(
   PeakPool& peaks,
   const vector<Peak>& bogieScale) const
 {
@@ -115,7 +115,7 @@ void PeakMinima::reseedBogiesUsingQuality(
 }
 
 
-void PeakMinima::reseedLongGapsUsingQuality(
+void PeakLabel::reseedLongGapsUsingQuality(
   PeakPool& peaks,
   const vector<Peak>& longGapScale) const
 {
@@ -171,7 +171,7 @@ void PeakMinima::reseedLongGapsUsingQuality(
 }
 
 
-void PeakMinima::makeBogieAverages(
+void PeakLabel::makeBogieAverages(
   const PeakPool& peaks,
   vector<Peak>& wheels) const
 {
@@ -204,7 +204,7 @@ void PeakMinima::makeBogieAverages(
 }
 
 
-void PeakMinima::makeCarAverages(
+void PeakLabel::makeCarAverages(
   const PeakPool& peaks,
   vector<Peak>& wheels) const
 {
@@ -259,7 +259,7 @@ void PeakMinima::makeCarAverages(
 }
 
 
-void PeakMinima::markSinglePeaks(
+void PeakLabel::markSinglePeaks(
   PeakPool& peaks,
   const vector<Peak>& peakCenters) const
 {
@@ -278,13 +278,13 @@ void PeakMinima::markSinglePeaks(
     // offset, &Peak::isSelected);
 
   // Modify selection based on quality.
-  PeakMinima::reseedWheelUsingQuality(peaks);
+  PeakLabel::reseedWheelUsingQuality(peaks);
 
   // cout << peaks.candidates().strQuality("Great-quality seeds", offset);
 }
 
 
-void PeakMinima::markBogiesOfSelects(
+void PeakLabel::markBogiesOfSelects(
   PeakPool& peaks,
   const PeakFncPtr& fptr,
   const Gap& wheelGap,
@@ -310,7 +310,7 @@ void PeakMinima::markBogiesOfSelects(
       
     if (cand->matchesGap(* nextCand, wheelGap))
     {
-      PeakMinima::markWheelPair(* cand, * nextCand);
+      PeakLabel::markWheelPair(* cand, * nextCand);
       
       const unsigned dist = nextCand->getIndex() - cand->getIndex();
       actualGap.expand(dist);
@@ -322,7 +322,7 @@ void PeakMinima::markBogiesOfSelects(
 }
 
 
-void PeakMinima::fixBogieOrphans(PeakPool& peaks) const
+void PeakLabel::fixBogieOrphans(PeakPool& peaks) const
 {
   PeakPtrs& candidates = peaks.candidates();
   PPLiterator cbegin = candidates.begin();
@@ -356,7 +356,7 @@ void PeakMinima::fixBogieOrphans(PeakPool& peaks) const
 }
 
 
-void PeakMinima::markBogies(
+void PeakLabel::markBogies(
   PeakPool& peaks,
   Gap& wheelGap)
 {
@@ -367,7 +367,7 @@ void PeakMinima::markBogies(
   cout << wheelGap.str("Guessing wheel distance");
 
   Gap actualGap;
-  PeakMinima::markBogiesOfSelects(peaks, &Peak::acceptableQuality, 
+  PeakLabel::markBogiesOfSelects(peaks, &Peak::acceptableQuality, 
     wheelGap, actualGap);
 
   cout << actualGap.str("Got actual wheel distance");
@@ -381,10 +381,10 @@ void PeakMinima::markBogies(
   makeBogieAverages(peaks, bogieScale);
 
   // Recalculate the peak qualities using both left and right peaks.
-  PeakMinima::reseedBogiesUsingQuality(peaks, bogieScale);
+  PeakLabel::reseedBogiesUsingQuality(peaks, bogieScale);
 
   // Redo the marks with the new qualities.
-  PeakMinima::markBogiesOfSelects(peaks, &Peak::acceptableQuality, 
+  PeakLabel::markBogiesOfSelects(peaks, &Peak::acceptableQuality, 
     wheelGap, actualGap);
 
   cout << actualGap.str("Got actual wheel distance after recalculating");
@@ -394,7 +394,7 @@ void PeakMinima::markBogies(
   cout << wheelGap.str("Wheel distance after recalculating");
 
   // Redo the pieces.
-  PeakMinima::makePieceList(peaks, 
+  PeakLabel::makePieceList(peaks, 
     &Peak::acceptableQuality, &Peak::acceptableQuality,
     &Peak::arePartiallySelected);
 
@@ -404,7 +404,7 @@ void PeakMinima::markBogies(
     cout << "Extended the bogie distance\n";
     cout << wheelGap.str("Got wheel distance after extending");
     actualGap.reset();
-    PeakMinima::markBogiesOfSelects(peaks, &Peak::acceptableQuality, 
+    PeakLabel::markBogiesOfSelects(peaks, &Peak::acceptableQuality, 
       wheelGap, actualGap);
 
   cout << wheelGap.str("Got wheel distance after remarking");
@@ -419,19 +419,19 @@ void PeakMinima::markBogies(
 
 
   // Some halves of bogies may have been downgraded.
-  PeakMinima::fixBogieOrphans(peaks);
+  PeakLabel::fixBogieOrphans(peaks);
 
   cout << peaks.candidates().strQuality(
     "All peaks using left/right scales", offset);
 
   // Recalculate the averages based on the new qualities.
   makeBogieAverages(peaks, bogieScale);
-  PeakMinima::printPeakQuality(bogieScale[0], "Left-wheel average");
-  PeakMinima::printPeakQuality(bogieScale[1], "Right-wheel average");
+  PeakLabel::printPeakQuality(bogieScale[0], "Left-wheel average");
+  PeakLabel::printPeakQuality(bogieScale[1], "Right-wheel average");
 }
 
 
-unsigned PeakMinima::markByDistance(
+unsigned PeakLabel::markByDistance(
   PeakPool& peaks,
   const PeakFncPtr& fptr1,
   const PeakFncPtr& fptr2,
@@ -479,12 +479,12 @@ unsigned PeakMinima::markByDistance(
 
 
 
-void PeakMinima::markShortGaps(
+void PeakLabel::markShortGaps(
   PeakPool& peaks,
   Gap& wheelGap,
   Gap& shortGap)
 {
-  PeakMinima::makePieceList(peaks, 
+  PeakLabel::makePieceList(peaks, 
     &Peak::isRightWheel, &Peak::isLeftWheel, &Peak::areBogieGap);
 
   Gap longGap;
@@ -507,7 +507,7 @@ void PeakMinima::markShortGaps(
 
     // The basis for eliminating small pieces would in general be
     // different, so for consistency we go back to the original value.
-    PeakMinima::makePieceList(peaks, 
+    PeakLabel::makePieceList(peaks, 
       &Peak::acceptableQuality, &Peak::acceptableQuality,
       &Peak::arentPartiallySelectedBogie, wheelGap.count());
 
@@ -522,18 +522,18 @@ void PeakMinima::markShortGaps(
   }
 
   // Mark short gaps (between cars).
-  PeakMinima::markGapsOfSelects(peaks, 
+  PeakLabel::markGapsOfSelects(peaks, 
     &Peak::isRightWheel, &Peak::isLeftWheel,
-    &PeakMinima::markBogieShortGap,
+    &PeakLabel::markBogieShortGap,
     shortGap);
 
   // Look for unpaired short gaps (only among consecutive candidates).
-  PeakMinima::markByDistance(peaks,
+  PeakLabel::markByDistance(peaks,
     &Peak::isRightWheel, &Peak::isLeftWheel, &Peak::greatQuality,
-    &PeakMinima::markBogieShortGap, shortGap);
+    &PeakLabel::markBogieShortGap, shortGap);
 
   // Make wheels within a bogie consistent.
-  PeakMinima::makeLabelsConsistent(
+  PeakLabel::makeLabelsConsistent(
     peaks,
     &Peak::isLeftWheel, &Peak::isRightWheel,
     &Peak::isRightBogie, &Peak::isLeftBogie,
@@ -548,7 +548,7 @@ void PeakMinima::markShortGaps(
 }
 
 
-unsigned PeakMinima::makeLabelsConsistent(
+unsigned PeakLabel::makeLabelsConsistent(
   PeakPool& peaks,
   const PeakFncPtr& wptr1,
   const PeakFncPtr& wptr2,
@@ -631,7 +631,7 @@ unsigned PeakMinima::makeLabelsConsistent(
 }
 
 
-void PeakMinima::markGapsOfSelects(
+void PeakLabel::markGapsOfSelects(
   PeakPool& peaks,
   const PeakFncPtr& fptr1,
   const PeakFncPtr& fptr2,
@@ -673,7 +673,7 @@ void PeakMinima::markGapsOfSelects(
 }
 
 
-void PeakMinima::markLongGaps(
+void PeakLabel::markLongGaps(
   PeakPool& peaks,
   const Gap& wheelGap,
   const unsigned shortGapCount,
@@ -697,43 +697,43 @@ void PeakMinima::markLongGaps(
     THROW(ERR_NO_PEAKS, "New long gap fails");
 
   // Label intra-car gaps (within cars).
-  PeakMinima::markGapsOfSelects(peaks,
+  PeakLabel::markGapsOfSelects(peaks,
     &Peak::isRightWheelNonrightBogie, &Peak::isLeftWheelNonleftBogie,
-    &PeakMinima::markBogieLongGap, longGap);
+    &PeakLabel::markBogieLongGap, longGap);
 
   // We are not currently looking for unpaired peaks in long gaps.
 
   vector<Peak> bogies;
-  PeakMinima::makeCarAverages(peaks, bogies);
+  PeakLabel::makeCarAverages(peaks, bogies);
 
-  PeakMinima::printPeakQuality(bogies[0], "Left bogie, left wheel avg");
-  PeakMinima::printPeakQuality(bogies[1], "Left bogie, right wheel avg");
-  PeakMinima::printPeakQuality(bogies[2], "Right bogie, left wheel avg");
-  PeakMinima::printPeakQuality(bogies[3], "Right bogie, right wheel avg");
+  PeakLabel::printPeakQuality(bogies[0], "Left bogie, left wheel avg");
+  PeakLabel::printPeakQuality(bogies[1], "Left bogie, right wheel avg");
+  PeakLabel::printPeakQuality(bogies[2], "Right bogie, left wheel avg");
+  PeakLabel::printPeakQuality(bogies[3], "Right bogie, right wheel avg");
 
   // Recalculate the peak qualities using both left and right peaks.
-  PeakMinima::reseedLongGapsUsingQuality(peaks, bogies);
+  PeakLabel::reseedLongGapsUsingQuality(peaks, bogies);
 
   // Some peaks might have become good enough to lead to cars,
   // so we re-label.  First we look again for bogies.
   Gap actualGap;
-  PeakMinima::markBogiesOfSelects(peaks, &Peak::acceptableQuality,
+  PeakLabel::markBogiesOfSelects(peaks, &Peak::acceptableQuality,
     wheelGap, actualGap);
 
-  PeakMinima::markGapsOfSelects(peaks,
+  PeakLabel::markGapsOfSelects(peaks,
     &Peak::isRightWheelNonrightBogie, &Peak::isLeftWheelNonleftBogie,
-    &PeakMinima::markBogieLongGap, longGap);
+    &PeakLabel::markBogieLongGap, longGap);
 
   cout << peaks.candidates().strQuality("peaks with all four wheels", 
     offset);
 
   // Recalculate the averages based on the new qualities.
-  PeakMinima::makeCarAverages(peaks, bogies);
+  PeakLabel::makeCarAverages(peaks, bogies);
 
-  PeakMinima::printPeakQuality(bogies[0], "Left bogie, left wheel avg");
-  PeakMinima::printPeakQuality(bogies[1], "Left bogie, right wheel avg");
-  PeakMinima::printPeakQuality(bogies[2], "Right bogie, left wheel avg");
-  PeakMinima::printPeakQuality(bogies[3], "Right bogie, right wheel avg");
+  PeakLabel::printPeakQuality(bogies[0], "Left bogie, left wheel avg");
+  PeakLabel::printPeakQuality(bogies[1], "Left bogie, right wheel avg");
+  PeakLabel::printPeakQuality(bogies[2], "Right bogie, left wheel avg");
+  PeakLabel::printPeakQuality(bogies[3], "Right bogie, right wheel avg");
 
   // Redo the distances using the new qualities (all four peaks).
 
@@ -751,17 +751,17 @@ void PeakMinima::markLongGaps(
   cout << "Guessing new long gap " << longGap.str() << "\n";
 
   // Mark more bogies with the refined peak qualities.
-  PeakMinima::markGapsOfSelects(peaks,
+  PeakLabel::markGapsOfSelects(peaks,
     &Peak::isRightWheelNonrightBogie, &Peak::isLeftWheelNonleftBogie,
-    &PeakMinima::markBogieLongGap, longGap);
+    &PeakLabel::markBogieLongGap, longGap);
 
   // Mark bogies with the right distance.
-  PeakMinima::markByDistance(peaks,
+  PeakLabel::markByDistance(peaks,
     &Peak::isRightWheel, &Peak::isLeftWheel, &Peak::greatQuality,
-    &PeakMinima::markBogieLongGap, longGap);
+    &PeakLabel::markBogieLongGap, longGap);
 
   // This makes wheels within a bogie consistent.
-  PeakMinima::makeLabelsConsistent(
+  PeakLabel::makeLabelsConsistent(
     peaks,
     &Peak::isLeftWheel, &Peak::isRightWheel,
     &Peak::isRightBogie, &Peak::isLeftBogie,
@@ -776,7 +776,7 @@ void PeakMinima::markLongGaps(
 }
 
 
-void PeakMinima::makePieceList(
+void PeakLabel::makePieceList(
   const PeakPool& peaks,
   const PeakFncPtr& fptr1,
   const PeakFncPtr& fptr2,
@@ -794,7 +794,7 @@ void PeakMinima::makePieceList(
 }
 
 
-void PeakMinima::mark(
+void PeakLabel::mark(
   PeakPool& peaks,
   const float scale,
   const unsigned offsetIn)
@@ -807,7 +807,7 @@ void PeakMinima::mark(
 
   offset = offsetIn;
 
-  PeakMinima::markSinglePeaks(peaks, peakCenters);
+  PeakLabel::markSinglePeaks(peaks, peakCenters);
 
 unsigned countAll = peaks.candidates().size();
 unsigned countSelected = peaks.candidates().count(&Peak::isSelected);
@@ -815,7 +815,7 @@ cout << "FRAC " << countSelected << " " <<
   countAll << " " <<
   fixed << setprecision(2) << 100. * countSelected / countAll << endl;
 
-  PeakMinima::makePieceList(peaks, 
+  PeakLabel::makePieceList(peaks, 
     &Peak::acceptableQuality, &Peak::acceptableQuality,
     &Peak::arePartiallySelected);
 
@@ -823,25 +823,25 @@ cout << "FRAC " << countSelected << " " <<
     THROW(ERR_NO_PEAKS, "Piece list is empty");
 
   Gap wheelGap;
-  PeakMinima::markBogies(peaks, wheelGap);
+  PeakLabel::markBogies(peaks, wheelGap);
 
 peaks.mergeSplits(wheelGap.center(), offset);
 
   Gap shortGap;
-  PeakMinima::markShortGaps(peaks, wheelGap, shortGap);
+  PeakLabel::markShortGaps(peaks, wheelGap, shortGap);
 
   Gap longGap;
-  PeakMinima::markLongGaps(peaks, wheelGap, shortGap.count(), longGap);
+  PeakLabel::markLongGaps(peaks, wheelGap, shortGap.count(), longGap);
 
 cout << peaks.candidates().strQuality(
-  "All selected peaks at end of PeakMinima", offset, &Peak::isSelected);
+  "All selected peaks at end of PeakLabel", offset, &Peak::isSelected);
 
   cout << peakPieces.str("end");
   cout << peakPieces.strModality("QQQ");
 }
 
 
-void PeakMinima::printPeakQuality(
+void PeakLabel::printPeakQuality(
   const Peak& peak,
   const string& text) const
 {
@@ -851,7 +851,7 @@ void PeakMinima::printPeakQuality(
 }
 
 
-void PeakMinima::printDists(
+void PeakLabel::printDists(
   const unsigned start,
   const unsigned end,
   const string& text) const
@@ -860,7 +860,7 @@ void PeakMinima::printDists(
 }
 
 
-void PeakMinima::printRange(
+void PeakLabel::printRange(
   const unsigned start,
   const unsigned end,
   const string& text) const

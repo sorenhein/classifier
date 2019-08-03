@@ -9,11 +9,10 @@
 
 * Stats to be headed by proper headings
 
-* Rename PeakMinima to PeakLabel
-
 * Switch Align to only work when cars are complete(?)
   - When new filter loses, is it also on the "good" traces?
 
+* Shouldn't all full recognitions be perfect?
 
 tabulate files.xlsx
 
@@ -51,9 +50,6 @@ Warnings
 Number of models
 Exceptions
 Large distances
-
-Scan sensor??.txt for large numbers in general.
-- sensor19, 134730: Same peak twice in a completion.
 
 Does Align work for partial lasts?
 
@@ -200,11 +196,6 @@ Clean up the PPc/const nonsense in PeakPool and PeakStructure.
   - Some TODO's (algorithmic errors, actually)
   - The second guessLongGapDistance doesn't pick up anything,
     as the second peak is always a bogey already?
-
-
-2018-09-17
-----------
-Give out the whole PeakList, don't copy into PeakTime?
 
 
 2018-09-14

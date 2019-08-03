@@ -1,6 +1,7 @@
-Align.obj: Align.h align/Alignment.h util/Motion.h database/TrainDB.h
-Align.obj: database/Entity.h database/Control.h
-Align.obj: regress/PolynomialRegression.h util/misc.h
+Align.obj: PeakGeneral.h Align.h align/Alignment.h util/Motion.h
+Align.obj: util/Motion.h database/TrainDB.h database/Entity.h
+Align.obj: database/Control.h regress/PolynomialRegression.h util/misc.h
+Align.obj: const.h
 CarDetect.obj: CarDetect.h CarGaps.h Peak.h CarPeaks.h PeakRange.h
 CarDetect.obj: PeakProfile.h PeakPool.h Peaks.h PeakPtrs.h
 CarGaps.obj: CarGaps.h Peak.h PeakPtrs.h CarPeaks.h Except.h errors.h
@@ -14,13 +15,14 @@ PeakDetect.obj: PeakDetect.h Peak.h PeakPool.h Peaks.h PeakPtrs.h CarPeaks.h
 PeakDetect.obj: PeakStructure.h CarDetect.h CarGaps.h CarModels.h PeakRange.h
 PeakDetect.obj: PeakProfile.h PeakPattern.h completions/Completions.h
 PeakDetect.obj: completions/Completion.h completions/PeakCompletion.h
-PeakDetect.obj: PeakMatch.h Except.h errors.h database/Control.h
-PeakDetect.obj: database/Entity.h stats/PeakStats.h util/io.h
+PeakDetect.obj: PeakGeneral.h PeakMatch.h Except.h errors.h
+PeakDetect.obj: database/Control.h database/Entity.h stats/PeakStats.h
+PeakDetect.obj: util/io.h
+PeakLabel.obj: Peak.h PeakLabel.h PeakPool.h Peaks.h PeakPtrs.h CarPeaks.h
+PeakLabel.obj: PeakPieces.h PeakPiece.h PeakSeeds.h Except.h errors.h
+PeakLabel.obj: util/Gap.h
 PeakMatch.obj: PeakMatch.h Peak.h PeakPool.h Peaks.h PeakPtrs.h CarPeaks.h
 PeakMatch.obj: stats/PeakStats.h Except.h errors.h
-PeakMinima.obj: Peak.h PeakMinima.h PeakPool.h Peaks.h PeakPtrs.h CarPeaks.h
-PeakMinima.obj: PeakPieces.h PeakPiece.h PeakSeeds.h Except.h errors.h
-PeakMinima.obj: util/Gap.h
 PeakPattern.obj: PeakPattern.h PeakRange.h PeakProfile.h Peak.h PeakPool.h
 PeakPattern.obj: Peaks.h PeakPtrs.h CarPeaks.h completions/Completions.h
 PeakPattern.obj: completions/Completion.h completions/PeakCompletion.h
@@ -34,6 +36,7 @@ PeakPtrs.obj: PeakPtrs.h Peak.h CarPeaks.h Except.h errors.h
 PeakRange.obj: PeakRange.h PeakProfile.h Peak.h PeakPool.h Peaks.h PeakPtrs.h
 PeakRange.obj: CarPeaks.h CarModels.h CarDetect.h CarGaps.h
 PeakSeeds.obj: PeakSeeds.h Peak.h PeakPool.h Peaks.h PeakPtrs.h CarPeaks.h
+PeakSeeds.obj: Except.h errors.h
 PeakSpacing.obj: CarModels.h CarDetect.h CarGaps.h Peak.h CarPeaks.h
 PeakSpacing.obj: PeakSpacing.h PeakRange.h PeakProfile.h PeakPool.h Peaks.h
 PeakSpacing.obj: PeakPtrs.h Except.h errors.h
@@ -41,7 +44,7 @@ PeakStructure.obj: PeakStructure.h CarDetect.h CarGaps.h Peak.h CarPeaks.h
 PeakStructure.obj: CarModels.h PeakPool.h Peaks.h PeakPtrs.h PeakRange.h
 PeakStructure.obj: PeakProfile.h PeakPattern.h completions/Completions.h
 PeakStructure.obj: completions/Completion.h completions/PeakCompletion.h
-PeakStructure.obj: PeakSpacing.h Except.h errors.h
+PeakStructure.obj: PeakGeneral.h PeakSpacing.h Except.h errors.h
 run.obj: database/TraceDB.h database/Entity.h database/TrainDB.h
 run.obj: database/Control.h transient/Transient.h transient/trans.h
 run.obj: transient/Quiet.h transient/QuietData.h filter/Filter.h
@@ -49,10 +52,10 @@ run.obj: stats/CompStats.h stats/PeakStats.h stats/Timers.h stats/Timer.h
 run.obj: PeakDetect.h Peak.h PeakPool.h Peaks.h PeakPtrs.h CarPeaks.h
 run.obj: PeakStructure.h CarDetect.h CarGaps.h CarModels.h PeakRange.h
 run.obj: PeakProfile.h PeakPattern.h completions/Completions.h
-run.obj: completions/Completion.h completions/PeakCompletion.h PeakSeeds.h
-run.obj: PeakMinima.h PeakPieces.h PeakPiece.h PeakMatch.h regress/Regress.h
-run.obj: align/Alignment.h util/Motion.h Align.h align/Alignment.h Except.h
-run.obj: errors.h run.h util/io.h
+run.obj: completions/Completion.h completions/PeakCompletion.h PeakGeneral.h
+run.obj: PeakSeeds.h PeakLabel.h PeakPieces.h PeakPiece.h PeakMatch.h
+run.obj: regress/Regress.h align/Alignment.h util/Motion.h Align.h
+run.obj: align/Alignment.h util/Motion.h Except.h errors.h run.h util/io.h
 setup.obj: database/SensorDB.h database/Entity.h database/CarDB.h
 setup.obj: database/CorrectionDB.h database/TrainDB.h database/TraceDB.h
 setup.obj: database/Control.h setup.h util/io.h

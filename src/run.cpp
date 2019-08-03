@@ -17,7 +17,7 @@
 
 #include "PeakDetect.h"
 #include "PeakSeeds.h"
-#include "PeakMinima.h"
+#include "PeakLabel.h"
 #include "PeakMatch.h"
 
 #include "regress/Regress.h"
@@ -87,7 +87,7 @@ void runPeakLabel(
   const float scale,
   const unsigned offset,
   const unsigned thid,
-  PeakMinima& peakMinima);
+  PeakLabel& peakLabel);
 
 void runPeakExtract(
   PeakPool& peaks, 
@@ -216,11 +216,11 @@ void runPeakLabel(
   const float scale,
   const unsigned offset,
   const unsigned thid,
-  PeakMinima& peakMinima)
+  PeakLabel& peakLabel)
 {
   timers[thid].start(TIMER_LABEL_PEAKS);
 
-  peakMinima.mark(peaks, scale, offset);
+  peakLabel.mark(peaks, scale, offset);
 
   timers[thid].stop(TIMER_LABEL_PEAKS);
 }
@@ -321,9 +321,9 @@ void run(
 
     // Label some negative mimina as wheels, bogies etc.
     PeakPool& peaks = peakDetect.getPeaks();
-    PeakMinima peakMinima;
+    PeakLabel peakLabel;
     runPeakLabel(peaks, peakDetect.getScale().getRange(), 
-      interval.first, thid, peakMinima);
+      interval.first, thid, peakLabel);
 
 
     // Use the labels to extract the car structure from the peaks.

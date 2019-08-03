@@ -1,5 +1,5 @@
-#ifndef TRAIN_PEAKMINIMA_H
-#define TRAIN_PEAKMINIMA_H
+#ifndef TRAIN_PEAKLABEL_H
+#define TRAIN_PEAKLABEL_H
 
 #include <vector>
 #include <list>
@@ -16,11 +16,11 @@ class PeakPool;
 class Gap;
 
 
-class PeakMinima
+class PeakLabel
 {
   private:
 
-    typedef void (PeakMinima::*MinFncPtr)(Peak& p1, Peak& p2) const;
+    typedef void (PeakLabel::*MinFncPtr)(Peak& p1, Peak& p2) const;
 
     PeakSeeds seeds;
 
@@ -139,9 +139,9 @@ class PeakMinima
 
   public:
 
-    PeakMinima();
+    PeakLabel();
 
-    ~PeakMinima();
+    ~PeakLabel();
 
     void reset();
 
