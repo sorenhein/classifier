@@ -37,6 +37,8 @@ void Completion::reset()
   weight = 0;
   distanceSquared = numeric_limits<unsigned>::max();
 
+  // TODO: This is effectively always false for now.
+  _forceFlag = false;
 }
 
 
@@ -703,7 +705,8 @@ string Completion::str(const unsigned offset) const
 {
   stringstream ss;
   ss << "Car with weight " << weight << 
-    ", squared distance " << distanceSquared;
+    ", squared distance " << distanceSquared <<
+    ", force " << (_forceFlag ? "true" : "false");
 
   if (peakCompletions.empty())
     return ss.str() + " is empty\n\n";

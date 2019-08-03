@@ -607,7 +607,7 @@ cout << "No complete bracket, giving up at level " << ldepth << endl;
     if (! liter->near(peakHint, bracket, foundIter))
       continue;
 
-    /*
+/*
     if (foundIter == liter->begin() ||
         next(foundIter) == liter->end())
     {
@@ -624,7 +624,7 @@ cout << "Found1, but giving up at level " << ldepth << endl;
 cout << "Found2, but giving up at level " << ldepth << endl;
       return false;
     }
-    */
+*/
 
 
 cout << "Found possible peak, ldepth " << ldepth << ", offset " << offset << endl;
@@ -650,9 +650,11 @@ cout << foundIter->strQuality(offset) << endl;
         if (findex == pfirst.getIndex() ||
             findex == plast.getIndex())
         {
-// cout << "findex " << findex << endl;
-// cout << "first " << pfirst.getIndex() << endl;
-// cout << "last " << plast.getIndex() << endl;
+/*
+cout << "findex " << findex << endl;
+cout << "first " << pfirst.getIndex() << endl;
+cout << "last " << plast.getIndex() << endl;
+*/
           testIndex = 0;
           return nullptr;
         }
