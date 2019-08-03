@@ -1005,6 +1005,17 @@ string Peak::str(const unsigned offset) const
 }
 
 
+string Peak::strLarge(const float& arg) const
+{
+  stringstream ss;
+  if (arg > 100.f)
+    ss << fixed << setprecision(0) << arg;
+  else
+    ss << fixed << setprecision(2) << arg;
+  return ss.str();
+}
+
+
 string Peak::strQuality(const unsigned offset) const
 {
   stringstream ss;
@@ -1015,10 +1026,11 @@ string Peak::strQuality(const unsigned offset) const
     setw(7) << fixed << setprecision(2) << value <<
     setw(7) << fixed << setprecision(2) << left.range <<
     setw(7) << fixed << setprecision(2) << right.range <<
-    setw(6) << fixed << setprecision(2) << 100. * left.gradient <<
-    setw(6) << fixed << setprecision(2) << 100. * right.gradient <<
-    setw(7) << fixed << setprecision(2) << qualityShape <<
-    setw(7) << fixed << setprecision(2) << qualityPeak << "";
+    setw(6) << Peak::strLarge(100.f * left.gradient) <<
+    setw(6) << Peak::strLarge(100.f * right.gradient) <<
+    setw(7) << Peak::strLarge(qualityShape) <<
+    setw(7) << Peak::strLarge(qualityPeak) << 
+    "";
 
   string str = "  ";
   if (! selectFlag || ! wheelFlag)

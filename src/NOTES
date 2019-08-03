@@ -1,29 +1,26 @@
-* In SUMM, how can there be 3 expections among the top traces?
-  Does something fail after matching cars?
-* Write a new binary file:  The matched peaks ("train")
-* Switch Align to only work when cars are complete(?)
 * BIGNUM
 
+* In SUMM, how can there be 3 exceptions among the top traces?
+  Does something fail after matching cars?
 
-Rename PeakMinima to PeakLabel
+* Write a new binary file:  The matched peaks ("train")
 
-Old plan for Align.cpp:
-- Pass in a more elaborate alignment struct
-  - numFrontWheels as before, in case nothing else suits
-  - struct: noObs, noRef, flag
-  - One for the first, middle and last peak that we assume
+* Stats go only in sensor??.txt file, get parsed from there
+
+* The peak-miss stats should probably be replaced by something 
+  more useful
+
+* The cross stats should probably come back
+
+* Stats to be headed by proper headings
+
+* Rename PeakMinima to PeakLabel
+
+* Switch Align to only work when cars are complete(?)
+  - When new filter loses, is it also on the "good" traces?
+
 
 tabulate files.xlsx
-
-Filter
-------
-* The new integrating filter works about as well in float and double.
-* But it doesn't work quite as well as the old way, 1392 vs 1417.
-* When it gets thrown off, it's probably often in PeakSeeds/gaps.
-
-Errors:
-* The SOS order (1-0-2) causes infinite loop for s19 144716
-* Fixing a section other than 0 causes segfaults
 
 
 continue with run.cpp

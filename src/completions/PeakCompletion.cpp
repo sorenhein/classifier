@@ -66,7 +66,7 @@ bool PeakCompletion::markWith(
   Peak& peak,
   const CompletionType typeIn)
 {
-  if (_type == COMP_UNMATCHED && peak.match(lower, upper))
+  if (_type == COMP_UNMATCHED && mid != 0 && peak.match(lower, upper))
   {
     _type = typeIn;
     if (typeIn == COMP_UNUSED)
