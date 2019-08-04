@@ -116,9 +116,6 @@ void CrossStats::condense(
     changeFlag = false;
     for (auto sit1 = segments.begin(); sit1 != segments.end(); sit1++)
     {
-      if (! active[sit1->index])
-        continue;
-
       for (unsigned i = 0; i < nsl; i++)
       {
         // Look at other, active segments that are connected to this one.
@@ -134,35 +131,32 @@ void CrossStats::condense(
             sit1->connected[j] = true;
             connectCount[sit1->index]++;
             changeFlag = true;
-            // segChangeFlag = true;
           }
         }
 
-        // Eliminate.
-const unsigned deadIndex = sit2->index;
-          active[sit2->index] = false;
-          segments.erase(sit2);
+        // Eliminate the other segment.
+        const unsigned deadIndex = sit2->index;
+        active[sit2->index] = false;
+        segments.erase(sit2);
 
-          for (auto& seg: segments)
+        // Eliminate references in other segments to the erased segment.
+        for (auto& seg: segments)
+        {
+          if (seg.index == sit1->index)
+            continue;
+
+          if (seg.connected[deadIndex])
           {
-            if (seg.index == sit1->index)
-              continue;
-
-            if (seg.connected[deadIndex])
+            seg.connected[deadIndex] = false;
+            if (seg.connected[sit1->index])
+              connectCount[sit1->index]--;
+            else
             {
-              seg.connected[deadIndex] = false;
-              if (seg.connected[sit1->index])
-              {
-                connectCount[sit1->index]--;
-              }
-              else
-              {
-                seg.connected[sit1->index] = true;
-                changeFlag = true;
-              }
+              seg.connected[sit1->index] = true;
+              changeFlag = true;
             }
           }
-
+        }
       }
     }
   }
