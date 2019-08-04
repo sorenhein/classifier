@@ -49,9 +49,13 @@ class CompStats
 
     void fail(const string& key);
 
+    string str(const string& tag) const;
+
     void write(
       const string& fname,
       const string& tag) const;
+
+    string strCSV(const string& tag) const;
 
     void writeCSV(
       const string& fname,

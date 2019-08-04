@@ -1,9 +1,20 @@
+* Change overview.pl to output
+  #overall, #error, #exceptions, #warnings
 * Write a new binary file:  The matched peaks ("train")
 
 * Stats go only in sensor??.txt file, get parsed from there
 
 * The peak-miss stats should probably be replaced by something 
   more useful
+  - actualToRef:
+    perfect matches
+    missing before first true
+    missing within
+    missing after last
+    spurious before first true
+    spurious after last true
+    spurious within
+    relative to #true
 
 * The cross stats should probably come back
 
@@ -13,6 +24,8 @@
   - When new filter loses, is it also on the "good" traces?
 
 * Shouldn't all full recognitions be perfect?
+  - no errors
+  - low distances
 
 tabulate files.xlsx
 

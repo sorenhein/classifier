@@ -40,6 +40,9 @@ extern CompStats sensorStats;
 extern CompStats trainStats;
 extern PeakStats peakStats;
 
+extern vector<CompStats> sensorStatsList;
+extern vector<CompStats> trainStatsList;
+
 extern vector<Timers> timers;
 
 
@@ -335,6 +338,9 @@ void run(
     if (peaksInfo.numPeaks == 0)
       THROW(ERR_NO_PEAKS_IN_STRUCTURE, "No peaks in structure");
 
+    if (peaksInfo.numCars == 0)
+      THROW(ERR_CARS_NOT_COMPLETE, "Not all cars detected");
+
     // Put in runPeakExtract, controlled by new Control flag
     cout << "PEAKPOOL\n";
     cout << peaks.strCounts();
@@ -402,6 +408,8 @@ void run(
 
     sensorStats.log(traceData.sensor, rankDetected, distDetected);
     trainStats.log(traceData.trainTrue, rankDetected, distDetected);
+    sensorStatsList[thid].log(traceData.sensor, rankDetected, distDetected);
+    trainStatsList[thid].log(traceData.trainTrue, rankDetected, distDetected);
 
     if (trainDetected != traceData.trainTrue)
       cout << "DRIVER MISMATCH\n";
@@ -411,6 +419,8 @@ void run(
     ex.print(cout);
     sensorStats.fail(traceData.sensor);
     trainStats.fail(traceData.trainTrue);
+    sensorStatsList[thid].fail(traceData.sensor);
+    trainStatsList[thid].fail(traceData.trainTrue);
   }
   catch(...)
   {

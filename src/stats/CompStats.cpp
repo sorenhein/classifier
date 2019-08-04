@@ -75,6 +75,43 @@ string CompStats::strEntry(const Entry& entry) const
 }
 
 
+string CompStats::str(const string& tag) const
+{
+  stringstream ss;
+
+  ss << "Stats: " << tag << "\n";
+  ss << string(7 + tag.size(), '-') << "\n\n";
+
+  ss << CompStats::strHeader(tag);
+
+  vector<Entry> sumEntries(BUCKETS);
+
+  for (auto& it: stats)
+  {
+    ss << setw(24) << left << it.first;
+    for (unsigned i = 0; i < BUCKETS; i++)
+      ss << CompStats::strEntry(it.second[i]);
+    ss << "\n";
+    
+    for (unsigned i = 0; i < BUCKETS; i++)
+    {
+      sumEntries[i].no += it.second[i].no;
+      sumEntries[i].sum += it.second[i].sum;
+    }
+  }
+
+  const string dashes(24 + BUCKETS * 12, '-');
+  ss << dashes << "\n";
+  ss << setw(24) << left << "Sum";
+
+  for (unsigned i = 0; i < BUCKETS; i++)
+    ss << CompStats::strEntry(sumEntries[i]);
+
+  ss << "\n\n";
+  return ss.str();
+}
+
+
 void CompStats::write(
   const string& fname,
   const string& tag) const
@@ -135,23 +172,29 @@ string CompStats::strEntryCSV(const Entry& entry) const
 }
 
 
+string CompStats::strCSV(const string& tag) const
+{
+  stringstream ss;
+  ss << CompStats::strHeaderCSV(tag);
+
+  for (auto& it: stats)
+  {
+    ss << setw(24) << left << it.first;
+    for (unsigned i = 0; i < BUCKETS; i++)
+      ss << CompStats::strEntryCSV(it.second[0]);
+    ss << "\n";
+  }
+  return ss.str();
+}
+
+
 void CompStats::writeCSV(
   const string& fname,
   const string& tag) const
 {
   ofstream fout;
   fout.open(fname);
-
-  fout << CompStats::strHeaderCSV(tag);
-
-  for (auto& it: stats)
-  {
-    fout << setw(24) << left << it.first;
-    for (unsigned i = 0; i < BUCKETS; i++)
-      fout << CompStats::strEntryCSV(it.second[0]);
-    fout << "\n";
-  }
-
+  fout << CompStats::strCSV(tag);
   fout.close();
 }
 

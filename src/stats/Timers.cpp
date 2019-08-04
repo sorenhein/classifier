@@ -60,6 +60,10 @@ void Timers::operator += (const Timers& timers2)
 string Timers::str(const int prec) const 
 {
   stringstream ss;
+
+  ss << "Stats: Timers\n";
+  ss << string(13, '-') << "\n\n";
+
   ss << setw(24) << left << "Name" << 
     setw(10) << right << "Sum" << 
     setw(6) << right << "Count" << 
@@ -82,7 +86,7 @@ string Timers::str(const int prec) const
   ss << setw(24) << left << names.back() << timers.back().str(prec);
 
   ss << setw(24) << left << "RATIO" << 
-    timers.back().strRatio(timerSum, prec) << endl;
+    timers.back().strRatio(timerSum, prec) << endl << endl;
 
   return ss.str();
 }

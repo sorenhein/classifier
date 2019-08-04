@@ -27,6 +27,10 @@ CompStats sensorStats;
 CompStats trainStats;
 PeakStats peakStats;
 
+// Working on per-thread statistics.
+vector<CompStats> sensorStatsList;
+vector<CompStats> trainStatsList;
+
 Scheduler scheduler;
 
 vector<Timers> timers;
@@ -38,6 +42,9 @@ void runThread(unsigned thid);
 int main(int argc, char * argv[])
 {
   setup(argc, argv, control, trainDB, traceDB);
+
+  sensorStatsList.resize(control.numThreads());
+  trainStatsList.resize(control.numThreads());
 
   timers.resize(control.numThreads());
   timers[0].start(TIMER_ALL_THREADS);
@@ -63,7 +70,6 @@ int main(int argc, char * argv[])
   for (unsigned i = 1; i < control.numThreads(); i++)
     timers[0] += timers[i];
 
-  cout << "Number of threads: " << control.numThreads() << endl << endl;
   cout << timers[0].str(2) << endl;
 }
 
@@ -79,5 +85,9 @@ void runThread(unsigned thid)
     traceDB.getData(noInRun, traceData);
     run(control, trainDB, traceData, thid);
   }
+
+  cout << sensorStatsList[thid].str("Sensor");
+  cout << trainStatsList[thid].str("Train");
+  cout << timers[thid].str(2);
 }
 
