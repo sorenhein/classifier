@@ -40,9 +40,9 @@ class CrossStats
       list<ListEntry>& segments,
       vector<unsigned>& connectCount) const;
 
-    void printConnectivity(
-      const list<ListEntry>& segments,
-      const vector<unsigned>& connectCount) const;
+    void condense(
+      list<ListEntry>& segments,
+      vector<unsigned>& connectCount) const;
 
     void segment(
       list<string>& orphans,

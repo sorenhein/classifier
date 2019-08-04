@@ -96,35 +96,10 @@ void CrossStats::setConnectivity(
 }
 
 
-void CrossStats::printConnectivity(
-  const list<ListEntry>& segments,
-  const vector<unsigned>& connectCount) const
+void CrossStats::condense(
+  list<ListEntry>& segments,
+  vector<unsigned>& connectCount) const
 {
-  for (auto& segment: segments)
-  {
-    cout << "Name         " << segment.name << "\n";
-    cout << "Index        " << segment.index << "\n";
-    cout << "Count        " << connectCount[segment.index] << "\n";
-    cout << "Connected to";
-    for (unsigned i = 0; i < segment.connected.size(); i++)
-      if (segment.connected[i])
-        cout << " " << i;
-    cout << "\n\n";
-  }
-}
-
-
-void CrossStats::segment(
-  list<string>& orphans,
-  list<string>& singletons,
-  list<map<string, bool>>& segmentMaps) const
-{
-  list<ListEntry> segments;
-  vector<unsigned> connectCount;
-  CrossStats::setConnectivity(segments, connectCount);
-  if (segments.empty())
-    return;
-
   const unsigned nsl = nameMap.size();
   vector<list<ListEntry>::iterator> keys;
   keys.resize(nsl);
@@ -141,22 +116,13 @@ void CrossStats::segment(
     changeFlag = false;
     for (auto sit1 = segments.begin(); sit1 != segments.end(); sit1++)
     {
-      // if (! present[sit1->index] || ! active[sit1->index])
       if (! active[sit1->index])
         continue;
 
       for (unsigned i = 0; i < nsl; i++)
       {
-        // Don't recurse.
-        if (sit1->index == i)
-          continue;
-
-        // Already gone?
-        if (! active[i])
-          continue;
-
-        // Not connected?
-        if (! sit1->connected[i])
+        // Look at other, active segments that are connected to this one.
+        if (sit1->index == i || ! active[i] || ! sit1->connected[i])
           continue;
 
         // Copy the connectivity.
@@ -201,8 +167,26 @@ const unsigned deadIndex = sit2->index;
     }
   }
   while (changeFlag);
+}
 
-  // Split into singletons and more complex confusion matrices.
+
+void CrossStats::segment(
+  list<string>& orphans,
+  list<string>& singletons,
+  list<map<string, bool>>& segmentMaps) const
+{
+  // Note connections from true to detected trains.
+  list<ListEntry> segments;
+  vector<unsigned> connectCount;
+  CrossStats::setConnectivity(segments, connectCount);
+  if (segments.empty())
+    return;
+
+  // Condense the connections into distinct subsets.
+  CrossStats::condense(segments, connectCount);
+
+  // Split them into singletons and more complex confusion matrices.
+  const unsigned nsl = nameMap.size();
   for (auto segment: segments)
   {
     const unsigned index = segment.index;
@@ -330,7 +314,6 @@ string CrossStats::str() const
   ss << "Stats: Cross\n";
   ss << string(12, '-') << "\n\n";
 
-  // TODO Change back to ss
   ss << CrossStats::strHeader(selectMap);
   ss << CrossStats::strLines(selectMap);
 
