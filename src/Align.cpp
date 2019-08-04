@@ -56,22 +56,17 @@ bool Align::trainMightFit(
   const TrainDB& trainDB,
   const Alignment& match) const
 {
-  if (peaksInfo.numCars > 0)
-  {
-    // Match is good enough to go by number of cars.
-    if (peaksInfo.numCars > match.numCars + MAX_CAR_DIFFERENCE_OK ||
-        peaksInfo.numCars + MAX_CAR_DIFFERENCE_OK < match.numCars)
-      return false;
-  }
+  // Match is good enough to go by number of cars.
+  if (peaksInfo.numCars > match.numCars + MAX_CAR_DIFFERENCE_OK ||
+      peaksInfo.numCars + MAX_CAR_DIFFERENCE_OK < match.numCars)
+    return false;
+  /*
+  else if (peaksInfo.numPeaks > match.numPeaks + MAX_AXLE_DIFFERENCE_OK ||
+      peaksInfo.numPeaks + MAX_AXLE_DIFFERENCE_OK < match.numPeaks)
+    return false;
+  */
   else
-  {
-    // Fall back on nmber of peaks detected.
-    if (peaksInfo.numPeaks > match.numAxles + MAX_AXLE_DIFFERENCE_OK ||
-        peaksInfo.numPeaks + MAX_AXLE_DIFFERENCE_OK < match.numAxles)
-      return false;
-  }
-
-  return trainDB.isInCountry(match.trainNo, sensorCountry);
+    return trainDB.isInCountry(match.trainNo, sensorCountry);
 }
 
 
@@ -238,26 +233,6 @@ void Align::NeedlemanWunsch(
 }
 
 
-float Align::interpolateTime(
-  const vector<float>& times,
-  const float index) const
-{
-  const unsigned lt = times.size();
-
-  const unsigned iLeft = static_cast<unsigned>(index);
-  if (iLeft+1 >= lt)
-  {
-    // Shouldn't really happen.
-    return times.back();
-  }
-
-  const unsigned iRight = iLeft + 1;
-  const float frac = index - iLeft;
-
-  return (1.f - frac) * times[iLeft] + frac * times[iRight];
-}
-
-
 void Align::estimateAlignedMotion(
   const vector<float>& refPeaks,
   const vector<float>& times,
@@ -265,7 +240,6 @@ void Align::estimateAlignedMotion(
   const int offsetRef,
   Shift& shift) const
 {
-  PolynomialRegression pol;
   vector<float> x, y;
 
   const unsigned lt = times.size();
@@ -290,119 +264,8 @@ void Align::estimateAlignedMotion(
     x[p] = static_cast<float>(times[i]);
   }
 
+  PolynomialRegression pol;
   pol.fitIt(x, y, 2, shift.motion.estimate);
-}
-
-
-void Align::estimateMotion(
-  const vector<float>& refPeaks,
-  const vector<float>& times,
-  Shift& shift) const
-{
-  /*
-     The basic idea is to estimate speed and acceleration.  This has
-     become somewhat more elaborate as it gained in importance.
-
-     len = v0 * t_end + 0.5 * a * t_end^2
-     len/2 = v_0 * t_mid + 0.5 * a * t_mid^2
-
-     len * t_mid = v0 * t_end * tmid + 0.5 * a * t_end^2 * t_mid
-     len * t_end/2 = v0 * t_mid * t_end + 0.5 * a * t_mid^2 * t_end
-
-     len * (t_mid - t_end/2) = 0.5 * a * t_mid * t_end * (t_end - t_mid)
-
-     a = len * (2 * t_mid - t_end) / [t_mid * t_end * (t_end - t_mid)]
-  */
-
-  const unsigned lp = refPeaks.size();
-
-  const float len = refPeaks[lp-1] - refPeaks[shift.firstRefNo];
-  const float posMid = refPeaks[shift.firstRefNo] + len / 2.f;
-
-  // Look for posMid in refPeaks.
-  unsigned posLeft = 0;
-  while (posLeft+1 < lp && refPeaks[posLeft+1] <= posMid)
-    posLeft++;
-
-// if (flag)
-// cout << "posLeft " << posLeft << endl;
-  if (posLeft == 0 || posLeft == lp-1 || refPeaks[posLeft+1] <= posMid)
-  {
-    cout << "Should not happen:";
-    cout << "posLeft " << posLeft << ", lp " << lp <<
-      ", posMid " << posMid << endl;
-  }
-  const float propRight = (posMid - refPeaks[posLeft]) /
-    (refPeaks[posLeft+1] - refPeaks[posLeft]);
-
-// if (flag)
-// cout << "posMid " << posMid << " propRight " << propRight << endl;
-
-  // Down to here nothing depends on the vagaries of measured times.
-  // The tricky part is to find tMid, the time at which the actual
-  // train reaches posMid.  This happens at posLeft plus a fraction
-  // (propRight) of the rightmost part of the next refPeaks interval.
-  // 
-  // Assuming the peaks line up from firstRefNo and firstTimeNo onwards, 
-  // it's an interpolation.  But there could also be insertions and 
-  // deletions either in the first or second half of the times list.
-  //
-  // If there is 1 extra time peak in the first half of times,
-  // then we should pretend that lt is 1 lower when we calculate
-  // the interpolation fraction in tpos0 and tpos1 (the times 
-  // corresponding to posLeft and posLeft+1), and then add 1.
-  //
-  // If the extra time peak is in the second half, we still pretend
-  // that lt is 1 lower, but we don't add 1.
-
-  const unsigned lt = times.size();
-  const float tOffset = times[shift.firstTimeNo];
-  float tEnd = times.back() - tOffset;
-
-  const float lpeff = static_cast<float>(lp) - 
-    static_cast<float>(shift.firstRefNo);
-  const float lteff = static_cast<float>(lt) - 
-    static_cast<float>(shift.firstTimeNo) -
-    shift.firstHalfNetInsert - shift.secondHalfNetInsert;
-
-  const float tpos0 = 
-    static_cast<int>(shift.firstTimeNo) + 
-    shift.firstHalfNetInsert +
-    static_cast<float>(posLeft - shift.firstRefNo) * 
-      (lteff - 1.f) / (lpeff - 1.f);
-
-  const float tpos1 = 
-    static_cast<int>(shift.firstTimeNo) + 
-    shift.firstHalfNetInsert +
-    static_cast<float>(posLeft + 1 - shift.firstRefNo) * 
-      (lteff - 1.f) / (lpeff - 1.f);
-
-  const float tMid0 = Align::interpolateTime(times, tpos0);
-  const float tMid1 = Align::interpolateTime(times, tpos1);
-
-  const float tMid = (1.f-propRight) * tMid0 + propRight * tMid1 -
-    tOffset;
-  
-  // From here on it is just the calculation of accelation (2),
-  // speed (1) and offset (0).
-
-  const float accel = len * (2.f*tMid - tEnd) /
-    (tMid * tEnd * (tEnd - tMid));
-
-  shift.motion.estimate[1] = (len - 0.5f * accel * tEnd * tEnd) / tEnd;
-// if (flag)
-// cout << "len " << len << " tMid " << tMid << " tEnd " << tEnd <<
-  // " accel " << motion[2] << " speed " << motion[1] << endl;
-
-  shift.motion.estimate[0] = refPeaks[shift.firstRefNo] -
-    (shift.motion.estimate[1] * times[shift.firstTimeNo] +
-      0.5f * accel * times[shift.firstTimeNo] * 
-        times[shift.firstTimeNo]);
-  
-  shift.motion.estimate[2] = 0.5f * accel;
-
-  // TODO Does this work as intended?  Later we use time2pos to
-  // expand (no 0.5 factor).
 }
 
 
@@ -464,92 +327,22 @@ float Align::simpleScore(
 void Align::makeShiftCandidates(
   vector<Shift>& candidates,
   const vector<OverallShift>& shifts,
-  const unsigned lt,
-  const unsigned lp,
   const vector<unsigned>& actualToRef,
-  const int offsetRef,
-  const bool fullTrainFlag) const
+  const int offsetRef) const
 {
   candidates.clear();
 
-  if (fullTrainFlag)
-  {
-    for (auto& o: shifts)
-    {
-      // const unsigned m = actualToRef[
-        // static_cast<int>(o.firstTimeNo) + offsetRef];
-
-      const unsigned m = static_cast<unsigned>(
-        actualToRef[o.firstTimeNo] + offsetRef);
-      if (m <= o.firstRefNo + 2 && m + 2 >= o.firstRefNo)
-      {
-        candidates.push_back(Shift());
-        Shift& shift = candidates.back();
-        shift.firstRefNo = o.firstRefNo;
-        shift.firstTimeNo = o.firstTimeNo;
-      }
-    }
-  }
-  else
-  {
-    // TODO indent
   for (auto& o: shifts)
   {
-    // Let's say firstRefNo = 2, firstTimeNo = 1, lp = 56, lt = 54.
-    // So we'll be aligning 54 ref peaks with 53 times.  That means
-    // we missed one of the time peaks (or maybe we missed 2 and added
-    // one spurious peak, but we won't look too hard for that).
-    // We could have missed it either in the first half or in the 
-    // second half of the times list.
-    
-    const unsigned effRef = lp - o.firstRefNo;
-    const unsigned effTimes = lt - o.firstTimeNo;
-
-    if (effRef == effTimes + 1)
+    const unsigned m = static_cast<unsigned>(
+      actualToRef[o.firstTimeNo] + offsetRef);
+    if (m <= o.firstRefNo + 2 && m + 2 >= o.firstRefNo)
     {
-      candidates.push_back(Shift());
-      Shift& shift1 = candidates.back();
-      shift1.firstRefNo = o.firstRefNo;
-      shift1.firstTimeNo = o.firstTimeNo;
-      shift1.firstHalfNetInsert = 1;
-      shift1.secondHalfNetInsert = 0;
-
-      // For trains that are presumably full, we don't need to
-      // double up.
-      candidates.push_back(Shift());
-      Shift& shift2 = candidates.back();
-      shift2.firstRefNo = o.firstRefNo;
-      shift2.firstTimeNo = o.firstTimeNo;
-      shift2.firstHalfNetInsert = 0;
-      shift2.secondHalfNetInsert = 1;
-    }
-    else if (effRef + 1 == effTimes)
-    {
-      candidates.push_back(Shift());
-      Shift& shift1 = candidates.back();
-      shift1.firstRefNo = o.firstRefNo;
-      shift1.firstTimeNo = o.firstTimeNo;
-      shift1.firstHalfNetInsert = -1;
-      shift1.secondHalfNetInsert = 0;
-
-      candidates.push_back(Shift());
-      Shift& shift2 = candidates.back();
-      shift2.firstRefNo = o.firstRefNo;
-      shift2.firstTimeNo = o.firstTimeNo;
-      shift2.firstHalfNetInsert = 0;
-      shift2.secondHalfNetInsert = -1;
-    }
-    else
-    {
-      // This will only work out well if effRef == effTimes.
       candidates.push_back(Shift());
       Shift& shift = candidates.back();
       shift.firstRefNo = o.firstRefNo;
       shift.firstTimeNo = o.firstTimeNo;
-      shift.firstHalfNetInsert = 0;
-      shift.secondHalfNetInsert = 0;
     }
-  }
   }
 }
 
@@ -620,109 +413,50 @@ bool Align::betterSimpleScore(
 
 bool Align::scalePeaks(
   const vector<float>& refPeaks,
+  const unsigned numRefCars,
   const PeaksInfo& peaksInfo,
   Shift& shift,
   vector<float>& scaledPeaks) const
 {
-  // The shift is "subtracted" from scaledPeaks, so if the shift is
-  // positive, we align the n'th scaled peak with the 0'th
-  // reference peak.  Actually we keep the last peaks aligned,
-  // so the shift melts away over the shifted peaks.
-  // If the shift is negative, we align the 0'th scaled peak with
-  // the n'th reference peak (n = -shift).  
-  // In either case we assume that we're matching the last peaks,
-  // whether or not the peak numbers make sense.
-
-  // TODO Make this more general:  Also net adds in 1st/2nd halves.
-  // Impacts estimateMotion
-
-  const vector<vector<Align::OverallShift>> likelyShifts =
-  {
-    { {0, 0} },
-    { {3, 0}, {7, 0}, {2, 0}, {6, 0}, {4, 1},         {0, 1} },
-    { {2, 0}, {6, 0}, {1, 0}, {5, 0}, {3, 1}, {2, 1}, {0, 2} },
-    { {1, 0}, {5, 0}, {0, 0}, {4, 0}, {2, 1}, {1, 1} },
-    { {0, 0}, {4, 0} }
-  };
-
-  const unsigned lt = peaksInfo.times.size();
-  const unsigned lp = refPeaks.size();
-
-  vector<Shift> candidates;
-
-  // Guess whether we're missing the whole first car.
   int offsetRef;
-
-  if (peaksInfo.numCars == 0)
+  if (peaksInfo.numCars == numRefCars)
   {
+    // Assume good alignment.
+    shift.firstTimeNo = 0;
+    shift.firstRefNo = peaksInfo.peakNumbers[shift.firstTimeNo];
     offsetRef = 0;
+  }
+  else if (peaksInfo.numCars == numRefCars + 1)
+  {
+    // Front car is assumed spurious.
+    shift.firstTimeNo = 0;
+    while (shift.firstTimeNo < peaksInfo.peakNumbers.size() &&
+        peaksInfo.carNumbers[shift.firstTimeNo] == 0)
+      shift.firstTimeNo++;
+
+    shift.firstRefNo = peaksInfo.peakNumbers[shift.firstTimeNo];
+    offsetRef = -4;
+  }
+  else if (peaksInfo.numCars + 1 == numRefCars)
+  {
+    // Assumed missing a front car.
+    shift.firstTimeNo = 0;
+    shift.firstRefNo = peaksInfo.peakNumbers[shift.firstTimeNo] + 4;
+    offsetRef = 4;
   }
   else
   {
-    const unsigned aback = static_cast<unsigned>(peaksInfo.peakNumbers.back());
-    if (aback + 4 <= lp)
-      offsetRef = 4;
-    else if (aback >= lp && aback <= lp + 4)
-      offsetRef = -4;
-    else
-      offsetRef = 0;
-  }
-
-  if (peaksInfo.numFrontWheels <= 4)
-    Align::makeShiftCandidates(candidates, likelyShifts[peaksInfo.numFrontWheels], 
-      lt, lp, peaksInfo.peakNumbers, offsetRef, peaksInfo.numCars > 0);
-
-  if (candidates.empty())
+    cout << "ALIGNERROR\n";
     return false;
-
-  // We calculate a simple score for this shift.  In fact
-  // we could also run Needleman-Wunsch, so this is a bit of an
-  // optimization.
-
-  vector<float> candPeaks(lt);
-
-  unsigned bestIndex = 0;
-  float bestScore = -1.;
-
-  // scaledPeaks.resize(lt);
-
-  for (unsigned i = 0; i < candidates.size(); i++)
-  {
-    Shift& cand = candidates[i];
-
-    if (peaksInfo.numCars > 0)
-      Align::estimateAlignedMotion(refPeaks, peaksInfo.times, peaksInfo.peakNumbers, 
-        offsetRef, cand);
-    else
-      Align::estimateMotion(refPeaks, peaksInfo.times, cand);
-
-/*
-cout << "i " << i << ": " << cand.firstRefNo << ", " << cand.firstTimeNo <<
-  endl;
-cout << "motion " << cand.motion[0] << ", " <<
-  cand.motion[1] << ", " << cand.motion[2] << endl;
-  */
-
-    for (unsigned j = 0; j < lt; j++)
-      candPeaks[j] = cand.motion.time2pos(peaksInfo.times[j]);
-
-    float score = Align::simpleScore(refPeaks, candPeaks);
-// cout << "i: " << i << ", score " << score << "\n";
-// if (i == 8)
-// {
-  // Align::printAlignPeaks("test", times, refPeaks, candPeaks);
-// }
-    if (Align::betterSimpleScore(score, i, bestScore, bestIndex, 
-        candidates, lt))
-    {
-      bestIndex = i;
-      bestScore = score;
-      scaledPeaks = candPeaks;
-    }
   }
 
-// cout << "bestIndex: " << bestIndex << endl;
-  shift = candidates[bestIndex];
+  Align::estimateAlignedMotion(refPeaks, peaksInfo.times, 
+    peaksInfo.peakNumbers, offsetRef, shift);
+
+  scaledPeaks.resize(peaksInfo.times.size());
+  for (unsigned j = 0; j < peaksInfo.times.size(); j++)
+    scaledPeaks[j] = shift.motion.time2pos(peaksInfo.times[j]);
+
   return true;
 }
 
@@ -746,11 +480,13 @@ void Align::bestMatches(
     match.numCars = trainDB.numCars(match.trainNo);
     match.numAxles = trainDB.numAxles(match.trainNo);
 
+cout << "refTrain " << refTrain << endl;
     if (! Align::trainMightFit(peaksInfo, sensorCountry, trainDB, match))
       continue;
 
     const vector<float>& refPeaks = trainDB.getPeakPositions(match.trainNo);
-    if (! Align::scalePeaks(refPeaks, peaksInfo, shift, scaledPeaks))
+    if (! Align::scalePeaks(refPeaks, match.numCars, peaksInfo, 
+        shift, scaledPeaks))
       continue;
 
     // TODO Print shift.  

@@ -1,3 +1,6 @@
+If multi-threading, at the end add up the thread stats into an
+overall stat.
+
 * Change overview.pl to output
   #overall, #error, #exceptions, #warnings
 * Write a new binary file:  The matched peaks ("train")
@@ -16,10 +19,10 @@
     spurious within
     relative to #true
 
-* The cross stats should probably come back
-
 * Switch Align to only work when cars are complete(?)
   - When new filter loses, is it also on the "good" traces?
+
+Regression must only be re-run when the alignment changed.
 
 * Shouldn't all full recognitions be perfect?
   - no errors

@@ -22,10 +22,7 @@ class Align
     {
       unsigned firstRefNo;
       unsigned firstTimeNo;
-      int firstHalfNetInsert;
-      int secondHalfNetInsert;
 
-      // vector<float> motion;
       Motion motion;
     };
 
@@ -42,20 +39,11 @@ class Align
       const TrainDB& trainDB,
       const Alignment& match) const;
 
-    float interpolateTime(
-      const vector<float>& times,
-      const float index) const;
-
     void estimateAlignedMotion(
       const vector<float>& refPeaks,
       const vector<float>& times,
       const vector<unsigned>& actualToRef,
       const int offsetRef,
-      Shift& shift) const;
-      
-    void estimateMotion(
-      const vector<float>& refPeaks,
-      const vector<float>& times,
       Shift& shift) const;
       
     float simpleScore(
@@ -65,11 +53,8 @@ class Align
     void makeShiftCandidates(
       vector<Shift>& candidates,
       const vector<OverallShift>& shifts,
-      const unsigned lt,
-      const unsigned lp,
       const vector<unsigned>& actualToRef,
-      const int offsetRef,
-      const bool makeShiftFlag) const;
+      const int offsetRef) const;
 
     bool betterSimpleScore(
       const float score,
@@ -81,6 +66,7 @@ class Align
 
     bool scalePeaks(
       const vector<float>& refPeaks,
+      const unsigned numRefCars,
       const PeaksInfo& peaksInfo,
       Shift& shift,
       vector<float>& scaledPeaks) const;
@@ -88,7 +74,6 @@ class Align
     void NeedlemanWunsch(
       const vector<float>& refPeaks,
       const vector<float>& scaledPeaks,
-      // const float peakScale,
       const Shift& shift,
       Alignment& alignment) const;
 
