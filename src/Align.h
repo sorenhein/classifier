@@ -26,12 +26,6 @@ class Align
       Motion motion;
     };
 
-    struct OverallShift
-    {
-      unsigned firstRefNo;
-      unsigned firstTimeNo;
-    };
-
 
     bool trainMightFit(
       const PeaksInfo& peaksInfo,
@@ -46,24 +40,6 @@ class Align
       const int offsetRef,
       Shift& shift) const;
       
-    float simpleScore(
-      const vector<float>& refPeaks,
-      const vector<float>& shiftedPeaks) const;
-      
-    void makeShiftCandidates(
-      vector<Shift>& candidates,
-      const vector<OverallShift>& shifts,
-      const vector<unsigned>& actualToRef,
-      const int offsetRef) const;
-
-    bool betterSimpleScore(
-      const float score,
-      const unsigned index,
-      const float bestScore,
-      const unsigned bestIndex,
-      const vector<Shift>& candidates,
-      const unsigned lt) const;
-
     bool scalePeaks(
       const vector<float>& refPeaks,
       const unsigned numRefCars,

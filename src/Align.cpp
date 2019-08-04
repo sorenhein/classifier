@@ -2,9 +2,7 @@
 #include <iomanip>
 #include <fstream>
 #include <sstream>
-#include <functional>
 #include <algorithm>
-#include <limits>
 
 #include "PeakGeneral.h"
 #include "Align.h"
@@ -35,8 +33,6 @@
 
 // In meters, see below.
 
-#define PROXIMITY_PARAMETER 1.5f
-
 #define UNUSED(x) ((void)(true ? 0 : ((x), void(), 0)))
 
 
@@ -60,11 +56,9 @@ bool Align::trainMightFit(
   if (peaksInfo.numCars > match.numCars + MAX_CAR_DIFFERENCE_OK ||
       peaksInfo.numCars + MAX_CAR_DIFFERENCE_OK < match.numCars)
     return false;
-  /*
-  else if (peaksInfo.numPeaks > match.numPeaks + MAX_AXLE_DIFFERENCE_OK ||
-      peaksInfo.numPeaks + MAX_AXLE_DIFFERENCE_OK < match.numPeaks)
+  else if (peaksInfo.numPeaks > match.numAxles + MAX_AXLE_DIFFERENCE_OK ||
+      peaksInfo.numPeaks + MAX_AXLE_DIFFERENCE_OK < match.numAxles)
     return false;
-  */
   else
     return trainDB.isInCountry(match.trainNo, sensorCountry);
 }
@@ -269,148 +263,6 @@ void Align::estimateAlignedMotion(
 }
 
 
-float Align::simpleScore(
-  const vector<float>& refPeaks,
-  const vector<float>& shiftedPeaks) const
-{
-  const unsigned lr = refPeaks.size();
-  const unsigned ls = shiftedPeaks.size();
-
-  // If peaks match extremely well, we may get a distance of ~ 1 [m^2]
-  // for ~ 50 peaks.  That's 0.02 [m^2] on average, or about 0.15 m of
-  // deviation.  If the train goes, say, 50 m/s, that takes 0.003 s.
-  // At 2000 samples per second it is 6 samples.
-  // We count the distance between each shifted peak and its closest
-  // reference peak.  We do not take into account that the same reference
-  // peak may match more than one shifted peak (Needleman-Wunsch does
-  // this).
-  // A distance of d counts as max(0, (1.5 m - d) / 1.5 m).
-
-  unsigned ir = 0;
-  float score = 0.;
-  float d = PROXIMITY_PARAMETER;
-
-  for (unsigned is = 0; is < ls; is++)
-  {
-    float dleft = shiftedPeaks[is] - refPeaks[ir];
-
-    if (dleft < 0.)
-    {
-      if (ir == 0)
-        d = -dleft;
-      else
-        cout << "Should not happen" << endl;
-    }
-    else
-    {
-      float dright = numeric_limits<float>::max();
-      while (ir+1 < lr)
-      {
-        dright = refPeaks[ir+1] - shiftedPeaks[is];
-        if (dright >= 0.)
-          break;
-        ir++;
-      }
-
-      dleft = shiftedPeaks[is] - refPeaks[ir];
-      d = min(dleft, dright);
-    }
-    
-    if (d <= PROXIMITY_PARAMETER)
-      score += (PROXIMITY_PARAMETER - d) / PROXIMITY_PARAMETER;
-  }
-
-  return score;
-}
-
-
-void Align::makeShiftCandidates(
-  vector<Shift>& candidates,
-  const vector<OverallShift>& shifts,
-  const vector<unsigned>& actualToRef,
-  const int offsetRef) const
-{
-  candidates.clear();
-
-  for (auto& o: shifts)
-  {
-    const unsigned m = static_cast<unsigned>(
-      actualToRef[o.firstTimeNo] + offsetRef);
-    if (m <= o.firstRefNo + 2 && m + 2 >= o.firstRefNo)
-    {
-      candidates.push_back(Shift());
-      Shift& shift = candidates.back();
-      shift.firstRefNo = o.firstRefNo;
-      shift.firstTimeNo = o.firstTimeNo;
-    }
-  }
-}
-
-
-bool Align::betterSimpleScore(
-  const float score, 
-  const unsigned index,
-  const float bestScore,
-  const unsigned bestIndex,
-  const vector<Shift>& candidates,
-  const unsigned lt) const
-{
-  if (bestScore < 0.)
-    return true;
-
-  // We take a bit of care when comparing e.g. (3, 1) to (2, 0).
-  // (3, 1) leaves off two more peaks, and this may improve its simple
-  // score even though the two are quite close and (2, 0) "should" win.
-  // It would probably be better to let both of them through to the
-  // Needleman-Wunsch algorithm, but assuming we only let one winner per
-  // train type through, let us compare them more closely.
-
-  const Shift& cNew = candidates[index];
-  const Shift& cOld = candidates[bestIndex];
-
-  const int frn = static_cast<int>(cNew.firstRefNo);
-  const int ftn = static_cast<int>(cNew.firstTimeNo);
-  const int dNew = frn - ftn;
-
-  const int ofrn = static_cast<int>(cOld.firstRefNo);
-  const int oftn = static_cast<int>(cOld.firstTimeNo);
-  const int dOld = ofrn - oftn;
-
-  if (dNew != dOld)
-    return (score > bestScore);
-
-  // So now we have a commensurate pair.
-  bool newIsGood = (score >= 0.9 * (lt - cNew.firstTimeNo));
-  bool oldIsGood = (bestScore >= 0.9 * (lt - cOld.firstTimeNo));
-
-  if (! newIsGood || ! oldIsGood)
-  {
-    // It shouldn't really be possible for one with a low score
-    // to be good etc., but we don't test for all this.
-    return (score > bestScore);
-  }
-  else if (cNew.firstRefNo < cOld.firstRefNo && score >= bestScore)
-  {
-    // Wins on both counts.
-    return true;
-  }
-  else if (cNew.firstRefNo > cOld.firstRefNo && score <= bestScore)
-  {
-    // Loses on both counts.
-    return false;
-  }
-
-  // So now we have two great candidates.  One has more deletions, 
-  // but also a better score.  We'll go with the one with fewer
-  // deletions anyway.
-
-  if (cNew.firstRefNo < cOld.firstRefNo)
-    return true;
-  else
-    return false;
-}
-
-
 bool Align::scalePeaks(
   const vector<float>& refPeaks,
   const unsigned numRefCars,
@@ -480,7 +332,6 @@ void Align::bestMatches(
     match.numCars = trainDB.numCars(match.trainNo);
     match.numAxles = trainDB.numAxles(match.trainNo);
 
-cout << "refTrain " << refTrain << endl;
     if (! Align::trainMightFit(peaksInfo, sensorCountry, trainDB, match))
       continue;
 
