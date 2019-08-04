@@ -141,15 +141,19 @@ void Control::configure()
       "0x10: pos\n"
       "0x20: peak\n"
       "0x40: outline" },
-    { "-v", "--verbose", CORRESPONDENCE_BIT_VECTOR, CTRL_VERBOSE, "0x3b",
-      "Verbosity (default: 0x3b).  Bits:\n"
-      "0x01: Transient match\n"
-      "0x02: Align matches\n"
-      "0x04: Align peaks\n"
-      "0x08: Regress match\n"
-      "0x10: Regress motion\n"
-      "0x20: Regress tops\n"
-      "0x40: Reduce peaks" }
+    { "-v", "--verbose", CORRESPONDENCE_BIT_VECTOR, CTRL_VERBOSE, "0x337",
+      "Verbosity (default: 0x337).  Bits:\n"
+      "0x001: Transient\n"
+      "0x002: Active interval\n"
+      "0x004: Align matches\n"
+      "0x008: Align peaks\n"
+      "0x010: Regress match\n"
+      "0x020: Regress motion\n"
+      "0x040: Regress tops\n"
+      "0x080: Reduce peaks\n" 
+      "0x100: Train stats\n" 
+      "0x200: Timer stats" 
+      }
   };
 
   entry.init(fieldCounts);
@@ -410,6 +414,12 @@ bool Control::verboseTransient() const
 }
 
 
+bool Control::verboseQuiet() const
+{
+  return (entry.getIntVector(CTRL_VERBOSE)[CTRL_VERBOSE_QUIET] != 0);
+}
+
+
 bool Control::verboseAlignMatches() const
 {
   return (entry.getIntVector(CTRL_VERBOSE)[CTRL_VERBOSE_ALIGN_MATCHES] != 0);
@@ -443,6 +453,24 @@ bool Control::verboseRegressTopResiduals() const
 bool Control::verbosePeakReduce() const
 {
   return (entry.getIntVector(CTRL_VERBOSE)[CTRL_VERBOSE_PEAK_REDUCE] != 0);
+}
+
+
+bool Control::verboseSensorStats() const
+{
+  return (entry.getIntVector(CTRL_VERBOSE)[CTRL_VERBOSE_SENSOR_STATS] != 0);
+}
+
+
+bool Control::verboseTrainStats() const
+{
+  return (entry.getIntVector(CTRL_VERBOSE)[CTRL_VERBOSE_TRAIN_STATS] != 0);
+}
+
+
+bool Control::verboseTimerStats() const
+{
+  return (entry.getIntVector(CTRL_VERBOSE)[CTRL_VERBOSE_TIMER_STATS] != 0);
 }
 
 

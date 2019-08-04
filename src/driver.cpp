@@ -86,8 +86,11 @@ void runThread(unsigned thid)
     run(control, trainDB, traceData, thid);
   }
 
-  cout << sensorStatsList[thid].str("Sensor");
-  cout << trainStatsList[thid].str("Train");
-  cout << timers[thid].str(2);
+  if (control.verboseSensorStats())
+    cout << sensorStatsList[thid].str("Sensor");
+  if (control.verboseTrainStats())
+    cout << trainStatsList[thid].str("Train");
+  if (control.verboseTimerStats())
+    cout << timers[thid].str(2);
 }
 

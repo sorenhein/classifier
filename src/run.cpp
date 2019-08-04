@@ -62,6 +62,7 @@ void runTransient(
   unsigned& lastIndex);
 
 void runQuiet(
+  const Control& control,
   const vector<float>& accel,
   const double sampleRate,
   const unsigned lastIndex,
@@ -151,13 +152,14 @@ void runTransient(
   transient.detect(accel, sampleRate, lastIndex);
 
   if (control.verboseTransient())
-    cout << transient.str() << "\n";
+    cout << transient.str();
 
   timers[thid].stop(TIMER_TRANSIENT);
 }
 
 
 void runQuiet(
+  const Control& control,
   const vector<float>& accel,
   const double sampleRate,
   const unsigned lastIndex,
@@ -173,6 +175,15 @@ void runQuiet(
 
   quietBack.detect(accel, sampleRate, true, interval);
   quietFront.detect(accel, sampleRate, false, interval);
+
+  if (control.verboseQuiet())
+  {
+    cout << "Active interval\n";
+    cout << string(15, '-') << "\n\n";
+    cout << interval.first << " to " << 
+      interval.first + interval.len << 
+      " out of 0 to " << accel.size() << "\n\n";
+  }
 
   timers[thid].stop(TIMER_QUIET);
 }
@@ -310,7 +321,7 @@ void run(
     Quiet quietBack;
     Quiet quietFront;
     Interval interval;
-    runQuiet(accel, traceData.sampleRate, lastIndex, thid,
+    runQuiet(control, accel, traceData.sampleRate, lastIndex, thid,
       quietBack, quietFront, interval);
 
     // Integrate and condition the signal.
