@@ -8,6 +8,7 @@
 #include "util/Scheduler.h"
 
 #include "stats/CompStats.h"
+#include "stats/CrossStats.h"
 #include "stats/PeakStats.h"
 #include "stats/Timers.h"
 
@@ -29,6 +30,7 @@ PeakStats peakStats;
 
 // Working on per-thread statistics.
 vector<CompStats> sensorStatsList;
+vector<CrossStats> crossStatsList;
 vector<CompStats> trainStatsList;
 
 Scheduler scheduler;
@@ -44,6 +46,7 @@ int main(int argc, char * argv[])
   setup(argc, argv, control, trainDB, traceDB);
 
   sensorStatsList.resize(control.numThreads());
+  crossStatsList.resize(control.numThreads());
   trainStatsList.resize(control.numThreads());
 
   timers.resize(control.numThreads());
@@ -90,6 +93,8 @@ void runThread(unsigned thid)
     cout << sensorStatsList[thid].str("Sensor");
   if (control.verboseTrainStats())
     cout << trainStatsList[thid].str("Train");
+  if (control.verboseCrossStats())
+    cout << crossStatsList[thid].str();
   if (control.verboseTimerStats())
     cout << timers[thid].str(2);
 }

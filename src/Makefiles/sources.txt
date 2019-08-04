@@ -44,6 +44,7 @@ SOURCE_FILES    =                       \
                 regress/Regress.cpp     \
                                         \
                 stats/CompStats.cpp     \
+                stats/CrossStats.cpp    \
                 stats/PeakStats.cpp     \
                 stats/Timer.cpp         \
                 stats/Timers.cpp        \

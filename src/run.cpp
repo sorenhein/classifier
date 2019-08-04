@@ -12,6 +12,7 @@
 #include "filter/Filter.h"
 
 #include "stats/CompStats.h"
+#include "stats/CrossStats.h"
 #include "stats/PeakStats.h"
 #include "stats/Timers.h"
 
@@ -41,6 +42,7 @@ extern CompStats trainStats;
 extern PeakStats peakStats;
 
 extern vector<CompStats> sensorStatsList;
+extern vector<CrossStats> crossStatsList;
 extern vector<CompStats> trainStatsList;
 
 extern vector<Timers> timers;
@@ -403,8 +405,8 @@ void run(
     timers[thid].stop(TIMER_REGRESS);
 
     PeakMatch peakMatch;
-    peakMatch.logPeakStats(peaks, posTrue, // traceData.trainTrue,
-      traceData.speed, peakStats);
+    peakMatch.logPeakStats(peaks, posTrue, traceData.speed, peakStats);
+
 
 
     // Write any binary output files.
@@ -420,6 +422,7 @@ void run(
     sensorStats.log(traceData.sensor, rankDetected, distDetected);
     trainStats.log(traceData.trainTrue, rankDetected, distDetected);
     sensorStatsList[thid].log(traceData.sensor, rankDetected, distDetected);
+    crossStatsList[thid].log(traceData.trainTrue, trainDetected);
     trainStatsList[thid].log(traceData.trainTrue, rankDetected, distDetected);
 
     if (trainDetected != traceData.trainTrue)

@@ -462,6 +462,12 @@ bool Control::verboseSensorStats() const
 }
 
 
+bool Control::verboseCrossStats() const
+{
+  return (entry.getIntVector(CTRL_VERBOSE)[CTRL_VERBOSE_CROSS_STATS] != 0);
+}
+
+
 bool Control::verboseTrainStats() const
 {
   return (entry.getIntVector(CTRL_VERBOSE)[CTRL_VERBOSE_TRAIN_STATS] != 0);

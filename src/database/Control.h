@@ -90,8 +90,9 @@ enum ControlVerbose
   CTRL_VERBOSE_REGRESS_TOPS = 6,
   CTRL_VERBOSE_PEAK_REDUCE = 7,
   CTRL_VERBOSE_SENSOR_STATS = 8,
-  CTRL_VERBOSE_TRAIN_STATS = 9,
-  CTRL_VERBOSE_TIMER_STATS = 10
+  CTRL_VERBOSE_CROSS_STATS = 9,
+  CTRL_VERBOSE_TRAIN_STATS = 10,
+  CTRL_VERBOSE_TIMER_STATS = 11
 
 };
 
@@ -182,6 +183,7 @@ class Control
     bool verboseRegressTopResiduals() const;
     bool verbosePeakReduce() const;
     bool verboseSensorStats() const;
+    bool verboseCrossStats() const;
     bool verboseTrainStats() const;
     bool verboseTimerStats() const;
 };
