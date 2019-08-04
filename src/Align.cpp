@@ -67,7 +67,6 @@ bool Align::trainMightFit(
 void Align::NeedlemanWunsch(
   const vector<float>& refPeaks,
   const vector<float>& scaledPeaks,
-  // const float peakScale,
   const Shift& shift,
   Alignment& alignment) const
 {

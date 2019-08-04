@@ -1,9 +1,20 @@
+Align
+-----
+- Reuse Regress method.  Maybe don't use Shift at all.
+- Combine Align and Regress.
+- Regression must only be re-run when the alignment changed.
+
 If multi-threading, at the end add up the thread stats into an
 overall stat.
 
+Stats
+- Have a generic CountStats module
+  ModelStats, CarMethodStats, PartialStats, WarnStats, ExceptStats,
+  OverallStats
+- More specific one for AlignStats and DeviationStats
+
 * Change overview.pl to output
   #overall, #error, #exceptions, #warnings
-* Write a new binary file:  The matched peaks ("train")
 
 * Stats go only in sensor??.txt file, get parsed from there
 
@@ -19,10 +30,10 @@ overall stat.
     spurious within
     relative to #true
 
-* Switch Align to only work when cars are complete(?)
-  - When new filter loses, is it also on the "good" traces?
+* When new filter loses, is it also on the "good" traces?
 
-Regression must only be re-run when the alignment changed.
+
+* Write a new binary file:  The matched peaks ("train")
 
 * Shouldn't all full recognitions be perfect?
   - no errors
