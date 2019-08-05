@@ -135,7 +135,7 @@ void Align::NeedlemanWunsch(
     {
       const float d = refPeaks[i + match.numDelete - 1] - 
         scaledPeaks[j + match.numAdd - 1];
-      const float match = matrix[i-1][j-1].dist + peakScale * d * d;
+      const float matchVal = matrix[i-1][j-1].dist + peakScale * d * d;
 
       // During the first few peaks we don't penalize a missed real peak
       // as heavily, as it could be due to transients etc.
@@ -154,12 +154,12 @@ void Align::NeedlemanWunsch(
 
       const float ins = matrix[i][j-1].dist + INSERT_PENALTY; // Time
 
-      if (match <= del)
+      if (matchVal <= del)
       {
-        if (match <= ins)
+        if (matchVal <= ins)
         {
           matrix[i][j].origin = NW_MATCH;
-          matrix[i][j].dist = match;
+          matrix[i][j].dist = matchVal;
         }
         else
         {
