@@ -3,6 +3,7 @@
 #include <fstream>
 #include <sstream>
 #include <algorithm>
+#include <cassert>
 
 #include "PeakGeneral.h"
 #include "Align.h"
@@ -223,27 +224,21 @@ void Align::NeedlemanWunsch(
 
 
 void Align::estimateAlignedMotion(
-  const vector<float>& refPeaks,
   const vector<float>& times,
+  const vector<float>& refPeaks,
   const vector<unsigned>& actualToRef,
   const int offsetRef,
   Alignment& match) const
 {
-  vector<float> x, y;
-
   const unsigned lt = times.size();
-
-  // If offsetRef is negative, skip over presumed spurious first car.
-  unsigned i = 0;
-  while (i < lt && static_cast<int>(actualToRef[i]) + offsetRef < 0)
-    i++;
-
   const unsigned lr = refPeaks.size();
-  const unsigned rest = lt - i;
-  x.resize(rest);
-  y.resize(rest);
+  // assert(lr + match.numAdd == lt + match.numDelete);
 
-  for (unsigned p = 0; i < lt; i++, p++)
+  const unsigned lcommon = lt - match.numAdd;
+  vector<float> x(lcommon), y(lcommon);
+
+  // The vectors are as compact as possible and are matched.
+  for (unsigned i = match.numAdd, p = 0; i < lt; i++, p++)
   {
     const unsigned ri = static_cast<unsigned>(actualToRef[i] + offsetRef);
     if (ri >= lr)
@@ -253,6 +248,7 @@ void Align::estimateAlignedMotion(
     x[p] = static_cast<float>(times[i]);
   }
 
+  // Run the regression.
   PolynomialRegression pol;
   pol.fitIt(x, y, 2, match.motion.estimate);
 }
@@ -306,7 +302,7 @@ bool Align::scalePeaks(
   for (unsigned k = 0; k < match.numAdd; k++)
     match.actualToRef[k] = -1;
 
-  Align::estimateAlignedMotion(refPeaks, peaksInfo.times, 
+  Align::estimateAlignedMotion(peaksInfo.times, refPeaks,
     peaksInfo.peakNumbers, offsetRef, match);
 
   scaledPeaks.resize(peaksInfo.times.size());
