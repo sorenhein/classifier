@@ -59,14 +59,11 @@ void Regress::storeResiduals(
 void Regress::specificMatch(
   const vector<float>& times,
   const vector<float>& refPeaks,
+  const bool storeFlag,
   Alignment& match) const
 {
   const unsigned lt = times.size();
   const unsigned lr = refPeaks.size();
-
-  // TODO assert should go into caller.  It's true in Regress,
-  // but won't be true in Align.
-  assert(lr + match.numAdd == lt + match.numDelete);
 
   const unsigned lcommon = lt - match.numAdd;
   vector<float> x(lcommon), y(lcommon);
@@ -86,14 +83,17 @@ void Regress::specificMatch(
   PolynomialRegression pol;
   pol.fitIt(x, y, 2, match.motion.estimate);
 
-  // Normalize the distance score to a 200m long train.
-  const float trainLength = refPeaks.back() - refPeaks.front();
-  const float peakScale = TRAIN_REF_LENGTH * TRAIN_REF_LENGTH / 
-    (trainLength * trainLength);
+  if (storeFlag)
+  {
+    // Normalize the distance score to a 200m long train.
+    const float trainLength = refPeaks.back() - refPeaks.front();
+    const float peakScale = TRAIN_REF_LENGTH * TRAIN_REF_LENGTH / 
+      (trainLength * trainLength);
 
-  // Store the residuals.
-  match.residuals.resize(lcommon);
-  Regress::storeResiduals(x, y, lt, peakScale, match);
+    // Store the residuals.
+    match.residuals.resize(lcommon);
+    Regress::storeResiduals(x, y, lt, peakScale, match);
+  }
 }
 
 
@@ -109,7 +109,8 @@ void Regress::bestMatch(
     if (ma.distOther > bestDist)
       continue;
 
-    Regress::specificMatch(times, trainDB.getPeakPositions(ma.trainNo), ma);
+    Regress::specificMatch(times, trainDB.getPeakPositions(ma.trainNo), 
+      true, ma);
 
     if (ma.dist < bestDist)
       bestDist = ma.dist;

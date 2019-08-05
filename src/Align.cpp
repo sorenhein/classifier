@@ -5,19 +5,19 @@
 #include <algorithm>
 #include <cassert>
 
-#include "PeakGeneral.h"
-#include "Align.h"
+#include "align/Alignment.h"
 
 #include "database/TrainDB.h"
 #include "database/Control.h"
-
-#include "align/Alignment.h"
 
 #include "regress/PolynomialRegression.h"
 
 #include "util/misc.h"
 
+#include "Align.h"
+#include "PeakGeneral.h"
 #include "const.h"
+
 
 // Can adjust these.
 
@@ -68,7 +68,7 @@ bool Align::trainMightFit(
 void Align::NeedlemanWunsch(
   const vector<float>& refPeaks,
   const vector<float>& scaledPeaks,
-  Alignment& alignment) const
+  Alignment& match) const
 {
   // https://en.wikipedia.org/wiki/Needleman%E2%80%93Wunsch_algorithm
   // This is an adaptation of the sequence-matching algorithm.
@@ -88,8 +88,8 @@ void Align::NeedlemanWunsch(
   //
   // The first dimension is refPeaks, the second is the synthetic one.
   
-  const unsigned lr = refPeaks.size() - alignment.numDelete;
-  const unsigned lt = scaledPeaks.size() - alignment.numAdd;
+  const unsigned lr = refPeaks.size() - match.numDelete;
+  const unsigned lt = scaledPeaks.size() - match.numAdd;
 
   // Normalize the distance score to a 200m long train.
   const float trainLength = refPeaks.back() - refPeaks.front();
@@ -133,8 +133,8 @@ void Align::NeedlemanWunsch(
   {
     for (unsigned j = 1; j < lt+1; j++)
     {
-      const float d = refPeaks[i + alignment.numDelete - 1] - 
-        scaledPeaks[j + alignment.numAdd - 1];
+      const float d = refPeaks[i + match.numDelete - 1] - 
+        scaledPeaks[j + match.numAdd - 1];
       const float match = matrix[i-1][j-1].dist + peakScale * d * d;
 
       // During the first few peaks we don't penalize a missed real peak
@@ -148,8 +148,8 @@ void Align::NeedlemanWunsch(
       // really the third peak).
 
       const float del = matrix[i-1][j].dist + 
-        (alignment.numDelete <= 1 && 
-         i > 1 && i <= 3 - alignment.numDelete &&
+        (match.numDelete <= 1 && 
+         i > 1 && i <= 3 - match.numDelete &&
          j < i ? EARLY_DELETE_PENALTY : DELETE_PENALTY); // Ref
 
       const float ins = matrix[i][j-1].dist + INSERT_PENALTY; // Time
@@ -181,45 +181,48 @@ void Align::NeedlemanWunsch(
   }
 
   // Walk back through the matrix.
-  alignment.dist = matrix[lr][lt].dist;
+  match.dist = matrix[lr][lt].dist;
   
   // Add fixed penalties for early issues.
   // TODO Good penalty for this?  More dynamic?
   // How much dist does it lose to do (2, 0) rather than (3, 1)?
   // If it's more than "average", go with (3, 1), otherwise (2, 0).
-  alignment.dist += alignment.numDelete * EARLY_SHIFTS_PENALTY +
-    alignment.numAdd * EARLY_SHIFTS_PENALTY;
+  match.dist += match.numDelete * EARLY_SHIFTS_PENALTY +
+    match.numAdd * EARLY_SHIFTS_PENALTY;
 
   unsigned i = lr;
   unsigned j = lt;
-  const unsigned numAdd = alignment.numAdd;
-  const unsigned numDelete = alignment.numDelete;
+  const unsigned numAdd = match.numAdd;
+  const unsigned numDelete = match.numDelete;
 
   while (i > 0 || j > 0)
   {
     const Origin o = matrix[i][j].origin;
     if (i > 0 && j > 0 && o == NW_MATCH)
     {
-      alignment.actualToRef[j + numAdd - 1] = 
+      match.actualToRef[j + numAdd - 1] = 
         static_cast<int>(i + numDelete - 1);
-      alignment.distMatch += matrix[i][j].dist - matrix[i-1][j-1].dist;
+      match.distMatch += matrix[i][j].dist - matrix[i-1][j-1].dist;
       i--;
       j--;
     }
     else if (j > 0 && o == NW_INSERT)
     {
-      alignment.actualToRef[j + numAdd - 1] = -1;
-      alignment.numAdd++;
+      match.actualToRef[j + numAdd - 1] = -1;
+      match.numAdd++;
       j--;
     }
     else
     {
-      alignment.numDelete++;
+      match.numDelete++;
       i--;
     }
   }
 
-  alignment.distOther = alignment.dist - alignment.distMatch;
+  match.distOther = match.dist - match.distMatch;
+
+  assert(refPeaks.size() + match.numAdd == 
+    scaledPeaks.size() + match.numDelete);
 }
 
 
@@ -301,9 +304,9 @@ bool Align::scalePeaks(
 
   match.dist = 0.;
   match.distMatch = 0.;
-  // peaksInfo.times.size() is enough?!
+
   const unsigned lt = peaksInfo.times.size();
-  match.actualToRef.resize(lt + match.numAdd);
+  match.actualToRef.resize(lt);
   for (unsigned k = 0; k < match.numAdd; k++)
     match.actualToRef[k] = -1;
   for (unsigned k = match.numAdd; k < lt; k++)
@@ -311,8 +314,8 @@ bool Align::scalePeaks(
 
   Align::estimateAlignedMotion(peaksInfo.times, refPeaks, match);
 
-  scaledPeaks.resize(peaksInfo.times.size());
-  for (unsigned j = 0; j < peaksInfo.times.size(); j++)
+  scaledPeaks.resize(lt);
+  for (unsigned j = 0; j < lt; j++)
     scaledPeaks[j] = match.motion.time2pos(peaksInfo.times[j]);
 
   return true;

@@ -35,6 +35,7 @@ class Regress
     void specificMatch(
       const vector<float>& times,
       const vector<float>& refPeaks,
+      const bool storeFlag,
       Alignment& match) const;
 
     void bestMatch(
