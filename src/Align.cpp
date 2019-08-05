@@ -230,25 +230,18 @@ void Align::estimateAlignedMotion(
 {
   const unsigned lt = times.size();
   const unsigned lr = refPeaks.size();
-  // assert(lr + match.numAdd == lt + match.numDelete);
 
   const unsigned lcommon = lt - match.numAdd;
   vector<float> x(lcommon), y(lcommon);
 
   // The vectors are as compact as possible and are matched.
-  for (unsigned i = match.numAdd, p = 0; i < lt; i++, p++)
+  for (unsigned i = 0, p = 0; i < lt; i++)
   {
     if (match.actualToRef[i] >= 0)
     {
-      const unsigned ri = static_cast<unsigned>(match.actualToRef[i]);
-      if (ri >= lr)
-      {
-  cout << "ALIGNOVER\n";
-        break;
-      }
-
-      y[p] = refPeaks[ri];
-      x[p] = static_cast<float>(times[i]);
+      y[p] = refPeaks[static_cast<unsigned>(match.actualToRef[i])];
+      x[p] = times[i];
+      p++;
     }
   }
 
@@ -300,15 +293,21 @@ bool Align::scalePeaks(
     return false;
   }
 
+  if (peaksInfo.peakNumbers.back() + offsetRef >= refPeaks.size())
+  {
+    cout << "Car number would overflow\n";
+    return false;
+  }
+
   match.dist = 0.;
   match.distMatch = 0.;
   // peaksInfo.times.size() is enough?!
-  match.actualToRef.resize(peaksInfo.times.size() + match.numAdd);
+  const unsigned lt = peaksInfo.times.size();
+  match.actualToRef.resize(lt + match.numAdd);
   for (unsigned k = 0; k < match.numAdd; k++)
     match.actualToRef[k] = -1;
-  for (unsigned k = match.numAdd; k < peaksInfo.times.size(); k++)
-    match.actualToRef[k] = peaksInfo.peakNumbers[k] +
-      offsetRef;
+  for (unsigned k = match.numAdd; k < lt; k++)
+    match.actualToRef[k] = peaksInfo.peakNumbers[k] + offsetRef;
 
   Align::estimateAlignedMotion(peaksInfo.times, refPeaks, match);
 

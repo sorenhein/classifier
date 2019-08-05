@@ -63,6 +63,9 @@ void Regress::specificMatch(
 {
   const unsigned lt = times.size();
   const unsigned lr = refPeaks.size();
+
+  // TODO assert should go into caller.  It's true in Regress,
+  // but won't be true in Align.
   assert(lr + match.numAdd == lt + match.numDelete);
 
   const unsigned lcommon = lt - match.numAdd;
