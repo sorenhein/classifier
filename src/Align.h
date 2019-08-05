@@ -45,6 +45,7 @@ class Align
       const unsigned numRefCars,
       const PeaksInfo& peaksInfo,
       Shift& shift,
+      Alignment& match,
       vector<float>& scaledPeaks) const;
 
     void NeedlemanWunsch(

@@ -263,6 +263,7 @@ bool Align::scalePeaks(
   const unsigned numRefCars,
   const PeaksInfo& peaksInfo,
   Shift& shift,
+  Alignment& match,
   vector<float>& scaledPeaks) const
 {
   int offsetRef;
@@ -304,6 +305,15 @@ bool Align::scalePeaks(
   for (unsigned j = 0; j < peaksInfo.times.size(); j++)
     scaledPeaks[j] = shift.motion.time2pos(peaksInfo.times[j]);
 
+  match.dist = 0.;
+  match.distMatch = 0.;
+  match.numAdd = shift.firstTimeNo; // Spare peaks in scaledPeaks
+  match.numDelete = shift.firstRefNo; // Unused peaks in refPeaks
+  match.actualToRef.resize(
+    peaksInfo.times.size() + shift.firstTimeNo);
+  for (unsigned k = 0; k < shift.firstTimeNo; k++)
+   match.actualToRef[k] = -1;
+
   return true;
 }
 
@@ -332,24 +342,14 @@ void Align::bestMatches(
 
     const vector<float>& refPeaks = trainDB.getPeakPositions(match.trainNo);
     if (! Align::scalePeaks(refPeaks, match.numCars, peaksInfo, 
-        shift, scaledPeaks))
+        shift, match, scaledPeaks))
       continue;
 
     // TODO Print shift.  
     if (control.verboseAlignPeaks())
       Align::printAlignPeaks(refTrain, peaksInfo.times, refPeaks, scaledPeaks);
 
-    match.dist = 0.;
-    match.distMatch = 0.;
-    match.numAdd = shift.firstTimeNo; // Spare peaks in scaledPeaks
-    match.numDelete = shift.firstRefNo; // Unused peaks in refPeaks
-    match.actualToRef.resize(
-      peaksInfo.times.size() + shift.firstTimeNo);
-    for (unsigned k = 0; k < shift.firstTimeNo; k++)
-     match.actualToRef[k] = -1;
-
-    Align::NeedlemanWunsch(refPeaks, scaledPeaks, 
-      match);
+    Align::NeedlemanWunsch(refPeaks, scaledPeaks, match);
     matches.push_back(match);
   }
 
