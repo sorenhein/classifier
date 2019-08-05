@@ -18,15 +18,6 @@ class Align
 {
   private:
 
-    struct Shift
-    {
-      unsigned firstRefNo;
-      unsigned firstTimeNo;
-
-      Motion motion;
-    };
-
-
     bool trainMightFit(
       const PeaksInfo& peaksInfo,
       const string& sensorCountry,
@@ -38,13 +29,12 @@ class Align
       const vector<float>& times,
       const vector<unsigned>& actualToRef,
       const int offsetRef,
-      Shift& shift) const;
+      Alignment& match) const;
       
     bool scalePeaks(
       const vector<float>& refPeaks,
       const unsigned numRefCars,
       const PeaksInfo& peaksInfo,
-      Shift& shift,
       Alignment& match,
       vector<float>& scaledPeaks) const;
 

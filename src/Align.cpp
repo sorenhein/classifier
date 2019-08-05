@@ -227,7 +227,7 @@ void Align::estimateAlignedMotion(
   const vector<float>& times,
   const vector<unsigned>& actualToRef,
   const int offsetRef,
-  Shift& shift) const
+  Alignment& match) const
 {
   vector<float> x, y;
 
@@ -254,7 +254,7 @@ void Align::estimateAlignedMotion(
   }
 
   PolynomialRegression pol;
-  pol.fitIt(x, y, 2, shift.motion.estimate);
+  pol.fitIt(x, y, 2, match.motion.estimate);
 }
 
 
@@ -262,34 +262,36 @@ bool Align::scalePeaks(
   const vector<float>& refPeaks,
   const unsigned numRefCars,
   const PeaksInfo& peaksInfo,
-  Shift& shift,
   Alignment& match,
   vector<float>& scaledPeaks) const
 {
+  // numAdd counts the spurious peaks in scaledPeaks.
+  // numDelete counts the unused reference peaks.
+
   int offsetRef;
   if (peaksInfo.numCars == numRefCars)
   {
     // Assume good alignment.
-    shift.firstTimeNo = 0;
-    shift.firstRefNo = peaksInfo.peakNumbers[shift.firstTimeNo];
+    match.numAdd = 0;
+    match.numDelete = peaksInfo.peakNumbers[match.numAdd];
     offsetRef = 0;
   }
   else if (peaksInfo.numCars == numRefCars + 1)
   {
     // Front car is assumed spurious.
-    shift.firstTimeNo = 0;
-    while (shift.firstTimeNo < peaksInfo.peakNumbers.size() &&
-        peaksInfo.carNumbers[shift.firstTimeNo] == 0)
-      shift.firstTimeNo++;
+    match.numAdd = 0;
+    while (match.numAdd < peaksInfo.peakNumbers.size() &&
+        peaksInfo.carNumbers[match.numAdd] == 0)
+      match.numAdd++;
 
-    shift.firstRefNo = peaksInfo.peakNumbers[shift.firstTimeNo];
+    match.numDelete = peaksInfo.peakNumbers[match.numAdd];
     offsetRef = -4;
   }
   else if (peaksInfo.numCars + 1 == numRefCars)
   {
     // Assumed missing a front car.
-    shift.firstTimeNo = 0;
-    shift.firstRefNo = peaksInfo.peakNumbers[shift.firstTimeNo] + 4;
+    match.numAdd = 0;
+    match.numDelete = peaksInfo.peakNumbers[match.numAdd] + 4;
     offsetRef = 4;
   }
   else
@@ -298,21 +300,18 @@ bool Align::scalePeaks(
     return false;
   }
 
+  match.dist = 0.;
+  match.distMatch = 0.;
+  match.actualToRef.resize(peaksInfo.times.size() + match.numAdd);
+  for (unsigned k = 0; k < match.numAdd; k++)
+    match.actualToRef[k] = -1;
+
   Align::estimateAlignedMotion(refPeaks, peaksInfo.times, 
-    peaksInfo.peakNumbers, offsetRef, shift);
+    peaksInfo.peakNumbers, offsetRef, match);
 
   scaledPeaks.resize(peaksInfo.times.size());
   for (unsigned j = 0; j < peaksInfo.times.size(); j++)
-    scaledPeaks[j] = shift.motion.time2pos(peaksInfo.times[j]);
-
-  match.dist = 0.;
-  match.distMatch = 0.;
-  match.numAdd = shift.firstTimeNo; // Spare peaks in scaledPeaks
-  match.numDelete = shift.firstRefNo; // Unused peaks in refPeaks
-  match.actualToRef.resize(
-    peaksInfo.times.size() + shift.firstTimeNo);
-  for (unsigned k = 0; k < shift.firstTimeNo; k++)
-   match.actualToRef[k] = -1;
+    scaledPeaks[j] = match.motion.time2pos(peaksInfo.times[j]);
 
   return true;
 }
@@ -327,7 +326,6 @@ void Align::bestMatches(
 {
   vector<float> scaledPeaks;
   Alignment match;
-  Shift shift;
   matches.clear();
 
   for (auto& refTrain: trainDB)
@@ -342,7 +340,7 @@ void Align::bestMatches(
 
     const vector<float>& refPeaks = trainDB.getPeakPositions(match.trainNo);
     if (! Align::scalePeaks(refPeaks, match.numCars, peaksInfo, 
-        shift, match, scaledPeaks))
+        match, scaledPeaks))
       continue;
 
     // TODO Print shift.  
