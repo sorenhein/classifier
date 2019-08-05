@@ -226,8 +226,6 @@ void Align::NeedlemanWunsch(
 void Align::estimateAlignedMotion(
   const vector<float>& times,
   const vector<float>& refPeaks,
-  const vector<unsigned>& actualToRef,
-  const int offsetRef,
   Alignment& match) const
 {
   const unsigned lt = times.size();
@@ -240,12 +238,18 @@ void Align::estimateAlignedMotion(
   // The vectors are as compact as possible and are matched.
   for (unsigned i = match.numAdd, p = 0; i < lt; i++, p++)
   {
-    const unsigned ri = static_cast<unsigned>(actualToRef[i] + offsetRef);
-    if (ri >= lr)
-      break;
+    if (match.actualToRef[i] >= 0)
+    {
+      const unsigned ri = static_cast<unsigned>(match.actualToRef[i]);
+      if (ri >= lr)
+      {
+  cout << "ALIGNOVER\n";
+        break;
+      }
 
-    y[p] = refPeaks[ri];
-    x[p] = static_cast<float>(times[i]);
+      y[p] = refPeaks[ri];
+      x[p] = static_cast<float>(times[i]);
+    }
   }
 
   // Run the regression.
@@ -261,7 +265,7 @@ bool Align::scalePeaks(
   Alignment& match,
   vector<float>& scaledPeaks) const
 {
-  // numAdd counts the spurious peaks in scaledPeaks.
+  // numAdd counts the spurious peaks in times/scaledPeaks.
   // numDelete counts the unused reference peaks.
 
   int offsetRef;
@@ -298,12 +302,15 @@ bool Align::scalePeaks(
 
   match.dist = 0.;
   match.distMatch = 0.;
+  // peaksInfo.times.size() is enough?!
   match.actualToRef.resize(peaksInfo.times.size() + match.numAdd);
   for (unsigned k = 0; k < match.numAdd; k++)
     match.actualToRef[k] = -1;
+  for (unsigned k = match.numAdd; k < peaksInfo.times.size(); k++)
+    match.actualToRef[k] = peaksInfo.peakNumbers[k] +
+      offsetRef;
 
-  Align::estimateAlignedMotion(peaksInfo.times, refPeaks,
-    peaksInfo.peakNumbers, offsetRef, match);
+  Align::estimateAlignedMotion(peaksInfo.times, refPeaks, match);
 
   scaledPeaks.resize(peaksInfo.times.size());
   for (unsigned j = 0; j < peaksInfo.times.size(); j++)

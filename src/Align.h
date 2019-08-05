@@ -27,8 +27,6 @@ class Align
     void estimateAlignedMotion(
       const vector<float>& times,
       const vector<float>& refPeaks,
-      const vector<unsigned>& actualToRef,
-      const int offsetRef,
       Alignment& match) const;
       
     bool scalePeaks(
