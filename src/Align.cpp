@@ -67,7 +67,6 @@ bool Align::trainMightFit(
 void Align::NeedlemanWunsch(
   const vector<float>& refPeaks,
   const vector<float>& scaledPeaks,
-  const Shift& shift,
   Alignment& alignment) const
 {
   // https://en.wikipedia.org/wiki/Needleman%E2%80%93Wunsch_algorithm
@@ -88,8 +87,8 @@ void Align::NeedlemanWunsch(
   //
   // The first dimension is refPeaks, the second is the synthetic one.
   
-  const unsigned lr = refPeaks.size() - shift.firstRefNo;
-  const unsigned lt = scaledPeaks.size() - shift.firstTimeNo;
+  const unsigned lr = refPeaks.size() - alignment.numDelete;
+  const unsigned lt = scaledPeaks.size() - alignment.numAdd;
 
   // Normalize the distance score to a 200m long train.
   const float trainLength = refPeaks.back() - refPeaks.front();
@@ -133,8 +132,8 @@ void Align::NeedlemanWunsch(
   {
     for (unsigned j = 1; j < lt+1; j++)
     {
-      const float d = refPeaks[i + shift.firstRefNo - 1] - 
-        scaledPeaks[j + shift.firstTimeNo - 1];
+      const float d = refPeaks[i + alignment.numDelete - 1] - 
+        scaledPeaks[j + alignment.numAdd - 1];
       const float match = matrix[i-1][j-1].dist + peakScale * d * d;
 
       // During the first few peaks we don't penalize a missed real peak
@@ -148,8 +147,8 @@ void Align::NeedlemanWunsch(
       // really the third peak).
 
       const float del = matrix[i-1][j].dist + 
-        (shift.firstRefNo <= 1 && 
-         i > 1 && i <= 3 - shift.firstRefNo &&
+        (alignment.numDelete <= 1 && 
+         i > 1 && i <= 3 - alignment.numDelete &&
          j < i ? EARLY_DELETE_PENALTY : DELETE_PENALTY); // Ref
 
       const float ins = matrix[i][j-1].dist + INSERT_PENALTY; // Time
@@ -182,29 +181,33 @@ void Align::NeedlemanWunsch(
 
   // Walk back through the matrix.
   alignment.dist = matrix[lr][lt].dist;
-  alignment.distMatch = 0.;
-  alignment.numAdd = shift.firstTimeNo; // Spare peaks in scaledPeaks
-  alignment.numDelete = shift.firstRefNo; // Unused peaks in refPeaks
-  alignment.actualToRef.resize(lt + shift.firstTimeNo);
-  for (unsigned k = 0; k < shift.firstTimeNo; k++)
-   alignment.actualToRef[k] = -1;
   
+  // Add fixed penalties for early issues.
+  // TODO Good penalty for this?  More dynamic?
+  // How much dist does it lose to do (2, 0) rather than (3, 1)?
+  // If it's more than "average", go with (3, 1), otherwise (2, 0).
+  alignment.dist += alignment.numDelete * EARLY_SHIFTS_PENALTY +
+    alignment.numAdd * EARLY_SHIFTS_PENALTY;
+
   unsigned i = lr;
   unsigned j = lt;
+  const unsigned numAdd = alignment.numAdd;
+  const unsigned numDelete = alignment.numDelete;
+
   while (i > 0 || j > 0)
   {
     const Origin o = matrix[i][j].origin;
     if (i > 0 && j > 0 && o == NW_MATCH)
     {
-      alignment.actualToRef[j + shift.firstTimeNo - 1] = 
-        static_cast<int>(i + shift.firstRefNo - 1);
+      alignment.actualToRef[j + numAdd - 1] = 
+        static_cast<int>(i + numDelete - 1);
       alignment.distMatch += matrix[i][j].dist - matrix[i-1][j-1].dist;
       i--;
       j--;
     }
     else if (j > 0 && o == NW_INSERT)
     {
-      alignment.actualToRef[j + shift.firstTimeNo - 1] = -1;
+      alignment.actualToRef[j + numAdd - 1] = -1;
       alignment.numAdd++;
       j--;
     }
@@ -214,13 +217,6 @@ void Align::NeedlemanWunsch(
       i--;
     }
   }
-
-  // Add fixed penalties for early issues.
-  // TODO Good penalty for this?  More dynamic?
-  // How much dist does it lose to do (2, 0) rather than (3, 1)?
-  // If it's more than "average", go with (3, 1), otherwise (2, 0).
-  alignment.dist += shift.firstRefNo * EARLY_SHIFTS_PENALTY +
-    shift.firstTimeNo * EARLY_SHIFTS_PENALTY;
 
   alignment.distOther = alignment.dist - alignment.distMatch;
 }
@@ -343,7 +339,17 @@ void Align::bestMatches(
     if (control.verboseAlignPeaks())
       Align::printAlignPeaks(refTrain, peaksInfo.times, refPeaks, scaledPeaks);
 
-    Align::NeedlemanWunsch(refPeaks, scaledPeaks, shift, match);
+    match.dist = 0.;
+    match.distMatch = 0.;
+    match.numAdd = shift.firstTimeNo; // Spare peaks in scaledPeaks
+    match.numDelete = shift.firstRefNo; // Unused peaks in refPeaks
+    match.actualToRef.resize(
+      peaksInfo.times.size() + shift.firstTimeNo);
+    for (unsigned k = 0; k < shift.firstTimeNo; k++)
+     match.actualToRef[k] = -1;
+
+    Align::NeedlemanWunsch(refPeaks, scaledPeaks, 
+      match);
     matches.push_back(match);
   }
 

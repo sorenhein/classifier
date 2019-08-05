@@ -50,7 +50,6 @@ class Align
     void NeedlemanWunsch(
       const vector<float>& refPeaks,
       const vector<float>& scaledPeaks,
-      const Shift& shift,
       Alignment& alignment) const;
 
     void printAlignPeaks(
