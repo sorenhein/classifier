@@ -2,21 +2,21 @@
 #include <iomanip>
 #include <fstream>
 #include <sstream>
+#include <limits>
 #include <algorithm>
 #include <cassert>
 
-#include "align/Alignment.h"
+#include "../database/Control.h"
+#include "../database/TrainDB.h"
 
-#include "database/TrainDB.h"
-#include "database/Control.h"
+#include "../util/misc.h"
 
-#include "regress/PolynomialRegression.h"
-
-#include "util/misc.h"
-
+#include "PolynomialRegression.h"
 #include "Align.h"
-#include "PeakGeneral.h"
-#include "const.h"
+
+#include "../PeakGeneral.h"
+#include "../Except.h"
+#include "../const.h"
 
 
 // Can adjust these.
@@ -35,6 +35,7 @@
 // In meters, see below.
 
 #define UNUSED(x) ((void)(true ? 0 : ((x), void(), 0)))
+
 
 
 Align::Align()
@@ -322,12 +323,17 @@ bool Align::scalePeaks(
 }
 
 
+bool Align::empty() const
+{
+  return matches.empty();
+}
+
+
 void Align::bestMatches(
   const Control& control,
   const TrainDB& trainDB,
   const string& sensorCountry,
-  const PeaksInfo& peaksInfo,
-  vector<Alignment>& matches) const
+  const PeaksInfo& peaksInfo)
 {
   vector<float> scaledPeaks;
   Alignment match;
@@ -357,6 +363,202 @@ void Align::bestMatches(
   }
 
   sort(matches.begin(), matches.end());
+}
+
+void Align::storeResiduals(
+  const vector<float>& x,
+  const vector<float>& y,
+  const unsigned lt,
+  const float peakScale,
+  Alignment& match) const
+{
+  match.distMatch = 0.f;
+  for (unsigned i = 0, p = 0; i < lt; i++)
+  {
+    if (match.actualToRef[i] >= 0)
+    {
+      const float pos = match.time2pos(x[p]);
+      const float res = pos - y[p];
+
+      const unsigned refIndex = static_cast<unsigned>(match.actualToRef[i]);
+      match.residuals[p].index = refIndex;
+      match.residuals[p].value = res;
+      match.residuals[p].valueSq = peakScale * res * res;
+
+      match.distMatch += match.residuals[p].valueSq;
+
+      p++;
+    }
+  }
+
+  match.dist = match.distMatch + match.distOther;
+}
+
+
+void Align::specificMatch(
+  const vector<float>& times,
+  const vector<float>& refPeaks,
+  const bool storeFlag,
+  Alignment& match) const
+{
+  const unsigned lt = times.size();
+  const unsigned lr = refPeaks.size();
+
+  const unsigned lcommon = lt - match.numAdd;
+  vector<float> x(lcommon), y(lcommon);
+
+  // The vectors are as compact as possible and are matched.
+  for (unsigned i = 0, p = 0; i < lt; i++)
+  {
+    if (match.actualToRef[i] >= 0)
+    {
+      y[p] = refPeaks[static_cast<unsigned>(match.actualToRef[i])];
+      x[p] = times[i];
+      p++;
+    }
+  }
+
+  // Run the regression.
+  PolynomialRegression pol;
+  pol.fitIt(x, y, 2, match.motion.estimate);
+
+  if (storeFlag)
+  {
+    // Normalize the distance score to a 200m long train.
+    const float trainLength = refPeaks.back() - refPeaks.front();
+    const float peakScale = TRAIN_REF_LENGTH * TRAIN_REF_LENGTH / 
+      (trainLength * trainLength);
+
+    // Store the residuals.
+    match.residuals.resize(lcommon);
+    Align::storeResiduals(x, y, lt, peakScale, match);
+  }
+}
+
+
+void Align::bestMatch(
+  const TrainDB& trainDB,
+  const vector<float>& times)
+{
+  float bestDist = numeric_limits<float>::max();
+
+  for (auto& ma: matches)
+  {
+    // Can we still beat bestAlign?
+    if (ma.distOther > bestDist)
+      continue;
+
+    Align::specificMatch(times, trainDB.getPeakPositions(ma.trainNo), 
+      true, ma);
+
+    if (ma.dist < bestDist)
+      bestDist = ma.dist;
+
+    ma.setTopResiduals();
+  }
+
+  sort(matches.begin(), matches.end());
+}
+
+
+void Align::getBest(
+  const unsigned& trainNoTrue,
+  string& trainDetected,
+  float& distDetected,
+  unsigned& rankDetected) const
+{
+  bool foundFlag = false;
+  for (unsigned i = 0; i < matches.size(); i++)
+  {
+    if (matches[i].trainNo == trainNoTrue)
+    {
+      foundFlag = true;
+      rankDetected = i;
+      break;
+    }
+  }
+
+  if (! foundFlag)
+    rankDetected = matches.size();
+
+  trainDetected = matches.front().trainName;
+  distDetected = matches.front().distMatch;
+}
+
+
+string Align::strMatches(const string& title) const
+{
+  stringstream ss;
+  ss << title << "\n";
+  for (auto& match: matches)
+    ss << match.str();
+  ss << "\n";
+  return ss.str();
+}
+
+
+string Align::str(const Control& control) const
+{
+  stringstream ss;
+
+  const auto& bestAlign = matches.front();
+
+  if (control.verboseRegressMatch())
+  {
+    ss << Align::strMatches("Matching alignment");
+
+    ss << "Regression alignment\n";
+    ss << bestAlign.str();
+    ss << endl;
+  }
+
+  if (control.verboseRegressMotion())
+    ss << bestAlign.motion.strEstimate("Regression motion");
+
+  if (control.verboseRegressTopResiduals())
+    ss << bestAlign.strTopResiduals();
+  
+  return ss.str();
+}
+
+
+string Align::strMatchingResiduals(
+  const string& trainTrue,
+  const string& pickAny,
+  const string& heading) const
+{
+  stringstream ss;
+
+  unsigned mno = 0;
+  for (auto& ma: matches)
+  {
+    mno++;
+    if (ma.trainName.find(pickAny) == string::npos)
+      continue;
+    if (ma.distMatch > REGRESS_GREAT_SCORE)
+      continue;
+
+    ss << "SPECTRAIN" << trainTrue << " " << ma.trainName << endl;
+    ss << heading << "/" <<
+      fixed << setprecision(2) << ma.distMatch << "/#" << mno << "\n";
+
+    // The match data may have been sorted by residual size.
+    // This works regardless.
+    vector<float> pos(ma.numAxles);
+    for (auto& re: ma.residuals)
+      pos[re.index] = re.value;
+
+    for (unsigned i = 0; i < pos.size(); i++)
+    {
+      if (pos[i] == 0.)
+        ss << i << ";" << endl;
+      else
+        ss << i << ";" << fixed << setprecision(4) << pos[i] << endl;
+    }
+    ss << "ENDSPEC\n";
+  }
+
+  return ss.str();
 }
 
 

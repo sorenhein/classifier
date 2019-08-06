@@ -1,5 +1,4 @@
 SOURCE_FILES    =                       \
-                Align.cpp               \
                 CarDetect.cpp           \
                 CarGaps.cpp             \
                 CarModels.cpp           \
@@ -23,7 +22,6 @@ SOURCE_FILES    =                       \
                 run.cpp                 \
                 setup.cpp               \
                 driver.cpp              \
-                align/Alignment.cpp     \
                                         \
                 completions/Completion.cpp  \
                 completions/Completions.cpp    \
@@ -40,8 +38,9 @@ SOURCE_FILES    =                       \
                                         \
                 filter/Filter.cpp       \
                                         \
-                regress/PolynomialRegression.cpp \
-                regress/Regress.cpp     \
+                align/Align.cpp      \
+                align/Alignment.cpp     \
+                align/PolynomialRegression.cpp \
                                         \
                 stats/CompStats.cpp     \
                 stats/CrossStats.cpp    \

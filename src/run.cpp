@@ -21,9 +21,8 @@
 #include "PeakLabel.h"
 #include "PeakMatch.h"
 
-#include "regress/Regress.h"
+#include "align/Align.h"
 
-#include "Align.h"
 #include "Except.h"
 #include "errors.h"
 
@@ -363,17 +362,13 @@ void run(
       trainDB.getPeakPositions(traceData.trainNoTrueU);
 
 
-    // The storage is in Regress, but it is first used in Align.
-    Regress regress;
-    auto& matches = regress.getMatches();
-
     timers[thid].start(TIMER_ALIGN);
 
     Align align;
     align.bestMatches(control, trainDB, traceData.countrySensor,
-      peaksInfo, matches);
+      peaksInfo);
 
-    if (matches.size() == 0)
+    if (align.empty())
       THROW(ERR_NO_ALIGN_MATCHES, "No alignment matches");
 
     if (peaksInfo.numCars > 0)
@@ -383,26 +378,24 @@ void run(
       fixed << setprecision(2) << traceData.speed << " m/s\n\n";
 
     if (control.verboseAlignMatches())
-      cout << regress.strMatches("Matching alignment");
-
-    timers[thid].stop(TIMER_ALIGN);
+      cout << align.strMatches("Matching alignment");
 
 
     // Run the regression with the given alignment.
     timers[thid].start(TIMER_REGRESS);
 
-    regress.bestMatch(trainDB, peaksInfo.times);
-    cout << regress.str(control);
+    align.bestMatch(trainDB, peaksInfo.times);
+    cout << align.str(control);
 
 
     if (! control.pickAny().empty())
     {
       const string s = traceData.sensor + "/" + traceData.time;
-      cout << regress.strMatchingResiduals(traceData.trainTrue,
+      cout << align.strMatchingResiduals(traceData.trainTrue,
         control.pickAny(), s);
     }
 
-    timers[thid].stop(TIMER_REGRESS);
+    timers[thid].stop(TIMER_ALIGN);
 
     PeakMatch peakMatch;
     peakMatch.logPeakStats(peaks, posTrue, traceData.speed, peakStats);
@@ -416,7 +409,7 @@ void run(
     string trainDetected;
     float distDetected;
     unsigned rankDetected;
-    regress.getBest(traceData.trainNoTrueU,
+    align.getBest(traceData.trainNoTrueU,
       trainDetected, distDetected, rankDetected);
 
     sensorStats.log(traceData.sensor, rankDetected, distDetected);

@@ -2,22 +2,26 @@
 #define TRAIN_ALIGN_H
 
 #include <vector>
+#include <string>
 
-#include "align/Alignment.h"
+#include "../align/Alignment.h"
 
-#include "util/Motion.h"
-
-class TrainDB;
-class Control;
-struct PeaksInfo;
+#include "../util/Motion.h"
 
 using namespace std;
+
+class Control;
+class TrainDB;
+struct PeaksInfo;
 
 
 class Align
 {
   private:
 
+    vector<Alignment> matches;
+
+    
     bool trainMightFit(
       const PeaksInfo& peaksInfo,
       const string& sensorCountry,
@@ -41,6 +45,13 @@ class Align
       const vector<float>& scaledPeaks,
       Alignment& alignment) const;
 
+    void storeResiduals(
+      const vector<float>& x,
+      const vector<float>& y,
+      const unsigned lt,
+      const float peakScale,
+      Alignment& match) const;
+
     void printAlignPeaks(
       const string& refTrain,
       const vector<float>& times,
@@ -54,12 +65,38 @@ class Align
 
     ~Align();
 
+    void specificMatch(
+      const vector<float>& times,
+      const vector<float>& refPeaks,
+      const bool storeFlag,
+      Alignment& match) const;
+
     void bestMatches(
       const Control& control,
       const TrainDB& trainDB,
       const string& country,
-      const PeaksInfo& peaksInfo,
-      vector<Alignment>& matches) const;
+      const PeaksInfo& peaksInfo);
+
+    void bestMatch(
+      const TrainDB& trainDB,
+      const vector<float>& times);
+
+    bool empty() const;
+
+    void getBest(
+      const unsigned& trainNoTrue,
+      string& trainDetected,
+      float& distDetected,
+      unsigned& rankDetected) const;
+
+    string strMatches(const string& title) const;
+
+    string str(const Control& control) const;
+
+    string strMatchingResiduals(
+      const string& trainTrue,
+      const string& pickAny,
+      const string& heading) const;
 };
 
 #endif
