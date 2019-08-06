@@ -49,6 +49,19 @@ class Align
       Alignment& match,
       int& offsetRef) const;
 
+    void storeResiduals(
+      const vector<float>& x,
+      const vector<float>& y,
+      const unsigned lt,
+      const float peakScale,
+      Alignment& match) const;
+
+    void regressTrain(
+      const vector<float>& times,
+      const vector<float>& refPeaks,
+      const bool storeFlag,
+      Alignment& match) const;
+
     bool scalePeaks(
       const vector<float>& refPeaks,
       const unsigned numRefCars,
@@ -69,17 +82,16 @@ class Align
       const unsigned lteff,
       vector<vector<Mentry>>& matrix) const;
 
+    void backtrackNeedlemanWunsch(
+      const unsigned lreff,
+      const unsigned lteff,
+      const vector<vector<Mentry>>& matrix,
+      Alignment& match) const;
+
     void NeedlemanWunsch(
       const vector<float>& refPeaks,
       const vector<float>& scaledPeaks,
       Alignment& alignment) const;
-
-    void storeResiduals(
-      const vector<float>& x,
-      const vector<float>& y,
-      const unsigned lt,
-      const float peakScale,
-      Alignment& match) const;
 
     void printAlignPeaks(
       const string& refTrain,
@@ -94,23 +106,15 @@ class Align
 
     ~Align();
 
-    void specificMatch(
-      const vector<float>& times,
-      const vector<float>& refPeaks,
-      const bool storeFlag,
-      Alignment& match) const;
-
-    void bestMatches(
+    bool realign(
       const Control& control,
       const TrainDB& trainDB,
       const string& country,
       const PeaksInfo& peaksInfo);
 
-    void bestMatch(
+    void regress(
       const TrainDB& trainDB,
       const vector<float>& times);
-
-    bool empty() const;
 
     void getBest(
       const unsigned& trainNoTrue,
@@ -120,7 +124,7 @@ class Align
 
     string strMatches(const string& title) const;
 
-    string str(const Control& control) const;
+    string strRegress(const Control& control) const;
 
     string strMatchingResiduals(
       const string& trainTrue,

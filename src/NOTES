@@ -1,9 +1,9 @@
 Align
 -----
-- Combine Align and Regress.
-- Count #NWs and #regresses
-- Regression must only be re-run when the alignment changed.
-- N-W to detect whether this is necessary; store in match
+- Constants -> const.h
+- Do we need printVectorCSV from util/misc.h? --> sstream
+- Fix the TODO With first car axles
+
 
 If multi-threading, at the end add up the thread stats into an
 overall stat.

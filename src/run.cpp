@@ -365,10 +365,8 @@ void run(
     timers[thid].start(TIMER_ALIGN);
 
     Align align;
-    align.bestMatches(control, trainDB, traceData.countrySensor,
-      peaksInfo);
-
-    if (align.empty())
+    if (! align.realign(control, trainDB, traceData.countrySensor, 
+        peaksInfo))
       THROW(ERR_NO_ALIGN_MATCHES, "No alignment matches");
 
     if (peaksInfo.numCars > 0)
@@ -384,8 +382,8 @@ void run(
     // Run the regression with the given alignment.
     timers[thid].start(TIMER_REGRESS);
 
-    align.bestMatch(trainDB, peaksInfo.times);
-    cout << align.str(control);
+    align.regress(trainDB, peaksInfo.times);
+    cout << align.strRegress(control);
 
 
     if (! control.pickAny().empty())

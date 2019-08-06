@@ -1,6 +1,13 @@
+// It would be possible to optimize this quite a bit, but it is already
+// quite fast.  Specifically:
+// 
+// * In Needleman-Wunsch we could notice whether the alignment has
+//   changed.  If not, there is little need to re-run the regression.
+// * Some regressions can probably be thrown out based on the N-W
+//   residuals.
+
 #include <iostream>
 #include <iomanip>
-#include <fstream>
 #include <sstream>
 #include <limits>
 #include <algorithm>
@@ -15,7 +22,6 @@
 #include "Align.h"
 
 #include "../PeakGeneral.h"
-#include "../Except.h"
 #include "../const.h"
 
 
@@ -31,11 +37,6 @@
 
 #define MAX_AXLE_DIFFERENCE_OK 7
 #define MAX_CAR_DIFFERENCE_OK 1
-
-// In meters, see below.
-
-#define UNUSED(x) ((void)(true ? 0 : ((x), void(), 0)))
-
 
 
 Align::Align()
@@ -96,6 +97,7 @@ bool Align::alignFronts(
   {
     // Assumed missing a front car.
     // TODO In general we need the number of axles in the first car.
+    // Would have to come from TrainDB.
     match.numAdd = 0;
     match.numDelete = peaksInfo.peakNumbers[match.numAdd] + 4;
     offsetRef = 4;
@@ -104,6 +106,77 @@ bool Align::alignFronts(
     return false; // Off by too many cars.
 
   return true;
+}
+
+
+void Align::storeResiduals(
+  const vector<float>& x,
+  const vector<float>& y,
+  const unsigned lt,
+  const float peakScale,
+  Alignment& match) const
+{
+  match.distMatch = 0.f;
+  for (unsigned i = 0, p = 0; i < lt; i++)
+  {
+    if (match.actualToRef[i] >= 0)
+    {
+      const float pos = match.time2pos(x[p]);
+      const float res = pos - y[p];
+
+      const unsigned refIndex = static_cast<unsigned>(match.actualToRef[i]);
+      match.residuals[p].index = refIndex;
+      match.residuals[p].value = res;
+      match.residuals[p].valueSq = peakScale * res * res;
+
+      match.distMatch += match.residuals[p].valueSq;
+
+      p++;
+    }
+  }
+
+  match.dist = match.distMatch + match.distOther;
+}
+
+
+void Align::regressTrain(
+  const vector<float>& times,
+  const vector<float>& refPeaks,
+  const bool storeFlag,
+  Alignment& match) const
+{
+  const unsigned lt = times.size();
+  const unsigned lr = refPeaks.size();
+
+  const unsigned lcommon = lt - match.numAdd;
+  vector<float> x(lcommon), y(lcommon);
+
+  // The vectors are as compact as possible and are matched.
+  for (unsigned i = 0, p = 0; i < lt; i++)
+  {
+    if (match.actualToRef[i] >= 0)
+    {
+      y[p] = refPeaks[static_cast<unsigned>(match.actualToRef[i])];
+      x[p] = times[i];
+      p++;
+    }
+  }
+
+  // Run the regression.
+  PolynomialRegression pol;
+  pol.fitIt(x, y, 2, match.motion.estimate);
+
+  if (storeFlag)
+  {
+    // Normalize the distance score to a 200m long train.
+    const float trainLength = refPeaks.back() - refPeaks.front();
+    const float peakScale = TRAIN_REF_LENGTH * TRAIN_REF_LENGTH / 
+      (trainLength * trainLength);
+
+    // Store the residuals.
+    match.residuals.resize(lcommon);
+    Align::storeResiduals(x, y, lt, peakScale, match);
+  }
 }
 
 
@@ -136,7 +209,7 @@ bool Align::scalePeaks(
     match.actualToRef[k] = peaksInfo.peakNumbers[k] + offsetRef;
 
   // Run a regression.
-  Align::specificMatch(peaksInfo.times, refPeaks, false, match);
+  Align::regressTrain(peaksInfo.times, refPeaks, false, match);
 
   // Use the motion parameters.
   scaledPeaks.resize(lt);
@@ -238,6 +311,51 @@ void Align::fillNeedlemanWunsch(
 }
 
 
+void Align::backtrackNeedlemanWunsch(
+  const unsigned lreff,
+  const unsigned lteff,
+  const vector<vector<Mentry>>& matrix,
+  Alignment& match) const
+{
+  match.dist = matrix[lreff][lteff].dist;
+  
+  // Add fixed penalties for early issues.
+  match.dist += match.numDelete * EARLY_SHIFTS_PENALTY +
+    match.numAdd * EARLY_SHIFTS_PENALTY;
+
+  unsigned i = lreff;
+  unsigned j = lteff;
+  const unsigned numAdd = match.numAdd;
+  const unsigned numDelete = match.numDelete;
+
+  while (i > 0 || j > 0)
+  {
+    const Origin o = matrix[i][j].origin;
+    if (i > 0 && j > 0 && o == NW_MATCH)
+    {
+      match.actualToRef[j + numAdd - 1] = 
+        static_cast<int>(i + numDelete - 1);
+      match.distMatch += matrix[i][j].dist - matrix[i-1][j-1].dist;
+      i--;
+      j--;
+    }
+    else if (j > 0 && o == NW_INSERT)
+    {
+      match.actualToRef[j + numAdd - 1] = -1;
+      match.numAdd++;
+      j--;
+    }
+    else
+    {
+      match.numDelete++;
+      i--;
+    }
+  }
+
+  match.distOther = match.dist - match.distMatch;
+}
+
+
 void Align::NeedlemanWunsch(
   const vector<float>& refPeaks,
   const vector<float>& scaledPeaks,
@@ -268,58 +386,14 @@ void Align::NeedlemanWunsch(
     lr, lt, matrix);
 
   // Walk back through the matrix.
-  match.dist = matrix[lr][lt].dist;
-  
-  // Add fixed penalties for early issues.
-  // TODO Good penalty for this?  More dynamic?
-  // How much dist does it lose to do (2, 0) rather than (3, 1)?
-  // If it's more than "average", go with (3, 1), otherwise (2, 0).
-  match.dist += match.numDelete * EARLY_SHIFTS_PENALTY +
-    match.numAdd * EARLY_SHIFTS_PENALTY;
-
-  unsigned i = lr;
-  unsigned j = lt;
-  const unsigned numAdd = match.numAdd;
-  const unsigned numDelete = match.numDelete;
-
-  while (i > 0 || j > 0)
-  {
-    const Origin o = matrix[i][j].origin;
-    if (i > 0 && j > 0 && o == NW_MATCH)
-    {
-      match.actualToRef[j + numAdd - 1] = 
-        static_cast<int>(i + numDelete - 1);
-      match.distMatch += matrix[i][j].dist - matrix[i-1][j-1].dist;
-      i--;
-      j--;
-    }
-    else if (j > 0 && o == NW_INSERT)
-    {
-      match.actualToRef[j + numAdd - 1] = -1;
-      match.numAdd++;
-      j--;
-    }
-    else
-    {
-      match.numDelete++;
-      i--;
-    }
-  }
-
-  match.distOther = match.dist - match.distMatch;
+  Align::backtrackNeedlemanWunsch(lr, lt, matrix, match);
 
   assert(refPeaks.size() + match.numAdd == 
     scaledPeaks.size() + match.numDelete);
 }
 
 
-bool Align::empty() const
-{
-  return matches.empty();
-}
-
-
-void Align::bestMatches(
+bool Align::realign(
   const Control& control,
   const TrainDB& trainDB,
   const string& sensorCountry,
@@ -353,80 +427,11 @@ void Align::bestMatches(
   }
 
   sort(matches.begin(), matches.end());
-}
-
-void Align::storeResiduals(
-  const vector<float>& x,
-  const vector<float>& y,
-  const unsigned lt,
-  const float peakScale,
-  Alignment& match) const
-{
-  match.distMatch = 0.f;
-  for (unsigned i = 0, p = 0; i < lt; i++)
-  {
-    if (match.actualToRef[i] >= 0)
-    {
-      const float pos = match.time2pos(x[p]);
-      const float res = pos - y[p];
-
-      const unsigned refIndex = static_cast<unsigned>(match.actualToRef[i]);
-      match.residuals[p].index = refIndex;
-      match.residuals[p].value = res;
-      match.residuals[p].valueSq = peakScale * res * res;
-
-      match.distMatch += match.residuals[p].valueSq;
-
-      p++;
-    }
-  }
-
-  match.dist = match.distMatch + match.distOther;
+  return (! matches.empty());
 }
 
 
-void Align::specificMatch(
-  const vector<float>& times,
-  const vector<float>& refPeaks,
-  const bool storeFlag,
-  Alignment& match) const
-{
-  const unsigned lt = times.size();
-  const unsigned lr = refPeaks.size();
-
-  const unsigned lcommon = lt - match.numAdd;
-  vector<float> x(lcommon), y(lcommon);
-
-  // The vectors are as compact as possible and are matched.
-  for (unsigned i = 0, p = 0; i < lt; i++)
-  {
-    if (match.actualToRef[i] >= 0)
-    {
-      y[p] = refPeaks[static_cast<unsigned>(match.actualToRef[i])];
-      x[p] = times[i];
-      p++;
-    }
-  }
-
-  // Run the regression.
-  PolynomialRegression pol;
-  pol.fitIt(x, y, 2, match.motion.estimate);
-
-  if (storeFlag)
-  {
-    // Normalize the distance score to a 200m long train.
-    const float trainLength = refPeaks.back() - refPeaks.front();
-    const float peakScale = TRAIN_REF_LENGTH * TRAIN_REF_LENGTH / 
-      (trainLength * trainLength);
-
-    // Store the residuals.
-    match.residuals.resize(lcommon);
-    Align::storeResiduals(x, y, lt, peakScale, match);
-  }
-}
-
-
-void Align::bestMatch(
+void Align::regress(
   const TrainDB& trainDB,
   const vector<float>& times)
 {
@@ -438,7 +443,7 @@ void Align::bestMatch(
     if (ma.distOther > bestDist)
       continue;
 
-    Align::specificMatch(times, trainDB.getPeakPositions(ma.trainNo), 
+    Align::regressTrain(times, trainDB.getPeakPositions(ma.trainNo), 
       true, ma);
 
     if (ma.dist < bestDist)
@@ -487,7 +492,7 @@ string Align::strMatches(const string& title) const
 }
 
 
-string Align::str(const Control& control) const
+string Align::strRegress(const Control& control) const
 {
   stringstream ss;
 
