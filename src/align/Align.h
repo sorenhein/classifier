@@ -61,6 +61,14 @@ class Align
       const unsigned lteff,
       vector<vector<Mentry>>& matrix) const;
 
+    void fillNeedlemanWunsch(
+      const vector<float>& refPeaks,
+      const vector<float>& scaledPeaks,
+      const Alignment& alignment,
+      const unsigned lreff,
+      const unsigned lteff,
+      vector<vector<Mentry>>& matrix) const;
+
     void NeedlemanWunsch(
       const vector<float>& refPeaks,
       const vector<float>& scaledPeaks,

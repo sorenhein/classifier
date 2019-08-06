@@ -171,40 +171,23 @@ void Align::initNeedlemanWunsch(
 }
 
 
-void Align::NeedlemanWunsch(
+void Align::fillNeedlemanWunsch(
   const vector<float>& refPeaks,
   const vector<float>& scaledPeaks,
-  Alignment& match) const
+  const Alignment& match,
+  const unsigned lreff,
+  const unsigned lteff,
+  vector<vector<Mentry>>& matrix) const
 {
-  // https://en.wikipedia.org/wiki/Needleman%E2%80%93Wunsch_algorithm
-  // This is an adaptation of the sequence-matching algorithm.
-  //
-  // 1. The "letters" are peak positions in meters, so the metric
-  //    between letters is the square of the physical distance.
-  //
-  // 2. There is a custom penalty function for early deletions (from
-  //    the synthetic trace, scaledPeaks, i.e. an early insertion in
-  //    refPeaks) and for early insertions (in scalePeaks, i.e. an
-  //    early deletion in refPeaks).
-  //
-  // The first dimension is refPeaks, the second is the synthetic one.
-  
-  const unsigned lr = refPeaks.size() - match.numDelete;
-  const unsigned lt = scaledPeaks.size() - match.numAdd;
-
-  // Normalize the distance score to a 200m long train.
+  // Normalize the distance score to a certain train length.
   const float trainLength = refPeaks.back() - refPeaks.front();
   const float peakScale = TRAIN_REF_LENGTH * TRAIN_REF_LENGTH / 
     (trainLength * trainLength);
 
-  // Set up the matrix.
-  vector<vector<Mentry>> matrix;
-  Align::initNeedlemanWunsch(lr, lt, matrix);
-
   // Run the dynamic programming.
-  for (unsigned i = 1; i < lr+1; i++)
+  for (unsigned i = 1; i < lreff+1; i++)
   {
-    for (unsigned j = 1; j < lt+1; j++)
+    for (unsigned j = 1; j < lteff+1; j++)
     {
       const float d = refPeaks[i + match.numDelete - 1] - 
         scaledPeaks[j + match.numAdd - 1];
@@ -252,6 +235,37 @@ void Align::NeedlemanWunsch(
       }
     }
   }
+}
+
+
+void Align::NeedlemanWunsch(
+  const vector<float>& refPeaks,
+  const vector<float>& scaledPeaks,
+  Alignment& match) const
+{
+  // https://en.wikipedia.org/wiki/Needleman%E2%80%93Wunsch_algorithm
+  // This is an adaptation of the sequence-matching algorithm.
+  //
+  // 1. The "letters" are peak positions in meters, so the metric
+  //    between letters is the square of the physical distance.
+  //
+  // 2. There is a custom penalty function for early deletions (from
+  //    the synthetic trace, scaledPeaks, i.e. an early insertion in
+  //    refPeaks) and for early insertions (in scalePeaks, i.e. an
+  //    early deletion in refPeaks).
+  //
+  // The first dimension is refPeaks, the second is the synthetic one.
+  
+  const unsigned lr = refPeaks.size() - match.numDelete;
+  const unsigned lt = scaledPeaks.size() - match.numAdd;
+
+  // Set up the matrix.
+  vector<vector<Mentry>> matrix;
+  Align::initNeedlemanWunsch(lr, lt, matrix);
+
+  // Fill the matrix with distances and origins.
+  Align::fillNeedlemanWunsch(refPeaks, scaledPeaks, match,
+    lr, lt, matrix);
 
   // Walk back through the matrix.
   match.dist = matrix[lr][lt].dist;
