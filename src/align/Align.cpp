@@ -227,34 +227,6 @@ void Align::NeedlemanWunsch(
 }
 
 
-void Align::estimateAlignedMotion(
-  const vector<float>& times,
-  const vector<float>& refPeaks,
-  Alignment& match) const
-{
-  const unsigned lt = times.size();
-  const unsigned lr = refPeaks.size();
-
-  const unsigned lcommon = lt - match.numAdd;
-  vector<float> x(lcommon), y(lcommon);
-
-  // The vectors are as compact as possible and are matched.
-  for (unsigned i = 0, p = 0; i < lt; i++)
-  {
-    if (match.actualToRef[i] >= 0)
-    {
-      y[p] = refPeaks[static_cast<unsigned>(match.actualToRef[i])];
-      x[p] = times[i];
-      p++;
-    }
-  }
-
-  // Run the regression.
-  PolynomialRegression pol;
-  pol.fitIt(x, y, 2, match.motion.estimate);
-}
-
-
 bool Align::scalePeaks(
   const vector<float>& refPeaks,
   const unsigned numRefCars,
@@ -292,16 +264,10 @@ bool Align::scalePeaks(
     offsetRef = 4;
   }
   else
-  {
-    cout << "ALIGNERROR\n";
-    return false;
-  }
+    return false; // Off by too many cars.
 
   if (peaksInfo.peakNumbers.back() + offsetRef >= refPeaks.size())
-  {
-    cout << "Car number would overflow\n";
-    return false;
-  }
+    return false; // Car number would overflow
 
   match.dist = 0.;
   match.distMatch = 0.;
@@ -313,7 +279,7 @@ bool Align::scalePeaks(
   for (unsigned k = match.numAdd; k < lt; k++)
     match.actualToRef[k] = peaksInfo.peakNumbers[k] + offsetRef;
 
-  Align::estimateAlignedMotion(peaksInfo.times, refPeaks, match);
+  Align::specificMatch(peaksInfo.times, refPeaks, false, match);
 
   scaledPeaks.resize(lt);
   for (unsigned j = 0; j < lt; j++)

@@ -28,11 +28,6 @@ class Align
       const TrainDB& trainDB,
       const Alignment& match) const;
 
-    void estimateAlignedMotion(
-      const vector<float>& times,
-      const vector<float>& refPeaks,
-      Alignment& match) const;
-      
     bool scalePeaks(
       const vector<float>& refPeaks,
       const unsigned numRefCars,
