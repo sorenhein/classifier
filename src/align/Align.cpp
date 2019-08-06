@@ -54,7 +54,6 @@ bool Align::trainMightFit(
   const TrainDB& trainDB,
   const Alignment& match) const
 {
-  // Match is good enough to go by number of cars.
   if (peaksInfo.numCars > match.numCars + MAX_CAR_DIFFERENCE_OK ||
       peaksInfo.numCars + MAX_CAR_DIFFERENCE_OK < match.numCars)
     return false;
@@ -63,6 +62,112 @@ bool Align::trainMightFit(
     return false;
   else
     return trainDB.isInCountry(match.trainNo, sensorCountry);
+}
+
+
+bool Align::alignFronts(
+  const unsigned numRefCars,
+  const PeaksInfo& peaksInfo,
+  Alignment& match,
+  int& offsetRef) const
+{
+  // numAdd counts the spurious peaks in times/scaledPeaks.
+  // numDelete counts the unused reference peaks.
+
+  if (peaksInfo.numCars == numRefCars)
+  {
+    // Assume good alignment.
+    match.numAdd = 0;
+    match.numDelete = peaksInfo.peakNumbers[match.numAdd];
+    offsetRef = 0;
+  }
+  else if (peaksInfo.numCars == numRefCars + 1)
+  {
+    // Front car is assumed spurious.
+    match.numAdd = 0;
+    while (match.numAdd < peaksInfo.peakNumbers.size() &&
+        peaksInfo.carNumbers[match.numAdd] == 0)
+      match.numAdd++;
+
+    match.numDelete = peaksInfo.peakNumbers[match.numAdd];
+    offsetRef = -static_cast<int>(match.numDelete);
+  }
+  else if (peaksInfo.numCars + 1 == numRefCars)
+  {
+    // Assumed missing a front car.
+    // TODO In general we need the number of axles in the first car.
+    match.numAdd = 0;
+    match.numDelete = peaksInfo.peakNumbers[match.numAdd] + 4;
+    offsetRef = 4;
+  }
+  else
+    return false; // Off by too many cars.
+
+  return true;
+}
+
+
+bool Align::scalePeaks(
+  const vector<float>& refPeaks,
+  const unsigned numRefCars,
+  const PeaksInfo& peaksInfo,
+  Alignment& match,
+  vector<float>& scaledPeaks) const
+{
+  // We estimate the motion parameters of fitting peaksInfo.times
+  // to refPeaks, and then we calculate the corresponding times.
+
+  int offsetRef;
+  if (! Align::alignFronts(numRefCars, peaksInfo, match, offsetRef))
+    return false;
+
+  if (peaksInfo.peakNumbers.back() + offsetRef >= refPeaks.size())
+    return false; // Car number would overflow
+
+  // Set up the alignment for a regression.
+  match.dist = 0.;
+  match.distMatch = 0.;
+
+  const unsigned lt = peaksInfo.times.size();
+  match.actualToRef.resize(lt);
+  for (unsigned k = 0; k < match.numAdd; k++)
+    match.actualToRef[k] = -1;
+  for (unsigned k = match.numAdd; k < lt; k++)
+    match.actualToRef[k] = peaksInfo.peakNumbers[k] + offsetRef;
+
+  // Run a regression.
+  Align::specificMatch(peaksInfo.times, refPeaks, false, match);
+
+  // Use the motion parameters.
+  scaledPeaks.resize(lt);
+  for (unsigned j = 0; j < lt; j++)
+    scaledPeaks[j] = match.motion.time2pos(peaksInfo.times[j]);
+
+  return true;
+}
+
+
+void Align::initNeedlemanWunsch(
+  const unsigned lreff,
+  const unsigned lteff,
+  vector<vector<Mentry>>& matrix) const
+{
+  matrix.resize(lreff+1);
+  for (unsigned i = 0; i < lreff+1; i++)
+    matrix[i].resize(lteff+1);
+
+  matrix[0][0].dist = 0.;
+  for (unsigned i = 1; i < lreff+1; i++)
+  {
+    matrix[i][0].dist = i * DELETE_PENALTY;
+    matrix[i][0].origin = NW_DELETE;
+  }
+
+  for (unsigned j = 1; j < lteff+1; j++)
+  {
+    matrix[0][j].dist = j * INSERT_PENALTY;
+    matrix[0][j].origin = NW_INSERT;
+  }
 }
 
 
@@ -82,11 +187,6 @@ void Align::NeedlemanWunsch(
   //    refPeaks) and for early insertions (in scalePeaks, i.e. an
   //    early deletion in refPeaks).
   //
-  // The penalty for additions and deletions could actually become
-  // more integrated with the nature of the peaks:  We could measure
-  // the quantity of position (or of acceleration) that it would take
-  // to shape or remove a peak in a certain location.
-  //
   // The first dimension is refPeaks, the second is the synthetic one.
   
   const unsigned lr = refPeaks.size() - match.numDelete;
@@ -98,36 +198,8 @@ void Align::NeedlemanWunsch(
     (trainLength * trainLength);
 
   // Set up the matrix.
-  enum Origin
-  {
-    NW_MATCH = 0,
-    NW_DELETE = 1,
-    NW_INSERT = 2
-  };
-
-  struct Mentry
-  {
-    float dist;
-    Origin origin;
-  };
-
   vector<vector<Mentry>> matrix;
-  matrix.resize(lr+1);
-  for (unsigned i = 0; i < lr+1; i++)
-    matrix[i].resize(lt+1);
-
-  matrix[0][0].dist = 0.;
-  for (unsigned i = 1; i < lr+1; i++)
-  {
-    matrix[i][0].dist = i * DELETE_PENALTY;
-    matrix[i][0].origin = NW_DELETE;
-  }
-
-  for (unsigned j = 1; j < lt+1; j++)
-  {
-    matrix[0][j].dist = j * INSERT_PENALTY;
-    matrix[0][j].origin = NW_INSERT;
-  }
+  Align::initNeedlemanWunsch(lr, lt, matrix);
 
   // Run the dynamic programming.
   for (unsigned i = 1; i < lr+1; i++)
@@ -224,68 +296,6 @@ void Align::NeedlemanWunsch(
 
   assert(refPeaks.size() + match.numAdd == 
     scaledPeaks.size() + match.numDelete);
-}
-
-
-bool Align::scalePeaks(
-  const vector<float>& refPeaks,
-  const unsigned numRefCars,
-  const PeaksInfo& peaksInfo,
-  Alignment& match,
-  vector<float>& scaledPeaks) const
-{
-  // numAdd counts the spurious peaks in times/scaledPeaks.
-  // numDelete counts the unused reference peaks.
-
-  int offsetRef;
-  if (peaksInfo.numCars == numRefCars)
-  {
-    // Assume good alignment.
-    match.numAdd = 0;
-    match.numDelete = peaksInfo.peakNumbers[match.numAdd];
-    offsetRef = 0;
-  }
-  else if (peaksInfo.numCars == numRefCars + 1)
-  {
-    // Front car is assumed spurious.
-    match.numAdd = 0;
-    while (match.numAdd < peaksInfo.peakNumbers.size() &&
-        peaksInfo.carNumbers[match.numAdd] == 0)
-      match.numAdd++;
-
-    match.numDelete = peaksInfo.peakNumbers[match.numAdd];
-    offsetRef = -4;
-  }
-  else if (peaksInfo.numCars + 1 == numRefCars)
-  {
-    // Assumed missing a front car.
-    match.numAdd = 0;
-    match.numDelete = peaksInfo.peakNumbers[match.numAdd] + 4;
-    offsetRef = 4;
-  }
-  else
-    return false; // Off by too many cars.
-
-  if (peaksInfo.peakNumbers.back() + offsetRef >= refPeaks.size())
-    return false; // Car number would overflow
-
-  match.dist = 0.;
-  match.distMatch = 0.;
-
-  const unsigned lt = peaksInfo.times.size();
-  match.actualToRef.resize(lt);
-  for (unsigned k = 0; k < match.numAdd; k++)
-    match.actualToRef[k] = -1;
-  for (unsigned k = match.numAdd; k < lt; k++)
-    match.actualToRef[k] = peaksInfo.peakNumbers[k] + offsetRef;
-
-  Align::specificMatch(peaksInfo.times, refPeaks, false, match);
-
-  scaledPeaks.resize(lt);
-  for (unsigned j = 0; j < lt; j++)
-    scaledPeaks[j] = match.motion.time2pos(peaksInfo.times[j]);
-
-  return true;
 }
 
 

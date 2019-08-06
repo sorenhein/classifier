@@ -19,6 +19,21 @@ class Align
 {
   private:
 
+    // Used in Needleman-Wunsch.
+    enum Origin
+    {
+      NW_MATCH = 0,
+      NW_DELETE = 1,
+      NW_INSERT = 2
+    };
+
+    struct Mentry
+    {
+      float dist;
+      Origin origin;
+    };
+
+
     vector<Alignment> matches;
 
     
@@ -28,12 +43,23 @@ class Align
       const TrainDB& trainDB,
       const Alignment& match) const;
 
+    bool alignFronts(
+      const unsigned numRefCars,
+      const PeaksInfo& peaksInfo,
+      Alignment& match,
+      int& offsetRef) const;
+
     bool scalePeaks(
       const vector<float>& refPeaks,
       const unsigned numRefCars,
       const PeaksInfo& peaksInfo,
       Alignment& match,
       vector<float>& scaledPeaks) const;
+
+    void initNeedlemanWunsch(
+      const unsigned lreff,
+      const unsigned lteff,
+      vector<vector<Mentry>>& matrix) const;
 
     void NeedlemanWunsch(
       const vector<float>& refPeaks,
