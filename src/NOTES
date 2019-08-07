@@ -3,6 +3,7 @@ Align
 - Constants -> const.h
 - Do we need printVectorCSV from util/misc.h? --> sstream
 - Fix the TODO With first car axles
+- Write a new binary file:  The matched peaks ("train")
 
 
 If multi-threading, at the end add up the thread stats into an
@@ -34,7 +35,6 @@ Stats
 * When new filter loses, is it also on the "good" traces?
 
 
-* Write a new binary file:  The matched peaks ("train")
 
 * Shouldn't all full recognitions be perfect?
   - no errors

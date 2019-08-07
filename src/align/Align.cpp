@@ -3,8 +3,8 @@
 // 
 // * In Needleman-Wunsch we could notice whether the alignment has
 //   changed.  If not, there is little need to re-run the regression.
-// * Some regressions can probably be thrown out based on the N-W
-//   residuals.
+// * Following N-W, some regressions can probably be thrown out based on 
+//   the N-W residuals.
 
 #include <iostream>
 #include <iomanip>
@@ -29,9 +29,6 @@
 
 #define INSERT_PENALTY 100.f
 #define DELETE_PENALTY 100.f
-#define EARLY_MISS_PENALTY 0.f
-#define EARLY_DELETE_PENALTY 0.f
-#define MAX_EARLY_MISSES 7
 
 #define EARLY_SHIFTS_PENALTY 0.25f
 
@@ -279,7 +276,7 @@ void Align::fillNeedlemanWunsch(
       const float del = matrix[i-1][j].dist + 
         (match.numDelete <= 1 && 
          i > 1 && i <= 3 - match.numDelete &&
-         j < i ? EARLY_DELETE_PENALTY : DELETE_PENALTY); // Ref
+         j < i ? 0 : DELETE_PENALTY); // Ref
 
       const float ins = matrix[i][j-1].dist + INSERT_PENALTY; // Time
 
