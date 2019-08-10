@@ -17,11 +17,13 @@
 
 using namespace std;
 
+extern CountStats overallStats;
 extern CountStats warnStats;
+extern CountStats deviationStats;
 extern CountStats partialStats;
 extern CountStats carMethodStats;
 extern CountStats modelCountStats;
-extern CountStats overallStats;
+extern CountStats alignStats;
 extern CountStats exceptStats;
 
 
@@ -187,6 +189,15 @@ void setup(
 
 void setupStats()
 {
+  overallStats.init("Overall",
+    {
+      "count",
+      "good",
+      "error",
+      "except",
+      "warn"
+    } );
+
   warnStats.init("Warnings",
     {
       "first, 1-4",
@@ -197,12 +208,13 @@ void setupStats()
       "last, 5+"
     } );
 
-  partialStats.init("Partial counts",
+  deviationStats.init("Deviations",
     {
-      "Trains with warnings",
-      "Trains with partials",
-      "Cars with partials",
-      "Partial peak count"
+      "<= 1",
+      "1-3",
+      "3-10",
+      "10-100",
+      "100+"
     } );
 
   modelCountStats.init("Model counts",
@@ -224,13 +236,15 @@ void setupStats()
       "by spacing"
     } );
 
-  overallStats.init("Overall",
+  alignStats.init("Alignment",
     {
-      "count",
-      "good",
-      "error",
-      "except",
-      "warn"
+      "match",
+      "miss early",
+      "miss within",
+      "miss late",
+      "spurious early",
+      "spurious mid",
+      "spurious late"
     } );
 
   exceptStats.init("Exceptions",

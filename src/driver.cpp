@@ -34,11 +34,13 @@ vector<CompStats> sensorStatsList;
 vector<CrossStats> crossStatsList;
 vector<CompStats> trainStatsList;
 
+CountStats overallStats;
 CountStats warnStats;
+CountStats deviationStats;
 CountStats partialStats;
 CountStats modelCountStats;
 CountStats carMethodStats;
-CountStats overallStats;
+CountStats alignStats;
 CountStats exceptStats;
 
 Scheduler scheduler;
@@ -76,11 +78,13 @@ int main(int argc, char * argv[])
   timers[0].stop(TIMER_ALL_THREADS);
 
   // TODO If something
+  cout << overallStats.str();
   cout << warnStats.str();
+  cout << deviationStats.str();
   cout << partialStats.str();
   cout << modelCountStats.str();
   cout << carMethodStats.str();
-  cout << overallStats.str();
+  cout << alignStats.str();
   cout << exceptStats.str();
 
   sensorStats.write(control.sensorstatsFile(), "Sensor");

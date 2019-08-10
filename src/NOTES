@@ -11,7 +11,7 @@ If multi-threading, at the end add up the thread stats into an
 overall stat.  Or keep them together to begin with.
 
 Stats
-- More specific one for AlignStats and DeviationStats
+- Output in order of init?
 
 * Change overview.pl to output
   #overall, #error, #exceptions, #warnings

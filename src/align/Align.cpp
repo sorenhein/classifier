@@ -478,6 +478,12 @@ void Align::getBest(
 }
 
 
+void Align::updateStats() const
+{
+  matches.front().updateStats();
+}
+
+
 string Align::strMatches(const string& title) const
 {
   stringstream ss;
@@ -551,6 +557,12 @@ string Align::strMatchingResiduals(
   }
 
   return ss.str();
+}
+
+
+string Align::strDeviation() const
+{
+  return matches.front().strDeviation();
 }
 
 

@@ -42,6 +42,7 @@ extern CompStats trainStats;
 extern PeakStats peakStats;
 
 extern CountStats overallStats;
+extern CountStats deviationStats;
 
 extern vector<CompStats> sensorStatsList;
 extern vector<CrossStats> crossStatsList;
@@ -421,12 +422,17 @@ void run(
     trainStatsList[thid].log(traceData.trainTrue, rankDetected, distDetected);
 
     if (trainDetected == traceData.trainTrue)
+    {
       overallStats.log("good");
+      align.updateStats();
+    }
     else
     {
       overallStats.log("error");
       cout << "DRIVER MISMATCH\n";
     }
+
+    deviationStats.log(align.strDeviation());
   }
   catch (Except& ex)
   {

@@ -122,6 +122,8 @@ class Align
       float& distDetected,
       unsigned& rankDetected) const;
 
+    void updateStats() const;
+
     string strMatches(const string& title) const;
 
     string strRegress(const Control& control) const;
@@ -130,6 +132,8 @@ class Align
       const string& trainTrue,
       const string& pickAny,
       const string& heading) const;
+
+    string strDeviation() const;
 };
 
 #endif

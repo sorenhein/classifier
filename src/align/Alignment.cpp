@@ -4,7 +4,11 @@
 
 #include "Alignment.h"
 
+#include "../stats/CountStats.h"
+
 #include "../const.h"
+
+extern CountStats alignStats;
 
 
 Alignment::Alignment()
@@ -62,16 +66,6 @@ bool Alignment::operator < (const Alignment& a2) const
 float Alignment::time2pos(const float time) const
 {
   return motion.time2pos(time);
-  /*
-  float res = 0.;
-  float pow = 1.;
-  for (unsigned c = 0; c < motion.estimate.size(); c++)
-  {
-    res += motion.estimate[c] * pow;
-    pow *= time;
-  }
-  return res;
-  */
 }
 
 
@@ -103,7 +97,78 @@ void Alignment::setTopResiduals()
       topResiduals.push_back(residuals[i]);
     }
   }
+}
 
+
+void Alignment::updateStats() const
+{
+  vector<unsigned> refHits;
+  refHits.resize(numAxles);
+
+  int firstHit = -1;
+  int lastHit = -1;
+  unsigned hitCount = 0;
+  unsigned spuriousCount = 0;
+  for (int a2r: actualToRef)
+  {
+    if (a2r >= 0)
+    {
+      if (firstHit == -1)
+        firstHit = a2r;
+      lastHit = a2r;
+
+      refHits[a2r] = 1;
+      alignStats.log("match");
+      hitCount++;
+    }
+    else
+      spuriousCount++;
+  }
+
+  unsigned missCum = 0;
+  if (firstHit > 0)
+  {
+    alignStats.log("miss early", static_cast<unsigned>(firstHit));
+    missCum += static_cast<unsigned>(firstHit);
+  }
+
+  if (lastHit > 0 && static_cast<unsigned>(lastHit) + 1 < refHits.size())
+  {
+    const unsigned m = static_cast<unsigned>(refHits.size() - lastHit - 1);
+    alignStats.log("miss late", m);
+    missCum += m;
+  }
+
+  if (missCum + hitCount < numAxles)
+    alignStats.log("miss within", numAxles - missCum - hitCount);
+
+  unsigned i = 0;
+  while (i < actualToRef.size() && actualToRef[i] == -1)
+    i++;
+
+  unsigned spuriousCum = 0;
+  if (i > 0)
+  {
+    alignStats.log("spurious early", i);
+    spuriousCum += i;
+  }
+
+  i = actualToRef.size();
+  unsigned j = 0;
+  while (i >= 1 && actualToRef[i-1] == -1)
+  {
+    i--;
+    j++;
+  }
+
+  if (j > 0)
+  {
+    alignStats.log("spurious early", j);
+    spuriousCum += j;
+  }
+
+  if (spuriousCum < spuriousCount)
+    alignStats.log("spurious within", spuriousCount - spuriousCum);
 }
 
 
@@ -142,5 +207,20 @@ string Alignment::strTopResiduals() const
       setw(7) << fixed << setprecision(2) << 100. * r.frac << "%\n";
   }
   return ss.str() + "\n";
+}
+
+
+string Alignment::strDeviation() const
+{
+  if (distMatch <= 1)
+    return "<= 1";
+  else if (distMatch <= 3)
+    return "1-3";
+  else if (distMatch <= 10)
+    return "3-10";
+  else if (distMatch <= 100)
+    return "10-100";
+  else
+    return "100+";
 }
 

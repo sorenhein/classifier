@@ -6,7 +6,6 @@
 
 #include "../util/Motion.h"
 
-
 using namespace std;
 
 
@@ -60,9 +59,13 @@ struct Alignment
 
   void setTopResiduals();
 
+  void updateStats() const;
+
   string str() const;
 
   string strTopResiduals() const;
+
+  string strDeviation() const;
 };
 
 #endif
