@@ -20,7 +20,6 @@
 #include "PeakDetect.h"
 #include "PeakSeeds.h"
 #include "PeakLabel.h"
-#include "PeakMatch.h"
 
 #include "align/Align.h"
 
@@ -362,11 +361,6 @@ void run(
     cout << "PEAKPOOL\n";
     cout << peaks.strCounts();
 
-    // Update statistics.
-    const vector<float>& posTrue = 
-      trainDB.getPeakPositions(traceData.trainNoTrueU);
-
-
     timers[thid].start(TIMER_ALIGN);
 
     Align align;
@@ -399,11 +393,6 @@ void run(
     }
 
     timers[thid].stop(TIMER_ALIGN);
-
-    PeakMatch peakMatch;
-    peakMatch.logPeakStats(peaks, posTrue, traceData.speed, peakStats);
-
-
 
     // Write any binary output files.
     runWrite(control, transient, quietBack, quietFront, filter,

@@ -10,25 +10,10 @@ Align
 If multi-threading, at the end add up the thread stats into an
 overall stat.  Or keep them together to begin with.
 
-Stats
-- Output in order of init?
-
 * Change overview.pl to output
   #overall, #error, #exceptions, #warnings
 
 * Stats go only in sensor??.txt file, get parsed from there
-
-* The peak-miss stats should probably be replaced by something 
-  more useful
-  - actualToRef:
-    perfect matches
-    missing before first true
-    missing within
-    missing after last
-    spurious before first true
-    spurious after last true
-    spurious within
-    relative to #true
 
 * When new filter loses, is it also on the "good" traces?
 

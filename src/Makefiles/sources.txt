@@ -8,7 +8,6 @@ SOURCE_FILES    =                       \
                 Peaks.cpp               \
                 PeakDetect.cpp          \
                 PeakLabel.cpp           \
-                PeakMatch.cpp           \
                 PeakPattern.cpp         \
                 PeakPiece.cpp           \
                 PeakPieces.cpp          \

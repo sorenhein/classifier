@@ -31,6 +31,8 @@ void CountStats::init(
 {
   title = titleIn;
 
+  originalOrder = tagsIn;
+
   fieldLength = 0;
   for (auto& tag: tagsIn)
   {
@@ -92,9 +94,9 @@ string CountStats::str() const
   ss << s << "\n" <<
     string(s.size(), '-') << "\n\n";
 
-  for (auto count: counts)
-    ss << setw(fieldLength) << left << count.first <<
-      setw(8) << right << count.second << "\n";
+  for (auto& str: originalOrder)
+    ss << setw(fieldLength) << left << str <<
+      setw(8) << right << counts.at(str) << "\n";
   
   return ss.str() + "\n";
 }

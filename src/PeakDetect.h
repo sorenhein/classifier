@@ -87,11 +87,6 @@ class PeakDetect
 
     void extract(const Control& control);
 
-    void logPeakStats(
-      const vector<float>& posTrue,
-      const double speedTrue,
-      PeakStats& peakStats);
-
     void makeSynthPeaks(
       const unsigned first,
       const unsigned slen);

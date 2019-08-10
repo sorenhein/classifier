@@ -7,7 +7,6 @@
 #include <cmath>
 
 #include "PeakDetect.h"
-#include "PeakMatch.h"
 #include "Except.h"
 
 #include "database/Control.h"
@@ -577,17 +576,6 @@ void PeakDetect::extract(const Control& control)
   PeakDetect::completePeaks();
 
   scaleStore = scale;
-}
-
-
-void PeakDetect::logPeakStats(
-  const vector<float>& posTrue,
-  const double speedTrue,
-  PeakStats& peakStats)
-{
-  PeakMatch matches;
-  matches.logPeakStats(peaks, posTrue, // trainTrue, 
-    speedTrue, peakStats);
 }
 
 

@@ -21,6 +21,8 @@ class CountStats
 
     map<string, unsigned> counts;
 
+    vector<string> originalOrder;
+
     unsigned fieldLength;
 
 
