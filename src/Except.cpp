@@ -1,5 +1,10 @@
 #include <iostream>
 
+#include "stats/CountStats.h"
+
+extern CountStats overallStats;
+extern CountStats exceptStats;
+
 #include "Except.h"
 
 
@@ -15,6 +20,10 @@ Except::Except(
     code(codeArg),
     message(messageArg)
 {
+  overallStats.log("except");
+
+  if (! exceptStats.log(message))
+    cout << "Unknown exception text" << endl;
 }
 
 

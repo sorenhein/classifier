@@ -17,6 +17,7 @@ class CountStats
   private:
 
     string title;
+    string catchall;
 
     map<string, unsigned> counts;
 
@@ -37,6 +38,14 @@ class CountStats
 
     bool log(
       const string& tag,
+      const unsigned incr = 1);
+
+    void logCatchall(
+      const string& tag,
+      const unsigned incr = 1);
+
+    void logCatchall(
+      const unsigned tagValue,
       const unsigned incr = 1);
 
     string str() const;

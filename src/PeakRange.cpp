@@ -393,3 +393,17 @@ string PeakRange::strProfile() const
   return profile.str();
 }
 
+
+string PeakRange::strWarn() const
+{
+  string s;
+  if (leftOriginal)
+    s = "first";
+  else if (rightOriginal)
+    s = "last";
+  else
+    s = "mid";
+
+  return s + ", " + profile.strWarnGreat();
+}
+

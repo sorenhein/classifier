@@ -15,7 +15,11 @@
 #include "CarModels.h"
 #include "Except.h"
 
+extern CountStats warnStats;
+extern CountStats partialStats;
 extern CountStats carMethodStats;
+extern CountStats modelCountStats;
+extern CountStats overallStats;
 
 #define UNUSED(x) ((void)(true ? 0 : ((x), void(), 0)))
 
@@ -610,12 +614,18 @@ void PeakStructure::markCars(
   if (! ranges.empty())
   {
     cout << "WARNFINAL: " << ranges.size() << " ranges left\n";
+    overallStats.log("warn");
     for (auto& range: ranges)
     {
       cout << range.strFull(offset);
       cout << range.strProfile();
+      warnStats.log(range.strWarn());
     }
     cout << endl;
+  }
+  else
+  {
+    modelCountStats.logCatchall(models.active());
   }
 
 cout << peaks.candidates().strQuality(
@@ -645,6 +655,11 @@ cout << peaks.candidates().strQuality(
     numTrainsWithPartials << " " <<
     numCarsWithPartials << " " <<
     numPartialPeaks << "\n\n";
+
+  partialStats.log("Trains with warnings", numTrainsWithWarnings);
+  partialStats.log("Trains with partials", numTrainsWithPartials);
+  partialStats.log("Cars with partials", numCarsWithPartials);
+  partialStats.log("Partial peak count", numPartialPeaks);
 
   cout << "HITS\n";
   for (unsigned i = 0; i < NUM_METHODS; i++)

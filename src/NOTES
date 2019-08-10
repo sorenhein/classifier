@@ -8,12 +8,9 @@ Align
 
 
 If multi-threading, at the end add up the thread stats into an
-overall stat.
+overall stat.  Or keep them together to begin with.
 
 Stats
-- Have a generic CountStats module
-  ModelStats, CarMethodStats, PartialStats, WarnStats, ExceptStats,
-  OverallStats
 - More specific one for AlignStats and DeviationStats
 
 * Change overview.pl to output

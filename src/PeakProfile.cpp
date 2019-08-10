@@ -203,3 +203,9 @@ string PeakProfile::str() const
   return ss.str();
 }
 
+
+string PeakProfile::strWarnGreat() const
+{
+  return (sumGreat <= 4 ? "1-4" : "5+");
+}
+

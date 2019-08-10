@@ -17,7 +17,12 @@
 
 using namespace std;
 
+extern CountStats warnStats;
+extern CountStats partialStats;
 extern CountStats carMethodStats;
+extern CountStats modelCountStats;
+extern CountStats overallStats;
+extern CountStats exceptStats;
 
 
 void setupControl(
@@ -182,6 +187,34 @@ void setup(
 
 void setupStats()
 {
+  warnStats.init("Warnings",
+    {
+      "first, 1-4",
+      "first, 5+",
+      "mid, 1-4",
+      "mid, 5+",
+      "last, 1-4",
+      "last, 5+"
+    } );
+
+  partialStats.init("Partial counts",
+    {
+      "Trains with warnings",
+      "Trains with partials",
+      "Cars with partials",
+      "Partial peak count"
+    } );
+
+  modelCountStats.init("Model counts",
+    {
+      "0",
+      "1",
+      "2",
+      "3",
+      "4",
+      "5+"
+    } );
+
   carMethodStats.init("Recognizers",
     { 
       "by 1234 order",
@@ -189,6 +222,27 @@ void setupStats()
       "by emptiness",
       "by pattern",
       "by spacing"
+    } );
+
+  overallStats.init("Overall",
+    {
+      "count",
+      "good",
+      "error",
+      "except",
+      "warn"
+    } );
+
+  exceptStats.init("Exceptions",
+    {
+      "Unknown sample rate",
+      "Trace file not read",
+      "True train not known",
+      "No alignment matches",
+      "No peaks in structure",
+      "No nested intervals",
+      "No peak scale found when labeling",
+      "Not all cars detected"
     } );
 }
 

@@ -98,6 +98,8 @@ class PeakProfile
     bool looksLong() const;
 
     string str() const;
+
+    string strWarnGreat() const;
 };
 
 #endif

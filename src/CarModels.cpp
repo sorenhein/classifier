@@ -149,6 +149,18 @@ unsigned CarModels::size() const
 }
 
 
+unsigned CarModels::active() const
+{
+  unsigned mno = 0;
+  for (auto& m: models)
+  {
+    if (m.number > 0)
+      mno++;
+  }
+  return mno;
+}
+
+
 unsigned CarModels::available()
 {
   // First look for an unused one.

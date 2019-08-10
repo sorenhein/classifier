@@ -190,6 +190,8 @@ class PeakRange
     string strFull(const unsigned offset) const;
 
     string strProfile() const;
+
+    string strWarn() const;
 };
 
 #endif

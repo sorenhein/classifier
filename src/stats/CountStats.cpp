@@ -38,6 +38,7 @@ void CountStats::init(
     if (tag.size() > fieldLength)
       fieldLength = tag.size();
   }
+  catchall = tagsIn.back();
 }
 
 
@@ -53,6 +54,34 @@ bool CountStats::log(
   it->second += incr;
   mtx.unlock();
   return true;
+}
+
+
+void CountStats::logCatchall(
+  const string& tag,
+  const unsigned incr)
+{
+  auto it = counts.find(tag);
+  if (it == counts.end())
+  {
+    mtx.lock();
+    counts[catchall] += incr;
+    mtx.unlock();
+  }
+  else
+  {
+    mtx.lock();
+    it->second += incr;
+    mtx.unlock();
+  }
+}
+
+
+void CountStats::logCatchall(
+  const unsigned tagValue,
+  const unsigned incr)
+{
+  CountStats::logCatchall(to_string(tagValue), incr);
 }
 
 

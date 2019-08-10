@@ -12,6 +12,7 @@
 #include "filter/Filter.h"
 
 #include "stats/CompStats.h"
+#include "stats/CountStats.h"
 #include "stats/CrossStats.h"
 #include "stats/PeakStats.h"
 #include "stats/Timers.h"
@@ -39,6 +40,8 @@ using namespace std;
 extern CompStats sensorStats;
 extern CompStats trainStats;
 extern PeakStats peakStats;
+
+extern CountStats overallStats;
 
 extern vector<CompStats> sensorStatsList;
 extern vector<CrossStats> crossStatsList;
@@ -301,6 +304,7 @@ void run(
   {
     // TODO If something?
     cout << runHeader(traceData);
+    overallStats.log("count");
 
     if (traceData.trainNoTrue == -1)
       THROW(ERR_TRUE_TRAIN_UNKNOWN, "True train not known");
@@ -416,8 +420,13 @@ void run(
     crossStatsList[thid].log(traceData.trainTrue, trainDetected);
     trainStatsList[thid].log(traceData.trainTrue, rankDetected, distDetected);
 
-    if (trainDetected != traceData.trainTrue)
+    if (trainDetected == traceData.trainTrue)
+      overallStats.log("good");
+    else
+    {
+      overallStats.log("error");
       cout << "DRIVER MISMATCH\n";
+    }
   }
   catch (Except& ex)
   {
