@@ -1,5 +1,6 @@
 Align
 -----
+- Get car # from TrainDB to make +/- 2 arbitrary cars possible as well
 - Constants -> const.h
 - Do we need printVectorCSV from util/misc.h? --> sstream
 - Fix the TODO With first car axles

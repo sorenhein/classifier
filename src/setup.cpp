@@ -8,12 +8,16 @@
 #include "database/TraceDB.h"
 #include "database/Control.h"
 
+#include "stats/CountStats.h"
+
 #include "setup.h"
 
 #include "util/io.h"
 
 
 using namespace std;
+
+extern CountStats carMethodStats;
 
 
 void setupControl(
@@ -173,5 +177,18 @@ void setup(
   setupSensors(control, sensorDB);
 
   setupTraces(control, trainDB, sensorDB, traceDB);
+}
+
+
+void setupStats()
+{
+  carMethodStats.init("Recognizers",
+    { 
+      "by 1234 order",
+      "by great quality",
+      "by emptiness",
+      "by pattern",
+      "by spacing"
+    } );
 }
 

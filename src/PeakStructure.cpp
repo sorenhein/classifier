@@ -5,6 +5,8 @@
 #include <fstream>
 #include <sstream>
 
+#include "stats/CountStats.h"
+
 #include "PeakStructure.h"
 #include "PeakPattern.h"
 #include "PeakSpacing.h"
@@ -12,6 +14,8 @@
 #include "PeakPool.h"
 #include "CarModels.h"
 #include "Except.h"
+
+extern CountStats carMethodStats;
 
 #define UNUSED(x) ((void)(true ? 0 : ((x), void(), 0)))
 
@@ -475,7 +479,10 @@ bool PeakStructure::loopOverMethods(
         cout << "Hit " << fgroup.name << endl;
         cout << range.strFull(offset);
         if (findFlag != FIND_CAR_PARTIAL || range.isFirstCar())
+        {
           hits[fgroup.number]++;
+          carMethodStats.log(fgroup.name);
+        }
         anyChangeFlag = true;
         break;
       }

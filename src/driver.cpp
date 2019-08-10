@@ -8,6 +8,7 @@
 #include "util/Scheduler.h"
 
 #include "stats/CompStats.h"
+#include "stats/CountStats.h"
 #include "stats/CrossStats.h"
 #include "stats/PeakStats.h"
 #include "stats/Timers.h"
@@ -33,6 +34,8 @@ vector<CompStats> sensorStatsList;
 vector<CrossStats> crossStatsList;
 vector<CompStats> trainStatsList;
 
+CountStats carMethodStats;
+
 Scheduler scheduler;
 
 vector<Timers> timers;
@@ -48,6 +51,8 @@ int main(int argc, char * argv[])
   sensorStatsList.resize(control.numThreads());
   crossStatsList.resize(control.numThreads());
   trainStatsList.resize(control.numThreads());
+
+  setupStats();
 
   timers.resize(control.numThreads());
   timers[0].start(TIMER_ALL_THREADS);
@@ -65,6 +70,8 @@ int main(int argc, char * argv[])
 
   timers[0].stop(TIMER_ALL_THREADS);
 
+  // TODO If something
+  cout << carMethodStats.str();
   sensorStats.write(control.sensorstatsFile(), "Sensor");
   trainStats.write(control.trainstatsFile(), "Train");
   peakStats.write(control.peakstatsFile());

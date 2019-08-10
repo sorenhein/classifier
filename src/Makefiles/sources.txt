@@ -43,6 +43,7 @@ SOURCE_FILES    =                       \
                 align/PolynomialRegression.cpp \
                                         \
                 stats/CompStats.cpp     \
+                stats/CountStats.cpp    \
                 stats/CrossStats.cpp    \
                 stats/PeakStats.cpp     \
                 stats/Timer.cpp         \

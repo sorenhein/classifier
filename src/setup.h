@@ -15,4 +15,6 @@ void setup(
   TrainDB& trainDB,
   TraceDB& traceDB);
 
+void setupStats();
+
 #endif
