@@ -10,8 +10,6 @@
 
 #define BIT_VECTOR_SIZE 24
 
-#define UNUSED(x) ((void)(true ? 0 : ((x), void(), 0)))
-
 
 Entity::Entity()
 {

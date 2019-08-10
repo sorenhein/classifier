@@ -1,26 +1,22 @@
 Align
 -----
-* Remove the things that reover.pl scanned for
-
-
-* If multi-threading, at the end add up the thread stats into an
-  overall stat.  Or keep them together to begin with.
-
-
-
 - Get car # from TrainDB to make +/- 2 arbitrary cars possible as well
 - Constants -> const.h
+- Write a new binary file:  The matched peaks ("train")
 - Do we need printVectorCSV from util/misc.h? --> sstream
 - Fix the TODO With first car axles
-- Write a new binary file:  The matched peaks ("train")
-
-* When new filter loses, is it also on the "good" traces?
 
 * Shouldn't all full recognitions be perfect?
   - no errors
   - low distances
 
-tabulate files.xlsx
+* Guess axles of 64-wheel ICE.
+
+* When new filter loses, is it also on the "good" traces?
+
+* If multi-threading, at the end add up the thread stats into an
+  overall stat.  Or keep them together to begin with.  Then mutex.
+
 
 
 continue with run.cpp
@@ -43,8 +39,6 @@ Need vector of ofstreams in driver.cpp
 Need scripts that are 
 * Executable
 * Not in src (change path)
-
-cout more localized, not in parse.cpp but in the callers
 
 Difference in results between laptop and PC?  Always?!
 

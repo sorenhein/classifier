@@ -8,6 +8,7 @@
 #define TRAIN_CORRECTIONDB_H
 
 #include <map>
+#include <vector>
 
 #include "Entity.h"
 

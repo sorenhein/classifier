@@ -75,8 +75,6 @@ PeakStructure::PeakStructure()
   findMethods[1].push_back(
     { &PeakStructure::findCarBySpacing, 
       "by spacing", 4});
-
-  hits.resize(NUM_METHODS);
 }
 
 
@@ -483,10 +481,7 @@ bool PeakStructure::loopOverMethods(
         cout << "Hit " << fgroup.name << endl;
         cout << range.strFull(offset);
         if (findFlag != FIND_CAR_PARTIAL || range.isFirstCar())
-        {
-          hits[fgroup.number]++;
           carMethodStats.log(fgroup.name);
-        }
         anyChangeFlag = true;
         break;
       }
@@ -580,9 +575,6 @@ void PeakStructure::markCars(
   ranges.emplace_back(PeakRange());
   ranges.back().init(cars, peaks.candidates());
 
-  for (unsigned i = 0; i < NUM_METHODS; i++)
-    hits[i] = 0;
-
   // The first group only needs to be run once.
   PeakStructure::loopOverMethods(peaks, findMethods[0], false);
 
@@ -651,20 +643,10 @@ cout << peaks.candidates().strQuality(
     numPartialPeaks += n;
   }
 
-  cout << "PARTIALS " << numTrainsWithWarnings << " " <<
-    numTrainsWithPartials << " " <<
-    numCarsWithPartials << " " <<
-    numPartialPeaks << "\n\n";
-
   partialStats.log("Trains with warnings", numTrainsWithWarnings);
   partialStats.log("Trains with partials", numTrainsWithPartials);
   partialStats.log("Cars with partials", numCarsWithPartials);
   partialStats.log("Partial peak count", numPartialPeaks);
-
-  cout << "HITS\n";
-  for (unsigned i = 0; i < NUM_METHODS; i++)
-    cout << i << " " << hits[i] << endl;
-  cout << endl;
 }
 
 

@@ -2,6 +2,7 @@
 #define TRAIN_SENSORDB_H
 
 #include <map>
+#include <vector>
 
 #include "Entity.h"
 

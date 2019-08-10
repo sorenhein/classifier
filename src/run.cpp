@@ -366,9 +366,6 @@ void run(
         peaksInfo))
       THROW(ERR_NO_ALIGN_MATCHES, "No alignment matches");
 
-    if (peaksInfo.numCars > 0)
-      cout << "FULLHOUSE\n\n";
-
     cout << "True train " << traceData.trainTrue << " at " <<
       fixed << setprecision(2) << traceData.speed << " m/s\n\n";
 

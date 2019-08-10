@@ -2,6 +2,7 @@
 #define TRAIN_MISC_H
 
 #include <vector>
+#include <string>
 
 using namespace std;
 

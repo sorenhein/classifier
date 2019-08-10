@@ -1,3 +1,8 @@
+/*
+ * This class represents a single alignment between a trace and
+ * a reference train.
+ */
+
 #ifndef TRAIN_ALIGNMENT_H
 #define TRAIN_ALIGNMENT_H
 

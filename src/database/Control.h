@@ -2,6 +2,9 @@
 #define TRAIN_CONTROL_H
 
 #include <map>
+#include <list>
+#include <vector>
+#include <string>
 
 #include "Entity.h"
 

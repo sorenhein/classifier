@@ -809,12 +809,6 @@ void PeakLabel::mark(
 
   PeakLabel::markSinglePeaks(peaks, peakCenters);
 
-unsigned countAll = peaks.candidates().size();
-unsigned countSelected = peaks.candidates().count(&Peak::isSelected);
-cout << "FRAC " << countSelected << " " << 
-  countAll << " " <<
-  fixed << setprecision(2) << 100. * countSelected / countAll << endl;
-
   PeakLabel::makePieceList(peaks, 
     &Peak::acceptableQuality, &Peak::acceptableQuality,
     &Peak::arePartiallySelected);

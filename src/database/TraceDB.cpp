@@ -40,8 +40,6 @@ void TraceDB::reset()
     TRACE_DOUBLES_SIZE
   };
 
-  currTrace = -1;
-
   filenames.clear();
 }
 

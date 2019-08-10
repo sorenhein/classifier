@@ -1,10 +1,10 @@
 // https://gist.github.com/chrisengelsma
 // Simplified by Soren Hein to compile with Visual C++.
 
-#include <vector>
 #include <iostream>
 #include <stdlib.h>
 #include <math.h>
+#include <cassert>
 
 #include "PolynomialRegression.h"
 
@@ -26,18 +26,10 @@ bool PolynomialRegression::fitIt(
   std::vector<float> &coeffs)
 {
   // The size of xValues and yValues should be same
-  if (x.size() != y.size()) 
-  {
-    cout << "The size of x & y arrays are different" << endl;
-    return false;
-  }
+  assert(x.size() == y.size());
 
   // The size of xValues and yValues cannot be 0, should not happen
-  if (x.size() == 0 || y.size() == 0) 
-  {
-    cout << "The size of x or y arrays is 0" << endl;
-    return false;
-  }
+  assert(! x.empty() && ! y.empty());
   
   size_t N = x.size();
   unsigned n = static_cast<unsigned>(order);

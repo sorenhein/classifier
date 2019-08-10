@@ -3,7 +3,6 @@
 
 #include <vector>
 #include <map>
-#include <atomic>
 
 #include "Entity.h"
 
@@ -92,8 +91,6 @@ class TraceDB
     map<string, unsigned> traceMap;
 
     vector<string> filenames;
-
-    atomic<int> currTrace;
 
 
     bool deriveOrigin(

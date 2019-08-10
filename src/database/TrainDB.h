@@ -2,6 +2,8 @@
 #define TRAIN_TRAINDB_H
 
 #include <map>
+#include <vector>
+#include <string>
 
 #include "Entity.h"
 
