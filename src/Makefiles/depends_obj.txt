@@ -12,7 +12,7 @@ PeakDetect.obj: PeakStructure.h CarDetect.h CarGaps.h CarModels.h PeakRange.h
 PeakDetect.obj: PeakProfile.h PeakPattern.h completions/Completions.h
 PeakDetect.obj: completions/Completion.h completions/PeakCompletion.h
 PeakDetect.obj: PeakGeneral.h Except.h errors.h database/Control.h
-PeakDetect.obj: database/Entity.h stats/PeakStats.h util/io.h
+PeakDetect.obj: database/Entity.h util/io.h
 PeakLabel.obj: Peak.h PeakLabel.h PeakPool.h Peaks.h PeakPtrs.h CarPeaks.h
 PeakLabel.obj: PeakPieces.h PeakPiece.h PeakSeeds.h Except.h errors.h
 PeakLabel.obj: util/Gap.h
@@ -43,9 +43,9 @@ run.obj: database/TraceDB.h database/Entity.h database/TrainDB.h
 run.obj: database/Control.h transient/Transient.h transient/trans.h
 run.obj: transient/Quiet.h transient/QuietData.h filter/Filter.h
 run.obj: stats/CompStats.h stats/CountStats.h stats/CrossStats.h
-run.obj: stats/PeakStats.h stats/Timers.h stats/Timer.h PeakDetect.h Peak.h
-run.obj: PeakPool.h Peaks.h PeakPtrs.h CarPeaks.h PeakStructure.h CarDetect.h
-run.obj: CarGaps.h CarModels.h PeakRange.h PeakProfile.h PeakPattern.h
+run.obj: stats/Timers.h stats/Timer.h PeakDetect.h Peak.h PeakPool.h Peaks.h
+run.obj: PeakPtrs.h CarPeaks.h PeakStructure.h CarDetect.h CarGaps.h
+run.obj: CarModels.h PeakRange.h PeakProfile.h PeakPattern.h
 run.obj: completions/Completions.h completions/Completion.h
 run.obj: completions/PeakCompletion.h PeakGeneral.h PeakSeeds.h PeakLabel.h
 run.obj: PeakPieces.h PeakPiece.h align/Align.h align/Alignment.h
@@ -55,8 +55,8 @@ setup.obj: database/CorrectionDB.h database/TrainDB.h database/TraceDB.h
 setup.obj: database/Control.h stats/CountStats.h setup.h util/io.h
 driver.obj: database/Control.h database/Entity.h database/TrainDB.h
 driver.obj: database/TraceDB.h util/Scheduler.h stats/CompStats.h
-driver.obj: stats/CountStats.h stats/CrossStats.h stats/PeakStats.h
-driver.obj: stats/Timers.h stats/Timer.h setup.h run.h
+driver.obj: stats/CountStats.h stats/CrossStats.h stats/Timers.h
+driver.obj: stats/Timer.h setup.h run.h
 completions/Completion.obj: completions/Completion.h
 completions/Completion.obj: completions/PeakCompletion.h Peak.h const.h
 completions/Completion.obj: util/misc.h
@@ -86,7 +86,6 @@ align/PolynomialRegression.obj: align/PolynomialRegression.h
 stats/CompStats.obj: stats/CompStats.h const.h
 stats/CountStats.obj: stats/CountStats.h
 stats/CrossStats.obj: stats/CrossStats.h const.h
-stats/PeakStats.obj: stats/PeakStats.h util/misc.h
 stats/Timer.obj: stats/Timer.h
 stats/Timers.obj: stats/Timers.h stats/Timer.h
 transient/Candidate.obj: transient/Candidate.h transient/trans.h const.h

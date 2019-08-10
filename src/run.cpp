@@ -14,7 +14,6 @@
 #include "stats/CompStats.h"
 #include "stats/CountStats.h"
 #include "stats/CrossStats.h"
-#include "stats/PeakStats.h"
 #include "stats/Timers.h"
 
 #include "PeakDetect.h"
@@ -38,7 +37,6 @@ using namespace std;
 
 extern CompStats sensorStats;
 extern CompStats trainStats;
-extern PeakStats peakStats;
 
 extern CountStats overallStats;
 extern CountStats deviationStats;

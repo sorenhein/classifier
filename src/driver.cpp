@@ -10,7 +10,6 @@
 #include "stats/CompStats.h"
 #include "stats/CountStats.h"
 #include "stats/CrossStats.h"
-#include "stats/PeakStats.h"
 #include "stats/Timers.h"
 
 #include "setup.h"
@@ -27,7 +26,6 @@ TraceDB traceDB;
 
 CompStats sensorStats;
 CompStats trainStats;
-PeakStats peakStats;
 
 // Working on per-thread statistics.
 vector<CompStats> sensorStatsList;
@@ -86,10 +84,6 @@ int main(int argc, char * argv[])
   cout << carMethodStats.str();
   cout << alignStats.str();
   cout << exceptStats.str();
-
-  sensorStats.write(control.sensorstatsFile(), "Sensor");
-  trainStats.write(control.trainstatsFile(), "Train");
-  peakStats.write(control.peakstatsFile());
 
   // Consolidate the thread timers.
   for (unsigned i = 1; i < control.numThreads(); i++)

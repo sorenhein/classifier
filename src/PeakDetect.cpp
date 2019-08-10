@@ -11,8 +11,6 @@
 
 #include "database/Control.h"
 
-#include "stats/PeakStats.h"
-
 #include "util/io.h"
 
 
