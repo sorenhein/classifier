@@ -217,6 +217,14 @@ void setupStats()
       "100+"
     } );
 
+  partialStats.init("Partials",
+    {
+      "Trains with warnings",
+      "Trains with partials",
+      "Cars with partials",
+      "Partial peak count"
+    } );
+
   modelCountStats.init("Model counts",
     {
       "0",
@@ -243,7 +251,7 @@ void setupStats()
       "miss within",
       "miss late",
       "spurious early",
-      "spurious mid",
+      "spurious within",
       "spurious late"
     } );
 
@@ -251,7 +259,7 @@ void setupStats()
     {
       "Unknown sample rate",
       "Trace file not read",
-      "True train not known",
+      "Truth train not known",
       "No alignment matches",
       "No peaks in structure",
       "No nested intervals",

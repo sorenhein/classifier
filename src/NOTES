@@ -1,23 +1,25 @@
 Align
 -----
+* Change overview.pl to output
+  #overall, #error, #exceptions, #warnings
+
+* summarize work on new format
+
+* If multi-threading, at the end add up the thread stats into an
+  overall stat.  Or keep them together to begin with.
+
+* Stats go only in sensor??.txt file, get parsed from there
+
+grep for "Unknown exception text" in sensor??.txt, fix
+
+
 - Get car # from TrainDB to make +/- 2 arbitrary cars possible as well
 - Constants -> const.h
 - Do we need printVectorCSV from util/misc.h? --> sstream
 - Fix the TODO With first car axles
 - Write a new binary file:  The matched peaks ("train")
 
-
-If multi-threading, at the end add up the thread stats into an
-overall stat.  Or keep them together to begin with.
-
-* Change overview.pl to output
-  #overall, #error, #exceptions, #warnings
-
-* Stats go only in sensor??.txt file, get parsed from there
-
 * When new filter loses, is it also on the "good" traces?
-
-
 
 * Shouldn't all full recognitions be perfect?
   - no errors
