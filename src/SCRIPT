@@ -1,14 +1,7 @@
-rm overview.txt
-
 foreach i (../data/control/sensors/sensor*.txt)
   set bn = `basename $i`
-  echo $bn >> overview.txt
   ./driver -c $i > $bn
-  grep "Except" $bn | wc >> overview.txt
-  grep "File" $bn | wc >> overview.txt
-  echo >> overview.txt
-  cat output/trainstats.txt >> overview.txt
-  echo >> overview.txt
-  cat output/peakstats.txt >> overview.txt
-  echo >> overview.txt
 end
+
+perl summarize.pl sensor??.txt
+perl summarize.pl CSV sensor??.txt > a.csv

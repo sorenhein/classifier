@@ -1,1 +1,0 @@
-perl summarize.pl CSV sensor??.txt > a.csv

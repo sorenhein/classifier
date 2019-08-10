@@ -264,6 +264,10 @@ void setupStats()
       "No peaks in structure",
       "No nested intervals",
       "No peak scale found when labeling",
+      "Short gap by new method empty",
+      "New short gap fails",
+      "Long gap is very long",
+      "Three-wheeler",
       "Not all cars detected"
     } );
 }

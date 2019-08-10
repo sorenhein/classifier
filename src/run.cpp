@@ -307,7 +307,7 @@ void run(
     overallStats.log("count");
 
     if (traceData.trainNoTrue == -1)
-      THROW(ERR_TRUE_TRAIN_UNKNOWN, "True train not known");
+      THROW(ERR_TRUE_TRAIN_UNKNOWN, "Truth train not known");
 
     // Write directly into filter storage.
     Filter filter;

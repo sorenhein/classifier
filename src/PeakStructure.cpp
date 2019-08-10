@@ -614,11 +614,11 @@ void PeakStructure::markCars(
   if (! ranges.empty())
   {
     cout << "WARNFINAL: " << ranges.size() << " ranges left\n";
-    overallStats.log("warn");
     for (auto& range: ranges)
     {
       cout << range.strFull(offset);
       cout << range.strProfile();
+      overallStats.log("warn");
       warnStats.log(range.strWarn());
     }
     cout << endl;

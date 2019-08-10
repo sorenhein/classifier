@@ -1,16 +1,13 @@
 Align
 -----
-* Change overview.pl to output
-  #overall, #error, #exceptions, #warnings
+* No overview.txt anymore
+* No reover.pl anymore
+* Remove the things that reover.pl scanned for
 
-* summarize work on new format
 
 * If multi-threading, at the end add up the thread stats into an
   overall stat.  Or keep them together to begin with.
 
-* Stats go only in sensor??.txt file, get parsed from there
-
-grep for "Unknown exception text" in sensor??.txt, fix
 
 
 - Get car # from TrainDB to make +/- 2 arbitrary cars possible as well
