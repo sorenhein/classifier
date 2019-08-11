@@ -38,7 +38,7 @@ void Transient::reset()
 
 bool Transient::findEarlyPeak(
   const vector<float>& samples,
-  const double sampleRate,
+  const float sampleRate,
   const Run& run)
 {
   // There might be a quasi-linear piece (buildup) before the actual
@@ -50,8 +50,7 @@ bool Transient::findEarlyPeak(
   // exp(-1 / (fs * tau)) ~= 1 - 1/(fs * tau) when fs is large
   // relative to 1/tau.
 
-  const float ratioLimit = 
-    1.f - 1.f / (static_cast<float>(sampleRate) * TRANSIENT_MAX_TAU);
+  const float ratioLimit = 1.f - 1.f / (sampleRate * TRANSIENT_MAX_TAU);
 
   float diff = samples[run.first+1] - samples[run.first];
   bool posSlopeFlag = (diff >= 0. ? true : false);
@@ -184,7 +183,7 @@ bool Transient::checkDecline(
 
 void Transient::estimateTransientParams(
   const vector<float>& samples,
-  const double sampleRate,
+  const float sampleRate,
   const Run& run)
 {
   // This doesn't have to be so accurate, so the basic idea
@@ -200,9 +199,8 @@ void Transient::estimateTransientParams(
     vcum += (i - f) * samples[i];
   }
 
-  const float fsFloat = static_cast<float>(sampleRate);
-  cum /= fsFloat;
-  vcum /= (fsFloat * fsFloat);
+  cum /= sampleRate;
+  vcum /= (sampleRate * sampleRate);
 
   // Actually we can also just use the first sample.
   // Because the math is so pretty, we weight the two,
@@ -216,7 +214,7 @@ void Transient::estimateTransientParams(
 }
 
 
-void Transient::synthesize(const double sampleRate)
+void Transient::synthesize(const float sampleRate)
 {
   const unsigned l = buildupLength + transientLength;
   synth.resize(l);
@@ -230,7 +228,7 @@ void Transient::synthesize(const double sampleRate)
   for (unsigned i = buildupLength; i < l; i++)
     synth[i] = static_cast<float> (transientAmpl * exp(
       - static_cast<float>(i - buildupLength) / 
-      (sampleRate * (timeConstant / 1000.))));
+      (sampleRate * (timeConstant / 1000.f))));
 }
 
 
@@ -252,7 +250,7 @@ bool Transient::errorIsSmall(const vector<float>& samples)
 
 bool Transient::detect(
   const vector<float>& samples,
-  const double sampleRate,
+  const float sampleRate,
   unsigned& lastIndex)
 {
   Transient::reset();

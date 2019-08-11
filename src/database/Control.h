@@ -27,30 +27,32 @@ enum ControlFieldStrings
   CTRL_SPEED_SUBDIR = 10,
   CTRL_POS_SUBDIR = 11,
   CTRL_PEAK_SUBDIR = 12,
+  CTRL_MATCH_SUBDIR = 13,
 
-  CTRL_TRACE_DIRECTORY = 13,
-  CTRL_TRANSIENT_DIRECTORY = 14,
-  CTRL_BACK_DIRECTORY = 15,
-  CTRL_FRONT_DIRECTORY = 16,
-  CTRL_SPEED_DIRECTORY = 17,
-  CTRL_POS_DIRECTORY = 18,
-  CTRL_PEAK_DIRECTORY = 19,
+  CTRL_TRACE_DIRECTORY = 14,
+  CTRL_TRANSIENT_DIRECTORY = 15,
+  CTRL_BACK_DIRECTORY = 16,
+  CTRL_FRONT_DIRECTORY = 17,
+  CTRL_SPEED_DIRECTORY = 18,
+  CTRL_POS_DIRECTORY = 19,
+  CTRL_PEAK_DIRECTORY = 20,
+  CTRL_MATCH_DIRECTORY = 21,
 
-  CTRL_TRUTH_FILE = 20,
+  CTRL_TRUTH_FILE = 22,
 
-  CTRL_OUTPUT_DIRECTORY = 21,
-  CTRL_SENSORSTATS_FILE = 22,
-  CTRL_TRAINSTATS_FILE = 23,
-  CTRL_PEAKSTATS_FILE = 24,
-  CTRL_SENSORSTATS_FILEFULL = 25,
-  CTRL_TRAINSTATS_FILEFULL = 26,
-  CTRL_PEAKSTATS_FILEFULL = 27,
+  CTRL_OUTPUT_DIRECTORY = 23,
+  CTRL_SENSORSTATS_FILE = 24,
+  CTRL_TRAINSTATS_FILE = 25,
+  CTRL_PEAKSTATS_FILE = 26,
+  CTRL_SENSORSTATS_FILEFULL = 27,
+  CTRL_TRAINSTATS_FILEFULL = 28,
+  CTRL_PEAKSTATS_FILEFULL = 29,
 
-  CTRL_CONTROL_FILE = 28,
-  CTRL_PICK_FIRST = 29,
-  CTRL_PICK_ANY = 30,
-  CTRL_STATS_FILE = 31,
-  CTRL_STRINGS_SIZE = 32
+  CTRL_CONTROL_FILE = 30,
+  CTRL_PICK_FIRST = 31,
+  CTRL_PICK_ANY = 32,
+  CTRL_STATS_FILE = 33,
+  CTRL_STRINGS_SIZE = 34
 };
 
 enum ControlIntVectors
@@ -79,7 +81,8 @@ enum ControlWrite
   CTRL_WRITE_FRONT = 2,
   CTRL_WRITE_SPEED = 3,
   CTRL_WRITE_POS = 4,
-  CTRL_WRITE_PEAK = 5
+  CTRL_WRITE_PEAK = 5,
+  CTRL_WRITE_MATCH = 6
 };
 
 enum ControlVerbose
@@ -157,6 +160,7 @@ class Control
     const string& speedDir() const;
     const string& posDir() const;
     const string& peakDir() const;
+    const string& matchDir() const;
 
     const string& truthFile() const;
 
@@ -176,6 +180,7 @@ class Control
     bool writeSpeed() const;
     bool writePos() const;
     bool writePeak() const;
+    bool writeMatch() const;
 
     bool verboseTransient() const;
     bool verboseQuiet() const;

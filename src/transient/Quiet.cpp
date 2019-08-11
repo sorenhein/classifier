@@ -289,7 +289,7 @@ void Quiet::synthesize(const list<QuietData>& quietList)
 
 bool Quiet::detect(
   const vector<float>& samples,
-  const double sampleRate,
+  const float sampleRate,
   const bool fromBackFlag,
   Interval& available)
 {

@@ -101,6 +101,15 @@ class Align
       const vector<float>& refPeaks,
       const vector<float>& scaledPeaks) const;
 
+    Motion const * getMatchingMotion(const string& trainName) const;
+
+    void pos2time(
+      const vector<float>& refPeaks,
+      const vector<float>& posTrace,
+      const Motion& motion,
+      const float sampleRate,
+      vector<float>& refTimes) const;
+
 
   public:
 
@@ -136,6 +145,14 @@ class Align
       const string& heading) const;
 
     string strDeviation() const;
+
+    void writeTrain(
+      const TrainDB& trainDB,
+      const string& filename,
+      const vector<float>& posTrace,
+      const unsigned offset,
+      const float sampleRate,
+      const string& trainName) const;
 };
 
 #endif

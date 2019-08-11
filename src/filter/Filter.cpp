@@ -175,7 +175,7 @@ void Filter::makeIntegratingFilterDouble(
 
 void Filter::runIntegratingFilterFloat(
   const vector<FilterFloat>& filterFloatIn,
-  const double sampleRate,
+  const float sampleRate,
   vector<float>& pos) const
 {
   /* 
@@ -212,9 +212,8 @@ void Filter::runIntegratingFilterFloat(
      of several second-order sections ("SOS" in Python-speak).
    */
 
-  const float sampleRateF = static_cast<float>(sampleRate);
-  const float factor = - (100.f * G_FORCE / sampleRateF) *
-    (100.f / sampleRateF);
+  const float factor = - (100.f * G_FORCE / sampleRate) *
+    (100.f / sampleRate);
 
   pos.resize(lenInterval);
   for (unsigned i = 0; i < lenInterval; i++)
@@ -228,12 +227,11 @@ void Filter::runIntegratingFilterFloat(
 
 void Filter::runIntegratingFilterDouble(
   const vector<FilterDouble>& filterDoubleIn,
-  const double sampleRate,
+  const float sampleRate,
   vector<float>& pos)
 {
-  const float sampleRateF = static_cast<float>(sampleRate);
-  const float factor = - (100.f * G_FORCE / sampleRateF) *
-    (100.f / sampleRateF);
+  const float factor = - (100.f * G_FORCE / sampleRate) *
+    (100.f / sampleRate);
 
   pos.resize(lenInterval);
   for (unsigned i = 0; i < lenInterval; i++)
@@ -247,15 +245,15 @@ void Filter::runIntegratingFilterDouble(
 
 void Filter::runIntegrationSeparately(
   const FilterDouble& filterDouble,
-  const double sampleRate,
+  const float sampleRate,
   vector<float>& pos)
 {
-  Filter::integrateFloat(accelFloat, static_cast<float>(sampleRate), 
+  Filter::integrateFloat(accelFloat, sampleRate, 
     true, startInterval, lenInterval, synthSpeed);
 
   Filter::highpass(filterDouble, synthSpeed);
 
-  Filter::integrateFloat(synthSpeed, static_cast<float>(sampleRate), 
+  Filter::integrateFloat(synthSpeed, sampleRate, 
     false, 0, lenInterval, pos);
 
   Filter::highpass(filterDouble, pos);
@@ -263,7 +261,7 @@ void Filter::runIntegrationSeparately(
 
 
 void Filter::process(
-  const double sampleRate,
+  const float sampleRate,
   const unsigned start,
   const unsigned len)
 {
@@ -274,7 +272,7 @@ void Filter::process(
   // * Flag same in member function below.
   // * No double, Double, DOUBLE anywhere in the program.
 
-  if (sampleRate != 2000.)
+  if (sampleRate != 2000.f)
     THROW(ERR_UNKNOWN_SAMPLE_RATE, "Unknown sample rate");
 
   startInterval = start;

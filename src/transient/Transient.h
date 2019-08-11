@@ -36,7 +36,7 @@ class Transient
 
     bool findEarlyPeak(
       const vector<float>& samples,
-      const double sampleRate,
+      const float sampleRate,
       const Run& run);
 
     bool largeBump(
@@ -50,10 +50,10 @@ class Transient
 
     void estimateTransientParams(
       const vector<float>& samples,
-      const double sampleRate,
+      const float sampleRate,
       const Run& run);
 
-    void synthesize(const double sampleRate);
+    void synthesize(const float sampleRate);
 
     bool errorIsSmall(const vector<float>& samples);
 
@@ -71,7 +71,7 @@ class Transient
 
     bool detect(
       const vector<float>& samples,
-      const double sampleRate,
+      const float sampleRate,
       unsigned& lastIndex);
 
     void writeFile(const string& filename) const;

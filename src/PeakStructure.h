@@ -141,7 +141,6 @@ class PeakStructure
     void pushInfo(
       Peak const * pptr,
       const double sampleRate,
-      const float tOffset,
       const unsigned carNo,
       unsigned& peakNo,
       unsigned& peakNoInCar,

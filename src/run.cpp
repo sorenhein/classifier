@@ -58,7 +58,7 @@ void runRead(
 void runTransient(
   const Control& control,
   const vector<float>& accel,
-  const double sampleRate,
+  const float sampleRate,
   const unsigned thid,
   Transient& transient,
   unsigned& lastIndex);
@@ -66,7 +66,7 @@ void runTransient(
 void runQuiet(
   const Control& control,
   const vector<float>& accel,
-  const double sampleRate,
+  const float sampleRate,
   const unsigned lastIndex,
   const unsigned thid,
   Quiet& quietBack,
@@ -74,7 +74,7 @@ void runQuiet(
   Interval& interval);
 
 void runFilter(
-  const double sampleRate,
+  const float sampleRate,
   const unsigned start,
   const unsigned len,
   const unsigned thid,
@@ -105,11 +105,16 @@ void runPeakExtract(
 
 void runWrite(
   const Control& control,
+  const TrainDB& trainDB,
   const Transient& transient,
   const Quiet& quietBack,
   const Quiet& quietFront,
   const Filter& filter,
   const PeakDetect& peakDetect,
+  const Align& align,
+  const unsigned offset,
+  const float sampleRate,
+  const string& trainName,
   const string& filename,
   const unsigned thid);
 
@@ -144,7 +149,7 @@ void runRead(
 void runTransient(
   const Control& control,
   const vector<float>& accel,
-  const double sampleRate,
+  const float sampleRate,
   const unsigned thid,
   Transient& transient,
   unsigned& lastIndex)
@@ -163,7 +168,7 @@ void runTransient(
 void runQuiet(
   const Control& control,
   const vector<float>& accel,
-  const double sampleRate,
+  const float sampleRate,
   const unsigned lastIndex,
   const unsigned thid,
   Quiet& quietBack,
@@ -192,7 +197,7 @@ void runQuiet(
 
 
 void runFilter(
-  const double sampleRate,
+  const float sampleRate,
   const unsigned start,
   const unsigned len,
   const unsigned thid,
@@ -214,14 +219,14 @@ void runPeakDetect(
   const unsigned thid,
   PeakDetect& peakDetect)
 {
+  UNUSED(len);
+
   timers[thid].start(TIMER_EXTRACT_PEAKS);
 
   peakDetect.reset();
   peakDetect.log(deflection, offset);
 
   peakDetect.extract(control);
-
-  peakDetect.makeSynthPeaks(offset, len);
 
   timers[thid].stop(TIMER_EXTRACT_PEAKS);
 }
@@ -265,11 +270,16 @@ void runPeakExtract(
 
 void runWrite(
   const Control& control,
+  const TrainDB& trainDB,
   const Transient& transient,
   const Quiet& quietBack,
   const Quiet& quietFront,
   const Filter& filter,
   const PeakDetect& peakDetect,
+  const Align& align,
+  const unsigned offset,
+  const float sampleRate,
+  const string& trainName,
   const string& filename,
   const unsigned thid)
 {
@@ -287,6 +297,14 @@ void runWrite(
     filter.writePos(control.posDir() + "/" + filename);
   if (control.writePeak())
     peakDetect.writePeak(control.peakDir() + "/" + filename);
+  if (control.writeMatch())
+    align.writeTrain(
+      trainDB,
+      control.matchDir() + "/" + filename,
+      filter.getDeflection(),
+      offset, 
+      sampleRate,
+      trainName);
 
   timers[thid].stop(TIMER_WRITE);
 }
@@ -354,6 +372,7 @@ void run(
 
     if (peaksInfo.numCars == 0)
       THROW(ERR_CARS_NOT_COMPLETE, "Not all cars detected");
+  
 
     // Put in runPeakExtract, controlled by new Control flag
     cout << "PEAKPOOL\n";
@@ -389,14 +408,18 @@ void run(
 
     timers[thid].stop(TIMER_ALIGN);
 
-    // Write any binary output files.
-    runWrite(control, transient, quietBack, quietFront, filter,
-      peakDetect, traceData.filename, thid);
-
     string trainDetected;
     float distDetected;
     align.getBest(trainDetected, distDetected);
     unsigned rankDetected = align.getMatchRank(traceData.trainNoTrueU);
+
+    // Write any binary output files.
+    // TODO Could move this line to runWrite if we pass in interval.
+    peakDetect.makeSynthPeaks(interval.first, interval.len);
+
+    runWrite(control, trainDB, transient, quietBack, quietFront, filter,
+      peakDetect, align, interval.first, traceData.sampleRate,
+      trainDetected, traceData.filename, thid);
 
     sensorStats.log(traceData.sensor, rankDetected, distDetected);
     trainStats.log(traceData.trainTrue, rankDetected, distDetected);

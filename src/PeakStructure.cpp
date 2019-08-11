@@ -702,7 +702,6 @@ void PeakStructure::printCarStats(
 void PeakStructure::pushInfo(
   Peak const * pptr,
   const double sampleRate,
-  const float tOffset,
   const unsigned carNo,
   unsigned& peakNo,
   unsigned& peakNoInCar,
@@ -711,7 +710,7 @@ void PeakStructure::pushInfo(
   if (pptr)
   {
     peaksInfo.times.push_back(
-      pptr->getIndex() / static_cast<float>(sampleRate) - tOffset);
+      pptr->getIndex() / static_cast<float>(sampleRate));
     peaksInfo.carNumbers.push_back(carNo);
     peaksInfo.peakNumbers.push_back(peakNo);
     peaksInfo.peakNumbersInCar.push_back(peakNoInCar);
@@ -739,8 +738,6 @@ void PeakStructure::getPeaksInfo(
   {
     peaksInfo.numCars = cars.size();
 
-    const float t0 = cars.front().firstPeak() / 
-      static_cast<float>(sampleRate);
     unsigned carNo = 0;
     unsigned peakNo = 0;
     unsigned peakNoInCar = 0;
@@ -749,13 +746,13 @@ void PeakStructure::getPeaksInfo(
     {
       const CarPeaksPtr cptr = car.getPeaksPtr();
 
-      PeakStructure::pushInfo(cptr.firstBogieLeftPtr, sampleRate, t0, 
+      PeakStructure::pushInfo(cptr.firstBogieLeftPtr, sampleRate,
         carNo, peakNo, peakNoInCar, peaksInfo);
-      PeakStructure::pushInfo(cptr.firstBogieRightPtr, sampleRate, t0, 
+      PeakStructure::pushInfo(cptr.firstBogieRightPtr, sampleRate,
         carNo, peakNo, peakNoInCar, peaksInfo);
-      PeakStructure::pushInfo(cptr.secondBogieLeftPtr, sampleRate, t0, 
+      PeakStructure::pushInfo(cptr.secondBogieLeftPtr, sampleRate,
         carNo, peakNo, peakNoInCar, peaksInfo);
-      PeakStructure::pushInfo(cptr.secondBogieRightPtr, sampleRate, t0, 
+      PeakStructure::pushInfo(cptr.secondBogieRightPtr, sampleRate,
         carNo, peakNo, peakNoInCar, peaksInfo);
 
       carNo++;

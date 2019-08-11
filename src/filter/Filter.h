@@ -48,17 +48,17 @@ class Filter
 
     void runIntegratingFilterFloat(
       const vector<FilterFloat>& filterFloatIn,
-      const double sampleRate,
+      const float sampleRate,
       vector<float>& pos) const;
 
     void runIntegratingFilterDouble(
       const vector<FilterDouble>& filterDoubleIn,
-      const double sampleRate,
+      const float sampleRate,
       vector<float>& pos);
 
     void runIntegrationSeparately(
       const FilterDouble& filterDouble,
-      const double sampleRate,
+      const float sampleRate,
       vector<float>& pos);
 
 
@@ -71,7 +71,7 @@ class Filter
     void reset();
 
     void process(
-      const double sampleRate,
+      const float sampleRate,
       const unsigned start,
       const unsigned len);
 

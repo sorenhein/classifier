@@ -1,6 +1,6 @@
 foreach i (../data/control/sensors/sensor*.txt)
   set bn = `basename $i`
-  ./driver -c $i > $bn
+  ./driver -c $i -w 0x60 > $bn
 end
 
 perl summarize.pl sensor??.txt

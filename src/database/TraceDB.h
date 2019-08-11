@@ -75,7 +75,7 @@ struct TraceData
   int trainNoTrue; // Needs trainDB, so set externally
   unsigned trainNoTrueU;
   double speed; 
-  double sampleRate;
+  float sampleRate;
   unsigned year;
 };
 

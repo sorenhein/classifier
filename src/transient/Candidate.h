@@ -25,7 +25,7 @@ class Candidate
     void calcRuns(const vector<float>& samples);
 
     bool detectPossibleRun(
-      const double sampleRate,
+      const float sampleRate,
       unsigned& rno,
       TransientStatus& transientStatus);
 
@@ -38,7 +38,7 @@ class Candidate
 
     bool detect(
       const vector<float>& samples,
-      const double sampleRate,
+      const float sampleRate,
       Run& run,
       TransientType& transientType,
       TransientStatus& transientStatus);

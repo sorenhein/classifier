@@ -1,6 +1,8 @@
 Align
 -----
-- Write a new binary file:  The matched peaks ("train")
+- Only write train when differs from truth
+- Clean up some control outputs
+
 - Do we need printVectorCSV from util/misc.h? --> sstream
 
 - Move to correction file of the Excel truth, commented.

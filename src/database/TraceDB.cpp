@@ -260,7 +260,8 @@ void TraceDB::getData(
   traceData.trainNoTrue = entry[TRACE_TRAIN_NUMBER];
   traceData.trainNoTrueU = static_cast<unsigned>(entry[TRACE_TRAIN_NUMBER]);
   traceData.speed = entry.getDouble(TRACE_SPEED);
-  traceData.sampleRate = entry.getDouble(TRACE_SAMPLE_RATE);
+  traceData.sampleRate = static_cast<float>(
+    entry.getDouble(TRACE_SAMPLE_RATE));
   traceData.year = static_cast<unsigned>(entry.getInt(TRACE_YEAR));
 }
 

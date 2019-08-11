@@ -13,6 +13,7 @@ FRONT_SUBDIR front
 SPEED_SUBDIR speed
 POS_SUBDIR pos
 PEAK_SUBDIR peak
+MATCH_SUBDIR match
 
 # Output text files (files go to OUTPUT_DIRECTORY).
 OUTPUT_DIRECTORY output

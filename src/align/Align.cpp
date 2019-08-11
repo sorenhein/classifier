@@ -25,6 +25,7 @@
 #include "../const.h"
 
 #include "../util/misc.h"
+#include "../util/io.h"
 
 
 Align::Align()
@@ -421,7 +422,8 @@ bool Align::realign(
 
     // TODO Print shift.  
     if (control.verboseAlignPeaks())
-      Align::printAlignPeaks(refTrain, peaksInfo.times, refPeaks, scaledPeaks);
+      Align::printAlignPeaks(refTrain, peaksInfo.times, 
+        refPeaks, scaledPeaks);
 
     Align::NeedlemanWunsch(refPeaks, scaledPeaks, match);
     matches.push_back(match);
@@ -579,5 +581,98 @@ void Align::printAlignPeaks(
   printVectorCSV("times", times, 0);
   printVectorCSV("refPeaks", refPeaks, 1);
   printVectorCSV("scaledPeaks", scaledPeaks, 2);
+}
+
+
+Motion const * Align::getMatchingMotion(const string& trainName) const
+{
+  for (auto& ma: matches)
+  {
+    if (ma.trainName == trainName)
+      return &ma.motion;
+  }
+  return nullptr;
+}
+
+
+void Align::pos2time(
+  const vector<float>& refPeaks,
+  const vector<float>& posTrace,
+  const Motion& motion,
+  const float sampleRate,
+  vector<float>& refTimes) const
+{
+  refTimes.resize(posTrace.size());
+
+  const float s0 = motion.estimate[0];
+  const float v = motion.estimate[1];
+  const float c = motion.estimate[2]; // Equals 0.5 * accel, so a = 2c
+  unsigned t;
+  float t0;
+
+  if (abs(c) < 0.0001f)
+  {
+    // Numerically probably better to ignore the acceleration.
+    for (unsigned i = 0; i < refPeaks.size(); i++)
+    {
+      // s = s0 + v * t
+      if (s0 > refPeaks[i])
+        t = 0;
+      else
+      {
+        t0 = (refPeaks[i] - s0) / v;
+        t = static_cast<unsigned>(sampleRate * t0);
+      }
+
+      if (t < posTrace.size())
+        refTimes[t] = posTrace[t];
+    }
+  }
+  else
+  {
+    // s = s0 + v * t + c * t^2
+    for (unsigned i = 0; i < refPeaks.size(); i++)
+    {
+    if (s0 > refPeaks[i])
+        t = 0;
+      else
+      {
+        t0 = (refPeaks[i] - s0) / v;
+        
+        t = static_cast<unsigned>(sampleRate * 
+          (v / (2.f * c)) * (sqrt(1.f + 4.f * c * t0/ v) - 1.f));
+      }
+
+      if (t < posTrace.size())
+        refTimes[t] = posTrace[t];
+    }
+  }
+}
+
+
+void Align::writeTrain(
+  const TrainDB& trainDB,
+  const string& filename,
+  const vector<float>& posTrace,
+  const unsigned offset,
+  const float sampleRate,
+  const string& trainName) const
+{
+  // Writes a synthetic time trace of the reference peaks, scaled by
+  // the motion parameters of a specific match.  Useful for seeing
+  // visually whether the match is systematically off.
+  
+  Motion const * motion = Align::getMatchingMotion(trainName);
+  if (motion == nullptr)
+    return;
+
+  const unsigned refNo = 
+    static_cast<unsigned>(trainDB.lookupNumber(trainName));
+  const vector<float>& refPeaks = trainDB.getPeakPositions(refNo);
+
+  vector<float> refTimes;
+  Align::pos2time(refPeaks, posTrace, * motion, sampleRate, refTimes);
+
+  writeBinary(filename, offset, refTimes);
 }
 

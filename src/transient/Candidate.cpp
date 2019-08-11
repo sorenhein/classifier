@@ -72,7 +72,7 @@ void Candidate::calcRuns(const vector<float>& samples)
 
 
 bool Candidate::detectPossibleRun(
-  const double sampleRate,
+  const float sampleRate,
   unsigned& rno,
   TransientStatus& transientStatus)
 {
@@ -102,7 +102,7 @@ bool Candidate::detectPossibleRun(
 
 bool Candidate::detect(
   const vector<float>& samples,
-  const double sampleRate,
+  const float sampleRate,
   Run& run,
   TransientType& transientType,
   TransientStatus& transientStatus)
