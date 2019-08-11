@@ -80,32 +80,37 @@ bool Align::alignFronts(
     match.numDelete = peaksInfo.peakNumbers[match.numAdd];
     offsetRef = 0;
   }
-  else if (peaksInfo.numCars == numRefCars + 1)
+  else if (peaksInfo.numCars > numRefCars)
   {
-    // Front car is assumed spurious.
+    const unsigned numSpurious = peaksInfo.numCars - numRefCars;
+    if (numSpurious > MAX_CAR_DIFFERENCE_OK)
+      return false;
+
+    // Front cars are assumed spurious.
     match.numAdd = 0;
     while (match.numAdd < peaksInfo.peakNumbers.size() &&
-        peaksInfo.carNumbers[match.numAdd] == 0)
+        peaksInfo.carNumbers[match.numAdd] < numSpurious)
       match.numAdd++;
 
     match.numDelete = peaksInfo.peakNumbers[match.numAdd];
     offsetRef = -static_cast<int>(match.numDelete);
   }
-  else if (peaksInfo.numCars + 1 == numRefCars)
+  else
   {
-    // Assumed missing a front car.
+    const int numMissing = numRefCars - peaksInfo.numCars;
+    if (numMissing > MAX_CAR_DIFFERENCE_OK)
+      return false;
+
+    // Front cars are assuming missing from the observed trace.
     match.numAdd = 0;
 
     offsetRef = 0;
     while (static_cast<unsigned>(offsetRef) < refCarNumbers.size() &&
-        refCarNumbers[offsetRef] == 0)
+        refCarNumbers[offsetRef] < numMissing)
       offsetRef++;
 
     match.numDelete = peaksInfo.peakNumbers[match.numAdd] + offsetRef;
   }
-  else
-    return false; // Off by too many cars.
-
   return true;
 }
 

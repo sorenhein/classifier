@@ -1,6 +1,5 @@
 Align
 -----
-- Get car # from TrainDB to make +/- 2 arbitrary cars possible as well
 - Constants -> const.h
 - Write a new binary file:  The matched peaks ("train")
 - Do we need printVectorCSV from util/misc.h? --> sstream
