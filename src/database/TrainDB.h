@@ -6,6 +6,7 @@
 #include <string>
 
 #include "Entity.h"
+#include "../PeakGeneral.h"
 
 using namespace std;
 
@@ -29,9 +30,10 @@ enum TrainFieldStringVectors
 
 enum TrainFieldIntVectors
 {
-  TRAIN_AXLES = 0,
-  TRAIN_CARS = 1,
-  TRAIN_INT_VECTORS_SIZE = 2
+  // TRAIN_AXLES = 0,
+  // TRAIN_CARS = 1,
+  // TRAIN_CAR_PEAKS = 2,
+  TRAIN_INT_VECTORS_SIZE = 0
 };
 
 enum TrainFieldFloatVectors
@@ -65,6 +67,7 @@ class TrainDB
     vector<unsigned> fieldCounts;
 
     vector<Entity> entries;
+    vector<PeaksInfo> trainInfo;
 
     map<string, int> offTrainMap;
 
@@ -73,11 +76,13 @@ class TrainDB
 
     bool correct(
       const CorrectionDB& correctionDB,
-      Entity& entry);
+      const Entity& entry,
+      PeaksInfo& peaksInfo);
 
     bool complete(
       const CarDB& carDB,
-      Entity& entry);
+      Entity& entry,
+      PeaksInfo& peaksInfo);
 
     void configure();
 
@@ -111,6 +116,8 @@ class TrainDB
     const vector<float>& getPeakPositions(const unsigned trainNo) const;
 
     const vector<int>& getCarNumbers(const unsigned trainNo) const;
+
+    const PeaksInfo& getRefInfo(const unsigned trainNo) const;
 
     bool selectByAxles(
       const list<string>& countries,

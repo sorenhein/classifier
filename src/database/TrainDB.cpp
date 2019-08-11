@@ -25,6 +25,7 @@ void TrainDB::reset()
   fields.clear();
   fieldCounts.clear();
   entries.clear();
+  trainInfo.clear();
   offTrainMap.clear();
 
   TrainDB::configure();
@@ -67,15 +68,18 @@ void TrainDB::configure()
 
 bool TrainDB::complete(
   const CarDB& carDB,
-  Entity& entry)
+  Entity& entry,
+  PeaksInfo& peaksInfo)
 {
   string carName;
   bool reverseFlag;
   unsigned count;
 
   auto& stringVector = entry.getStringVector(TRAIN_CAR_ORDER);
-  auto& axles = entry.getIntVector(TRAIN_AXLES);
-  auto& carNumbers = entry.getIntVector(TRAIN_CARS);
+  // vector<unsigned> axles;
+  // auto& axles = entry.getIntVector(TRAIN_AXLES);
+  // auto& carNumbers = entry.getIntVector(TRAIN_CARS);
+  // auto& peakNumbersInCar = entry.getIntVector(TRAIN_CAR_PEAKS);
   int pos = 0;
   int carRunning = 0;
   int _numCars = 0;
@@ -98,7 +102,8 @@ bool TrainDB::complete(
     const int carNo = (reverseFlag ? -carDBNo : carDBNo);
     for (unsigned i = 0; i < count; i++)
     {
-      if (! carDB.appendAxles(carNo, pos, carRunning, axles, carNumbers))
+      if (! carDB.appendAxles(carNo, pos, carRunning, peaksInfo))
+        // axles, carNumbers, peakNumbersInCar))
       {
         cout << "TrainDB::complete: appendAxles failed\n";
         return false;
@@ -109,9 +114,12 @@ bool TrainDB::complete(
 
   entry[TRAIN_NUM_CARS] = _numCars;
 
-  auto& positions = entry.getFloatVector(TRAIN_POSITIONS);
-  for (int p: axles)
-    positions.push_back(p / 1000.f); // In m
+  peaksInfo.numCars = _numCars;
+  peaksInfo.numPeaks = peaksInfo.positions.size();
+
+  // auto& positions = entry.getFloatVector(TRAIN_POSITIONS);
+  // for (int p: axles)
+    // positions.push_back(p / 1000.f); // In m
 
   return true;
 }
@@ -119,7 +127,9 @@ bool TrainDB::complete(
 
 bool TrainDB::correct(
   const CorrectionDB& correctionDB,
-  Entity& entry)
+  const Entity& entry,
+  PeaksInfo& peaksInfo)
+  // Entity& entry)
 {
   // At this point the official name has not been adorned with _N / _R.
   vector<int> const * corrptr = correctionDB.getIntVector(
@@ -128,17 +138,17 @@ bool TrainDB::correct(
   if (! corrptr)
     return false;
 
-  vector<int>& axles = entry.getIntVector(TRAIN_AXLES);
+  // vector<int>& axles = entry.getIntVector(TRAIN_AXLES);
 
-  if (axles.size() != corrptr->size())
+  if (peaksInfo.positions.size() != corrptr->size())
   {
     cout << "Correction of " << entry.getString(TRAIN_OFFICIAL_NAME) <<
       " attempted with " << corrptr->size() << " axles" << endl;
     return false;
   }
 
-  for (unsigned i = 0; i < axles.size(); i++)
-    axles[i] += (* corrptr)[i] - (* corrptr)[0];
+  for (unsigned i = 0; i < peaksInfo.positions.size(); i++)
+    peaksInfo.positions[i] += ((* corrptr)[i] - (* corrptr)[0]) / 1000.f;
 
   return true;
 }
@@ -153,10 +163,11 @@ bool TrainDB::readFile(
   if (! entry.readTagFile(fname, fields, fieldCounts))
     return false;
 
-  if (! TrainDB::complete(carDB, entry))
+  PeaksInfo peaksInfo;
+  if (! TrainDB::complete(carDB, entry, peaksInfo))
     return false;
 
-  TrainDB::correct(correctionDB, entry);
+  TrainDB::correct(correctionDB, entry, peaksInfo);
 
   // The train is first stored in the normal direction, and the name
   // is suffixed with _N.
@@ -168,16 +179,24 @@ bool TrainDB::readFile(
   offTrainMap[entry.getString(TRAIN_OFFICIAL_NAME)] = entries.size();
   entries.push_back(entry);
 
+  trainInfo.push_back(peaksInfo);
+
   // Then we store the reverse direction.
 
   if (! entry.getBool(TRAIN_SYMMETRY))
   {
     entry.getString(TRAIN_OFFICIAL_NAME) = officialName + "_R";
     entry.setBool(TRAIN_REVERSED, true);
-    entry.reverseIntVector(TRAIN_AXLES);
-    entry.reverseFloatVector(TRAIN_POSITIONS);
+    // TODO Methods in entry not needed anymore?
+    // entry.reverseIntVector(TRAIN_AXLES); 
+    // entry.reverseFloatVector(TRAIN_POSITIONS);
     offTrainMap[entry.getString(TRAIN_OFFICIAL_NAME)] = entries.size();
     entries.push_back(entry);
+
+    peaksInfo.reversePositions();
+    peaksInfo.reverseCarNumbers();
+    peaksInfo.reversePeakNumbersInCar();
+    trainInfo.push_back(peaksInfo);
   }
 
   return true;
@@ -186,15 +205,19 @@ bool TrainDB::readFile(
 
 unsigned TrainDB::numAxles(const unsigned trainNo) const
 {
-  assert(trainNo < entries.size());
-  return entries[trainNo].sizeInt(TRAIN_AXLES);
+  // assert(trainNo < entries.size());
+  // return entries[trainNo].sizeInt(TRAIN_AXLES);
+  assert(trainNo < trainInfo.size());
+  return trainInfo[trainNo].numPeaks;
 }
 
 
 unsigned TrainDB::numCars(const unsigned trainNo) const
 {
-  assert(trainNo < entries.size());
-  return static_cast<unsigned>(entries[trainNo][TRAIN_NUM_CARS]);
+  // assert(trainNo < entries.size());
+  // return static_cast<unsigned>(entries[trainNo][TRAIN_NUM_CARS]);
+  assert(trainNo < trainInfo.size());
+  return trainInfo[trainNo].numCars;
 }
 
 
@@ -239,6 +262,7 @@ bool TrainDB::isInCountry(
 }
 
 
+/*
 const vector<float>& TrainDB::getPeakPositions(const unsigned trainNo) const
 {
   assert(trainNo < entries.size());
@@ -250,6 +274,14 @@ const vector<int>& TrainDB::getCarNumbers(const unsigned trainNo) const
 {
   assert(trainNo < entries.size());
   return entries[trainNo].getIntVector(TRAIN_CARS);
+}
+*/
+
+
+const PeaksInfo& TrainDB::getRefInfo(const unsigned trainNo) const
+{
+  assert(trainNo < trainInfo.size());
+  return trainInfo[trainNo];
 }
 
 
@@ -275,13 +307,15 @@ bool TrainDB::selectByAxles(
       countryMap[c] = 1;
   }
 
-  for (auto& entry: entries)
+  for (unsigned i = 0; i < entries.size(); i++)
+  // for (auto& entry: entries)
   {
-    const string offName = entry.getString(TRAIN_OFFICIAL_NAME);
+    const string offName = entries[i].getString(TRAIN_OFFICIAL_NAME);
     if (! allFlag && countryMap.find(offName) == countryMap.end())
       continue;
 
-    const unsigned l = entry.sizeInt(TRAIN_AXLES);
+    // const unsigned l = entry.sizeInt(TRAIN_AXLES);
+    const unsigned l = trainInfo[i].numPeaks;
     if (l < minAxles || l > maxAxles)
       continue;
 
@@ -314,13 +348,15 @@ bool TrainDB::selectByCars(
       countryMap[c] = 1;
   }
 
-  for (auto& entry: entries)
+  for (unsigned i = 0; i < entries.size(); i++)
+  // for (auto& entry: entries)
   {
-    const string offName = entry.getString(TRAIN_OFFICIAL_NAME);
+    const string offName = entries[i].getString(TRAIN_OFFICIAL_NAME);
     if (! allFlag && countryMap.find(offName) == countryMap.end())
       continue;
 
-    const unsigned l = static_cast<unsigned>(entry[TRAIN_NUM_CARS]);
+    // const unsigned l = static_cast<unsigned>(entry[TRAIN_NUM_CARS]);
+    const unsigned l = trainInfo[i].numCars;
     if (l < minCars || l > maxCars)
       continue;
 

@@ -4,6 +4,8 @@
 #include <iomanip>
 #include <sstream>
 
+#include "../PeakGeneral.h"
+
 
 CarDB::CarDB()
 {
@@ -314,8 +316,10 @@ bool CarDB::appendAxles(
   const int carNo,
   int& posRunning,
   int& carRunning,
-  vector<int>& axles,
-  vector<int>& carNumbers) const
+  PeaksInfo& peaksInfo) const
+  // vector<int>& axles,
+  // vector<int>& carNumbers,
+  // vector<int>& peakNumbersInCar) const
 {
   if (carNo == 0)
     return false;
@@ -340,30 +344,43 @@ bool CarDB::appendAxles(
   const int dw1 = entry[CAR_DIST_WHEELS1];
   const int dw2 = entry[CAR_DIST_WHEELS2];
 
+  int numberInCar = 0;
   if (! reverseFlag)
   {
-    if (! axles.empty())
+    if (! peaksInfo.positions.empty())
       posRunning += entry[CAR_DIST_FRONT_TO_WHEEL];
 
-    axles.push_back(posRunning); // First pair, first wheel
-    carNumbers.push_back(carRunning);
+    // First pair, first wheel
+    peaksInfo.positions.push_back(posRunning / 1000.f); 
+    peaksInfo.carNumbers.push_back(carRunning);
+    peaksInfo.peakNumbersInCar.push_back(numberInCar);
+    numberInCar++;
   
     if (dw1 > 0)
     {
+      // First pair, second wheel
       posRunning += dw1;
-      axles.push_back(posRunning);  // First pair, second wheel
-      carNumbers.push_back(carRunning);
+      peaksInfo.positions.push_back(posRunning / 1000.f);
+      peaksInfo.carNumbers.push_back(carRunning);
+      peaksInfo.peakNumbersInCar.push_back(numberInCar);
+      numberInCar++;
     }
 
+    // Second pair, first wheel
     posRunning += entry[CAR_DIST_PAIR];
-    axles.push_back(posRunning); // Second pair, first wheel
-    carNumbers.push_back(carRunning);
+    peaksInfo.positions.push_back(posRunning / 1000.f); 
+    peaksInfo.carNumbers.push_back(carRunning);
+    peaksInfo.peakNumbersInCar.push_back(numberInCar);
+    numberInCar++;
 
     if (dw2 > 0)
     {
+      // Second pair, second wheel
       posRunning += dw2;
-      axles.push_back(posRunning); // Second pair, second wheel
-      carNumbers.push_back(carRunning);
+      peaksInfo.positions.push_back(posRunning / 1000.f); 
+      peaksInfo.carNumbers.push_back(carRunning);
+      peaksInfo.peakNumbersInCar.push_back(numberInCar);
+      numberInCar++;
     }
 
     posRunning += entry[CAR_DIST_WHEEL_TO_BACK];
@@ -371,28 +388,40 @@ bool CarDB::appendAxles(
   else
   {
     // Car is reversed.
-    if (! axles.empty())
+    if (! peaksInfo.positions.empty())
       posRunning += entry[CAR_DIST_WHEEL_TO_BACK];
 
-    axles.push_back(posRunning); // Second pair, second wheel
-    carNumbers.push_back(carRunning);
+    // Second pair, second wheel
+    peaksInfo.positions.push_back(posRunning / 1000.f);
+    peaksInfo.carNumbers.push_back(carRunning);
+    peaksInfo.peakNumbersInCar.push_back(numberInCar);
+    numberInCar++;
 
     if (dw2 > 0)
     {
+      // Second pair, first wheel
       posRunning += dw2;
-      axles.push_back(posRunning); // Second pair, first wheel
-      carNumbers.push_back(carRunning);
+      peaksInfo.positions.push_back(posRunning / 1000.f);
+      peaksInfo.carNumbers.push_back(carRunning);
+      peaksInfo.peakNumbersInCar.push_back(numberInCar);
+      numberInCar++;
     }
 
+    // First pair, second wheel
     posRunning += entry[CAR_DIST_PAIR];
-    axles.push_back(posRunning); // First pair, second wheel
-    carNumbers.push_back(carRunning);
+    peaksInfo.positions.push_back(posRunning / 1000.f); 
+    peaksInfo.carNumbers.push_back(carRunning);
+    peaksInfo.peakNumbersInCar.push_back(numberInCar);
+    numberInCar++;
 
     if (dw1 > 0)
     {
+      // First pair, first wheel
       posRunning += dw1;
-      axles.push_back(posRunning);  // First pair, first wheel
-      carNumbers.push_back(carRunning);
+      peaksInfo.positions.push_back(posRunning / 1000.f);
+      peaksInfo.carNumbers.push_back(carRunning);
+      peaksInfo.peakNumbersInCar.push_back(numberInCar);
+      numberInCar++;
     }
 
     posRunning += entry[CAR_DIST_FRONT_TO_WHEEL];

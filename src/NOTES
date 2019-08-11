@@ -1,7 +1,5 @@
 Align
 -----
-- Clean up some control outputs
-
 - Do we need printVectorCSV from util/misc.h? --> sstream
 
 - Move to correction file of the Excel truth, commented.

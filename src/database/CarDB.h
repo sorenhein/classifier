@@ -9,6 +9,8 @@
 
 using namespace std;
 
+struct PeaksInfo;
+
 
 enum CarFieldStrings
 {
@@ -97,8 +99,10 @@ class CarDB
       const int carNo,
       int& posRunning,
       int& carRunning,
-      vector<int>& axles,
-      vector<int>& carNumbers) const;
+      PeaksInfo& peaksInfo) const;
+      // vector<int>& axles,
+      // vector<int>& carNumbers,
+      // vector<int>& peakNumbersInCar) const;
 
     int lookupNumber(const string& offName) const;
 
