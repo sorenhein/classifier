@@ -105,16 +105,11 @@ void runPeakExtract(
 
 void runWrite(
   const Control& control,
-  const TrainDB& trainDB,
   const Transient& transient,
   const Quiet& quietBack,
   const Quiet& quietFront,
   const Filter& filter,
   const PeakDetect& peakDetect,
-  const Align& align,
-  const unsigned offset,
-  const float sampleRate,
-  const string& trainName,
   const string& filename,
   const unsigned thid);
 
@@ -270,16 +265,11 @@ void runPeakExtract(
 
 void runWrite(
   const Control& control,
-  const TrainDB& trainDB,
   const Transient& transient,
   const Quiet& quietBack,
   const Quiet& quietFront,
   const Filter& filter,
   const PeakDetect& peakDetect,
-  const Align& align,
-  const unsigned offset,
-  const float sampleRate,
-  const string& trainName,
   const string& filename,
   const unsigned thid)
 {
@@ -297,14 +287,6 @@ void runWrite(
     filter.writePos(control.posDir() + "/" + filename);
   if (control.writePeak())
     peakDetect.writePeak(control.peakDir() + "/" + filename);
-  if (control.writeMatch())
-    align.writeTrain(
-      trainDB,
-      control.matchDir() + "/" + filename,
-      filter.getDeflection(),
-      offset, 
-      sampleRate,
-      trainName);
 
   timers[thid].stop(TIMER_WRITE);
 }
@@ -414,12 +396,9 @@ void run(
     unsigned rankDetected = align.getMatchRank(traceData.trainNoTrueU);
 
     // Write any binary output files.
-    // TODO Could move this line to runWrite if we pass in interval.
-    peakDetect.makeSynthPeaks(interval.first, interval.len);
 
-    runWrite(control, trainDB, transient, quietBack, quietFront, filter,
-      peakDetect, align, interval.first, traceData.sampleRate,
-      trainDetected, traceData.filename, thid);
+    runWrite(control, transient, quietBack, quietFront, filter,
+      peakDetect, traceData.filename, thid);
 
     sensorStats.log(traceData.sensor, rankDetected, distDetected);
     trainStats.log(traceData.trainTrue, rankDetected, distDetected);
@@ -434,6 +413,17 @@ void run(
     }
     else
     {
+      peakDetect.makeSynthPeaks(interval.first, interval.len);
+
+      if (control.writeMatch())
+        align.writeTrain(
+          trainDB,
+          control.matchDir() + "/" + traceData.filename,
+          filter.getDeflection(),
+          interval.first, 
+          traceData.sampleRate,
+          trainDetected);
+
       overallStats.log("error");
       cout << "DRIVER MISMATCH\n";
     }
