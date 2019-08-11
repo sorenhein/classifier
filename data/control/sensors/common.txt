@@ -17,6 +17,3 @@ MATCH_SUBDIR match
 
 # Output text files (files go to OUTPUT_DIRECTORY).
 OUTPUT_DIRECTORY output
-SENSORSTATS_FILE sensorstats.txt
-TRAINSTATS_FILE trainstats.txt
-PEAKSTATS_FILE peakstats.txt

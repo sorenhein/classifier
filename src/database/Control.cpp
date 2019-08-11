@@ -77,13 +77,7 @@ void Control::configure()
     { "TRUTH_FILE", CORRESPONDENCE_STRING, CTRL_TRUTH_FILE },
 
     // Example: output
-    { "OUTPUT_DIRECTORY", CORRESPONDENCE_STRING, CTRL_OUTPUT_DIRECTORY },
-    // Example: sensorstats.txt (goes within output)
-    { "SENSORSTATS_FILE", CORRESPONDENCE_STRING, CTRL_SENSORSTATS_FILE },
-    // Example: trainstats.txt (goes within output)
-    { "TRAINSTATS_FILE", CORRESPONDENCE_STRING, CTRL_TRAINSTATS_FILE },
-    // Example: peakstats.txt (goes within output)
-    { "PEAKSTATS_FILE", CORRESPONDENCE_STRING, CTRL_PEAKSTATS_FILE }
+    { "OUTPUT_DIRECTORY", CORRESPONDENCE_STRING, CTRL_OUTPUT_DIRECTORY }
   };
 
   fieldCounts =
@@ -228,18 +222,6 @@ void Control::complete()
       entry.setString(comp.result,
         entry.getString(comp.base) + "/" + entry.getString(comp.tail));
   }
-
-  entry.setString(CTRL_SENSORSTATS_FILEFULL,
-    entry.getString(CTRL_OUTPUT_DIRECTORY) + "/" +
-    entry.getString(CTRL_SENSORSTATS_FILE));
-
-  entry.setString(CTRL_TRAINSTATS_FILEFULL,
-    entry.getString(CTRL_OUTPUT_DIRECTORY) + "/" +
-    entry.getString(CTRL_TRAINSTATS_FILE));
-
-  entry.setString(CTRL_PEAKSTATS_FILEFULL,
-    entry.getString(CTRL_OUTPUT_DIRECTORY) + "/" +
-    entry.getString(CTRL_PEAKSTATS_FILE));
 }
 
 
@@ -340,24 +322,6 @@ const string& Control::matchDir() const
 const string& Control::truthFile() const
 {
   return entry.getString(CTRL_TRUTH_FILE);
-}
-
-
-const string& Control::sensorstatsFile() const
-{
-  return entry.getString(CTRL_SENSORSTATS_FILEFULL);
-}
-
-
-const string& Control::trainstatsFile() const
-{
-  return entry.getString(CTRL_TRAINSTATS_FILEFULL);
-}
-
-
-const string& Control::peakstatsFile() const
-{
-  return entry.getString(CTRL_PEAKSTATS_FILEFULL);
 }
 
 

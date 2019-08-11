@@ -41,18 +41,12 @@ enum ControlFieldStrings
   CTRL_TRUTH_FILE = 22,
 
   CTRL_OUTPUT_DIRECTORY = 23,
-  CTRL_SENSORSTATS_FILE = 24,
-  CTRL_TRAINSTATS_FILE = 25,
-  CTRL_PEAKSTATS_FILE = 26,
-  CTRL_SENSORSTATS_FILEFULL = 27,
-  CTRL_TRAINSTATS_FILEFULL = 28,
-  CTRL_PEAKSTATS_FILEFULL = 29,
 
-  CTRL_CONTROL_FILE = 30,
-  CTRL_PICK_FIRST = 31,
-  CTRL_PICK_ANY = 32,
-  CTRL_STATS_FILE = 33,
-  CTRL_STRINGS_SIZE = 34
+  CTRL_CONTROL_FILE = 24,
+  CTRL_PICK_FIRST = 25,
+  CTRL_PICK_ANY = 26,
+  CTRL_STATS_FILE = 27,
+  CTRL_STRINGS_SIZE = 28
 };
 
 enum ControlIntVectors
@@ -163,10 +157,6 @@ class Control
     const string& matchDir() const;
 
     const string& truthFile() const;
-
-    const string& sensorstatsFile() const;
-    const string& trainstatsFile() const;
-    const string& peakstatsFile() const;
 
     const string& pickFirst() const;
     const string& pickAny() const;

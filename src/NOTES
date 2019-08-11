@@ -1,6 +1,5 @@
 Align
 -----
-- Only write train when differs from truth
 - Clean up some control outputs
 
 - Do we need printVectorCSV from util/misc.h? --> sstream
