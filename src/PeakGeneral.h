@@ -19,6 +19,18 @@ struct PeaksInfo
   unsigned numPeaks;
   unsigned numFrontWheels;
 
+
+  void extend(
+    const int posRunning,
+    const int carRunning,
+    int& numberInCar)
+  {
+    positions.push_back(posRunning / 1000.f);
+    carNumbers.push_back(carRunning);
+    peakNumbersInCar.push_back(numberInCar);
+    numberInCar++;
+  };
+
   void reversePositions()
   {
     const float m = positions.back();

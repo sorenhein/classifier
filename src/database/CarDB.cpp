@@ -317,9 +317,6 @@ bool CarDB::appendAxles(
   int& posRunning,
   int& carRunning,
   PeaksInfo& peaksInfo) const
-  // vector<int>& axles,
-  // vector<int>& carNumbers,
-  // vector<int>& peakNumbersInCar) const
 {
   if (carNo == 0)
     return false;
@@ -351,36 +348,24 @@ bool CarDB::appendAxles(
       posRunning += entry[CAR_DIST_FRONT_TO_WHEEL];
 
     // First pair, first wheel
-    peaksInfo.positions.push_back(posRunning / 1000.f); 
-    peaksInfo.carNumbers.push_back(carRunning);
-    peaksInfo.peakNumbersInCar.push_back(numberInCar);
-    numberInCar++;
+    peaksInfo.extend(posRunning, carRunning, numberInCar);
   
     if (dw1 > 0)
     {
       // First pair, second wheel
       posRunning += dw1;
-      peaksInfo.positions.push_back(posRunning / 1000.f);
-      peaksInfo.carNumbers.push_back(carRunning);
-      peaksInfo.peakNumbersInCar.push_back(numberInCar);
-      numberInCar++;
+      peaksInfo.extend(posRunning, carRunning, numberInCar);
     }
 
     // Second pair, first wheel
     posRunning += entry[CAR_DIST_PAIR];
-    peaksInfo.positions.push_back(posRunning / 1000.f); 
-    peaksInfo.carNumbers.push_back(carRunning);
-    peaksInfo.peakNumbersInCar.push_back(numberInCar);
-    numberInCar++;
+    peaksInfo.extend(posRunning, carRunning, numberInCar);
 
     if (dw2 > 0)
     {
       // Second pair, second wheel
       posRunning += dw2;
-      peaksInfo.positions.push_back(posRunning / 1000.f); 
-      peaksInfo.carNumbers.push_back(carRunning);
-      peaksInfo.peakNumbersInCar.push_back(numberInCar);
-      numberInCar++;
+      peaksInfo.extend(posRunning, carRunning, numberInCar);
     }
 
     posRunning += entry[CAR_DIST_WHEEL_TO_BACK];
@@ -392,36 +377,24 @@ bool CarDB::appendAxles(
       posRunning += entry[CAR_DIST_WHEEL_TO_BACK];
 
     // Second pair, second wheel
-    peaksInfo.positions.push_back(posRunning / 1000.f);
-    peaksInfo.carNumbers.push_back(carRunning);
-    peaksInfo.peakNumbersInCar.push_back(numberInCar);
-    numberInCar++;
+    peaksInfo.extend(posRunning, carRunning, numberInCar);
 
     if (dw2 > 0)
     {
       // Second pair, first wheel
       posRunning += dw2;
-      peaksInfo.positions.push_back(posRunning / 1000.f);
-      peaksInfo.carNumbers.push_back(carRunning);
-      peaksInfo.peakNumbersInCar.push_back(numberInCar);
-      numberInCar++;
+      peaksInfo.extend(posRunning, carRunning, numberInCar);
     }
 
     // First pair, second wheel
     posRunning += entry[CAR_DIST_PAIR];
-    peaksInfo.positions.push_back(posRunning / 1000.f); 
-    peaksInfo.carNumbers.push_back(carRunning);
-    peaksInfo.peakNumbersInCar.push_back(numberInCar);
-    numberInCar++;
+    peaksInfo.extend(posRunning, carRunning, numberInCar);
 
     if (dw1 > 0)
     {
       // First pair, first wheel
       posRunning += dw1;
-      peaksInfo.positions.push_back(posRunning / 1000.f);
-      peaksInfo.carNumbers.push_back(carRunning);
-      peaksInfo.peakNumbersInCar.push_back(numberInCar);
-      numberInCar++;
+      peaksInfo.extend(posRunning, carRunning, numberInCar);
     }
 
     posRunning += entry[CAR_DIST_FRONT_TO_WHEEL];

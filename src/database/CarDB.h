@@ -100,9 +100,6 @@ class CarDB
       int& posRunning,
       int& carRunning,
       PeaksInfo& peaksInfo) const;
-      // vector<int>& axles,
-      // vector<int>& carNumbers,
-      // vector<int>& peakNumbersInCar) const;
 
     int lookupNumber(const string& offName) const;
 

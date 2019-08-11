@@ -30,9 +30,6 @@ enum TrainFieldStringVectors
 
 enum TrainFieldIntVectors
 {
-  // TRAIN_AXLES = 0,
-  // TRAIN_CARS = 1,
-  // TRAIN_CAR_PEAKS = 2,
   TRAIN_INT_VECTORS_SIZE = 0
 };
 
@@ -111,11 +108,6 @@ class TrainDB
     bool isInCountry(
       const unsigned trainNo,
       const string& country) const;
-
-    // In m
-    const vector<float>& getPeakPositions(const unsigned trainNo) const;
-
-    const vector<int>& getCarNumbers(const unsigned trainNo) const;
 
     const PeaksInfo& getRefInfo(const unsigned trainNo) const;
 

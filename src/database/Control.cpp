@@ -172,7 +172,6 @@ bool Control::parseCommandLine(
   }
 
   const string fullname = argv[0];
-  // filesystem::path pathObj(fullname);
   path pathObj(fullname);
   const string basename = pathObj.filename().string();
 
