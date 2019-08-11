@@ -64,6 +64,7 @@ bool Align::trainMightFit(
 
 
 bool Align::alignFronts(
+  const vector<int>& refCarNumbers,
   const unsigned numRefCars,
   const PeaksInfo& peaksInfo,
   Alignment& match,
@@ -93,11 +94,14 @@ bool Align::alignFronts(
   else if (peaksInfo.numCars + 1 == numRefCars)
   {
     // Assumed missing a front car.
-    // TODO In general we need the number of axles in the first car.
-    // Would have to come from TrainDB.
     match.numAdd = 0;
-    match.numDelete = peaksInfo.peakNumbers[match.numAdd] + 4;
-    offsetRef = 4;
+
+    offsetRef = 0;
+    while (static_cast<unsigned>(offsetRef) < refCarNumbers.size() &&
+        refCarNumbers[offsetRef] == 0)
+      offsetRef++;
+
+    match.numDelete = peaksInfo.peakNumbers[match.numAdd] + offsetRef;
   }
   else
     return false; // Off by too many cars.
@@ -179,6 +183,7 @@ void Align::regressTrain(
 
 bool Align::scalePeaks(
   const vector<float>& refPeaks,
+  const vector<int>& refCarNumbers,
   const unsigned numRefCars,
   const PeaksInfo& peaksInfo,
   Alignment& match,
@@ -188,7 +193,8 @@ bool Align::scalePeaks(
   // to refPeaks, and then we calculate the corresponding times.
 
   int offsetRef;
-  if (! Align::alignFronts(numRefCars, peaksInfo, match, offsetRef))
+  if (! Align::alignFronts(refCarNumbers, numRefCars, peaksInfo, 
+      match, offsetRef))
     return false;
 
   if (peaksInfo.peakNumbers.back() + offsetRef >= refPeaks.size())
@@ -411,8 +417,10 @@ bool Align::realign(
       continue;
 
     const vector<float>& refPeaks = trainDB.getPeakPositions(match.trainNo);
-    if (! Align::scalePeaks(refPeaks, match.numCars, peaksInfo, 
-        match, scaledPeaks))
+    const vector<int>& refCarNumbers = trainDB.getCarNumbers(match.trainNo);
+
+    if (! Align::scalePeaks(refPeaks, refCarNumbers, match.numCars, 
+        peaksInfo, match, scaledPeaks))
       continue;
 
     // TODO Print shift.  
@@ -459,6 +467,7 @@ void Align::getBest(
   float& distDetected,
   unsigned& rankDetected) const
 {
+  // TODO Split into one method for rankDetected, one other
   bool foundFlag = false;
   for (unsigned i = 0; i < matches.size(); i++)
   {

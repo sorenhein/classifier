@@ -313,7 +313,9 @@ bool CarDB::readFile(const string& fname)
 bool CarDB::appendAxles(
   const int carNo,
   int& posRunning,
-  vector<int>& axles) const
+  int& carRunning,
+  vector<int>& axles,
+  vector<int>& carNumbers) const
 {
   if (carNo == 0)
     return false;
@@ -344,20 +346,24 @@ bool CarDB::appendAxles(
       posRunning += entry[CAR_DIST_FRONT_TO_WHEEL];
 
     axles.push_back(posRunning); // First pair, first wheel
+    carNumbers.push_back(carRunning);
   
     if (dw1 > 0)
     {
       posRunning += dw1;
       axles.push_back(posRunning);  // First pair, second wheel
+      carNumbers.push_back(carRunning);
     }
 
     posRunning += entry[CAR_DIST_PAIR];
     axles.push_back(posRunning); // Second pair, first wheel
+    carNumbers.push_back(carRunning);
 
     if (dw2 > 0)
     {
       posRunning += dw2;
       axles.push_back(posRunning); // Second pair, second wheel
+      carNumbers.push_back(carRunning);
     }
 
     posRunning += entry[CAR_DIST_WHEEL_TO_BACK];
@@ -369,24 +375,30 @@ bool CarDB::appendAxles(
       posRunning += entry[CAR_DIST_WHEEL_TO_BACK];
 
     axles.push_back(posRunning); // Second pair, second wheel
+    carNumbers.push_back(carRunning);
 
     if (dw2 > 0)
     {
       posRunning += dw2;
       axles.push_back(posRunning); // Second pair, first wheel
+      carNumbers.push_back(carRunning);
     }
 
     posRunning += entry[CAR_DIST_PAIR];
     axles.push_back(posRunning); // First pair, second wheel
+    carNumbers.push_back(carRunning);
 
     if (dw1 > 0)
     {
       posRunning += dw1;
       axles.push_back(posRunning);  // First pair, first wheel
+      carNumbers.push_back(carRunning);
     }
 
     posRunning += entry[CAR_DIST_FRONT_TO_WHEEL];
   }
+
+  carRunning++;
   return true;
 }
 

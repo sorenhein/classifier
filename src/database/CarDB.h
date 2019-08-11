@@ -96,7 +96,9 @@ class CarDB
     bool appendAxles(
       const int carNo,
       int& posRunning,
-      vector<int>& axles) const;
+      int& carRunning,
+      vector<int>& axles,
+      vector<int>& carNumbers) const;
 
     int lookupNumber(const string& offName) const;
 

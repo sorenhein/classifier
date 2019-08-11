@@ -6,6 +6,9 @@ Align
 - Do we need printVectorCSV from util/misc.h? --> sstream
 - Fix the TODO With first car axles
 
+- Move to correction file of the Excel truth, commented.
+- Re-validate the empirical peak shifts; start without them.
+
 * Shouldn't all full recognitions be perfect?
   - no errors
   - low distances

@@ -75,7 +75,9 @@ bool TrainDB::complete(
 
   auto& stringVector = entry.getStringVector(TRAIN_CAR_ORDER);
   auto& axles = entry.getIntVector(TRAIN_AXLES);
+  auto& carNumbers = entry.getIntVector(TRAIN_CARS);
   int pos = 0;
+  int carRunning = 0;
   int _numCars = 0;
 
   for (auto& str: stringVector)
@@ -96,7 +98,7 @@ bool TrainDB::complete(
     const int carNo = (reverseFlag ? -carDBNo : carDBNo);
     for (unsigned i = 0; i < count; i++)
     {
-      if (! carDB.appendAxles(carNo, pos, axles))
+      if (! carDB.appendAxles(carNo, pos, carRunning, axles, carNumbers))
       {
         cout << "TrainDB::complete: appendAxles failed\n";
         return false;
@@ -241,6 +243,13 @@ const vector<float>& TrainDB::getPeakPositions(const unsigned trainNo) const
 {
   assert(trainNo < entries.size());
   return entries[trainNo].getFloatVector(TRAIN_POSITIONS);
+}
+
+
+const vector<int>& TrainDB::getCarNumbers(const unsigned trainNo) const
+{
+  assert(trainNo < entries.size());
+  return entries[trainNo].getIntVector(TRAIN_CARS);
 }
 
 

@@ -24,14 +24,14 @@ enum TrainFieldStringVectors
 {
   TRAIN_COUNTRIES = 0,
   TRAIN_CAR_ORDER = 1,
-  TRAIN_CARS = 2, // TODO Needed?
-  TRAIN_STRING_VECTORS_SIZE = 3
+  TRAIN_STRING_VECTORS_SIZE = 2
 };
 
 enum TrainFieldIntVectors
 {
   TRAIN_AXLES = 0,
-  TRAIN_INT_VECTORS_SIZE = 1
+  TRAIN_CARS = 1,
+  TRAIN_INT_VECTORS_SIZE = 2
 };
 
 enum TrainFieldFloatVectors
@@ -109,6 +109,8 @@ class TrainDB
 
     // In m
     const vector<float>& getPeakPositions(const unsigned trainNo) const;
+
+    const vector<int>& getCarNumbers(const unsigned trainNo) const;
 
     bool selectByAxles(
       const list<string>& countries,

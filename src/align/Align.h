@@ -44,6 +44,7 @@ class Align
       const Alignment& match) const;
 
     bool alignFronts(
+      const vector<int>& refCarNumbers,
       const unsigned numRefCars,
       const PeaksInfo& peaksInfo,
       Alignment& match,
@@ -64,6 +65,7 @@ class Align
 
     bool scalePeaks(
       const vector<float>& refPeaks,
+      const vector<int>& refCarNumbers,
       const unsigned numRefCars,
       const PeaksInfo& peaksInfo,
       Alignment& match,

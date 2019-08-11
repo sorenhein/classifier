@@ -1,0 +1,1 @@
+perl details.pl CSV sensor??.txt > a.csv
