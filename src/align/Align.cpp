@@ -619,12 +619,10 @@ void Align::pos2time(
     {
       // s = s0 + v * t
       if (s0 > refPeaks[i])
-        t = 0;
-      else
-      {
-        t0 = (refPeaks[i] - s0) / v;
-        t = static_cast<unsigned>(sampleRate * t0);
-      }
+        continue;
+
+      t0 = (refPeaks[i] - s0) / v;
+      t = static_cast<unsigned>(sampleRate * t0);
 
       if (t < posTrace.size())
         refTimes[t] = posTrace[t];
@@ -635,15 +633,12 @@ void Align::pos2time(
     // s = s0 + v * t + c * t^2
     for (unsigned i = 0; i < refPeaks.size(); i++)
     {
-    if (s0 > refPeaks[i])
-        t = 0;
-      else
-      {
-        t0 = (refPeaks[i] - s0) / v;
-        
-        t = static_cast<unsigned>(sampleRate * 
-          (v / (2.f * c)) * (sqrt(1.f + 4.f * c * t0/ v) - 1.f));
-      }
+      if (s0 > refPeaks[i])
+        continue;
+
+      t0 = (refPeaks[i] - s0) / v;
+      t = static_cast<unsigned>(sampleRate * 
+        (v / (2.f * c)) * (sqrt(1.f + 4.f * c * t0/ v) - 1.f));
 
       if (t < posTrace.size())
         refTimes[t] = posTrace[t];

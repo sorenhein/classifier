@@ -397,6 +397,8 @@ void run(
 
     // Write any binary output files.
 
+    peakDetect.makeSynthPeaks(interval.first, interval.len);
+
     runWrite(control, transient, quietBack, quietFront, filter,
       peakDetect, traceData.filename, thid);
 
@@ -413,8 +415,6 @@ void run(
     }
     else
     {
-      peakDetect.makeSynthPeaks(interval.first, interval.len);
-
       if (control.writeMatch())
         align.writeTrain(
           trainDB,

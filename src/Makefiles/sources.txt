@@ -44,6 +44,8 @@ SOURCE_FILES    =                       \
                 stats/CompStats.cpp     \
                 stats/CountStats.cpp    \
                 stats/CrossStats.cpp    \
+                stats/ResidualStats.cpp \
+                stats/ResidualsStats.cpp \
                 stats/Timer.cpp         \
                 stats/Timers.cpp        \
                                         \

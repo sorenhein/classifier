@@ -1,9 +1,33 @@
 Align
 -----
-- Do we need printVectorCSV from util/misc.h? --> sstream
+- Hook up and ResidualStats and ResidualsStats
+- Write text output ("Stats: Residuals")
+- Write best, second (sometimes) and truth as peak diagrams
+- When sorting matches, sometimes we can't tell
+  - Maybe keep track of trains that are easy to confuse
+  - Have a more detailed way to compare these if needed
+- Be able to write a residual correction file
+  - Take into account any residual corrections already loaded
+  - Should take into account car structure of trains!
+    - So if we change a car once, we change it everywhere
+    - Somehow also allow car length to breathe
+    - Some cars are just known to have certain dimensions
+- Be able to write a truth file
 
-- Move to correction file of the Excel truth, commented.
-- Re-validate the empirical peak shifts; start without them.
+Python
+- peak(7, 051045) 2 curves
+- match(7, 051045) 2-4 curves
+- average(7, 051045) 3 curves if they exist
+- residual(7, 051045) 2-3 curves
+- Also from input prompt
+- n, p still work
+
+- Run without residual corrections or truth corrections
+- Get residual corrections
+- Run again, residuals should now be "small"
+- Look at truth deviations (or even those that are "true")
+
+- Do we need printVectorCSV from util/misc.h? --> sstream
 
 * Shouldn't all full recognitions be perfect?
   - no errors

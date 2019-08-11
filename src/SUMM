@@ -1,1 +1,1 @@
-perl details.pl CSV sensor??.txt > a.csv
+perl details.pl CSV sensor??.txt > b.csv
