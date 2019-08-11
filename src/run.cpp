@@ -395,9 +395,8 @@ void run(
 
     string trainDetected;
     float distDetected;
-    unsigned rankDetected;
-    align.getBest(traceData.trainNoTrueU,
-      trainDetected, distDetected, rankDetected);
+    align.getBest(trainDetected, distDetected);
+    unsigned rankDetected = align.getMatchRank(traceData.trainNoTrueU);
 
     sensorStats.log(traceData.sensor, rankDetected, distDetected);
     trainStats.log(traceData.trainTrue, rankDetected, distDetected);

@@ -119,10 +119,10 @@ class Align
       const vector<float>& times);
 
     void getBest(
-      const unsigned& trainNoTrue,
       string& trainDetected,
-      float& distDetected,
-      unsigned& rankDetected) const;
+      float& distDetected) const;
+
+    unsigned getMatchRank(const unsigned trainNoTrue) const;
 
     void updateStats() const;
 

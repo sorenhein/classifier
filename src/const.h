@@ -374,7 +374,27 @@ static list<CompletionCase> CompletionCases =
 ////////////////////////////////////////////////////////////////////////
 
 // Regulates which alignment is preferred based on distances etc.
-// Probably needs to be updated and simplified.
+
+// When aligning the actual trace to a reference train, permit this
+// number of cars in front to be either spurious or missing.
+
+#define MAX_CAR_DIFFERENCE_OK 1
+
+// Similarly for axles (both must apply).
+
+#define MAX_AXLE_DIFFERENCE_OK 7
+
+// In the Needleman-Wunsch(like) algorithm, this is the penalty for
+// such early spurious or missing peaks.  It should be a relatively
+// low number, but the algorithm is not so sensitive to it.
+
+#define EARLY_SHIFTS_PENALTY 0.25f
+
+// For other hits and misses, these are the penalties.  They should be
+// large numbers, but the algorithm is not sensitive to them.
+
+#define INSERT_PENALTY 100.f
+#define DELETE_PENALTY 100.f
 
 // Only apply special rules to match distances below this threshold.
 // Otherwise just go by overall distance.
@@ -383,7 +403,7 @@ static list<CompletionCase> CompletionCases =
 
 // Must be this much better to beat other alignment.
 
-#define ALIGN_DISTMATCH_BETTER 0.7
+// #define ALIGN_DISTMATCH_BETTER 0.7
 
 // Must not be worse by more than this to still beat other alignment.
 

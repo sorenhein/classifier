@@ -1,9 +1,7 @@
 Align
 -----
-- Constants -> const.h
 - Write a new binary file:  The matched peaks ("train")
 - Do we need printVectorCSV from util/misc.h? --> sstream
-- Fix the TODO With first car axles
 
 - Move to correction file of the Excel truth, commented.
 - Re-validate the empirical peak shifts; start without them.

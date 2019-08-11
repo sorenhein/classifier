@@ -3,8 +3,10 @@
 // 
 // * In Needleman-Wunsch we could notice whether the alignment has
 //   changed.  If not, there is little need to re-run the regression.
+//
 // * Following N-W, some regressions can probably be thrown out based on 
 //   the N-W residuals.
+
 
 #include <iostream>
 #include <iomanip>
@@ -16,24 +18,13 @@
 #include "../database/Control.h"
 #include "../database/TrainDB.h"
 
-#include "../util/misc.h"
-
 #include "PolynomialRegression.h"
 #include "Align.h"
 
 #include "../PeakGeneral.h"
 #include "../const.h"
 
-
-// Can adjust these.
-
-#define INSERT_PENALTY 100.f
-#define DELETE_PENALTY 100.f
-
-#define EARLY_SHIFTS_PENALTY 0.25f
-
-#define MAX_AXLE_DIFFERENCE_OK 7
-#define MAX_CAR_DIFFERENCE_OK 1
+#include "../util/misc.h"
 
 
 Align::Align()
@@ -467,28 +458,25 @@ void Align::regress(
 
 
 void Align::getBest(
-  const unsigned& trainNoTrue,
   string& trainDetected,
-  float& distDetected,
-  unsigned& rankDetected) const
+  float& distDetected) const
 {
-  // TODO Split into one method for rankDetected, one other
-  bool foundFlag = false;
-  for (unsigned i = 0; i < matches.size(); i++)
-  {
-    if (matches[i].trainNo == trainNoTrue)
-    {
-      foundFlag = true;
-      rankDetected = i;
-      break;
-    }
-  }
-
-  if (! foundFlag)
-    rankDetected = matches.size();
+  if (matches.empty())
+    return;
 
   trainDetected = matches.front().trainName;
   distDetected = matches.front().distMatch;
+}
+
+
+unsigned Align::getMatchRank(const unsigned trainNoTrue) const
+{
+  for (unsigned i = 0; i < matches.size(); i++)
+  {
+    if (matches[i].trainNo == trainNoTrue)
+      return i;
+  }
+  return matches.size();
 }
 
 
