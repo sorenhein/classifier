@@ -56,8 +56,6 @@ bool Align::trainMightFit(
 
 
 bool Align::alignFronts(
-  // const vector<int>& refCarNumbers,
-  // const unsigned numRefCars,
   const PeaksInfo& refInfo,
   const PeaksInfo& peaksInfo,
   Alignment& match,
@@ -85,8 +83,11 @@ bool Align::alignFronts(
         peaksInfo.carNumbers[match.numAdd] < numSpurious)
       match.numAdd++;
 
-    match.numDelete = peaksInfo.peakNumbers[match.numAdd];
-    offsetRef = -static_cast<int>(match.numDelete);
+    // The offset will be negative.
+    offsetRef = static_cast<int>(peaksInfo.peakNumbersInCar[match.numAdd]) -
+      static_cast<int>(peaksInfo.peakNumbers[match.numAdd]);
+
+    match.numDelete = peaksInfo.peakNumbersInCar[match.numAdd];
   }
   else
   {
@@ -94,7 +95,7 @@ bool Align::alignFronts(
     if (numMissing > MAX_CAR_DIFFERENCE_OK)
       return false;
 
-    // Front cars are assuming missing from the observed trace.
+    // Front cars are assumed missing from the observed trace.
     match.numAdd = 0;
 
     offsetRef = 0;
@@ -180,10 +181,7 @@ void Align::regressTrain(
 
 
 bool Align::scalePeaks(
-  // const vector<float>& refPeaks,
-  // const vector<int>& refCarNumbers,
   const PeaksInfo& refInfo,
-  // const unsigned numRefCars,
   const PeaksInfo& peaksInfo,
   Alignment& match,
   vector<float>& scaledPeaks) const
@@ -192,12 +190,8 @@ bool Align::scalePeaks(
   // to refPeaks, and then we calculate the corresponding times.
 
   int offsetRef;
-  if (! Align::alignFronts(// refCarNumbers, numRefCars, 
-      refInfo, peaksInfo, match, offsetRef))
+  if (! Align::alignFronts(refInfo, peaksInfo, match, offsetRef))
     return false;
-
-cout << "in scalePeaks " <<
-  match.numAdd << ", " << match.numDelete << "\n";
 
   if (peaksInfo.peakNumbers.back() + offsetRef >= refInfo.positions.size())
     return false; // Car number would overflow
@@ -419,16 +413,12 @@ bool Align::realign(
       continue;
 
     const PeaksInfo& refInfo = trainDB.getRefInfo(match.trainNo);
-    // const vector<float>& refPeaks = trainDB.getPeakPositions(match.trainNo);
-    // const vector<int>& refCarNumbers = trainDB.getCarNumbers(match.trainNo);
+
+    if (! Align::scalePeaks(refInfo, peaksInfo, match, scaledPeaks))
+      continue;
 
 cout << "refTrain " << refTrain << ": before " <<
   match.numAdd << ", " << match.numDelete << "\n\n";
-    // if (! Align::scalePeaks(refPeaks, refCarNumbers, match.numCars, 
-    if (! Align::scalePeaks(refInfo, // match.numCars, 
-        peaksInfo, match, scaledPeaks))
-      continue;
-
     // TODO Print shift.  
     if (control.verboseAlignPeaks())
       Align::printAlignPeaks(refTrain, peaksInfo.times, 
@@ -436,6 +426,7 @@ cout << "refTrain " << refTrain << ": before " <<
 
     Align::NeedlemanWunsch(refInfo.positions, scaledPeaks, match);
     matches.push_back(match);
+
 cout << "refTrain " << refTrain << ": after " <<
   match.numAdd << ", " << match.numDelete << "\n";
   }
@@ -458,9 +449,7 @@ void Align::regress(
       continue;
 
     Align::regressTrain(times, 
-      // trainDB.getPeakPositions(ma.trainNo), 
-      trainDB.getRefInfo(ma.trainNo).positions,
-      true, ma);
+      trainDB.getRefInfo(ma.trainNo).positions, true, ma);
 
     if (ma.dist < bestDist)
       bestDist = ma.dist;
