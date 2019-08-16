@@ -17,6 +17,8 @@ struct PeaksInfo;
 
 class Align
 {
+  friend class Crosses;
+   
   private:
 
     // Used in Needleman-Wunsch.
@@ -56,18 +58,6 @@ class Align
       const float peakScale,
       Alignment& match) const;
 
-    void regressTrain(
-      const vector<float>& times,
-      const vector<float>& refPeaks,
-      const bool storeFlag,
-      Alignment& match) const;
-
-    bool scalePeaks(
-      const PeaksInfo& refInfo,
-      const PeaksInfo& peaksInfo,
-      Alignment& match,
-      vector<float>& scaledPeaks) const;
-
     void initNeedlemanWunsch(
       const unsigned lreff,
       const unsigned lteff,
@@ -106,6 +96,24 @@ class Align
       const Motion& motion,
       const float sampleRate,
       vector<float>& refTimes) const;
+
+  protected:
+
+    void regressTrain(
+      const vector<float>& times,
+      const vector<float>& refPeaks,
+      const bool storeFlag,
+      Alignment& match) const;
+
+    bool scalePeaks(
+      const PeaksInfo& refInfo,
+      const PeaksInfo& peaksInfo,
+      Alignment& match,
+      vector<float>& scaledPeaks) const;
+
+    bool trainMightFitGeometrically(
+      const PeaksInfo& peaksInfo,
+      const Alignment& match) const;
 
 
   public:

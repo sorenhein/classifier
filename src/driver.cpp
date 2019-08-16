@@ -1,6 +1,8 @@
 #include <iostream>
 #include <thread>
 
+#include "align/Crosses.h"
+
 #include "database/Control.h"
 #include "database/TrainDB.h"
 #include "database/TraceDB.h"
@@ -52,6 +54,10 @@ void runThread(unsigned thid);
 int main(int argc, char * argv[])
 {
   setup(argc, argv, control, trainDB, traceDB);
+
+Crosses crosses;
+crosses.log(trainDB);
+cout << crosses.strTrue();
 
   sensorStatsList.resize(control.numThreads());
   crossStatsList.resize(control.numThreads());

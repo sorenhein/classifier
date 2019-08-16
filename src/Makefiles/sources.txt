@@ -37,8 +37,9 @@ SOURCE_FILES    =                       \
                                         \
                 filter/Filter.cpp       \
                                         \
-                align/Align.cpp      \
+                align/Align.cpp         \
                 align/Alignment.cpp     \
+                align/Crosses.cpp       \
                 align/PolynomialRegression.cpp \
                                         \
                 stats/CompStats.cpp     \

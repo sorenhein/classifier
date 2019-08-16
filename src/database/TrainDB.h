@@ -97,6 +97,7 @@ class TrainDB
       const CorrectionDB& correctionDB,
       const string& fname);
 
+    unsigned size() const;
     unsigned numAxles(const unsigned trainNo) const;
     unsigned numCars(const unsigned trainNo) const;
 

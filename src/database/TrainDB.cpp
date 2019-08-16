@@ -188,6 +188,12 @@ bool TrainDB::readFile(
 }
 
 
+unsigned TrainDB::size() const
+{
+   return trainInfo.size();
+}
+
+
 unsigned TrainDB::numAxles(const unsigned trainNo) const
 {
   assert(trainNo < trainInfo.size());

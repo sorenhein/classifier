@@ -38,10 +38,8 @@ Align::~Align()
 }
 
 
-bool Align::trainMightFit(
+bool Align::trainMightFitGeometrically(
   const PeaksInfo& peaksInfo,
-  const string& sensorCountry,
-  const TrainDB& trainDB,
   const Alignment& match) const
 {
   if (peaksInfo.numCars > match.numCars + MAX_CAR_DIFFERENCE_OK ||
@@ -49,6 +47,20 @@ bool Align::trainMightFit(
     return false;
   else if (peaksInfo.numPeaks > match.numAxles + MAX_AXLE_DIFFERENCE_OK ||
       peaksInfo.numPeaks + MAX_AXLE_DIFFERENCE_OK < match.numAxles)
+    return false;
+  else
+    return true;
+}
+
+
+
+bool Align::trainMightFit(
+  const PeaksInfo& peaksInfo,
+  const string& sensorCountry,
+  const TrainDB& trainDB,
+  const Alignment& match) const
+{
+  if (! Align::trainMightFitGeometrically(peaksInfo, match))
     return false;
   else
     return trainDB.isInCountry(match.trainNo, sensorCountry);
@@ -200,7 +212,12 @@ bool Align::scalePeaks(
   match.dist = 0.;
   match.distMatch = 0.;
 
-  const unsigned lt = peaksInfo.times.size();
+  // times is empty when we use this method to correlate theoretical
+  // trains according to their positions (there are no times).
+  const vector<float>& origin = (peaksInfo.times.empty() ?
+    peaksInfo.positions : peaksInfo.times);
+
+  const unsigned lt = origin.size();
   match.actualToRef.resize(lt);
   for (unsigned k = 0; k < match.numAdd; k++)
     match.actualToRef[k] = -1;
@@ -208,12 +225,12 @@ bool Align::scalePeaks(
     match.actualToRef[k] = peaksInfo.peakNumbers[k] + offsetRef;
 
   // Run a regression.
-  Align::regressTrain(peaksInfo.times, refInfo.positions, false, match);
+  Align::regressTrain(origin, refInfo.positions, false, match);
 
   // Use the motion parameters.
   scaledPeaks.resize(lt);
   for (unsigned j = 0; j < lt; j++)
-    scaledPeaks[j] = match.motion.time2pos(peaksInfo.times[j]);
+    scaledPeaks[j] = match.motion.time2pos(origin[j]);
 
   return true;
 }

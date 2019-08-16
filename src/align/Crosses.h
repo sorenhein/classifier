@@ -5,7 +5,7 @@
 #ifndef TRAIN_CROSSES_H
 #define TRAIN_CROSSES_H
 
-#include <vector>
+#include <map>
 #include <string>
 
 #include "Alignment.h"
@@ -19,8 +19,7 @@ class Crosses
 {
   private:
 
-    vector<vector<Alignment>> crosses;
-
+    map<string, map<string, Alignment>> crosses;
 
 
   public:

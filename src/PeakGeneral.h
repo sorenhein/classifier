@@ -23,12 +23,15 @@ struct PeaksInfo
   void extend(
     const int posRunning,
     const int carRunning,
+    int& numberOverall,
     int& numberInCar)
   {
     positions.push_back(posRunning / 1000.f);
     carNumbers.push_back(carRunning);
+    peakNumbers.push_back(numberOverall);
     peakNumbersInCar.push_back(numberInCar);
     numberInCar++;
+    numberOverall++;
   };
 
   void reversePositions()
