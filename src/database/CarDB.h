@@ -99,6 +99,7 @@ class CarDB
       const int carNo,
       int& posRunning,
       int& carRunning,
+      int& numRunning,
       PeaksInfo& peaksInfo) const;
 
     int lookupNumber(const string& offName) const;

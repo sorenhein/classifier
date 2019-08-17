@@ -31,39 +31,35 @@ void Crosses::log(const TrainDB& trainDB)
   Crosses::reset();
   Align align;
   Alignment match;
-  vector<float> scaledPeaks;
 
   for (auto& obsTrain: trainDB)
   {
     const unsigned obsTrainNo = trainDB.lookupNumber(obsTrain);
     const PeaksInfo& obsInfo = trainDB.getRefInfo(obsTrainNo);
 
-cout << "SETTING0 " << obsTrain << endl;
-    crosses[obsTrain] = map<string, Alignment>();
-cout << "SET0 " << obsTrain << endl;
+crosses[obsTrain] = map<string, Alignment>();
 
     for (auto& refTrain: trainDB)
     {
-cout << "P0 " << obsTrain << ", " << refTrain << endl;
+      if (refTrain == obsTrain)
+        continue;
+
       match.trainName = refTrain;
       match.trainNo = static_cast<unsigned>(trainDB.lookupNumber(refTrain));
       match.numCars = trainDB.numCars(match.trainNo);
       match.numAxles = trainDB.numAxles(match.trainNo);
 
-cout << "P1 " << obsTrain << ", " << refTrain << endl;
       if (! align.trainMightFitGeometrically(obsInfo, match))
         continue;
 
-cout << "P2 " << obsTrain << ", " << refTrain << endl;
       const PeaksInfo& refInfo = trainDB.getRefInfo(match.trainNo);
 
-cout << "P3 " << obsTrain << ", " << refTrain << endl;
-      if (! align.scalePeaks(refInfo, obsInfo, match, scaledPeaks))
+      if (! align.alignPeaks(refInfo, obsInfo, match))
         continue;
 
-cout << "SETTING " << obsTrain << ", " << refTrain << endl;
+      align.regressTrain(obsInfo.positions, refInfo.positions, true, match);
+
       crosses[obsTrain][refTrain] = match;
-cout << "SET" << obsTrain << ", " << refTrain << endl;
     }
   }
 }
@@ -77,10 +73,12 @@ string Crosses::strTrue() const
 
   for (auto& obs: crosses)
   {
-    ss << "Observed train: " << obs.first << "\n";
+    ss << "True train: " << obs.first << "\n";
     for (auto &ref: obs.second)
-      ss << ref.second.str();
-      // ss << ref.second.strDeviation();
+    {
+      if (ref.second.distMatch < 50.f)
+        ss << ref.second.str();
+    }
     ss << "\n";
   }
 

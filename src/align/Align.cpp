@@ -192,11 +192,10 @@ void Align::regressTrain(
 }
 
 
-bool Align::scalePeaks(
+bool Align::alignPeaks(
   const PeaksInfo& refInfo,
   const PeaksInfo& peaksInfo,
-  Alignment& match,
-  vector<float>& scaledPeaks) const
+  Alignment& match) const
 {
   // We estimate the motion parameters of fitting peaksInfo.times
   // to refPeaks, and then we calculate the corresponding times.
@@ -214,23 +213,35 @@ bool Align::scalePeaks(
 
   // times is empty when we use this method to correlate theoretical
   // trains according to their positions (there are no times).
-  const vector<float>& origin = (peaksInfo.times.empty() ?
-    peaksInfo.positions : peaksInfo.times);
+  const unsigned lt = (peaksInfo.times.empty() ?
+    peaksInfo.positions.size() : peaksInfo.times.size());
 
-  const unsigned lt = origin.size();
   match.actualToRef.resize(lt);
   for (unsigned k = 0; k < match.numAdd; k++)
     match.actualToRef[k] = -1;
   for (unsigned k = match.numAdd; k < lt; k++)
     match.actualToRef[k] = peaksInfo.peakNumbers[k] + offsetRef;
+  
+  return true;
+}
+
+
+bool Align::scalePeaks(
+  const PeaksInfo& refInfo,
+  const PeaksInfo& peaksInfo,
+  Alignment& match,
+  vector<float>& scaledPeaks) const
+{
+  Align::alignPeaks(refInfo, peaksInfo, match);
 
   // Run a regression.
-  Align::regressTrain(origin, refInfo.positions, false, match);
+  Align::regressTrain(peaksInfo.times, refInfo.positions, false, match);
 
   // Use the motion parameters.
+  const unsigned lt = peaksInfo.times.size();
   scaledPeaks.resize(lt);
   for (unsigned j = 0; j < lt; j++)
-    scaledPeaks[j] = match.motion.time2pos(origin[j]);
+    scaledPeaks[j] = match.motion.time2pos(peaksInfo.times[j]);
 
   return true;
 }
