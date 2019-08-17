@@ -55,7 +55,6 @@ class Align
       const vector<float>& x,
       const vector<float>& y,
       const unsigned lt,
-      const float peakScale,
       Alignment& match) const;
 
     bool scalePeaks(

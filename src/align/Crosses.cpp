@@ -37,8 +37,6 @@ void Crosses::log(const TrainDB& trainDB)
     const unsigned obsTrainNo = trainDB.lookupNumber(obsTrain);
     const PeaksInfo& obsInfo = trainDB.getRefInfo(obsTrainNo);
 
-crosses[obsTrain] = map<string, Alignment>();
-
     for (auto& refTrain: trainDB)
     {
       if (refTrain == obsTrain)
@@ -59,7 +57,8 @@ crosses[obsTrain] = map<string, Alignment>();
 
       align.regressTrain(obsInfo.positions, refInfo.positions, true, match);
 
-      crosses[obsTrain][refTrain] = match;
+      if (match.distMatch < 10.f)
+        crosses[obsTrain][refTrain] = match;
     }
   }
 }
@@ -75,10 +74,7 @@ string Crosses::strTrue() const
   {
     ss << "True train: " << obs.first << "\n";
     for (auto &ref: obs.second)
-    {
-      if (ref.second.distMatch < 50.f)
-        ss << ref.second.str();
-    }
+      ss << ref.second.str();
     ss << "\n";
   }
 

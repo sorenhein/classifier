@@ -125,7 +125,6 @@ void Align::storeResiduals(
   const vector<float>& x,
   const vector<float>& y,
   const unsigned lt,
-  const float peakScale,
   Alignment& match) const
 {
   match.distMatch = 0.f;
@@ -139,7 +138,7 @@ void Align::storeResiduals(
       const unsigned refIndex = static_cast<unsigned>(match.actualToRef[i]);
       match.residuals[p].index = refIndex;
       match.residuals[p].value = res;
-      match.residuals[p].valueSq = peakScale * res * res;
+      match.residuals[p].valueSq = res * res;
 
       match.distMatch += match.residuals[p].valueSq;
 
@@ -180,14 +179,9 @@ void Align::regressTrain(
 
   if (storeFlag)
   {
-    // Normalize the distance score to a 200m long train.
-    const float trainLength = refPeaks.back() - refPeaks.front();
-    const float peakScale = TRAIN_REF_LENGTH * TRAIN_REF_LENGTH / 
-      (trainLength * trainLength);
-
     // Store the residuals.
     match.residuals.resize(lcommon);
-    Align::storeResiduals(x, y, lt, peakScale, match);
+    Align::storeResiduals(x, y, lt, match);
   }
 }
 
@@ -279,11 +273,6 @@ void Align::fillNeedlemanWunsch(
   const unsigned lteff,
   vector<vector<Mentry>>& matrix) const
 {
-  // Normalize the distance score to a certain train length.
-  const float trainLength = refPeaks.back() - refPeaks.front();
-  const float peakScale = TRAIN_REF_LENGTH * TRAIN_REF_LENGTH / 
-    (trainLength * trainLength);
-
   // Run the dynamic programming.
   for (unsigned i = 1; i < lreff+1; i++)
   {
@@ -291,7 +280,7 @@ void Align::fillNeedlemanWunsch(
     {
       const float d = refPeaks[i + match.numDelete - 1] - 
         scaledPeaks[j + match.numAdd - 1];
-      const float matchVal = matrix[i-1][j-1].dist + peakScale * d * d;
+      const float matchVal = matrix[i-1][j-1].dist + d * d;
 
       // During the first few peaks we don't penalize a missed real peak
       // as heavily, as it could be due to transients etc.
