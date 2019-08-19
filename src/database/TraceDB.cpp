@@ -212,6 +212,7 @@ unsigned TraceDB::lookupNumber(const string& basename) const
   return it->second;
 }
 
+
 void TraceDB::pickFilenames(
   const vector<string>& filenamesAll,
   const string& pickAny)

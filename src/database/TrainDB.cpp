@@ -190,6 +190,19 @@ bool TrainDB::readFile(
 }
 
 
+void TrainDB::logEquivalences(const vector<string>& equiv)
+{
+  for (unsigned i = 0; i < equiv.size(); i++)
+  {
+    for (unsigned j = i+1; j < equiv.size(); j++)
+    {
+      equivalences[equiv[i]].push_back(equiv[j]);
+      equivalences[equiv[j]].push_back(equiv[i]);
+    }
+  }
+}
+
+
 unsigned TrainDB::size() const
 {
    return trainInfo.size();
@@ -231,6 +244,26 @@ bool TrainDB::reversed(const unsigned trainNo) const
 {
   assert(trainNo < entries.size());
   return entries[trainNo].getBool(TRAIN_REVERSED);
+}
+
+
+bool TrainDB::equivalent(
+  const string& train1,
+  const string& train2) const
+{
+  if (train1 == train2)
+    return true;
+
+  auto it = equivalences.find(train1);
+  if (it == equivalences.end())
+    return false;
+
+  for (const string& s: it->second)
+  {
+    if (train2 == s)
+      return true;
+  }
+  return false;
 }
 
 

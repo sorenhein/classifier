@@ -70,6 +70,8 @@ class TrainDB
 
     list<string> selected;
 
+    map<string, list<string>> equivalences;
+
 
     bool correct(
       const CorrectionDB& correctionDB,
@@ -97,6 +99,8 @@ class TrainDB
       const CorrectionDB& correctionDB,
       const string& fname);
 
+    void logEquivalences(const vector<string>& equiv);
+
     unsigned size() const;
     unsigned numAxles(const unsigned trainNo) const;
     unsigned numCars(const unsigned trainNo) const;
@@ -105,6 +109,10 @@ class TrainDB
     string lookupName(const unsigned trainNo) const;
 
     bool reversed(const unsigned trainNo) const;
+
+    bool equivalent(
+      const string& train1,
+      const string& train2) const;
 
     bool isInCountry(
       const unsigned trainNo,

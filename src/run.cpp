@@ -413,6 +413,12 @@ void run(
       overallStats.log("good");
       align.updateStats();
     }
+    else if (trainDB.equivalent(trainDetected, traceData.trainTrue))
+    {
+      cout << "EQUIVMATCH\n";
+      overallStats.log("good");
+      align.updateStats();
+    }
     else
     {
       if (control.writeMatch())

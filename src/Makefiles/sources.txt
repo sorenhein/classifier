@@ -30,6 +30,7 @@ SOURCE_FILES    =                       \
                 database/Control.cpp    \
                 database/CorrectionDB.cpp \
                 database/Entity.cpp     \
+                database/EquivDB.cpp    \
                 database/SensorDB.cpp   \
                 database/TraceDB.cpp    \
                 database/TrainDB.cpp    \

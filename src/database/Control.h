@@ -39,14 +39,15 @@ enum ControlFieldStrings
   CTRL_MATCH_DIRECTORY = 21,
 
   CTRL_TRUTH_FILE = 22,
+  CTRL_EQUIV_FILE = 23,
 
-  CTRL_OUTPUT_DIRECTORY = 23,
+  CTRL_OUTPUT_DIRECTORY = 24,
 
-  CTRL_CONTROL_FILE = 24,
-  CTRL_PICK_FIRST = 25,
-  CTRL_PICK_ANY = 26,
-  CTRL_STATS_FILE = 27,
-  CTRL_STRINGS_SIZE = 28
+  CTRL_CONTROL_FILE = 25,
+  CTRL_PICK_FIRST = 26,
+  CTRL_PICK_ANY = 27,
+  CTRL_STATS_FILE = 28,
+  CTRL_STRINGS_SIZE = 29
 };
 
 enum ControlIntVectors
@@ -157,6 +158,7 @@ class Control
     const string& matchDir() const;
 
     const string& truthFile() const;
+    const string& equivFile() const;
 
     const string& pickFirst() const;
     const string& pickAny() const;

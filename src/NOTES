@@ -1,17 +1,20 @@
 Align
 -----
-- Hook up and ResidualStats and ResidualsStats
-- Write text output ("Stats: Residuals")
-- Write best, second (sometimes) and truth as peak diagrams
-- When sorting matches, sometimes we can't tell
-  - Maybe keep track of trains that are easy to confuse
-  - Have a more detailed way to compare these if needed
-- Be able to write a residual correction file
+- Go back to original xls truth
+- Have an equivalents.txt to declare victory with
+- Get rid of the old residuals
+- Look at writing some new ones
   - Take into account any residual corrections already loaded
   - Should take into account car structure of trains!
     - So if we change a car once, we change it everywhere
     - Somehow also allow car length to breathe
     - Some cars are just known to have certain dimensions
+- Maybe go by #peaks swallowed in case of doubt, usually < 1 car
+
+- Hook up and ResidualStats and ResidualsStats
+- Write text output ("Stats: Residuals")
+- Write best, second (sometimes) and truth as peak diagrams
+- Be able to write a residual correction file
 - Be able to write a truth file
 
 Python

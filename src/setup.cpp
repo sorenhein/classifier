@@ -4,6 +4,7 @@
 #include "database/SensorDB.h"
 #include "database/CarDB.h"
 #include "database/CorrectionDB.h"
+#include "database/EquivDB.h"
 #include "database/TrainDB.h"
 #include "database/TraceDB.h"
 #include "database/Control.h"
@@ -132,6 +133,15 @@ void setupTrains(
     cout << "No trains selected" << endl;
     exit(0);
   }
+
+  const string eqfile = control.equivFile();
+  if (eqfile == "")
+    return;
+
+  EquivDB equivDB;
+  equivDB.readFile(eqfile);
+  for (auto& evec: equivDB)
+    trainDB.logEquivalences(evec);
 }
 
 

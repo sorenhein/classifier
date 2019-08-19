@@ -75,6 +75,8 @@ void Control::configure()
 
     // Example: ../../../mini_dataset_v012/labels.csv
     { "TRUTH_FILE", CORRESPONDENCE_STRING, CTRL_TRUTH_FILE },
+    // Example: ../../../mini_dataset_v012/equiv.txt
+    { "TRAIN_EQUIV_FILE", CORRESPONDENCE_STRING, CTRL_EQUIV_FILE },
 
     // Example: output
     { "OUTPUT_DIRECTORY", CORRESPONDENCE_STRING, CTRL_OUTPUT_DIRECTORY }
@@ -321,6 +323,12 @@ const string& Control::matchDir() const
 const string& Control::truthFile() const
 {
   return entry.getString(CTRL_TRUTH_FILE);
+}
+
+
+const string& Control::equivFile() const
+{
+  return entry.getString(CTRL_EQUIV_FILE);
 }
 
 

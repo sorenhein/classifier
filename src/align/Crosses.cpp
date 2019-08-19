@@ -57,7 +57,7 @@ void Crosses::log(const TrainDB& trainDB)
 
       align.regressTrain(obsInfo.positions, refInfo.positions, true, match);
 
-      if (match.distMatch < 10.f)
+      if (match.distMatch < 50.f)
         crosses[obsTrain][refTrain] = match;
     }
   }
