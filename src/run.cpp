@@ -111,6 +111,7 @@ void runWrite(
   const Filter& filter,
   const PeakDetect& peakDetect,
   const string& filename,
+  const unsigned offset,
   const unsigned thid);
 
 
@@ -271,6 +272,7 @@ void runWrite(
   const Filter& filter,
   const PeakDetect& peakDetect,
   const string& filename,
+  const unsigned offset,
   const unsigned thid)
 {
   timers[thid].start(TIMER_WRITE);
@@ -286,7 +288,8 @@ void runWrite(
   if (control.writePos())
     filter.writePos(control.posDir() + "/" + filename);
   if (control.writePeak())
-    peakDetect.writePeak(control.peakDir() + "/" + filename);
+    peakDetect.writePeak(control, offset, filename);
+    // peakDetect.writePeak(control.peakDir() + "/" + filename);
 
   timers[thid].stop(TIMER_WRITE);
 }
@@ -397,10 +400,10 @@ void run(
 
     // Write any binary output files.
 
-    peakDetect.makeSynthPeaks(interval.first, interval.len);
+    // peakDetect.makeSynthPeaks(interval.first, interval.len);
 
     runWrite(control, transient, quietBack, quietFront, filter,
-      peakDetect, traceData.filename, thid);
+      peakDetect, traceData.filename, interval.first, thid);
 
     sensorStats.log(traceData.sensor, rankDetected, distDetected);
     trainStats.log(traceData.trainTrue, rankDetected, distDetected);

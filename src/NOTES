@@ -1,9 +1,25 @@
+Possible new outputs
+--------------------
+- peak
+  - first
+  - true (if different)
+  - second (if different from both)
+    - n
+    - s
+- box
+  - first, etc.
+    - n
+    - c (1-4; 0 = begin/end)
+    - A single level, how to encode?
+- Does offset somehow go into the n's or into the filename?
+
+Files get a lot smaller, hence the writing faster?
+
+
 Align
 -----
-- Go back to original xls truth
-- Have an equivalents.txt to declare victory with
-- Get rid of the old residuals
-- Look at writing some new ones
+- Have an retruth.txt to declare victory with
+- Look at writing some new residuals
   - Take into account any residual corrections already loaded
   - Should take into account car structure of trains!
     - So if we change a car once, we change it everywhere

@@ -129,9 +129,17 @@ class Peaks
       Piterator& pbest);
 
 
+    /*
     void getSamples(
       const PeakFncPtr& fptr,
       vector<float>& selected) const;
+      */
+
+    void getSamples(
+      const PeakFncPtr& fptr,
+      const unsigned offset,
+      vector<unsigned>& times,
+      vector<float>& values) const;
 
     void getTimes(
       const PeakFncPtr& fptr,

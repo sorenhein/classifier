@@ -72,6 +72,24 @@ void Control::configure()
     { "PEAK_SUBDIR", CORRESPONDENCE_STRING, CTRL_PEAK_SUBDIR },
     // Example: match
     { "MATCH_SUBDIR", CORRESPONDENCE_STRING, CTRL_MATCH_SUBDIR },
+    // Example: box
+    { "BOX_SUBDIR", CORRESPONDENCE_STRING, CTRL_BOX_SUBDIR },
+
+    // Example: best
+    { "BEST_LEAFDIR", CORRESPONDENCE_STRING, CTRL_BEST_LEAFDIR },
+    // Example: truth
+    { "TRUTH_LEAFDIR", CORRESPONDENCE_STRING, CTRL_TRUTH_LEAFDIR },
+    // Example: second
+    { "SECOND_LEAFDIR", CORRESPONDENCE_STRING, CTRL_SECOND_LEAFDIR },
+
+    // Example: times
+    { "TIMES_NAME", CORRESPONDENCE_STRING, CTRL_TIMES_NAME },
+    // Example: cars
+    { "CARS_NAME", CORRESPONDENCE_STRING, CTRL_CARS_NAME },
+    // Example: values
+    { "VALUES_NAME", CORRESPONDENCE_STRING, CTRL_VALUES_NAME },
+    // Example: info
+    { "INFO_NAME", CORRESPONDENCE_STRING, CTRL_INFO_NAME },
 
     // Example: ../../../mini_dataset_v012/labels.csv
     { "TRUTH_FILE", CORRESPONDENCE_STRING, CTRL_TRUTH_FILE },
@@ -115,7 +133,10 @@ void Control::configure()
       CTRL_PEAK_SUBDIR, CTRL_PEAK_DIRECTORY },
 
     { CTRL_WRITE_MATCH, CTRL_BASE_DIRECTORY, 
-      CTRL_MATCH_SUBDIR, CTRL_MATCH_DIRECTORY }
+      CTRL_MATCH_SUBDIR, CTRL_MATCH_DIRECTORY },
+
+    { CTRL_WRITE_BOX, CTRL_BASE_DIRECTORY, 
+      CTRL_BOX_SUBDIR, CTRL_BOX_DIRECTORY }
   };
 
   commands =
@@ -317,6 +338,54 @@ const string& Control::peakDir() const
 const string& Control::matchDir() const
 {
   return entry.getString(CTRL_MATCH_DIRECTORY);
+}
+
+
+const string& Control::boxDir() const
+{
+  return entry.getString(CTRL_BOX_DIRECTORY);
+}
+
+
+const string& Control::bestLeafDir() const
+{
+  return entry.getString(CTRL_BEST_LEAFDIR);
+}
+
+
+const string& Control::truthLeafDir() const
+{
+  return entry.getString(CTRL_TRUTH_LEAFDIR);
+}
+
+
+const string& Control::secondLeafDir() const
+{
+  return entry.getString(CTRL_SECOND_LEAFDIR);
+}
+
+
+const string& Control::timesName() const
+{
+  return entry.getString(CTRL_TIMES_NAME);
+}
+
+
+const string& Control::carsName() const
+{
+  return entry.getString(CTRL_CARS_NAME);
+}
+
+
+const string& Control::valuesName() const
+{
+  return entry.getString(CTRL_VALUES_NAME);
+}
+
+
+const string& Control::infoName() const
+{
+  return entry.getString(CTRL_INFO_NAME);
 }
 
 

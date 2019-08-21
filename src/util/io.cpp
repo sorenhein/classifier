@@ -104,3 +104,31 @@ void writeBinary(
   fout.close();
 }
 
+
+void writeBinaryFloat(
+  const string& filename,
+  const vector<float>& sequence)
+{
+  if (sequence.empty())
+    return;
+
+  ofstream fout(filename, std::ios::out | std::ios::binary);
+  fout.write(reinterpret_cast<const char *>(sequence.data()),
+    static_cast<long int>(sequence.size() * sizeof(float)));
+  fout.close();
+}
+
+
+void writeBinaryUnsigned(
+  const string& filename,
+  const vector<unsigned>& sequence)
+{
+  if (sequence.empty())
+    return;
+
+  ofstream fout(filename, std::ios::out | std::ios::binary);
+  fout.write(reinterpret_cast<const char *>(sequence.data()),
+    static_cast<long int>(sequence.size() * sizeof(unsigned)));
+  fout.close();
+}
+

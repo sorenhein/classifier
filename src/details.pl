@@ -27,7 +27,7 @@ else
   $format = $FORMAT_TXT;
 }
 
-my (@details, @warnings, @errors, @excepts);
+my (@details, @warnings, @deviations, @errors, @excepts);
 
 for my $file (@ARGV)
 {
@@ -36,6 +36,8 @@ for my $file (@ARGV)
   
   my $sensor = $file;
   $sensor =~ s/.txt//;
+  my $trueTrain;
+  my $matchCount = 0;
 
   open my $fh, "<", $file or die "Cannot open $file: $!";
 
@@ -53,6 +55,7 @@ for my $file (@ARGV)
       $date = $a[0];
       $time = $a[1];
       $sname = $a[2];
+      $matchCount = 0;
     }
     elsif ($len > 9 && substr($line, 0, 5) eq "WARNF")
     {
@@ -74,6 +77,30 @@ for my $file (@ARGV)
         parseLines($mline, $line, \@details);
         push @warnings, 
           detailLine($sensor, $time, $tno, \@details, $format);
+      }
+    }
+    elsif ($len > 11 && substr($line, 0, 11) eq "True train ")
+    {
+      $line =~ /^True train (\S+) at/;
+      $trueTrain = $1;
+    }
+    elsif ($len >= 18 && substr($line, 0, 18) eq "Matching alignment")
+    {
+      if ($matchCount == 0)
+      {
+        $matchCount = 1; # Skip the first one
+      }
+      else
+      {
+        $line = <$fh>;
+        $line =~ /^(\S+)\s+(\d+\.\d+)\s+(\d+\.\d+)/;
+        my $bestTrain = $1;
+        my $devMatch = $3;
+        if ($bestTrain eq $trueTrain && $devMatch > 10.)
+        {
+          push @deviations,
+              detailLineCommon($sensor, $time, $tno, $format);
+        }
       }
     }
     elsif ($len > 14 && substr($line, 0, 7) eq "DRIVER ")
@@ -98,6 +125,13 @@ if ($#warnings >= 0)
 {
   print "Warnings\n";
   print $_ . "\n" for (@warnings);
+  print "\n";
+}
+
+if ($#deviations >= 0)
+{
+  print "Large deviations\n";
+  print $_ . "\n" for (@deviations);
   print "\n";
 }
 

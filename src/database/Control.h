@@ -28,26 +28,37 @@ enum ControlFieldStrings
   CTRL_POS_SUBDIR = 11,
   CTRL_PEAK_SUBDIR = 12,
   CTRL_MATCH_SUBDIR = 13,
+  CTRL_BOX_SUBDIR = 14,
 
-  CTRL_TRACE_DIRECTORY = 14,
-  CTRL_TRANSIENT_DIRECTORY = 15,
-  CTRL_BACK_DIRECTORY = 16,
-  CTRL_FRONT_DIRECTORY = 17,
-  CTRL_SPEED_DIRECTORY = 18,
-  CTRL_POS_DIRECTORY = 19,
-  CTRL_PEAK_DIRECTORY = 20,
-  CTRL_MATCH_DIRECTORY = 21,
+  CTRL_BEST_LEAFDIR = 15,
+  CTRL_TRUTH_LEAFDIR = 16,
+  CTRL_SECOND_LEAFDIR = 17,
 
-  CTRL_TRUTH_FILE = 22,
-  CTRL_EQUIV_FILE = 23,
+  CTRL_TIMES_NAME = 18,
+  CTRL_CARS_NAME = 19,
+  CTRL_VALUES_NAME = 20,
+  CTRL_INFO_NAME = 21,
 
-  CTRL_OUTPUT_DIRECTORY = 24,
+  CTRL_TRACE_DIRECTORY = 22,
+  CTRL_TRANSIENT_DIRECTORY = 23,
+  CTRL_BACK_DIRECTORY = 24,
+  CTRL_FRONT_DIRECTORY = 25,
+  CTRL_SPEED_DIRECTORY = 26,
+  CTRL_POS_DIRECTORY = 27,
+  CTRL_PEAK_DIRECTORY = 28,
+  CTRL_MATCH_DIRECTORY = 29,
+  CTRL_BOX_DIRECTORY = 30,
 
-  CTRL_CONTROL_FILE = 25,
-  CTRL_PICK_FIRST = 26,
-  CTRL_PICK_ANY = 27,
-  CTRL_STATS_FILE = 28,
-  CTRL_STRINGS_SIZE = 29
+  CTRL_TRUTH_FILE = 31,
+  CTRL_EQUIV_FILE = 32,
+
+  CTRL_OUTPUT_DIRECTORY = 33,
+
+  CTRL_CONTROL_FILE = 34,
+  CTRL_PICK_FIRST = 35,
+  CTRL_PICK_ANY = 36,
+  CTRL_STATS_FILE = 37,
+  CTRL_STRINGS_SIZE = 38
 };
 
 enum ControlIntVectors
@@ -77,7 +88,8 @@ enum ControlWrite
   CTRL_WRITE_SPEED = 3,
   CTRL_WRITE_POS = 4,
   CTRL_WRITE_PEAK = 5,
-  CTRL_WRITE_MATCH = 6
+  CTRL_WRITE_MATCH = 6,
+  CTRL_WRITE_BOX = 7
 };
 
 enum ControlVerbose
@@ -156,6 +168,16 @@ class Control
     const string& posDir() const;
     const string& peakDir() const;
     const string& matchDir() const;
+    const string& boxDir() const;
+
+    const string& bestLeafDir() const;
+    const string& truthLeafDir() const;
+    const string& secondLeafDir() const;
+
+    const string& timesName() const;
+    const string& carsName() const;
+    const string& valuesName() const;
+    const string& infoName() const;
 
     const string& truthFile() const;
     const string& equivFile() const;

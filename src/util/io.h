@@ -21,4 +21,12 @@ void writeBinary(
   const unsigned offset,
   const vector<float>& sequence);
 
+void writeBinaryFloat(
+  const string& filename,
+  const vector<float>& sequence);
+
+void writeBinaryUnsigned(
+  const string& filename,
+  const vector<unsigned>& sequence);
+
 #endif

@@ -577,6 +577,7 @@ void PeakDetect::extract(const Control& control)
 }
 
 
+/*
 void PeakDetect::makeSynthPeaks(
   const unsigned first,
   const unsigned slen)
@@ -586,6 +587,7 @@ void PeakDetect::makeSynthPeaks(
 
   peaks.topConst().getSamples(&Peak::isSelected, synthPeaks);
 }
+*/
 
 
 void PeakDetect::printPeak(
@@ -610,9 +612,21 @@ void PeakDetect::printPeaksCSV(const vector<double>& timesTrue) const
 }
 
 
-void PeakDetect::writePeak(const string& filename) const
+void PeakDetect::writePeak(
+  const Control& control,
+  const unsigned first,
+  const string& filename) const
 {
-  writeBinary(filename, synthFirst, synthPeaks);
+  // writeBinary(filename, synthFirst, synthPeaks);
+  
+  vector<unsigned> times;
+  vector<float> values;
+  peaks.topConst().getSamples(&Peak::isSelected, first, times, values);
+
+  writeBinaryUnsigned(
+    control.peakDir() + "/" + control.timesName() + "/" + filename, times);
+  writeBinaryFloat(
+    control.peakDir() + "/" + control.valuesName() + "/" + filename, values);
 }
 
 

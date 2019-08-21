@@ -87,9 +87,11 @@ class PeakDetect
 
     void extract(const Control& control);
 
+    /*
     void makeSynthPeaks(
       const unsigned first,
       const unsigned slen);
+      */
 
     void getPeakTimes(
       vector<double>& times,
@@ -100,7 +102,12 @@ class PeakDetect
     // TMP
     string deleteStr(Peak const * p1, Peak const * p2) const;
 
-    void writePeak(const string& filename) const;
+    // void writePeak(const string& filename) const;
+
+    void writePeak(
+      const Control& control,
+      const unsigned first,
+      const string& filename) const;
 
     PeakPool& getPeaks();
 

@@ -442,6 +442,7 @@ bool Peaks::getBestMax(
 }
 
 
+/*
 void Peaks::getSamples(
   const PeakFncPtr& fptr,
   vector<float>& selected) const
@@ -453,6 +454,27 @@ void Peaks::getSamples(
   {
     if ((peak.* fptr)())
       selected[peak.getIndex()] = peak.getValue();
+  }
+}
+*/
+
+
+void Peaks::getSamples(
+  const PeakFncPtr& fptr,
+  const unsigned offset,
+  vector<unsigned>& times,
+  vector<float>& values) const
+{
+  times.clear();
+  values.clear();
+
+  for (auto& peak: peaks)
+  {
+    if ((peak.* fptr)())
+    {
+      times.push_back(peak.getIndex() + offset);
+      values.push_back(peak.getValue());
+    }
   }
 }
 

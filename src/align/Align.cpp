@@ -434,8 +434,6 @@ bool Align::realign(
     if (! Align::scalePeaks(refInfo, peaksInfo, match, scaledPeaks))
       continue;
 
-cout << "refTrain " << refTrain << ": before " <<
-  match.numAdd << ", " << match.numDelete << "\n\n";
     // TODO Print shift.  
     if (control.verboseAlignPeaks())
       Align::printAlignPeaks(refTrain, peaksInfo.times, 
@@ -443,9 +441,6 @@ cout << "refTrain " << refTrain << ": before " <<
 
     Align::NeedlemanWunsch(refInfo.positions, scaledPeaks, match);
     matches.push_back(match);
-
-cout << "refTrain " << refTrain << ": after " <<
-  match.numAdd << ", " << match.numDelete << "\n";
   }
 
   sort(matches.begin(), matches.end());
