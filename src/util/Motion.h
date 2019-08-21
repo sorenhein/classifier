@@ -22,6 +22,11 @@ struct Motion
 
   float time2pos(const float time) const;
 
+  bool pos2time(
+    const float pos,
+    const float sampleRate,
+    unsigned& n) const;
+
   string strLine(
     const string& text,
     const float act,

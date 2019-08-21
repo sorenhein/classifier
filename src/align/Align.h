@@ -95,12 +95,6 @@ class Align
 
     Motion const * getMatchingMotion(const string& trainName) const;
 
-    void pos2time(
-      const vector<float>& refPeaks,
-      const vector<float>& posTrace,
-      const Motion& motion,
-      const float sampleRate,
-      vector<float>& refTimes) const;
 
   protected:
 
@@ -159,6 +153,15 @@ class Align
       const TrainDB& trainDB,
       const string& filename,
       const vector<float>& posTrace,
+      const unsigned offset,
+      const float sampleRate,
+      const string& trainName) const;
+
+    void writeTrainBox(
+      const Control& control,
+      const TrainDB& trainDB,
+      const PeaksInfo& peaksInfo,
+      const string& filename,
       const unsigned offset,
       const float sampleRate,
       const string& trainName) const;

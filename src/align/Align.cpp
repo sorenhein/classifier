@@ -609,56 +609,6 @@ Motion const * Align::getMatchingMotion(const string& trainName) const
 }
 
 
-void Align::pos2time(
-  const vector<float>& refPeaks,
-  const vector<float>& posTrace,
-  const Motion& motion,
-  const float sampleRate,
-  vector<float>& refTimes) const
-{
-  refTimes.resize(posTrace.size());
-
-  const float s0 = motion.estimate[0];
-  const float v = motion.estimate[1];
-  const float c = motion.estimate[2]; // Equals 0.5 * accel, so a = 2c
-  unsigned t;
-  float t0;
-
-  if (abs(c) < 0.0001f)
-  {
-    // Numerically probably better to ignore the acceleration.
-    for (unsigned i = 0; i < refPeaks.size(); i++)
-    {
-      // s = s0 + v * t
-      if (s0 > refPeaks[i])
-        continue;
-
-      t0 = (refPeaks[i] - s0) / v;
-      t = static_cast<unsigned>(sampleRate * t0);
-
-      if (t < posTrace.size())
-        refTimes[t] = posTrace[t];
-    }
-  }
-  else
-  {
-    // s = s0 + v * t + c * t^2
-    for (unsigned i = 0; i < refPeaks.size(); i++)
-    {
-      if (s0 > refPeaks[i])
-        continue;
-
-      t0 = (refPeaks[i] - s0) / v;
-      t = static_cast<unsigned>(sampleRate * 
-        (v / (2.f * c)) * (sqrt(1.f + 4.f * c * t0/ v) - 1.f));
-
-      if (t < posTrace.size())
-        refTimes[t] = posTrace[t];
-    }
-  }
-}
-
-
 void Align::writeTrain(
   const TrainDB& trainDB,
   const string& filename,
@@ -680,8 +630,71 @@ void Align::writeTrain(
   const vector<float>& refPeaks = trainDB.getRefInfo(refNo).positions;
 
   vector<float> refTimes;
-  Align::pos2time(refPeaks, posTrace, * motion, sampleRate, refTimes);
+  refTimes.resize(posTrace.size());
+  unsigned n;
+
+  for (unsigned i = 0; i < refPeaks.size(); i++)
+  {
+    if (motion->pos2time(refPeaks[i], sampleRate, n) &&
+        n < posTrace.size())
+      refTimes[n] = posTrace[n];
+  }
 
   writeBinary(filename, offset, refTimes);
 }
+
+
+
+#define UNUSED(x) ((void)(true ? 0 : ((x), void(), 0)))
+
+void Align::writeTrainBox(
+  const Control& control,
+  const TrainDB& trainDB,
+  const PeaksInfo& peaksInfo,
+  const string& filename,
+  const unsigned offset,
+  const float sampleRate,
+  const string& trainName) const
+{
+  // Write data that can be used to plot a "stick drawing" of the
+  // reference train in the time domain.
+
+  // TODO
+  // Change writeTrain to fill in the values from posTrace (reuse).
+  //
+  // From trainDB get the start and end, turn them into times,
+  // write them to the info file.
+  // Wheel diameter assumed to be 0.9m.
+  // Also write distMatch.
+  // From peaksInfo estimate the lowest deflection not from the 
+  // last car.  Also write to info.
+  //
+  // Write the cars file based on peaksInfo, don't go beyond t=0.
+  // Negative value (-1) means wheel was missed.
+
+  UNUSED(control);
+  UNUSED(peaksInfo);
+
+  Motion const * motion = Align::getMatchingMotion(trainName);
+  if (motion == nullptr)
+    return;
+
+  const unsigned refNo = 
+    static_cast<unsigned>(trainDB.lookupNumber(trainName));
+  const vector<float>& refPeaks = trainDB.getRefInfo(refNo).positions;
+
+  // motion->pos2time(refPeaks, sampleRate, refSampleNos)
+  // Also use in previous method
+  vector<unsigned> refSampleNos;
+  unsigned n;
+  for (unsigned i = 0; i < refPeaks.size(); i++)
+  {
+    if (motion->pos2time(refPeaks[i], sampleRate, n))
+      refSampleNos.push_back(n + offset);
+  }
+
+  writeBinaryUnsigned(filename, refSampleNos);
+}
+
+
 

@@ -1,5 +1,12 @@
 Possible new outputs
 --------------------
+- Align::writeBox
+  INFO
+    distMatch
+    train start in samples
+    train end in samples
+    wheel radius in samples
+
 - peak
   - first
   - true (if different)

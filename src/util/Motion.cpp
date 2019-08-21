@@ -38,6 +38,36 @@ float Motion::time2pos(const float time) const
 }
 
 
+bool Motion::pos2time(
+  const float pos,
+  const float sampleRate,
+  unsigned& n) const
+{
+  const float s0 = estimate[0];
+  const float v = estimate[1];
+  const float c = estimate[2]; // Equals 0.5 * accel, so a = 2c
+
+  if (s0 > pos)
+    return false;
+
+  const float t0 = (pos - s0) / v;
+
+  if (abs(c) < 0.0001f)
+  {
+    // s = s0 + v * t
+    // Numerically probably better to ignore the acceleration.
+    n = static_cast<unsigned>(sampleRate * t0);
+  }
+  else
+  {
+    // s = s0 + v * t + c * t^2
+    n = static_cast<unsigned>(sampleRate *
+       (v / (2.f * c)) * (sqrt(1.f + 4.f * c * t0/ v) - 1.f));
+  }
+  return true;
+}
+
+
 string Motion::strLine(
   const string& text,
   const float act,

@@ -8,8 +8,9 @@ using namespace std;
 
 struct PeaksInfo
 {
-  vector<float> times;
-  vector<float> positions;
+  vector<float> times; // In s
+  vector<float> positions; // In m
+  vector<float> boundaries; // Boundaries between cars, in m
   vector<unsigned> carNumbers;
   vector<unsigned> peakNumbers; // 0+
   vector<unsigned> peakNumbersInCar; // 0-3
