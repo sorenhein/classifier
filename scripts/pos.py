@@ -19,9 +19,14 @@ if platform.node() == 'CAD04':
 else:
   basedir = R"C:\Program Files (x86)\cygwin64\home\s.hein\mini_dataset_v012\data\sensors" + "\\"
 
-rawdirslash = "\\pos\\"
-timedirslash = "\\peak\\times\\"
-valuedirslash = "\\peak\\values\\"
+class Files(object):
+  raw = []
+  times = []
+  values = []
+
+rawdir = R"\pos" + "\\"
+timedir = R"\peak\times" + "\\"
+valuedir = R"\peak\values" + "\\"
 extension = ".dat"
 
 
@@ -85,8 +90,9 @@ def guess_number(n, rlist):
   return n
        
 
-def get_user_input(curr, limit, rawlist, matched):
+def get_user_input(curr, rawlist, matched):
   """Gets user input for display: n, p, N, or number."""
+  limit = len(rawlist)
   val = input("Input: ")
   c = curr
   if val == "q":
@@ -126,52 +132,62 @@ def read_pieces(timefile, valuefile, lr):
   return matchdata
 
 
+def plot_raw(rawfiles, rawoffsets, rawdir, curr):
+  """Plots the basic trace."""
+  rp = rawfiles[curr].find(rawdir);
+  title = rawfiles[curr][(rp+len(rawdir)):] +  " (no. " + str(curr) + ")"
+    
+  rawdata = np.fromfile(rawfiles[curr], dtype = np.float32)
+  lr = len(rawdata)
+  print("Read " + str(lr) + " points from " + rawfiles[curr])
+    
+  plt.clf()
+  plt.title(title)
+    
+  o = rawoffsets[curr]
+  x = np.arange(o, o + lr)
+  plt.plot(x, rawdata, 'b')
+
+  return o + lr
+
+
+def plot_composite(times, values, m, color):
+  """Plot a composite of values vs. times as a complete trace."""
+  if times != "":
+    matchdata = read_pieces(times, values, m)
+    plt.plot(np.arange(0, len(matchdata)), matchdata, color)
+
+
 def pos(sensorNo, n = 0):
   """Show original signal and partial, matched signal."""
   sensor = sensors[sensorNo]
   sensordir = basedir + sensor
 
-  rawlist = glob.glob(sensordir + rawdirslash + "*" + extension)
-  timelist = glob.glob(sensordir + timedirslash + "*" + extension)
-  valuelist = glob.glob(sensordir + valuedirslash + "*" + extension)
+  files = Files()
+  files.raw = glob.glob(sensordir + rawdir + "*" + extension)
+  files.times = glob.glob(sensordir + timedir + "*" + extension)
+  files.values = glob.glob(sensordir + valuedir + "*" + extension)
 
   rawdict = {}
   rawoffsets = {}
-  set_rawdict(rawlist, rawdict, rawoffsets)
+  set_rawdict(files.raw, rawdict, rawoffsets)
 
-  timematched = match_up(rawdict, timelist, rawdirslash, timedirslash)
-  valuematched = match_up(rawdict, valuelist, rawdirslash, valuedirslash)
+  matches = Files()
+  matches.times = match_up(rawdict, files.times, rawdir, timedir)
+  matches.values = match_up(rawdict, files.values, rawdir, valuedir)
 
   plt.ion()
   plt.show()
   
-  curr = guess_number(n, rawlist)
-  l = len(rawlist)
+  curr = guess_number(n, files.raw)
   while True:
-    rp = rawlist[curr].find(rawdirslash);
-    title = rawlist[curr][(rp+len(rawdirslash)):] +  " (no. " + str(curr) + ")"
-    
-    rawdata = np.fromfile(rawlist[curr], dtype = np.float32)
-    lr = len(rawdata)
-    print("Read " + str(lr) + " points from " + rawlist[curr])
-    
-    plt.clf()
-    plt.title(title)
-    
-    o = rawoffsets[curr]
-    x = np.arange(o, o + lr)
-    plt.plot(x, rawdata, 'b')
+    m = plot_raw(files.raw, rawoffsets, rawdir, curr)
+    plot_composite(matches.times[curr], matches.values[curr], m, 'r')
 
-    if timematched[curr] != "":
-      matchdata = read_pieces(timematched[curr], valuematched[curr], o+lr)
-
-      x = np.arange(0, len(matchdata))
-      plt.plot(x, matchdata, 'r')
-    
     plt.draw()
     plt.pause(0.001)
 
-    curr, done = get_user_input(curr, l, rawlist, timematched)
+    curr, done = get_user_input(curr, files.raw, matches.times)
     if done == 1:
       break
     if done == -1:
