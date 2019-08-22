@@ -129,18 +129,11 @@ def read_pieces(timefile, valuefile, lr):
 def pos(sensorNo, n = 0):
   """Show original signal and partial, matched signal."""
   sensor = sensors[sensorNo]
+  sensordir = basedir + sensor
 
-  rawdir = basedir + sensor + rawdirslash
-  timedir = basedir + sensor + timedirslash
-  valuedir = basedir + sensor + valuedirslash
-
-  rawfull = rawdir + "*" + extension
-  timefull = timedir + "*" + extension
-  valuefull = valuedir + "*" + extension
-
-  rawlist = glob.glob(rawfull)
-  timelist = glob.glob(timefull)
-  valuelist = glob.glob(valuefull)
+  rawlist = glob.glob(sensordir + rawdirslash + "*" + extension)
+  timelist = glob.glob(sensordir + timedirslash + "*" + extension)
+  valuelist = glob.glob(sensordir + valuedirslash + "*" + extension)
 
   rawdict = {}
   rawoffsets = {}
