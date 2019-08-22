@@ -345,7 +345,9 @@ bool CarDB::appendAxles(
   int numberInCar = 0;
   if (! reverseFlag)
   {
-    if (! peaksInfo.positions.empty())
+    if (peaksInfo.positions.empty())
+      peaksInfo.extendPoints(-entry[CAR_DIST_FRONT_TO_WHEEL]);
+    else
       posRunning += entry[CAR_DIST_FRONT_TO_WHEEL];
 
     // First pair, first wheel
@@ -370,11 +372,14 @@ bool CarDB::appendAxles(
     }
 
     posRunning += entry[CAR_DIST_WHEEL_TO_BACK];
+    peaksInfo.extendPoints(posRunning);
   }
   else
   {
     // Car is reversed.
-    if (! peaksInfo.positions.empty())
+    if (peaksInfo.positions.empty())
+      peaksInfo.extendPoints(-entry[CAR_DIST_WHEEL_TO_BACK]);
+    else
       posRunning += entry[CAR_DIST_WHEEL_TO_BACK];
 
     // Second pair, second wheel
@@ -399,6 +404,7 @@ bool CarDB::appendAxles(
     }
 
     posRunning += entry[CAR_DIST_FRONT_TO_WHEEL];
+    peaksInfo.extendPoints(posRunning);
   }
 
   carRunning++;

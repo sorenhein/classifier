@@ -415,6 +415,14 @@ void run(
     {
       overallStats.log("good");
       align.updateStats();
+
+      if (control.writeBox())
+      {
+        align.writeTrainBoxes(
+          control, trainDB, traceData.filename, interval.first,
+            traceData.sampleRate, traceData.trainTrue);
+
+      }
     }
     else if (trainDB.equivalent(trainDetected, traceData.trainTrue))
     {
@@ -424,7 +432,12 @@ void run(
     }
     else
     {
-      if (control.writeMatch())
+      if (control.writeBox())
+      {
+        align.writeTrainBoxes(
+          control, trainDB, traceData.filename, interval.first,
+            traceData.sampleRate, traceData.trainTrue);
+        /*
         align.writeTrain(
           trainDB,
           control.matchDir() + "/" + traceData.filename,
@@ -432,6 +445,10 @@ void run(
           interval.first, 
           traceData.sampleRate,
           trainDetected);
+          */
+        // TODO Could put offset into traceData.
+        // Could pass traceData to writeTrainBoxes().
+      }
 
       overallStats.log("error");
       cout << "DRIVER MISMATCH\n";

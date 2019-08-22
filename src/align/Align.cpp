@@ -609,6 +609,79 @@ Motion const * Align::getMatchingMotion(const string& trainName) const
 }
 
 
+void Align::getBoxTraces(
+  const TrainDB& trainDB,
+  const unsigned offset,
+  const float sampleRate,
+  const string& trainName,
+  const vector<int>& actualToRef,
+  vector<unsigned>& refTimes,
+  vector<unsigned>& refPeakTypes) const
+{
+  Motion const * motion = Align::getMatchingMotion(trainName);
+  if (motion == nullptr)
+    return;
+
+  const unsigned refNo = 
+    static_cast<unsigned>(trainDB.lookupNumber(trainName));
+  const auto& pi = trainDB.getRefInfo(refNo);
+  const vector<float>& refPeaks = pi.points;
+  const vector<int>& refCars = pi.carNumbersForPoints;
+  const vector<int>& refNumbers = pi.peakNumbersForPoints;
+
+  unsigned aNo = 0;
+  unsigned n;
+  int i = 0;
+
+  while (i < static_cast<int>(refPeaks.size()))
+  {
+    if (! motion->pos2time(refPeaks[i], sampleRate, n))
+    {
+      i++;
+      continue;
+    }
+
+    // Get a valid, unused actualToRef value.
+    while (aNo < actualToRef.size())
+    {
+      if (actualToRef[aNo] == -1)
+        aNo++;
+      else
+        break;
+    }
+
+
+    // Used peaks are 1-4 or 0 for boundary.
+    // Missed peaks are max.
+    if (refNumbers[i] == -1)
+    {
+      // Boundary.
+      refTimes.push_back(n + offset);
+      refPeakTypes.push_back(0);
+      i++;
+    }
+    else if (aNo == actualToRef.size() ||
+        actualToRef[aNo] > refNumbers[i])
+    {
+      // Reference peak not detected.
+      refTimes.push_back(n + offset);
+      refPeakTypes.push_back(numeric_limits<unsigned>::max());
+      i++;
+    }
+    else if (actualToRef[aNo] == refNumbers[i])
+    {
+      // Use up the actual peak seen.
+      refTimes.push_back(n + offset);
+      refPeakTypes.push_back(static_cast<unsigned>(refCars[i]));
+      i++;
+      aNo++;
+    }
+    else
+      aNo++;
+  }
+}
+
+
 void Align::writeTrain(
   const TrainDB& trainDB,
   const string& filename,
@@ -621,6 +694,7 @@ void Align::writeTrain(
   // the motion parameters of a specific match.  Useful for seeing
   // visually whether the match is systematically off.
   
+  // TODO Probably superseded by writeTrainBox once that works
   Motion const * motion = Align::getMatchingMotion(trainName);
   if (motion == nullptr)
     return;
@@ -644,57 +718,76 @@ void Align::writeTrain(
 }
 
 
-
-#define UNUSED(x) ((void)(true ? 0 : ((x), void(), 0)))
-
 void Align::writeTrainBox(
   const Control& control,
   const TrainDB& trainDB,
-  const PeaksInfo& peaksInfo,
+  const Alignment& match,
+  const string& dir,
   const string& filename,
   const unsigned offset,
-  const float sampleRate,
-  const string& trainName) const
+  const float sampleRate) const
 {
   // Write data that can be used to plot a "stick drawing" of the
   // reference train in the time domain.
 
-  // TODO
-  // Change writeTrain to fill in the values from posTrace (reuse).
-  //
-  // From trainDB get the start and end, turn them into times,
-  // write them to the info file.
-  // Wheel diameter assumed to be 0.9m.
-  // Also write distMatch.
-  // From peaksInfo estimate the lowest deflection not from the 
-  // last car.  Also write to info.
-  //
-  // Write the cars file based on peaksInfo, don't go beyond t=0.
-  // Negative value (-1) means wheel was missed.
+  vector<unsigned> refTimes;
+  vector<unsigned> refPeakTypes;
+  Align::getBoxTraces(trainDB, offset, sampleRate, match.trainName,
+    match.actualToRef, refTimes, refPeakTypes);
 
-  UNUSED(control);
-  UNUSED(peaksInfo);
+  writeBinaryUnsigned(dir + "/" + control.timesName() + "/" + filename, 
+    refTimes);
+  writeBinaryUnsigned(dir + "/" + control.carsName() + "/" + filename, 
+    refPeakTypes);
 
-  Motion const * motion = Align::getMatchingMotion(trainName);
-  if (motion == nullptr)
-    return;
+  stringstream ss;
+  ss << "WHEEL_DIAMETER 0.9\n"; // Typical value for box plot
+  ss << "DIST_MATCH " << fixed << setprecision(2) <<
+    match.distMatch << "\n";
 
-  const unsigned refNo = 
-    static_cast<unsigned>(trainDB.lookupNumber(trainName));
-  const vector<float>& refPeaks = trainDB.getRefInfo(refNo).positions;
-
-  // motion->pos2time(refPeaks, sampleRate, refSampleNos)
-  // Also use in previous method
-  vector<unsigned> refSampleNos;
-  unsigned n;
-  for (unsigned i = 0; i < refPeaks.size(); i++)
-  {
-    if (motion->pos2time(refPeaks[i], sampleRate, n))
-      refSampleNos.push_back(n + offset);
-  }
-
-  writeBinaryUnsigned(filename, refSampleNos);
+  writeString(dir + "/" + control.infoName() + "/" + filename, ss.str());
 }
 
 
+
+void Align::writeTrainBoxes(
+  const Control& control,
+  const TrainDB& trainDB,
+  const string& filename,
+  const unsigned offset,
+  const float sampleRate,
+  const string& trueTrainName) const
+{
+  if (matches.empty())
+    return;
+
+  // Write the best match.
+  const auto& matchBest = matches.front();
+  Align::writeTrainBox(control, trainDB, matchBest,
+    control.boxDir() + "/" + control.bestLeafDir(), filename,
+    offset, sampleRate);
+
+  if (matches.size() == 1 || matches[0].trainName == trueTrainName)
+    return;
+
+  for (unsigned i = 1; i < matches.size(); i++)
+  {
+    if (matches[i].trainName == trueTrainName)
+    {
+      // Write the "true" match.
+      Align::writeTrainBox(control, trainDB, matches[i],
+        control.boxDir() + "/" + control.truthLeafDir(), filename,
+        offset, sampleRate);
+
+      // Only write #2 if this was not already done.
+      if (i == 1)
+        return;
+    }
+  }
+
+  // So now we write #2.
+  Align::writeTrainBox(control, trainDB, matches[1],
+    control.boxDir() + "/" + control.secondLeafDir(), filename,
+    offset, sampleRate);
+}
 

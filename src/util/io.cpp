@@ -132,3 +132,16 @@ void writeBinaryUnsigned(
   fout.close();
 }
 
+
+void writeString(
+  const string& filename,
+  const string& content)
+{
+  if (content.empty())
+    return;
+
+  ofstream fout(filename);
+  fout << content;
+  fout.close();
+}
+

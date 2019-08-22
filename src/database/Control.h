@@ -195,6 +195,7 @@ class Control
     bool writePos() const;
     bool writePeak() const;
     bool writeMatch() const;
+    bool writeBox() const;
 
     bool verboseTransient() const;
     bool verboseQuiet() const;

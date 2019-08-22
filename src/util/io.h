@@ -29,4 +29,8 @@ void writeBinaryUnsigned(
   const string& filename,
   const vector<unsigned>& sequence);
 
+void writeString(
+  const string& filename,
+  const string& content);
+
 #endif

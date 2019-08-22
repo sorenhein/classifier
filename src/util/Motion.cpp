@@ -38,6 +38,7 @@ float Motion::time2pos(const float time) const
 }
 
 
+#include <iostream>
 bool Motion::pos2time(
   const float pos,
   const float sampleRate,

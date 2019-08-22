@@ -95,6 +95,24 @@ class Align
 
     Motion const * getMatchingMotion(const string& trainName) const;
 
+    void getBoxTraces(
+      const TrainDB& trainDB,
+      const unsigned offset,
+      const float sampleRate,
+      const string& trainName,
+      const vector<int>& actualToRef,
+      vector<unsigned>& refTimes,
+      vector<unsigned>& refPeakTypes) const;
+
+    void writeTrainBox(
+      const Control& control,
+      const TrainDB& trainDB,
+      const Alignment& match,
+      const string& dir,
+      const string& filename,
+      const unsigned offset,
+      const float sampleRate) const;
+
 
   protected:
 
@@ -157,14 +175,13 @@ class Align
       const float sampleRate,
       const string& trainName) const;
 
-    void writeTrainBox(
+    void writeTrainBoxes(
       const Control& control,
       const TrainDB& trainDB,
-      const PeaksInfo& peaksInfo,
       const string& filename,
       const unsigned offset,
       const float sampleRate,
-      const string& trainName) const;
+      const string& trueTrainName) const;
 };
 
 #endif

@@ -10,10 +10,13 @@ struct PeaksInfo
 {
   vector<float> times; // In s
   vector<float> positions; // In m
-  vector<float> boundaries; // Boundaries between cars, in m
   vector<unsigned> carNumbers;
   vector<unsigned> peakNumbers; // 0+
   vector<unsigned> peakNumbersInCar; // 0-3
+
+  vector<float> points; // Like positions, but with car ends too
+  vector<int> carNumbersForPoints; // -1 is a car end
+  vector<int> peakNumbersForPoints; // -1 is a car end, otherwise 0+
 
 
   unsigned numCars; // If > 0, the next two are set and meaningful
@@ -31,8 +34,22 @@ struct PeaksInfo
     carNumbers.push_back(carRunning);
     peakNumbers.push_back(numberOverall);
     peakNumbersInCar.push_back(numberInCar);
+
+    PeaksInfo::extendPoints(posRunning, carRunning, numberOverall);
+
     numberInCar++;
     numberOverall++;
+  };
+
+  void extendPoints(
+    const int posRunning,
+    const int carRunning = -1,
+    const int numberOverall = -1)
+  {
+    // Extend by a boundary point without a peak.
+    points.push_back(posRunning / 1000.f);
+    carNumbersForPoints.push_back(carRunning);
+    peakNumbersForPoints.push_back(numberOverall);
   };
 
   void reversePositions()

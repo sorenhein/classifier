@@ -155,14 +155,15 @@ void Control::configure()
     { "-t", "--threads", CORRESPONDENCE_INT, CTRL_THREADS, "1",
       "Number of threads (default: 1)." },
     { "-w", "--writing", CORRESPONDENCE_BIT_VECTOR, CTRL_WRITE, "0x20",
-      "Binary output files (default: 0x60).  Bits:\n"
+      "Binary output files (default: 0x20).  Bits:\n"
       "0x01: transient\n" 
       "0x02: back\n" 
       "0x04: front\n"
       "0x08: speed\n"
       "0x10: pos\n"
       "0x20: peak\n"
-      "0x40: match" },
+      "0x40: match\n"
+      "0x80: box" },
     { "-v", "--verbose", CORRESPONDENCE_BIT_VECTOR, CTRL_VERBOSE, "0xf37",
       "Verbosity (default: 0x337).  Bits:\n"
       "0x001: Transient\n"
@@ -464,6 +465,12 @@ bool Control::writePeak() const
 bool Control::writeMatch() const
 {
   return (entry.getIntVector(CTRL_WRITE)[CTRL_WRITE_MATCH] != 0);
+}
+
+
+bool Control::writeBox() const
+{
+  return (entry.getIntVector(CTRL_WRITE)[CTRL_WRITE_BOX] != 0);
 }
 
 
