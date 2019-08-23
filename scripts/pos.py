@@ -24,9 +24,21 @@ class Files(object):
   times = []
   values = []
 
+class Info(object):
+  train = ""
+  speed = ""
+  accel = ""
+  dist = ""
+  diam = 0.
+
+
 rawdir = R"\pos" + "\\"
 timedir = R"\peak\times" + "\\"
 valuedir = R"\peak\values" + "\\"
+boxdir = R"\box" + "\\"
+timessub = R"\times" + "\\"
+carssub = R"\cars" + "\\"
+infosub = R"\info" + "\\"
 extension = ".dat"
 
 
@@ -132,6 +144,38 @@ def read_pieces(timefile, valuefile, lr):
   return matchdata
 
 
+def get_level(source):
+  values = np.fromfile(source, dtype = np.float32)
+  return sum(values) / len(values)
+
+
+def get_info(source):
+  # f = open(source, "r")
+  # contents = f.readLines()
+  # f.close()
+  contents = [line.rstrip('\n') for line in open(source, "r")]
+
+  info = Info()
+  for c in contents:
+    d = " ".join(c.split())
+    tag, val = d.split(" ", 1)
+    if tag == "TRAIN_MATCH":
+      info.train = val
+    elif tag == "WHEEL_DIAMETER":
+      info.diam = val
+    elif tag == "SPEED":
+      info.speed = val
+    elif tag == "ACCEL":
+      info.accel = val
+    elif tag == "DIST_MATCH":
+      info.dist = val
+    else:
+      print "Bad tag:", tag
+      raise SystemExit
+
+  return info
+
+
 def plot_raw(rawfiles, rawoffsets, rawdir, curr):
   """Plots the basic trace."""
   rp = rawfiles[curr].find(rawdir);
@@ -194,3 +238,65 @@ def pos(sensorNo, n = 0):
       continue
 
 
+def box(sensorNo, n = 0, d = "best"):
+  """Show stick diagram."""
+  sensor = sensors[sensorNo]
+  sensordir = basedir + sensor
+
+  boxtimes =  boxdir + d + "\\" + timessub
+  boxcars =  boxdir + d + "\\" + carssub
+  boxinfo =  boxdir + d + "\\" + infosub
+
+  files = Files()
+  files.raw = glob.glob(sensordir + rawdir + "*" + extension)
+  files.values = glob.glob(sensordir + valuedir + "*" + extension)
+  files.times = glob.glob(sensordir + boxtimes + "*" + extension)
+  files.cars = glob.glob(sensordir + boxcars + "*" + extension)
+  files.info = glob.glob(sensordir + boxinfo + "*" + extension)
+
+  rawdict = {}
+  rawoffsets = {}
+  set_rawdict(files.raw, rawdict, rawoffsets)
+
+  matches = Files()
+  matches.values = match_up(rawdict, files.values, rawdir, valuedir)
+  matches.times = match_up(rawdict, files.times, rawdir, boxtimes)
+  matches.cars = match_up(rawdict, files.cars, rawdir, boxcars)
+  matches.info = match_up(rawdict, files.info, rawdir, boxinfo)
+
+  plt.ion()
+  plt.show()
+  
+  curr = guess_number(n, files.raw)
+  while True:
+    m = plot_raw(files.raw, rawoffsets, rawdir, curr)
+
+    if matches.values[curr] == "":
+      print "No peaks"
+      continue
+
+    level = get_level(matches.values[curr])
+    print "Level", level
+
+    if matches.info[curr] == "":
+      print "No info file"
+      continue
+
+    info = get_info(matches.info[curr])
+    print "Train", info.train
+    print "Speed", info.speed
+    print "Accel", info.accel
+    print "Dist", info.dist
+    print "Diam", info.diam
+
+    # plot_composite(matches.times[curr], matches.values[curr], m, 'r')
+
+    plt.draw()
+    plt.pause(0.001)
+
+    curr, done = get_user_input(curr, files.raw, matches.times)
+    if done == 1:
+      break
+    if done == -1:
+      continue
+  
