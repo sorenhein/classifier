@@ -236,8 +236,8 @@ def draw_horizontal_low(times, cars, info, level, offset, color):
     x = [t0, t1]
     plt.plot(x, y, color)
   if cars[0] != 0:
-    # Draw a leading horizonal line
-    x = [offset, times[1] - (info.diam/2 if cars[1] > 0 else 0)]
+    # Draw a leading horizontal line
+    x = [offset, times[0] - info.diam/2]
     plt.plot(x, y, color)
 
 
@@ -413,7 +413,6 @@ def box(sensorNo, n = 0, d = "best"):
       continue
 
     level = get_level(matches.values[curr])
-    print "Level", level
 
     if matches.info[curr] == "":
       print "No info file"
