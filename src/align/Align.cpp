@@ -85,7 +85,8 @@ bool Align::alignFronts(
   }
   else if (peaksInfo.numCars > refInfo.numCars)
   {
-    const unsigned numSpurious = peaksInfo.numCars - refInfo.numCars;
+    const int numSpurious = 
+      static_cast<int>(peaksInfo.numCars - refInfo.numCars);
     if (numSpurious > MAX_CAR_DIFFERENCE_OK)
       return false;
 
@@ -103,7 +104,8 @@ bool Align::alignFronts(
   }
   else
   {
-    const unsigned numMissing = refInfo.numCars - peaksInfo.numCars;
+    const int numMissing = 
+      static_cast<int>(refInfo.numCars - peaksInfo.numCars);
     if (numMissing > MAX_CAR_DIFFERENCE_OK)
       return false;
 
@@ -198,7 +200,8 @@ bool Align::alignPeaks(
   if (! Align::alignFronts(refInfo, peaksInfo, match, offsetRef))
     return false;
 
-  if (peaksInfo.peakNumbers.back() + offsetRef >= refInfo.positions.size())
+  if (peaksInfo.peakNumbers.back() + offsetRef >= 
+      static_cast<int>(refInfo.positions.size()))
     return false; // Car number would overflow
 
   // Set up the alignment for a regression.
@@ -650,7 +653,6 @@ void Align::getBoxTraces(
         break;
     }
 
-
     // Used peaks are 1-4 or 0 for boundary.
     // Missed peaks are max.
     if (refNumbers[i] == -1)
@@ -672,7 +674,7 @@ void Align::getBoxTraces(
     {
       // Use up the actual peak seen.
       refTimes.push_back(n + offset);
-      refPeakTypes.push_back(static_cast<unsigned>(refCars[i]));
+      refPeakTypes.push_back(static_cast<unsigned>(refCars[i]+1));
       i++;
       aNo++;
     }

@@ -10,12 +10,12 @@ struct PeaksInfo
 {
   vector<float> times; // In s
   vector<float> positions; // In m
-  vector<unsigned> carNumbers;
-  vector<unsigned> peakNumbers; // 0+
-  vector<unsigned> peakNumbersInCar; // 0-3
+  vector<int> carNumbers; // 0+
+  vector<int> peakNumbers; // 0+
+  vector<int> peakNumbersInCar; // 0-3
 
   vector<float> points; // Like positions, but with car ends too
-  vector<int> carNumbersForPoints; // -1 is a car end
+  vector<int> carNumbersForPoints; // -1 is a car end, otherwise 0+
   vector<int> peakNumbersForPoints; // -1 is a car end, otherwise 0+
 
 
@@ -52,39 +52,56 @@ struct PeaksInfo
     peakNumbersForPoints.push_back(numberOverall);
   };
 
-  void reversePositions()
+  void mirrorFloat(
+    vector<float>& v,
+    const float anchor)
   {
-    const float m = positions.back();
-    reverse(positions.begin(), positions.end());
-    for (unsigned i = 0; i < positions.size(); i++)
-      positions[i] = m - positions[i];
+    reverse(v.begin(), v.end());
+    for (unsigned i = 0; i < v.size(); i++)
+        v[i] = anchor - v[i];
   };
 
-  void reverseCarNumbers()
+  void mirrorInt(
+    vector<int>& v,
+    const int anchor)
   {
-    const unsigned m = numCars - 1;
-    reverse(carNumbers.begin(), carNumbers.end());
-    for (unsigned i = 0; i < carNumbers.size(); i++)
-      carNumbers[i] = m - carNumbers[i];
+    reverse(v.begin(), v.end());
+    for (unsigned i = 0; i < v.size(); i++)
+    {
+      if (v[i] != -1)
+        v[i] = anchor - v[i];
+    }
   };
 
-  void reversePeakNumbersInCar()
+  void mirrorPeaks(vector<int>& v)
   {
-    for (auto it = peakNumbersInCar.begin(); it != peakNumbersInCar.end();
-        it++)
+    reverse(v.begin(), v.end());
+    auto it = v.begin();
+    while (it != v.end())
     {
       // Reverse within each car individually.
-      auto it2 = it;
-      while (it2 != peakNumbersInCar.end() && * it == * it2)
+      auto it2 = next(it);
+      while (it2 != v.end() && * it > * it2)
         it2++;
 
       // [it, it2) is now a car.
-      const unsigned m = * prev(it2);
       reverse(it, it2);
-
-      for (auto it3 = it; it3 != it2; it3++)
-        * it3 = m - * it3;
+      it = it2;
     }
+  };
+
+  void reverseAll()
+  {
+    const int numCarsMinus1 = static_cast<int>(numCars-1);
+
+    PeaksInfo::mirrorFloat(positions, positions.back());
+    PeaksInfo::mirrorInt(carNumbers, numCars-1);
+    PeaksInfo::mirrorPeaks(peakNumbersInCar);
+
+    // The first and last wheels.
+    PeaksInfo::mirrorFloat(points, points[points.size()-2] - points[1]);
+    PeaksInfo::mirrorInt(carNumbersForPoints, numCars-1);
+    PeaksInfo::mirrorInt(peakNumbersForPoints, peakNumbers.back());
   };
 };
 

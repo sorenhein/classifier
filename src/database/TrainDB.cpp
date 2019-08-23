@@ -180,9 +180,7 @@ bool TrainDB::readFile(
     offTrainMap[entry.getString(TRAIN_OFFICIAL_NAME)] = entries.size();
     entries.push_back(entry);
 
-    peaksInfo.reversePositions();
-    peaksInfo.reverseCarNumbers();
-    peaksInfo.reversePeakNumbersInCar();
+    peaksInfo.reverseAll();
     trainInfo.push_back(peaksInfo);
   }
 

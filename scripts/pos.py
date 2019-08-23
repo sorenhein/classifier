@@ -162,7 +162,7 @@ def get_info(source):
     if tag == "TRAIN_MATCH":
       info.train = val
     elif tag == "WHEEL_DIAMETER":
-      info.diam = val
+      info.diam = int(val)
     elif tag == "SPEED":
       info.speed = val
     elif tag == "ACCEL":
@@ -200,6 +200,31 @@ def plot_composite(times, values, m, color):
   if times != "":
     matchdata = read_pieces(times, values, m)
     plt.plot(np.arange(0, len(matchdata)), matchdata, color)
+
+
+def plot_box(times, cars, info, level, color, colorMiss):
+  """Plot the complete stick diagram."""
+  ax = plt.gca()
+  basex, basey = ax.transData.transform((0, 0))
+  stepx, stepy = ax.transData.transform((info.diam/2, 1.))
+  oneRadius = stepx - basex
+  oneY = stepy - basey
+  print "oneRadius", oneRadius, "oneY", oneY
+
+  phis = np.linspace(0, 2*np.pi, 65)
+  for i in range(len(times)):
+    t = times[i]
+    c = cars[i]
+    print "Time", t, "car", c
+    x = t + (info.diam/2) * np.cos(phis)
+    y = level + (oneRadius / oneY) * np.sin(phis)
+    if c > 1000:
+      # Show as a miss
+      plt.plot(x, y, colorMiss)
+    elif c > 0:
+      # Show normally
+      plt.plot(x, y, color)
+
 
 
 def pos(sensorNo, n = 0):
@@ -289,7 +314,10 @@ def box(sensorNo, n = 0, d = "best"):
     print "Dist", info.dist
     print "Diam", info.diam
 
-    # plot_composite(matches.times[curr], matches.values[curr], m, 'r')
+    times = np.fromfile(matches.times[curr], dtype = np.uint32)
+    cars = np.fromfile(matches.cars[curr], dtype = np.uint32)
+
+    plot_box(times, cars, info, level, 'r', 'black')
 
     plt.draw()
     plt.pause(0.001)
