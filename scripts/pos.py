@@ -209,22 +209,14 @@ def plot_composite(times, values, m, color):
     plt.plot(np.arange(0, len(matchdata)), matchdata, color)
 
 
-def plot_box(times, cars, info, level, offset, color, colorMiss):
-  """Plot the complete stick diagram."""
-  ax = plt.gca()
-  basex, basey = ax.transData.transform((0, 0))
-  stepx, stepy = ax.transData.transform((info.diam/2, 1.))
-  oneRadius = stepx - basex
-  oneY = stepy - basey
-  print "oneRadius", oneRadius, "oneY", oneY
-
-  # Draw the wheel circles.
+def draw_wheels(times, cars, info, level, Yfactor, color, colorMiss):
+  """Draw the wheel circles."""
   phis = np.linspace(0, 2*np.pi, 65)
   for i in range(len(times)):
     t = times[i]
     c = cars[i]
     x = t + (info.diam/2) * np.cos(phis)
-    y = level + (oneRadius / oneY) * np.sin(phis)
+    y = level + Yfactor * np.sin(phis)
     if c > 1000:
       # Show as a miss
       plt.plot(x, y, colorMiss)
@@ -232,7 +224,9 @@ def plot_box(times, cars, info, level, offset, color, colorMiss):
       # Show normally
       plt.plot(x, y, color)
 
-  # Draw the horizontal lines at wheel level
+
+def draw_horizontal_low(times, cars, info, level, offset, color):
+  """Draw the horizontal lines at wheel level."""
   y = [level, level]
   for i in range(len(times)-1):
     c0 = cars[i]
@@ -246,8 +240,10 @@ def plot_box(times, cars, info, level, offset, color, colorMiss):
     x = [offset, times[1] - (info.diam/2 if cars[1] > 0 else 0)]
     plt.plot(x, y, color)
 
-  # Draw the vertical lines between cars
-  heightFull = 15 * (oneRadius / oneY)
+
+def draw_vertical_lines(times, cars, info, level, Yfactor, color):
+  """Draw the vertical lines between cars."""
+  heightFull = 15 * Yfactor
   walls = info.diam
   for i in range(len(times)):
     if cars[i] != 0:
@@ -266,7 +262,13 @@ def plot_box(times, cars, info, level, offset, color, colorMiss):
       plt.plot(x, y, color)
       x = [times[i] + walls/2, times[i] + walls/2]
       plt.plot(x, y, color)
-  
+
+
+def draw_horizontal_high(times, cars, info, level, offset, Yfactor, color):
+  """Draw the horizontal tops within cars."""
+  heightFull = 15 * Yfactor
+  walls = info.diam
+
   # Draw the horizontal tops within cars.
   firstFlag = 1
   y = [level + heightFull, level + heightFull]
@@ -286,8 +288,11 @@ def plot_box(times, cars, info, level, offset, color, colorMiss):
     x = [offset, firstBoundary - walls]
     plt.plot(x, y, color)
 
-  # Write the car numbers
+
+def draw_car_numbers(times, cars, level, offset, Yfactor, color):
+  """Write the car numbers."""
   firstFlag = 1
+  heightFull = 15 * Yfactor
   textLevel = level + heightFull/2
   carNumArgs['color'] = color
   for i in range(len(times)):
@@ -305,13 +310,33 @@ def plot_box(times, cars, info, level, offset, color, colorMiss):
       plt.text(pos, textLevel, cars[i+1], carNumArgs)
       break
 
-  # Write the text
+
+def draw_text(info, level, offset, Yfactor, color):
+  """Write the text."""
+  textStep = 15 * Yfactor
+  textLevel = level + textStep/2
   infoArgs['color'] = color
-  textStep = heightFull
   plt.text(offset, textLevel + 4 * textStep, info.train, infoArgs)
   plt.text(offset, textLevel + 3 * textStep, "dist = " + info.dist,infoArgs)
   plt.text(offset, textLevel + 2 * textStep, info.speed,infoArgs)
   plt.text(offset, textLevel + 1 * textStep, info.accel,infoArgs)
+
+
+def plot_box(times, cars, info, level, offset, color, colorMiss):
+  """Plot the complete stick diagram."""
+  ax = plt.gca()
+  basex, basey = ax.transData.transform((0, 0))
+  stepx, stepy = ax.transData.transform((info.diam/2, 1.))
+  oneRadius = stepx - basex
+  oneY = stepy - basey
+  Yfactor = oneRadius / oneY
+
+  draw_wheels(times, cars, info, level, Yfactor, color, colorMiss)
+  draw_horizontal_low(times, cars, info, level, offset, color)
+  draw_vertical_lines(times, cars, info, level, Yfactor, color)
+  draw_horizontal_high(times, cars, info, level, offset, Yfactor, color)
+  draw_car_numbers(times, cars, level, offset, Yfactor, color)
+  draw_text(info, level, offset, Yfactor, color)
 
 
 def pos(sensorNo, n = 0):
