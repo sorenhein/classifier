@@ -19,6 +19,18 @@ if platform.node() == 'CAD04':
 else:
   basedir = R"C:\Program Files (x86)\cygwin64\home\s.hein\mini_dataset_v012\data\sensors" + "\\"
 
+carNumArgs = {
+  'fontsize': 15, 
+  'ha': 'center', 
+  'va': 'center', 
+  'weight': 'bold'}
+
+infoArgs = {
+  'fontsize': 15, 
+  'ha': 'left', 
+  'va': 'center', 
+  'weight': 'bold'}
+
 class Files(object):
   raw = []
   times = []
@@ -30,7 +42,6 @@ class Info(object):
   accel = ""
   dist = ""
   diam = 0.
-
 
 rawdir = R"\pos" + "\\"
 timedir = R"\peak\times" + "\\"
@@ -69,7 +80,6 @@ def set_rawdict(rawlist, rawdict, rawoffsets):
     i += 1
 
   print("Have " + str(len(rawlist)) + " raw items")
-
 
 
 def match_up(rlist, mlist, rdir, mdir):
@@ -150,9 +160,6 @@ def get_level(source):
 
 
 def get_info(source):
-  # f = open(source, "r")
-  # contents = f.readLines()
-  # f.close()
   contents = [line.rstrip('\n') for line in open(source, "r")]
 
   info = Info()
@@ -202,7 +209,7 @@ def plot_composite(times, values, m, color):
     plt.plot(np.arange(0, len(matchdata)), matchdata, color)
 
 
-def plot_box(times, cars, info, level, color, colorMiss):
+def plot_box(times, cars, info, level, offset, color, colorMiss):
   """Plot the complete stick diagram."""
   ax = plt.gca()
   basex, basey = ax.transData.transform((0, 0))
@@ -211,11 +218,11 @@ def plot_box(times, cars, info, level, color, colorMiss):
   oneY = stepy - basey
   print "oneRadius", oneRadius, "oneY", oneY
 
+  # Draw the wheel circles.
   phis = np.linspace(0, 2*np.pi, 65)
   for i in range(len(times)):
     t = times[i]
     c = cars[i]
-    print "Time", t, "car", c
     x = t + (info.diam/2) * np.cos(phis)
     y = level + (oneRadius / oneY) * np.sin(phis)
     if c > 1000:
@@ -225,6 +232,86 @@ def plot_box(times, cars, info, level, color, colorMiss):
       # Show normally
       plt.plot(x, y, color)
 
+  # Draw the horizontal lines at wheel level
+  y = [level, level]
+  for i in range(len(times)-1):
+    c0 = cars[i]
+    t0 = times[i] + (info.diam/2 if c0 > 0 else 0)
+    c1 = cars[i+1]
+    t1 = times[i+1] - (info.diam/2 if c1 > 0 else 0)
+    x = [t0, t1]
+    plt.plot(x, y, color)
+  if cars[0] != 0:
+    # Draw a leading horizonal line
+    x = [offset, times[1] - (info.diam/2 if cars[1] > 0 else 0)]
+    plt.plot(x, y, color)
+
+  # Draw the vertical lines between cars
+  heightFull = 15 * (oneRadius / oneY)
+  walls = info.diam
+  for i in range(len(times)):
+    if cars[i] != 0:
+      continue
+    if i == 0:
+      x = [times[i], times[i]]
+      y = [level, level + heightFull]
+      plt.plot(x, y, color)
+    elif i == len(times)-1:
+      x = [times[i], times[i]]
+      y = [level, level + heightFull]
+      plt.plot(x, y, color)
+    else:
+      x = [times[i] - walls/2, times[i] - walls/2]
+      y = [level, level + heightFull]
+      plt.plot(x, y, color)
+      x = [times[i] + walls/2, times[i] + walls/2]
+      plt.plot(x, y, color)
+  
+  # Draw the horizontal tops within cars.
+  firstFlag = 1
+  y = [level + heightFull, level + heightFull]
+  for i in range(len(times)):
+    if cars[i] != 0:
+      continue
+    if firstFlag == 1:
+      firstBoundary = times[i] + (0 if i == 0 else walls/2)
+      prevBoundary = firstBoundary
+      firstFlag = 0
+    else:
+      x = [prevBoundary, times[i] - (0 if i == len(times)-1 else walls/2)]
+      plt.plot(x, y, color)
+      prevBoundary = times[i] + walls/2
+  if cars[0] != 0:
+    # Draw a horizontal top line to the left boundary
+    x = [offset, firstBoundary - walls]
+    plt.plot(x, y, color)
+
+  # Write the car numbers
+  firstFlag = 1
+  textLevel = level + heightFull/2
+  carNumArgs['color'] = color
+  for i in range(len(times)):
+    if cars[i] != 0:
+      continue
+    if i > 0 and firstFlag == 1:
+      # Partial first car
+      pos = (offset + times[i])/2
+      plt.text(pos, textLevel, cars[i-1], carNumArgs)
+    firstFlag = 0
+    for j in range(i+1, len(times)):
+      if cars[j] != 0:
+        continue
+      pos = (times[i] + times[j])/2
+      plt.text(pos, textLevel, cars[i+1], carNumArgs)
+      break
+
+  # Write the text
+  infoArgs['color'] = color
+  textStep = heightFull
+  plt.text(offset, textLevel + 4 * textStep, info.train, infoArgs)
+  plt.text(offset, textLevel + 3 * textStep, "dist = " + info.dist,infoArgs)
+  plt.text(offset, textLevel + 2 * textStep, info.speed,infoArgs)
+  plt.text(offset, textLevel + 1 * textStep, info.accel,infoArgs)
 
 
 def pos(sensorNo, n = 0):
@@ -308,16 +395,11 @@ def box(sensorNo, n = 0, d = "best"):
       continue
 
     info = get_info(matches.info[curr])
-    print "Train", info.train
-    print "Speed", info.speed
-    print "Accel", info.accel
-    print "Dist", info.dist
-    print "Diam", info.diam
 
     times = np.fromfile(matches.times[curr], dtype = np.uint32)
     cars = np.fromfile(matches.cars[curr], dtype = np.uint32)
 
-    plot_box(times, cars, info, level, 'r', 'black')
+    plot_box(times, cars, info, level, rawoffsets[curr], 'r', 'black')
 
     plt.draw()
     plt.pause(0.001)
