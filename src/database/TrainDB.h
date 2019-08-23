@@ -104,6 +104,7 @@ class TrainDB
     unsigned size() const;
     unsigned numAxles(const unsigned trainNo) const;
     unsigned numCars(const unsigned trainNo) const;
+    float length(const unsigned trainNo) const;
 
     int lookupNumber(const string& offName) const;
     string lookupName(const unsigned trainNo) const;

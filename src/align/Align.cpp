@@ -740,10 +740,21 @@ void Align::writeTrainBox(
   writeBinaryUnsigned(dir + "/" + control.carsName() + "/" + filename, 
     refPeakTypes);
 
+  // Estimate duration of wheel in samples.
+  // A typical wheel has a diameter of 0.9m.
+  const float mid = trainDB.length(match.trainNo) / 2.f;
+  unsigned w0, w1;
+  match.motion.pos2time(mid, sampleRate, w0);
+  match.motion.pos2time(mid + 0.9f, sampleRate, w1);
+  
+
   stringstream ss;
-  ss << "WHEEL_DIAMETER 0.9\n"; // Typical value for box plot
-  ss << "DIST_MATCH " << fixed << setprecision(2) <<
-    match.distMatch << "\n";
+  ss << 
+    "TRAIN_MATCH " << match.trainName << "\n" <<
+    "WHEEL_DIAMETER " << fixed << setprecision(2) << w1-w0 << "\n" <<
+    "SPEED " << match.motion.strSpeed() << "\n" <<
+    "ACCEL " << match.motion.strAccel()  << "\n"<<
+    "DIST_MATCH " << match.distMatch << "\n";
 
   writeString(dir + "/" + control.infoName() + "/" + filename, ss.str());
 }

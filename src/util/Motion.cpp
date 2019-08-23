@@ -92,15 +92,33 @@ string Motion::strLine(
 }
 
 
+string Motion::strSpeed() const
+{
+  stringstream ss;
+  ss <<
+    setw(8) << right << fixed << setprecision(2) << estimate[1] << 
+      " m/s   = " <<
+    setw(8) << MS_TO_KMH * estimate[1] << " km/h";
+  return ss.str();
+}
+
+
+string Motion::strAccel() const
+{
+  stringstream ss;
+  ss <<
+    setw(8) << right << fixed << setprecision(2) << 2.f * estimate[2] << 
+      " m/s^2 = " <<
+    setw(8) << 2.f * estimate[2] / G_FORCE << " g";
+  return ss.str();
+}
+
+
 string Motion::strEstimate(const string& title) const
 {
   stringstream ss;
   ss << title << "\n";
-  ss <<
-    setw(16) << left << "Speed" <<
-    setw(8) << right << fixed << setprecision(2) << estimate[1] << 
-      " m/s   = " <<
-    setw(8) << MS_TO_KMH * estimate[1] << " km/h\n";
+  ss << setw(16) << left << "Speed" << Motion::strSpeed() << "\n";
 
   // The regression coefficients are of the form:
   //   position = c2 * time^2 + c1 * time + c0.
@@ -110,11 +128,7 @@ string Motion::strEstimate(const string& title) const
   // 
   // As we store the regression coefficients here, a = 2 * c2.
 
-  ss <<
-    setw(16) << left << "Acceleration" <<
-    setw(8) << right << fixed << setprecision(2) << 2.f * estimate[2] << 
-      " m/s^2 = " <<
-    setw(8) << 2.f * estimate[2] / G_FORCE << " g\n";
+  ss << setw(16) << left << "Acceleration" << Motion::strAccel() << "\n";
 
   return ss.str() + "\n";
 }

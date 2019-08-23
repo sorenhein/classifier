@@ -32,6 +32,9 @@ struct Motion
     const float act,
     const float est) const;
 
+  string strSpeed() const;
+  string strAccel() const;
+
   string strEstimate(const string& title) const;
 
   string strBothHeader() const;

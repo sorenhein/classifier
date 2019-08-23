@@ -223,6 +223,14 @@ unsigned TrainDB::numCars(const unsigned trainNo) const
 }
 
 
+float TrainDB::length(const unsigned trainNo) const
+{
+  assert(trainNo < trainInfo.size());
+  return trainInfo[trainNo].points.back() -
+    trainInfo[trainNo].points.front();
+}
+
+
 int TrainDB::lookupNumber(const string& offName) const
 {
   auto it = offTrainMap.find(offName);
