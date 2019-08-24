@@ -1,27 +1,8 @@
 Possible new outputs
 --------------------
-- Align::writeBox
-  INFO
-    distMatch
-    train start in samples
-    train end in samples
-    wheel radius in samples
-
-- peak
-  - first
-  - true (if different)
-  - second (if different from both)
-    - n
-    - s
-- box
-  - first, etc.
-    - n
-    - c (1-4; 0 = begin/end)
-    - A single level, how to encode?
-- Does offset somehow go into the n's or into the filename?
-
-Files get a lot smaller, hence the writing faster?
-
+- Show the detected peaks as well
+- Move to green
+- No infinite loop if e.g. second is not present
 
 Align
 -----

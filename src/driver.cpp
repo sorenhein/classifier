@@ -55,10 +55,6 @@ int main(int argc, char * argv[])
 {
   setup(argc, argv, control, trainDB, traceDB);
 
-Crosses crosses;
-crosses.log(trainDB);
-cout << crosses.strTrue();
-
   sensorStatsList.resize(control.numThreads());
   crossStatsList.resize(control.numThreads());
   trainStatsList.resize(control.numThreads());

@@ -154,11 +154,6 @@ def read_pieces(timefile, valuefile, lr):
   return matchdata
 
 
-def get_level(source):
-  values = np.fromfile(source, dtype = np.float32)
-  return sum(values) / len(values)
-
-
 def get_info(source):
   contents = [line.rstrip('\n') for line in open(source, "r")]
 
@@ -199,7 +194,20 @@ def plot_raw(rawfiles, rawoffsets, rawdir, curr):
   x = np.arange(o, o + lr)
   plt.plot(x, rawdata, 'b')
 
+  axisdata = [0] * lr
+  plt.plot(x, axisdata, 'black')
+
   return o + lr
+
+
+def plot_values(values, level):
+  """Plot vertical lines at the peaks down to the train."""
+  for v in values:
+    print "v", v
+    x = [v, v]
+    y = [level, 0]
+    plt.plot(x, y, 'black', linewidth = 3)
+    
 
 
 def plot_composite(times, values, m, color):
@@ -211,6 +219,20 @@ def plot_composite(times, values, m, color):
 
 def draw_wheels(times, cars, info, level, Yfactor, color, colorMiss):
   """Draw the wheel circles."""
+  # This would be pretty, but doesn't rescale well.
+  """
+  xhit = []
+  xmiss = []
+  for i in range(len(times)):
+    if cars[i] > 1000:
+      xmiss.append(times[i])
+    elif cars[i] > 0:
+      xhit.append(times[i])
+  area = np.pi * oneRadius * oneRadius
+  plt.scatter(xhit, [level] * len(xhit), area, color)
+  plt.scatter(xmiss, [level] * len(xmiss), area, colorMiss)
+  """
+
   phis = np.linspace(0, 2*np.pi, 65)
   for i in range(len(times)):
     t = times[i]
@@ -219,10 +241,10 @@ def draw_wheels(times, cars, info, level, Yfactor, color, colorMiss):
     y = level + Yfactor * np.sin(phis)
     if c > 1000:
       # Show as a miss
-      plt.plot(x, y, colorMiss)
+      plt.fill(x, y, colorMiss)
     elif c > 0:
       # Show normally
-      plt.plot(x, y, color)
+      plt.fill(x, y, color)
 
 
 def draw_horizontal_low(times, cars, info, level, offset, color):
@@ -386,6 +408,7 @@ def box(sensorNo, n = 0, d = "best"):
 
   files = Files()
   files.raw = glob.glob(sensordir + rawdir + "*" + extension)
+  files.peaktimes = glob.glob(sensordir + timedir + "*" + extension)
   files.values = glob.glob(sensordir + valuedir + "*" + extension)
   files.times = glob.glob(sensordir + boxtimes + "*" + extension)
   files.cars = glob.glob(sensordir + boxcars + "*" + extension)
@@ -396,6 +419,7 @@ def box(sensorNo, n = 0, d = "best"):
   set_rawdict(files.raw, rawdict, rawoffsets)
 
   matches = Files()
+  matches.peaktimes = match_up(rawdict, files.peaktimes, rawdir, timedir)
   matches.values = match_up(rawdict, files.values, rawdir, valuedir)
   matches.times = match_up(rawdict, files.times, rawdir, boxtimes)
   matches.cars = match_up(rawdict, files.cars, rawdir, boxcars)
@@ -412,7 +436,11 @@ def box(sensorNo, n = 0, d = "best"):
       print "No peaks"
       continue
 
-    level = get_level(matches.values[curr])
+    values = np.fromfile(matches.values[curr], dtype = np.float32)
+    level = sum(values) / len(values)
+
+    peaktimes = np.fromfile(matches.peaktimes[curr], dtype = np.uint32)
+    plot_values(peaktimes, level)
 
     if matches.info[curr] == "":
       print "No info file"
