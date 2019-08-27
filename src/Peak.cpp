@@ -51,7 +51,7 @@ void Peak::reset()
 
   qualityPeak = 0.f;
   qualityShape = 0.f;
-  qualityWhole = 10.f; // TODO Kludge
+  qualityWhole = 0.f;
 
   selectFlag = false;
 
@@ -263,6 +263,7 @@ void Peak::calcQualities(const vector<Peak>& scales)
 {
   float distPeakMin = numeric_limits<float>::max();
   float distShapeMin = numeric_limits<float>::max();
+  float distWholeMin = numeric_limits<float>::max();
 
   for (auto& scale: scales)
   {
@@ -273,10 +274,15 @@ void Peak::calcQualities(const vector<Peak>& scales)
     const float dShape = Peak::calcQualityShape(scale);
     if (dShape < distShapeMin)
       distShapeMin = dShape;
+
+    const float dWhole = dShape + Peak::calcQualityLevel(scale);
+    if (dWhole < distWholeMin)
+      distWholeMin = dWhole;
   }
 
   qualityPeak = distPeakMin;
   qualityShape = distShapeMin;
+  qualityWhole = distWholeMin;
 }
 
 
