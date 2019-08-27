@@ -1,5 +1,9 @@
 /*
     Keeps track of correlations between true trains.
+    To use:
+     Crosses crosses;
+     cross.log(trainDB);
+     cout << crosses.strTrue();
  */
 
 #ifndef TRAIN_CROSSES_H

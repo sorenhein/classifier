@@ -51,6 +51,7 @@ void Peak::reset()
 
   qualityPeak = 0.f;
   qualityShape = 0.f;
+  qualityWhole = 10.f; // TODO Kludge
 
   selectFlag = false;
 
@@ -1063,6 +1064,12 @@ string Peak::strQualityWhole(
   return text + "\n" + 
     Peak::strHeaderQuality() +
     Peak::strQuality(offset);
+}
+
+
+float Peak::qualityTMP() const
+{
+  return qualityWhole;
 }
 
 

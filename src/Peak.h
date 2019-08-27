@@ -283,6 +283,8 @@ class Peak
 
     bool check() const;
 
+float qualityTMP() const;
+
     string strHeader() const;
     string strHeaderQuality() const;
 

@@ -93,7 +93,6 @@ void PeakSpacing::getSpacings(PeakPtrs& peakPtrsUsed)
     const PeakQuality pqSL = se.peakLeft->getQualityShape();
     const PeakQuality pqSR = se.peakRight->getQualityShape();
     se.qualityShapeLower = (pqSL >= pqSR ? pqSL : pqSR);
-
   }
 
   for (auto& sit: spacings)
