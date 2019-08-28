@@ -88,6 +88,10 @@ void Control::configure()
     { "CARS_NAME", CORRESPONDENCE_STRING, CTRL_CARS_NAME },
     // Example: values
     { "VALUES_NAME", CORRESPONDENCE_STRING, CTRL_VALUES_NAME },
+    // Example: refgrade
+    { "REFGRADE_NAME", CORRESPONDENCE_STRING, CTRL_REFGRADE_NAME },
+    // Example: peakgrade
+    { "PEAKGRADE_NAME", CORRESPONDENCE_STRING, CTRL_PEAKGRADE_NAME },
     // Example: info
     { "INFO_NAME", CORRESPONDENCE_STRING, CTRL_INFO_NAME },
 

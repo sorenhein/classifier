@@ -97,12 +97,13 @@ class Align
 
     void getBoxTraces(
       const TrainDB& trainDB,
+      const Alignment& match,
       const unsigned offset,
       const float sampleRate,
-      const string& trainName,
-      const vector<int>& actualToRef,
       vector<unsigned>& refTimes,
-      vector<unsigned>& refPeakTypes) const;
+      vector<unsigned>& refPeakTypes,
+      vector<float>& refGrades,
+      vector<float>& refPeaks) const;
 
     void writeTrainBox(
       const Control& control,

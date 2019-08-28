@@ -202,7 +202,7 @@ string Alignment::strTopResiduals() const
   for (auto& r: topResiduals)
   {
     ss << 
-      setw(6) << r.index <<
+      setw(6) << r.refIndex <<
       setw(8) << fixed << setprecision(2) << r.value <<
       setw(8) << fixed << setprecision(2) << r.valueSq <<
       setw(7) << fixed << setprecision(2) << 100. * r.frac << "%\n";

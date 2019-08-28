@@ -47,7 +47,7 @@ void ResidualStats::log(const Alignment& alignment)
 
   for (auto& re: alignment.residuals)
   {
-    const unsigned i = re.index;
+    const unsigned i = re.refIndex;
 
     sum[i] += re.value;
     sumSq[i] += re.valueSq;

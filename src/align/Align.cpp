@@ -138,7 +138,8 @@ void Align::storeResiduals(
       const float res = pos - y[p];
 
       const unsigned refIndex = static_cast<unsigned>(match.actualToRef[i]);
-      match.residuals[p].index = refIndex;
+      match.residuals[p].refIndex = refIndex;
+      match.residuals[p].actualIndex = i;
       match.residuals[p].value = res;
       match.residuals[p].valueSq = res * res;
 
@@ -567,7 +568,7 @@ string Align::strMatchingResiduals(
     // This works regardless.
     vector<float> pos(ma.numAxles);
     for (auto& re: ma.residuals)
-      pos[re.index] = re.value;
+      pos[re.refIndex] = re.value;
 
     for (unsigned i = 0; i < pos.size(); i++)
     {
@@ -616,27 +617,31 @@ Motion const * Align::getMatchingMotion(const string& trainName) const
 
 void Align::getBoxTraces(
   const TrainDB& trainDB,
+  const Alignment& match,
   const unsigned offset,
   const float sampleRate,
-  const string& trainName,
-  const vector<int>& actualToRef,
   vector<unsigned>& refTimes,
-  vector<unsigned>& refPeakTypes) const
+  vector<unsigned>& refPeakTypes,
+  vector<float>& refGrades,
+  vector<float>& peakGrades) const
 {
-  Motion const * motion = Align::getMatchingMotion(trainName);
+  Motion const * motion = Align::getMatchingMotion(match.trainName);
   if (motion == nullptr)
     return;
 
   const unsigned refNo = 
-    static_cast<unsigned>(trainDB.lookupNumber(trainName));
+    static_cast<unsigned>(trainDB.lookupNumber(match.trainName));
   const auto& pi = trainDB.getRefInfo(refNo);
   const vector<float>& refPeaks = pi.points;
   const vector<int>& refCars = pi.carNumbersForPoints;
   const vector<int>& refNumbers = pi.peakNumbersForPoints;
 
-  unsigned aNo = 0;
+  const auto& actualToRef = match.actualToRef;
+  const auto& residuals = match.residuals;
   unsigned n;
-  int i = 0;
+  int i = 0; // Index in refPeaks
+  unsigned aNo = 0; // Index in actualToRef
+  unsigned r = 0; // Index in residuals
 
   while (i < static_cast<int>(refPeaks.size()))
   {
@@ -662,6 +667,7 @@ void Align::getBoxTraces(
       // Boundary.
       refTimes.push_back(n + offset);
       refPeakTypes.push_back(0);
+      refGrades.push_back(0.f);
       i++;
     }
     else if (aNo == actualToRef.size() ||
@@ -670,6 +676,7 @@ void Align::getBoxTraces(
       // Reference peak not detected.
       refTimes.push_back(n + offset);
       refPeakTypes.push_back(numeric_limits<unsigned>::max());
+      refGrades.push_back(0.f);
       i++;
     }
     else if (actualToRef[aNo] == refNumbers[i])
@@ -677,8 +684,18 @@ void Align::getBoxTraces(
       // Use up the actual peak seen.
       refTimes.push_back(n + offset);
       refPeakTypes.push_back(static_cast<unsigned>(refCars[i]+1));
+
+      // Look for i/aNo in residuals.
+      const unsigned iu = static_cast<unsigned>(i);
+      while (r < residuals.size() && iu > residuals[r].refIndex)
+        r++;
+      assert(r < residuals.size() && iu == residuals[r].refIndex);
+      refGrades.push_back(residuals[r].valueSq);
+      peakGrades.push_back(residuals[r].valueSq);
+
       i++;
       aNo++;
+      r++;
     }
     else
       aNo++;
@@ -736,13 +753,19 @@ void Align::writeTrainBox(
 
   vector<unsigned> refTimes;
   vector<unsigned> refPeakTypes;
-  Align::getBoxTraces(trainDB, offset, sampleRate, match.trainName,
-    match.actualToRef, refTimes, refPeakTypes);
+  vector<float> refGrades;
+  vector<float> peakGrades;
+  Align::getBoxTraces(trainDB, match, offset, sampleRate,
+    refTimes, refPeakTypes, refGrades, peakGrades);
 
   writeBinaryUnsigned(dir + "/" + control.timesName() + "/" + filename, 
     refTimes);
   writeBinaryUnsigned(dir + "/" + control.carsName() + "/" + filename, 
     refPeakTypes);
+  writeBinaryFloat(dir + "/" + control.refGradeName() + "/" + filename, 
+    refGrades);
+  writeBinaryFloat(dir + "/" + control.peakGradeName() + "/" + filename, 
+    peakGrades);
 
   // Estimate duration of wheel in samples.
   // A typical wheel has a diameter of 0.9m.

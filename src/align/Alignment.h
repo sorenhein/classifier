@@ -16,7 +16,8 @@ using namespace std;
 
 struct RegrEntry
 {
-  unsigned index;
+  unsigned refIndex;
+  unsigned actualIndex;
   float value;
   float valueSq;
   float frac;
