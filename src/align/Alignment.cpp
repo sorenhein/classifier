@@ -74,28 +74,29 @@ void Alignment::setTopResiduals()
   if (residuals.empty())
     return;
 
-  sort(residuals.rbegin(), residuals.rend());
+  topResiduals = residuals;
+  sort(topResiduals.rbegin(), topResiduals.rend());
 
-  const unsigned lr = residuals.size();
+  const unsigned lr = topResiduals.size();
   const float average = distMatch / lr;
 
   unsigned i = 0;
   unsigned last = numeric_limits<unsigned>::max();
-  while (i+1 < lr && residuals[i].valueSq > 2. * average)
+  while (i+1 < lr && topResiduals[i].valueSq > 2. * average)
   {
-    if (residuals[i].valueSq > residuals[i+1].valueSq + 0.5 * average)
+    if (topResiduals[i].valueSq > topResiduals[i+1].valueSq + 0.5 * average)
       last = i;
     i++;
   }
 
-  topResiduals.clear();
-  if (last != numeric_limits<unsigned>::max())
+  if (last == numeric_limits<unsigned>::max())
+    topResiduals.clear();
+  else
   {
     for (i = 0; i <= last; i++)
-    {
-      residuals[i].frac = residuals[i].valueSq / distMatch;
-      topResiduals.push_back(residuals[i]);
-    }
+      topResiduals[i].frac = topResiduals[i].valueSq / distMatch;
+    
+    topResiduals.resize(last+1);
   }
 }
 

@@ -453,7 +453,8 @@ bool Align::realign(
 
 void Align::regress(
   const TrainDB& trainDB,
-  const vector<float>& times)
+  const vector<float>& times,
+  const bool topFlag)
 {
   float bestDist = numeric_limits<float>::max();
 
@@ -469,7 +470,8 @@ void Align::regress(
     if (ma.dist < bestDist)
       bestDist = ma.dist;
 
-    ma.setTopResiduals();
+    if (topFlag)
+      ma.setTopResiduals();
   }
 
   sort(matches.begin(), matches.end());

@@ -380,7 +380,8 @@ void run(
     // Run the regression with the given alignment.
     timers[thid].start(TIMER_REGRESS);
 
-    align.regress(trainDB, peaksInfo.times);
+    align.regress(trainDB, peaksInfo.times, 
+      control.verboseRegressTopResiduals());
     cout << align.strRegress(control);
 
 

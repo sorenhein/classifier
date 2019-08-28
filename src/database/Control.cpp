@@ -384,6 +384,18 @@ const string& Control::valuesName() const
 }
 
 
+const string& Control::refGradeName() const
+{
+  return entry.getString(CTRL_REFGRADE_NAME);
+}
+
+
+const string& Control::peakGradeName() const
+{
+  return entry.getString(CTRL_PEAKGRADE_NAME);
+}
+
+
 const string& Control::infoName() const
 {
   return entry.getString(CTRL_INFO_NAME);

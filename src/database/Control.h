@@ -37,28 +37,30 @@ enum ControlFieldStrings
   CTRL_TIMES_NAME = 18,
   CTRL_CARS_NAME = 19,
   CTRL_VALUES_NAME = 20,
-  CTRL_INFO_NAME = 21,
+  CTRL_REFGRADE_NAME = 21,
+  CTRL_PEAKGRADE_NAME = 22,
+  CTRL_INFO_NAME = 23,
 
-  CTRL_TRACE_DIRECTORY = 22,
-  CTRL_TRANSIENT_DIRECTORY = 23,
-  CTRL_BACK_DIRECTORY = 24,
-  CTRL_FRONT_DIRECTORY = 25,
-  CTRL_SPEED_DIRECTORY = 26,
-  CTRL_POS_DIRECTORY = 27,
-  CTRL_PEAK_DIRECTORY = 28,
-  CTRL_MATCH_DIRECTORY = 29,
-  CTRL_BOX_DIRECTORY = 30,
+  CTRL_TRACE_DIRECTORY = 24,
+  CTRL_TRANSIENT_DIRECTORY = 25,
+  CTRL_BACK_DIRECTORY = 26,
+  CTRL_FRONT_DIRECTORY = 27,
+  CTRL_SPEED_DIRECTORY = 28,
+  CTRL_POS_DIRECTORY = 29,
+  CTRL_PEAK_DIRECTORY = 30,
+  CTRL_MATCH_DIRECTORY = 31,
+  CTRL_BOX_DIRECTORY = 32,
 
-  CTRL_TRUTH_FILE = 31,
-  CTRL_EQUIV_FILE = 32,
+  CTRL_TRUTH_FILE = 33,
+  CTRL_EQUIV_FILE = 34,
 
-  CTRL_OUTPUT_DIRECTORY = 33,
+  CTRL_OUTPUT_DIRECTORY = 35,
 
-  CTRL_CONTROL_FILE = 34,
-  CTRL_PICK_FIRST = 35,
-  CTRL_PICK_ANY = 36,
-  CTRL_STATS_FILE = 37,
-  CTRL_STRINGS_SIZE = 38
+  CTRL_CONTROL_FILE = 36,
+  CTRL_PICK_FIRST = 37,
+  CTRL_PICK_ANY = 38,
+  CTRL_STATS_FILE = 39,
+  CTRL_STRINGS_SIZE = 40
 };
 
 enum ControlIntVectors
@@ -177,6 +179,8 @@ class Control
     const string& timesName() const;
     const string& carsName() const;
     const string& valuesName() const;
+    const string& refGradeName() const;
+    const string& peakGradeName() const;
     const string& infoName() const;
 
     const string& truthFile() const;

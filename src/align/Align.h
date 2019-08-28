@@ -146,7 +146,8 @@ class Align
 
     void regress(
       const TrainDB& trainDB,
-      const vector<float>& times);
+      const vector<float>& times,
+      const bool topFlag = false);
 
     void getBest(
       string& trainDetected,
