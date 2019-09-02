@@ -643,6 +643,8 @@ void Align::getBoxTraces(
   unsigned aNo = 0; // Index in actualToRef
   unsigned r = 0; // Index in residuals
 
+ // cout << "refPeaks size " << refPeaks.size() << ", a2r size " <<
+   // actualToRef.size() << endl;
   while (i < static_cast<int>(refPeaks.size()))
   {
     if (! motion->pos2time(refPeaks[i], sampleRate, n))
@@ -659,6 +661,9 @@ void Align::getBoxTraces(
       else
         break;
     }
+ // cout << "i " << i << ", Ano " << aNo << ", r " << r << ", refNumbers " <<
+   // refNumbers[i] << ", a2r " << actualToRef[aNo] << 
+   // ", residuals " << residuals[r].refIndex << endl;
 
     // Used peaks are 1-4 or 0 for boundary.
     // Missed peaks are max.
@@ -668,6 +673,7 @@ void Align::getBoxTraces(
       refTimes.push_back(n + offset);
       refPeakTypes.push_back(0);
       refGrades.push_back(0.f);
+ // cout << "Boundary" << endl;
       i++;
     }
     else if (aNo == actualToRef.size() ||
@@ -677,6 +683,7 @@ void Align::getBoxTraces(
       refTimes.push_back(n + offset);
       refPeakTypes.push_back(numeric_limits<unsigned>::max());
       refGrades.push_back(0.f);
+ // cout << "Reference not detected" << endl;
       i++;
     }
     else if (actualToRef[aNo] == refNumbers[i])
@@ -686,10 +693,12 @@ void Align::getBoxTraces(
       refPeakTypes.push_back(static_cast<unsigned>(refCars[i]+1));
 
       // Look for i/aNo in residuals.
-      const unsigned iu = static_cast<unsigned>(i);
-      while (r < residuals.size() && iu > residuals[r].refIndex)
+      const unsigned ru = static_cast<unsigned>(refNumbers[i]);
+ // cout << "Starting on match, i " << i << ", r " << r << endl;
+      while (r < residuals.size() && ru > residuals[r].refIndex)
         r++;
-      assert(r < residuals.size() && iu == residuals[r].refIndex);
+ // cout << "r now " << r << endl;
+      assert(r < residuals.size() && ru == residuals[r].refIndex);
       refGrades.push_back(residuals[r].valueSq);
       peakGrades.push_back(residuals[r].valueSq);
 
@@ -700,6 +709,7 @@ void Align::getBoxTraces(
     else
       aNo++;
   }
+// cout << "DONE" << endl;
 }
 
 
@@ -750,6 +760,11 @@ void Align::writeTrainBox(
 {
   // Write data that can be used to plot a "stick drawing" of the
   // reference train in the time domain.
+
+  // Candidate train may not have been examined in detail as it could
+  // not win.
+  if (match.residuals.empty())
+    return;
 
   vector<unsigned> refTimes;
   vector<unsigned> refPeakTypes;

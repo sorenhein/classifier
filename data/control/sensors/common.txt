@@ -26,6 +26,8 @@ SECOND_LEAFDIR second
 TIMES_NAME times
 CARS_NAME cars
 VALUES_NAME values
+REFGRADE_NAME refgrade
+PEAKGRADE_NAME peakgrade
 INFO_NAME info
 
 # Output text files (files go to OUTPUT_DIRECTORY).
