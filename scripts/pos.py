@@ -35,6 +35,8 @@ class Files(object):
   raw = []
   times = []
   values = []
+  refgrade = []
+  peakgrade = []
 
 class Info(object):
   train = ""
@@ -46,11 +48,18 @@ class Info(object):
 rawdir = R"\pos" + "\\"
 timedir = R"\peak\times" + "\\"
 valuedir = R"\peak\values" + "\\"
+
 boxdir = R"\box" + "\\"
 timessub = R"\times" + "\\"
 carssub = R"\cars" + "\\"
 infosub = R"\info" + "\\"
+peakgradesub = R"\peakgrade" + "\\"
+refgradesub = R"\refgrade" + "\\"
+
 extension = ".dat"
+
+singlepeakgreat = 0.04
+singlepeakgood = 0.12
 
 
 def remove_offset(text):
@@ -200,13 +209,24 @@ def plot_raw(rawfiles, rawoffsets, rawdir, curr):
   return o + lr
 
 
-def plot_values(values, level):
+def peak_color(value):
+  if value <= singlepeakgreat:
+    return "g"
+  elif value <= singlepeakgood:
+    return "y"
+  else:
+    return "r"
+
+
+def plot_values(values, grades, level):
   """Plot vertical lines at the peaks down to the train."""
-  for v in values:
-    print "v", v
+  # for v in values:
+  for i in range(len(values)):
+    v = values[i]
     x = [v, v]
     y = [level, 0]
-    plt.plot(x, y, 'black', linewidth = 3)
+    plt.plot(x, y, peak_color(grades[i]), linewidth = 3)
+    # plt.plot(x, y, 'black', linewidth = 3)
     
 
 
@@ -217,7 +237,7 @@ def plot_composite(times, values, m, color):
     plt.plot(np.arange(0, len(matchdata)), matchdata, color)
 
 
-def draw_wheels(times, cars, info, level, Yfactor, color, colorMiss):
+def draw_wheels(times, cars, info, refgrades, level, Yfactor, colorMiss):
   """Draw the wheel circles."""
   # This would be pretty, but doesn't rescale well.
   """
@@ -234,6 +254,7 @@ def draw_wheels(times, cars, info, level, Yfactor, color, colorMiss):
   """
 
   phis = np.linspace(0, 2*np.pi, 65)
+  j = 0
   for i in range(len(times)):
     t = times[i]
     c = cars[i]
@@ -244,7 +265,8 @@ def draw_wheels(times, cars, info, level, Yfactor, color, colorMiss):
       plt.fill(x, y, colorMiss)
     elif c > 0:
       # Show normally
-      plt.fill(x, y, color)
+      plt.fill(x, y, peak_color(refgrades[j]))
+      j = j+1
 
 
 def draw_horizontal_low(times, cars, info, level, offset, color):
@@ -344,7 +366,8 @@ def draw_text(info, level, offset, Yfactor, color):
   plt.text(offset, textLevel + 1 * textStep, info.accel,infoArgs)
 
 
-def plot_box(times, cars, info, level, offset, color, colorMiss):
+def plot_box(times, cars, info, refgrades,
+  level, offset, color, colorMiss):
   """Plot the complete stick diagram."""
   ax = plt.gca()
   basex, basey = ax.transData.transform((0, 0))
@@ -353,7 +376,7 @@ def plot_box(times, cars, info, level, offset, color, colorMiss):
   oneY = stepy - basey
   Yfactor = oneRadius / oneY
 
-  draw_wheels(times, cars, info, level, Yfactor, color, colorMiss)
+  draw_wheels(times, cars, info, refgrades, level, Yfactor, colorMiss)
   draw_horizontal_low(times, cars, info, level, offset, color)
   draw_vertical_lines(times, cars, info, level, Yfactor, color)
   draw_horizontal_high(times, cars, info, level, offset, Yfactor, color)
@@ -405,6 +428,8 @@ def box(sensorNo, n = 0, d = "best"):
   boxtimes =  boxdir + d + "\\" + timessub
   boxcars =  boxdir + d + "\\" + carssub
   boxinfo =  boxdir + d + "\\" + infosub
+  boxrefgrade =  boxdir + d + "\\" + peakgradesub
+  boxpeakgrade =  boxdir + d + "\\" + refgradesub
 
   files = Files()
   files.raw = glob.glob(sensordir + rawdir + "*" + extension)
@@ -413,6 +438,8 @@ def box(sensorNo, n = 0, d = "best"):
   files.times = glob.glob(sensordir + boxtimes + "*" + extension)
   files.cars = glob.glob(sensordir + boxcars + "*" + extension)
   files.info = glob.glob(sensordir + boxinfo + "*" + extension)
+  files.refgrade = glob.glob(sensordir + boxrefgrade + "*" + extension)
+  files.peakgrade = glob.glob(sensordir + boxpeakgrade + "*" + extension)
 
   rawdict = {}
   rawoffsets = {}
@@ -424,6 +451,8 @@ def box(sensorNo, n = 0, d = "best"):
   matches.times = match_up(rawdict, files.times, rawdir, boxtimes)
   matches.cars = match_up(rawdict, files.cars, rawdir, boxcars)
   matches.info = match_up(rawdict, files.info, rawdir, boxinfo)
+  matches.refgrade = match_up(rawdict, files.refgrade, rawdir, boxrefgrade)
+  matches.peakgrade = match_up(rawdict, files.peakgrade, rawdir, boxpeakgrade)
 
   plt.ion()
   plt.show()
@@ -436,22 +465,34 @@ def box(sensorNo, n = 0, d = "best"):
       print "No peaks"
       continue
 
+    if matches.info[curr] == "":
+      print "No info file"
+      continue
+
     values = np.fromfile(matches.values[curr], dtype = np.float32)
     level = sum(values) / len(values)
 
     peaktimes = np.fromfile(matches.peaktimes[curr], dtype = np.uint32)
-    plot_values(peaktimes, level)
-
-    if matches.info[curr] == "":
-      print "No info file"
-      continue
 
     info = get_info(matches.info[curr])
 
     times = np.fromfile(matches.times[curr], dtype = np.uint32)
     cars = np.fromfile(matches.cars[curr], dtype = np.uint32)
+    refgrades = np.fromfile(matches.refgrade[curr], dtype = np.float32)
+    peakgrades = np.fromfile(matches.peakgrade[curr], dtype = np.float32)
 
-    plot_box(times, cars, info, level, rawoffsets[curr], 'r', 'black')
+    print "values", len(values)
+    print "peaktimes", len(peaktimes)
+    print "times", len(times)
+    print "cars", len(cars)
+    print "refgrades", len(refgrades)
+    print "peakgrades", len(peakgrades)
+
+
+    plot_values(peaktimes, peakgrades, level)
+
+    plot_box(times, cars, info, refgrades,
+      level, rawoffsets[curr], 'r', 'black')
 
     plt.draw()
     plt.pause(0.001)
