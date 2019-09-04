@@ -33,7 +33,7 @@ infoArgs = {
 
 class Files(object):
   raw = []
-  times = []
+  reftimes = []
   values = []
   refgrade = []
   peakgrade = []
@@ -213,7 +213,7 @@ def peak_color(value):
   if value <= singlepeakgreat:
     return "g"
   elif value <= singlepeakgood:
-    return "y"
+    return '#ff8c00'
   else:
     return "r"
 
@@ -230,33 +230,32 @@ def plot_values(values, grades, level):
     
 
 
-def plot_composite(times, values, m, color):
-  """Plot a composite of values vs. times as a complete trace."""
-  if times != "":
-    matchdata = read_pieces(times, values, m)
+def plot_composite(reftimes, values, m, color):
+  """Plot a composite of values vs. reftimes as a complete trace."""
+  if reftimes != "":
+    matchdata = read_pieces(reftimes, values, m)
     plt.plot(np.arange(0, len(matchdata)), matchdata, color)
 
 
-def draw_wheels(times, cars, info, refgrades, level, Yfactor, colorMiss):
+def draw_wheels(reftimes, cars, info, refgrades, level, Yfactor, colorMiss):
   """Draw the wheel circles."""
   # This would be pretty, but doesn't rescale well.
   """
   xhit = []
   xmiss = []
-  for i in range(len(times)):
+  for i in range(len(reftimes)):
     if cars[i] > 1000:
-      xmiss.append(times[i])
+      xmiss.append(reftimes[i])
     elif cars[i] > 0:
-      xhit.append(times[i])
+      xhit.append(reftimes[i])
   area = np.pi * oneRadius * oneRadius
   plt.scatter(xhit, [level] * len(xhit), area, color)
   plt.scatter(xmiss, [level] * len(xmiss), area, colorMiss)
   """
 
   phis = np.linspace(0, 2*np.pi, 65)
-  j = 0
-  for i in range(len(times)):
-    t = times[i]
+  for i in range(len(reftimes)):
+    t = reftimes[i]
     c = cars[i]
     x = t + (info.diam/2) * np.cos(phis)
     y = level + Yfactor * np.sin(phis)
@@ -265,50 +264,49 @@ def draw_wheels(times, cars, info, refgrades, level, Yfactor, colorMiss):
       plt.fill(x, y, colorMiss)
     elif c > 0:
       # Show normally
-      plt.fill(x, y, peak_color(refgrades[j]))
-      j = j+1
+      plt.fill(x, y, peak_color(refgrades[i]))
 
 
-def draw_horizontal_low(times, cars, info, level, offset, color):
+def draw_horizontal_low(reftimes, cars, info, level, offset, color):
   """Draw the horizontal lines at wheel level."""
   y = [level, level]
-  for i in range(len(times)-1):
+  for i in range(len(reftimes)-1):
     c0 = cars[i]
-    t0 = times[i] + (info.diam/2 if c0 > 0 else 0)
+    t0 = reftimes[i] + (info.diam/2 if c0 > 0 else 0)
     c1 = cars[i+1]
-    t1 = times[i+1] - (info.diam/2 if c1 > 0 else 0)
+    t1 = reftimes[i+1] - (info.diam/2 if c1 > 0 else 0)
     x = [t0, t1]
     plt.plot(x, y, color)
   if cars[0] != 0:
     # Draw a leading horizontal line
-    x = [offset, times[0] - info.diam/2]
+    x = [offset, reftimes[0] - info.diam/2]
     plt.plot(x, y, color)
 
 
-def draw_vertical_lines(times, cars, info, level, Yfactor, color):
+def draw_vertical_lines(reftimes, cars, info, level, Yfactor, color):
   """Draw the vertical lines between cars."""
   heightFull = 15 * Yfactor
   walls = info.diam
-  for i in range(len(times)):
+  for i in range(len(reftimes)):
     if cars[i] != 0:
       continue
     if i == 0:
-      x = [times[i], times[i]]
+      x = [reftimes[i], reftimes[i]]
       y = [level, level + heightFull]
       plt.plot(x, y, color)
-    elif i == len(times)-1:
-      x = [times[i], times[i]]
+    elif i == len(reftimes)-1:
+      x = [reftimes[i], reftimes[i]]
       y = [level, level + heightFull]
       plt.plot(x, y, color)
     else:
-      x = [times[i] - walls/2, times[i] - walls/2]
+      x = [reftimes[i] - walls/2, reftimes[i] - walls/2]
       y = [level, level + heightFull]
       plt.plot(x, y, color)
-      x = [times[i] + walls/2, times[i] + walls/2]
+      x = [reftimes[i] + walls/2, reftimes[i] + walls/2]
       plt.plot(x, y, color)
 
 
-def draw_horizontal_high(times, cars, info, level, offset, Yfactor, color):
+def draw_horizontal_high(reftimes, cars, info, level, offset, Yfactor, color):
   """Draw the horizontal tops within cars."""
   heightFull = 15 * Yfactor
   walls = info.diam
@@ -316,41 +314,41 @@ def draw_horizontal_high(times, cars, info, level, offset, Yfactor, color):
   # Draw the horizontal tops within cars.
   firstFlag = 1
   y = [level + heightFull, level + heightFull]
-  for i in range(len(times)):
+  for i in range(len(reftimes)):
     if cars[i] != 0:
       continue
     if firstFlag == 1:
-      firstBoundary = times[i] + (0 if i == 0 else walls/2)
+      firstBoundary = reftimes[i] + (0 if i == 0 else walls/2)
       prevBoundary = firstBoundary
       firstFlag = 0
     else:
-      x = [prevBoundary, times[i] - (0 if i == len(times)-1 else walls/2)]
+      x = [prevBoundary, reftimes[i] - (0 if i == len(reftimes)-1 else walls/2)]
       plt.plot(x, y, color)
-      prevBoundary = times[i] + walls/2
+      prevBoundary = reftimes[i] + walls/2
   if cars[0] != 0:
     # Draw a horizontal top line to the left boundary
     x = [offset, firstBoundary - walls]
     plt.plot(x, y, color)
 
 
-def draw_car_numbers(times, cars, level, offset, Yfactor, color):
+def draw_car_numbers(reftimes, cars, level, offset, Yfactor, color):
   """Write the car numbers."""
   firstFlag = 1
   heightFull = 15 * Yfactor
   textLevel = level + heightFull/2
   carNumArgs['color'] = color
-  for i in range(len(times)):
+  for i in range(len(reftimes)):
     if cars[i] != 0:
       continue
     if i > 0 and firstFlag == 1:
       # Partial first car
-      pos = (offset + times[i])/2
+      pos = (offset + reftimes[i])/2
       plt.text(pos, textLevel, cars[i-1], carNumArgs)
     firstFlag = 0
-    for j in range(i+1, len(times)):
+    for j in range(i+1, len(reftimes)):
       if cars[j] != 0:
         continue
-      pos = (times[i] + times[j])/2
+      pos = (reftimes[i] + reftimes[j])/2
       plt.text(pos, textLevel, cars[i+1], carNumArgs)
       break
 
@@ -366,7 +364,7 @@ def draw_text(info, level, offset, Yfactor, color):
   plt.text(offset, textLevel + 1 * textStep, info.accel,infoArgs)
 
 
-def plot_box(times, cars, info, refgrades,
+def plot_box(reftimes, cars, info, refgrades,
   level, offset, color, colorMiss):
   """Plot the complete stick diagram."""
   ax = plt.gca()
@@ -376,11 +374,11 @@ def plot_box(times, cars, info, refgrades,
   oneY = stepy - basey
   Yfactor = oneRadius / oneY
 
-  draw_wheels(times, cars, info, refgrades, level, Yfactor, colorMiss)
-  draw_horizontal_low(times, cars, info, level, offset, color)
-  draw_vertical_lines(times, cars, info, level, Yfactor, color)
-  draw_horizontal_high(times, cars, info, level, offset, Yfactor, color)
-  draw_car_numbers(times, cars, level, offset, Yfactor, color)
+  draw_wheels(reftimes, cars, info, refgrades, level, Yfactor, colorMiss)
+  draw_horizontal_low(reftimes, cars, info, level, offset, color)
+  draw_vertical_lines(reftimes, cars, info, level, Yfactor, color)
+  draw_horizontal_high(reftimes, cars, info, level, offset, Yfactor, color)
+  draw_car_numbers(reftimes, cars, level, offset, Yfactor, color)
   draw_text(info, level, offset, Yfactor, color)
 
 
@@ -399,7 +397,7 @@ def pos(sensorNo, n = 0):
   set_rawdict(files.raw, rawdict, rawoffsets)
 
   matches = Files()
-  matches.times = match_up(rawdict, files.times, rawdir, timedir)
+  matches.reftimes = match_up(rawdict, files.times, rawdir, timedir)
   matches.values = match_up(rawdict, files.values, rawdir, valuedir)
 
   plt.ion()
@@ -408,12 +406,12 @@ def pos(sensorNo, n = 0):
   curr = guess_number(n, files.raw)
   while True:
     m = plot_raw(files.raw, rawoffsets, rawdir, curr)
-    plot_composite(matches.times[curr], matches.values[curr], m, 'r')
+    plot_composite(matches.reftimes[curr], matches.values[curr], m, 'r')
 
     plt.draw()
     plt.pause(0.001)
 
-    curr, done = get_user_input(curr, files.raw, matches.times)
+    curr, done = get_user_input(curr, files.raw, matches.reftimes)
     if done == 1:
       break
     if done == -1:
@@ -428,8 +426,8 @@ def box(sensorNo, n = 0, d = "best"):
   boxtimes =  boxdir + d + "\\" + timessub
   boxcars =  boxdir + d + "\\" + carssub
   boxinfo =  boxdir + d + "\\" + infosub
-  boxrefgrade =  boxdir + d + "\\" + peakgradesub
-  boxpeakgrade =  boxdir + d + "\\" + refgradesub
+  boxrefgrade =  boxdir + d + "\\" + refgradesub
+  boxpeakgrade =  boxdir + d + "\\" + peakgradesub
 
   files = Files()
   files.raw = glob.glob(sensordir + rawdir + "*" + extension)
@@ -448,7 +446,7 @@ def box(sensorNo, n = 0, d = "best"):
   matches = Files()
   matches.peaktimes = match_up(rawdict, files.peaktimes, rawdir, timedir)
   matches.values = match_up(rawdict, files.values, rawdir, valuedir)
-  matches.times = match_up(rawdict, files.times, rawdir, boxtimes)
+  matches.reftimes = match_up(rawdict, files.times, rawdir, boxtimes)
   matches.cars = match_up(rawdict, files.cars, rawdir, boxcars)
   matches.info = match_up(rawdict, files.info, rawdir, boxinfo)
   matches.refgrade = match_up(rawdict, files.refgrade, rawdir, boxrefgrade)
@@ -476,14 +474,14 @@ def box(sensorNo, n = 0, d = "best"):
 
     info = get_info(matches.info[curr])
 
-    times = np.fromfile(matches.times[curr], dtype = np.uint32)
+    reftimes = np.fromfile(matches.reftimes[curr], dtype = np.uint32)
     cars = np.fromfile(matches.cars[curr], dtype = np.uint32)
     refgrades = np.fromfile(matches.refgrade[curr], dtype = np.float32)
     peakgrades = np.fromfile(matches.peakgrade[curr], dtype = np.float32)
 
     print "values", len(values)
     print "peaktimes", len(peaktimes)
-    print "times", len(times)
+    print "reftimes", len(reftimes)
     print "cars", len(cars)
     print "refgrades", len(refgrades)
     print "peakgrades", len(peakgrades)
@@ -491,13 +489,13 @@ def box(sensorNo, n = 0, d = "best"):
 
     plot_values(peaktimes, peakgrades, level)
 
-    plot_box(times, cars, info, refgrades,
+    plot_box(reftimes, cars, info, refgrades,
       level, rawoffsets[curr], 'r', 'black')
 
     plt.draw()
     plt.pause(0.001)
 
-    curr, done = get_user_input(curr, files.raw, matches.times)
+    curr, done = get_user_input(curr, files.raw, matches.reftimes)
     if done == 1:
       break
     if done == -1:
