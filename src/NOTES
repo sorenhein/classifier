@@ -3,6 +3,7 @@ Possible new outputs
 - Show the detected peaks as well
 - Move to green
 - No infinite loop if e.g. second is not present
+- Text right flush and with \n instead, single text?
 
 Align
 -----

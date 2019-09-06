@@ -682,7 +682,7 @@ void Align::getBoxTraces(
       // Reference peak not detected.
       refTimes.push_back(n + offset);
       refPeakTypes.push_back(numeric_limits<unsigned>::max());
-      refGrades.push_back(0.f);
+      refGrades.push_back(-1.f);
  // cout << "Reference not detected" << endl;
       i++;
     }

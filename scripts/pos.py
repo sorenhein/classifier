@@ -28,8 +28,11 @@ carNumArgs = {
 infoArgs = {
   'fontsize': 15, 
   'ha': 'left', 
-  'va': 'center', 
+  'va': 'bottom', 
   'weight': 'bold'}
+
+# The middle one is kind of a heavy orange
+trafficColors = [ 'g', '#ff8c00', 'r', 'black' ]
 
 class Files(object):
   raw = []
@@ -181,10 +184,36 @@ def get_info(source):
     elif tag == "DIST_MATCH":
       info.dist = val
     else:
-      print "Bad tag:", tag
+      print("Bad tag:", tag)
       raise SystemExit
 
   return info
+
+
+def peak_quality(value):
+  if value < 0:
+    return 3
+  elif value <= singlepeakgreat:
+    return 0
+  elif value <= singlepeakgood:
+    return 1
+  else:
+    return 2
+
+
+def make_car_colors(cars, refgrades):
+  m = 0
+  for c in cars:
+    if c > 0 and c < 100:
+      m = c
+  print("max", m)
+  carcolors = [0] * (m + 1)
+  for i in range(len(cars)):
+    if cars[i] == 0 or cars[i] >= 100:
+      continue
+    q = peak_quality(refgrades[i])
+    carcolors[cars[i]] += 10 ** q
+  print(carcolors)
 
 
 def plot_raw(rawfiles, rawoffsets, rawdir, curr):
@@ -210,12 +239,8 @@ def plot_raw(rawfiles, rawoffsets, rawdir, curr):
 
 
 def peak_color(value):
-  if value <= singlepeakgreat:
-    return "g"
-  elif value <= singlepeakgood:
-    return '#ff8c00'
-  else:
-    return "r"
+  q = peak_quality(value)
+  return trafficColors[q]
 
 
 def plot_values(values, grades, level):
@@ -358,10 +383,9 @@ def draw_text(info, level, offset, Yfactor, color):
   textStep = 15 * Yfactor
   textLevel = level + textStep/2
   infoArgs['color'] = color
-  plt.text(offset, textLevel + 4 * textStep, info.train, infoArgs)
-  plt.text(offset, textLevel + 3 * textStep, "dist = " + info.dist,infoArgs)
-  plt.text(offset, textLevel + 2 * textStep, info.speed,infoArgs)
-  plt.text(offset, textLevel + 1 * textStep, info.accel,infoArgs)
+
+  multitext = info.train + "\ndist = " + info.dist + "\n" + info.speed + "\n" + info.accel
+  plt.text(offset, textLevel + textStep, multitext, infoArgs)
 
 
 def plot_box(reftimes, cars, info, refgrades,
@@ -454,46 +478,58 @@ def box(sensorNo, n = 0, d = "best"):
 
   plt.ion()
   plt.show()
+
+  # [left, bottom, width, height]
+  plt.axis([0.05, 0.95, 0.05, 0.95])
   
   curr = guess_number(n, files.raw)
+  # print("m.peaktimes", len(matches.peaktimes))
+  # print("m.values", len(matches.values))
+  # print("m.reftimes", len(matches.reftimes))
+  # print("m.cars", len(matches.cars))
+  # print("m.info", len(matches.info))
+  # print("m.refgrade", len(matches.refgrade))
+  # print("m.peakgrade", len(matches.peakgrade))
+
   while True:
     m = plot_raw(files.raw, rawoffsets, rawdir, curr)
 
-    if matches.values[curr] == "":
-      print "No peaks"
-      continue
+    if matches.values[curr] == "" or matches.info[curr] == "":
+      print("No peaks or no info file")
+    else:
+      values = np.fromfile(matches.values[curr], dtype = np.float32)
+      peaktimes = np.fromfile(matches.peaktimes[curr], dtype = np.uint32)
 
-    if matches.info[curr] == "":
-      print "No info file"
-      continue
+      info = get_info(matches.info[curr])
 
-    values = np.fromfile(matches.values[curr], dtype = np.float32)
-    level = sum(values) / len(values)
+      reftimes = np.fromfile(matches.reftimes[curr], dtype = np.uint32)
+      cars = np.fromfile(matches.cars[curr], dtype = np.uint32)
+      refgrades = np.fromfile(matches.refgrade[curr], dtype = np.float32)
+      peakgrades = np.fromfile(matches.peakgrade[curr], dtype = np.float32)
 
-    peaktimes = np.fromfile(matches.peaktimes[curr], dtype = np.uint32)
+      if len(values) > len(peakgrades):
+        # Could happen that reference train is shorter than peaks seen.
+        d = len(values) - len(peakgrades)
+        values = values[d:]
+        peaktimes = peaktimes[d:]
 
-    info = get_info(matches.info[curr])
+      carcolors = make_car_colors(cars, refgrades)
 
-    reftimes = np.fromfile(matches.reftimes[curr], dtype = np.uint32)
-    cars = np.fromfile(matches.cars[curr], dtype = np.uint32)
-    refgrades = np.fromfile(matches.refgrade[curr], dtype = np.float32)
-    peakgrades = np.fromfile(matches.peakgrade[curr], dtype = np.float32)
+      print("values", len(values))
+      print("peaktimes", len(peaktimes))
+      print("reftimes", len(reftimes))
+      print("cars", len(cars))
+      print("refgrades", len(refgrades))
+      print("peakgrades", len(peakgrades))
 
-    print "values", len(values)
-    print "peaktimes", len(peaktimes)
-    print "reftimes", len(reftimes)
-    print "cars", len(cars)
-    print "refgrades", len(refgrades)
-    print "peakgrades", len(peakgrades)
+      level = sum(values) / len(values)
+      plot_values(peaktimes, peakgrades, level)
 
+      plot_box(reftimes, cars, info, refgrades,
+        level, rawoffsets[curr], 'r', 'black')
 
-    plot_values(peaktimes, peakgrades, level)
-
-    plot_box(reftimes, cars, info, refgrades,
-      level, rawoffsets[curr], 'r', 'black')
-
-    plt.draw()
-    plt.pause(0.001)
+      plt.draw()
+      plt.pause(0.001)
 
     curr, done = get_user_input(curr, files.raw, matches.reftimes)
     if done == 1:
