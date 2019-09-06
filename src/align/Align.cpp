@@ -681,7 +681,8 @@ void Align::getBoxTraces(
     {
       // Reference peak not detected.
       refTimes.push_back(n + offset);
-      refPeakTypes.push_back(numeric_limits<unsigned>::max());
+      // refPeakTypes.push_back(numeric_limits<unsigned>::max());
+      refPeakTypes.push_back(static_cast<unsigned>(refCars[i]+1));
       refGrades.push_back(-1.f);
  // cout << "Reference not detected" << endl;
       i++;

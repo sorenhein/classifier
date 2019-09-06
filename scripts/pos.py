@@ -201,19 +201,30 @@ def peak_quality(value):
     return 2
 
 
-def make_car_colors(cars, refgrades):
-  m = 0
-  for c in cars:
-    if c > 0 and c < 100:
-      m = c
-  print("max", m)
+def make_car_grades(cars, refgrades):
+  m = max(cars)
   carcolors = [0] * (m + 1)
   for i in range(len(cars)):
-    if cars[i] == 0 or cars[i] >= 100:
+    if cars[i] == 0:
       continue
     q = peak_quality(refgrades[i])
     carcolors[cars[i]] += 10 ** q
-  print(carcolors)
+  return carcolors
+
+
+def make_car_colors(cars, refgrades):
+  carcolors = make_car_grades(cars, refgrades)
+  for i in range(len(carcolors)):
+    if carcolors[i] > 0:
+      if carcolors[i] < 10 or carcolors[i] == 13:
+        carcolors[i] = trafficColors[0]
+      elif carcolors[i] < 100:
+        carcolors[i] = trafficColors[1]
+      elif carcolors[i] < 1000:
+        carcolors[i] = trafficColors[2]
+      else:
+        carcolors[i] = trafficColors[3]
+  return carcolors
 
 
 def plot_raw(rawfiles, rawoffsets, rawdir, curr):
@@ -356,24 +367,25 @@ def draw_horizontal_high(reftimes, cars, info, level, offset, Yfactor, color):
     plt.plot(x, y, color)
 
 
-def draw_car_numbers(reftimes, cars, level, offset, Yfactor, color):
+def draw_car_numbers(reftimes, cars, level, offset, Yfactor, carcolors):
   """Write the car numbers."""
   firstFlag = 1
   heightFull = 15 * Yfactor
   textLevel = level + heightFull/2
-  carNumArgs['color'] = color
   for i in range(len(reftimes)):
     if cars[i] != 0:
       continue
     if i > 0 and firstFlag == 1:
       # Partial first car
       pos = (offset + reftimes[i])/2
+      carNumArgs['color'] = carcolors[cars[i-1]]
       plt.text(pos, textLevel, cars[i-1], carNumArgs)
     firstFlag = 0
     for j in range(i+1, len(reftimes)):
       if cars[j] != 0:
         continue
       pos = (reftimes[i] + reftimes[j])/2
+      carNumArgs['color'] = carcolors[cars[i+1]]
       plt.text(pos, textLevel, cars[i+1], carNumArgs)
       break
 
@@ -389,7 +401,7 @@ def draw_text(info, level, offset, Yfactor, color):
 
 
 def plot_box(reftimes, cars, info, refgrades,
-  level, offset, color, colorMiss):
+  level, offset, color, colorMiss, carcolors):
   """Plot the complete stick diagram."""
   ax = plt.gca()
   basex, basey = ax.transData.transform((0, 0))
@@ -402,7 +414,7 @@ def plot_box(reftimes, cars, info, refgrades,
   draw_horizontal_low(reftimes, cars, info, level, offset, color)
   draw_vertical_lines(reftimes, cars, info, level, Yfactor, color)
   draw_horizontal_high(reftimes, cars, info, level, offset, Yfactor, color)
-  draw_car_numbers(reftimes, cars, level, offset, Yfactor, color)
+  draw_car_numbers(reftimes, cars, level, offset, Yfactor, carcolors)
   draw_text(info, level, offset, Yfactor, color)
 
 
@@ -515,18 +527,18 @@ def box(sensorNo, n = 0, d = "best"):
 
       carcolors = make_car_colors(cars, refgrades)
 
-      print("values", len(values))
-      print("peaktimes", len(peaktimes))
-      print("reftimes", len(reftimes))
-      print("cars", len(cars))
-      print("refgrades", len(refgrades))
-      print("peakgrades", len(peakgrades))
+      # print("values", len(values))
+      # print("peaktimes", len(peaktimes))
+      # print("reftimes", len(reftimes))
+      # print("cars", len(cars))
+      # print("refgrades", len(refgrades))
+      # print("peakgrades", len(peakgrades))
 
       level = sum(values) / len(values)
       plot_values(peaktimes, peakgrades, level)
 
       plot_box(reftimes, cars, info, refgrades,
-        level, rawoffsets[curr], 'r', 'black')
+        level, rawoffsets[curr], 'r', 'black', carcolors)
 
       plt.draw()
       plt.pause(0.001)
@@ -537,3 +549,74 @@ def box(sensorNo, n = 0, d = "best"):
     if done == -1:
       continue
   
+
+def carcheck():
+  first = dict()
+  later = dict()
+  firstex = dict()
+  laterex = dict()
+  d = "best"
+
+  for sensor in sensors:
+    sensordir = basedir + sensor
+    print("sensor", sensor)
+
+    boxcars =  boxdir + d + "\\" + carssub
+    boxrefgrade =  boxdir + d + "\\" + refgradesub
+
+    files = Files()
+    files.raw = glob.glob(sensordir + rawdir + "*" + extension)
+    files.cars = glob.glob(sensordir + boxcars + "*" + extension)
+    files.refgrade = glob.glob(sensordir + boxrefgrade + "*" + extension)
+
+    rawdict = {}
+    rawoffsets = {}
+    set_rawdict(files.raw, rawdict, rawoffsets)
+
+    matches = Files()
+    matches.cars = match_up(rawdict, files.cars, rawdir, boxcars)
+    matches.refgrade = match_up(rawdict, files.refgrade, rawdir, boxrefgrade)
+
+    for curr in range(len(files.raw)):
+      print("curr", curr)
+      
+      if matches.cars[curr] == "" or matches.refgrade[curr] == "":
+        print("No data")
+        continue
+
+      cars = np.fromfile(matches.cars[curr], dtype = np.uint32)
+      refgrades = np.fromfile(matches.refgrade[curr], dtype = np.float32)
+
+      carcolors = make_car_grades(cars, refgrades)
+
+      i = 1
+      while carcolors[i] == 0:
+        i += 1
+      s = str(carcolors[i])
+      if s in first:
+        first[s] += 1
+      else:
+        first[s] = 1
+      firstex[s] = sensor + "-" + str(curr)
+
+      for c in range(i+1, len(carcolors)):
+        s = str(carcolors[c])
+        if s in later:
+          later[s] += 1
+        else:
+          later[s] = 1
+        laterex[s] = sensor + "-" + str(curr)
+  
+  print("first")
+  for f in first:
+    print(f, first[f])
+  print("later")
+  for l in later:
+    print(l, later[l])
+  print("firstex")
+  for f in firstex:
+    print(f, firstex[f])
+  print("laterex")
+  for l in laterex:
+    print(l, laterex[l])
+
