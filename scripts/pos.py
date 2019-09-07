@@ -31,6 +31,9 @@ infoArgs = {
   'va': 'bottom', 
   'weight': 'bold'}
 
+valueWidth = 2
+boxWidth = 2
+
 # The middle one is kind of a heavy orange
 trafficColors = [ 'g', '#ff8c00', 'r', 'black' ]
 
@@ -261,7 +264,7 @@ def plot_values(values, grades, level):
     v = values[i]
     x = [v, v]
     y = [level, 0]
-    plt.plot(x, y, peak_color(grades[i]), linewidth = 3)
+    plt.plot(x, y, peak_color(grades[i]), linewidth = valueWidth)
     
 
 
@@ -302,23 +305,28 @@ def draw_wheels(reftimes, cars, info, refgrades, level, Yfactor, colorMiss):
       plt.fill(x, y, peak_color(refgrades[i]))
 
 
-def draw_horizontal_low(reftimes, cars, info, level, offset, color):
+def draw_horizontal_low(reftimes, cars, info, level, offset, carcolors):
   """Draw the horizontal lines at wheel level."""
   y = [level, level]
+  walls = info.diam
+
   for i in range(len(reftimes)-1):
     c0 = cars[i]
-    t0 = reftimes[i] + (info.diam/2 if c0 > 0 else 0)
+    t0 = reftimes[i] + walls/2
     c1 = cars[i+1]
-    t1 = reftimes[i+1] - (info.diam/2 if c1 > 0 else 0)
+    t1 = reftimes[i+1] - walls/2
+
     x = [t0, t1]
-    plt.plot(x, y, color)
+    cno = (c0 if c0 > 0 else c1)
+    plt.plot(x, y, carcolors[cno], linewidth = boxWidth)
+
   if cars[0] != 0:
     # Draw a leading horizontal line
-    x = [offset, reftimes[0] - info.diam/2]
-    plt.plot(x, y, color)
+    x = [offset, reftimes[0] - walls/2]
+    plt.plot(x, y, carcolors[cars[0]], linewidth = boxWidth)
 
 
-def draw_vertical_lines(reftimes, cars, info, level, Yfactor, color):
+def draw_vertical_lines(reftimes, cars, info, level, Yfactor, carcolors):
   """Draw the vertical lines between cars."""
   heightFull = 15 * Yfactor
   walls = info.diam
@@ -328,20 +336,21 @@ def draw_vertical_lines(reftimes, cars, info, level, Yfactor, color):
     if i == 0:
       x = [reftimes[i], reftimes[i]]
       y = [level, level + heightFull]
-      plt.plot(x, y, color)
+      plt.plot(x, y, carcolors[cars[i+1]], linewidth = boxWidth)
     elif i == len(reftimes)-1:
       x = [reftimes[i], reftimes[i]]
       y = [level, level + heightFull]
-      plt.plot(x, y, color)
+      plt.plot(x, y, carcolors[cars[i-1]], linewidth = boxWidth)
     else:
       x = [reftimes[i] - walls/2, reftimes[i] - walls/2]
       y = [level, level + heightFull]
-      plt.plot(x, y, color)
+      plt.plot(x, y, carcolors[cars[i-1]], linewidth = boxWidth)
       x = [reftimes[i] + walls/2, reftimes[i] + walls/2]
-      plt.plot(x, y, color)
+      plt.plot(x, y, carcolors[cars[i+1]], linewidth = boxWidth)
 
 
-def draw_horizontal_high(reftimes, cars, info, level, offset, Yfactor, color):
+def draw_horizontal_high(reftimes, cars, info, level, offset, Yfactor, 
+    carcolors):
   """Draw the horizontal tops within cars."""
   heightFull = 15 * Yfactor
   walls = info.diam
@@ -357,13 +366,14 @@ def draw_horizontal_high(reftimes, cars, info, level, offset, Yfactor, color):
       prevBoundary = firstBoundary
       firstFlag = 0
     else:
-      x = [prevBoundary, reftimes[i] - (0 if i == len(reftimes)-1 else walls/2)]
-      plt.plot(x, y, color)
+      x = [prevBoundary, reftimes[i] - \
+        (0 if i == len(reftimes)-1 else walls/2)]
+      plt.plot(x, y, carcolors[cars[i-1]], linewidth = boxWidth)
       prevBoundary = reftimes[i] + walls/2
   if cars[0] != 0:
     # Draw a horizontal top line to the left boundary
     x = [offset, firstBoundary - walls]
-    plt.plot(x, y, color)
+    plt.plot(x, y, carcolors[cars[0]], linewidth = boxWidth)
 
 
 def draw_car_numbers(reftimes, cars, level, offset, Yfactor, carcolors):
@@ -389,12 +399,11 @@ def draw_car_numbers(reftimes, cars, level, offset, Yfactor, carcolors):
       break
 
 
-def draw_text(info, peakcount, level, offset, Yfactor, color):
+def draw_text(info, peakcount, level, offset, Yfactor):
   """Write the text."""
   textStep = 15 * Yfactor
   textLevel = level + textStep/2
 
-  # infoArgs['color'] = color
   # Average should be better than a single value, so divide by 2.
   # Maybe it should be something more sophisticated.
   infoArgs['color'] = peak_color(float(info.dist) / (2 * peakcount))
@@ -415,11 +424,12 @@ def plot_box(reftimes, cars, info, refgrades,
   Yfactor = oneRadius / oneY
 
   draw_wheels(reftimes, cars, info, refgrades, level, Yfactor, colorMiss)
-  draw_horizontal_low(reftimes, cars, info, level, offset, color)
-  draw_vertical_lines(reftimes, cars, info, level, Yfactor, color)
-  draw_horizontal_high(reftimes, cars, info, level, offset, Yfactor, color)
+  draw_horizontal_low(reftimes, cars, info, level, offset, carcolors)
+  draw_vertical_lines(reftimes, cars, info, level, Yfactor, carcolors)
+  draw_horizontal_high(reftimes, cars, info, level, offset, Yfactor, 
+    carcolors)
   draw_car_numbers(reftimes, cars, level, offset, Yfactor, carcolors)
-  draw_text(info, peakcount, level, offset, Yfactor, color)
+  draw_text(info, peakcount, level, offset, Yfactor)
 
 
 def pos(sensorNo, n = 0):
