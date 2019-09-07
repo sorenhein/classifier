@@ -1,3 +1,5 @@
+- Be able to write a residual correction file
+
 Align
 -----
 - Have an retruth.txt to declare victory with
@@ -9,10 +11,6 @@ Align
     - Some cars are just known to have certain dimensions
 - Maybe go by #peaks swallowed in case of doubt, usually < 1 car
 
-- Hook up and ResidualStats and ResidualsStats
-- Write text output ("Stats: Residuals")
-- Write best, second (sometimes) and truth as peak diagrams
-- Be able to write a residual correction file
 - Be able to write a truth file
 
 Python
