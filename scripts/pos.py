@@ -334,11 +334,11 @@ def draw_vertical_lines(reftimes, cars, info, level, Yfactor, carcolors):
     if cars[i] != 0:
       continue
     if i == 0:
-      x = [reftimes[i], reftimes[i]]
+      x = [reftimes[i] + walls/2, reftimes[i] + walls/2]
       y = [level, level + heightFull]
       plt.plot(x, y, carcolors[cars[i+1]], linewidth = boxWidth)
     elif i == len(reftimes)-1:
-      x = [reftimes[i], reftimes[i]]
+      x = [reftimes[i] - walls/2, reftimes[i] - walls/2]
       y = [level, level + heightFull]
       plt.plot(x, y, carcolors[cars[i-1]], linewidth = boxWidth)
     else:
@@ -362,12 +362,12 @@ def draw_horizontal_high(reftimes, cars, info, level, offset, Yfactor,
     if cars[i] != 0:
       continue
     if firstFlag == 1:
-      firstBoundary = reftimes[i] + (0 if i == 0 else walls/2)
+      firstBoundary = reftimes[i] + walls/2
       prevBoundary = firstBoundary
       firstFlag = 0
     else:
-      x = [prevBoundary, reftimes[i] - \
-        (0 if i == len(reftimes)-1 else walls/2)]
+      x = [prevBoundary, reftimes[i] - walls/2]
+      #(0 if i == len(reftimes)-1 else walls/2)]
       plt.plot(x, y, carcolors[cars[i-1]], linewidth = boxWidth)
       prevBoundary = reftimes[i] + walls/2
   if cars[0] != 0:
@@ -549,6 +549,7 @@ def box(sensorNo, n = 0, d = "best"):
       # print("peakgrades", len(peakgrades))
 
       level = sum(values) / len(values)
+      plt.gca().set_ylim([1.33 * level, -0.50 * level])
       plot_values(peaktimes, peakgrades, level)
 
       plot_box(reftimes, cars, info, refgrades,
