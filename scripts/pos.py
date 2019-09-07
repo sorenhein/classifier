@@ -15,9 +15,11 @@ sensors = [
   '391705', '391710', '391711', '391718', '391731']
 
 if platform.node() == 'CAD04':
-  basedir = R"D:\cygwin64\home\heins\mini_dataset_v012\data\sensors" + "\\"
+  homedir = R"D:\cygwin64\home\heins" + "\\"
 else:
-  basedir = R"C:\Program Files (x86)\cygwin64\home\s.hein\mini_dataset_v012\data\sensors" + "\\"
+  homedir = R"C:\Program Files (x86)\cygwin64\home\s.hein" + "\\"
+
+basedir = homedir + R"mini_dataset_v012\data\sensors" + "\\"
 
 carNumArgs = {
   'fontsize': 15, 
@@ -635,4 +637,29 @@ def carcheck():
   print("laterex")
   for l in laterex:
     print(l, laterex[l])
+
+
+def resid(train):
+  fin = homedir + R"GitHub/Trains/src/residuals/" + train + ".dat"
+  whole = np.fromfile(fin, dtype = np.float32)
+
+  # Split it into three components
+  n = int(len(whole) / 3)
+  mean = whole[0:n]
+  lower = whole[n:2*n]
+  upper = whole[2*n:]
+
+  plt.ion()
+  plt.show()
+
+  plt.clf()
+  plt.title(train)
+    
+  x = np.arange(0, n)
+  plt.plot(x, mean, 'b')
+  plt.plot(x, lower, 'b', linestyle = 'dashed')
+  plt.plot(x, upper, 'b', linestyle = 'dashed')
+
+  axisdata = [0] * n
+  plt.plot(x, axisdata, 'black')
 

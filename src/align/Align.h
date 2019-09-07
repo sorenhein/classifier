@@ -150,6 +150,8 @@ class Align
       const vector<float>& times,
       const bool topFlag = false);
 
+    const Alignment& best() const;
+
     void getBest(
       string& trainDetected,
       float& distDetected) const;

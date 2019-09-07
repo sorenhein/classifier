@@ -479,6 +479,12 @@ void Align::regress(
 }
 
 
+const Alignment& Align::best() const
+{
+  return matches.front();
+}
+
+
 void Align::getBest(
   string& trainDetected,
   float& distDetected) const

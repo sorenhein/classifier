@@ -12,6 +12,7 @@
 #include "stats/CompStats.h"
 #include "stats/CountStats.h"
 #include "stats/CrossStats.h"
+#include "stats/ResidualsStats.h"
 #include "stats/Timers.h"
 
 #include "setup.h"
@@ -42,6 +43,8 @@ CountStats modelCountStats;
 CountStats carMethodStats;
 CountStats alignStats;
 CountStats exceptStats;
+
+ResidualsStats residualsStats;
 
 Scheduler scheduler;
 
@@ -86,6 +89,11 @@ int main(int argc, char * argv[])
   cout << carMethodStats.str();
   cout << alignStats.str();
   cout << exceptStats.str();
+
+  residualsStats.calculate();
+  cout << residualsStats.str();
+  // TODO control
+  residualsStats.write("residuals");
 
   // Consolidate the thread timers.
   for (unsigned i = 1; i < control.numThreads(); i++)

@@ -1,9 +1,12 @@
 #include <iomanip>
 #include <sstream>
+#include <mutex>
 
 #include "ResidualsStats.h"
 
 #include "../align/Alignment.h"
+
+static mutex mtx;
 
 
 ResidualsStats::ResidualsStats()
@@ -27,7 +30,10 @@ void ResidualsStats::log(
   const string& trainName,
   const Alignment& alignment)
 {
+  // A bit restrictive to lock them all, but simple.
+  mtx.lock();
   stats[trainName].log(alignment);
+  mtx.unlock();
 }
 
 
@@ -53,13 +59,13 @@ string ResidualsStats::str() const
   for (auto& st: stats)
     ss << setw(18) << left << st.first << st.second.str();
 
- return ss.str();    
+ return ss.str() + "\n";
 }
 
 
 void ResidualsStats::write(const string& dir) const
 {
   for (auto& st: stats)
-    st.second.write(dir + "/" + st.first);
+    st.second.write(dir + "/" + st.first + ".dat");
 }
 

@@ -59,3 +59,4 @@ src/last/*.txt
 src/cross/*.xlsx
 src/*.xlsx
 src/bak/*.txt
+src/residuals/*.dat

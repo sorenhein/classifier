@@ -120,9 +120,16 @@ string ResidualStats::str() const
  ss << 
    setw(8) << right << numCloseToZero <<
    setw(8) << right << numSignificant <<
-   setw(8) << right << numInsignificant <<
-   setw(8) << fixed << setprecision(2) << avg << 
-   setw(8) << fixed << setprecision(2) << avgAbs << "\n";
+   setw(8) << right << numInsignificant;
+
+ if (numSignificant == 0)
+   ss <<
+     setw(8) << "-" << 
+     setw(8) << "-" << "\n";
+ else
+   ss <<
+     setw(8) << fixed << setprecision(2) << avg << 
+     setw(8) << fixed << setprecision(2) << avgAbs << "\n";
  return ss.str();    
 }
 
@@ -140,6 +147,6 @@ void ResidualStats::write(const string& filename) const
   for (unsigned i = 0; i < lm; i++)
     concat[2*lm + i] = mean[i] + sdev[i];
 
-  writeBinary(filename, 0, concat);
+  writeBinaryFloat(filename, concat);
 }
 

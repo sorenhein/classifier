@@ -14,6 +14,7 @@
 #include "stats/CompStats.h"
 #include "stats/CountStats.h"
 #include "stats/CrossStats.h"
+#include "stats/ResidualsStats.h"
 #include "stats/Timers.h"
 
 #include "PeakDetect.h"
@@ -44,6 +45,8 @@ extern CountStats deviationStats;
 extern vector<CompStats> sensorStatsList;
 extern vector<CrossStats> crossStatsList;
 extern vector<CompStats> trainStatsList;
+
+extern ResidualsStats residualsStats;
 
 extern vector<Timers> timers;
 
@@ -423,6 +426,12 @@ void run(
           control, trainDB, traceData.filename, interval.first,
             traceData.sampleRate, traceData.trainTrue);
 
+      }
+
+      // TODO Make a control out of it
+      if (1)
+      {
+        residualsStats.log(trainDetected, align.best());
       }
     }
     else if (trainDB.equivalent(trainDetected, traceData.trainTrue))
