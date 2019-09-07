@@ -262,7 +262,6 @@ def plot_values(values, grades, level):
     x = [v, v]
     y = [level, 0]
     plt.plot(x, y, peak_color(grades[i]), linewidth = 3)
-    # plt.plot(x, y, 'black', linewidth = 3)
     
 
 
@@ -390,18 +389,23 @@ def draw_car_numbers(reftimes, cars, level, offset, Yfactor, carcolors):
       break
 
 
-def draw_text(info, level, offset, Yfactor, color):
+def draw_text(info, peakcount, level, offset, Yfactor, color):
   """Write the text."""
   textStep = 15 * Yfactor
   textLevel = level + textStep/2
-  infoArgs['color'] = color
 
-  multitext = info.train + "\ndist = " + info.dist + "\n" + info.speed + "\n" + info.accel
+  # infoArgs['color'] = color
+  # Average should be better than a single value, so divide by 2.
+  # Maybe it should be something more sophisticated.
+  infoArgs['color'] = peak_color(float(info.dist) / (2 * peakcount))
+
+  multitext = info.train + "\ndist = " + info.dist + "\n" + \
+    info.speed + "\n" + info.accel
   plt.text(offset, textLevel + textStep, multitext, infoArgs)
 
 
 def plot_box(reftimes, cars, info, refgrades,
-  level, offset, color, colorMiss, carcolors):
+  peakcount, level, offset, color, colorMiss, carcolors):
   """Plot the complete stick diagram."""
   ax = plt.gca()
   basex, basey = ax.transData.transform((0, 0))
@@ -415,7 +419,7 @@ def plot_box(reftimes, cars, info, refgrades,
   draw_vertical_lines(reftimes, cars, info, level, Yfactor, color)
   draw_horizontal_high(reftimes, cars, info, level, offset, Yfactor, color)
   draw_car_numbers(reftimes, cars, level, offset, Yfactor, carcolors)
-  draw_text(info, level, offset, Yfactor, color)
+  draw_text(info, peakcount, level, offset, Yfactor, color)
 
 
 def pos(sensorNo, n = 0):
@@ -538,7 +542,7 @@ def box(sensorNo, n = 0, d = "best"):
       plot_values(peaktimes, peakgrades, level)
 
       plot_box(reftimes, cars, info, refgrades,
-        level, rawoffsets[curr], 'r', 'black', carcolors)
+        len(values), level, rawoffsets[curr], 'r', 'black', carcolors)
 
       plt.draw()
       plt.pause(0.001)
@@ -551,6 +555,7 @@ def box(sensorNo, n = 0, d = "best"):
   
 
 def carcheck():
+  """Used to find profiles of individual cars."""
   first = dict()
   later = dict()
   firstex = dict()

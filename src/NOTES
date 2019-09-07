@@ -1,6 +1,5 @@
 Possible new outputs
 --------------------
-- Move to green
 - No infinite loop if e.g. second is not present
 
 Align
