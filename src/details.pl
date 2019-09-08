@@ -12,7 +12,7 @@ my $FORMAT_CSV = 1;
 
 if ($#ARGV < 0)
 {
-  print "Usage: detaildetails.pl [CSV] sensor??.txt > file\n";
+  print "Usage: details.pl [CSV] sensor??.txt > file\n";
   exit;
 }
 
@@ -38,6 +38,7 @@ for my $file (@ARGV)
   $sensor =~ s/.txt//;
   my $trueTrain;
   my $matchCount = 0;
+  my (@matchNames, @matchValues);
 
   open my $fh, "<", $file or die "Cannot open $file: $!";
 
@@ -56,6 +57,8 @@ for my $file (@ARGV)
       $time = $a[1];
       $sname = $a[2];
       $matchCount = 0;
+      @matchNames = ();
+      @matchValues = ();
     }
     elsif ($len > 9 && substr($line, 0, 5) eq "WARNF")
     {
@@ -92,11 +95,25 @@ for my $file (@ARGV)
       }
       else
       {
-        $line = <$fh>;
-        $line =~ /^(\S+)\s+(\d+\.\d+)\s+(\d+\.\d+)/;
-        my $bestTrain = $1;
-        my $devMatch = $3;
-        if ($bestTrain eq $trueTrain && $devMatch > 10.)
+        my $i = 0;
+        my $f;
+        while ($line = <$fh>)
+        {
+          last if ($i == 3);
+          $line =~ /^(\S+)\s+(\d+\.\d+)\s+(\d+\.\d+)/;
+          $f = $1;
+          last if ($3 > 10.);
+          push @matchNames, $1;
+          push @matchValues, $3;
+          $i++;
+        }
+
+        # $line = <$fh>;
+        # $line =~ /^(\S+)\s+(\d+\.\d+)\s+(\d+\.\d+)/;
+        # my $bestTrain = $1;
+        # my $devMatch = $3;
+        if ($f eq $trueTrain && 
+          (! @matchValues || $matchValues[0] > 10.))
         {
           push @deviations,
               detailLineCommon($sensor, $time, $tno, $format);
@@ -106,7 +123,8 @@ for my $file (@ARGV)
     elsif ($len > 14 && substr($line, 0, 7) eq "DRIVER ")
     {
       push @errors,
-          detailLineCommon($sensor, $time, $tno, $format);
+          detailLineError($sensor, $time, $tno, 
+            $trueTrain, \@matchNames, \@matchValues, $format);
     }
     elsif ($len > 9 && substr($line, 0, 9) eq "Exception")
     {
@@ -115,7 +133,8 @@ for my $file (@ARGV)
       chomp $line;
       $line =~ s///g;
       push @excepts,
-          detailLineCommon($sensor, $time, $tno, $format) . $line;
+          detailLineCommon($sensor, $time, $tno, $format) . 
+          $SEPARATOR . $line;
     }
   }
   close $fh;
@@ -179,7 +198,7 @@ sub parseLines
 
 sub detailLineTXTCommon
 {
-  my ($sensor, $time, $tno) = @_;
+  my ($sensor, $time, $tno, $names_ref, $values_ref) = @_;
   my $str = sprintf "%-12s%8s%6s  ",
     $sensor,
     $time,
@@ -194,7 +213,27 @@ sub detailLineCSVCommon
   my $str =
     $sensor . $SEPARATOR .
     $time . $SEPARATOR .
-    $tno . $SEPARATOR;
+    $tno;
+
+  return $str;
+}
+
+
+sub detailLineCSVError
+{
+  my ($sensor, $time, $tno, $trueTrain, $names_ref, $values_ref) = @_;
+  my $str =
+    $sensor . $SEPARATOR .
+    $time . $SEPARATOR .
+    $tno . $SEPARATOR .
+    $SEPARATOR . 
+    $trueTrain;
+  for my $i (0 .. $#$names_ref)
+  {
+    $str .= $SEPARATOR . $names_ref->[$i] .
+      $SEPARATOR . $values_ref->[$i];
+  }
+
   return $str;
 }
 
@@ -209,6 +248,22 @@ sub detailLineCommon
   else
   {
     return detailLineCSVCommon($sensor, $time, $tno);
+  }
+}
+
+
+sub detailLineError
+{
+  my ($sensor, $time, $tno, $trueTrain, 
+    $matchNames_ref, $matchValues_ref, $format) = @_;
+  if ($format == $FORMAT_TXT)
+  {
+    return detailLineTXTCommon($sensor, $time, $tno);
+  }
+  else
+  {
+    return detailLineCSVError($sensor, $time, $tno, 
+      $trueTrain, $matchNames_ref, $matchValues_ref);
   }
 }
 
