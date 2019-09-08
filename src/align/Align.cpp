@@ -461,8 +461,8 @@ void Align::regress(
 
   for (auto& ma: matches)
   {
-    // Can we still beat bestAlign?
-    if (ma.distOther > bestDist)
+    // Can we still get close to bestAlign?
+    if (ma.distOther > bestDist + ALIGN_DISTMATCH_THRESHOLD)
       continue;
 
     Align::regressTrain(times, 

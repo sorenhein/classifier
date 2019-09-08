@@ -7,6 +7,8 @@
 
 #include "../util/io.h"
 
+#include "../const.h"
+
 
 // Need this many instances in order to calculate any statistics.
 
@@ -36,6 +38,9 @@ void ResidualStats::reset()
 
 void ResidualStats::log(const Alignment& alignment)
 {
+  if (alignment.distMatch >= ALIGN_DISTMATCH_THRESHOLD)
+    return;
+
   if (sum.size() < alignment.numAxles)
   {
     sum.resize(alignment.numAxles);
