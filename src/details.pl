@@ -10,6 +10,8 @@ my $SEPARATOR = ";";
 my $FORMAT_TXT = 0;
 my $FORMAT_CSV = 1;
 
+my $equiv_file = "../../../mini_dataset_v012/equiv.csv";
+
 if ($#ARGV < 0)
 {
   print "Usage: details.pl [CSV] sensor??.txt > file\n";
@@ -27,7 +29,10 @@ else
   $format = $FORMAT_TXT;
 }
 
-my (@details, @warnings, @deviations, @errors, @excepts);
+my %equiv;
+read_equiv($equiv_file, \%equiv);
+
+my (@details, @warnings, @deviations, @matches, @errors, @excepts);
 
 for my $file (@ARGV)
 {
@@ -108,15 +113,35 @@ for my $file (@ARGV)
           $i++;
         }
 
-        # $line = <$fh>;
-        # $line =~ /^(\S+)\s+(\d+\.\d+)\s+(\d+\.\d+)/;
-        # my $bestTrain = $1;
-        # my $devMatch = $3;
-        if ($f eq $trueTrain && 
-          (! @matchValues || $matchValues[0] > 10.))
+        my $speed;
+        while ($line = <$fh>)
         {
-          push @deviations,
+          if ($line =~ /^Speed/)
+          {
+            $line =~ /(\d+\.\d+) km/;
+            $speed = $1;
+            last;
+          }
+        }
+
+        if (! @matchValues || $matchValues[0] > 10.)
+        {
+          if ($f eq $trueTrain || 
+              (defined $equiv{$f} && defined $equiv{$f}{$trueTrain}))
+          {
+            push @deviations,
               detailLineCommon($sensor, $time, $tno, $format);
+          }
+          next;
+        }
+
+        $f = $matchNames[0];
+        if ($f eq $trueTrain || 
+              (defined $equiv{$f} && defined $equiv{$f}{$trueTrain}))
+        {
+          push @matches,
+            detailLineError($sensor, $time, $tno, 
+              $trueTrain, \@matchNames, \@matchValues, $speed, $format);
         }
       }
     }
@@ -124,7 +149,7 @@ for my $file (@ARGV)
     {
       push @errors,
           detailLineError($sensor, $time, $tno, 
-            $trueTrain, \@matchNames, \@matchValues, $format);
+            $trueTrain, \@matchNames, \@matchValues, 0., $format);
     }
     elsif ($len > 9 && substr($line, 0, 9) eq "Exception")
     {
@@ -168,7 +193,38 @@ if ($#excepts >= 0)
   print "\n";
 }
 
+if ($#matches >= 0)
+{
+  print "Matches\n";
+  print $_ . "\n" for (@matches);
+  print "\n";
+}
+
 exit;
+
+
+sub read_equiv
+{
+  my ($equiv_file, $equiv_ref) = @_;
+  open my $fh, "<", $equiv_file or die "Cannot open $equiv_file: $!";
+
+  while (my $line = <$fh>)
+  {
+    chomp $line;
+    $line =~ s///g;
+    my @a = split /,/, $line;
+    for my $c (@a)
+    {
+      for my $d (@a)
+      {
+        next if $c eq $d;
+        $equiv_ref->{$c}{$d} = 1;
+        $equiv_ref->{$d}{$c} = 1;
+      }
+    }
+  }
+}
+
 
 
 sub parseLines
@@ -209,7 +265,7 @@ sub detailLineTXTCommon
 
 sub detailLineCSVCommon
 {
-  my ($sensor, $time, $tno) = @_;
+  my ($sensor, $time, $tno, $speed) = @_;
   my $str =
     $sensor . $SEPARATOR .
     $time . $SEPARATOR .
@@ -221,7 +277,8 @@ sub detailLineCSVCommon
 
 sub detailLineCSVError
 {
-  my ($sensor, $time, $tno, $trueTrain, $names_ref, $values_ref) = @_;
+  my ($sensor, $time, $tno, $trueTrain, $names_ref, $values_ref,
+    $speed) = @_;
   my $str =
     $sensor . $SEPARATOR .
     $time . $SEPARATOR .
@@ -233,6 +290,12 @@ sub detailLineCSVError
     $str .= $SEPARATOR . $names_ref->[$i] .
       $SEPARATOR . $values_ref->[$i];
   }
+  for my $i ($#$names_ref+1 .. 3)
+  {
+    $str .= $SEPARATOR . $SEPARATOR;
+  }
+
+  $str .= $SEPARATOR . $speed;
 
   return $str;
 }
@@ -255,15 +318,15 @@ sub detailLineCommon
 sub detailLineError
 {
   my ($sensor, $time, $tno, $trueTrain, 
-    $matchNames_ref, $matchValues_ref, $format) = @_;
+    $matchNames_ref, $matchValues_ref, $speed, $format) = @_;
   if ($format == $FORMAT_TXT)
   {
-    return detailLineTXTCommon($sensor, $time, $tno);
+    return detailLineTXTCommon($sensor, $time, $tno, $speed);
   }
   else
   {
     return detailLineCSVError($sensor, $time, $tno, 
-      $trueTrain, $matchNames_ref, $matchValues_ref);
+      $trueTrain, $matchNames_ref, $matchValues_ref, $speed);
   }
 }
 
