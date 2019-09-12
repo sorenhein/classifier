@@ -93,7 +93,8 @@ def load_file():
   state = 0
   sensor = ""
   train = ""
-  data = {}
+  speeds = {}
+  distances = {}
   for c in contents:
     if state == 0:
       sensor = c
@@ -105,28 +106,26 @@ def load_file():
       if c == "":
         state = 0
       else:
-        dist, speed = c.split(",", 1)
+        speed, dist = c.split(",", 1)
         fdist = float(dist)
         fspeed = float(speed)
-        if not sensor in data:
-          data[sensor] = {}
-        if not train in data[sensor]:
-          data[sensor][train] = list()
-        data[sensor][train].append([fspeed, fdist])
+        if not sensor in speeds:
+          speeds[sensor] = {}
+          distances[sensor] = {}
+        if not train in speeds[sensor]:
+          speeds[sensor][train] = list()
+          distances[sensor][train] = list()
+        speeds[sensor][train].append(fspeed)
+        distances[sensor][train].append(fdist)
 
-  return data
+  return speeds, distances
 
 
 def splot(sensor, ptype = 0):
   """Show diagram of sensor errors.  0/1: raw/normalized by axes."""
-
-  data = { }
-  if "loadFlag" not in splot.__dict__:
-    print("Loading file")
-    data = load_file()
-    splot.loadFlag = 1
-
-  # print("data", data)
+  speeds = {}
+  distances = {}
+  speeds, distances = load_file()
 
   plt.ion()
   plt.show()
@@ -138,24 +137,27 @@ def splot(sensor, ptype = 0):
       print(sno, "out of range")
     else:
       sname = sensors[sno]
-      for train in data[sname]:
-        print("train", train)
-        print(type(data[sname][train]))
-        print(data[sname][train])
-        s = list()
-        d = list()
-        print("s", s)
-        print("d", d)
-        for speed, dist in data[sname][train]:
-          s.append(speed)
-          d.append(dist)
-          plt.plot(s, d)
-          # plt.plot(data[sname][train][0], data[sname][train][1])
+      if not sname in speeds:
+        print("No data for sensor", sname)
+      else:
+        plt.clf()
+        title = sensors[sno] + ", no. " + str(sno)
+        plt.title(title)
+        smax = 0
+        for train in speeds[sname]:
+          plt.scatter(speeds[sname][train], distances[sname][train], 
+            label = train)
+          snew = max(speeds[sname][train])
+          if snew > smax:
+            smax = snew
 
-      plt.draw()
-      plt.pause(0.001)
+        smax = 10 * (int(smax / 10.) + 1)
+        plt.gca().set_xlim([0, smax])
+        plt.legend()
+        plt.draw()
+        plt.pause(0.001)
 
-    sensor, done = get_user_input(sensor, sensors)
+    sno, done = get_user_input(sno, sensors)
     if done == 1:
       break
     if done == -1:

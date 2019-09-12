@@ -66,7 +66,7 @@ for my $file (@ARGV)
       my $f;
       $line = <$fh>;
       $line =~ /^(\S+)\s+(\d+\.\d+)\s+(\d+\.\d+)/;
-      last if ($3 > 10.);
+      next if ($3 > 10.);
       $f = $1;
       my $d = $3;
 
