@@ -15,19 +15,35 @@ sensors = [
   '391705', '391710', '391711', '391718', '391731']
 
 trains = [
-  'ICE1_DEU_56', 'ICE1_old_CHE_56', 
-  'ICE2_DEU_32', 'ICE2_DEU_32A', 'ICE2_DEU_32B',
-  'ICE2_DEU_64', 'ICE3_DEU_32', 
-  'ICE4_DEU_28', 'ICE4_DEU_48',
-  'ICET_56', 'ICET_DEU_20', 'ICET_DEU_28', 'ICET_DEU_48',
-  'MERIDIAN_DEU_08', 'MERIDIAN_DEU_14', 'MERIDIAN_DEU_22',
-  'MERIDIAN_DEU_28', 'MERIDIAN_DEU_42',
-  'SBAHN423_DEU_10', 'SBAHN423_DEU_20', 'SBAHN423_DEU_30',
-  'X2_SWE_28', 'X2_SWE_56',
-  'X31_SWE_12', 'X31_SWE_24', 'X31_SWE_36',
-  'X55_SWE_16',
-  'X61_SWE_10', 'X61_SWE_20',
-  'X74_SWE_14', 'X74_SWE_28' ]
+  'ICE1_DEU_56_N', 
+  'ICE1_old_CHE_56_N',
+  'ICE2_DEU_32_N', 'ICE2_DEU_32_R', 
+  'ICE2_DEU_32A_N', 'ICE2_DEU_32A_R', 
+  'ICE2_DEU_32B_N', 'ICE2_DEU_32B_R',
+  'ICE2_DEU_64_N', 'ICE2_DEU_64_R', 
+  'ICE3_DEU_32_N', 'ICE3_DEU_32_R', 
+  'ICE4_DEU_28_N', 'ICE4_DEU_28_R', 
+  'ICE4_DEU_48_N', 'ICE4_DEU_48_R',
+  'ICET_56_N',
+  'ICET_DEU_20_N', 
+  'ICET_DEU_28_N', 
+  'ICET_DEU_48_N', 'ICET_DEU_48_R',
+  'ICET_DEU_56_N',
+  'MERIDIAN_DEU_08_N', 
+  'MERIDIAN_DEU_14_N', 
+  'MERIDIAN_DEU_22_N',
+  'MERIDIAN_DEU_28_N', 
+  'MERIDIAN_DEU_42_N',
+  'SBAHN423_DEU_10_N', 
+  'SBAHN423_DEU_20_N', 
+  'SBAHN423_DEU_30_N',
+  'X2_SWE_28_N', 'X2_SWE_28_R', 
+  'X2_SWE_56_N', 'X2_SWE_56_R',
+  'X31_SWE_12_N', 'X31_SWE_24_N', 'X31_SWE_36_N',
+  'X55_SWE_16_N',
+  'X61_SWE_10_N', 'X61_SWE_20_N',
+  'X74_SWE_14_N', 'X74_SWE_14_R', 
+  'X74_SWE_28_N', 'X74_SWE_28_R' ]
 
 if platform.node() == 'CAD04':
   homedir = R"D:\cygwin64\home\heins" + "\\"
@@ -80,6 +96,14 @@ def get_user_input(curr, rawlist):
   elif c >= limit:
     c = limit-1
   return c, 0 
+
+
+def sensor_lookup(name):
+  """Looks up name and returns number."""
+  for i in range(len(sensors)):
+    if sensors[i] == name:
+      return i
+  return -1
 
 
 def load_file():
@@ -158,6 +182,53 @@ def splot(sensor, ptype = 0):
         plt.pause(0.001)
 
     sno, done = get_user_input(sno, sensors)
+    if done == 1:
+      break
+    if done == -1:
+      continue
+  
+
+def tplot(train, ptype = 0):
+  """Show diagram of sensor errors.  0/1: raw/normalized by axes."""
+  speeds = {}
+  distances = {}
+  speeds, distances = load_file()
+
+  plt.ion()
+  plt.show()
+
+  tno = guess_number(train, trains)
+
+  while True:
+    if tno >= len(trains):
+      print(sno, "out of range")
+    else:
+      tname = trains[tno]
+      if not tname in trains:
+        print("No data for train", tname)
+      else:
+        plt.clf()
+        title = tname + ", no. " + str(tno)
+        plt.title(title)
+        smax = 0
+        for sname in speeds:
+          if not tname in speeds[sname]:
+            continue
+
+          slabel = sname + " (" + str(sensor_lookup(sname)) + ")"
+          plt.scatter(speeds[sname][tname], distances[sname][tname], 
+            label = slabel)
+          snew = max(speeds[sname][tname])
+          if snew > smax:
+            smax = snew
+
+        smax = 10 * (int(smax / 10.) + 1)
+        plt.gca().set_xlim([0, smax])
+        plt.legend()
+        plt.draw()
+        plt.pause(0.001)
+
+    tno, done = get_user_input(tno, trains)
     if done == 1:
       break
     if done == -1:
