@@ -4,6 +4,8 @@ import numpy as np
 import platform
 from six.moves import input
 import site
+import math
+import re
 
 sensors = [
   '062493', '063848', '063905', '065330', '066221', 
@@ -52,6 +54,10 @@ else:
 
 basedir = homedir + R"GitHub/Trains/src" + "\\"
 basename = "dist.txt"
+
+axles = dict()
+for t in trains:
+  axles[t] = int(re.findall('\d+', t)[-1])
 
 
 def guess_number(n, rlist):
@@ -119,6 +125,8 @@ def load_file():
   train = ""
   speeds = {}
   distances = {}
+  norms = {}
+  normsqrts = {}
   for c in contents:
     if state == 0:
       sensor = c
@@ -136,20 +144,51 @@ def load_file():
         if not sensor in speeds:
           speeds[sensor] = {}
           distances[sensor] = {}
+          norms[sensor] = {}
+          normsqrts[sensor] = {}
         if not train in speeds[sensor]:
           speeds[sensor][train] = list()
           distances[sensor][train] = list()
+          norms[sensor][train] = list()
+          normsqrts[sensor][train] = list()
         speeds[sensor][train].append(fspeed)
         distances[sensor][train].append(fdist)
+        norms[sensor][train].append(fdist / axles[train])
+        normsqrts[sensor][train].append(math.sqrt(fdist / axles[train]))
 
-  return speeds, distances
+  return speeds, distances, norms, normsqrts
+
+
+def plot_y_label(ptype):
+  y = ""
+  if ptype == 0:
+    y = "raw distance (m^2)"
+  elif ptype == 1:
+    y = "distance per axle (m^2)"
+  elif ptype == 2:
+    y = "distance per axle (m)"
+  plt.ylabel(y)
+  
+
+def plot_selected(speed, dist, norm, normsqrt, label, ptype):
+  if ptype == 0:
+    # Raw distance
+    plt.scatter(speed, dist, label = label)
+  elif ptype == 1:
+    # Per-axle distance in meters^2
+    plt.scatter(speed, norm, label = label)
+  elif ptype == 2:
+    # Per-axle in meters
+    plt.scatter(speed, normsqrt, label = label)
 
 
 def splot(sensor, ptype = 0):
   """Show diagram of sensor errors.  0/1: raw/normalized by axes."""
   speeds = {}
   distances = {}
-  speeds, distances = load_file()
+  norms = {}
+  normsqrts = {}
+  speeds, distances, norms, normsqrts = load_file()
 
   plt.ion()
   plt.show()
@@ -167,10 +206,13 @@ def splot(sensor, ptype = 0):
         plt.clf()
         title = sensors[sno] + ", no. " + str(sno)
         plt.title(title)
+        plot_y_label(ptype)
+
         smax = 0
         for train in speeds[sname]:
-          plt.scatter(speeds[sname][train], distances[sname][train], 
-            label = train)
+          plot_selected(speeds[sname][train], distances[sname][train],
+            norms[sname][train], normsqrts[sname][train], title, ptype)
+
           snew = max(speeds[sname][train])
           if snew > smax:
             smax = snew
@@ -192,7 +234,7 @@ def tplot(train, ptype = 0):
   """Show diagram of sensor errors.  0/1: raw/normalized by axes."""
   speeds = {}
   distances = {}
-  speeds, distances = load_file()
+  speeds, distances, norms, normsqrts = load_file()
 
   plt.ion()
   plt.show()
@@ -210,14 +252,18 @@ def tplot(train, ptype = 0):
         plt.clf()
         title = tname + ", no. " + str(tno)
         plt.title(title)
+        plot_y_label(ptype)
+
         smax = 0
         for sname in speeds:
           if not tname in speeds[sname]:
             continue
 
           slabel = sname + " (" + str(sensor_lookup(sname)) + ")"
-          plt.scatter(speeds[sname][tname], distances[sname][tname], 
-            label = slabel)
+
+          plot_selected(speeds[sname][tname], distances[sname][tname],
+            norms[sname][tname], normsqrts[sname][tname], slabel, ptype)
+
           snew = max(speeds[sname][tname])
           if snew > smax:
             smax = snew
