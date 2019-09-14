@@ -84,16 +84,16 @@ for my $file (@ARGV)
       if ($f eq $trueTrain || 
             (defined $equiv{$f} && defined $equiv{$f}{$trueTrain}))
       {
-        if (! defined $data{$sname}{$trueTrain})
+        if (! defined $data{$sname}{$f})
         {
-          $data{$sname}{$trueTrain}[0][0] = $speed;
-          $data{$sname}{$trueTrain}[0][1] = $d;
+          $data{$sname}{$f}[0][0] = $speed;
+          $data{$sname}{$f}[0][1] = $d;
         }
         else
         {
-          my $l = $#{$data{$sname}{$trueTrain}};
-          $data{$sname}{$trueTrain}[$l+1][0] = $speed;
-          $data{$sname}{$trueTrain}[$l+1][1] = $d;
+          my $l = $#{$data{$sname}{$f}};
+          $data{$sname}{$f}[$l+1][0] = $speed;
+          $data{$sname}{$f}[$l+1][1] = $d;
         }
       }
     }

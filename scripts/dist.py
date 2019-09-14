@@ -1,9 +1,6 @@
-import glob
 import matplotlib.pyplot as plt
-import numpy as np
 import platform
 from six.moves import input
-import site
 import math
 import re
 
@@ -211,7 +208,7 @@ def splot(sensor, ptype = 0):
         smax = 0
         for train in speeds[sname]:
           plot_selected(speeds[sname][train], distances[sname][train],
-            norms[sname][train], normsqrts[sname][train], title, ptype)
+            norms[sname][train], normsqrts[sname][train], train, ptype)
 
           snew = max(speeds[sname][train])
           if snew > smax:
@@ -243,7 +240,7 @@ def tplot(train, ptype = 0):
 
   while True:
     if tno >= len(trains):
-      print(sno, "out of range")
+      print(tno, "out of range")
     else:
       tname = trains[tno]
       if not tname in trains:
