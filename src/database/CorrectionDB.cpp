@@ -1,4 +1,5 @@
 #include <iostream>
+#include <fstream>
 
 #include "CorrectionDB.h"
 
@@ -16,60 +17,50 @@ CorrectionDB::~CorrectionDB()
 
 void CorrectionDB::reset()
 {
-  fields.clear();
-  fieldCounts.clear();
-  entries.clear();
-  correctionMap.clear();
-
-  CorrectionDB::configure();
-}
-
-
-void CorrectionDB::configure()
-{
-  fields =
-  {
-    { "OFFICIAL_NAME", CORRESPONDENCE_STRING, CORR_OFFICIAL_NAME }
-  };
-
   fieldCounts =
   {
-    CORR_STRINGS_SIZE,
-    CORR_STRING_VECTORS_SIZE,
+    3, // trace name, old train, new train
     0,
-    CORR_INT_VECTORS_SIZE,
     0,
-    CORR_INTS_SIZE,
-    CORR_BOOLS_SIZE,
+    0,
+    0,
+    0,
+    0,
     0
   };
+
+  corrections.clear();
 }
+
 
 
 bool CorrectionDB::readFile(const string& fname)
 {
   Entity entry;
-  if (! entry.readSeriesFile(fname, fields, fieldCounts, CORR_DELTAS))
+  entry.init(fieldCounts);
+
+  bool errFlag;
+  ifstream fin;
+
+  fin.open(fname);
+  // If we wanted to read more than two equivalences, this would
+  // be the place to do it.
+  while (entry.readCommaLine(fin, errFlag, 3))
+  {
+    corrections.push_back(vector<string>());
+    vector<string>& corr = corrections.back();
+    corr.push_back(entry.getString(0));
+    corr.push_back(entry.getString(1));
+    corr.push_back(entry.getString(2));
+  }
+  fin.close();
+
+  if (errFlag)
   {
     cout << "Could not read correction file " << fname << endl;
     return false;
   }
-
-  correctionMap[entry.getString(CORR_OFFICIAL_NAME)] = entries.size();
-
-  entries.push_back(entry);
-  return true;
-}
-
-
-vector<int> const * CorrectionDB::getIntVector(
-  const string& officialName) const // Without the _N / _R
-{
-  auto c = correctionMap.find(officialName);
-  if (c == correctionMap.end())
-    return nullptr;
   else
-    return &entries[static_cast<unsigned>(c->second)].
-      getIntVector(CORR_DELTAS);
+    return true;
 }
 

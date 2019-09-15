@@ -43,9 +43,10 @@ run.obj: database/TraceDB.h database/Entity.h database/TrainDB.h
 run.obj: PeakGeneral.h database/Control.h transient/Transient.h
 run.obj: transient/trans.h transient/Quiet.h transient/QuietData.h
 run.obj: filter/Filter.h stats/CompStats.h stats/CountStats.h
-run.obj: stats/CrossStats.h stats/Timers.h stats/Timer.h PeakDetect.h Peak.h
-run.obj: PeakPool.h Peaks.h PeakPtrs.h CarPeaks.h PeakStructure.h CarDetect.h
-run.obj: CarGaps.h CarModels.h PeakRange.h PeakProfile.h PeakPattern.h
+run.obj: stats/CrossStats.h stats/ResidualsStats.h stats/ResidualStats.h
+run.obj: stats/Timers.h stats/Timer.h PeakDetect.h Peak.h PeakPool.h Peaks.h
+run.obj: PeakPtrs.h CarPeaks.h PeakStructure.h CarDetect.h CarGaps.h
+run.obj: CarModels.h PeakRange.h PeakProfile.h PeakPattern.h
 run.obj: completions/Completions.h completions/Completion.h
 run.obj: completions/PeakCompletion.h PeakGeneral.h PeakSeeds.h PeakLabel.h
 run.obj: PeakPieces.h PeakPiece.h align/Align.h align/Alignment.h
@@ -58,7 +59,8 @@ driver.obj: align/Crosses.h align/Alignment.h util/Motion.h
 driver.obj: database/Control.h database/Entity.h database/TrainDB.h
 driver.obj: PeakGeneral.h database/TraceDB.h util/Scheduler.h
 driver.obj: stats/CompStats.h stats/CountStats.h stats/CrossStats.h
-driver.obj: stats/Timers.h stats/Timer.h setup.h run.h
+driver.obj: stats/ResidualsStats.h stats/ResidualStats.h stats/Timers.h
+driver.obj: stats/Timer.h setup.h run.h
 completions/Completion.obj: completions/Completion.h
 completions/Completion.obj: completions/PeakCompletion.h Peak.h const.h
 completions/Completion.obj: util/misc.h
@@ -73,10 +75,9 @@ database/Entity.obj: database/Entity.h database/parse.h
 database/EquivDB.obj: database/EquivDB.h database/Entity.h
 database/SensorDB.obj: database/SensorDB.h database/Entity.h
 database/TraceDB.obj: database/TrainDB.h database/Entity.h PeakGeneral.h
-database/TraceDB.obj: database/SensorDB.h database/TraceDB.h database/parse.h
-database/TraceDB.obj: const.h
-database/TrainDB.obj: database/CarDB.h database/Entity.h
-database/TrainDB.obj: database/CorrectionDB.h database/TrainDB.h
+database/TraceDB.obj: database/SensorDB.h database/TraceDB.h
+database/TraceDB.obj: database/CorrectionDB.h database/parse.h const.h
+database/TrainDB.obj: database/CarDB.h database/Entity.h database/TrainDB.h
 database/TrainDB.obj: PeakGeneral.h database/parse.h
 database/parse.obj: database/parse.h
 filter/Filter.obj: filter/Filter.h const.h Except.h errors.h util/io.h
@@ -94,7 +95,7 @@ stats/CompStats.obj: stats/CompStats.h const.h
 stats/CountStats.obj: stats/CountStats.h
 stats/CrossStats.obj: stats/CrossStats.h const.h
 stats/ResidualStats.obj: stats/ResidualStats.h align/Alignment.h
-stats/ResidualStats.obj: util/Motion.h util/io.h
+stats/ResidualStats.obj: util/Motion.h util/io.h const.h
 stats/ResidualsStats.obj: stats/ResidualsStats.h stats/ResidualStats.h
 stats/ResidualsStats.obj: align/Alignment.h util/Motion.h
 stats/Timer.obj: stats/Timer.h

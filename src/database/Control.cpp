@@ -46,9 +46,6 @@ void Control::configure()
     { "CAR_DIRECTORY", CORRESPONDENCE_STRING, CTRL_CAR_DIRECTORY },
     // Example: ../data/trains
     { "TRAIN_DIRECTORY", CORRESPONDENCE_STRING, CTRL_TRAIN_DIRECTORY },
-    // Example: ../data/residuals
-    { "CORRECTION_DIRECTORY", CORRESPONDENCE_STRING, 
-      CTRL_CORRECTION_DIRECTORY },
     // Example: ../../../mini_dataset_v012/sensors.txt
     { "SENSOR_FILE", CORRESPONDENCE_STRING, CTRL_SENSOR_FILE },
     // Example: DEU
@@ -99,6 +96,8 @@ void Control::configure()
     { "TRUTH_FILE", CORRESPONDENCE_STRING, CTRL_TRUTH_FILE },
     // Example: ../../../mini_dataset_v012/equiv.txt
     { "TRAIN_EQUIV_FILE", CORRESPONDENCE_STRING, CTRL_EQUIV_FILE },
+    // Example: ../../../mini_dataset_v012/corrections.csv
+    { "CORRECTION_FILE", CORRESPONDENCE_STRING, CTRL_CORRECTION_FILE },
 
     // Example: output
     { "OUTPUT_DIRECTORY", CORRESPONDENCE_STRING, CTRL_OUTPUT_DIRECTORY }
@@ -274,12 +273,6 @@ const string& Control::trainDir() const
 }
 
 
-const string& Control::correctionDir() const
-{
-  return entry.getString(CTRL_CORRECTION_DIRECTORY);
-}
-
-
 const string& Control::sensorFile() const
 {
   return entry.getString(CTRL_SENSOR_FILE);
@@ -415,6 +408,12 @@ const string& Control::truthFile() const
 const string& Control::equivFile() const
 {
   return entry.getString(CTRL_EQUIV_FILE);
+}
+
+
+const string& Control::correctionFile() const
+{
+  return entry.getString(CTRL_CORRECTION_FILE);
 }
 
 

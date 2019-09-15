@@ -3,6 +3,7 @@ import platform
 from six.moves import input
 import math
 import re
+import itertools
 
 sensors = [
   '062493', '063848', '063905', '065330', '066221', 
@@ -167,16 +168,16 @@ def plot_y_label(ptype):
   plt.ylabel(y)
   
 
-def plot_selected(speed, dist, norm, normsqrt, label, ptype):
+def plot_selected(speed, dist, norm, normsqrt, label, mark, ptype):
   if ptype == 0:
     # Raw distance
-    plt.scatter(speed, dist, label = label)
+    plt.scatter(speed, dist, marker = mark, label = label)
   elif ptype == 1:
     # Per-axle distance in meters^2
-    plt.scatter(speed, norm, label = label)
+    plt.scatter(speed, norm, marker = mark, label = label)
   elif ptype == 2:
     # Per-axle in meters
-    plt.scatter(speed, normsqrt, label = label)
+    plt.scatter(speed, normsqrt, marker = mark, label = label)
 
 
 def splot(sensor, ptype = 0):
@@ -191,6 +192,8 @@ def splot(sensor, ptype = 0):
   plt.show()
 
   sno = guess_number(sensor, sensors)
+  markers = ['+', '.', 'o', '*']
+  mno = 0
 
   while True:
     if sno >= len(sensors):
@@ -208,7 +211,9 @@ def splot(sensor, ptype = 0):
         smax = 0
         for train in speeds[sname]:
           plot_selected(speeds[sname][train], distances[sname][train],
-            norms[sname][train], normsqrts[sname][train], train, ptype)
+            norms[sname][train], normsqrts[sname][train], train, 
+            markers[mno], ptype)
+          mno = (mno + 1) % 4
 
           snew = max(speeds[sname][train])
           if snew > smax:
@@ -237,6 +242,8 @@ def tplot(train, ptype = 0):
   plt.show()
 
   tno = guess_number(train, trains)
+  markers = ['+', '.', 'o', '*']
+  mno = 0
 
   while True:
     if tno >= len(trains):
@@ -259,7 +266,9 @@ def tplot(train, ptype = 0):
           slabel = sname + " (" + str(sensor_lookup(sname)) + ")"
 
           plot_selected(speeds[sname][tname], distances[sname][tname],
-            norms[sname][tname], normsqrts[sname][tname], slabel, ptype)
+            norms[sname][tname], normsqrts[sname][tname], slabel, 
+            markers[mno], ptype)
+          mno = (mno + 1) % 4
 
           snew = max(speeds[sname][tname])
           if snew > smax:

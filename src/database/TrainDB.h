@@ -11,7 +11,6 @@
 using namespace std;
 
 class CarDB;
-class CorrectionDB;
 
 
 enum TrainFieldStrings
@@ -73,11 +72,6 @@ class TrainDB
     map<string, list<string>> equivalences;
 
 
-    bool correct(
-      const CorrectionDB& correctionDB,
-      const Entity& entry,
-      PeaksInfo& peaksInfo);
-
     bool complete(
       const CarDB& carDB,
       Entity& entry,
@@ -96,7 +90,6 @@ class TrainDB
 
     bool readFile(
       const CarDB& carDB,
-      const CorrectionDB& correctionDB,
       const string& fname);
 
     void logEquivalences(const vector<string>& equiv);

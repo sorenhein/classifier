@@ -10,6 +10,7 @@ using namespace std;
 
 class TrainDB;
 class SensorDB;
+class CorrectionDB;
 
 
 enum TraceFieldStrings
@@ -121,6 +122,11 @@ class TraceDB
       const string& fname,
       const TrainDB& trainDB,
       const SensorDB& sensorDB);
+
+    void correct(
+      const TrainDB& trainDB,
+      const SensorDB& sensorDB,
+      const CorrectionDB& correctionDB);
 
     void pickFilenames(
       const vector<string>& filenamesAll,

@@ -1,3 +1,26 @@
+1. Some truths are wrong -- write C++ code to fix
+2. Some close ones are resolved (partially at least) by not discarding
+   high-quality leading peaks
+3. Some close ones should go by car pattern
+4.  No sense in adjusting residuals statically
+
+Trains
+------
+* Seems there is a "resonance" around 150-160 km/h (42-45 m/s)
+* It widens the distance within a 2500mm bogie at the expense of 
+  surrounding distances
+* It also works for 3000mm at 180-190 km/h (50-53 m/s)
+* Could have train templates at different speeds
+* Or could look for pattern, clusters:
+  short bogie - long - short etc.
+  More of a morphological match
+* Maybe look at the car clusters
+* When matching, say, 30 peaks:
+  - If fine quality, it should cost a lot to discard them
+* Will need to deconvolve in the end?
+
+
+
 How can 0, 19 be that good in terms of distance??
 
 Align
@@ -12,19 +35,6 @@ Align
 - Maybe go by #peaks swallowed in case of doubt, usually < 1 car
 
 - Be able to write a truth file
-
-Python
-- peak(7, 051045) 2 curves
-- match(7, 051045) 2-4 curves
-- average(7, 051045) 3 curves if they exist
-- residual(7, 051045) 2-3 curves
-- Also from input prompt
-- n, p still work
-
-- Run without residual corrections or truth corrections
-- Get residual corrections
-- Run again, residuals should now be "small"
-- Look at truth deviations (or even those that are "true")
 
 - Do we need printVectorCSV from util/misc.h? --> sstream
 

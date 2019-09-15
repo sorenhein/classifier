@@ -5,6 +5,7 @@
 #include "TrainDB.h"
 #include "SensorDB.h"
 #include "TraceDB.h"
+#include "CorrectionDB.h"
 
 #include "parse.h"
 #include "../const.h"
@@ -202,6 +203,22 @@ bool TraceDB::readFile(
   }
   else
     return true;
+}
+
+
+void TraceDB::correct(
+  const TrainDB& trainDB,
+  const SensorDB& sensorDB,
+  const CorrectionDB& correctionDB)
+{
+  for (auto& cvec: correctionDB)
+  {
+    assert(cvec.size() == 3);
+    const unsigned eno = TraceDB::lookupNumber(cvec[0]);
+    assert(entries[eno].getString(TRACE_OFFICIAL_NAME) == cvec[1]);
+    entries[eno].setString(TRACE_OFFICIAL_NAME, cvec[2]);
+    TraceDB::complete(entries[eno], trainDB, sensorDB);
+  }
 }
 
 

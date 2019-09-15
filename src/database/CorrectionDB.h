@@ -1,7 +1,6 @@
 /*
- * For some train types it seems that the stated axle positions are
- * not optimal for detection.  The most necessary corrections are
- * stored here.
+ * For some train types it seems that the stated truth trains are
+ * not correct.  The manual corrections are stored here.
  */
 
 #ifndef TRAIN_CORRECTIONDB_H
@@ -15,48 +14,15 @@
 using namespace std;
 
 
-enum CorrectionFieldStrings
-{
-  CORR_OFFICIAL_NAME = 0,
-  CORR_STRINGS_SIZE = 1
-};
-
-enum CorrectionFieldStringVectors
-{
-  CORR_STRING_VECTORS_SIZE = 0
-};
-
-enum CorrectionFieldIntVectors
-{
-  CORR_DELTAS = 0,
-  CORR_INT_VECTORS_SIZE = 1
-};
-
-enum CorrectionFieldInts
-{
-  CORR_INTS_SIZE = 0
-};
-
-enum CorrectionFieldBools
-{
-  CORR_BOOLS_SIZE = 0
-};
 
 
 class CorrectionDB
 {
   private:
 
-    list<CorrespondenceEntry> fields;
-
     vector<unsigned> fieldCounts;
 
-    vector<Entity> entries;
-
-    map<string, int> correctionMap;
-
-
-    void configure();
+    list<vector<string>> corrections;
 
 
   public:
@@ -69,8 +35,11 @@ class CorrectionDB
 
     bool readFile(const string& fname);
 
-    // The name is Without the _N / _R
-    vector<int> const * getIntVector(const string& officialName) const; 
+    list<vector<string>>::const_iterator begin() 
+      const { return corrections.begin(); }
+    list<vector<string>>::const_iterator end() 
+      const { return corrections.end(); }    
+
 };
 
 #endif

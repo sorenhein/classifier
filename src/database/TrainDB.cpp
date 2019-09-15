@@ -4,7 +4,6 @@
 #include <cassert>
 
 #include "CarDB.h"
-#include "CorrectionDB.h"
 #include "TrainDB.h"
 #include "parse.h"
 
@@ -118,35 +117,8 @@ bool TrainDB::complete(
 }
 
 
-bool TrainDB::correct(
-  const CorrectionDB& correctionDB,
-  const Entity& entry,
-  PeaksInfo& peaksInfo)
-{
-  // At this point the official name has not been adorned with _N / _R.
-  vector<int> const * corrptr = correctionDB.getIntVector(
-    entry.getString(TRAIN_OFFICIAL_NAME));
-
-  if (! corrptr)
-    return false;
-
-  if (peaksInfo.positions.size() != corrptr->size())
-  {
-    cout << "Correction of " << entry.getString(TRAIN_OFFICIAL_NAME) <<
-      " attempted with " << corrptr->size() << " axles" << endl;
-    return false;
-  }
-
-  for (unsigned i = 0; i < peaksInfo.positions.size(); i++)
-    peaksInfo.positions[i] += ((* corrptr)[i] - (* corrptr)[0]) / 1000.f;
-
-  return true;
-}
-
-
 bool TrainDB::readFile(
   const CarDB& carDB,
-  const CorrectionDB& correctionDB,
   const string& fname)
 {
   Entity entry;
@@ -156,8 +128,6 @@ bool TrainDB::readFile(
   PeaksInfo peaksInfo;
   if (! TrainDB::complete(carDB, entry, peaksInfo))
     return false;
-
-  TrainDB::correct(correctionDB, entry, peaksInfo);
 
   // The train is first stored in the normal direction, and the name
   // is suffixed with _N.
