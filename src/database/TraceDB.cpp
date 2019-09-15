@@ -213,10 +213,21 @@ void TraceDB::correct(
 {
   for (auto& cvec: correctionDB)
   {
-    assert(cvec.size() == 3);
+    assert(cvec.size() == 11);
     const unsigned eno = TraceDB::lookupNumber(cvec[0]);
-    assert(entries[eno].getString(TRACE_OFFICIAL_NAME) == cvec[1]);
-    entries[eno].setString(TRACE_OFFICIAL_NAME, cvec[2]);
+
+    assert(entries[eno].getString(TRACE_TYPE) == cvec[1]);
+    assert(entries[eno].getString(TRACE_AXLES_STRING) == cvec[2]);
+    assert(entries[eno].getString(TRACE_SPEED_STRING) == cvec[3]);
+    assert(entries[eno].getString(TRACE_ACCEL_STRING) == cvec[4]);
+    assert(entries[eno].getString(TRACE_REVERSED_STRING) == cvec[5]);
+
+    entries[eno].setString(TRACE_TYPE, cvec[6]);
+    entries[eno].setString(TRACE_AXLES_STRING, cvec[7]);
+    entries[eno].setString(TRACE_SPEED_STRING, cvec[8]);
+    entries[eno].setString(TRACE_ACCEL_STRING, cvec[9]);
+    entries[eno].setString(TRACE_REVERSED_STRING, cvec[10]);
+
     TraceDB::complete(entries[eno], trainDB, sensorDB);
   }
 }

@@ -3,6 +3,9 @@
 
 #include "CorrectionDB.h"
 
+// trace name, 5 old fields, 5 new fields
+#define CORR_FIELDS 11
+
 
 CorrectionDB::CorrectionDB()
 {
@@ -19,7 +22,7 @@ void CorrectionDB::reset()
 {
   fieldCounts =
   {
-    3, // trace name, old train, new train
+    CORR_FIELDS, 
     0,
     0,
     0,
@@ -45,13 +48,12 @@ bool CorrectionDB::readFile(const string& fname)
   fin.open(fname);
   // If we wanted to read more than two equivalences, this would
   // be the place to do it.
-  while (entry.readCommaLine(fin, errFlag, 3))
+  while (entry.readCommaLine(fin, errFlag, CORR_FIELDS))
   {
     corrections.push_back(vector<string>());
     vector<string>& corr = corrections.back();
-    corr.push_back(entry.getString(0));
-    corr.push_back(entry.getString(1));
-    corr.push_back(entry.getString(2));
+    for (unsigned i = 0; i < CORR_FIELDS; i++)
+      corr.push_back(entry.getString(i));
   }
   fin.close();
 
