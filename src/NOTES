@@ -1,3 +1,5 @@
+sensor 28 #26 102252: Why does fix not fix orientation?
+
 1. Some truths are wrong -- write C++ code to fix
 2. Some close ones are resolved (partially at least) by not discarding
    high-quality leading peaks

@@ -42,7 +42,7 @@ bool CorrectionDB::readFile(const string& fname)
   Entity entry;
   entry.init(fieldCounts);
 
-  bool errFlag;
+  bool errFlag = false;
   ifstream fin;
 
   fin.open(fname);
