@@ -1,7 +1,0 @@
-OFFICIAL_NAME ICE2_DEU_32A
-NAME ICE2 Half Train, Refurbishment
-INTRODUCTION 2012
-COUNTRIES DEU
-# Not in the official company list, but seems to exist
-ORDER 402,Avmz 805(2),WSmz 807,Bpmz 806(4)
-SYMMETRY no
