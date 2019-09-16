@@ -1,7 +1,20 @@
-2. Some close ones are resolved (partially at least) by not discarding
-   high-quality leading peaks
-3. Some close ones should go by car pattern
-4.  No sense in adjusting residuals statically
+Distinguisher in Align.cpp
+--------------------------
+- second >= 2, second/first >= 5: consider first to win: 923 / 2
+- first >= 5: consider as large: 37 / 16
+- rest: look more closely
+
+Output results from Perl overview into csv:
+- Safe: OK, NOK
+- Close: OK, NOK
+- Far off: OK, NOK
+
+For the close ones:
+- Don't discard good, early peaks
+- Look at Linf norm, Linf avg of top 3 or #3, L1 sum of all
+- Probably it's best to have relatively even residuals and not
+  a few poking out
+- The better solution would be the car pattern
 
 Trains
 ------
@@ -24,17 +37,6 @@ How can 0, 19 be that good in terms of distance??
 
 Align
 -----
-- Have an retruth.txt to declare victory with
-- Look at writing some new residuals
-  - Take into account any residual corrections already loaded
-  - Should take into account car structure of trains!
-    - So if we change a car once, we change it everywhere
-    - Somehow also allow car length to breathe
-    - Some cars are just known to have certain dimensions
-- Maybe go by #peaks swallowed in case of doubt, usually < 1 car
-
-- Be able to write a truth file
-
 - Do we need printVectorCSV from util/misc.h? --> sstream
 
 * Shouldn't all full recognitions be perfect?
