@@ -454,7 +454,7 @@ bool Align::realign(
 
 void Align::regress(
   const TrainDB& trainDB,
-  const vector<float>& times,
+  const PeaksInfo& peaksInfo,
   const bool topFlag)
 {
   float bestDist = numeric_limits<float>::max();
@@ -465,7 +465,7 @@ void Align::regress(
     if (ma.distOther > bestDist + ALIGN_DISTMATCH_THRESHOLD)
       continue;
 
-    Align::regressTrain(times, 
+    Align::regressTrain(peaksInfo.times, 
       trainDB.getRefInfo(ma.trainNo).positions, true, ma);
 
     if (ma.dist < bestDist)
