@@ -4,7 +4,7 @@
 #include <vector>
 #include <string>
 
-#include "../align/Alignment.h"
+#include "Alignment.h"
 
 #include "../util/Motion.h"
 
@@ -20,21 +20,6 @@ class Align
   friend class Crosses;
    
   private:
-
-    // Used in Needleman-Wunsch.
-    enum Origin
-    {
-      NW_MATCH = 0,
-      NW_DELETE = 1,
-      NW_INSERT = 2
-    };
-
-    struct Mentry
-    {
-      float dist;
-      Origin origin;
-    };
-
 
     vector<Alignment> matches;
 
@@ -62,30 +47,6 @@ class Align
       const PeaksInfo& peaksInfo,
       Alignment& match,
       vector<float>& scaledPeaks) const;
-
-    void initNeedlemanWunsch(
-      const unsigned lreff,
-      const unsigned lteff,
-      vector<vector<Mentry>>& matrix) const;
-
-    void fillNeedlemanWunsch(
-      const vector<float>& refPeaks,
-      const vector<float>& scaledPeaks,
-      const Alignment& alignment,
-      const unsigned lreff,
-      const unsigned lteff,
-      vector<vector<Mentry>>& matrix) const;
-
-    void backtrackNeedlemanWunsch(
-      const unsigned lreff,
-      const unsigned lteff,
-      const vector<vector<Mentry>>& matrix,
-      Alignment& match) const;
-
-    void NeedlemanWunsch(
-      const vector<float>& refPeaks,
-      const vector<float>& scaledPeaks,
-      Alignment& alignment) const;
 
     void printAlignPeaks(
       const string& refTrain,

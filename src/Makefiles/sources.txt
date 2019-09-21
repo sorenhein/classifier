@@ -41,6 +41,7 @@ SOURCE_FILES    =                       \
                 align/Align.cpp         \
                 align/Alignment.cpp     \
                 align/Crosses.cpp       \
+                align/DynProg.cpp       \
                 align/PolynomialRegression.cpp \
                                         \
                 stats/CompStats.cpp     \

@@ -82,14 +82,15 @@ database/TrainDB.obj: PeakGeneral.h database/parse.h
 database/parse.obj: database/parse.h
 filter/Filter.obj: filter/Filter.h const.h Except.h errors.h util/io.h
 align/Align.obj: database/Control.h database/Entity.h database/TrainDB.h
-align/Align.obj: PeakGeneral.h align/PolynomialRegression.h align/Align.h
-align/Align.obj: align/Alignment.h util/Motion.h const.h util/misc.h
-align/Align.obj: util/io.h
+align/Align.obj: PeakGeneral.h align/DynProg.h align/PolynomialRegression.h
+align/Align.obj: align/Align.h align/Alignment.h util/Motion.h const.h
+align/Align.obj: util/misc.h util/io.h
 align/Alignment.obj: align/Alignment.h util/Motion.h stats/CountStats.h
 align/Alignment.obj: const.h
 align/Crosses.obj: align/Align.h align/Alignment.h util/Motion.h
 align/Crosses.obj: database/TrainDB.h database/Entity.h PeakGeneral.h
-align/Crosses.obj: align/Crosses.h align/Alignment.h
+align/Crosses.obj: align/Crosses.h
+align/DynProg.obj: align/Alignment.h util/Motion.h align/DynProg.h const.h
 align/PolynomialRegression.obj: align/PolynomialRegression.h
 stats/CompStats.obj: stats/CompStats.h const.h
 stats/CountStats.obj: stats/CountStats.h

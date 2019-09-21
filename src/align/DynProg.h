@@ -1,0 +1,64 @@
+#ifndef TRAIN_DYNPROG_H
+#define TRAIN_DYNPROG_H
+
+#include <vector>
+#include <string>
+
+using namespace std;
+
+struct Alignment;
+
+
+class DynProg
+{
+  private:
+
+    // Used in Needleman-Wunsch.
+    enum Origin
+    {
+      NW_MATCH = 0,
+      NW_DELETE = 1,
+      NW_INSERT = 2
+    };
+
+    struct Mentry
+    {
+      float dist;
+      Origin origin;
+    };
+
+
+    void initNeedlemanWunsch(
+      const unsigned lreff,
+      const unsigned lteff,
+      vector<vector<Mentry>>& matrix) const;
+
+    void fillNeedlemanWunsch(
+      const vector<float>& refPeaks,
+      const vector<float>& scaledPeaks,
+      const Alignment& alignment,
+      const unsigned lreff,
+      const unsigned lteff,
+      vector<vector<Mentry>>& matrix) const;
+
+    void backtrackNeedlemanWunsch(
+      const unsigned lreff,
+      const unsigned lteff,
+      const vector<vector<Mentry>>& matrix,
+      Alignment& match) const;
+
+
+
+  public:
+
+    DynProg();
+
+    ~DynProg();
+
+    void run(
+      const vector<float>& refPeaks,
+      const vector<float>& scaledPeaks,
+      Alignment& alignment) const;
+};
+
+#endif
