@@ -7,6 +7,7 @@
 using namespace std;
 
 struct Alignment;
+struct PeaksInfo;
 
 
 class DynProg
@@ -36,7 +37,7 @@ class DynProg
     void fillNeedlemanWunsch(
       const vector<float>& refPeaks,
       const vector<float>& scaledPeaks,
-      const Alignment& alignment,
+      Alignment& alignment,
       const unsigned lreff,
       const unsigned lteff,
       vector<vector<Mentry>>& matrix) const;

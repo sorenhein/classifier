@@ -710,6 +710,7 @@ void PeakStructure::pushInfo(
   if (pptr)
   {
     peaksInfo.peaks.push_back(pptr);
+    peaksInfo.penaltyFactor.push_back(pptr->penaltyFactor());
     peaksInfo.times.push_back(
       pptr->getIndex() / static_cast<float>(sampleRate));
     peaksInfo.carNumbers.push_back(carNo);

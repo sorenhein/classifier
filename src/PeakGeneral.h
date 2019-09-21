@@ -11,6 +11,7 @@ class Peak;
 struct PeaksInfo
 {
   vector<Peak const *> peaks;
+  vector<float> penaltyFactor;
   vector<float> times; // In s
   vector<float> positions; // In m
   vector<int> carNumbers; // 0+

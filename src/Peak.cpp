@@ -349,6 +349,17 @@ float Peak::getRange() const
 }
 
 
+float Peak::penaltyFactor() const
+{
+  if (qualityPeak <= 0.30f)
+    return 1.f;
+  else if (qualityPeak >= 0.75f)
+    return 0.f;
+  else
+    return (qualityPeak - 0.30f) / (0.75f - 0.30f);
+}
+
+
 float Peak::getArea() const
 {
   // Assumes that the differential area has already been annotated.

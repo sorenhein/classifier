@@ -386,7 +386,6 @@ void run(
     align.regress(trainDB, peaksInfo, control.verboseRegressTopResiduals());
     cout << align.strRegress(control);
 
-
     if (! control.pickAny().empty())
     {
       const string s = traceData.sensor + "/" + traceData.time;

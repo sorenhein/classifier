@@ -10,6 +10,9 @@
 #include "Alignment.h"
 #include "DynProg.h"
 
+#include "../Peak.h"
+#include "../PeakGeneral.h"
+
 #include "../const.h"
 
 
@@ -28,6 +31,19 @@ void DynProg::initNeedlemanWunsch(
   const unsigned lteff,
   vector<vector<Mentry>>& matrix) const
 {
+  // The first dimension is refPeaks, the second is the synthetic one.
+  // We can imagine the first index as the row index.
+  //
+  //      j =  0   1   2   3   4   5   ...
+  //       +---------------------------------
+  // i = 0 |   0 ins ins ins ins ins
+  //     1 | del
+  //     2 | del
+  //     3 | del
+  //     4 | del
+  //     5 | del
+  //
+
   matrix.resize(lreff+1);
   for (unsigned i = 0; i < lreff+1; i++)
     matrix[i].resize(lteff+1);
@@ -50,7 +66,7 @@ void DynProg::initNeedlemanWunsch(
 void DynProg::fillNeedlemanWunsch(
   const vector<float>& refPeaks,
   const vector<float>& scaledPeaks,
-  const Alignment& match,
+  Alignment& match,
   const unsigned lreff,
   const unsigned lteff,
   vector<vector<Mentry>>& matrix) const
@@ -60,9 +76,11 @@ void DynProg::fillNeedlemanWunsch(
   {
     for (unsigned j = 1; j < lteff+1; j++)
     {
-      const float d = refPeaks[i + match.numDelete - 1] - 
-        scaledPeaks[j + match.numAdd - 1];
-      const float matchVal = matrix[i-1][j-1].dist + d * d;
+      // Calculate the cell value if we come diagonally from the
+      // upper left, with neither deletion nor insertion.
+       const float d = refPeaks[i + match.numDelete - 1] - 
+         scaledPeaks[j + match.numAdd - 1];
+       const float matchVal = matrix[i-1][j-1].dist + d * d;
 
       // During the first few peaks we don't penalize a missed real peak
       // as heavily, as it could be due to transients etc.
@@ -79,33 +97,46 @@ void DynProg::fillNeedlemanWunsch(
          i > 1 && i <= 3 - match.numDelete &&
          j < i ? 0 : DELETE_PENALTY); // Ref
 
-      const float ins = matrix[i][j-1].dist + INSERT_PENALTY; // Time
+      // Calculate the cell value if we come from above through the
+      // insertion of a reference peak, i.e. a spurious peak in our
+      // detected, scaled peaks.
+      const float ins = matrix[i][j-1].dist + INSERT_PENALTY;
 
       if (matchVal <= del)
       {
         if (matchVal <= ins)
         {
+          // The diagonal match wins.
           matrix[i][j].origin = NW_MATCH;
           matrix[i][j].dist = matchVal;
         }
         else
         {
+          // The insertion of a spurious peak wins.
           matrix[i][j].origin = NW_INSERT;
           matrix[i][j].dist = ins;
         }
       }
       else if (del <= ins)
       {
+        // The deletion of a reference peak wins.
         matrix[i][j].origin = NW_DELETE;
         matrix[i][j].dist = del;
       }
       else
       {
+        // The insertion of a spurious peak wins.
         matrix[i][j].origin = NW_INSERT;
         matrix[i][j].dist = ins;
       }
     }
   }
+
+  match.dist = matrix[lreff][lteff].dist;
+  
+  // Add fixed penalties for early issues outside of Needleman-Wunsch.
+  match.dist += match.numDelete * EARLY_SHIFTS_PENALTY +
+    match.numAdd * EARLY_SHIFTS_PENALTY;
 }
 
 
@@ -115,12 +146,6 @@ void DynProg::backtrackNeedlemanWunsch(
   const vector<vector<Mentry>>& matrix,
   Alignment& match) const
 {
-  match.dist = matrix[lreff][lteff].dist;
-  
-  // Add fixed penalties for early issues.
-  match.dist += match.numDelete * EARLY_SHIFTS_PENALTY +
-    match.numAdd * EARLY_SHIFTS_PENALTY;
-
   unsigned i = lreff;
   unsigned j = lteff;
   const unsigned numAdd = match.numAdd;
@@ -165,12 +190,16 @@ void DynProg::run(
   // 1. The "letters" are peak positions in meters, so the metric
   //    between letters is the square of the physical distance.
   //
-  // 2. There is a custom penalty function for early deletions (from
-  //    the synthetic trace, scaledPeaks, i.e. an early insertion in
-  //    refPeaks) and for early insertions (in scalePeaks, i.e. an
-  //    early deletion in refPeaks).
+  // 2. There is a custom penalty function for early deletions 
+  //    and for early insertions.
   //
-  // The first dimension is refPeaks, the second is the synthetic one.
+  // An insertion can occur when there are 29 detected peaks in scaledPeaks
+  // and only 28 reference peaks.  It could be that the first detected
+  // peak is spurious and was inserted by our algorithm.
+  //
+  // A deletion can occur in the same example when there are 32
+  // reference peaks.  Then there might have been three deletions
+  // at the front which were missed.
   
   const unsigned lr = refPeaks.size() - match.numDelete;
   const unsigned lt = scaledPeaks.size() - match.numAdd;
