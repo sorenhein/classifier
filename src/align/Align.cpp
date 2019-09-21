@@ -178,6 +178,20 @@ void Align::regressTrain(
   PolynomialRegression pol;
   pol.fitIt(x, y, 2, match.motion.estimate);
 
+  // If the acceleration is higher than physically expected, clamp it
+  // and go to a linear regression.  Note that coeff2 = accel /2.
+  const float coeff2 = match.motion.estimate[2];
+  if (2.f * abs(coeff2) >= ACCEL_MAX)
+  {
+    vector<float> z(lcommon);
+    const float clamp = (coeff2 > 0.f ? ACCEL_MAX : -ACCEL_MAX) / 2.f;
+    match.motion.estimate[2] = clamp;
+
+    for (unsigned p = 0; p < lcommon; p++)
+      z[p] = y[p] - clamp * x[p] * x[p];
+    pol.fitIt(x, z, 1, match.motion.estimate);
+  }
+
   if (storeFlag)
   {
     // Store the residuals.

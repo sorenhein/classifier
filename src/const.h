@@ -390,11 +390,12 @@ static list<CompletionCase> CompletionCases =
 
 #define EARLY_SHIFTS_PENALTY 0.25f
 
-// For other hits and misses, these are the penalties.  They should be
-// large numbers, but the algorithm is not sensitive to them.
+// For other hits and misses, these are the penalties in m^2.
+// If a bogie distance is 2.5m, then a bogie distance of error 
+// would be 6.25 m^2.
 
-#define INSERT_PENALTY 100.f
-#define DELETE_PENALTY 100.f
+#define INSERT_PENALTY 5.f
+#define DELETE_PENALTY 5.f
 
 // Only apply special rules to match distances below this threshold.
 // Otherwise just go by overall distance.
@@ -419,5 +420,10 @@ static list<CompletionCase> CompletionCases =
 // A matching residual below this threshold is considered very good.
 // At the moment this is only for output purposes and not relevant
 // for the algorithmic performance.
+
+// The highest acceleration in m/s^2 that we would physically expect
+// while crossing a switch.
+
+#define ACCEL_MAX 1.f 
 
 #define REGRESS_GREAT_SCORE 3.0f
