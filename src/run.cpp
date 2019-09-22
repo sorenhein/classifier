@@ -413,18 +413,17 @@ void run(
     crossStatsList[thid].log(traceData.trainTrue, trainDetected);
     trainStatsList[thid].log(traceData.trainTrue, rankDetected, distDetected);
 
+    if (control.writeBox())
+    {
+      align.writeTrainBoxes(
+        control, trainDB, traceData.filename, interval.first,
+          traceData.sampleRate, traceData.trainTrue);
+    }
+
     if (trainDetected == traceData.trainTrue)
     {
       overallStats.log("good");
       align.updateStats();
-
-      if (control.writeBox())
-      {
-        align.writeTrainBoxes(
-          control, trainDB, traceData.filename, interval.first,
-            traceData.sampleRate, traceData.trainTrue);
-
-      }
 
       // TODO Make a control out of it
       if (1)
@@ -440,12 +439,15 @@ void run(
     }
     else
     {
+      // TODO Could put offset into traceData.
+      // Could pass traceData to writeTrainBoxes().
+      /*
       if (control.writeBox())
       {
         align.writeTrainBoxes(
           control, trainDB, traceData.filename, interval.first,
             traceData.sampleRate, traceData.trainTrue);
-        /*
+
         align.writeTrain(
           trainDB,
           control.matchDir() + "/" + traceData.filename,
@@ -453,10 +455,8 @@ void run(
           interval.first, 
           traceData.sampleRate,
           trainDetected);
-          */
-        // TODO Could put offset into traceData.
-        // Could pass traceData to writeTrainBoxes().
       }
+          */
 
       overallStats.log("error");
       cout << "DRIVER MISMATCH\n";

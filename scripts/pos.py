@@ -545,10 +545,14 @@ def box(sensorNo, n = 0, d = "best"):
 
       # print("values", len(values))
       # print("peaktimes", len(peaktimes))
+      # print("peakgrades", len(peakgrades))
       # print("reftimes", len(reftimes))
       # print("cars", len(cars))
       # print("refgrades", len(refgrades))
-      # print("peakgrades", len(peakgrades))
+      # for ii in range(len(values)):
+        # print(ii, values[ii], peaktimes[ii], peakgrades[ii])
+      # for ii in range(len(reftimes)):
+        # print(ii, reftimes[ii], cars[ii], refgrades[ii])
 
       level = sum(values) / len(values)
       plt.gca().set_ylim([1.33 * level, -0.50 * level])

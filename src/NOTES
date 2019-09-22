@@ -1,3 +1,11 @@
+Remaining issues with the "good" traces
+---------------------------------------
+* Once 29 peaks does not seem right
+* Zero middle cars
+* Sort on whole distance?
+* Clean up DynProg
+* In Align, note decisions that are close, even if they are resolved
+
 Distinguisher in Align.cpp
 --------------------------
 - second >= 2, second/first >= 5: consider first to win: 923 / 2
