@@ -32,7 +32,7 @@ class DynProg
 
     void initNeedlemanWunsch(
       const vector<float>& refPeaks,
-      const vector<Peak const *>& peaks,
+      const PeaksInfo& peaksInfo,
       const Alignment& match,
       vector<float>& penaltyRef,
       vector<float>& penaltySeen,

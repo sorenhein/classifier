@@ -26,10 +26,12 @@ DynProg::~DynProg()
 }
 
 
+// TODO Delete
 #include <iostream>
+
 void DynProg::initNeedlemanWunsch(
   const vector<float>& refPeaks,
-  const vector<Peak const *>& peaks,
+  const PeaksInfo& peaksInfo,
   const Alignment& match,
   vector<float>& penaltyRef, 
   vector<float>& penaltySeen,
@@ -43,11 +45,11 @@ void DynProg::initNeedlemanWunsch(
     penaltyRef[i] = DELETE_PENALTY;
 
   // This the penalty marginal for adding (spurious?) seen peaks.
-  penaltySeen.resize(peaks.size());
+  penaltySeen.resize(peaksInfo.peaks.size());
   for (unsigned j = 0; j < match.numAdd; j++)
     penaltySeen[j] = EARLY_SHIFTS_PENALTY;
-  for (unsigned j = match.numAdd; j < peaks.size(); j++)
-    penaltySeen[j] = INSERT_PENALTY;
+  for (unsigned j = match.numAdd; j < peaksInfo.peaks.size(); j++)
+    penaltySeen[j] = INSERT_PENALTY * peaksInfo.penaltyFactor[j];
 
   // The first matrix dimension is refPeaks, the second is the seen one.
   // We can imagine the first index as the row index.
@@ -62,7 +64,7 @@ void DynProg::initNeedlemanWunsch(
   //     5 | del
 
   const unsigned lreff = refPeaks.size() - match.numDelete;
-  const unsigned lteff = peaks.size() - match.numAdd;
+  const unsigned lteff = peaksInfo.peaks.size() - match.numAdd;
 
   matrix.resize(lreff+1);
   for (unsigned i = 0; i < lreff+1; i++)
@@ -71,7 +73,6 @@ void DynProg::initNeedlemanWunsch(
   matrix[0][0].dist = 0.;
   for (unsigned i = 1; i < lreff+1; i++)
   {
-    // matrix[i][0].dist = i * DELETE_PENALTY;
     matrix[i][0].dist = matrix[i-1][0].dist +
       penaltyRef[i + match.numDelete - 1];
     matrix[i][0].origin = NW_DELETE;
@@ -106,23 +107,14 @@ void DynProg::fillNeedlemanWunsch(
          scaledPeaks[j + match.numAdd - 1];
        const float matchVal = matrix[i-1][j-1].dist + d * d;
 
-      // During the first few peaks we don't penalize a missed real peak
-      // as heavily, as it could be due to transients etc.
-      // If all real peaks are there (firstRefNo == 0), we are lenient on
-      // [3, 2] (miss the third real peak),
-      // [3, 1] (miss the third and then surely also the second),
-      // [2, 1] (miss the second real peak).
-      // If firstRefNo == 1, we are only lenient on
-      // [2, 1] (miss the second real peak by number here, which is
-      // really the third peak).
-
+      // Calculate the cell value if we come from the left through
+      // the deletion of a reference peak, i.e. a missing seen peak.
       const float del = matrix[i-1][j].dist + 
         penaltyRef[i + match.numDelete - 1];
 
       // Calculate the cell value if we come from above through the
       // insertion of a reference peak, i.e. a spurious peak in our
       // detected, scaled peaks.
-      // const float ins = matrix[i][j-1].dist + INSERT_PENALTY;
       const float ins = matrix[i][j-1].dist + 
         penaltySeen[j + match.numAdd- 1];
 
@@ -234,7 +226,7 @@ void DynProg::run(
   // Set up the matrix and the penalty marginals.
   vector<float> penaltyRef, penaltySeen;
   vector<vector<Mentry>> matrix;
-  DynProg::initNeedlemanWunsch(refPeaks, peaksInfo.peaks, match,
+  DynProg::initNeedlemanWunsch(refPeaks, peaksInfo, match,
     penaltyRef, penaltySeen, matrix);
 
   // Fill the matrix with distances and origins.

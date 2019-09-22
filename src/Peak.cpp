@@ -354,9 +354,9 @@ float Peak::penaltyFactor() const
   if (qualityPeak <= 0.30f)
     return 1.f;
   else if (qualityPeak >= 0.75f)
-    return 0.f;
+    return 0.05f;
   else
-    return (qualityPeak - 0.30f) / (0.75f - 0.30f);
+    return 0.05f + 0.95f * (qualityPeak - 0.30f) / (0.75f - 0.30f);
 }
 
 

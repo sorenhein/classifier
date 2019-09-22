@@ -311,6 +311,10 @@ void Align::regress(
     if (ma.distOther > bestDist + ALIGN_DISTMATCH_THRESHOLD)
       continue;
 
+    // Yes, it can happen that there too few peaks to recurse on.
+    if (ma.numAdd + 4 >= ma.numAxles)
+      continue;
+
     Align::regressTrain(peaksInfo.times, 
       trainDB.getRefInfo(ma.trainNo).positions, true, ma);
 
