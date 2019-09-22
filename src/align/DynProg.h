@@ -31,11 +31,6 @@ class DynProg
 
 
     void initNeedlemanWunsch(
-      const unsigned lreff,
-      const unsigned lteff,
-      vector<vector<Mentry>>& matrix) const;
-
-    void initNeedlemanWunsch2(
       const vector<float>& refPeaks,
       const vector<Peak const *>& peaks,
       const Alignment& match,

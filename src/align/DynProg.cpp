@@ -26,7 +26,8 @@ DynProg::~DynProg()
 }
 
 
-void DynProg::initNeedlemanWunsch2(
+#include <iostream>
+void DynProg::initNeedlemanWunsch(
   const vector<float>& refPeaks,
   const vector<Peak const *>& peaks,
   const Alignment& match,
@@ -34,34 +35,21 @@ void DynProg::initNeedlemanWunsch2(
   vector<float>& penaltySeen,
   vector<vector<Mentry>>& matrix) const
 {
+  // This the penalty marginal for deleting reference peaks.
   penaltyRef.resize(refPeaks.size());
   for (unsigned i = 0; i < match.numDelete; i++)
     penaltyRef[i] = EARLY_SHIFTS_PENALTY;
   for (unsigned i = match.numDelete; i < refPeaks.size(); i++)
     penaltyRef[i] = DELETE_PENALTY;
 
+  // This the penalty marginal for adding (spurious?) seen peaks.
   penaltySeen.resize(peaks.size());
   for (unsigned j = 0; j < match.numAdd; j++)
     penaltySeen[j] = EARLY_SHIFTS_PENALTY;
   for (unsigned j = match.numAdd; j < peaks.size(); j++)
     penaltySeen[j] = INSERT_PENALTY;
 
-  for (unsigned j = 1; j < peaks.size() - match.numAdd + 1; j++)
-  {
-    matrix[0][j].dist = matrix[0][j-1].dist + 
-      penaltySeen[j + match.numAdd - 1];
-    matrix[0][j].origin = NW_INSERT;
-  }
-}
-
-
-#include <iostream>
-void DynProg::initNeedlemanWunsch(
-  const unsigned lreff,
-  const unsigned lteff,
-  vector<vector<Mentry>>& matrix) const
-{
-  // The first dimension is refPeaks, the second is the synthetic one.
+  // The first matrix dimension is refPeaks, the second is the seen one.
   // We can imagine the first index as the row index.
   //
   //      j =  0   1   2   3   4   5   ...
@@ -72,7 +60,9 @@ void DynProg::initNeedlemanWunsch(
   //     3 | del
   //     4 | del
   //     5 | del
-  //
+
+  const unsigned lreff = refPeaks.size() - match.numDelete;
+  const unsigned lteff = peaks.size() - match.numAdd;
 
   matrix.resize(lreff+1);
   for (unsigned i = 0; i < lreff+1; i++)
@@ -81,8 +71,16 @@ void DynProg::initNeedlemanWunsch(
   matrix[0][0].dist = 0.;
   for (unsigned i = 1; i < lreff+1; i++)
   {
-    matrix[i][0].dist = i * DELETE_PENALTY;
+    // matrix[i][0].dist = i * DELETE_PENALTY;
+    matrix[i][0].dist = matrix[i-1][0].dist +
+      penaltyRef[i + match.numDelete - 1];
     matrix[i][0].origin = NW_DELETE;
+  }
+  for (unsigned j = 1; j < lteff + 1; j++)
+  {
+    matrix[0][j].dist = matrix[0][j-1].dist + 
+      penaltySeen[j + match.numAdd - 1];
+    matrix[0][j].origin = NW_INSERT;
   }
 }
 
@@ -233,12 +231,10 @@ void DynProg::run(
   const unsigned lr = refPeaks.size() - match.numDelete;
   const unsigned lt = scaledPeaks.size() - match.numAdd;
 
-  // Set up the matrix.
-  vector<vector<Mentry>> matrix;
-  DynProg::initNeedlemanWunsch(lr, lt, matrix);
-
+  // Set up the matrix and the penalty marginals.
   vector<float> penaltyRef, penaltySeen;
-  DynProg::initNeedlemanWunsch2(refPeaks, peaksInfo.peaks, match,
+  vector<vector<Mentry>> matrix;
+  DynProg::initNeedlemanWunsch(refPeaks, peaksInfo.peaks, match,
     penaltyRef, penaltySeen, matrix);
 
   // Fill the matrix with distances and origins.
