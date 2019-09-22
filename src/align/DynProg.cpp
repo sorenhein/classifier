@@ -119,9 +119,7 @@ void DynProg::fillNeedlemanWunsch(
       // really the third peak).
 
       const float del = matrix[i-1][j].dist + 
-        (match.numDelete <= 1 && 
-         i > 1 && i <= 3 - match.numDelete &&
-         j < i ? 0 : DELETE_PENALTY); // Ref
+        penaltyRef[i + match.numDelete - 1];
 
       // Calculate the cell value if we come from above through the
       // insertion of a reference peak, i.e. a spurious peak in our
