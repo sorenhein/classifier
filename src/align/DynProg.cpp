@@ -45,9 +45,10 @@ void DynProg::initNeedlemanWunsch(
     penaltyRef[i] = DELETE_PENALTY;
 
   // This the penalty marginal for adding (spurious?) seen peaks.
+  // TODO If the penalties stay the same, combine the two loops.
   penaltySeen.resize(peaksInfo.peaks.size());
   for (unsigned j = 0; j < match.numAdd; j++)
-    penaltySeen[j] = EARLY_SHIFTS_PENALTY;
+    penaltySeen[j] = INSERT_PENALTY * peaksInfo.penaltyFactor[j];
   for (unsigned j = match.numAdd; j < peaksInfo.peaks.size(); j++)
     penaltySeen[j] = INSERT_PENALTY * peaksInfo.penaltyFactor[j];
 
