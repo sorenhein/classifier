@@ -26,6 +26,28 @@ DynProg::~DynProg()
 }
 
 
+void DynProg::initNeedlemanWunsch2(
+  const vector<float>& refPeaks,
+  const vector<Peak const *>& peaks,
+  const Alignment& match,
+  vector<float>& penaltyRef, 
+  vector<float>& penaltySeen) const
+{
+  penaltyRef.resize(refPeaks.size());
+  for (unsigned i = 0; i < match.numDelete; i++)
+    penaltyRef[i] = EARLY_SHIFTS_PENALTY;
+  for (unsigned i = match.numDelete; i < refPeaks.size(); i++)
+    penaltyRef[i] = DELETE_PENALTY;
+
+  penaltySeen.resize(peaks.size());
+  for (unsigned j = 0; j < match.numAdd; j++)
+    penaltySeen[j] = EARLY_SHIFTS_PENALTY;
+  for (unsigned j = match.numAdd; j < peaks.size(); j++)
+    penaltySeen[j] = INSERT_PENALTY;
+}
+
+
+#include <iostream>
 void DynProg::initNeedlemanWunsch(
   const unsigned lreff,
   const unsigned lteff,
@@ -66,6 +88,8 @@ void DynProg::initNeedlemanWunsch(
 void DynProg::fillNeedlemanWunsch(
   const vector<float>& refPeaks,
   const vector<float>& scaledPeaks,
+  const vector<float>& penaltyRef,
+  const vector<float>& penaltySeen,
   Alignment& match,
   const unsigned lreff,
   const unsigned lteff,
@@ -135,8 +159,10 @@ void DynProg::fillNeedlemanWunsch(
   match.dist = matrix[lreff][lteff].dist;
   
   // Add fixed penalties for early issues outside of Needleman-Wunsch.
-  match.dist += match.numDelete * EARLY_SHIFTS_PENALTY +
-    match.numAdd * EARLY_SHIFTS_PENALTY;
+  for (unsigned i = 0; i < match.numDelete; i++)
+    match.dist += penaltyRef[i];
+  for (unsigned j = 0; j < match.numAdd; j++)
+    match.dist += penaltySeen[j];
 }
 
 
@@ -181,6 +207,7 @@ void DynProg::backtrackNeedlemanWunsch(
 
 void DynProg::run(
   const vector<float>& refPeaks,
+  const PeaksInfo& peaksInfo,
   const vector<float>& scaledPeaks,
   Alignment& match) const
 {
@@ -208,9 +235,13 @@ void DynProg::run(
   vector<vector<Mentry>> matrix;
   DynProg::initNeedlemanWunsch(lr, lt, matrix);
 
+  vector<float> penaltyRef, penaltySeen;
+  DynProg::initNeedlemanWunsch2(refPeaks, peaksInfo.peaks, match,
+    penaltyRef, penaltySeen);
+
   // Fill the matrix with distances and origins.
-  DynProg::fillNeedlemanWunsch(refPeaks, scaledPeaks, match,
-    lr, lt, matrix);
+  DynProg::fillNeedlemanWunsch(refPeaks, scaledPeaks, 
+    penaltyRef, penaltySeen, match, lr, lt, matrix);
 
   // Walk back through the matrix.
   DynProg::backtrackNeedlemanWunsch(lr, lt, matrix, match);

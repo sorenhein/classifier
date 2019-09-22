@@ -289,7 +289,7 @@ bool Align::realign(
 
     // Run Needleman-Wunsch matching.
     DynProg dynprog;
-    dynprog.run(refInfo.positions, scaledPeaks, match);
+    dynprog.run(refInfo.positions, peaksInfo, scaledPeaks, match);
     matches.push_back(match);
   }
 

@@ -8,6 +8,7 @@ using namespace std;
 
 struct Alignment;
 struct PeaksInfo;
+class Peak;
 
 
 class DynProg
@@ -34,9 +35,18 @@ class DynProg
       const unsigned lteff,
       vector<vector<Mentry>>& matrix) const;
 
+    void initNeedlemanWunsch2(
+      const vector<float>& refPeaks,
+      const vector<Peak const *>& peaks,
+      const Alignment& match,
+      vector<float>& penaltyRef,
+      vector<float>& penaltySeen) const;
+
     void fillNeedlemanWunsch(
       const vector<float>& refPeaks,
       const vector<float>& scaledPeaks,
+      const vector<float>& penaltyRef,
+      const vector<float>& penaltySeen,
       Alignment& alignment,
       const unsigned lreff,
       const unsigned lteff,
@@ -58,6 +68,7 @@ class DynProg
 
     void run(
       const vector<float>& refPeaks,
+      const PeaksInfo& peaksInfo,
       const vector<float>& scaledPeaks,
       Alignment& alignment) const;
 };
