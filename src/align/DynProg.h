@@ -40,7 +40,8 @@ class DynProg
       const vector<Peak const *>& peaks,
       const Alignment& match,
       vector<float>& penaltyRef,
-      vector<float>& penaltySeen) const;
+      vector<float>& penaltySeen,
+      vector<vector<Mentry>>& matrix) const;
 
     void fillNeedlemanWunsch(
       const vector<float>& refPeaks,

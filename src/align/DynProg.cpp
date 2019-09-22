@@ -31,7 +31,8 @@ void DynProg::initNeedlemanWunsch2(
   const vector<Peak const *>& peaks,
   const Alignment& match,
   vector<float>& penaltyRef, 
-  vector<float>& penaltySeen) const
+  vector<float>& penaltySeen,
+  vector<vector<Mentry>>& matrix) const
 {
   penaltyRef.resize(refPeaks.size());
   for (unsigned i = 0; i < match.numDelete; i++)
@@ -44,6 +45,13 @@ void DynProg::initNeedlemanWunsch2(
     penaltySeen[j] = EARLY_SHIFTS_PENALTY;
   for (unsigned j = match.numAdd; j < peaks.size(); j++)
     penaltySeen[j] = INSERT_PENALTY;
+
+  for (unsigned j = 1; j < peaks.size() - match.numAdd + 1; j++)
+  {
+    matrix[0][j].dist = matrix[0][j-1].dist + 
+      penaltySeen[j + match.numAdd - 1];
+    matrix[0][j].origin = NW_INSERT;
+  }
 }
 
 
@@ -75,12 +83,6 @@ void DynProg::initNeedlemanWunsch(
   {
     matrix[i][0].dist = i * DELETE_PENALTY;
     matrix[i][0].origin = NW_DELETE;
-  }
-
-  for (unsigned j = 1; j < lteff+1; j++)
-  {
-    matrix[0][j].dist = j * INSERT_PENALTY;
-    matrix[0][j].origin = NW_INSERT;
   }
 }
 
@@ -124,7 +126,9 @@ void DynProg::fillNeedlemanWunsch(
       // Calculate the cell value if we come from above through the
       // insertion of a reference peak, i.e. a spurious peak in our
       // detected, scaled peaks.
-      const float ins = matrix[i][j-1].dist + INSERT_PENALTY;
+      // const float ins = matrix[i][j-1].dist + INSERT_PENALTY;
+      const float ins = matrix[i][j-1].dist + 
+        penaltySeen[j + match.numAdd- 1];
 
       if (matchVal <= del)
       {
@@ -237,7 +241,7 @@ void DynProg::run(
 
   vector<float> penaltyRef, penaltySeen;
   DynProg::initNeedlemanWunsch2(refPeaks, peaksInfo.peaks, match,
-    penaltyRef, penaltySeen);
+    penaltyRef, penaltySeen, matrix);
 
   // Fill the matrix with distances and origins.
   DynProg::fillNeedlemanWunsch(refPeaks, scaledPeaks, 
