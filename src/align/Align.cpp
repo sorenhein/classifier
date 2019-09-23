@@ -189,7 +189,12 @@ void Align::regressTrain(
 
     for (unsigned p = 0; p < lcommon; p++)
       z[p] = y[p] - clamp * x[p] * x[p];
-    pol.fitIt(x, z, 1, match.motion.estimate);
+
+    // Don't use match.motion.estimate directly, as size would be 2.
+    vector<float> est;
+    pol.fitIt(x, z, 1, est);
+    match.motion.estimate[0] = est[0];
+    match.motion.estimate[1] = est[1];
   }
 
   if (storeFlag)
@@ -282,6 +287,12 @@ bool Align::realign(
     if (! Align::scalePeaks(refInfo, peaksInfo, match, scaledPeaks))
       continue;
 
+    /*
+    cout << "In loop, " << match.trainName << ": " << 
+      match.motion.strBoth();
+    cout << "\n";
+    */
+
     // TODO Print shift.  
     if (control.verboseAlignPeaks())
       Align::printAlignPeaks(refTrain, peaksInfo.times, 
@@ -292,15 +303,23 @@ bool Align::realign(
     dynprog.run(refInfo.positions, peaksInfo, scaledPeaks, match);
     matches.push_back(match);
 
-/*
-cout << "a2r\n";
-for (unsigned i = 0; i < match.actualToRef.size(); i++)
-  cout << i << ": " << match.actualToRef[i] << endl;
-cout << "\n";
-*/
+    /*
+    cout << "In realign loop, did " << match.trainName << endl;
+    for (auto& ma: matches)
+      cout << ma.trainName << ": " << ma.motion.strBoth();
+    cout << "\n";
+    */
   }
 
+  /*
+  cout << "End of realign before sort\n";
+  for (auto& ma: matches)
+    cout << ma.trainName << ": " << ma.motion.strBoth();
+  cout << "\n";
+  */
+
   sort(matches.begin(), matches.end());
+
   return (! matches.empty());
 }
 
@@ -324,13 +343,6 @@ void Align::regress(
 
     Align::regressTrain(peaksInfo.times, 
       trainDB.getRefInfo(ma.trainNo).positions, true, ma);
-
-/*
-cout << "a2r after re-regress\n";
-for (unsigned i = 0; i < ma.actualToRef.size(); i++)
-  cout << i << ": " << ma.actualToRef[i] << endl;
-cout << "\n";
-*/
 
     if (ma.dist < bestDist)
       bestDist = ma.dist;
@@ -536,7 +548,8 @@ void Align::getBoxTraces(
         break;
     }
 // cout << "i " << i << ", Ano " << aNo << ", r " << r << ", refNumbers " <<
-  // refNumbers[i] << ", a2r " << actualToRef[aNo] << 
+  // refNumbers[i] << ", a2r " << 
+  // (aNo == actualToRef.size() ? -99 : actualToRef[aNo]) << 
   // ", residuals " << residuals[r].refIndex << endl;
 
     // Used peaks are 1-4 or 0 for boundary.

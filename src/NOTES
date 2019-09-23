@@ -5,6 +5,7 @@ Remaining issues with the "good" traces
 * Sort on whole distance?
 * Clean up DynProg
 * In Align, note decisions that are close, even if they are resolved
+* Post-process to drop unusually large residuals?
 
 Distinguisher in Align.cpp
 --------------------------
@@ -18,7 +19,6 @@ Output results from Perl overview into csv:
 - Far off: OK, NOK
 
 For the close ones:
-- Don't discard good, early peaks
 - Look at Linf norm, Linf avg of top 3 or #3, L1 sum of all
 - Probably it's best to have relatively even residuals and not
   a few poking out
@@ -39,9 +39,6 @@ Trains
   - If fine quality, it should cost a lot to discard them
 * Will need to deconvolve in the end?
 
-
-
-How can 0, 19 be that good in terms of distance??
 
 Align
 -----
