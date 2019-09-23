@@ -3,7 +3,6 @@
 // 
 // * In Needleman-Wunsch we could notice whether the alignment has
 //   changed.  If not, there is little need to re-run the regression.
-//
 
 #include <cassert>
 

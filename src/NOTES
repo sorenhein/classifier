@@ -4,6 +4,14 @@ Remaining issues with the "good" traces
 * Zero middle cars
 * Sort on whole distance?
 * Clean up DynProg
+  - matrix and marginals -> global
+  - Only resize up when needed, never down
+  - Note global and used size
+  - Only go +/- 10 peaks or so
+  - Note whether alignment has changed
+* Align
+  - Only rerun regression if alignment has changed
+  - If N-W residuals too high, maybe no regression as well
 * In Align, note decisions that are close, even if they are resolved
 * Post-process to drop unusually large residuals?
 
