@@ -15,7 +15,6 @@
 #include "../database/Control.h"
 #include "../database/TrainDB.h"
 
-#include "DynProg.h"
 #include "PolynomialRegression.h"
 #include "Align.h"
 
@@ -299,7 +298,6 @@ bool Align::realign(
         refInfo.positions, scaledPeaks);
 
     // Run Needleman-Wunsch matching.
-    DynProg dynprog;
     dynprog.run(refInfo.positions, peaksInfo, scaledPeaks, match);
     matches.push_back(match);
 

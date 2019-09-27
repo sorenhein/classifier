@@ -4,6 +4,7 @@
 #include <vector>
 #include <string>
 
+#include "DynProg.h"
 #include "Alignment.h"
 
 #include "../util/Motion.h"
@@ -22,6 +23,8 @@ class Align
   private:
 
     vector<Alignment> matches;
+
+    DynProg dynprog;
 
     
     bool trainMightFit(

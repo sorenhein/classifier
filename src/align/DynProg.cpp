@@ -22,6 +22,17 @@
 
 DynProg::DynProg()
 {
+  lenPenaltyRef = DYN_DEFAULT_REF;
+  lenPenaltySeen = DYN_DEFAULT_SEEN;
+  lenMatrixRef = DYN_DEFAULT_REF;
+  lenMatrixSeen = DYN_DEFAULT_SEEN;
+
+  penaltyRef.resize(lenPenaltyRef);
+  penaltySeen.resize(lenPenaltySeen);
+
+  matrix.resize(lenMatrixRef);
+  for (unsigned i = 0; i < lenMatrixRef; i++)
+    matrix.resize(lenMatrixSeen);
 }
 
 
@@ -34,21 +45,32 @@ DynProg::~DynProg()
 #include <iostream>
 
 void DynProg::initNeedlemanWunsch(
-  const vector<float>& refPeaks,
-  const PeaksInfo& peaksInfo,
+  const vector<float>& seenPenaltyFactor,
+  const unsigned refSize,
+  const unsigned seenSize,
   const Alignment& match)
 {
   // This the penalty marginal for deleting reference peaks.
-  penaltyRef.resize(refPeaks.size());
+  if (refSize > lenPenaltyRef)
+  {
+    penaltyRef.resize(refSize);
+    lenPenaltyRef = refSize;
+  }
+
   for (unsigned i = 0; i < match.numDelete; i++)
     penaltyRef[i] = EARLY_SHIFTS_PENALTY;
-  for (unsigned i = match.numDelete; i < refPeaks.size(); i++)
+  for (unsigned i = match.numDelete; i < refSize; i++)
     penaltyRef[i] = DELETE_PENALTY;
 
   // This the penalty marginal for adding (spurious?) seen peaks.
-  penaltySeen.resize(peaksInfo.peaks.size());
-  for (unsigned j = 0; j < peaksInfo.peaks.size(); j++)
-    penaltySeen[j] = INSERT_PENALTY * peaksInfo.penaltyFactor[j];
+  if (seenSize > lenPenaltySeen)
+  {
+    penaltySeen.resize(seenSize);
+    lenPenaltySeen = seenSize;
+  }
+
+  for (unsigned j = 0; j < seenSize; j++)
+    penaltySeen[j] = INSERT_PENALTY * seenPenaltyFactor[j];
 
   // The first matrix dimension is refPeaks, the second is the seen one.
   // We can imagine the first index as the row index.
@@ -62,8 +84,8 @@ void DynProg::initNeedlemanWunsch(
   //     4 | del
   //     5 | del
 
-  const unsigned lreff = refPeaks.size() - match.numDelete;
-  const unsigned lteff = peaksInfo.peaks.size() - match.numAdd;
+  const unsigned lreff = refSize - match.numDelete;
+  const unsigned lteff = seenSize - match.numAdd;
 
   matrix.resize(lreff+1);
   for (unsigned i = 0; i < lreff+1; i++)
@@ -219,7 +241,8 @@ void DynProg::run(
   const unsigned lt = scaledPeaks.size() - match.numAdd;
 
   // Set up the matrix and the penalty marginals.
-  DynProg::initNeedlemanWunsch(refPeaks, peaksInfo, match);
+  DynProg::initNeedlemanWunsch(peaksInfo.penaltyFactor,
+    refPeaks.size(), peaksInfo.peaks.size(), match);
 
   // Fill the matrix with distances and origins.
   DynProg::fillNeedlemanWunsch(refPeaks, scaledPeaks, match, lr, lt);
