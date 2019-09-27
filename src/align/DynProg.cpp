@@ -81,30 +81,30 @@ void DynProg::initNeedlemanWunsch(
   //     4 | del
   //     5 | del
 
-  const unsigned lreff = refSize - match.numDelete + 1;
-  const unsigned lteff = seenSize - match.numAdd + 1;
+  lenMatrixRefUsed = refSize - match.numDelete + 1;
+  lenMatrixSeenUsed = seenSize - match.numAdd + 1;
 
-  if (lreff > lenMatrixRef)
+  if (lenMatrixRefUsed > lenMatrixRef)
   {
-    matrix.resize(lreff);
-    lenMatrixRef = lreff;
+    matrix.resize(lenMatrixRefUsed);
+    lenMatrixRef = lenMatrixRefUsed;
   }
 
-  if (lteff > lenMatrixSeen)
+  if (lenMatrixSeenUsed > lenMatrixSeen)
   {
-    for (unsigned i = 0; i < lreff; i++)
-      matrix[i].resize(lteff);
-    lenMatrixSeen = lteff;
+    for (unsigned i = 0; i < lenMatrixRefUsed; i++)
+      matrix[i].resize(lenMatrixSeenUsed);
+    lenMatrixSeen = lenMatrixSeenUsed;
   }
 
   matrix[0][0].dist = 0.;
-  for (unsigned i = 1; i < lreff; i++)
+  for (unsigned i = 1; i < lenMatrixRefUsed; i++)
   {
     matrix[i][0].dist = matrix[i-1][0].dist +
       penaltyRef[i + match.numDelete - 1];
     matrix[i][0].origin = NW_DELETE;
   }
-  for (unsigned j = 1; j < lteff; j++)
+  for (unsigned j = 1; j < lenMatrixSeenUsed; j++)
   {
     matrix[0][j].dist = matrix[0][j-1].dist + 
       penaltySeen[j + match.numAdd - 1];
@@ -116,14 +116,12 @@ void DynProg::initNeedlemanWunsch(
 void DynProg::fillNeedlemanWunsch(
   const vector<float>& refPeaks,
   const vector<float>& scaledPeaks,
-  Alignment& match,
-  const unsigned lreff,
-  const unsigned lteff)
+  Alignment& match)
 {
   // Run the dynamic programming.
-  for (unsigned i = 1; i < lreff+1; i++)
+  for (unsigned i = 1; i < lenMatrixRefUsed; i++)
   {
-    for (unsigned j = 1; j < lteff+1; j++)
+    for (unsigned j = 1; j < lenMatrixSeenUsed; j++)
     {
       // Calculate the cell value if we come diagonally from the
       // upper left, with neither deletion nor insertion.
@@ -172,7 +170,7 @@ void DynProg::fillNeedlemanWunsch(
     }
   }
 
-  match.dist = matrix[lreff][lteff].dist;
+  match.dist = matrix[lenMatrixRefUsed-1][lenMatrixSeenUsed-1].dist;
   
   // Add fixed penalties for early issues outside of Needleman-Wunsch.
   for (unsigned i = 0; i < match.numDelete; i++)
@@ -251,7 +249,7 @@ void DynProg::run(
     refPeaks.size(), peaksInfo.peaks.size(), match);
 
   // Fill the matrix with distances and origins.
-  DynProg::fillNeedlemanWunsch(refPeaks, scaledPeaks, match, lr, lt);
+  DynProg::fillNeedlemanWunsch(refPeaks, scaledPeaks, match);
 
   // Walk back through the matrix.
   DynProg::backtrackNeedlemanWunsch(lr, lt, match);

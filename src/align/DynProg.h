@@ -34,6 +34,8 @@ class DynProg
     unsigned lenPenaltySeen;
     unsigned lenMatrixRef;
     unsigned lenMatrixSeen;
+    unsigned lenMatrixRefUsed;
+    unsigned lenMatrixSeenUsed;
 
     vector<float> penaltyRef;
     vector<float> penaltySeen;
@@ -49,9 +51,7 @@ class DynProg
     void fillNeedlemanWunsch(
       const vector<float>& refPeaks,
       const vector<float>& scaledPeaks,
-      Alignment& alignment,
-      const unsigned lreff,
-      const unsigned lteff);
+      Alignment& alignment);
 
     void backtrackNeedlemanWunsch(
       const unsigned lreff,
