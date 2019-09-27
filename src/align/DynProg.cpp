@@ -15,6 +15,11 @@
 #include "../const.h"
 
 
+#define DYN_DEFAULT_REF 80
+#define DYN_DEFAULT_SEEN 80
+#define DYN_RANGE 5
+
+
 DynProg::DynProg()
 {
 }
@@ -31,10 +36,7 @@ DynProg::~DynProg()
 void DynProg::initNeedlemanWunsch(
   const vector<float>& refPeaks,
   const PeaksInfo& peaksInfo,
-  const Alignment& match,
-  vector<float>& penaltyRef, 
-  vector<float>& penaltySeen,
-  vector<vector<Mentry>>& matrix) const
+  const Alignment& match)
 {
   // This the penalty marginal for deleting reference peaks.
   penaltyRef.resize(refPeaks.size());
@@ -44,11 +46,8 @@ void DynProg::initNeedlemanWunsch(
     penaltyRef[i] = DELETE_PENALTY;
 
   // This the penalty marginal for adding (spurious?) seen peaks.
-  // TODO If the penalties stay the same, combine the two loops.
   penaltySeen.resize(peaksInfo.peaks.size());
-  for (unsigned j = 0; j < match.numAdd; j++)
-    penaltySeen[j] = INSERT_PENALTY * peaksInfo.penaltyFactor[j];
-  for (unsigned j = match.numAdd; j < peaksInfo.peaks.size(); j++)
+  for (unsigned j = 0; j < peaksInfo.peaks.size(); j++)
     penaltySeen[j] = INSERT_PENALTY * peaksInfo.penaltyFactor[j];
 
   // The first matrix dimension is refPeaks, the second is the seen one.
@@ -89,12 +88,9 @@ void DynProg::initNeedlemanWunsch(
 void DynProg::fillNeedlemanWunsch(
   const vector<float>& refPeaks,
   const vector<float>& scaledPeaks,
-  const vector<float>& penaltyRef,
-  const vector<float>& penaltySeen,
   Alignment& match,
   const unsigned lreff,
-  const unsigned lteff,
-  vector<vector<Mentry>>& matrix) const
+  const unsigned lteff)
 {
   // Run the dynamic programming.
   for (unsigned i = 1; i < lreff+1; i++)
@@ -161,8 +157,7 @@ void DynProg::fillNeedlemanWunsch(
 void DynProg::backtrackNeedlemanWunsch(
   const unsigned lreff,
   const unsigned lteff,
-  const vector<vector<Mentry>>& matrix,
-  Alignment& match) const
+  Alignment& match)
 {
   unsigned i = lreff;
   unsigned j = lteff;
@@ -201,7 +196,7 @@ void DynProg::run(
   const vector<float>& refPeaks,
   const PeaksInfo& peaksInfo,
   const vector<float>& scaledPeaks,
-  Alignment& match) const
+  Alignment& match)
 {
   // https://en.wikipedia.org/wiki/Needleman%E2%80%93Wunsch_algorithm
   // This is an adaptation of the sequence-matching algorithm.
@@ -224,17 +219,13 @@ void DynProg::run(
   const unsigned lt = scaledPeaks.size() - match.numAdd;
 
   // Set up the matrix and the penalty marginals.
-  vector<float> penaltyRef, penaltySeen;
-  vector<vector<Mentry>> matrix;
-  DynProg::initNeedlemanWunsch(refPeaks, peaksInfo, match,
-    penaltyRef, penaltySeen, matrix);
+  DynProg::initNeedlemanWunsch(refPeaks, peaksInfo, match);
 
   // Fill the matrix with distances and origins.
-  DynProg::fillNeedlemanWunsch(refPeaks, scaledPeaks, 
-    penaltyRef, penaltySeen, match, lr, lt, matrix);
+  DynProg::fillNeedlemanWunsch(refPeaks, scaledPeaks, match, lr, lt);
 
   // Walk back through the matrix.
-  DynProg::backtrackNeedlemanWunsch(lr, lt, matrix, match);
+  DynProg::backtrackNeedlemanWunsch(lr, lt, match);
 
   assert(refPeaks.size() + match.numAdd == 
     scaledPeaks.size() + match.numDelete);

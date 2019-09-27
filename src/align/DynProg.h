@@ -30,30 +30,29 @@ class DynProg
     };
 
 
+    unsigned len;
+
+    vector<float> penaltyRef;
+    vector<float> penaltySeen;
+    vector<vector<Mentry>> matrix;
+
+
     void initNeedlemanWunsch(
       const vector<float>& refPeaks,
       const PeaksInfo& peaksInfo,
-      const Alignment& match,
-      vector<float>& penaltyRef,
-      vector<float>& penaltySeen,
-      vector<vector<Mentry>>& matrix) const;
+      const Alignment& match);
 
     void fillNeedlemanWunsch(
       const vector<float>& refPeaks,
       const vector<float>& scaledPeaks,
-      const vector<float>& penaltyRef,
-      const vector<float>& penaltySeen,
       Alignment& alignment,
       const unsigned lreff,
-      const unsigned lteff,
-      vector<vector<Mentry>>& matrix) const;
+      const unsigned lteff);
 
     void backtrackNeedlemanWunsch(
       const unsigned lreff,
       const unsigned lteff,
-      const vector<vector<Mentry>>& matrix,
-      Alignment& match) const;
-
+      Alignment& match);
 
 
   public:
@@ -66,7 +65,7 @@ class DynProg
       const vector<float>& refPeaks,
       const PeaksInfo& peaksInfo,
       const vector<float>& scaledPeaks,
-      Alignment& alignment) const;
+      Alignment& alignment);
 };
 
 #endif
