@@ -4,9 +4,6 @@ Remaining issues with the "good" traces
 * Zero middle cars
 * Sort on whole distance?
 * Clean up DynProg
-  - matrix and marginals -> global
-  - Only resize up when needed, never down
-  - Note global and used size
   - Only go +/- 10 peaks or so
   - Note whether alignment has changed
 * Align

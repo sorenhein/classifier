@@ -32,7 +32,7 @@ DynProg::DynProg()
 
   matrix.resize(lenMatrixRef);
   for (unsigned i = 0; i < lenMatrixRef; i++)
-    matrix.resize(lenMatrixSeen);
+    matrix[i].resize(lenMatrixSeen);
 }
 
 
@@ -40,9 +40,6 @@ DynProg::~DynProg()
 {
 }
 
-
-// TODO Delete
-#include <iostream>
 
 void DynProg::initNeedlemanWunsch(
   const vector<float>& seenPenaltyFactor,
@@ -84,21 +81,30 @@ void DynProg::initNeedlemanWunsch(
   //     4 | del
   //     5 | del
 
-  const unsigned lreff = refSize - match.numDelete;
-  const unsigned lteff = seenSize - match.numAdd;
+  const unsigned lreff = refSize - match.numDelete + 1;
+  const unsigned lteff = seenSize - match.numAdd + 1;
 
-  matrix.resize(lreff+1);
-  for (unsigned i = 0; i < lreff+1; i++)
-    matrix[i].resize(lteff+1);
+  if (lreff > lenMatrixRef)
+  {
+    matrix.resize(lreff);
+    lenMatrixRef = lreff;
+  }
+
+  if (lteff > lenMatrixSeen)
+  {
+    for (unsigned i = 0; i < lreff; i++)
+      matrix[i].resize(lteff);
+    lenMatrixSeen = lteff;
+  }
 
   matrix[0][0].dist = 0.;
-  for (unsigned i = 1; i < lreff+1; i++)
+  for (unsigned i = 1; i < lreff; i++)
   {
     matrix[i][0].dist = matrix[i-1][0].dist +
       penaltyRef[i + match.numDelete - 1];
     matrix[i][0].origin = NW_DELETE;
   }
-  for (unsigned j = 1; j < lteff + 1; j++)
+  for (unsigned j = 1; j < lteff; j++)
   {
     matrix[0][j].dist = matrix[0][j-1].dist + 
       penaltySeen[j + match.numAdd - 1];
