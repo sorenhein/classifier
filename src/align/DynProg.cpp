@@ -5,6 +5,7 @@
 //   changed.  If not, there is little need to re-run the regression.
 
 #include <cassert>
+#include <algorithm>
 
 #include "Alignment.h"
 #include "DynProg.h"
@@ -17,7 +18,7 @@
 
 #define DYN_DEFAULT_REF 80
 #define DYN_DEFAULT_SEEN 80
-#define DYN_RANGE 5
+#define DYN_RANGE 8
 
 
 DynProg::DynProg()
@@ -121,7 +122,11 @@ void DynProg::fillNeedlemanWunsch(
   // Run the dynamic programming.
   for (unsigned i = 1; i < lenMatrixRefUsed; i++)
   {
-    for (unsigned j = 1; j < lenMatrixSeenUsed; j++)
+    const unsigned jmin = (i < DYN_RANGE+1 ? 1 : i - DYN_RANGE);
+    const unsigned jmax = min(i+DYN_RANGE, lenMatrixSeenUsed-1);
+
+    // for (unsigned j = 1; j < lenMatrixSeenUsed; j++)
+    for (unsigned j = jmin; j <= jmax; j++)
     {
       // Calculate the cell value if we come diagonally from the
       // upper left, with neither deletion nor insertion.
@@ -131,14 +136,20 @@ void DynProg::fillNeedlemanWunsch(
 
       // Calculate the cell value if we come from the left through
       // the deletion of a reference peak, i.e. a missing seen peak.
-      const float del = matrix[i-1][j].dist + 
-        penaltyRef[i + match.numDelete - 1];
+      float del;
+      if (j == jmax)
+        del = numeric_limits<float>::max();
+      else
+        del = matrix[i-1][j].dist + penaltyRef[i + match.numDelete - 1];
 
       // Calculate the cell value if we come from above through the
       // insertion of a reference peak, i.e. a spurious peak in our
       // detected, scaled peaks.
-      const float ins = matrix[i][j-1].dist + 
-        penaltySeen[j + match.numAdd- 1];
+      float ins;
+      if (j == jmin)
+        ins = numeric_limits<float>::max();
+      else
+        ins = matrix[i][j-1].dist + penaltySeen[j + match.numAdd- 1];
 
       if (matchVal <= del)
       {
@@ -180,13 +191,10 @@ void DynProg::fillNeedlemanWunsch(
 }
 
 
-void DynProg::backtrackNeedlemanWunsch(
-  const unsigned lreff,
-  const unsigned lteff,
-  Alignment& match)
+void DynProg::backtrackNeedlemanWunsch(Alignment& match)
 {
-  unsigned i = lreff;
-  unsigned j = lteff;
+  unsigned i = lenMatrixRefUsed-1;
+  unsigned j = lenMatrixSeenUsed-1;
   const unsigned numAdd = match.numAdd;
   const unsigned numDelete = match.numDelete;
 
@@ -241,8 +249,8 @@ void DynProg::run(
   // reference peaks.  Then there might have been three deletions
   // at the front which were missed.
   
-  const unsigned lr = refPeaks.size() - match.numDelete;
-  const unsigned lt = scaledPeaks.size() - match.numAdd;
+  // const unsigned lr = refPeaks.size() - match.numDelete;
+  // const unsigned lt = scaledPeaks.size() - match.numAdd;
 
   // Set up the matrix and the penalty marginals.
   DynProg::initNeedlemanWunsch(peaksInfo.penaltyFactor,
@@ -252,9 +260,8 @@ void DynProg::run(
   DynProg::fillNeedlemanWunsch(refPeaks, scaledPeaks, match);
 
   // Walk back through the matrix.
-  DynProg::backtrackNeedlemanWunsch(lr, lt, match);
+  DynProg::backtrackNeedlemanWunsch(match);
 
   assert(refPeaks.size() + match.numAdd == 
     scaledPeaks.size() + match.numDelete);
 }
-

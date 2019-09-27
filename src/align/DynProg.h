@@ -53,10 +53,7 @@ class DynProg
       const vector<float>& scaledPeaks,
       Alignment& alignment);
 
-    void backtrackNeedlemanWunsch(
-      const unsigned lreff,
-      const unsigned lteff,
-      Alignment& match);
+    void backtrackNeedlemanWunsch(Alignment& match);
 
 
   public:
