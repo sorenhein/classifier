@@ -168,7 +168,7 @@ void Control::configure()
       "0x40: match\n"
       "0x80: box" },
     { "-v", "--verbose", CORRESPONDENCE_BIT_VECTOR, CTRL_VERBOSE, "0xf37",
-      "Verbosity (default: 0x337).  Bits:\n"
+      "Verbosity (default: 0xf37).  Bits:\n"
       "0x001: Transient\n"
       "0x002: Active interval\n"
       "0x004: Align matches\n"
@@ -504,12 +504,6 @@ bool Control::verboseQuiet() const
 bool Control::verboseAlignMatches() const
 {
   return (entry.getIntVector(CTRL_VERBOSE)[CTRL_VERBOSE_ALIGN_MATCHES] != 0);
-}
-
-
-bool Control::verboseAlignPeaks() const
-{
-  return (entry.getIntVector(CTRL_VERBOSE)[CTRL_VERBOSE_ALIGN_PEAKS] != 0);
 }
 
 

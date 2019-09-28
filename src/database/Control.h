@@ -99,15 +99,14 @@ enum ControlVerbose
   CTRL_VERBOSE_TRANSIENT_MATCH = 0,
   CTRL_VERBOSE_QUIET = 1,
   CTRL_VERBOSE_ALIGN_MATCHES = 2,
-  CTRL_VERBOSE_ALIGN_PEAKS = 3,
-  CTRL_VERBOSE_REGRESS_MATCH = 4,
-  CTRL_VERBOSE_REGRESS_MOTION = 5,
-  CTRL_VERBOSE_REGRESS_TOPS = 6,
-  CTRL_VERBOSE_PEAK_REDUCE = 7,
-  CTRL_VERBOSE_SENSOR_STATS = 8,
-  CTRL_VERBOSE_CROSS_STATS = 9,
-  CTRL_VERBOSE_TRAIN_STATS = 10,
-  CTRL_VERBOSE_TIMER_STATS = 11
+  CTRL_VERBOSE_REGRESS_MATCH = 3,
+  CTRL_VERBOSE_REGRESS_MOTION = 4,
+  CTRL_VERBOSE_REGRESS_TOPS = 5,
+  CTRL_VERBOSE_PEAK_REDUCE = 6,
+  CTRL_VERBOSE_SENSOR_STATS = 7,
+  CTRL_VERBOSE_CROSS_STATS = 8,
+  CTRL_VERBOSE_TRAIN_STATS = 9,
+  CTRL_VERBOSE_TIMER_STATS = 10
 
 };
 
@@ -204,7 +203,6 @@ class Control
     bool verboseTransient() const;
     bool verboseQuiet() const;
     bool verboseAlignMatches() const;
-    bool verboseAlignPeaks() const;
     bool verboseRegressMatch() const;
     bool verboseRegressMotion() const;
     bool verboseRegressTopResiduals() const;

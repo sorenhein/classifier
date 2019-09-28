@@ -1,10 +1,3 @@
-// It would be possible to optimize this quite a bit, but it is already
-// quite fast.  Specifically:
-// 
-// * Following N-W, some regressions can probably be thrown out based on 
-//   the N-W residuals.
-
-
 #include <iostream>
 #include <iomanip>
 #include <sstream>
@@ -120,6 +113,41 @@ bool Align::alignFronts(
 }
 
 
+bool Align::alignPeaks(
+  const PeaksInfo& refInfo,
+  const PeaksInfo& peaksInfo,
+  Alignment& match) const
+{
+  // We estimate the motion parameters of fitting peaksInfo.times
+  // to refPeaks, and then we calculate the corresponding times.
+
+  int offsetRef;
+  if (! Align::alignFronts(refInfo, peaksInfo, match, offsetRef))
+    return false;
+
+  if (peaksInfo.peakNumbers.back() + offsetRef >= 
+      static_cast<int>(refInfo.positions.size()))
+    return false; // Car number would overflow
+
+  // Set up the alignment for a regression.
+  match.dist = 0.;
+  match.distMatch = 0.;
+
+  // times is empty when we use this method to correlate theoretical
+  // trains according to their positions (there are no times).
+  const unsigned lt = (peaksInfo.times.empty() ?
+    peaksInfo.positions.size() : peaksInfo.times.size());
+
+  match.actualToRef.resize(lt);
+  for (unsigned k = 0; k < match.numAdd; k++)
+    match.actualToRef[k] = -1;
+  for (unsigned k = match.numAdd; k < lt; k++)
+    match.actualToRef[k] = peaksInfo.peakNumbers[k] + offsetRef;
+  
+  return true;
+}
+
+
 void Align::storeResiduals(
   const vector<float>& x,
   const vector<float>& y,
@@ -205,41 +233,6 @@ void Align::regressTrain(
 }
 
 
-bool Align::alignPeaks(
-  const PeaksInfo& refInfo,
-  const PeaksInfo& peaksInfo,
-  Alignment& match) const
-{
-  // We estimate the motion parameters of fitting peaksInfo.times
-  // to refPeaks, and then we calculate the corresponding times.
-
-  int offsetRef;
-  if (! Align::alignFronts(refInfo, peaksInfo, match, offsetRef))
-    return false;
-
-  if (peaksInfo.peakNumbers.back() + offsetRef >= 
-      static_cast<int>(refInfo.positions.size()))
-    return false; // Car number would overflow
-
-  // Set up the alignment for a regression.
-  match.dist = 0.;
-  match.distMatch = 0.;
-
-  // times is empty when we use this method to correlate theoretical
-  // trains according to their positions (there are no times).
-  const unsigned lt = (peaksInfo.times.empty() ?
-    peaksInfo.positions.size() : peaksInfo.times.size());
-
-  match.actualToRef.resize(lt);
-  for (unsigned k = 0; k < match.numAdd; k++)
-    match.actualToRef[k] = -1;
-  for (unsigned k = match.numAdd; k < lt; k++)
-    match.actualToRef[k] = peaksInfo.peakNumbers[k] + offsetRef;
-  
-  return true;
-}
-
-
 bool Align::scalePeaks(
   const PeaksInfo& refInfo,
   const PeaksInfo& peaksInfo,
@@ -262,7 +255,6 @@ bool Align::scalePeaks(
 
 
 bool Align::realign(
-  const Control& control,
   const TrainDB& trainDB,
   const string& sensorCountry,
   const PeaksInfo& peaksInfo)
@@ -286,35 +278,10 @@ bool Align::realign(
     if (! Align::scalePeaks(refInfo, peaksInfo, match, scaledPeaks))
       continue;
 
-    /*
-    cout << "In loop, " << match.trainName << ": " << 
-      match.motion.strBoth();
-    cout << "\n";
-    */
-
-    // TODO Print shift.  
-    if (control.verboseAlignPeaks())
-      Align::printAlignPeaks(refTrain, peaksInfo.times, 
-        refInfo.positions, scaledPeaks);
-
     // Run Needleman-Wunsch matching.
     dynprog.run(refInfo.positions, peaksInfo, scaledPeaks, match);
     matches.push_back(match);
-
-    /*
-    cout << "In realign loop, did " << match.trainName << endl;
-    for (auto& ma: matches)
-      cout << ma.trainName << ": " << ma.motion.strBoth();
-    cout << "\n";
-    */
   }
-
-  /*
-  cout << "End of realign before sort\n";
-  for (auto& ma: matches)
-    cout << ma.trainName << ": " << ma.motion.strBoth();
-  cout << "\n";
-  */
 
   sort(matches.begin(), matches.end());
 
@@ -335,11 +302,9 @@ void Align::regress(
     if (ma.distOther > bestDist + ALIGN_DISTMATCH_THRESHOLD)
       continue;
 
-    // Yes, it can happen that there too few peaks to recurse on.
+    // It can happen that there too few peaks to recurse on.
     if (ma.numAdd + 4 >= ma.numAxles)
       continue;
-
-    const float oldDist = ma.dist;
 
     // Only rerun regression if the alignment changed.
     if (ma.dynChangeFlag)
@@ -389,102 +354,6 @@ unsigned Align::getMatchRank(const unsigned trainNoTrue) const
 void Align::updateStats() const
 {
   matches.front().updateStats();
-}
-
-
-string Align::strMatches(const string& title) const
-{
-  stringstream ss;
-  ss << title << "\n";
-  for (auto& match: matches)
-    ss << match.str();
-  ss << "\n";
-  return ss.str();
-}
-
-
-string Align::strRegress(const Control& control) const
-{
-  stringstream ss;
-
-  const auto& bestAlign = matches.front();
-
-  if (control.verboseRegressMatch())
-  {
-    ss << Align::strMatches("Matching alignment");
-
-    ss << "Regression alignment\n";
-    ss << bestAlign.str();
-    ss << endl;
-  }
-
-  if (control.verboseRegressMotion())
-    ss << bestAlign.motion.strEstimate("Regression motion");
-
-  if (control.verboseRegressTopResiduals())
-    ss << bestAlign.strTopResiduals();
-  
-  return ss.str();
-}
-
-
-string Align::strMatchingResiduals(
-  const string& trainTrue,
-  const string& pickAny,
-  const string& heading) const
-{
-  stringstream ss;
-
-  unsigned mno = 0;
-  for (auto& ma: matches)
-  {
-    mno++;
-    if (ma.trainName.find(pickAny) == string::npos)
-      continue;
-    if (ma.distMatch > REGRESS_GREAT_SCORE)
-      continue;
-
-    ss << "SPECTRAIN" << trainTrue << " " << ma.trainName << endl;
-    ss << heading << "/" <<
-      fixed << setprecision(2) << ma.distMatch << "/#" << mno << "\n";
-
-    // The match data may have been sorted by residual size.
-    // This works regardless.
-    vector<float> pos(ma.numAxles);
-    for (auto& re: ma.residuals)
-      pos[re.refIndex] = re.value;
-
-    for (unsigned i = 0; i < pos.size(); i++)
-    {
-      if (pos[i] == 0.)
-        ss << i << ";" << endl;
-      else
-        ss << i << ";" << fixed << setprecision(4) << pos[i] << endl;
-    }
-    ss << "ENDSPEC\n";
-  }
-
-  return ss.str();
-}
-
-
-string Align::strDeviation() const
-{
-  return matches.front().strDeviation();
-}
-
-
-void Align::printAlignPeaks(
-  const string& refTrain,
-  const vector<float>& times,
-  const vector<float>& refPeaks,
-  const vector<float>& scaledPeaks) const
-{
-  cout << "refTrain " << refTrain << "\n\n";
-
-  printVectorCSV("times", times, 0);
-  printVectorCSV("refPeaks", refPeaks, 1);
-  printVectorCSV("scaledPeaks", scaledPeaks, 2);
 }
 
 
@@ -736,3 +605,84 @@ void Align::writeTrainBoxes(
     offset, sampleRate);
 }
 
+
+string Align::strMatches(const string& title) const
+{
+  stringstream ss;
+  ss << title << "\n";
+  for (auto& match: matches)
+    ss << match.str();
+  ss << "\n";
+  return ss.str();
+}
+
+
+string Align::strRegress(const Control& control) const
+{
+  stringstream ss;
+
+  const auto& bestAlign = matches.front();
+
+  if (control.verboseRegressMatch())
+  {
+    ss << Align::strMatches("Matching alignment");
+
+    ss << "Regression alignment\n";
+    ss << bestAlign.str();
+    ss << endl;
+  }
+
+  if (control.verboseRegressMotion())
+    ss << bestAlign.motion.strEstimate("Regression motion");
+
+  if (control.verboseRegressTopResiduals())
+    ss << bestAlign.strTopResiduals();
+  
+  return ss.str();
+}
+
+
+string Align::strMatchingResiduals(
+  const string& trainTrue,
+  const string& pickAny,
+  const string& heading) const
+{
+  stringstream ss;
+
+  unsigned mno = 0;
+  for (auto& ma: matches)
+  {
+    mno++;
+    if (ma.trainName.find(pickAny) == string::npos)
+      continue;
+    if (ma.distMatch > REGRESS_GREAT_SCORE)
+      continue;
+
+    ss << "SPECTRAIN" << trainTrue << " " << ma.trainName << endl;
+    ss << heading << "/" <<
+      fixed << setprecision(2) << ma.distMatch << "/#" << mno << "\n";
+
+    // The match data may have been sorted by residual size.
+    // This works regardless.
+    vector<float> pos(ma.numAxles);
+    for (auto& re: ma.residuals)
+      pos[re.refIndex] = re.value;
+
+    for (unsigned i = 0; i < pos.size(); i++)
+    {
+      if (pos[i] == 0.)
+        ss << i << ";" << endl;
+      else
+        ss << i << ";" << fixed << setprecision(4) << pos[i] << endl;
+    }
+    ss << "ENDSPEC\n";
+  }
+
+  return ss.str();
+}
+
+
+string Align::strDeviation() const
+{
+  return matches.front().strDeviation();
+}

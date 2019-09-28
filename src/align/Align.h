@@ -51,12 +51,6 @@ class Align
       Alignment& match,
       vector<float>& scaledPeaks) const;
 
-    void printAlignPeaks(
-      const string& refTrain,
-      const vector<float>& times,
-      const vector<float>& refPeaks,
-      const vector<float>& scaledPeaks) const;
-
     Motion const * getMatchingMotion(const string& trainName) const;
 
     void getBoxTraces(
@@ -104,7 +98,6 @@ class Align
     ~Align();
 
     bool realign(
-      const Control& control,
       const TrainDB& trainDB,
       const string& country,
       const PeaksInfo& peaksInfo);
@@ -124,17 +117,6 @@ class Align
 
     void updateStats() const;
 
-    string strMatches(const string& title) const;
-
-    string strRegress(const Control& control) const;
-
-    string strMatchingResiduals(
-      const string& trainTrue,
-      const string& pickAny,
-      const string& heading) const;
-
-    string strDeviation() const;
-
     void writeTrain(
       const TrainDB& trainDB,
       const string& filename,
@@ -150,6 +132,17 @@ class Align
       const unsigned offset,
       const float sampleRate,
       const string& trueTrainName) const;
+
+    string strMatches(const string& title) const;
+
+    string strRegress(const Control& control) const;
+
+    string strMatchingResiduals(
+      const string& trainTrue,
+      const string& pickAny,
+      const string& heading) const;
+
+    string strDeviation() const;
 };
 
 #endif

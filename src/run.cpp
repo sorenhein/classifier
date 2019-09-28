@@ -369,8 +369,7 @@ void run(
     timers[thid].start(TIMER_ALIGN);
 
     Align align;
-    if (! align.realign(control, trainDB, traceData.countrySensor, 
-        peaksInfo))
+    if (! align.realign(trainDB, traceData.countrySensor, peaksInfo))
       THROW(ERR_NO_ALIGN_MATCHES, "No alignment matches");
 
     cout << "True train " << traceData.trainTrue << " at " <<
