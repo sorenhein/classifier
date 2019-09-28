@@ -167,20 +167,19 @@ void Control::configure()
       "0x20: peak\n"
       "0x40: match\n"
       "0x80: box" },
-    { "-v", "--verbose", CORRESPONDENCE_BIT_VECTOR, CTRL_VERBOSE, "0xf37",
-      "Verbosity (default: 0xf37).  Bits:\n"
+    { "-v", "--verbose", CORRESPONDENCE_BIT_VECTOR, CTRL_VERBOSE, "0x79f",
+      "Verbosity (default: 0x79f).  Bits:\n"
       "0x001: Transient\n"
       "0x002: Active interval\n"
-      "0x004: Align matches\n"
-      "0x008: Align peaks\n"
-      "0x010: Regress match\n"
-      "0x020: Regress motion\n"
-      "0x040: Regress tops\n"
-      "0x080: Reduce peaks\n" 
-      "0x100: Sensor stats\n" 
-      "0x200: Cross stats\n" 
-      "0x400: Train stats\n" 
-      "0x800: Timer stats" 
+      "0x004: Align peaks\n"
+      "0x008: Regress match\n"
+      "0x010: Regress motion\n"
+      "0x020: Regress tops\n"
+      "0x040: Reduce peaks\n"
+      "0x080: Sensor stats\n" 
+      "0x100: Cross stats\n" 
+      "0x200: Train stats\n" 
+      "0x400: Timer stats" 
       }
   };
 

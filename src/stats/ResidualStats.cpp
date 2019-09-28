@@ -14,6 +14,8 @@
 
 #define MIN_FOR_STATISTICS 5
 
+#define LOG_THRESHOLD 3.
+
 
 ResidualStats::ResidualStats()
 {
@@ -38,7 +40,7 @@ void ResidualStats::reset()
 
 void ResidualStats::log(const Alignment& alignment)
 {
-  if (alignment.distMatch >= ALIGN_DISTMATCH_THRESHOLD)
+  if (alignment.distMatch >= LOG_THRESHOLD)
     return;
 
   if (sum.size() < alignment.numAxles)

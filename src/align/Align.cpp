@@ -295,21 +295,21 @@ void Align::regress(
   const bool topFlag)
 {
   float bestDist = numeric_limits<float>::max();
+  bool changeFlag = false;
 
   for (auto& ma: matches)
   {
-    // Can we still get close to bestAlign?
-    if (ma.distOther > bestDist + ALIGN_DISTMATCH_THRESHOLD)
-      continue;
-
     // It can happen that there too few peaks to recurse on.
     if (ma.numAdd + 4 >= ma.numAxles)
       continue;
 
     // Only rerun regression if the alignment changed.
     if (ma.dynChangeFlag)
+    {
       Align::regressTrain(peaksInfo.times, 
         trainDB.getRefInfo(ma.trainNo).positions, true, ma);
+      changeFlag = true;
+    }
 
     if (ma.dist < bestDist)
       bestDist = ma.dist;
@@ -318,7 +318,22 @@ void Align::regress(
       ma.setTopResiduals();
   }
 
-  sort(matches.begin(), matches.end());
+  if (changeFlag)
+    sort(matches.begin(), matches.end());
+
+  // Skip very unlikely matches.
+  if (matches.size() >= 2)
+  {
+    bestDist = matches.front().dist;
+    auto mit = next(matches.begin());
+    while (mit != matches.end() && 
+        (mit->dist <= 2.f ||
+        mit->dist <= 5.f * bestDist))
+      mit++;
+    
+    if (mit != matches.end())
+      matches.erase(mit, matches.end());
+  }
 }
 
 
@@ -396,9 +411,6 @@ void Align::getBoxTraces(
   unsigned aNo = 0; // Index in actualToRef
   unsigned r = 0; // Index in residuals
 
-// cout << "refPeaks size " << refPeaks.size() << ", a2r size " <<
-  // actualToRef.size() << endl;
-
   while (i < static_cast<int>(refPeaks.size()))
   {
     if (! motion->pos2time(refPeaks[i], sampleRate, n))
@@ -418,10 +430,6 @@ void Align::getBoxTraces(
       else
         break;
     }
-// cout << "i " << i << ", Ano " << aNo << ", r " << r << ", refNumbers " <<
-  // refNumbers[i] << ", a2r " << 
-  // (aNo == actualToRef.size() ? -99 : actualToRef[aNo]) << 
-  // ", residuals " << residuals[r].refIndex << endl;
 
     // Used peaks are 1-4 or 0 for boundary.
     // Missed peaks are max.
@@ -431,7 +439,6 @@ void Align::getBoxTraces(
       refTimes.push_back(n + offset);
       refPeakTypes.push_back(0);
       refGrades.push_back(0.f);
-// cout << "Boundary" << endl;
       i++;
     }
     else if (aNo == actualToRef.size() ||
@@ -441,7 +448,6 @@ void Align::getBoxTraces(
       refTimes.push_back(n + offset);
       refPeakTypes.push_back(static_cast<unsigned>(refCars[i]+1));
       refGrades.push_back(-1.f);
-// cout << "Reference not detected" << endl;
       i++;
     }
     else if (actualToRef[aNo] == refNumbers[i])
@@ -452,10 +458,8 @@ void Align::getBoxTraces(
 
       // Look for i/aNo in residuals.
       const unsigned ru = static_cast<unsigned>(refNumbers[i]);
-// cout << "Starting on match, i " << i << ", r " << r << endl;
       while (r < residuals.size() && ru > residuals[r].refIndex)
         r++;
-// cout << "r now " << r << endl;
       assert(r < residuals.size() && ru == residuals[r].refIndex);
       refGrades.push_back(residuals[r].valueSq);
       peakGrades.push_back(residuals[r].valueSq);
@@ -470,7 +474,6 @@ void Align::getBoxTraces(
       aNo++;
     }
   }
-// cout << "DONE " << peakGrades.size() << endl;
 }
 
 

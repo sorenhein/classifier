@@ -397,19 +397,6 @@ static list<CompletionCase> CompletionCases =
 #define INSERT_PENALTY 5.f
 #define DELETE_PENALTY 5.f
 
-// Only apply special rules to match distances below this threshold.
-// Otherwise just go by overall distance.
-
-#define ALIGN_DISTMATCH_THRESHOLD 3.
-
-// Must be this much better to beat other alignment.
-
-// #define ALIGN_DISTMATCH_BETTER 0.7
-
-// Must not be worse by more than this to still beat other alignment.
-
-#define ALIGN_DIST_NOT_WORSE 2.
-
 
 ////////////////////////////////////////////////////////////////////////
 //                                                                    //

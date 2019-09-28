@@ -64,13 +64,14 @@ for my $file (@ARGV)
       $line = <$fh>;
       $line =~ /^(\S+)\s+(\d+\.\d+)\s+(\d+\.\d+)/;
       $f1 = $1;
-      my $d1 = $3;
+      # $2 is the overall score, $3 is the match score.
+      my $d1 = $2;
 
       $line = <$fh>;
       next if ($line =~ /^\s*$/);
       $line =~ /^(\S+)\s+(\d+\.\d+)\s+(\d+\.\d+)/;
       $f2 = $1;
-      my $d2 = $3;
+      my $d2 = $2;
 
 
       if ($f1 eq $trueTrain || 
