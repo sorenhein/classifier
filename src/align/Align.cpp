@@ -325,10 +325,13 @@ void Align::regress(
   if (matches.size() >= 2)
   {
     bestDist = matches.front().dist;
+    const float bestDistMatch = matches.front().distMatch;
     auto mit = next(matches.begin());
     while (mit != matches.end() && 
-        (mit->dist <= 2.f ||
-        mit->dist <= 5.f * bestDist))
+        (mit->dist <= ALIGN_ABS_LIMIT ||
+        mit->dist <= ALIGN_RATIO_LIMIT * bestDist) &&
+        (mit->distMatch <= ALIGN_ABS_LIMIT ||
+        mit->distMatch <= ALIGN_RATIO_LIMIT * bestDistMatch))
       mit++;
     
     if (mit != matches.end())

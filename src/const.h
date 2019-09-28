@@ -397,6 +397,14 @@ static list<CompletionCase> CompletionCases =
 #define INSERT_PENALTY 5.f
 #define DELETE_PENALTY 5.f
 
+// These factors help to cut down the number of alignments.  If the
+// distance of the worse alignment is above the first limit,
+// and if the ratio to the best distance is above the second limit,
+// then that alignment is ignored.
+
+#define ALIGN_ABS_LIMIT 2.f
+#define ALIGN_RATIO_LIMIT 5.f
+
 
 ////////////////////////////////////////////////////////////////////////
 //                                                                    //

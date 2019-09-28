@@ -167,7 +167,8 @@ void Control::configure()
       "0x20: peak\n"
       "0x40: match\n"
       "0x80: box" },
-    { "-v", "--verbose", CORRESPONDENCE_BIT_VECTOR, CTRL_VERBOSE, "0x79f",
+    // { "-v", "--verbose", CORRESPONDENCE_BIT_VECTOR, CTRL_VERBOSE, "0x79f",
+    { "-v", "--verbose", CORRESPONDENCE_BIT_VECTOR, CTRL_VERBOSE, "0x7bf",
       "Verbosity (default: 0x79f).  Bits:\n"
       "0x001: Transient\n"
       "0x002: Active interval\n"
