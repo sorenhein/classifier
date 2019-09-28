@@ -30,35 +30,6 @@ void Alignment::reset()
 
 bool Alignment::operator < (const Alignment& a2) const
 {
-  // Cars have same length?
-  if (numDelete + a2.numAdd == a2.numDelete + numAdd)
-    return (dist < a2.dist);
-
-  // Only look closely at good matches.
-  if (distMatch > ALIGN_DISTMATCH_THRESHOLD &&
-      a2.distMatch > ALIGN_DISTMATCH_THRESHOLD)
-    return (dist < a2.dist);
-
-  // If only one looks good, go with it.
-  if (distMatch > ALIGN_DISTMATCH_THRESHOLD)
-    return false;
-  if (a2.distMatch > ALIGN_DISTMATCH_THRESHOLD)
-    return true;
-
-  if (numDelete + a2.numAdd > a2.numDelete + numAdd)
-  {
-    // This car has more wheels.
-    if (distMatch < a2.distMatch && dist < ALIGN_DIST_NOT_WORSE * a2.dist)
-      return true;
-  }
-  else
-  {
-    // a2 car has more wheels.
-    if (a2.distMatch < distMatch && a2.dist < ALIGN_DIST_NOT_WORSE * dist)
-      return false;
-  }
-
-  // Unclear.
   return (dist < a2.dist);
 }
 

@@ -2,7 +2,6 @@ Remaining issues with the "good" traces
 ---------------------------------------
 * Once 29 peaks does not seem right
 * Zero middle cars
-* Sort on whole distance?
 * Align
   - If N-W residuals too high, maybe no regression as well
 * In Align, note decisions that are close, even if they are resolved
