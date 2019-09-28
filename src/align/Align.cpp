@@ -339,8 +339,12 @@ void Align::regress(
     if (ma.numAdd + 4 >= ma.numAxles)
       continue;
 
-    Align::regressTrain(peaksInfo.times, 
-      trainDB.getRefInfo(ma.trainNo).positions, true, ma);
+    const float oldDist = ma.dist;
+
+    // Only rerun regression if the alignment changed.
+    if (ma.dynChangeFlag)
+      Align::regressTrain(peaksInfo.times, 
+        trainDB.getRefInfo(ma.trainNo).positions, true, ma);
 
     if (ma.dist < bestDist)
       bestDist = ma.dist;

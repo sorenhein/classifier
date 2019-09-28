@@ -1,9 +1,3 @@
-// It would be possible to optimize this quite a bit, but it is already
-// quite fast.  Specifically:
-// 
-// * In Needleman-Wunsch we could notice whether the alignment has
-//   changed.  If not, there is little need to re-run the regression.
-
 #include <cassert>
 #include <algorithm>
 
@@ -16,8 +10,15 @@
 #include "../const.h"
 
 
+// These are not essential parameters.  The sizes are used as a 
+// starting point for the matrix, but it will grow if needed.
+
 #define DYN_DEFAULT_REF 80
 #define DYN_DEFAULT_SEEN 80
+
+// This is an optimization in which not the whole matrix is filled
+// out, only a band around the diagonal.
+
 #define DYN_RANGE 8
 
 
@@ -125,7 +126,8 @@ void DynProg::fillNeedlemanWunsch(
     const unsigned jmin = (i < DYN_RANGE+1 ? 1 : i - DYN_RANGE);
     const unsigned jmax = min(i+DYN_RANGE, lenMatrixSeenUsed-1);
 
-    // for (unsigned j = 1; j < lenMatrixSeenUsed; j++)
+    // We could go 1 .. lenMatrixSeenUsed, but this optimization 
+    // is sufficient.
     for (unsigned j = jmin; j <= jmax; j++)
     {
       // Calculate the cell value if we come diagonally from the
@@ -197,20 +199,27 @@ void DynProg::backtrackNeedlemanWunsch(Alignment& match)
   unsigned j = lenMatrixSeenUsed-1;
   const unsigned numAdd = match.numAdd;
   const unsigned numDelete = match.numDelete;
+  match.dynChangeFlag = false;
 
   while (i > 0 || j > 0)
   {
     const Origin o = matrix[i][j].origin;
     if (i > 0 && j > 0 && o == NW_MATCH)
     {
-      match.actualToRef[j + numAdd - 1] = 
-        static_cast<int>(i + numDelete - 1);
+      const int a2rNew = static_cast<int>(i + numDelete - 1);
+      if (match.actualToRef[j + numAdd - 1] != a2rNew)
+        match.dynChangeFlag = true;
+
+      match.actualToRef[j + numAdd - 1] = a2rNew;
       match.distMatch += matrix[i][j].dist - matrix[i-1][j-1].dist;
       i--;
       j--;
     }
     else if (j > 0 && o == NW_INSERT)
     {
+      if (match.actualToRef[j + numAdd - 1] != -1)
+        match.dynChangeFlag = true;
+
       match.actualToRef[j + numAdd - 1] = -1;
       match.numAdd++;
       j--;
@@ -249,9 +258,6 @@ void DynProg::run(
   // reference peaks.  Then there might have been three deletions
   // at the front which were missed.
   
-  // const unsigned lr = refPeaks.size() - match.numDelete;
-  // const unsigned lt = scaledPeaks.size() - match.numAdd;
-
   // Set up the matrix and the penalty marginals.
   DynProg::initNeedlemanWunsch(peaksInfo.penaltyFactor,
     refPeaks.size(), peaksInfo.peaks.size(), match);

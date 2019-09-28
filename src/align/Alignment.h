@@ -45,6 +45,7 @@ struct Alignment
   unsigned numDelete;
 
   vector<int> actualToRef;
+  bool dynChangeFlag;
 
   Motion motion;
 
