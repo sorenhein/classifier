@@ -1,3 +1,5 @@
+AccelDetect.obj: AccelDetect.h Peaks.h Peak.h Except.h errors.h
+AccelDetect.obj: database/Control.h database/Entity.h util/io.h
 CarDetect.obj: CarDetect.h CarGaps.h Peak.h CarPeaks.h PeakRange.h
 CarDetect.obj: PeakProfile.h PeakPool.h Peaks.h PeakPtrs.h
 CarGaps.obj: CarGaps.h Peak.h PeakPtrs.h CarPeaks.h Except.h errors.h
@@ -49,8 +51,8 @@ run.obj: PeakPtrs.h CarPeaks.h PeakStructure.h CarDetect.h CarGaps.h
 run.obj: CarModels.h PeakRange.h PeakProfile.h PeakPattern.h
 run.obj: completions/Completions.h completions/Completion.h
 run.obj: completions/PeakCompletion.h PeakGeneral.h PeakSeeds.h PeakLabel.h
-run.obj: PeakPieces.h PeakPiece.h align/Align.h align/Alignment.h
-run.obj: util/Motion.h Except.h errors.h run.h util/io.h
+run.obj: PeakPieces.h PeakPiece.h align/Align.h align/DynProg.h
+run.obj: align/Alignment.h util/Motion.h Except.h errors.h run.h util/io.h
 setup.obj: database/SensorDB.h database/Entity.h database/CarDB.h
 setup.obj: database/CorrectionDB.h database/EquivDB.h database/TrainDB.h
 setup.obj: PeakGeneral.h database/TraceDB.h database/Control.h
@@ -82,15 +84,16 @@ database/TrainDB.obj: PeakGeneral.h database/parse.h
 database/parse.obj: database/parse.h
 filter/Filter.obj: filter/Filter.h const.h Except.h errors.h util/io.h
 align/Align.obj: database/Control.h database/Entity.h database/TrainDB.h
-align/Align.obj: PeakGeneral.h align/DynProg.h align/PolynomialRegression.h
-align/Align.obj: align/Align.h align/Alignment.h util/Motion.h const.h
+align/Align.obj: PeakGeneral.h align/PolynomialRegression.h align/Align.h
+align/Align.obj: align/DynProg.h align/Alignment.h util/Motion.h const.h
 align/Align.obj: util/misc.h util/io.h
 align/Alignment.obj: align/Alignment.h util/Motion.h stats/CountStats.h
 align/Alignment.obj: const.h
-align/Crosses.obj: align/Align.h align/Alignment.h util/Motion.h
-align/Crosses.obj: database/TrainDB.h database/Entity.h PeakGeneral.h
-align/Crosses.obj: align/Crosses.h
-align/DynProg.obj: align/Alignment.h util/Motion.h align/DynProg.h const.h
+align/Crosses.obj: align/Align.h align/DynProg.h align/Alignment.h
+align/Crosses.obj: util/Motion.h database/TrainDB.h database/Entity.h
+align/Crosses.obj: PeakGeneral.h align/Crosses.h
+align/DynProg.obj: align/Alignment.h util/Motion.h align/DynProg.h Peak.h
+align/DynProg.obj: PeakGeneral.h const.h
 align/PolynomialRegression.obj: align/PolynomialRegression.h
 stats/CompStats.obj: stats/CompStats.h const.h
 stats/CountStats.obj: stats/CountStats.h
