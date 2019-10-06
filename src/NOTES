@@ -1,3 +1,75 @@
+Acceleration-based detection
+----------------------------
+* Running-average 9-tap filter on raw acceleration
+* For an assumed train type
+  - Cut out 2-bogie 4-wheel segments, noting
+    - Bogie distance, left and right
+    - My suggested peak positions
+    - Be generous with left and right quiet periods
+  - For each bogie length (use true train)
+    - Average of isolated, left, right instances with counts
+  - (Use the averages to estimate quiet periods
+    - Cut them away, leaving a bit of constant tail)
+  - Use above to guess a good left side and right side of that bogie
+    - Still use MA-9 average, or the original, noisy signal?
+    - For the alignment, have a quality metric
+  - Use these guesses to subtract out the irrelevant half of
+    each 2-bogie pair and estimate the other bogie, which will
+    have a good side and a dubious one
+    Average the types separately (both sides good, only one side
+    good, so three types; count them)
+  - Guess preliminary wheel core pattern in a bogie by
+    - Spacing between peaks
+    - Zero-crossings and slopes
+    - Energy in signal between the zero-crossings
+    - Can be different wheel for different bogie lengths!
+  - Correlate for the preliminary wheel core pattern in each
+    of the above bogies
+  - Make a synthetic bogie estimate for a given length
+    - Count everything from a good-good bogie
+    - Count up to the zero-crossing coming down from the first
+      peak if bad-good, assuming transients to be small by then
+    - Similarly for good-bad
+  - Output
+    - Peak positions -> Align.cpp again
+      - In Align, use peak positions (store in Alignment)
+        and not getIndex()
+    - The synthetic bogie estimate, with count (left/right
+      contributions separately) for each bogie distance
+    - The wheel profile in each bogie type
+    - Are the wheel profiles the same?
+* What train type wins?
+
+* Could maybe detect peaks directly from acceleration trace (MA9)
+  - Look for the largest peak-peak segments
+  - Look at their slopes as well
+  - Sort these zero-crossings by something
+    - Want high range
+    - Want short time
+    - Want high slope
+    - Slope * range = range^2 / time
+    - Wants pairs of characteristic distance, one up and one down
+  - See if we can bootstrap into pairs
+  - See if we can get the wheel core pattern
+  - See if we can correlate for this
+
+
+Studying the bogies:
+* Effect of train speed?
+* Effect of bogie distance?
+* Is the bogie response asymmetric in time?  (Probably)
+* What causes the two micro-peaks in a wheel peak, and are there
+  always two?
+  - Could it be that the sleeper "hits" something on either side
+    at slightly different times?
+  - Can damping or moving-mass yield the double dip?
+    - What is 2nd derivative of position of the analytical solution
+      with Pasternak soil and moving load?
+* Check literature list of Alam Uzzal, Bhat, Ahmed (Dynamic response
+  of a beam subjected to moving load and moving mass supported by
+  Pasternak foundation)
+
+
 Remaining issues with the "good" traces
 ---------------------------------------
 * Once 29 peaks does not seem right
