@@ -7,6 +7,7 @@
 #include <cmath>
 
 #include "AccelDetect.h"
+#include "database/Control.h"
 #include "Except.h"
 
 #include "database/Control.h"
@@ -78,20 +79,20 @@ void AccelDetect::logFirst(const vector<float>& samples)
 
   // Find the initial peak polarity.
   bool maxFlag = false;
-  for (unsigned i = offset+1; i < offset+len; i++)
+  for (unsigned i = 1; i < len; i++)
   {
-    if (samples[i] > samples[offset])
+    if (samples[i] > samples[0])
     {
       maxFlag = false;
       break;
     }
-    else if (samples[i] < samples[offset])
+    else if (samples[i] < samples[0])
     {
       maxFlag = true;
       break;
     }
   }
-  peaks.back().logSentinel(samples[offset], maxFlag);
+  peaks.back().logSentinel(samples[0], maxFlag);
 }
 
 
@@ -99,13 +100,12 @@ void AccelDetect::logLast(const vector<float>& samples)
 {
   const auto& peakPrev = peaks.back();
   const float areaFull = 
-    AccelDetect::integrate(samples, peakPrev.getIndex(), offset+len-1);
+    AccelDetect::integrate(samples, peakPrev.getIndex(), len-1);
   const float areaCumPrev = peakPrev.getAreaCum();
 
   peaks.extend();
-  peaks.back().log(
-    offset+len-1,
-    samples[offset+len-1], 
+  peaks.back().log(len-1,
+    samples[len-1], 
     areaCumPrev + areaFull, 
     ! peakPrev.getMaxFlag());
 }
@@ -127,7 +127,7 @@ void AccelDetect::log(
   // The first peak is a dummy extremum at the first sample.
   AccelDetect::logFirst(samples);
 
-  for (unsigned i = offset+1; i < offset+len-1; i++)
+  for (unsigned i = 1; i < len-1; i++)
   {
     bool maxFlag;
     while (i < len-1 && samples[i] == samples[i-1])
@@ -165,6 +165,7 @@ void AccelDetect::log(
 
     // The peak contains data for the interval preceding it.
     peaks.extend();
+cout << "LOGGING " << i << ", " << samples[i] << endl;
     peaks.back().log(i, samples[i], areaCumPrev + areaFull, maxFlag);
   }
 

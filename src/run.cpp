@@ -17,6 +17,9 @@
 #include "stats/ResidualsStats.h"
 #include "stats/Timers.h"
 
+// TODO Eliminate?
+// #include "AccelDetect.h"
+
 #include "PeakDetect.h"
 #include "PeakSeeds.h"
 #include "PeakLabel.h"
@@ -333,9 +336,27 @@ void run(
     runQuiet(control, accel, traceData.sampleRate, lastIndex, thid,
       quietBack, quietFront, interval);
 
+/*
+vector<float> rawAccel;
+rawAccel.resize(interval.len);
+for (unsigned i = interval.first; i < interval.first + interval.len; i++)
+  rawAccel[i-interval.first] = accel[i];
+  */
+
     // Integrate and condition the signal.
     runFilter(traceData.sampleRate, interval.first, interval.len, thid, 
       filter);
+
+/*
+cout << "ACCEL\n";
+for (unsigned i = 0; i < rawAccel.size(); i++)
+  cout << i << ";" << rawAccel[i] << "\n";
+cout << "\n";
+
+AccelDetect accelDetect;
+accelDetect.log(rawAccel, interval.first, interval.len);
+accelDetect.extract();
+*/
 
     // Extract immediate peaks from the signal.
     PeakDetect peakDetect;
