@@ -71,12 +71,55 @@ void Quiet::makeStats(
 }
 
 
+#include <iostream>
+unsigned Quiet::annotateListNew(
+  const vector<float>& samples,
+  list<QuietData>& quietList) const
+{
+  unsigned counterAfterRed = NUM_QUIET_FOLLOWERS;
+  unsigned red = numeric_limits<unsigned>::max();  // Shouldn't matter
+  unsigned i = 0;
+
+  // Stop at the first deep red, or the first red not followed by
+  // at least NUM_QUIET_FOLLOWERS of below-red intensity.
+  for (auto& quiet: quietList)
+  {
+    Quiet::makeStats(samples, quiet);
+    quiet.setGrade();
+
+    if (quiet.grade == GRADE_DEEP_RED)
+    {
+cout << "DEEP_RED " << i << endl;
+      return (counterAfterRed < NUM_QUIET_FOLLOWERS ? red : i);
+    }
+    else if (quiet.grade != GRADE_RED)
+    {
+      counterAfterRed++;
+cout << "non-RED, count now " << counterAfterRed << endl;
+    }
+    else if (counterAfterRed < NUM_QUIET_FOLLOWERS)
+    {
+cout << "Too few quiet, return " << red << endl;
+      return red;
+    }
+    else
+    {
+cout << "First red " << i << ", count now 0\n";
+      red = i;
+      counterAfterRed = 0;
+    }
+    i++;
+  }
+cout << "Default " << quietList.size() << endl;
+  return quietList.size();
+}
+
+
 void Quiet::annotateList(
   const vector<float>& samples,
   list<QuietData>& quietList) const
 {
   unsigned runReds = 0;
-  unsigned totalReds = 0;
 
   for (auto& quiet: quietList)
   {
@@ -87,10 +130,7 @@ void Quiet::annotateList(
       break;
 
     if (quiet.grade == GRADE_RED)
-    {
       runReds++;
-      totalReds++;
-    }
     else
       runReds = 0;
 
@@ -304,12 +344,20 @@ bool Quiet::detect(
   // either from the front or the back depending on fromBackFlag.
   Quiet::makeStarts(available, fromBackFlag, durationCoarse, quietCoarse);
 
+list<QuietData> quietCoarseNew = quietCoarse;
+const unsigned m = Quiet::annotateListNew(samples, quietCoarseNew);
+
   // Fill out statistics of each chunk, ending when we reach a
   // chunk that is clearly not quiet, or when we have a couple of
   // dubious chunks in succession.
   Quiet::annotateList(samples, quietCoarse);
 
   const unsigned n = Quiet::findSize(quietCoarse);
+if (n == m)
+  cout << "QHIT\n";
+else
+  cout << "QMISS " << n << " vs " << m << endl;
+
   quietCoarse.resize(n);
 
   if (n > 0)
