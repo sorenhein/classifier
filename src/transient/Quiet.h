@@ -37,15 +37,9 @@ class Quiet
       const vector<float>& samples,
       QuietData& qentry) const;
 
-    void annotateList(
+    unsigned annotateList(
       const vector<float>& samples,
       list<QuietData>& quietList) const;
-
-    unsigned annotateListNew(
-      const vector<float>& samples,
-      list<QuietData>& quietList) const;
-
-    unsigned findSize(const list<QuietData>& quietList) const;
 
     void getFinetuneStatistics(
       const vector<float>& samples,

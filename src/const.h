@@ -101,11 +101,6 @@
 #define MEAN_QUIET_LIMIT 0.3
 #define SDEV_QUIET_LIMIT 0.3
 
-// Stop looking for quiet intervals if we get this many non-quiet
-// ones in a row.
-
-#define NUM_NON_QUIET_RUNS 2
-
 // We can overcome a non-quiet (red) interval if if it followed by
 // this many quiet ones.
 
