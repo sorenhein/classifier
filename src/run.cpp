@@ -195,6 +195,9 @@ void runQuiet(
   }
 
   timers[thid].stop(TIMER_QUIET);
+
+list<Interval> actives;
+quietFront.detectIntervals(accel, interval, actives);
 }
 
 

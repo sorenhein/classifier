@@ -162,6 +162,7 @@ void Quiet::getFinetuneStatistics(
 }
 
 
+#include <iostream>
 void Quiet::finetune(
   const vector<float>& samples,
   const bool fromBackFlag,
@@ -187,6 +188,7 @@ void Quiet::finetune(
     if (fine.sdev >= sdevThreshold || ! fine.isVeryQuiet())
     {
       Quiet::adjustIntervals(fromBackFlag, qstats, fine.start);
+cout << "fine.start " << fine.start << ", " << fine.sdev << endl;
       return;
     }
   }
@@ -297,6 +299,75 @@ bool Quiet::detect(
   Quiet::synthesize(quietCoarse);
 
   return true;
+}
+
+
+void Quiet::detectIntervals(
+  const vector<float>& samples,
+  const Interval& available,
+  list<Interval>& actives)
+{
+  actives.clear();
+  quietCoarse.clear();
+
+  // TODO Check that last active interval doesn't get truncated.
+  // TODO On the first and last interval, we backed off above,
+  // but should not do so here.
+  Quiet::makeStarts(available, false, durationCoarse, quietCoarse);
+
+  for (auto& quiet: quietCoarse)
+  {
+    Quiet::makeStats(samples, quiet);
+    quiet.setGrade();
+// cout << "quiet " << quiet.start << ": " << quiet.mean << ", " <<
+  // quiet.sdev << endl;
+  }
+
+  unsigned start = available.first;
+  auto qit = quietCoarse.begin();
+  while (true)
+  {
+    while (qit != quietCoarse.end() && 
+        (qit->grade == GRADE_RED || qit->grade == GRADE_DEEP_RED))
+      qit++;
+
+    QuietData qd = (qit == quietCoarse.end() ?
+      quietCoarse.back() : * qit);
+
+    Quiet::finetune(samples, true, qd);
+cout << "qd left " << qd.start << ", " << qd.len << endl;
+
+    actives.emplace_back(Interval());
+    Interval& interval = actives.back();
+    interval.first = start;
+    interval.len = qd.start - interval.first;
+
+    // Look back.
+    Quiet::adjustOutputIntervals(qd, true, interval);
+
+cout << "active " << interval.first << " to " <<
+  interval.first + interval.len << endl;
+
+    if (qit == quietCoarse.end())
+      break;
+
+    // Found a non-red.  Look forward.
+    do
+    {
+      qit++;
+    }
+    while (qit != quietCoarse.end() &&
+        qit->grade != GRADE_RED && qit->grade != GRADE_DEEP_RED);
+
+    if (qit == quietCoarse.end())
+      break;
+  
+    // Find the onset of the next active interval.
+    qd = * qit;
+    Quiet::finetune(samples, false, qd);
+cout << "qd right " << qd.start << ", " << qd.len << endl;
+    start = qd.start;
+  }
 }
 
 

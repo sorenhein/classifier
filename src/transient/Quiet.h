@@ -82,6 +82,11 @@ class Quiet
       const bool fromBackFlag,
       Interval& available);
 
+    void detectIntervals(
+      const vector<float>& samples,
+      const Interval& available,
+      list<Interval>& actives);
+
     void writeFile(const string& filename) const;
 };
 

@@ -1,3 +1,8 @@
+cluster/Primary.cpp is part of PeakPieces.cpp
+cluster/Piece.cpp is PeakPiece.cpp
+Then use this in Quiet.cpp
+
+
 Acceleration-based detection
 ----------------------------
 * Running-average 9-tap filter on raw acceleration
