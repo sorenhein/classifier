@@ -162,7 +162,6 @@ void Quiet::getFinetuneStatistics(
 }
 
 
-#include <iostream>
 void Quiet::finetune(
   const vector<float>& samples,
   const bool fromBackFlag,
@@ -188,7 +187,6 @@ void Quiet::finetune(
     if (fine.sdev >= sdevThreshold || ! fine.isVeryQuiet())
     {
       Quiet::adjustIntervals(fromBackFlag, qstats, fine.start);
-cout << "fine.start " << fine.start << ", " << fine.sdev << endl;
       return;
     }
   }
@@ -302,6 +300,7 @@ bool Quiet::detect(
 }
 
 
+#include <iostream>
 void Quiet::detectIntervals(
   const vector<float>& samples,
   const Interval& available,
@@ -319,8 +318,6 @@ void Quiet::detectIntervals(
   {
     Quiet::makeStats(samples, quiet);
     quiet.setGrade();
-// cout << "quiet " << quiet.start << ": " << quiet.mean << ", " <<
-  // quiet.sdev << endl;
   }
 
   unsigned start = available.first;
@@ -331,11 +328,11 @@ void Quiet::detectIntervals(
         (qit->grade == GRADE_RED || qit->grade == GRADE_DEEP_RED))
       qit++;
 
+    // TODO Lot of copying -- avoid?
     QuietData qd = (qit == quietCoarse.end() ?
       quietCoarse.back() : * qit);
 
     Quiet::finetune(samples, true, qd);
-cout << "qd left " << qd.start << ", " << qd.len << endl;
 
     actives.emplace_back(Interval());
     Interval& interval = actives.back();
@@ -365,8 +362,7 @@ cout << "active " << interval.first << " to " <<
     // Find the onset of the next active interval.
     qd = * qit;
     Quiet::finetune(samples, false, qd);
-cout << "qd right " << qd.start << ", " << qd.len << endl;
-    start = qd.start;
+    start = qd.start + qd.len;
   }
 }
 

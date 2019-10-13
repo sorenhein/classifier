@@ -1,3 +1,16 @@
+Quiet.cpp
+- Grading should be in 3, not 4
+- Called GREEN, AMBER, RED
+- MEAN_SOMEWHAT_QUIET is absolute
+- MEAN_QUIET_LIMIT is a multiple of this (1.5)
+- When doing quiet small periods, estimate sdev of these
+  - Make 100 * sdev list
+  - Pass to PeakPieces
+  - PeakPieces becomes more general, constants not hardwired,
+    passed in instead
+  - One set for gaps
+  - Another set for quiet periods
+
 cluster/Primary.cpp is part of PeakPieces.cpp
 cluster/Piece.cpp is PeakPiece.cpp
 Then use this in Quiet.cpp
