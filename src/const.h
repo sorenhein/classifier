@@ -104,6 +104,7 @@
 // detected end.
 
 #define QUIET_DURATION_PADDING 0.5
+#define ACTIVE_WRITE_LEVEL 3.0f
 
 
 ////////////////////////////////////////////////////////////////////////

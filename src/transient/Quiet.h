@@ -67,7 +67,9 @@ class Quiet
       const bool fromBackFlag,
       Interval& avail);
 
-    void synthesize(const list<QuietData>& quietList);
+    void synthesize(
+      const Interval& available,
+      const list<Interval>& actives);
 
 
   public:
@@ -76,7 +78,7 @@ class Quiet
 
     ~Quiet();
 
-    bool detect(
+    void detect(
       const vector<float>& samples,
       const float sampleRate,
       const bool fromBackFlag,

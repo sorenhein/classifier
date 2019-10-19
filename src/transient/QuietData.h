@@ -25,8 +25,6 @@ struct QuietData
 
   bool meanIsQuiet() const;
 
-  float writeLevel() const;
-
   string str() const;
 };
 

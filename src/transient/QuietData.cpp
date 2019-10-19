@@ -34,19 +34,6 @@ bool QuietData::meanIsQuiet() const
 }
 
 
-float QuietData::writeLevel() const
-{
-  // Values are pretty random, but these values tend to show up
-  // in plots at sensible levels.
-  if (grade == GRADE_GREEN)
-    return 3.;
-  else if (grade == GRADE_AMBER)
-    return 1.5;
-  else
-    return 0.;
-}
-
-
 string QuietData::str() const
 {
   stringstream ss;

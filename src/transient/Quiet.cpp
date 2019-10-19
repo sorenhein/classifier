@@ -206,15 +206,6 @@ void Quiet::adjustOutputIntervals(
   {
     const unsigned quietEnd = quiet.start + quiet.len;
 
-    writeInterval.first = available.first;
-    writeInterval.len = quietEnd - available.first;
-
-    // We also write some samples after the quiet interval for clarity.
-    if (quietEnd + padSamples < availEnd)
-      writeInterval.len += padSamples;
-    else
-      writeInterval.len = available.len;
-
     // We don't go earlier than quietEnd, as we would often
     // get into the real transient.
     available.first = quietEnd;
@@ -222,16 +213,6 @@ void Quiet::adjustOutputIntervals(
   }
   else
   {
-    writeInterval.first = quiet.start;
-
-    // We also write some samples before the quiet interval for clarity.
-    if (writeInterval.first >= padSamples)
-      writeInterval.first -= padSamples;
-    else
-      writeInterval.first = 0;
-
-    writeInterval.len = availEnd - writeInterval.first;
-
     // Here we can go beyond the start of the quiet interval,
     // as nothing much happens here in general.  So we might as well
     // give the filter some quiet data to work with.
@@ -241,22 +222,22 @@ void Quiet::adjustOutputIntervals(
 }
 
 
-void Quiet::synthesize(const list<QuietData>& quietList)
+void Quiet::synthesize(
+  const Interval& available,
+  const list<Interval>& actives)
 {
   synth.clear();
-  synth.resize(writeInterval.len);
+  synth.resize(available.len);
 
-  for (auto& quiet: quietList)
+  for (auto& active: actives)
   {
-    const float g = quiet.writeLevel();
-
-    for (unsigned j = quiet.start; j < quiet.start + quiet.len; j++)
-      synth[j - writeInterval.first] = g;
+    for (unsigned j = active.first; j < active.first + active.len; j++)
+      synth[j - available.first] = ACTIVE_WRITE_LEVEL;
   }
 }
 
 
-bool Quiet::detect(
+void Quiet::detect(
   const vector<float>& samples,
   const float sampleRate,
   const bool fromBackFlag,
@@ -288,16 +269,6 @@ bool Quiet::detect(
     Quiet::adjustOutputIntervals(quietCoarse.back(), fromBackFlag,
       available);
   }
-  else
-  {
-    writeInterval.first = available.first;
-    writeInterval.len = 0;
-  }
-
-  // Make a synthetic step signal to visualize the quietness levels.
-  Quiet::synthesize(quietCoarse);
-
-  return true;
 }
 
 
@@ -351,7 +322,7 @@ cout << "active " << interval.first << " to " <<
     if (qit == quietCoarse.end())
       break;
 
-    // Found a non-red.  Look forward.
+    // Found a green.  Look forward.
     do
     {
       qit++;
@@ -367,6 +338,9 @@ cout << "active " << interval.first << " to " <<
     Quiet::finetune(samples, false, qd);
     start = qd.start + qd.len;
   }
+
+  // Make a synthetic step signal to visualize the active levels.
+  Quiet::synthesize(available, actives);
 }
 
 
