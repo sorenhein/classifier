@@ -19,7 +19,7 @@ struct QuietData
 
   void setGrade();
 
-  bool isVeryQuiet() const;
+  bool meanIsQuiet() const;
 
   float writeLevel() const;
 

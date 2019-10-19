@@ -86,9 +86,9 @@ unsigned Quiet::annotateList(
     Quiet::makeStats(samples, quiet);
     quiet.setGrade();
 
-    if (quiet.grade == GRADE_DEEP_RED)
+    if (quiet.grade == GRADE_RED)
       return (counterAfterRed < NUM_QUIET_FOLLOWERS ? red : i);
-    else if (quiet.grade != GRADE_RED)
+    else if (quiet.grade != GRADE_AMBER)
       counterAfterRed++;
     else if (counterAfterRed < NUM_QUIET_FOLLOWERS)
       return red;
@@ -184,7 +184,7 @@ void Quiet::finetune(
   // Look for the first fine interval to have above-average activity.
   for (auto& fine: fineStarts)
   {
-    if (fine.sdev >= sdevThreshold || ! fine.isVeryQuiet())
+    if (fine.sdev >= sdevThreshold || ! fine.meanIsQuiet())
     {
       Quiet::adjustIntervals(fromBackFlag, qstats, fine.start);
       return;
@@ -325,7 +325,7 @@ void Quiet::detectIntervals(
   while (true)
   {
     while (qit != quietCoarse.end() && 
-        (qit->grade == GRADE_RED || qit->grade == GRADE_DEEP_RED))
+        (qit->grade == GRADE_AMBER || qit->grade == GRADE_RED))
       qit++;
 
     // TODO Lot of copying -- avoid?
@@ -354,7 +354,7 @@ cout << "active " << interval.first << " to " <<
       qit++;
     }
     while (qit != quietCoarse.end() &&
-        qit->grade != GRADE_RED && qit->grade != GRADE_DEEP_RED);
+        qit->grade != GRADE_AMBER && qit->grade != GRADE_RED);
 
     if (qit == quietCoarse.end())
       break;

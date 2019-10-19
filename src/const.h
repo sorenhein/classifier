@@ -87,11 +87,6 @@
 // An interval is very quiet if (mean, sdev) is below both these,
 // measured in g.  This will depend in general on the sensor.
 
-#define MEAN_VERY_QUIET 0.2
-#define SDEV_VERY_QUIET 0.06
-
-// The interval is somewhat quiet if (mean, sdev) is below both these.
-
 #define MEAN_SOMEWHAT_QUIET 0.2
 #define SDEV_SOMEWHAT_QUIET 0.2
 
@@ -101,7 +96,7 @@
 #define MEAN_QUIET_LIMIT 0.3
 #define SDEV_QUIET_LIMIT 0.3
 
-// We can overcome a non-quiet (red) interval if if it followed by
+// We can overcome a non-quiet (amber) interval if if it followed by
 // this many quiet ones.
 
 #define NUM_QUIET_FOLLOWERS 4

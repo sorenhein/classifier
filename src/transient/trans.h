@@ -32,8 +32,7 @@ enum QuietGrade
   GRADE_GREEN = 0,
   GRADE_AMBER = 1,
   GRADE_RED = 2,
-  GRADE_DEEP_RED = 3,
-  GRADE_SIZE = 4
+  GRADE_SIZE = 3
 };
 
 struct Interval

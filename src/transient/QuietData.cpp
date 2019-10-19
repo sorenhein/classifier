@@ -11,22 +11,20 @@ void QuietData::setGrade()
 {
   const float absmean = abs(mean);
 
-  if (absmean < MEAN_VERY_QUIET && sdev < SDEV_VERY_QUIET)
+  if (absmean < MEAN_SOMEWHAT_QUIET && sdev < SDEV_SOMEWHAT_QUIET)
     grade = GRADE_GREEN;
-  else if (absmean < MEAN_SOMEWHAT_QUIET && sdev < SDEV_SOMEWHAT_QUIET)
-    grade = GRADE_AMBER;
   else if (absmean < MEAN_QUIET_LIMIT && sdev < SDEV_SOMEWHAT_QUIET)
-    grade = GRADE_RED;
+    grade = GRADE_AMBER;
   else if (absmean < MEAN_SOMEWHAT_QUIET && sdev < SDEV_QUIET_LIMIT)
-    grade = GRADE_RED;
+    grade = GRADE_AMBER;
   else
-    grade = GRADE_DEEP_RED;
+    grade = GRADE_RED;
 }
 
 
-bool QuietData::isVeryQuiet() const
+bool QuietData::meanIsQuiet() const
 {
-  return (abs(mean) < MEAN_VERY_QUIET);
+  return (abs(mean) < MEAN_SOMEWHAT_QUIET);
 }
 
 
