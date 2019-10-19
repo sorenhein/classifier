@@ -293,53 +293,43 @@ void Quiet::detectIntervals(
   }
 
   actives.clear();
-  QuietInterval runningInterval;
+  QuietInterval runningInterval, quietInterval;
   runningInterval.first = available.first;
-  // unsigned start = available.first;
   auto qit = quietCoarse.begin();
+
   while (true)
   {
+    // Find the next quiet interval.
     while (qit != quietCoarse.end() && qit->grade != GRADE_GREEN)
       qit++;
+    if (qit == quietCoarse.end())
+      break;
 
-    // TODO Lot of copying -- avoid?
-    QuietInterval qint = (qit == quietCoarse.end() ?
-      quietCoarse.back() : * qit);
+    // Finetune the quiet interval backward.
+    quietInterval = * qit;
+    Quiet::finetune(samples, true, quietInterval);
 
-    Quiet::finetune(samples, true, qint);
-
-    // actives.emplace_back(QuietInterval());
-    // QuietInterval& interval = actives.back();
-    // interval.first = start;
-    runningInterval.len = qint.first - runningInterval.first;
+    // The active interval ends where the quiet one starts.
+    runningInterval.len = quietInterval.first - runningInterval.first;
 
     // Look back.
-    Quiet::adjustOutputIntervals(qint, true, runningInterval);
-
+    Quiet::adjustOutputIntervals(quietInterval, true, runningInterval);
     actives.push_back(runningInterval);
 
 cout << "active " << runningInterval.first << " to " <<
   runningInterval.first + runningInterval.len << endl;
 
-    if (qit == quietCoarse.end())
-      break;
-
-    // Found a green.  Look forward.
-    do
-    {
+    // Found a green; look forward to a non-green interval.
+    while (qit != quietCoarse.end() && qit->grade == GRADE_GREEN)
       qit++;
-    }
-    while (qit != quietCoarse.end() && qit->grade == GRADE_GREEN);
-
     if (qit == quietCoarse.end())
       break;
   
     // Find the onset of the next active interval.
-    qint.first = qit->first;
-    qint.len = qit->len;
+    quietInterval = * qit;
 
-    Quiet::finetune(samples, false, qint);
-    runningInterval.first = qint.first + qint.len;
+    Quiet::finetune(samples, false, quietInterval);
+    runningInterval.first = quietInterval.first + quietInterval.len;
   }
 
   // Make a synthetic step signal to visualize the active levels.
