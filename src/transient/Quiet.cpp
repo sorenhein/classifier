@@ -75,27 +75,28 @@ unsigned Quiet::annotateList(
   const vector<float>& samples,
   list<QuietData>& quietList) const
 {
-  unsigned counterAfterRed = NUM_QUIET_FOLLOWERS;
-  unsigned red = numeric_limits<unsigned>::max();  // Shouldn't matter
+  unsigned counterAfterAmber = NUM_QUIET_FOLLOWERS;
+  unsigned amber = numeric_limits<unsigned>::max();  // Shouldn't matter
   unsigned i = 0;
 
-  // Stop at the first deep red, or the first red not followed by
-  // at least NUM_QUIET_FOLLOWERS of below-red intensity.
+  // Stop at the first red, or the first amber not followed by
+  // at least NUM_QUIET_FOLLOWERS of green intensity.
   for (auto& quiet: quietList)
   {
     Quiet::makeStats(samples, quiet);
-    quiet.setGrade();
+    quiet.setGrade(MEAN_SOMEWHAT_QUIET, MEAN_QUIET_LIMIT,
+      SDEV_MEAN_FACTOR);
 
     if (quiet.grade == GRADE_RED)
-      return (counterAfterRed < NUM_QUIET_FOLLOWERS ? red : i);
-    else if (quiet.grade != GRADE_AMBER)
-      counterAfterRed++;
-    else if (counterAfterRed < NUM_QUIET_FOLLOWERS)
-      return red;
+      return (counterAfterAmber < NUM_QUIET_FOLLOWERS ? amber : i);
+    else if (quiet.grade == GRADE_GREEN)
+      counterAfterAmber++;
+    else if (counterAfterAmber < NUM_QUIET_FOLLOWERS)
+      return amber;
     else
     {
-      red = i;
-      counterAfterRed = 0;
+      amber = i;
+      counterAfterAmber = 0;
     }
     i++;
   }
@@ -317,7 +318,9 @@ void Quiet::detectIntervals(
   for (auto& quiet: quietCoarse)
   {
     Quiet::makeStats(samples, quiet);
-    quiet.setGrade();
+    // TODO Other thresholds
+    quiet.setGrade(MEAN_SOMEWHAT_QUIET, MEAN_QUIET_LIMIT,
+      SDEV_MEAN_FACTOR);
   }
 
   unsigned start = available.first;

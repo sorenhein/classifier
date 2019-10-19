@@ -15,9 +15,13 @@ struct QuietData
   float mean;
   float sdev;
   QuietGrade grade;
+  bool _meanIsQuiet;
 
 
-  void setGrade();
+  void setGrade(
+    const float& meanSomewhatQuiet,
+    const float& meanQuietLimit,
+    const float& SdevMeanFactor);
 
   bool meanIsQuiet() const;
 

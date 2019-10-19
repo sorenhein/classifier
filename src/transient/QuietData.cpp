@@ -7,24 +7,30 @@
 #include "../const.h"
 
 
-void QuietData::setGrade()
+void QuietData::setGrade(
+  const float& meanSomewhatQuiet,
+  const float& meanQuietLimit,
+  const float& SdevMeanFactor)
 {
   const float absmean = abs(mean);
+  const float sdevMeans = sdev / SdevMeanFactor;
 
-  if (absmean < MEAN_SOMEWHAT_QUIET && sdev < SDEV_SOMEWHAT_QUIET)
+  if (absmean < meanSomewhatQuiet && sdevMeans < meanSomewhatQuiet)
     grade = GRADE_GREEN;
-  else if (absmean < MEAN_QUIET_LIMIT && sdev < SDEV_SOMEWHAT_QUIET)
+  else if (absmean < meanQuietLimit && sdevMeans < meanSomewhatQuiet)
     grade = GRADE_AMBER;
-  else if (absmean < MEAN_SOMEWHAT_QUIET && sdev < SDEV_QUIET_LIMIT)
+  else if (absmean < meanSomewhatQuiet && sdevMeans < SdevMeanFactor)
     grade = GRADE_AMBER;
   else
     grade = GRADE_RED;
+
+  _meanIsQuiet = (absmean < meanSomewhatQuiet);
 }
 
 
 bool QuietData::meanIsQuiet() const
 {
-  return (abs(mean) < MEAN_SOMEWHAT_QUIET);
+  return _meanIsQuiet;
 }
 
 
