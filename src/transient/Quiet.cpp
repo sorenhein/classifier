@@ -265,14 +265,10 @@ void Quiet::detect(
 
   quietCoarse.resize(n);
 
-  QuietInterval qint;
-  qint.first = quietCoarse.back().first;
-  qint.len = quietCoarse.back().len;
-
-  Quiet::finetune(samples, fromBackFlag, qint);
+  Quiet::finetune(samples, fromBackFlag, quietCoarse.back());
 
   // Make output a bit longer in order to better see.
-  Quiet::adjustOutputIntervals(qint, fromBackFlag, available);
+  Quiet::adjustOutputIntervals(quietCoarse.back(), fromBackFlag, available);
 }
 
 
@@ -297,7 +293,9 @@ void Quiet::detectIntervals(
   }
 
   actives.clear();
-  unsigned start = available.first;
+  QuietInterval runningInterval;
+  runningInterval.first = available.first;
+  // unsigned start = available.first;
   auto qit = quietCoarse.begin();
   while (true)
   {
@@ -305,25 +303,23 @@ void Quiet::detectIntervals(
       qit++;
 
     // TODO Lot of copying -- avoid?
-    const QuietInterval& qd = (qit == quietCoarse.end() ?
+    QuietInterval qint = (qit == quietCoarse.end() ?
       quietCoarse.back() : * qit);
-
-    QuietInterval qint;
-    qint.first = qd.first;
-    qint.len = qd.len;
 
     Quiet::finetune(samples, true, qint);
 
-    actives.emplace_back(QuietInterval());
-    QuietInterval& interval = actives.back();
-    interval.first = start;
-    interval.len = qint.first - interval.first;
+    // actives.emplace_back(QuietInterval());
+    // QuietInterval& interval = actives.back();
+    // interval.first = start;
+    runningInterval.len = qint.first - runningInterval.first;
 
     // Look back.
-    Quiet::adjustOutputIntervals(qint, true, interval);
+    Quiet::adjustOutputIntervals(qint, true, runningInterval);
 
-cout << "active " << interval.first << " to " <<
-  interval.first + interval.len << endl;
+    actives.push_back(runningInterval);
+
+cout << "active " << runningInterval.first << " to " <<
+  runningInterval.first + runningInterval.len << endl;
 
     if (qit == quietCoarse.end())
       break;
@@ -343,7 +339,7 @@ cout << "active " << interval.first << " to " <<
     qint.len = qit->len;
 
     Quiet::finetune(samples, false, qint);
-    start = qint.first + qint.len;
+    runningInterval.first = qint.first + qint.len;
   }
 
   // Make a synthetic step signal to visualize the active levels.
