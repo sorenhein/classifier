@@ -55,7 +55,6 @@ SOURCE_FILES    =                       \
                                         \
                 transient/Candidate.cpp \
                 transient/Quiet.cpp     \
-                transient/QuietData.cpp \
                 transient/Transient.cpp \
                                         \
                 util/io.cpp             \
