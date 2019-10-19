@@ -24,6 +24,7 @@ void Quiet::makeStarts(
   list<QuietData>& quietList) const
 {
   const unsigned numInts = interval.len / duration;
+  quietList.clear();
 
   if (! fromBackFlag)
   {
@@ -259,16 +260,19 @@ void Quiet::detect(
   // dubious chunks in succession.
 
   const unsigned n = Quiet::annotateList(samples, quietCoarse);
+  if (n == 0)
+    return;
+
   quietCoarse.resize(n);
 
-  if (n > 0)
-  {
+  // if (n > 0)
+  // {
     Quiet::finetune(samples, fromBackFlag, quietCoarse.back());
 
     // Make output a bit longer in order to better see.
     Quiet::adjustOutputIntervals(quietCoarse.back(), fromBackFlag,
       available);
-  }
+  // }
 }
 
 
@@ -278,13 +282,11 @@ void Quiet::detectIntervals(
   const Interval& available,
   list<Interval>& actives)
 {
-  actives.clear();
+  // Could probably use a stored version from detect() -- no matter.
   quietCoarse.clear();
-
-  // TODO Check that last active interval doesn't get truncated.
-  // TODO On the first and last interval, we backed off above,
-  // but should not do so here.
   Quiet::makeStarts(available, false, durationCoarse, quietCoarse);
+  if (quietCoarse.empty())
+    return;
 
   for (auto& quiet: quietCoarse)
   {
@@ -294,12 +296,12 @@ void Quiet::detectIntervals(
       SDEV_MEAN_FACTOR);
   }
 
+  actives.clear();
   unsigned start = available.first;
   auto qit = quietCoarse.begin();
   while (true)
   {
-    while (qit != quietCoarse.end() && 
-        (qit->grade == GRADE_AMBER || qit->grade == GRADE_RED))
+    while (qit != quietCoarse.end() && qit->grade != GRADE_GREEN)
       qit++;
 
     // TODO Lot of copying -- avoid?
@@ -327,8 +329,7 @@ cout << "active " << interval.first << " to " <<
     {
       qit++;
     }
-    while (qit != quietCoarse.end() &&
-        qit->grade != GRADE_AMBER && qit->grade != GRADE_RED);
+    while (qit != quietCoarse.end() && qit->grade == GRADE_GREEN);
 
     if (qit == quietCoarse.end())
       break;
