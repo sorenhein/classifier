@@ -48,11 +48,11 @@ class Quiet
 
     void adjustIntervals(
       const bool fromBackFlag,
-      QuietData& qstatsCoarse,
+      Interval& qintCoarse,
       const unsigned index);
 
     void setFineInterval(
-      const QuietData& qstatsCoarse,
+      const Interval& qintCoarse,
       const bool fromBackFlag,
       const unsigned sampleSize,
       Interval& intervalFine) const;
@@ -60,10 +60,10 @@ class Quiet
     void finetune(
       const vector<float>& samples,
       const bool fromBackFlag,
-      QuietData& qstats);
+      Interval& qint);
 
     void adjustOutputIntervals(
-      const QuietData& quietList,
+      const Interval& qint,
       const bool fromBackFlag,
       Interval& avail);
 

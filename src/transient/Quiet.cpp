@@ -107,36 +107,36 @@ unsigned Quiet::annotateList(
 
 void Quiet::adjustIntervals(
   const bool fromBackFlag,
-  QuietData& qstatsCoarse,
+  Interval& qintCoarse,
   const unsigned index)
 {
   if (! fromBackFlag)
   {
     // Shrink or extend the last interval, as the case may be.
     // Could shrink to zero!
-    qstatsCoarse.len = index - qstatsCoarse.start;
+    qintCoarse.len = index - qintCoarse.first;
   }
   else
   {
     // Shrink or extend the last interval, as the case may be.
-    qstatsCoarse.len = qstatsCoarse.start + qstatsCoarse.len - index;
-    qstatsCoarse.start = index;
+    qintCoarse.len = qintCoarse.first + qintCoarse.len - index;
+    qintCoarse.first = index;
   }
 }
 
 
 void Quiet::setFineInterval(
-  const QuietData& qstatsCoarse,
+  const Interval& qintCoarse,
   const bool fromBackFlag,
   const unsigned sampleSize,
   Interval& intervalFine) const
 {
   if (! fromBackFlag)
-    intervalFine.first = qstatsCoarse.start;
-  else if (qstatsCoarse.start < durationCoarse)
+    intervalFine.first = qintCoarse.first;
+  else if (qintCoarse.first < durationCoarse)
     intervalFine.first = 0;
   else
-    intervalFine.first = qstatsCoarse.start - durationCoarse;
+    intervalFine.first = qintCoarse.first - durationCoarse;
 
   unsigned last = intervalFine.first + 2 * durationCoarse;
   if (last >= sampleSize)
@@ -167,13 +167,13 @@ void Quiet::getFinetuneStatistics(
 void Quiet::finetune(
   const vector<float>& samples,
   const bool fromBackFlag,
-  QuietData& qstats)
+  Interval& qint)
 {
   // Attempt to find the point of departure from general noise
   // more accurately.
 
   Interval intervalFine;
-  Quiet::setFineInterval(qstats, fromBackFlag, samples.size(), 
+  Quiet::setFineInterval(qint, fromBackFlag, samples.size(), 
     intervalFine);
 
   // This matters very little, as we add samples to the end anyway.
@@ -188,7 +188,7 @@ void Quiet::finetune(
   {
     if (fine.sdev >= sdevThreshold || ! fine.meanIsQuiet())
     {
-      Quiet::adjustIntervals(fromBackFlag, qstats, fine.start);
+      Quiet::adjustIntervals(fromBackFlag, qint, fine.start);
       return;
     }
   }
@@ -197,7 +197,7 @@ void Quiet::finetune(
 
 
 void Quiet::adjustOutputIntervals(
-  const QuietData& quiet,
+  const Interval& qint,
   const bool fromBackFlag,
   Interval& available)
 {
@@ -205,7 +205,7 @@ void Quiet::adjustOutputIntervals(
 
   if (! fromBackFlag)
   {
-    const unsigned quietEnd = quiet.start + quiet.len;
+    const unsigned quietEnd = qint.first + qint.len;
 
     // We don't go earlier than quietEnd, as we would often
     // get into the real transient.
@@ -217,8 +217,8 @@ void Quiet::adjustOutputIntervals(
     // Here we can go beyond the start of the quiet interval,
     // as nothing much happens here in general.  So we might as well
     // give the filter some quiet data to work with.
-    if (quiet.start + padSamples < availEnd)
-      available.len = quiet.start + padSamples - available.first;
+    if (qint.first + padSamples < availEnd)
+      available.len = qint.first + padSamples - available.first;
   }
 }
 
@@ -265,14 +265,14 @@ void Quiet::detect(
 
   quietCoarse.resize(n);
 
-  // if (n > 0)
-  // {
-    Quiet::finetune(samples, fromBackFlag, quietCoarse.back());
+  Interval qint;
+  qint.first = quietCoarse.back().start;
+  qint.len = quietCoarse.back().len;
 
-    // Make output a bit longer in order to better see.
-    Quiet::adjustOutputIntervals(quietCoarse.back(), fromBackFlag,
-      available);
-  // }
+  Quiet::finetune(samples, fromBackFlag, qint);
+
+  // Make output a bit longer in order to better see.
+  Quiet::adjustOutputIntervals(qint, fromBackFlag, available);
 }
 
 
@@ -305,18 +305,22 @@ void Quiet::detectIntervals(
       qit++;
 
     // TODO Lot of copying -- avoid?
-    QuietData qd = (qit == quietCoarse.end() ?
+    const QuietData& qd = (qit == quietCoarse.end() ?
       quietCoarse.back() : * qit);
 
-    Quiet::finetune(samples, true, qd);
+    Interval qint;
+    qint.first = qd.start;
+    qint.len = qd.len;
+
+    Quiet::finetune(samples, true, qint);
 
     actives.emplace_back(Interval());
     Interval& interval = actives.back();
     interval.first = start;
-    interval.len = qd.start - interval.first;
+    interval.len = qint.first - interval.first;
 
     // Look back.
-    Quiet::adjustOutputIntervals(qd, true, interval);
+    Quiet::adjustOutputIntervals(qint, true, interval);
 
 cout << "active " << interval.first << " to " <<
   interval.first + interval.len << endl;
@@ -335,9 +339,11 @@ cout << "active " << interval.first << " to " <<
       break;
   
     // Find the onset of the next active interval.
-    qd = * qit;
-    Quiet::finetune(samples, false, qd);
-    start = qd.start + qd.len;
+    qint.first = qit->start;
+    qint.len = qit->len;
+
+    Quiet::finetune(samples, false, qint);
+    start = qint.first + qint.len;
   }
 
   // Make a synthetic step signal to visualize the active levels.
