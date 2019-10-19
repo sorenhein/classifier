@@ -108,7 +108,7 @@ unsigned Quiet::annotateList(
 void Quiet::adjustIntervals(
   const bool fromBackFlag,
   QuietInterval& qintCoarse,
-  const unsigned index)
+  const unsigned index) const
 {
   if (! fromBackFlag)
   {
@@ -167,7 +167,7 @@ void Quiet::getFinetuneStatistics(
 void Quiet::finetune(
   const vector<float>& samples,
   const bool fromBackFlag,
-  QuietInterval& qint)
+  QuietInterval& qint) const
 {
   // Attempt to find the point of departure from general noise
   // more accurately.
@@ -199,7 +199,7 @@ void Quiet::finetune(
 void Quiet::adjustOutputIntervals(
   const QuietInterval& qint,
   const bool fromBackFlag,
-  QuietInterval& available)
+  QuietInterval& available) const
 {
   const unsigned availEnd = available.first + available.len;
 
@@ -272,6 +272,46 @@ void Quiet::detect(
 }
 
 
+bool Quiet::findActive(
+  const vector<float>& samples,
+  list<QuietInterval>& actives,
+  QuietInterval& runningInterval,
+  QuietInterval& quietInterval,
+  list<QuietInterval>::const_iterator& qit) const
+{
+  // Find the next quiet interval.
+  while (qit != quietCoarse.end() && qit->grade != GRADE_GREEN)
+    qit++;
+  if (qit == quietCoarse.end())
+    return false;
+
+  // Finetune the quiet interval backward.
+  quietInterval = * qit;
+  Quiet::finetune(samples, true, quietInterval);
+
+  // The active interval ends where the quiet one starts.
+  runningInterval.len = quietInterval.first - runningInterval.first;
+
+  // Look back.
+  Quiet::adjustOutputIntervals(quietInterval, true, runningInterval);
+  actives.push_back(runningInterval);
+
+  // Found a green; look forward to a non-green interval.
+  while (qit != quietCoarse.end() && qit->grade == GRADE_GREEN)
+    qit++;
+  if (qit == quietCoarse.end())
+    return true;
+  
+  // Finetune the non-quiet interval forward.
+  quietInterval = * qit;
+  Quiet::finetune(samples, false, quietInterval);
+
+  // The next active interval begins where the quiet one ends.
+  runningInterval.first = quietInterval.first + quietInterval.len;
+  return true;
+}
+
+
 #include <iostream>
 void Quiet::detectIntervals(
   const vector<float>& samples,
@@ -292,44 +332,20 @@ void Quiet::detectIntervals(
       SDEV_MEAN_FACTOR);
   }
 
+  // Make a list of active intervals.
   actives.clear();
   QuietInterval runningInterval, quietInterval;
   runningInterval.first = available.first;
   auto qit = quietCoarse.begin();
 
-  while (true)
+  while (Quiet::findActive(samples, actives,
+      runningInterval, quietInterval, qit))
   {
-    // Find the next quiet interval.
-    while (qit != quietCoarse.end() && qit->grade != GRADE_GREEN)
-      qit++;
-    if (qit == quietCoarse.end())
-      break;
-
-    // Finetune the quiet interval backward.
-    quietInterval = * qit;
-    Quiet::finetune(samples, true, quietInterval);
-
-    // The active interval ends where the quiet one starts.
-    runningInterval.len = quietInterval.first - runningInterval.first;
-
-    // Look back.
-    Quiet::adjustOutputIntervals(quietInterval, true, runningInterval);
-    actives.push_back(runningInterval);
-
-cout << "active " << runningInterval.first << " to " <<
-  runningInterval.first + runningInterval.len << endl;
-
-    // Found a green; look forward to a non-green interval.
-    while (qit != quietCoarse.end() && qit->grade == GRADE_GREEN)
-      qit++;
-    if (qit == quietCoarse.end())
-      break;
-  
-    // Find the onset of the next active interval.
-    quietInterval = * qit;
-
-    Quiet::finetune(samples, false, quietInterval);
+    // The next active interval begins where the quiet one ends.
     runningInterval.first = quietInterval.first + quietInterval.len;
+
+cout << "active " << actives.back().first << " to " <<
+  actives.back().first + actives.back().len << endl;
   }
 
   // Make a synthetic step signal to visualize the active levels.

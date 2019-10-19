@@ -1,8 +1,4 @@
 Quiet.cpp
-- Grading should be in 3, not 4
-- Called GREEN, AMBER, RED
-- MEAN_SOMEWHAT_QUIET is absolute
-- MEAN_QUIET_LIMIT is a multiple of this (1.5)
 - When doing quiet small periods, estimate sdev of these
   - Make 100 * sdev list
   - Pass to PeakPieces

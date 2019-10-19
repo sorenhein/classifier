@@ -45,7 +45,7 @@ class Quiet
     void adjustIntervals(
       const bool fromBackFlag,
       QuietInterval& qintCoarse,
-      const unsigned index);
+      const unsigned index) const;
 
     void setFineInterval(
       const QuietInterval& qintCoarse,
@@ -56,16 +56,23 @@ class Quiet
     void finetune(
       const vector<float>& samples,
       const bool fromBackFlag,
-      QuietInterval& qint);
+      QuietInterval& qint) const;
 
     void adjustOutputIntervals(
       const QuietInterval& qint,
       const bool fromBackFlag,
-      QuietInterval& avail);
+      QuietInterval& avail) const;
 
     void synthesize(
       const QuietInterval& available,
       const list<QuietInterval>& actives);
+
+    bool findActive(
+      const vector<float>& samples,
+      list<QuietInterval>& actives,
+      QuietInterval& runningInterval,
+      QuietInterval& quietInterval,
+      list<QuietInterval>::const_iterator& qit) const;
 
 
   public:
