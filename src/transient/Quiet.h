@@ -5,7 +5,6 @@
 #include <list>
 #include <string>
 
-#include "QuietData.h"
 #include "trans.h"
 
 using namespace std;
@@ -19,57 +18,54 @@ class Quiet
     unsigned durationFine;
     unsigned padSamples;
 
-    list<QuietData> quietCoarse;
+    list<QuietInterval> quietCoarse;
 
     vector<float> synth;
 
-    // The interval for synthetic output.
-    Interval writeInterval;
-
 
     void makeStarts(
-      const Interval& interval,
+      const QuietInterval& interval,
       const bool fromBackFlag,
       const unsigned duration,
-      list<QuietData>& quietList) const;
+      list<QuietInterval>& quietList) const;
 
     void makeStats(
       const vector<float>& samples,
-      QuietData& qentry) const;
+      QuietInterval& qint) const;
 
     unsigned annotateList(
       const vector<float>& samples,
-      list<QuietData>& quietList) const;
+      list<QuietInterval>& quietList) const;
 
     void getFinetuneStatistics(
       const vector<float>& samples,
-      list<QuietData>& fineStarts,
+      list<QuietInterval>& fineStarts,
       float& sdevThreshold) const;
 
     void adjustIntervals(
       const bool fromBackFlag,
-      Interval& qintCoarse,
+      QuietInterval& qintCoarse,
       const unsigned index);
 
     void setFineInterval(
-      const Interval& qintCoarse,
+      const QuietInterval& qintCoarse,
       const bool fromBackFlag,
       const unsigned sampleSize,
-      Interval& intervalFine) const;
+      QuietInterval& intervalFine) const;
 
     void finetune(
       const vector<float>& samples,
       const bool fromBackFlag,
-      Interval& qint);
+      QuietInterval& qint);
 
     void adjustOutputIntervals(
-      const Interval& qint,
+      const QuietInterval& qint,
       const bool fromBackFlag,
-      Interval& avail);
+      QuietInterval& avail);
 
     void synthesize(
-      const Interval& available,
-      const list<Interval>& actives);
+      const QuietInterval& available,
+      const list<QuietInterval>& actives);
 
 
   public:
@@ -82,14 +78,16 @@ class Quiet
       const vector<float>& samples,
       const float sampleRate,
       const bool fromBackFlag,
-      Interval& available);
+      QuietInterval& available);
 
     void detectIntervals(
       const vector<float>& samples,
-      const Interval& available,
-      list<Interval>& actives);
+      const QuietInterval& available,
+      list<QuietInterval>& actives);
 
-    void writeFile(const string& filename) const;
+    void writeFile(
+      const string& filename,
+      const unsigned offset) const;
 };
 
 #endif

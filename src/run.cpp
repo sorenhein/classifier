@@ -77,7 +77,7 @@ void runQuiet(
   const unsigned thid,
   Quiet& quietBack,
   Quiet& quietFront,
-  Interval& interval);
+  QuietInterval& interval);
 
 void runFilter(
   const float sampleRate,
@@ -175,7 +175,7 @@ void runQuiet(
   const unsigned thid,
   Quiet& quietBack,
   Quiet& quietFront,
-  Interval& interval)
+  QuietInterval& interval)
 {
   timers[thid].start(TIMER_QUIET);
 
@@ -196,7 +196,7 @@ void runQuiet(
 
   timers[thid].stop(TIMER_QUIET);
 
-list<Interval> actives;
+list<QuietInterval> actives;
 quietFront.detectIntervals(accel, interval, actives);
 }
 
@@ -288,10 +288,12 @@ void runWrite(
 
   if (control.writeTransient())
     transient.writeFile(control.transientDir() + "/" + filename);
-  if (control.writeBack())
-    quietBack.writeFile(control.backDir() + "/" + filename);
+  // TODO Should probably go
+  // if (control.writeBack())
+    // quietBack.writeFile(control.backDir() + "/" + filename, offset);
+  UNUSED(quietBack);
   if (control.writeFront())
-    quietFront.writeFile(control.frontDir() + "/" + filename);
+    quietFront.writeFile(control.frontDir() + "/" + filename, offset);
   if (control.writeSpeed())
     filter.writeSpeed(control.speedDir() + "/" + filename);
   if (control.writePos())
@@ -335,7 +337,7 @@ void run(
     // Detect any leading or trailing quiet periods.
     Quiet quietBack;
     Quiet quietFront;
-    Interval interval;
+    QuietInterval interval;
     runQuiet(control, accel, traceData.sampleRate, lastIndex, thid,
       quietBack, quietFront, interval);
 

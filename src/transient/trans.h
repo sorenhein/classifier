@@ -1,6 +1,13 @@
 #ifndef TRAIN_TRANS_H
 #define TRAIN_TRANS_H
 
+#include <iostream>
+#include <iomanip>
+#include <sstream>
+#include <string>
+
+using namespace std;
+
 
 enum TransientStatus
 {
@@ -35,12 +42,52 @@ enum QuietGrade
   GRADE_SIZE = 3
 };
 
-struct Interval
+struct QuietInterval
 {
   unsigned first;
   unsigned len;
+  float mean;
+  float sdev;
   QuietGrade grade;
-  double mean;
+  bool _meanIsQuiet;
+
+  void setGrade(
+    const float& meanSomewhatQuiet,
+    const float& meanQuietLimit,
+    const float& SdevMeanFactor)
+  {
+    const float absmean = abs(mean);
+    const float sdevMeans = sdev / SdevMeanFactor;
+
+    if (absmean < meanSomewhatQuiet && sdevMeans < meanSomewhatQuiet)
+      grade = GRADE_GREEN;
+    else if (absmean < meanQuietLimit && sdevMeans < meanSomewhatQuiet)
+      grade = GRADE_AMBER;
+    else if (absmean < meanSomewhatQuiet && sdevMeans < SdevMeanFactor)
+      grade = GRADE_AMBER;
+    else
+      grade = GRADE_RED;
+
+    _meanIsQuiet = (absmean < meanSomewhatQuiet);
+  };
+
+  bool meanIsQuiet() const
+  {
+    return _meanIsQuiet;
+  };
+
+  string str() const
+  {
+    stringstream ss;
+    ss <<
+      setw(6) << right << first <<
+      setw(6) << len <<
+      setw(10) << fixed << setprecision(2) << mean <<
+      setw(10) << fixed << setprecision(2) << sdev <<
+      setw(6) << grade << "\n";
+  return ss.str();
+
+  };
 };
 
 #endif

@@ -18,10 +18,10 @@ Quiet::~Quiet()
 
 
 void Quiet::makeStarts(
-  const Interval& interval,
+  const QuietInterval& interval,
   const bool fromBackFlag,
   const unsigned duration,
-  list<QuietData>& quietList) const
+  list<QuietInterval>& quietList) const
 {
   const unsigned numInts = interval.len / duration;
   quietList.clear();
@@ -32,9 +32,9 @@ void Quiet::makeStarts(
     // any partial chunk at the end.
     for (unsigned i = 0; i < numInts; i++)
     {
-      quietList.emplace_back(QuietData());
-      QuietData& q = quietList.back();
-      q.start = interval.first + i * duration;
+      quietList.emplace_back(QuietInterval());
+      QuietInterval& q = quietList.back();
+      q.first = interval.first + i * duration;
       q.len = duration;
       q.grade = GRADE_SIZE;
     }
@@ -44,9 +44,9 @@ void Quiet::makeStarts(
     // Backwards from the end.
     for (unsigned i = 0; i < numInts; i++)
     {
-      quietList.emplace_back(QuietData());
-      QuietData& q = quietList.back();
-      q.start = interval.first + interval.len - (i+1) * duration;
+      quietList.emplace_back(QuietInterval());
+      QuietInterval& q = quietList.back();
+      q.first = interval.first + interval.len - (i+1) * duration;
       q.len = duration;
       q.grade = GRADE_SIZE;
     }
@@ -56,25 +56,25 @@ void Quiet::makeStarts(
 
 void Quiet::makeStats(
   const vector<float>& samples,
-  QuietData& qentry) const
+  QuietInterval& qint) const
 {
   float sum = 0.;
   float sumsq = 0.;
-  for (unsigned i = qentry.start; i < qentry.start + qentry.len; i++)
+  for (unsigned i = qint.first; i < qint.first + qint.len; i++)
   {
     sum += samples[i];
     sumsq += samples[i] * samples[i];
   }
 
-  qentry.mean = sum / qentry.len;
-  qentry.sdev = static_cast<float>(sqrt((qentry.len * sumsq - sum * sum) / 
-    (qentry.len * (qentry.len-1.f))));
+  qint.mean = sum / qint.len;
+  qint.sdev = static_cast<float>(sqrt((qint.len * sumsq - sum * sum) / 
+    (qint.len * (qint.len-1.f))));
 }
 
 
 unsigned Quiet::annotateList(
   const vector<float>& samples,
-  list<QuietData>& quietList) const
+  list<QuietInterval>& quietList) const
 {
   unsigned counterAfterAmber = NUM_QUIET_FOLLOWERS;
   unsigned amber = numeric_limits<unsigned>::max();  // Shouldn't matter
@@ -107,7 +107,7 @@ unsigned Quiet::annotateList(
 
 void Quiet::adjustIntervals(
   const bool fromBackFlag,
-  Interval& qintCoarse,
+  QuietInterval& qintCoarse,
   const unsigned index)
 {
   if (! fromBackFlag)
@@ -126,10 +126,10 @@ void Quiet::adjustIntervals(
 
 
 void Quiet::setFineInterval(
-  const Interval& qintCoarse,
+  const QuietInterval& qintCoarse,
   const bool fromBackFlag,
   const unsigned sampleSize,
-  Interval& intervalFine) const
+  QuietInterval& intervalFine) const
 {
   if (! fromBackFlag)
     intervalFine.first = qintCoarse.first;
@@ -148,7 +148,7 @@ void Quiet::setFineInterval(
 
 void Quiet::getFinetuneStatistics(
   const vector<float>& samples,
-  list<QuietData>& fineStarts,
+  list<QuietInterval>& fineStarts,
   float& sdevThreshold) const
 {
   float sdevMax = 0., sdevMin = numeric_limits<float>::max();
@@ -167,17 +167,17 @@ void Quiet::getFinetuneStatistics(
 void Quiet::finetune(
   const vector<float>& samples,
   const bool fromBackFlag,
-  Interval& qint)
+  QuietInterval& qint)
 {
   // Attempt to find the point of departure from general noise
   // more accurately.
 
-  Interval intervalFine;
+  QuietInterval intervalFine;
   Quiet::setFineInterval(qint, fromBackFlag, samples.size(), 
     intervalFine);
 
   // This matters very little, as we add samples to the end anyway.
-  list<QuietData> fineStarts;
+  list<QuietInterval> fineStarts;
   Quiet::makeStarts(intervalFine, fromBackFlag, durationFine, fineStarts);
 
   float sdevThreshold;
@@ -188,7 +188,7 @@ void Quiet::finetune(
   {
     if (fine.sdev >= sdevThreshold || ! fine.meanIsQuiet())
     {
-      Quiet::adjustIntervals(fromBackFlag, qint, fine.start);
+      Quiet::adjustIntervals(fromBackFlag, qint, fine.first);
       return;
     }
   }
@@ -197,9 +197,9 @@ void Quiet::finetune(
 
 
 void Quiet::adjustOutputIntervals(
-  const Interval& qint,
+  const QuietInterval& qint,
   const bool fromBackFlag,
-  Interval& available)
+  QuietInterval& available)
 {
   const unsigned availEnd = available.first + available.len;
 
@@ -224,8 +224,8 @@ void Quiet::adjustOutputIntervals(
 
 
 void Quiet::synthesize(
-  const Interval& available,
-  const list<Interval>& actives)
+  const QuietInterval& available,
+  const list<QuietInterval>& actives)
 {
   synth.clear();
   synth.resize(available.len);
@@ -242,7 +242,7 @@ void Quiet::detect(
   const vector<float>& samples,
   const float sampleRate,
   const bool fromBackFlag,
-  Interval& available)
+  QuietInterval& available)
 {
   durationCoarse = 
     static_cast<unsigned>(sampleRate * QUIET_DURATION_COARSE);
@@ -265,8 +265,8 @@ void Quiet::detect(
 
   quietCoarse.resize(n);
 
-  Interval qint;
-  qint.first = quietCoarse.back().start;
+  QuietInterval qint;
+  qint.first = quietCoarse.back().first;
   qint.len = quietCoarse.back().len;
 
   Quiet::finetune(samples, fromBackFlag, qint);
@@ -279,8 +279,8 @@ void Quiet::detect(
 #include <iostream>
 void Quiet::detectIntervals(
   const vector<float>& samples,
-  const Interval& available,
-  list<Interval>& actives)
+  const QuietInterval& available,
+  list<QuietInterval>& actives)
 {
   // Could probably use a stored version from detect() -- no matter.
   quietCoarse.clear();
@@ -305,17 +305,17 @@ void Quiet::detectIntervals(
       qit++;
 
     // TODO Lot of copying -- avoid?
-    const QuietData& qd = (qit == quietCoarse.end() ?
+    const QuietInterval& qd = (qit == quietCoarse.end() ?
       quietCoarse.back() : * qit);
 
-    Interval qint;
-    qint.first = qd.start;
+    QuietInterval qint;
+    qint.first = qd.first;
     qint.len = qd.len;
 
     Quiet::finetune(samples, true, qint);
 
-    actives.emplace_back(Interval());
-    Interval& interval = actives.back();
+    actives.emplace_back(QuietInterval());
+    QuietInterval& interval = actives.back();
     interval.first = start;
     interval.len = qint.first - interval.first;
 
@@ -339,7 +339,7 @@ cout << "active " << interval.first << " to " <<
       break;
   
     // Find the onset of the next active interval.
-    qint.first = qit->start;
+    qint.first = qit->first;
     qint.len = qit->len;
 
     Quiet::finetune(samples, false, qint);
@@ -351,8 +351,10 @@ cout << "active " << interval.first << " to " <<
 }
 
 
-void Quiet::writeFile(const string& filename) const
+void Quiet::writeFile(
+  const string& filename,
+  const unsigned offset) const
 {
-  writeBinary(filename, writeInterval.first, synth);
+  writeBinary(filename, offset, synth);
 }
 
