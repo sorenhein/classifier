@@ -327,8 +327,8 @@ bool Quiet::findActive(
   if (qit == quietCoarse.end())
     return true;
   
-  // Finetune the non-quiet interval forward.
-  quietInterval = * qit;
+  // Finetune the previous, quiet interval forward.
+  quietInterval = * prev(qit);
   Quiet::finetune(samples, false, quietInterval);
 
   // The next active interval begins where the quiet one ends.
