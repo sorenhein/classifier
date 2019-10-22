@@ -35,6 +35,7 @@ class Quiet
 
     unsigned annotateList(
       const vector<float>& samples,
+      list<QuietInterval>::iterator qbegin,
       list<QuietInterval>& quietList) const;
 
     void getFinetuneStatistics(
@@ -61,6 +62,7 @@ class Quiet
     void adjustOutputIntervals(
       const QuietInterval& qint,
       const bool fromBackFlag,
+      const bool padFlag,
       QuietInterval& avail) const;
 
     void synthesize(

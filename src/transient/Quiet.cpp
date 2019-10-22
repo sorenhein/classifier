@@ -2,6 +2,7 @@
 
 #include "Quiet.h"
 
+#include "../PeakPieces.h"
 #include "../const.h"
 
 #include "../util/io.h"
@@ -74,19 +75,22 @@ void Quiet::makeStats(
 
 unsigned Quiet::annotateList(
   const vector<float>& samples,
+  list<QuietInterval>::iterator qbegin,
   list<QuietInterval>& quietList) const
 {
+  // We imagine that there is a long quiet period preceding qbegin.
   unsigned counterAfterAmber = NUM_QUIET_FOLLOWERS;
   unsigned amber = numeric_limits<unsigned>::max();  // Shouldn't matter
   unsigned i = 0;
 
   // Stop at the first red, or the first amber not followed by
   // at least NUM_QUIET_FOLLOWERS of green intensity.
-  for (auto& quiet: quietList)
+  // Return the number of the first active interval (0 is the first one).
+  for (auto qit = qbegin; qit != quietList.end(); qit++, i++)
   {
+    QuietInterval& quiet = * qit;
     Quiet::makeStats(samples, quiet);
-    quiet.setGrade(MEAN_SOMEWHAT_QUIET, MEAN_QUIET_LIMIT,
-      SDEV_MEAN_FACTOR);
+    quiet.setGrade(MEAN_SOMEWHAT_QUIET, MEAN_QUIET_LIMIT, SDEV_MEAN_FACTOR);
 
     if (quiet.grade == GRADE_RED)
       return (counterAfterAmber < NUM_QUIET_FOLLOWERS ? amber : i);
@@ -99,7 +103,6 @@ unsigned Quiet::annotateList(
       amber = i;
       counterAfterAmber = 0;
     }
-    i++;
   }
   return quietList.size();
 }
@@ -131,6 +134,8 @@ void Quiet::setFineInterval(
   const unsigned sampleSize,
   QuietInterval& intervalFine) const
 {
+  // We more or less tack on another length beyond the appropriate end
+  // of the coarse interval.
   if (! fromBackFlag)
     intervalFine.first = qintCoarse.first;
   else if (qintCoarse.first < durationCoarse)
@@ -170,16 +175,28 @@ void Quiet::finetune(
   QuietInterval& qint) const
 {
   // Attempt to find the point of departure from general noise
-  // more accurately.
+  // more accurately.  qint is last of a series of inactive intervals.
 
   QuietInterval intervalFine;
   Quiet::setFineInterval(qint, fromBackFlag, samples.size(), 
     intervalFine);
 
-  // This matters very little, as we add samples to the end anyway.
+  // We more or less have two coarse intervals' worth, of which the
+  // first interval is quiet and the second one probably isn't.
   list<QuietInterval> fineStarts;
   Quiet::makeStarts(intervalFine, fromBackFlag, durationFine, fineStarts);
 
+  const unsigned n = Quiet::annotateList(samples, fineStarts.begin(),
+    fineStarts);
+  // If the interval as such is quiet, but the first fine interval
+  // isn't, we go back to the whole interval.
+  if (n == 0)
+    return;
+
+  fineStarts.resize(n);
+  Quiet::adjustIntervals(fromBackFlag, qint, fineStarts.back().first);
+
+  /*
   float sdevThreshold;
   Quiet::getFinetuneStatistics(samples, fineStarts, sdevThreshold);
 
@@ -192,6 +209,7 @@ void Quiet::finetune(
       return;
     }
   }
+  */
   // Should not get here.
 }
 
@@ -199,6 +217,7 @@ void Quiet::finetune(
 void Quiet::adjustOutputIntervals(
   const QuietInterval& qint,
   const bool fromBackFlag,
+  const bool padFlag,
   QuietInterval& available) const
 {
   const unsigned availEnd = available.first + available.len;
@@ -217,8 +236,10 @@ void Quiet::adjustOutputIntervals(
     // Here we can go beyond the start of the quiet interval,
     // as nothing much happens here in general.  So we might as well
     // give the filter some quiet data to work with.
-    if (qint.first + padSamples < availEnd)
-      available.len = qint.first + padSamples - available.first;
+    const unsigned pad = (padFlag ? padSamples : 0);
+
+    if (qint.first + pad < availEnd)
+      available.len = qint.first + pad - available.first;
   }
 }
 
@@ -259,16 +280,20 @@ void Quiet::detect(
   // chunk that is clearly not quiet, or when we have a couple of
   // dubious chunks in succession.
 
-  const unsigned n = Quiet::annotateList(samples, quietCoarse);
+  const unsigned n = Quiet::annotateList(samples, quietCoarse.begin(),
+    quietCoarse);
   if (n == 0)
     return;
 
+  // As n is the first active interval, we will eliminate this,
+  // leaving the last quiet interval at the end of quietCoarse.
   quietCoarse.resize(n);
 
   Quiet::finetune(samples, fromBackFlag, quietCoarse.back());
 
   // Make output a bit longer in order to better see.
-  Quiet::adjustOutputIntervals(quietCoarse.back(), fromBackFlag, available);
+  Quiet::adjustOutputIntervals(quietCoarse.back(), fromBackFlag, true,
+    available);
 }
 
 
@@ -293,7 +318,7 @@ bool Quiet::findActive(
   runningInterval.len = quietInterval.first - runningInterval.first;
 
   // Look back.
-  Quiet::adjustOutputIntervals(quietInterval, true, runningInterval);
+  Quiet::adjustOutputIntervals(quietInterval, true, false, runningInterval);
   actives.push_back(runningInterval);
 
   // Found a green; look forward to a non-green interval.
@@ -313,20 +338,55 @@ bool Quiet::findActive(
 
 
 #include <iostream>
+#include <algorithm>
+#include "../util/Gap.h"
 void Quiet::detectIntervals(
   const vector<float>& samples,
   const QuietInterval& available,
   list<QuietInterval>& actives)
 {
+  // If this is a good idea, it should go somewhere else.
+  // It should also be implemented better.
+  vector<float> samplesLP;
+  samplesLP.resize(samples.size());
+  const unsigned range = 4;
+  for (unsigned i = range; i < samples.size() - range - 1; i++)
+  {
+    samplesLP[i] = 0;
+    for (unsigned j = i-range; j <= i+range; j++)
+      samplesLP[i] += samples[j];
+    samplesLP[i] /= (2*range+1);
+  }
+
   // Could probably use a stored version from detect() -- no matter.
   quietCoarse.clear();
   Quiet::makeStarts(available, false, durationCoarse, quietCoarse);
   if (quietCoarse.empty())
     return;
 
+  // vector<unsigned> sdevs, means;
   for (auto& quiet: quietCoarse)
   {
-    Quiet::makeStats(samples, quiet);
+    Quiet::makeStats(samplesLP, quiet);
+    // sdevs.push_back(static_cast<unsigned>(100.f * quiet.sdev));
+    // means.push_back(static_cast<unsigned>(100.f * quiet.mean));
+  }
+
+  /*
+  sort(sdevs.begin(), sdevs.end());
+  for (auto s: sdevs)
+    cout << s << endl;
+
+  PeakPieces pieces;
+  pieces.make(sdevs);
+  
+  Gap value;
+  pieces.guessBogieGap(value);
+  cout << value.str("sdev");
+    */
+
+  for (auto& quiet: quietCoarse)
+  {
     // TODO Other thresholds
     quiet.setGrade(MEAN_SOMEWHAT_QUIET, MEAN_QUIET_LIMIT,
       SDEV_MEAN_FACTOR);
@@ -338,7 +398,7 @@ void Quiet::detectIntervals(
   runningInterval.first = available.first;
   auto qit = quietCoarse.begin();
 
-  while (Quiet::findActive(samples, actives,
+  while (Quiet::findActive(samplesLP, actives,
       runningInterval, quietInterval, qit))
   {
     // The next active interval begins where the quiet one ends.
@@ -352,11 +412,13 @@ cout << "active " << actives.back().first << " to " <<
   Quiet::synthesize(available, actives);
 }
 
+#define UNUSED(x) ((void)(true ? 0 : ((x), void(), 0)))
 
 void Quiet::writeFile(
   const string& filename,
   const unsigned offset) const
 {
+  // UNUSED(offset);
   writeBinary(filename, offset, synth);
 }
 
