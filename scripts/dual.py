@@ -104,6 +104,8 @@ def dualpane(sensor, rawdir, compdir):
       
   plt.ion()
   plt.show()
+
+  ma_order = 9
   
   curr = -1
   l = len(rawlist)
@@ -125,7 +127,15 @@ def dualpane(sensor, rawdir, compdir):
     
     o = rawoffsets[curr]
     x = np.arange(o, o+len(rawdata))
-    plt.plot(x, rawdata, 'b')
+
+    if compdir == "front":
+      # Add moving average.
+      ma = np.convolve(rawdata, np.ones( ma_order,), mode = 'same')/ ma_order
+      # ma = np.convolve(ma, np.ones( ma_order,), mode = 'same')/ ma_order
+      plt.plot(x, ma, 'b')
+    else:
+      plt.plot(x, rawdata, 'b')
+      
 
     if matched[curr] != "":
       matchdata = np.fromfile(matched[curr], dtype = np.float32)

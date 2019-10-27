@@ -24,6 +24,9 @@
 #include "PeakSeeds.h"
 #include "PeakLabel.h"
 
+// TMP?
+#include "Explore.h"
+
 #include "align/Align.h"
 
 #include "Except.h"
@@ -77,7 +80,8 @@ void runQuiet(
   const unsigned thid,
   Quiet& quietBack,
   Quiet& quietFront,
-  QuietInterval& interval);
+  QuietInterval& interval,
+  list<QuietInterval>& actives);
 
 void runFilter(
   const float sampleRate,
@@ -175,7 +179,8 @@ void runQuiet(
   const unsigned thid,
   Quiet& quietBack,
   Quiet& quietFront,
-  QuietInterval& interval)
+  QuietInterval& interval,
+  list<QuietInterval>& actives)
 {
   timers[thid].start(TIMER_QUIET);
 
@@ -196,8 +201,8 @@ void runQuiet(
 
   timers[thid].stop(TIMER_QUIET);
 
-list<QuietInterval> actives;
 quietFront.detectIntervals(accel, interval, actives);
+
 }
 
 
@@ -338,8 +343,11 @@ void run(
     Quiet quietBack;
     Quiet quietFront;
     QuietInterval interval;
+
+list<QuietInterval> actives;
+
     runQuiet(control, accel, traceData.sampleRate, lastIndex, thid,
-      quietBack, quietFront, interval);
+      quietBack, quietFront, interval, actives);
 
 /*
 vector<float> rawAccel;
@@ -391,6 +399,14 @@ accelDetect.extract();
     // Put in runPeakExtract, controlled by new Control flag
     cout << "PEAKPOOL\n";
     cout << peaks.strCounts();
+
+
+Explore explore;
+explore.log(actives, peaks.candidates());
+explore.correlate(accel);
+cout << "CORRELATES\n\n";
+cout << explore.str();
+cout << "\n";
 
     timers[thid].start(TIMER_ALIGN);
 

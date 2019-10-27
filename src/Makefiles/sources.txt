@@ -5,6 +5,7 @@ SOURCE_FILES    =                       \
                 CarModels.cpp           \
                 CarPeaks.cpp            \
                 Except.cpp              \
+                Explore.cpp             \
                 Peak.cpp                \
                 Peaks.cpp               \
                 PeakDetect.cpp          \
