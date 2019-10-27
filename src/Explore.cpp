@@ -10,6 +10,7 @@
 
 #define WINDOW_LOBE 4
 #define CORR_LOBE 20
+#define COARSE_LOBE 100
 
 
 Explore::Explore()
@@ -67,7 +68,7 @@ float Explore::filterEdge(
   const unsigned lobe) const
 {
   float f = accel[pos];
-  for (unsigned j = 1; j < lobe; j++)
+  for (unsigned j = 1; j <= lobe; j++)
     f += accel[pos-j] + accel[pos+j];
   return f / (2*lobe+1);
 }
@@ -79,11 +80,11 @@ void Explore::filter(const vector<float>& accel)
   filtered.resize(accel.size());
 
   // Front and back.
-  const unsigned dl = data.size();
+  const unsigned al = accel.size();
   for (unsigned i = 0; i <= WINDOW_LOBE; i++)
   {
     filtered[i] = Explore::filterEdge(accel, i, i);
-    filtered[dl-i-1] = Explore::filterEdge(accel, dl-i-1, i);
+    filtered[al-i-1] = Explore::filterEdge(accel, al-i-1, i);
   }
 
   float cum = 0;
@@ -91,7 +92,7 @@ void Explore::filter(const vector<float>& accel)
     cum += accel[i];
   const float factor = 1.f / (2.f*WINDOW_LOBE + 1.f);
 
-  for (unsigned i = WINDOW_LOBE+1; i < dl-WINDOW_LOBE-1; i++)
+  for (unsigned i = WINDOW_LOBE+1; i < al-WINDOW_LOBE-1; i++)
   {
     cum += accel[i+WINDOW_LOBE] - accel[i-WINDOW_LOBE-1];
     filtered[i] = factor * cum;
@@ -108,14 +109,19 @@ void Explore::correlateFixed(
   // The first interval is before the second one (or equal to it), 
   // and the offset is therefore always non-negative.
 
+  const unsigned lenMin = min(first.len, second.len);
+
   const unsigned lower1 = first.first + offset;
-  const unsigned upper1 = lower1 + first.len;
-  const unsigned lower = max(lower1, second.first);
-  const unsigned upper = min(upper1, second.first + second.len);
+  const unsigned upper1 = lower1 + lenMin;
+  const unsigned lower = second.first;
+  const unsigned upper = min(lower + lenMin, filtered.size()-1);
   
   corr.shift = offset;
   corr.overlap = upper - lower;
   
+// cout << "correlating (" << lower-offset << ", " << 
+  // upper-offset << ") against (" <<
+    // lower << ", " << upper << ")\n";
   corr.value = 0.;
   for (unsigned i = lower; i < upper; i++)
     corr.value += filtered[i-offset] * filtered[i];
@@ -127,16 +133,22 @@ unsigned Explore::guessShiftSameLength(
   vector<Peak const *>& second,
   unsigned& devSq) const
 {
+  int sum1 = 0, sum2 = 0;
+  for (unsigned i = 0; i < first.size(); i++)
+  {
+    sum1 += static_cast<int>(first[i]->getIndex());
+    sum2 += static_cast<int>(second[i]->getIndex());
+  }
+
+  const unsigned shift = (sum2-sum1) / first.size();
+
+
   devSq = 0;
   for (unsigned i = 0; i < first.size(); i++)
   {
-    const unsigned fi = first[i]->getIndex();
-    const unsigned si = second[i]->getIndex();
-
-    if (fi <= si)
-      devSq += (si-fi) * (si-fi);
-    else
-      devSq += (fi-si) * (fi-si);
+    const int fi = static_cast<int>(first[i]->getIndex()) + shift;
+    const int si = static_cast<int>(second[i]->getIndex());
+    devSq += static_cast<unsigned>((si-fi) * (si-fi));
   }
   return devSq;
 }
@@ -185,20 +197,31 @@ unsigned Explore::guessShift(
 }
 
 
+#define UNUSED(x) ((void)(true ? 0 : ((x), void(), 0)))
 void Explore::correlateBest(
   const QuietInterval& first,
   const QuietInterval& second,
   const unsigned guess,
+  const float refValue,
   Correlate& corr) const
 {
   Correlate tmp;
   Explore::correlateFixed(first, second, guess, corr);
+cout << " base correlate " << corr.value << endl;
+
+  UNUSED(refValue);
+  // unsigned guessImproved = guess;
+  // if (corr.value < refValue / 3.)
+  // {
+    // Take some larger steps.
+  // }
 
   // Pretty basic search, one step at a time, only as much as needed.
   unsigned iopt = 0;
   for (unsigned i = 1; i < CORR_LOBE; i++)
   {
     Explore::correlateFixed(first, second, guess+i, tmp);
+cout << "  forward by " << i << ": " << tmp.value << "\n";
     if (tmp.value > corr.value)
     {
       iopt = i;
@@ -214,6 +237,7 @@ void Explore::correlateBest(
   for (unsigned i = 1; i < CORR_LOBE; i++)
   {
     Explore::correlateFixed(first, second, guess-i, tmp);
+cout << "  backward by " << i << ": " << tmp.value << "\n";
     if (tmp.value > corr.value)
     {
       iopt = i;
@@ -236,12 +260,21 @@ void Explore::correlate(const vector<float>& accel)
     Explore::correlateFixed(* data[i].qint, * data[i].qint, 0,
       data[i].correlates[i]);
 
-    for (unsigned j = i; j < data.size(); j++)
+    for (unsigned j = i+1; j < data.size(); j++)
     {
+cout << "MAIN Correlating " << i << ", (" <<
+  data[i].qint->first << ", " << data[i].qint->first + data[i].qint->len <<
+  ") (" <<
+  data[i].peaksOrig.size() << ") and " << j << ", (" << 
+  data[j].qint->first << ", " << data[j].qint->first + data[j].qint->len <<
+  ") (" <<
+  "(" << data[j].peaksOrig.size() << ")" << endl;
       const unsigned guess = Explore::guessShift(
         data[i].peaksOrig, data[j].peaksOrig);
+cout << "guess " << guess << endl;
 
       Explore::correlateBest(* data[i].qint, * data[j].qint, guess, 
+        data[i].correlates[i].value,
         data[i].correlates[j]);
     } 
   }
@@ -251,9 +284,9 @@ void Explore::correlate(const vector<float>& accel)
 string Explore::strHeader() const
 {
   stringstream ss;
-  ss << setw(5) << "";
+  ss << setw(4) << "";
   for (unsigned j = 0; j < data.size(); j++)
-    ss << right << setw(5) << j;
+    ss << right << setw(6) << j;
   return ss.str() + "\n";
 }
 
@@ -264,14 +297,27 @@ string Explore::str() const
   ss << Explore::strHeader();
   for (unsigned i = 0; i < data.size(); i++)
   {
-    ss << left << setw(5) << i;
+    ss << left << setw(4) << i;
     for (unsigned j = 0; j < i; j++)
-      ss << right << setw(5) << "-";
+      ss << right << setw(6) << "*";
     for (unsigned j = i; j < data.size(); j++)
-      ss << setw(5) << right << fixed << setprecision(2) << 
+      ss << setw(6) << right << fixed << setprecision(2) << 
         data[i].correlates[j].value;
     ss << "\n";
   }
+  ss << "\n";
+
+  for (unsigned i = 0; i < data.size(); i++)
+  {
+    ss << left << setw(4) << i;
+    for (unsigned j = 0; j < i; j++)
+      ss << right << setw(6) << "*";
+    for (unsigned j = i; j < data.size(); j++)
+      ss << setw(6) << right << 
+        data[i].correlates[j].shift;
+    ss << "\n";
+  }
+
   return ss.str() + "\n";
 }
 

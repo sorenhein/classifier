@@ -68,6 +68,7 @@ class Explore
       const QuietInterval& first,
       const QuietInterval& second,
       const unsigned guess,
+      const float refValue,
       Correlate& corr) const;
 
     string strHeader() const;

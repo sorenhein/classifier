@@ -6,6 +6,7 @@ SOURCE_FILES    =                       \
                 CarPeaks.cpp            \
                 Except.cpp              \
                 Explore.cpp             \
+                FFT.cpp                 \
                 Peak.cpp                \
                 Peaks.cpp               \
                 PeakDetect.cpp          \
