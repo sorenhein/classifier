@@ -249,8 +249,12 @@ cout << "  backward by " << i << ": " << tmp.value << "\n";
 }
 
 
+#include "FFT.h"
+
 void Explore::correlate(const vector<float>& accel)
 {
+UNUSED(accel);
+/*
   Explore::filter(accel);
 
   for (unsigned i = 0; i < data.size(); i++)
@@ -272,12 +276,47 @@ cout << "MAIN Correlating " << i << ", (" <<
       const unsigned guess = Explore::guessShift(
         data[i].peaksOrig, data[j].peaksOrig);
 cout << "guess " << guess << endl;
-
+if (guess > 100)
+{
+  cout << "ERROR\n";
+  data[i].correlates[j].value = 0.;
+}
+else
       Explore::correlateBest(* data[i].qint, * data[j].qint, guess, 
         data[i].correlates[i].value,
         data[i].correlates[j]);
     } 
   }
+*/
+
+  // Just to try the FFT.
+/*
+  vector<float> accelPad;
+  accelPad.resize(16384);
+  const unsigned m = (filtered.size() > 16384 ? 16384 : filtered.size());
+  for (unsigned i = 0; i < m; i++)
+    accelPad[i] = filtered[i];
+
+  Datum& bogieLast = data.back();
+  const unsigned s = bogieLast.qint->first;
+  const unsigned e = s + bogieLast.qint->len;
+
+  vector<float> reverseBogie;
+  reverseBogie.resize(16384);
+  for (unsigned i = 0; i < bogieLast.qint->len; i++)
+    reverseBogie[i] = filtered[e-i-1];
+
+  FFT fft;
+  fft.setSize(16384);
+  vector<float> out;
+  out.resize(16384);
+  fft.convolve(accelPad, reverseBogie, out);
+
+  cout << "Convolution" << endl;
+  for (unsigned i = 0; i < 16384; i++)
+    cout << i << ";" << out[i] << endl;
+  cout << endl;
+  */
 }
 
 

@@ -404,9 +404,9 @@ accelDetect.extract();
 Explore explore;
 explore.log(actives, peaks.candidates());
 explore.correlate(accel);
-cout << "CORRELATES\n\n";
-cout << explore.str();
-cout << "\n";
+// cout << "CORRELATES\n\n";
+// cout << explore.str();
+// cout << "\n";
 
     timers[thid].start(TIMER_ALIGN);
 

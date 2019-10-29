@@ -1,3 +1,18 @@
+FFT
+- Move to a real implementation, https://github.com/cyrilcode/fft-real
+- Or http://www.fftw.org/install/windows.html
+- Or https://software.intel.com/en-us/ipp-dev-reference-fftinit-r-fftinit-c
+- See about compile/run-time
+- Signal is only transformed once
+- In a convolution, will have to reverse the bogie signal
+- Look for positive peaks
+- Two micro-peaks close to each other if distance is different?
+- Cluster the active periods that are good matches
+- See whether there's another bogie at large
+- Repeat
+- Careful about offsets (reversing, shifting the template)
+
+
 Quiet.cpp
 - When doing quiet small periods, estimate sdev of these
   - Make 100 * sdev list
