@@ -523,8 +523,8 @@ void AccelDetect::simplifySide(
 
     auto pstart = (pit == peaks.begin() ? pit : prev(pit));
 
-cout << "pstart: " << pstart->getIndex() << ": first above is " <<
-  pit->getIndex() << endl;
+// cout << "pstart: " << pstart->getIndex() << ": first above is " <<
+  // pit->getIndex() << endl;
 
     // Find the next peak "below" the threshold.
     auto pfirst = pit;
@@ -539,23 +539,23 @@ cout << "pstart: " << pstart->getIndex() << ": first above is " <<
       pit++;
     }
 
-cout << "  extreme: " << pext->getIndex() << ", first below is " <<
-  pit->getIndex() << endl;
+// cout << "  extreme: " << pext->getIndex() << ", first below is " <<
+  // pit->getIndex() << endl;
 
     if (pext != pstart)
     {
       if (pstart->isMinimum() == pext->isMinimum())
       {
         // Delete [pstart, pext).
-cout << "  deleting [" << pstart->getIndex() << ", " <<
-  pext->getIndex() << ")" << endl;
+// cout << "  deleting [" << pstart->getIndex() << ", " <<
+  // pext->getIndex() << ")" << endl;
         peaks.collapse(pstart, pext);
       }
       else
       {
         // Delete (pstart, pext).
-cout << "  deleting (" << pstart->getIndex() << ", " <<
-  pext->getIndex() << ")" << endl;
+// cout << "  deleting (" << pstart->getIndex() << ", " <<
+  // pext->getIndex() << ")" << endl;
         peaks.collapse(next(pstart), pext);
       }
     }
@@ -565,8 +565,8 @@ cout << "  deleting (" << pstart->getIndex() << ", " <<
       // Delete (pext, pit).  As pext is a "minimum" (if ! minFlag)
       // and pit must be a maximum in order to go above the threshold
       // for the first time, the polarities are always different.
-cout << " deleting (" << pext->getIndex() << ", " <<
-  pit->getIndex() << ")" << endl;
+// cout << " deleting (" << pext->getIndex() << ", " <<
+  // pit->getIndex() << ")" << endl;
       peaks.collapse(next(pext), pit);
     }
   }
@@ -584,10 +584,6 @@ void AccelDetect::simplifySides(const float ampl)
   // Maxima.
 cout << "Starting to simplify maxima" << endl;
   AccelDetect::simplifySide(false, -0.1f * ampl);
-
-    const string s = "MAX-Simplified peaks";
-    cout << peaks.str(s, offset);
-    cout << endl;
 
   // Minima.
 cout << "Starting to simplify minima" << endl;
@@ -610,8 +606,8 @@ void AccelDetect::extractCorr(
 
   if (debugDetails)
   {
-    const string s = "Original " + text + " peaks";
-    cout << peaks.str(s, offset);
+    // const string s = "Original " + text + " peaks";
+    // cout << peaks.str(s, offset);
   }
 
   AccelDetect::simplifySides(ampl);
@@ -630,6 +626,7 @@ void AccelDetect::setExtrema(
   list<Extremum>& minima,
   list<Extremum>& maxima) const
 {
+  // TODO Each min could just know the next max, so we don't need all.
   unsigned i = 0;
   for (Pciterator pit = peaks.cbegin(); pit != peaks.cend(); pit++)
   {
@@ -641,6 +638,10 @@ void AccelDetect::setExtrema(
       ext.ampl = pit->getValue();
       ext.minFlag = true;
       ext.origin = i;
+      if (next(pit) != peaks.cend())
+        ext.next = &* next(pit);
+      else
+        ext.next = nullptr;
     }
     else
     {
@@ -650,6 +651,10 @@ void AccelDetect::setExtrema(
       ext.ampl = pit->getValue();
       ext.minFlag = false;
       ext.origin = i;
+      if (next(pit) != peaks.cend())
+        ext.next = &* next(pit);
+      else
+        ext.next = nullptr;
     }
     i++;
   }
@@ -658,7 +663,8 @@ void AccelDetect::setExtrema(
 
 bool AccelDetect::getLimits(
   unsigned& lower,
-  unsigned& upper) const
+  unsigned& upper,
+  unsigned& spacing) const
 {
   list<Extremum> minima, maxima;
   AccelDetect::setExtrema(minima, maxima);
@@ -688,32 +694,54 @@ bool AccelDetect::getLimits(
   // followed by a pretty large minimum speed downward after the middle.
   // Finally we should get the largest positive speed on the upward
   // slope after the second peak.
+  //
+  // We can attempt to find all this.  Here we take a short-cut:
+  // There should be exactly two deep, negative minima.
   
-  const Extremum& min1 = minima.front();
-  const Extremum& max1 = * next(maxima.begin());
-  const Extremum& min2 = * next(minima.begin());
-  const Extremum& max2 = maxima.front();
+  list<Extremum>::iterator minit1, minit2, minit3;
 
-  if (min1.origin + 3 != max2.origin)
+  if (minima.front().index < next(minima.begin())->index)
   {
-    cout << "Largest minima and maxima not three apart.\n";
+    minit1 = minima.begin();
+    minit2 = next(minima.begin());
+    if (minima.size() >= 3)
+      minit3 = next(minit2);
+  }
+  else
+  {
+    cout << "Warning: First minimum is shallower.\n";
+    minit1 = next(minima.begin());
+    minit2 = minima.begin();
+    if (minima.size() >= 3)
+      minit3 = next(minit1);
+  }
+
+  if (minit1->ampl > 0 || minit2->ampl > 0)
+  {
+    cout << "Largest minima should be negative.\n";
     return false;
   }
 
-  if (min1.origin + 2 != min2.origin)
+  if (minima.size() >= 3 && minit3->ampl < 0.2f * minit1->ampl)
   {
-    cout << "Two largest minima not two apart.\n";
+    cout << "Third-largest minimum should be almost positive.\n";
     return false;
   }
 
-  if (max1.origin + 2 != max2.origin)
+  list<Extremum>::iterator maxit = maxima.begin();
+  while (maxit != maxima.end() && maxit->index < minit2->index)
+    maxit++;
+  
+  if (maxit == maxima.end())
   {
-    cout << "Two largest maxima not two apart.\n";
+    cout << "Maximum after second minimum should exist.\n";
     return false;
   }
 
-  lower = min1.index;
-  upper = max2.index;
+  lower = minit1->index;
+  upper = maxit->index;
+  spacing = minit2->index - minit1->index;
+
   return true;
 }
 

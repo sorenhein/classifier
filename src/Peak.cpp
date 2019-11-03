@@ -331,6 +331,12 @@ bool Peak::isMinimum() const
 }
 
 
+bool Peak::isMaximum() const
+{
+  return maxFlag;
+}
+
+
 float Peak::getValue() const
 {
   return value;

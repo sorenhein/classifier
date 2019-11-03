@@ -23,6 +23,7 @@ class AccelDetect
       float ampl;
       bool minFlag;
       unsigned origin;
+      Peak const * next;
 
       bool operator < (const Extremum& ext2) const
       {
@@ -118,7 +119,8 @@ class AccelDetect
 
     bool getLimits(
       unsigned& lower,
-      unsigned& upper) const;
+      unsigned& upper,
+      unsigned& spacing) const;
 
     string printPeaks() const;
 

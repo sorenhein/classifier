@@ -11,7 +11,9 @@
 using namespace std;
 
 class Peak;
+class Peaks;
 class PeakPtrs;
+struct PeaksInfo;
 
 
 class Explore
@@ -31,6 +33,12 @@ class Explore
       vector<Peak const *> peaksOrig;
       vector<Peak const *> peaksNew;
       vector<Correlate> correlates;
+    };
+
+    struct BumpPair
+    {
+      unsigned first;
+      unsigned second;
     };
 
     vector<float> filtered;
@@ -92,6 +100,19 @@ class Explore
       vector<float>& wheel1Rev,
       vector<float>& wheel2Rev) const;
 
+    void findCorrelationPeaks(
+      const Peaks& corrPeaks,
+      const float ampl,
+      const unsigned spacing,
+      list<unsigned>& bogieEnds);
+
+    void findSpeedBumps(
+      const vector<float>& accel,
+      const list<unsigned>& bogieEnds,
+      const unsigned activeLen,
+      const float sampleRate,
+      list<BumpPair>& speedBumps);
+
     string strHeader() const;
 
   public:
@@ -106,7 +127,9 @@ class Explore
       const list<QuietInterval>& actives,
       const PeakPtrs& candidates);
 
-    void correlate(const vector<float>& accel);
+    void correlate(
+      const vector<float>& accel,
+      PeaksInfo& peaksInfo);
 
     string str() const;
 };

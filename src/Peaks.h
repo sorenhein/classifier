@@ -33,26 +33,6 @@ class Peaks
     PeakList peaks;
 
 
-    Piterator next(
-      const Piterator& pit,
-      const PeakFncPtr& fptr,
-      const bool exclFlag = true);
-
-    Pciterator next(
-      const Piterator& pit,
-      const PeakFncPtr& fptr,
-      const bool exclFlag = true) const;
-
-    Piterator prev(
-      const Piterator& pit,
-      const PeakFncPtr& fptr,
-      const bool exclFlag = true);
-
-    Pciterator prev(
-      const Piterator& pit,
-      const PeakFncPtr& fptr,
-      const bool exclFlag = true) const;
-
     float getFirstPeakTime(const PeakFncPtr& fptr) const;
 
 
@@ -76,6 +56,26 @@ class Peaks
 
     Peak& front();
     Peak& back();
+
+    Piterator next(
+      const Piterator& pit,
+      const PeakFncPtr& fptr,
+      const bool exclFlag = true);
+
+    Pciterator next(
+      const Pciterator& pit,
+      const PeakFncPtr& fptr,
+      const bool exclFlag = true) const;
+
+    Piterator prev(
+      const Piterator& pit,
+      const PeakFncPtr& fptr,
+      const bool exclFlag = true);
+
+    Pciterator prev(
+      const Piterator& pit,
+      const PeakFncPtr& fptr,
+      const bool exclFlag = true) const;
 
     Piterator insert(
       Piterator& pit,

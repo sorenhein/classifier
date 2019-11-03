@@ -1,29 +1,21 @@
-- Take an end bogie
-- Run MA9
-- Integrate once to get speed (may have vertical offset)
-- Go for largest min, largest max
-  - Former will be middle of down slope of first peak
-  - Latter will be middle of up slope of second peak
-  - Can estimate with sub-pixel accuracy by fitting the extrema
-  - Two in-between extrema  (max, min), find the the point where
-    the speed line crosses "zero" (Y level half-way between max and min)
-  - Can again do this with sub-pixel accuracy
-  - Gives us two separate "wheels" (segments)
-  - Gives us a relevant part of the bogie
+From peaks to trains
+--------------------
+- Pick last 3 bogies
+- Using the speed of the last bogie, make the other 2 bogies in space
+- Have a specialized N-W with no penalty for missing DB peaks,
+  but very high penalty for missing peak seen
+- Regress on these 6 peaks (speed only, no acceleration)
+- Should be 1-2 peaks (bogie must remain bogie)
+- If error too high, give up
+- Distribute all the seen peaks
+- N-W again, same penalty function
+- Regress (including acceleration this time)
+- List of interior peaks
+  - Later, look for these
+- List of leading peaks
+  - Look for these in a special way
+  - Also single wheels
 
-- Can correlate for bogie
-- Can then correlate for wheels
-
-
-- It's possible to tell apart bogie correlations based on 2300-2300 vs 
-  2600-2300, for example
-  - No real double peaks
-  - But distances will be noticeable
-  - 2300-2300-2300 yields three maxima, the sidelobes at half height
-  - 2300 - (2300, 2600 broad average) - 2300
-  - So not the full ratio 2600/2300, but only half the difference
-- Still need the actual peak positions
-- Can find min and max of speed, even though we don't know level
 
 FFT
 - Move to a real implementation, https://github.com/cyrilcode/fft-real
@@ -40,105 +32,8 @@ FFT
 - Careful about offsets (reversing, shifting the template)
 
 
-Quiet.cpp
-- When doing quiet small periods, estimate sdev of these
-  - Make 100 * sdev list
-  - Pass to PeakPieces
-  - PeakPieces becomes more general, constants not hardwired,
-    passed in instead
-  - One set for gaps
-  - Another set for quiet periods
-
-cluster/Primary.cpp is part of PeakPieces.cpp
-cluster/Piece.cpp is PeakPiece.cpp
-Then use this in Quiet.cpp
-
-
 Acceleration-based detection
 ----------------------------
-* Running-average 9-tap filter on raw acceleration
-* For an assumed train type
-  - Cut out 2-bogie 4-wheel segments, noting
-    - Bogie distance, left and right
-    - My suggested peak positions
-    - Be generous with left and right quiet periods
-  - For each bogie length (use true train)
-    - Average of isolated, left, right instances with counts
-  - (Use the averages to estimate quiet periods
-    - Cut them away, leaving a bit of constant tail)
-  - Use above to guess a good left side and right side of that bogie
-    - Still use MA-9 average, or the original, noisy signal?
-    - For the alignment, have a quality metric
-  - Use these guesses to subtract out the irrelevant half of
-    each 2-bogie pair and estimate the other bogie, which will
-    have a good side and a dubious one
-    Average the types separately (both sides good, only one side
-    good, so three types; count them)
-  - Guess preliminary wheel core pattern in a bogie by
-    - Spacing between peaks
-    - Zero-crossings and slopes
-    - Energy in signal between the zero-crossings
-    - Can be different wheel for different bogie lengths!
-  - Correlate for the preliminary wheel core pattern in each
-    of the above bogies
-  - Make a synthetic bogie estimate for a given length
-    - Count everything from a good-good bogie
-    - Count up to the zero-crossing coming down from the first
-      peak if bad-good, assuming transients to be small by then
-    - Similarly for good-bad
-  - Output
-    - Peak positions -> Align.cpp again
-      - In Align, use peak positions (store in Alignment)
-        and not getIndex()
-    - The synthetic bogie estimate, with count (left/right
-      contributions separately) for each bogie distance
-    - The wheel profile in each bogie type
-    - Are the wheel profiles the same?
-* What train type wins?
-
-* Could maybe detect peaks directly from acceleration trace (MA9)
-  - Look for the largest peak-peak segments
-  - Look at their slopes as well
-  - Sort these zero-crossings by something
-    - Want high range
-    - Want short time
-    - Want high slope
-    - Slope * range = range^2 / time
-    - Wants pairs of characteristic distance, one up and one down
-  - See if we can bootstrap into pairs
-  - See if we can get the wheel core pattern
-  - See if we can correlate for this
--- Probably not robust enough
-
-* Another way, non-parametric largely
-  - Divide trace up into active regions
-  - Generally these will contain 2 or 4 wheels (1 or 2 bogies)
-  - For each quiet segment
-    - Auto-correlate for shifts around the middle of the length
-    - Both forward and backward
-    - Probably yields some good matches relative to energy of
-      whole auto-correlation / 2
-    - Make a synthetic half segment using the leading edge of the
-      left half and the trailing edge of the right half
-    - Now we either have a wheel or a bogie -- don't know yet
-    - Could integrate up and count position peaks?
-    - Some will not match so well, e.g. 2300 - gap - 2600
-  - Take stock of what we've found, combine some pieces, average them etc.
-  - Take a reliable piece and attempt to guess wheel
-  - Once we have a plausible core wheel, correlate for it everywhere
-
-Actually, maybe we can classify more or less on bogies, not on wheels?!
-* After Quiet.cpp, do something similar to get all the quiet periods
-  that we can find *within* the signal
-  - Active period
-    start
-    likely real start (finetuned)
-    end
-    likely real end (finetuned)
-    list of peaks in double integral, forced to 0 at both ends
-    should be 2 or 4
-
-
 Studying the bogies:
 * Effect of train speed?
 * Effect of bogie distance?

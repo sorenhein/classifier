@@ -188,6 +188,7 @@ class Peak
     double getTime() const;
     bool getMaxFlag() const;
     bool isMinimum() const;
+    bool isMaximum() const;
     float getValue() const;
     float getAreaCum() const;
     float getRange() const;

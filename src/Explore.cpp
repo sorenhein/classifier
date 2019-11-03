@@ -316,17 +316,137 @@ void Explore::setCorrelands(
   for (unsigned i = start+lower; i < mid; i++)
     wheel1Rev[start+upper-1-i] = accel[i];
 
+/*
   cout << "Correlands\n";
   for (unsigned i = 0; i < upper-lower; i++)
     cout << i << ";" << bogieRev[i] << ";" << wheel1Rev[i] << ";" <<
       wheel2Rev[i] << endl;
   cout << "\n";
+*/
 }
 
 
+void Explore::findCorrelationPeaks(
+  const Peaks& corrPeaks,
+  const float ampl,
+  const unsigned spacing,
+  list<unsigned>& bogieEnds)
+{
+  // ampl and spacing are estimates, but are derived from the signal, so
+  // presumably they are not too far off.
+
+  bogieEnds.clear();
+
+  Pciterator pit0 = corrPeaks.cbegin();
+  if (pit0->isMinimum())
+    pit0 = next(pit0);
+  if (pit0 == corrPeaks.cend())
+    return;
+
+  Pciterator pit1 = corrPeaks.next(pit0, &Peak::isMaximum, true);
+  if (pit1 == corrPeaks.cend())
+    return;
+
+  Pciterator pit2 = corrPeaks.next(pit1, &Peak::isMaximum, true);
+  if (pit2 == corrPeaks.cend())
+    return;
+
+  const unsigned spacingLo = static_cast<unsigned>(spacing * 0.75f);
+  const unsigned spacingHi = static_cast<unsigned>(spacing * 1.25f);
+
+  while (true)
+  {
+    const float level0 = pit0->getValue();
+    const float level1 = pit1->getValue();
+    const float level2 = pit2->getValue();
+    const unsigned pos0 = pit0->getIndex();
+    const unsigned pos1 = pit1->getIndex();
+    const unsigned pos2 = pit2->getIndex();
+    const unsigned diff10 = pos1 - pos0;
+    const unsigned diff21 = pos2 - pos1;
+
+    if (level0 > 0.2f * level1 &&
+        level1 > 0.5f * ampl &&
+        level2 > 0.2f * level1 &&
+        level0 < level1 &&
+        level2 < level1 &&
+        diff10 >= spacingLo &&
+        diff10 >= spacingLo &&
+        diff21 <= spacingHi &&
+        diff10 <= spacingHi)
+    {
+      // Plausible correlation peak.
+      bogieEnds.push_back(pos1);
+    }
+
+    pit0 = pit1;
+    pit1 = pit2;
+    pit2 = corrPeaks.next(pit1, &Peak::isMaximum, true);
+    if (pit2 == corrPeaks.cend())
+      return;
+  }
+}
+
+
+void Explore::findSpeedBumps(
+  const vector<float>& accel, 
+  const list<unsigned>& bogieEnds, 
+  const unsigned activeLen,
+  const float sampleRate,
+  list<BumpPair>& speedBumps)
+{
+  // Add 20%
+  const unsigned tol = static_cast<unsigned>(0.2f * activeLen);
+  unsigned lowerExt, upperExt;
+
+  for (unsigned bend: bogieEnds)
+  {
+    if (bend - activeLen < tol)
+      lowerExt = 0;
+    else
+      lowerExt = bend - activeLen - tol;
+    
+    if (bend + tol >= accel.size())
+      upperExt = accel.size();
+    else
+      upperExt = bend + tol;
+
+cout << "Trying bogie end " << bend << ", range " <<
+  lowerExt << " to " << upperExt << endl;
+cout << "--------------------------\n\n";
+
+    // Integrate the bogie into a rough speed segment.
+    vector<float> speed;
+    speed.resize(upperExt - lowerExt);
+    Explore::integrate(accel, lowerExt, upperExt, sampleRate, speed);
+      
+    // Find the main peaks in this narrow speed segment.
+    AccelDetect speedDetect;
+    speedDetect.log(speed, lowerExt, upperExt - lowerExt);
+    speedDetect.extract("speed");
+
+    unsigned lower, upper, spacing;
+    if (speedDetect.getLimits(lower, upper, spacing))
+    {
+      speedBumps.emplace_back(BumpPair());
+      BumpPair& bp = speedBumps.back();
+      bp.first = lowerExt + lower;
+      bp.second = lowerExt + lower + spacing;
+
+      cout << "Got limits " << lowerExt+lower << 
+        " and " << lowerExt+upper << 
+        ", spacing " << spacing << endl;
+    }
+    else
+      cout << "Bad limits\n";
+  }
+}
+
 #include "FFT.h"
 
-void Explore::correlate(const vector<float>& accel)
+void Explore::correlate(
+  const vector<float>& accel,
+  PeaksInfo& peaksInfo)
 {
   Explore::filter(accel, filtered);
 
@@ -341,17 +461,19 @@ void Explore::correlate(const vector<float>& accel)
   speed.resize(len);
   Explore::integrate(filtered, s, e, 2000.f, speed);
 
+/*
   cout << "Speed\n";
   for (unsigned i = 0; i < e-s; i++)
     cout << s+i << ";" << speed[i] << endl;
+*/
 
   // Find the main peaks in this narrow speed segment.
   AccelDetect speedDetect;
   speedDetect.log(speed, s, len);
   speedDetect.extract("speed");
 
-  unsigned lower, upper;
-  if (speedDetect.getLimits(lower, upper))
+  unsigned lower, upper, spacing;
+  if (speedDetect.getLimits(lower, upper, spacing))
     cout << "Got limits " << s+lower << " and " << s+upper << endl;
   else
   {
@@ -402,49 +524,30 @@ cout << "Extracting correlation peaks, " << bogieFilt[s+upper] << endl;
   accelDetect.extractCorr(bogieFilt[s+upper], "accel");
 cout << "Extracted correlation peaks" << endl;
 
-  /*
-  cout << "Convolutions" << endl;
-  for (unsigned i = 0; i < fftlen; i++)
-    cout << i << ";" << bogieConv[i] << ";" << 
-      wheel1Conv[i] << ";" << 
-      wheel2Conv[i] << endl;
-  cout << endl;
-  */
+  list<unsigned> bogieEnds;
+  Explore::findCorrelationPeaks(accelDetect.getPeaks(), 
+    bogieFilt[s+upper], spacing, bogieEnds);
 
+cout << "Bogie end positions\n";
+for (auto b: bogieEnds)
+  cout << b << "\n";
+cout << endl;
 
-/*
-  for (unsigned i = 0; i < data.size(); i++)
-  {
-    data[i].correlates.resize(data.size());
+  list<BumpPair> speedBumps;
+  Explore::findSpeedBumps(filtered, bogieEnds, upper-lower, 2000.f, speedBumps);
 
-    Explore::correlateFixed(* data[i].qint, * data[i].qint, 0,
-      data[i].correlates[i]);
-
-    for (unsigned j = i+1; j < data.size(); j++)
-    {
-cout << "MAIN Correlating " << i << ", (" <<
-  data[i].qint->first << ", " << data[i].qint->first + data[i].qint->len <<
-  ") (" <<
-  data[i].peaksOrig.size() << ") and " << j << ", (" << 
-  data[j].qint->first << ", " << data[j].qint->first + data[j].qint->len <<
-  ") (" <<
-  "(" << data[j].peaksOrig.size() << ")" << endl;
-      const unsigned guess = Explore::guessShift(
-        data[i].peaksOrig, data[j].peaksOrig);
-cout << "guess " << guess << endl;
-if (guess > 100)
+cout << "Speed bumps\n";
+unsigned prev = 0;
+for (auto b: speedBumps)
 {
-  cout << "ERROR\n";
-  data[i].correlates[j].value = 0.;
+  cout << setw(4) << b.first << setw(6) << b.first-prev << "\n";
+  prev = b.first;
+  cout << setw(4) << b.second << setw(6) << b.second-prev << "\n";
+  prev = b.second;
 }
-else
-      Explore::correlateBest(* data[i].qint, * data[j].qint, guess, 
-        data[i].correlates[i].value,
-        data[i].correlates[j]);
-    } 
-  }
-*/
+cout << endl;
 
+  UNUSED(peaksInfo);
 }
 
 

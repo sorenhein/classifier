@@ -359,7 +359,8 @@ for (unsigned i = interval.first; i < interval.first + interval.len; i++)
 Explore explore;
 PeakPtrs pptmp;
 explore.log(actives, pptmp);
-explore.correlate(accel);
+PeaksInfo peaksInfoTmp;
+explore.correlate(accel, peaksInfoTmp);
 
     // Integrate and condition the signal.
     runFilter(traceData.sampleRate, interval.first, interval.len, thid, 
