@@ -117,7 +117,8 @@ void AccelDetect::log(
   const unsigned lenIn)
 {
   if (samples.size() < 2)
-    THROW(ERR_SHORT_ACCEL_TRACE, "Accel trace length: " + to_string(len));
+    THROW(ERR_SHORT_ACCEL_TRACE, "Accel trace length: " + 
+      to_string(samples.size()));
 
   len = lenIn;
   offset = offsetIn;
@@ -165,7 +166,6 @@ void AccelDetect::log(
 
     // The peak contains data for the interval preceding it.
     peaks.extend();
-cout << "LOGGING " << i << ", " << samples[i] << endl;
     peaks.back().log(i, samples[i], areaCumPrev + areaFull, maxFlag);
   }
 
@@ -427,7 +427,7 @@ void AccelDetect::completePeaks()
 }
 
 
-void AccelDetect::extract()
+void AccelDetect::extract(const string& text)
 {
   if (peaks.empty())
     return;
@@ -436,34 +436,285 @@ void AccelDetect::extract()
   const bool debugDetails = true;
 
   if (debugDetails)
-    cout << peaks.str("Original accel peaks", offset);
+  {
+    const string s = "Original " + text + " peaks";
+    cout << peaks.str(s, offset);
+  }
 
   AccelDetect::reduceSmallPeaks(PEAK_PARAM_AREA, 0.1f, false);
 
   if (debugDetails)
-    cout << peaks.str("Non-tiny accel peaks", offset);
+  {
+    const string s = "Non-tiny " + text + " peaks";
+    cout << peaks.str(s, offset);
+  }
 
   AccelDetect::eliminateKinks();
 
   if (debugDetails)
-    cout << peaks.str("Non-kinky accel list peaks (first)", offset);
+  {
+    const string s = "Non-kinky " + text + " list peaks (first)";
+    cout << peaks.str(s, offset);
+  }
 
   AccelDetect::estimateScale();
   if (debug)
-    AccelDetect::printPeak(scale, "Accel scale");
+  {
+    const string s = text + " scale";
+    AccelDetect::printPeak(scale, s);
+  }
 
   AccelDetect::reduceSmallPeaks(PEAK_PARAM_RANGE, 
     scale.getRange() / 10.f, true);
 
   if (debugDetails)
-    cout << peaks.str("Range-reduced accel peaks", offset);
+  {
+    const string s = "Range-reduced " + text + " peaks";
+    cout << peaks.str(s, offset);
+  }
 
   AccelDetect::eliminateKinks();
 
   if (debugDetails)
-    cout << peaks.str("Non-kinky list accel peaks (second)", offset);
+  {
+    const string s = "Non-kinky list " + text + " peaks (second)";
+    cout << peaks.str(s, offset);
+  }
 
   AccelDetect::completePeaks();
+}
+
+
+bool AccelDetect::below(
+  const bool minFlag,
+  const float level,
+  const float threshold) const
+{
+  // When minFlag == false, this method returns true if the level
+  // is below the threshold.
+  // When minFlag == true, this method returns true if the level
+  // is above the threshold.
+  // When reading code, think of minFlag == false and it will work.
+  // This is consistent with the suggestive method name "below".
+  
+  if (minFlag)
+    return (level > threshold);
+  else
+    return (level < threshold);
+}
+
+
+void AccelDetect::simplifySide(
+  const bool minFlag,
+  const float threshold)
+{
+  auto pit = peaks.begin();
+
+  while (true)
+  {
+
+    // Find the first peak "above" the threshold.
+    while (pit != peaks.end() && 
+        AccelDetect::below(minFlag, pit->getValue(), threshold))
+      pit++;
+
+    if (pit == peaks.end())
+      return;
+
+    auto pstart = (pit == peaks.begin() ? pit : prev(pit));
+
+cout << "pstart: " << pstart->getIndex() << ": first above is " <<
+  pit->getIndex() << endl;
+
+    // Find the next peak "below" the threshold.
+    auto pfirst = pit;
+    auto pext = pit;
+    while (pit != peaks.end() &&
+        ! AccelDetect::below(minFlag, pit->getValue(), threshold))
+    {
+      // Keep track of the highest "maximum".
+      if (! AccelDetect::below(minFlag, pit->getValue(), pext->getValue()))
+        pext = pit;
+
+      pit++;
+    }
+
+cout << "  extreme: " << pext->getIndex() << ", first below is " <<
+  pit->getIndex() << endl;
+
+    if (pext != pstart)
+    {
+      if (pstart->isMinimum() == pext->isMinimum())
+      {
+        // Delete [pstart, pext).
+cout << "  deleting [" << pstart->getIndex() << ", " <<
+  pext->getIndex() << ")" << endl;
+        peaks.collapse(pstart, pext);
+      }
+      else
+      {
+        // Delete (pstart, pext).
+cout << "  deleting (" << pstart->getIndex() << ", " <<
+  pext->getIndex() << ")" << endl;
+        peaks.collapse(next(pstart), pext);
+      }
+    }
+
+    if (pext != pit && next(pext) != pit)
+    {
+      // Delete (pext, pit).  As pext is a "minimum" (if ! minFlag)
+      // and pit must be a maximum in order to go above the threshold
+      // for the first time, the polarities are always different.
+cout << " deleting (" << pext->getIndex() << ", " <<
+  pit->getIndex() << ")" << endl;
+      peaks.collapse(next(pext), pit);
+    }
+  }
+}
+
+
+void AccelDetect::simplifySides(const float ampl)
+{
+  // For each stretch where the level is above -0.1 * ampl,
+  // simplify to a single maximum.  These stretches will always
+  // run from maximum to maximum.
+  // Similarly for each stretch where there level is below +0.1 * ampl,
+  // running from minimum to minimum.
+  
+  // Maxima.
+cout << "Starting to simplify maxima" << endl;
+  AccelDetect::simplifySide(false, -0.1f * ampl);
+
+    const string s = "MAX-Simplified peaks";
+    cout << peaks.str(s, offset);
+    cout << endl;
+
+  // Minima.
+cout << "Starting to simplify minima" << endl;
+  AccelDetect::simplifySide(true, 0.1f * ampl);
+}
+
+
+void AccelDetect::extractCorr(
+  const float ampl,
+  const string& text)
+{
+  // ampl is a hint at the correlation peak.
+  // spacing is a hint at the spacing between two wheel.
+
+  if (peaks.empty())
+    return;
+
+  const bool debug = true;
+  const bool debugDetails = true;
+
+  if (debugDetails)
+  {
+    const string s = "Original " + text + " peaks";
+    cout << peaks.str(s, offset);
+  }
+
+  AccelDetect::simplifySides(ampl);
+
+  if (debugDetails)
+  {
+    const string s = "Simplified " + text + " peaks";
+    cout << peaks.str(s, offset);
+  }
+
+  AccelDetect::completePeaks();
+}
+
+
+void AccelDetect::setExtrema(
+  list<Extremum>& minima,
+  list<Extremum>& maxima) const
+{
+  unsigned i = 0;
+  for (Pciterator pit = peaks.cbegin(); pit != peaks.cend(); pit++)
+  {
+    if (pit->isMinimum())
+    {
+      minima.push_back(Extremum());
+      Extremum& ext = minima.back();
+      ext.index = pit->getIndex();
+      ext.ampl = pit->getValue();
+      ext.minFlag = true;
+      ext.origin = i;
+    }
+    else
+    {
+      maxima.push_back(Extremum());
+      Extremum& ext = maxima.back();
+      ext.index = pit->getIndex();
+      ext.ampl = pit->getValue();
+      ext.minFlag = false;
+      ext.origin = i;
+    }
+    i++;
+  }
+}
+
+
+bool AccelDetect::getLimits(
+  unsigned& lower,
+  unsigned& upper) const
+{
+  list<Extremum> minima, maxima;
+  AccelDetect::setExtrema(minima, maxima);
+
+  if (minima.size() < 2 || maxima.size() < 2)
+  {
+    cout << "Too few speed peaks.\n";
+    return false;
+  }
+
+  minima.sort();
+  maxima.sort();
+
+  cout << "Minima\n";
+  for (auto& m: minima)
+    cout << m.str(offset);
+  cout << "\n";
+
+  cout << "Maxima\n";
+  for (auto& m: maxima)
+    cout << m.str(offset);
+  cout << "\n";
+
+  // In a well-formed bogie, the largest minimum speed is at the downward 
+  // slope leading up to the first negative peak.  Then comes a pretty
+  // large maximum speed on the upward slope towards the middle, 
+  // followed by a pretty large minimum speed downward after the middle.
+  // Finally we should get the largest positive speed on the upward
+  // slope after the second peak.
+  
+  const Extremum& min1 = minima.front();
+  const Extremum& max1 = * next(maxima.begin());
+  const Extremum& min2 = * next(minima.begin());
+  const Extremum& max2 = maxima.front();
+
+  if (min1.origin + 3 != max2.origin)
+  {
+    cout << "Largest minima and maxima not three apart.\n";
+    return false;
+  }
+
+  if (min1.origin + 2 != min2.origin)
+  {
+    cout << "Two largest minima not two apart.\n";
+    return false;
+  }
+
+  if (max1.origin + 2 != max2.origin)
+  {
+    cout << "Two largest maxima not two apart.\n";
+    return false;
+  }
+
+  lower = min1.index;
+  upper = max2.index;
+  return true;
 }
 
 
@@ -474,6 +725,12 @@ void AccelDetect::printPeak(
   cout << text << "\n";
   cout << peak.strHeader();
   cout << peak.str(0) << endl;
+}
+
+
+string AccelDetect::printPeaks() const
+{
+  return peaks.str("peaks", offset);
 }
 
 

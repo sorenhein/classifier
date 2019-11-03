@@ -1,3 +1,30 @@
+- Take an end bogie
+- Run MA9
+- Integrate once to get speed (may have vertical offset)
+- Go for largest min, largest max
+  - Former will be middle of down slope of first peak
+  - Latter will be middle of up slope of second peak
+  - Can estimate with sub-pixel accuracy by fitting the extrema
+  - Two in-between extrema  (max, min), find the the point where
+    the speed line crosses "zero" (Y level half-way between max and min)
+  - Can again do this with sub-pixel accuracy
+  - Gives us two separate "wheels" (segments)
+  - Gives us a relevant part of the bogie
+
+- Can correlate for bogie
+- Can then correlate for wheels
+
+
+- It's possible to tell apart bogie correlations based on 2300-2300 vs 
+  2600-2300, for example
+  - No real double peaks
+  - But distances will be noticeable
+  - 2300-2300-2300 yields three maxima, the sidelobes at half height
+  - 2300 - (2300, 2600 broad average) - 2300
+  - So not the full ratio 2600/2300, but only half the difference
+- Still need the actual peak positions
+- Can find min and max of speed, even though we don't know level
+
 FFT
 - Move to a real implementation, https://github.com/cyrilcode/fft-real
 - Or http://www.fftw.org/install/windows.html

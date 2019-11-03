@@ -356,6 +356,11 @@ for (unsigned i = interval.first; i < interval.first + interval.len; i++)
   rawAccel[i-interval.first] = accel[i];
   */
 
+Explore explore;
+PeakPtrs pptmp;
+explore.log(actives, pptmp);
+explore.correlate(accel);
+
     // Integrate and condition the signal.
     runFilter(traceData.sampleRate, interval.first, interval.len, thid, 
       filter);
@@ -400,13 +405,6 @@ accelDetect.extract();
     cout << "PEAKPOOL\n";
     cout << peaks.strCounts();
 
-
-Explore explore;
-explore.log(actives, peaks.candidates());
-explore.correlate(accel);
-// cout << "CORRELATES\n\n";
-// cout << explore.str();
-// cout << "\n";
 
     timers[thid].start(TIMER_ALIGN);
 

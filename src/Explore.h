@@ -43,7 +43,16 @@ class Explore
       const unsigned pos,
       const unsigned lobe) const;
 
-    void filter(const vector<float>& accel);
+    void filter(
+      const vector<float>& integrand,
+      vector<float>& result);
+
+    void integrate(
+      const vector<float>& accel,
+      const unsigned start,
+      const unsigned end,
+      const float sampleRate,
+      vector<float>& speed) const;
 
     void correlateFixed(
       const QuietInterval& first,
@@ -70,6 +79,18 @@ class Explore
       const unsigned guess,
       const float refValue,
       Correlate& corr) const;
+
+    unsigned powerOfTwo(const unsigned len) const;
+
+    void setCorrelands(
+      const vector<float>& accel,
+      const unsigned len,
+      const unsigned start,
+      const unsigned lower,
+      const unsigned upper,
+      vector<float>& bogieRev,
+      vector<float>& wheel1Rev,
+      vector<float>& wheel2Rev) const;
 
     string strHeader() const;
 
