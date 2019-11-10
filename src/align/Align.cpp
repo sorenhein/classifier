@@ -373,7 +373,7 @@ bool Align::scaleLastBogies(
 
   Align::distributeBogies(bogieTimes, bt, sOffset, lastSpeed, scaledPeaks);
 
-/* */
+/*
   for (auto f: scaledPeaks)
     cout << "Bogie detections: " << f << endl;
   cout << "\n";
@@ -381,7 +381,7 @@ bool Align::scaleLastBogies(
   for (auto f: refInfo.positions)
     cout << "References: " << f << endl;
   cout << "\n";
-/* */
+*/
 
   return true;
 }
@@ -452,23 +452,29 @@ cout << match.motion.estimate[0] << ", " << match.motion.estimate[1] << "\n\n";
 }
 
 
+#define UNUSED(x) ((void)(true ? 0 : ((x), void(), 0)))
+
 void Align::setupDynRun(
   const unsigned refSize,
   const unsigned seenSize,
   vector<float>& penaltyFactor,
   Alignment& match) const
 {
+  UNUSED(refSize);
+
   penaltyFactor.resize(seenSize, 1.);
-  if (refSize >= seenSize)
-  {
+  // if (refSize >= seenSize)
+  // {
     match.numAdd = 0;
-    match.numDelete = refSize - seenSize;
-  }
-  else
-  {
-    match.numAdd = seenSize - refSize;
+    // match.numDelete = refSize - seenSize;
     match.numDelete = 0;
-  }
+  // }
+  // else
+  // {
+    // match.numAdd = seenSize - refSize;
+    // match.numAdd = 0;
+    // match.numDelete = 0;
+  // }
 
   match.actualToRef.resize(seenSize);
 
@@ -477,8 +483,6 @@ void Align::setupDynRun(
   match.distMatch = 0.f;
 }
 
-
-#define UNUSED(x) ((void)(true ? 0 : ((x), void(), 0)))
 
 bool Align::realign(
   const TrainDB& trainDB,
@@ -505,8 +509,6 @@ if (times.empty())
   vector<float> penaltyFactor;
   Alignment match;
   matches.clear();
-
-  UNUSED(sensorCountry);
 
   for (auto& refTrain: trainDB)
   {
@@ -555,7 +557,7 @@ cout << match.str() << "\n";
     Align::distributeBogies(bogieTimes, bogieTimes.cbegin(),
       match.motion.estimate[0], match.motion.estimate[1] / 2000.f, scaledPeaks);
 
-/* */
+/*
 cout << "Reference\n";
 for (unsigned i = 0; i < refInfo.positions.size(); i++)
   cout << i << " " << refInfo.positions[i] << "\n";
@@ -565,7 +567,7 @@ cout << "Full linear scaledPeaks\n";
 for (unsigned i = 0; i < scaledPeaks.size(); i++)
   cout << i << " " << scaledPeaks[i] << "\n";
 cout << "\n";
-/* */
+*/
   
     // Run the regular Needleman-Wunsch matching.
     Align::setupDynRun(refInfo.positions.size(), scaledPeaks.size(),
@@ -597,10 +599,12 @@ cout << "goodScales " << goodScales << endl;
       Align::distributeBogies(bogieTimes, bogieTimes.cbegin(),
         match.motion.estimate[0], match.motion.estimate[1] / 2000.f, scaledPeaks);
 
+/*
 cout << "Final linear scaledPeaks\n";
 for (unsigned i = 0; i < scaledPeaks.size(); i++)
   cout << i << " " << scaledPeaks[i] << "\n";
 cout << "\n";
+*/
 
       // One last Needleman-Wunsch run.
       Align::setupDynRun(refInfo.positions.size(), scaledPeaks.size(),
@@ -612,8 +616,6 @@ cout << "\n";
 cout << "Final linear match:\n";
 cout << match.str() << "\n";
 
-cout << "Final match:\n";
-cout << match.str() << "\n";
 /* */
     for (unsigned i = 0; i < scaledPeaks.size(); i++)
       cout << "i " << i << ": " << match.actualToRef[i] << endl;
