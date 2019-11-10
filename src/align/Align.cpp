@@ -57,6 +57,37 @@ bool Align::trainMightFit(
 }
 
 
+// TODO Could go in Alignment
+bool Align::promisingPartial(const vector<int>& actualToRef) const
+{
+  unsigned numAdd = 0;
+  unsigned numEvenParityErrors = 0;
+  unsigned numOddParityErrors = 0;
+
+  for (unsigned i = 0; i < actualToRef.size(); i++)
+  {
+    if (actualToRef[i] == -1)
+      numAdd++;
+
+    if (i % 2 == 0)
+    {
+      if (actualToRef[i] % 2)
+        numEvenParityErrors++;
+    }
+    else if (actualToRef[i] % 2 == 0)
+      numOddParityErrors++;
+  }
+
+  if (numAdd || numEvenParityErrors || numOddParityErrors)
+    cout << "align check " << numAdd << ", " <<
+      numEvenParityErrors << ", " << numOddParityErrors << "\n";
+
+  return (numAdd == 0 && 
+      numEvenParityErrors == 0 && 
+      numOddParityErrors == 0);
+}
+
+
 bool Align::alignFronts(
   const PeaksInfo& refInfo,
   const PeaksInfo& peaksInfo,
@@ -178,6 +209,51 @@ void Align::storeResiduals(
 }
 
 
+void Align::regressPosLinear(
+  const vector<float>& x,
+  const vector<float>& y,
+  vector<float>& estimate) const
+{
+  // Don't use estimate directly, as size would be 2.
+  vector<float> est;
+  PolynomialRegression pol;
+  pol.fitIt(x, y, 1, est);
+  estimate[0] = est[0];
+  estimate[1] = est[1];
+}
+
+
+void Align::regressPosQuadratic(
+  const vector<float>& x,
+  const vector<float>& y,
+  const unsigned lcommon,
+  vector<float>& estimate) const
+{
+  PolynomialRegression pol;
+  pol.fitIt(x, y, 2, estimate);
+
+  // If the acceleration is higher than physically expected, clamp it
+  // and go to a linear regression.  Note that coeff2 = accel /2.
+  const float coeff2 = estimate[2];
+  if (2.f * abs(coeff2) >= ACCEL_MAX)
+  {
+    vector<float> z(lcommon);
+    const float clamp = (coeff2 > 0.f ? ACCEL_MAX : -ACCEL_MAX) / 2.f;
+    estimate[2] = clamp;
+
+    for (unsigned p = 0; p < lcommon; p++)
+      z[p] = y[p] - clamp * x[p] * x[p];
+
+    // Don't use match.motion.estimate directly, as size would be 2.
+    Align::regressPosLinear(x, z, estimate);
+    // vector<float> est;
+    // pol.fitIt(x, z, 1, est);
+    // match.motion.estimate[0] = est[0];
+    // match.motion.estimate[1] = est[1];
+  }
+}
+
+
 void Align::regressTrain(
   const vector<float>& times,
   const vector<float>& refPeaks,
@@ -202,6 +278,7 @@ void Align::regressTrain(
   }
 
   // Run the regression.
+  // Align::regressPosQuadratic(x, y, lcommon, match.motion.estimate);
   PolynomialRegression pol;
   pol.fitIt(x, y, 2, match.motion.estimate);
 
@@ -218,6 +295,7 @@ void Align::regressTrain(
       z[p] = y[p] - clamp * x[p] * x[p];
 
     // Don't use match.motion.estimate directly, as size would be 2.
+    // Align::regressPosLinear(x, z, match.motion.estimate);
     vector<float> est;
     pol.fitIt(x, z, 1, est);
     match.motion.estimate[0] = est[0];
@@ -343,11 +421,14 @@ bool Align::realign(
   const string& sensorCountry,
   const list<BogieTimes>& bogieTimes)
 {
+return true;
+
   PeaksInfo peaksInfo;
   peaksInfo.numCars = (bogieTimes.size() / 2) + 1;
   peaksInfo.numPeaks = 2 * bogieTimes.size();
 
   vector<float> scaledPeaks;
+  vector<float> penaltyFactor;
   Alignment match;
   matches.clear();
 
@@ -368,7 +449,21 @@ cout << "Trying train " << refTrain << endl;
     if (! Align::scaleLastBogies(refInfo, bogieTimes, 3, scaledPeaks))
       continue;
 
-cout << "Ready for Needleman-Wunsch\n";
+    // Run partial Needleman-Wunsch matching.
+    penaltyFactor.resize(scaledPeaks.size(), 1.);
+    match.numAdd = 0;
+    match.numDelete = refInfo.positions.size() - scaledPeaks.size();
+    match.actualToRef.resize(scaledPeaks.size());
+
+    dynprog.run(refInfo.positions, penaltyFactor, scaledPeaks, 
+      partialPenalties, match);
+
+    if (! Align::promisingPartial(match.actualToRef))
+      continue;
+
+cout << match.str() << "\n";
+    for (unsigned i = 0; i < scaledPeaks.size(); i++)
+      cout << "i " << i << ": " << match.actualToRef[i] << endl;
   }
 
   return (! matches.empty());

@@ -35,6 +35,9 @@ class Align
       const TrainDB& trainDB,
       const Alignment& match) const;
 
+    bool promisingPartial(
+      const vector<int>& actualToRef) const;
+
     bool alignFronts(
       const PeaksInfo& refInfo,
       const PeaksInfo& peaksInfo,
@@ -91,6 +94,17 @@ class Align
       const PeaksInfo& refInfo,
       const PeaksInfo& peaksInfo,
       Alignment& match) const;
+
+    void regressPosLinear(
+      const vector<float>& x,
+      const vector<float>& y,
+      vector<float>& estimate) const;
+
+    void regressPosQuadratic(
+      const vector<float>& x,
+      const vector<float>& y,
+      const unsigned lcommon,
+      vector<float>& estimate) const;
 
     void regressTrain(
       const vector<float>& times,
