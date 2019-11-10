@@ -8,6 +8,13 @@ using namespace std;
 class Peak;
 
 
+struct BogieTimes
+{
+  unsigned first;
+  unsigned second;
+};
+
+
 struct PeaksInfo
 {
   vector<Peak const *> peaks;

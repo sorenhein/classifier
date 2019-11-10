@@ -1,7 +1,5 @@
 From peaks to trains
 --------------------
-- Pick last 3 bogies
-- Using the speed of the last bogie, make the other 2 bogies in space
 - Have a specialized N-W with no penalty for missing DB peaks,
   but very high penalty for missing peak seen
 - Regress on these 6 peaks (speed only, no acceleration)

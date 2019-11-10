@@ -254,6 +254,54 @@ bool Align::scalePeaks(
 }
 
 
+#define LAST_DIST_LIMIT 0.5
+
+bool Align::scaleLastBogies(
+  const PeaksInfo& refInfo,
+  const list<BogieTimes>& bogieTimes,
+  const unsigned numBogies,
+  vector<float>& scaledPeaks) const
+{
+  if (bogieTimes.size() < numBogies)
+    return false;
+
+  if (refInfo.positions.size() < 2 * numBogies)
+    return false;
+
+  const unsigned lr = refInfo.positions.size();
+  const BogieTimes& lastBogie = bogieTimes.back();
+
+  // Align the last two wheels.
+  float lastSpeed = (refInfo.positions[lr-1] - refInfo.positions[lr-2]) /
+    (lastBogie.second - lastBogie.first);
+  float sOffset = refInfo.positions[lr-1] - lastSpeed * lastBogie.second;
+
+  // Only do the last several bogies.
+  auto bt = bogieTimes.end();
+  for (unsigned i = 0; i < numBogies; i++)
+    bt = prev(bt);
+
+  scaledPeaks.clear();
+  for (auto bit = bt; bit != bogieTimes.end(); bit++)
+  {
+    scaledPeaks.push_back(sOffset + lastSpeed * bit->first);
+    scaledPeaks.push_back(sOffset + lastSpeed * bit->second);
+  }
+
+/*
+  for (auto f: scaledPeaks)
+    cout << "Bogie detections: " << f << endl;
+  cout << "\n";
+
+  for (auto f: refInfo.positions)
+    cout << "References: " << f << endl;
+  cout << "\n";
+*/
+
+  return true;
+}
+
+
 bool Align::realign(
   const TrainDB& trainDB,
   const string& sensorCountry,
@@ -284,6 +332,43 @@ bool Align::realign(
   }
 
   sort(matches.begin(), matches.end());
+
+  return (! matches.empty());
+}
+
+
+bool Align::realign(
+  const TrainDB& trainDB,
+  const string& sensorCountry,
+  const list<BogieTimes>& bogieTimes)
+{
+  PeaksInfo peaksInfo;
+  peaksInfo.numCars = (bogieTimes.size() / 2) + 1;
+  peaksInfo.numPeaks = 2 * bogieTimes.size();
+
+  vector<float> scaledPeaks;
+  Alignment match;
+  matches.clear();
+
+  for (auto& refTrain: trainDB)
+  {
+    match.trainName = refTrain;
+    match.trainNo =  static_cast<unsigned>(trainDB.lookupNumber(refTrain));
+    match.numCars = trainDB.numCars(match.trainNo);
+    match.numAxles = trainDB.numAxles(match.trainNo);
+
+    if (! Align::trainMightFit(peaksInfo, sensorCountry, trainDB, match))
+      continue;
+
+    const PeaksInfo& refInfo = trainDB.getRefInfo(match.trainNo);
+
+cout << "Trying train " << refTrain << endl;
+
+    if (! Align::scaleLastBogies(refInfo, bogieTimes, 3, scaledPeaks))
+      continue;
+
+cout << "Ready for Needleman-Wunsch\n";
+  }
 
   return (! matches.empty());
 }

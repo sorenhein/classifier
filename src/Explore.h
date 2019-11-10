@@ -5,6 +5,7 @@
 #include <vector>
 #include <string>
 
+#include "PeakGeneral.h"
 #include "Explore.h"
 #include "transient/trans.h"
 
@@ -33,12 +34,6 @@ class Explore
       vector<Peak const *> peaksOrig;
       vector<Peak const *> peaksNew;
       vector<Correlate> correlates;
-    };
-
-    struct BumpPair
-    {
-      unsigned first;
-      unsigned second;
     };
 
     vector<float> filtered;
@@ -111,7 +106,7 @@ class Explore
       const list<unsigned>& bogieEnds,
       const unsigned activeLen,
       const float sampleRate,
-      list<BumpPair>& speedBumps);
+      list<BogieTimes>& speedBumps);
 
     string strHeader() const;
 
@@ -129,7 +124,8 @@ class Explore
 
     void correlate(
       const vector<float>& accel,
-      PeaksInfo& peaksInfo);
+      PeaksInfo& peaksInfo,
+      list<BogieTimes>& bogieTimes);
 
     string str() const;
 };

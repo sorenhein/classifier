@@ -360,7 +360,11 @@ Explore explore;
 PeakPtrs pptmp;
 explore.log(actives, pptmp);
 PeaksInfo peaksInfoTmp;
-explore.correlate(accel, peaksInfoTmp);
+list<BogieTimes> bogieTimes;
+explore.correlate(accel, peaksInfoTmp, bogieTimes);
+
+Align alignExpl;
+alignExpl.realign(trainDB, traceData.countrySensor, bogieTimes);
 
     // Integrate and condition the signal.
     runFilter(traceData.sampleRate, interval.first, interval.len, thid, 

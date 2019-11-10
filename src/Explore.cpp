@@ -393,7 +393,7 @@ void Explore::findSpeedBumps(
   const list<unsigned>& bogieEnds, 
   const unsigned activeLen,
   const float sampleRate,
-  list<BumpPair>& speedBumps)
+  list<BogieTimes>& speedBumps)
 {
   // Add 20%
   const unsigned tol = static_cast<unsigned>(0.2f * activeLen);
@@ -428,8 +428,8 @@ cout << "--------------------------\n\n";
     unsigned lower, upper, spacing;
     if (speedDetect.getLimits(lower, upper, spacing))
     {
-      speedBumps.emplace_back(BumpPair());
-      BumpPair& bp = speedBumps.back();
+      speedBumps.emplace_back(BogieTimes());
+      BogieTimes& bp = speedBumps.back();
       bp.first = lowerExt + lower;
       bp.second = lowerExt + lower + spacing;
 
@@ -446,7 +446,8 @@ cout << "--------------------------\n\n";
 
 void Explore::correlate(
   const vector<float>& accel,
-  PeaksInfo& peaksInfo)
+  PeaksInfo& peaksInfo,
+  list<BogieTimes>& bogieTimes)
 {
   Explore::filter(accel, filtered);
 
@@ -533,12 +534,11 @@ for (auto b: bogieEnds)
   cout << b << "\n";
 cout << endl;
 
-  list<BumpPair> speedBumps;
-  Explore::findSpeedBumps(filtered, bogieEnds, upper-lower, 2000.f, speedBumps);
+  Explore::findSpeedBumps(filtered, bogieEnds, upper-lower, 2000.f, bogieTimes);
 
 cout << "Speed bumps\n";
 unsigned prev = 0;
-for (auto b: speedBumps)
+for (auto b: bogieTimes)
 {
   cout << setw(4) << b.first << setw(6) << b.first-prev << "\n";
   prev = b.first;

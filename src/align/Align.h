@@ -2,9 +2,11 @@
 #define TRAIN_ALIGN_H
 
 #include <vector>
+#include <list>
 #include <string>
 
 #include "DynProg.h"
+#include "../PeakGeneral.h"
 #include "Alignment.h"
 
 #include "../util/Motion.h"
@@ -49,6 +51,12 @@ class Align
       const PeaksInfo& refInfo,
       const PeaksInfo& peaksInfo,
       Alignment& match,
+      vector<float>& scaledPeaks) const;
+
+    bool scaleLastBogies(
+      const PeaksInfo& refInfo,
+      const list<BogieTimes>& bogieTimes,
+      const unsigned numBogies,
       vector<float>& scaledPeaks) const;
 
     Motion const * getMatchingMotion(const string& trainName) const;
@@ -101,6 +109,11 @@ class Align
       const TrainDB& trainDB,
       const string& country,
       const PeaksInfo& peaksInfo);
+
+    bool realign(
+      const TrainDB& trainDB,
+      const string& country,
+      const list<BogieTimes>& bogieTimes);
 
     void regress(
       const TrainDB& trainDB,
