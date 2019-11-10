@@ -451,6 +451,9 @@ void Explore::correlate(
 {
   Explore::filter(accel, filtered);
 
+  if (bogieTimes.empty())
+    return;
+
   // Just look at the last bogie for now.
   Datum& bogieLast = data.back();
   const unsigned len = bogieLast.qint->len;

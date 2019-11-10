@@ -45,6 +45,7 @@ DynProg::~DynProg()
 
 void DynProg::initNeedlemanWunsch(
   const vector<float>& seenPenaltyFactor,
+  const DynamicPenalties& penalties,
   const unsigned refSize,
   const unsigned seenSize,
   const Alignment& match)
@@ -57,9 +58,11 @@ void DynProg::initNeedlemanWunsch(
   }
 
   for (unsigned i = 0; i < match.numDelete; i++)
-    penaltyRef[i] = EARLY_SHIFTS_PENALTY;
+    penaltyRef[i] = penalties.earlyShift;
+    // penaltyRef[i] = EARLY_SHIFTS_PENALTY;
   for (unsigned i = match.numDelete; i < refSize; i++)
-    penaltyRef[i] = DELETE_PENALTY;
+    penaltyRef[i] = penalties.deletion;
+    // penaltyRef[i] = DELETE_PENALTY;
 
   // This the penalty marginal for adding (spurious?) seen peaks.
   if (seenSize > lenPenaltySeen)
@@ -69,7 +72,8 @@ void DynProg::initNeedlemanWunsch(
   }
 
   for (unsigned j = 0; j < seenSize; j++)
-    penaltySeen[j] = INSERT_PENALTY * seenPenaltyFactor[j];
+    penaltySeen[j] = penalties.insertion * seenPenaltyFactor[j];
+    // penaltySeen[j] = INSERT_PENALTY * seenPenaltyFactor[j];
 
   // The first matrix dimension is refPeaks, the second is the seen one.
   // We can imagine the first index as the row index.
@@ -259,7 +263,7 @@ void DynProg::run(
   // at the front which were missed.
   
   // Set up the matrix and the penalty marginals.
-  DynProg::initNeedlemanWunsch(peaksInfo.penaltyFactor,
+  DynProg::initNeedlemanWunsch(peaksInfo.penaltyFactor, fullPenalties,
     refPeaks.size(), peaksInfo.peaks.size(), match);
 
   // Fill the matrix with distances and origins.

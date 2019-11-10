@@ -8,7 +8,7 @@ using namespace std;
 
 struct Alignment;
 struct PeaksInfo;
-class Peak;
+struct DynamicPenalties;
 
 
 class DynProg
@@ -44,6 +44,7 @@ class DynProg
 
     void initNeedlemanWunsch(
       const vector<float>& seenPenaltyFactor,
+      const DynamicPenalties& penalties,
       const unsigned refSize,
       const unsigned seenSize,
       const Alignment& match);

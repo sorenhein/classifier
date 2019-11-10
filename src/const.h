@@ -374,18 +374,28 @@ static list<CompletionCase> CompletionCases =
 
 #define MAX_AXLE_DIFFERENCE_OK 7
 
-// In the Needleman-Wunsch(like) algorithm, this is the penalty for
-// such early spurious or missing peaks.  It should be a relatively
-// low number, but the algorithm is not so sensitive to it.
+struct DynamicPenalties
+{
+  // These are the penalties governing the Needleman-Wunsch(like)
+  // algorithm.  The penalties are in m^2.
 
-#define EARLY_SHIFTS_PENALTY 0.25f
+  // The first two are the penalties for deleting reference peaks.
+  // The first one is for very early peaks, as the sensor tends to
+  // miss these (so they may not be penalized as much).
+  // The second one is for deleting later reference peaks.
+  float earlyShift;
+  float deletion;
 
-// For other hits and misses, these are the penalties in m^2.
-// If a bogie distance is 2.5m, then a bogie distance of error 
-// would be 6.25 m^2.
+  // This one is for having seen peaks that have no match among
+  // reference peaks.  Everything else being OK, these would be
+  // spurious peaks.
+  float insertion;
+};
 
-#define INSERT_PENALTY 5.f
-#define DELETE_PENALTY 5.f
+static DynamicPenalties fullPenalties =
+{
+  0.25f, 5.f, 5.f
+};
 
 // These factors help to cut down the number of alignments.  If the
 // distance of the worse alignment is above the first limit,
