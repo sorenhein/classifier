@@ -451,7 +451,7 @@ void Explore::correlate(
 {
   Explore::filter(accel, filtered);
 
-  if (bogieTimes.empty())
+  if (data.empty())
     return;
 
   // Just look at the last bogie for now.

@@ -246,10 +246,6 @@ void Align::regressPosQuadratic(
 
     // Don't use match.motion.estimate directly, as size would be 2.
     Align::regressPosLinear(x, z, estimate);
-    // vector<float> est;
-    // pol.fitIt(x, z, 1, est);
-    // match.motion.estimate[0] = est[0];
-    // match.motion.estimate[1] = est[1];
   }
 }
 
@@ -257,6 +253,7 @@ void Align::regressPosQuadratic(
 void Align::regressTrain(
   const vector<float>& times,
   const vector<float>& refPeaks,
+  const bool accelFlag,
   const bool storeFlag,
   Alignment& match) const
 {
@@ -278,29 +275,10 @@ void Align::regressTrain(
   }
 
   // Run the regression.
-  // Align::regressPosQuadratic(x, y, lcommon, match.motion.estimate);
-  PolynomialRegression pol;
-  pol.fitIt(x, y, 2, match.motion.estimate);
-
-  // If the acceleration is higher than physically expected, clamp it
-  // and go to a linear regression.  Note that coeff2 = accel /2.
-  const float coeff2 = match.motion.estimate[2];
-  if (2.f * abs(coeff2) >= ACCEL_MAX)
-  {
-    vector<float> z(lcommon);
-    const float clamp = (coeff2 > 0.f ? ACCEL_MAX : -ACCEL_MAX) / 2.f;
-    match.motion.estimate[2] = clamp;
-
-    for (unsigned p = 0; p < lcommon; p++)
-      z[p] = y[p] - clamp * x[p] * x[p];
-
-    // Don't use match.motion.estimate directly, as size would be 2.
-    // Align::regressPosLinear(x, z, match.motion.estimate);
-    vector<float> est;
-    pol.fitIt(x, z, 1, est);
-    match.motion.estimate[0] = est[0];
-    match.motion.estimate[1] = est[1];
-  }
+  if (accelFlag)
+    Align::regressPosQuadratic(x, y, lcommon, match.motion.estimate);
+  else
+    Align::regressPosLinear(x, y, match.motion.estimate);
 
   if (storeFlag)
   {
@@ -320,7 +298,7 @@ bool Align::scalePeaks(
   Align::alignPeaks(refInfo, peaksInfo, match);
 
   // Run a regression.
-  Align::regressTrain(peaksInfo.times, refInfo.positions, false, match);
+  Align::regressTrain(peaksInfo.times, refInfo.positions, true, false, match);
 
   // Use the motion parameters.
   const unsigned lt = peaksInfo.times.size();
@@ -329,6 +307,22 @@ bool Align::scalePeaks(
     scaledPeaks[j] = match.motion.time2pos(peaksInfo.times[j]);
 
   return true;
+}
+
+
+void Align::distributeBogies(
+  const list<BogieTimes>& bogieTimes,
+  const list<BogieTimes>::const_iterator& bitStart,
+  const float posOffset,
+  const float speed,
+  vector<float>& scaledPeaks) const
+{
+  scaledPeaks.clear();
+  for (auto bit = bitStart; bit != bogieTimes.end(); bit++)
+  {
+    scaledPeaks.push_back(posOffset + speed * bit->first);
+    scaledPeaks.push_back(posOffset + speed * bit->second);
+  }
 }
 
 
@@ -359,12 +353,18 @@ bool Align::scaleLastBogies(
   for (unsigned i = 0; i < numBogies; i++)
     bt = prev(bt);
 
+cout << "Partial motion parameters:\n";
+cout << sOffset << ", " << lastSpeed << "\n\n";
+
+  Align::distributeBogies(bogieTimes, bt, sOffset, lastSpeed, scaledPeaks);
+  /*
   scaledPeaks.clear();
   for (auto bit = bt; bit != bogieTimes.end(); bit++)
   {
     scaledPeaks.push_back(sOffset + lastSpeed * bit->first);
     scaledPeaks.push_back(sOffset + lastSpeed * bit->second);
   }
+  */
 
 /*
   for (auto f: scaledPeaks)
@@ -421,11 +421,17 @@ bool Align::realign(
   const string& sensorCountry,
   const list<BogieTimes>& bogieTimes)
 {
-return true;
-
   PeaksInfo peaksInfo;
   peaksInfo.numCars = (bogieTimes.size() / 2) + 1;
   peaksInfo.numPeaks = 2 * bogieTimes.size();
+
+  vector<float> times;
+  for (auto& b: bogieTimes)
+  {
+    // TODO Use sampleRate
+    times.push_back(b.first / 2000.f);
+    times.push_back(b.second / 2000.f);
+  }
 
   vector<float> scaledPeaks;
   vector<float> penaltyFactor;
@@ -461,10 +467,71 @@ cout << "Trying train " << refTrain << endl;
     if (! Align::promisingPartial(match.actualToRef))
       continue;
 
+cout << "Partial match:\n";
 cout << match.str() << "\n";
     for (unsigned i = 0; i < scaledPeaks.size(); i++)
       cout << "i " << i << ": " << match.actualToRef[i] << endl;
+    
+    // Regress linearly on the few scaledPeaks.
+    vector<float> backTimes;
+    for (unsigned i = 0; i < scaledPeaks.size(); i++)
+      backTimes.push_back(times[times.size() - scaledPeaks.size() + i]);
+
+    Align::regressTrain(backTimes, refInfo.positions, false, false, match);
+
+cout << "6-peak parameters:\n";
+cout << match.motion.estimate[0] << ", " << match.motion.estimate[1] << "\n\n";
+
+    // Distribute all the bogies with these motion parameters.
+    // Kludge: Make up my mind, probably scale bogieTimes already.
+    // Don't scale back and forth.
+    Align::distributeBogies(bogieTimes, bogieTimes.cbegin(),
+      match.motion.estimate[0], match.motion.estimate[1] / 2000.f, scaledPeaks);
+
+/*
+cout << "Reference\n";
+for (unsigned i = 0; i < refInfo.positions.size(); i++)
+  cout << i << " " << refInfo.positions[i] << "\n";
+cout << "\n";
+  
+cout << "Full linear scaledPeaks\n";
+for (unsigned i = 0; i < scaledPeaks.size(); i++)
+  cout << i << " " << scaledPeaks[i] << "\n";
+cout << "\n";
+*/
+  
+    // Run the regular Needleman-Wunsch matching.
+    penaltyFactor.resize(scaledPeaks.size(), 1.);
+    match.numAdd = 0;
+    match.numDelete = refInfo.positions.size() - scaledPeaks.size();
+    match.actualToRef.resize(scaledPeaks.size());
+
+    match.dist = 0.f;
+    match.distOther = 0.f;
+    match.distMatch = 0.f;
+
+    dynprog.run(refInfo.positions, penaltyFactor, scaledPeaks, 
+      fullPenalties, match);
+
+cout << "Full linear match:\n";
+cout << match.str() << "\n";
+
+    if (! Align::promisingPartial(match.actualToRef))
+    {
+      cout << "Failed the plausible match test\n";
+      continue;
+    }
+
+    // Regress quadraticall on all bogie peaks.
+    Align::regressTrain(times, refInfo.positions, true, true, match);
+
+cout << "Full quadratic match:\n";
+cout << match.str() << "\n";
+
+    matches.push_back(match);
   }
+
+  sort(matches.begin(), matches.end());
 
   return (! matches.empty());
 }
@@ -488,7 +555,7 @@ void Align::regress(
     if (ma.dynChangeFlag)
     {
       Align::regressTrain(peaksInfo.times, 
-        trainDB.getRefInfo(ma.trainNo).positions, true, ma);
+        trainDB.getRefInfo(ma.trainNo).positions, true, true, ma);
       changeFlag = true;
     }
 

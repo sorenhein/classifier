@@ -365,6 +365,7 @@ explore.correlate(accel, peaksInfoTmp, bogieTimes);
 
 Align alignExpl;
 alignExpl.realign(trainDB, traceData.countrySensor, bogieTimes);
+cout << alignExpl.strRegress(control);
 
     // Integrate and condition the signal.
     runFilter(traceData.sampleRate, interval.first, interval.len, thid, 

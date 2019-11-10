@@ -1,13 +1,7 @@
+Explore throws exceptions that limit the performance of the old algo.
+
 From peaks to trains
 --------------------
-- Have a specialized N-W with no penalty for missing DB peaks,
-  but very high penalty for missing peak seen
-- Regress on these 6 peaks (speed only, no acceleration)
-- Should be 1-2 peaks (bogie must remain bogie)
-- If error too high, give up
-- Distribute all the seen peaks
-- N-W again, same penalty function
-- Regress (including acceleration this time)
 - List of interior peaks
   - Later, look for these
 - List of leading peaks

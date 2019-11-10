@@ -49,6 +49,13 @@ class Align
       const vector<float>& y,
       const unsigned lt,
       Alignment& match) const;
+    
+    void distributeBogies(
+      const list<BogieTimes>& bogieTimes,
+      const list<BogieTimes>::const_iterator& bitStart,
+      const float posOffset,
+      const float speed,
+      vector<float>& scaledPeaks) const;
 
     bool scalePeaks(
       const PeaksInfo& refInfo,
@@ -109,6 +116,7 @@ class Align
     void regressTrain(
       const vector<float>& times,
       const vector<float>& refPeaks,
+      const bool accelFlag,
       const bool storeFlag,
       Alignment& match) const;
 
