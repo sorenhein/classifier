@@ -67,6 +67,7 @@ class DynProg
       const vector<float>& refPeaks,
       const PeaksInfo& peaksInfo,
       const vector<float>& scaledPeaks,
+      const DynamicPenalties& penalties,
       Alignment& alignment);
 };
 

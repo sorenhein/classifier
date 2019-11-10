@@ -327,7 +327,8 @@ bool Align::realign(
       continue;
 
     // Run Needleman-Wunsch matching.
-    dynprog.run(refInfo.positions, peaksInfo, scaledPeaks, match);
+    dynprog.run(refInfo.positions, peaksInfo, scaledPeaks, 
+      fullPenalties, match);
     matches.push_back(match);
   }
 

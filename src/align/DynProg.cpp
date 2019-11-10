@@ -243,6 +243,7 @@ void DynProg::run(
   const vector<float>& refPeaks,
   const PeaksInfo& peaksInfo,
   const vector<float>& scaledPeaks,
+  const DynamicPenalties& penalties,
   Alignment& match)
 {
   // https://en.wikipedia.org/wiki/Needleman%E2%80%93Wunsch_algorithm
@@ -263,7 +264,7 @@ void DynProg::run(
   // at the front which were missed.
   
   // Set up the matrix and the penalty marginals.
-  DynProg::initNeedlemanWunsch(peaksInfo.penaltyFactor, fullPenalties,
+  DynProg::initNeedlemanWunsch(peaksInfo.penaltyFactor, penalties,
     refPeaks.size(), peaksInfo.peaks.size(), match);
 
   // Fill the matrix with distances and origins.
