@@ -239,9 +239,10 @@ void DynProg::backtrackNeedlemanWunsch(Alignment& match)
 }
 
 
+#include <iostream>
 void DynProg::run(
   const vector<float>& refPeaks,
-  const PeaksInfo& peaksInfo,
+  const vector<float>& penaltyFactor,
   const vector<float>& scaledPeaks,
   const DynamicPenalties& penalties,
   Alignment& match)
@@ -264,8 +265,8 @@ void DynProg::run(
   // at the front which were missed.
   
   // Set up the matrix and the penalty marginals.
-  DynProg::initNeedlemanWunsch(peaksInfo.penaltyFactor, penalties,
-    refPeaks.size(), peaksInfo.peaks.size(), match);
+  DynProg::initNeedlemanWunsch(penaltyFactor, penalties,
+    refPeaks.size(), scaledPeaks.size(), match);
 
   // Fill the matrix with distances and origins.
   DynProg::fillNeedlemanWunsch(refPeaks, scaledPeaks, match);

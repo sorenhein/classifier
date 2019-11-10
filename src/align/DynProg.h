@@ -65,7 +65,7 @@ class DynProg
 
     void run(
       const vector<float>& refPeaks,
-      const PeaksInfo& peaksInfo,
+      const vector<float>& penaltyFactor,
       const vector<float>& scaledPeaks,
       const DynamicPenalties& penalties,
       Alignment& alignment);
