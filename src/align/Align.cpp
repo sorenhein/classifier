@@ -416,6 +416,8 @@ bool Align::realign(
 }
 
 
+#define UNUSED(x) ((void)(true ? 0 : ((x), void(), 0)))
+
 bool Align::realign(
   const TrainDB& trainDB,
   const string& sensorCountry,
@@ -433,10 +435,16 @@ bool Align::realign(
     times.push_back(b.second / 2000.f);
   }
 
+cout << "Have " << times.size() << " bogie times\n";
+if (times.empty())
+  return false;
+
   vector<float> scaledPeaks;
   vector<float> penaltyFactor;
   Alignment match;
   matches.clear();
+
+  UNUSED(sensorCountry);
 
   for (auto& refTrain: trainDB)
   {
@@ -445,8 +453,8 @@ bool Align::realign(
     match.numCars = trainDB.numCars(match.trainNo);
     match.numAxles = trainDB.numAxles(match.trainNo);
 
-    if (! Align::trainMightFit(peaksInfo, sensorCountry, trainDB, match))
-      continue;
+    // if (! Align::trainMightFit(peaksInfo, sensorCountry, trainDB, match))
+      // continue;
 
     const PeaksInfo& refInfo = trainDB.getRefInfo(match.trainNo);
 

@@ -365,6 +365,8 @@ explore.correlate(accel, peaksInfoTmp, bogieTimes);
 
 Align alignExpl;
 alignExpl.realign(trainDB, traceData.countrySensor, bogieTimes);
+cout << "True train (bogie) " << traceData.trainTrue << " at " <<
+  fixed << setprecision(2) << traceData.speed << " m/s\n\n";
 cout << alignExpl.strRegress(control);
 
     // Integrate and condition the signal.
