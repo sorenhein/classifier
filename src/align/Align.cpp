@@ -437,6 +437,32 @@ cout << match.motion.estimate[0] << ", " << match.motion.estimate[1] << "\n\n";
 }
 
 
+void Align::setupDynRun(
+  const unsigned refSize,
+  const unsigned seenSize,
+  vector<float>& penaltyFactor,
+  Alignment& match) const
+{
+  penaltyFactor.resize(seenSize, 1.);
+  if (refSize >= seenSize)
+  {
+    match.numAdd = 0;
+    match.numDelete = refSize - seenSize;
+  }
+  else
+  {
+    match.numAdd = seenSize - refSize;
+    match.numDelete = 0;
+  }
+
+  match.actualToRef.resize(seenSize);
+
+  match.dist = 0.f;
+  match.distOther = 0.f;
+  match.distMatch = 0.f;
+}
+
+
 #define UNUSED(x) ((void)(true ? 0 : ((x), void(), 0)))
 
 bool Align::realign(
@@ -526,6 +552,10 @@ cout << "\n";
 /* */
   
     // Run the regular Needleman-Wunsch matching.
+    Align::setupDynRun(refInfo.positions.size(), scaledPeaks.size(),
+      penaltyFactor, match);
+
+    /*
     penaltyFactor.resize(scaledPeaks.size(), 1.);
     if (refInfo.positions.size() >= scaledPeaks.size())
     {
@@ -543,6 +573,7 @@ cout << "\n";
     match.dist = 0.f;
     match.distOther = 0.f;
     match.distMatch = 0.f;
+    */
 
     dynprog.run(refInfo.positions, penaltyFactor, scaledPeaks, 
       partialPenalties, match);

@@ -76,6 +76,11 @@ class Align
       const vector<float>& refPositions,
       Alignment& match) const;
 
+    void setupDynRun(
+      const unsigned refSize,
+      const unsigned seenSize,
+      vector<float>& penaltyFactor,
+      Alignment& match) const;
 
     Motion const * getMatchingMotion(const string& trainName) const;
 
