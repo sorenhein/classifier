@@ -69,6 +69,14 @@ class Align
       const unsigned numBogies,
       vector<float>& scaledPeaks) const;
 
+    void getPartialMatch(
+      const vector<float>& times,
+      const vector<float>& scaledPeaks,
+      const unsigned scaledBackCount,
+      const vector<float>& refPositions,
+      Alignment& match) const;
+
+
     Motion const * getMatchingMotion(const string& trainName) const;
 
     void getBoxTraces(

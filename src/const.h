@@ -403,7 +403,7 @@ static DynamicPenalties partialPenalties =
   // When matching partials from bogies, we just want to use all
   // the bogies.
   0.f, 0.f, 
-  5.f
+  20.f
 };
 
 // These factors help to cut down the number of alignments.  If the

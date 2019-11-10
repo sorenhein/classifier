@@ -357,16 +357,8 @@ bool Align::scaleLastBogies(
 // cout << sOffset << ", " << lastSpeed << "\n\n";
 
   Align::distributeBogies(bogieTimes, bt, sOffset, lastSpeed, scaledPeaks);
-  /*
-  scaledPeaks.clear();
-  for (auto bit = bt; bit != bogieTimes.end(); bit++)
-  {
-    scaledPeaks.push_back(sOffset + lastSpeed * bit->first);
-    scaledPeaks.push_back(sOffset + lastSpeed * bit->second);
-  }
-  */
 
-/*
+/* */
   for (auto f: scaledPeaks)
     cout << "Bogie detections: " << f << endl;
   cout << "\n";
@@ -374,7 +366,7 @@ bool Align::scaleLastBogies(
   for (auto f: refInfo.positions)
     cout << "References: " << f << endl;
   cout << "\n";
-*/
+/* */
 
   return true;
 }
@@ -413,6 +405,35 @@ bool Align::realign(
   sort(matches.begin(), matches.end());
 
   return (! matches.empty());
+}
+
+
+void Align::getPartialMatch(
+  const vector<float>& times,
+  const vector<float>& scaledPeaks,
+  const unsigned scaledBackCount,
+  const vector<float>& refPositions,
+  Alignment& match) const
+{
+  // Takes the last scaledBackCount peaks and regresses them against the
+  // positions with which they are aligned.  match.actualToRef is adjusted
+  // (-1 on early entries) if needed.
+  
+  if (scaledBackCount < scaledPeaks.size())
+  {
+    for (unsigned i = 0; i < scaledPeaks.size() - scaledBackCount; i++)
+      match.actualToRef[i] = -1;
+  }
+
+  vector<float> backTimes;
+  for (unsigned i = 0; i < scaledPeaks.size(); i++)
+    backTimes.push_back(times[times.size() - scaledPeaks.size() + i]);
+
+  Align::regressTrain(backTimes, refPositions, false, false, match);
+
+cout << "6-peak parameters:\n";
+cout << match.motion.estimate[0] << ", " << match.motion.estimate[1] << "\n\n";
+
 }
 
 
@@ -477,20 +498,14 @@ cout << "Trying train " << refTrain << endl;
 
 cout << "Partial match:\n";
 cout << match.str() << "\n";
-    /*
+/* */
     for (unsigned i = 0; i < scaledPeaks.size(); i++)
       cout << "i " << i << ": " << match.actualToRef[i] << endl;
-      */
+/* */
     
     // Regress linearly on the few scaledPeaks.
-    vector<float> backTimes;
-    for (unsigned i = 0; i < scaledPeaks.size(); i++)
-      backTimes.push_back(times[times.size() - scaledPeaks.size() + i]);
-
-    Align::regressTrain(backTimes, refInfo.positions, false, false, match);
-
-// cout << "6-peak parameters:\n";
-// cout << match.motion.estimate[0] << ", " << match.motion.estimate[1] << "\n\n";
+    Align::getPartialMatch(times, scaledPeaks, scaledPeaks.size(), 
+      refInfo.positions, match);
 
     // Distribute all the bogies with these motion parameters.
     // Kludge: Make up my mind, probably scale bogieTimes already.
@@ -498,7 +513,7 @@ cout << match.str() << "\n";
     Align::distributeBogies(bogieTimes, bogieTimes.cbegin(),
       match.motion.estimate[0], match.motion.estimate[1] / 2000.f, scaledPeaks);
 
-/*
+/* */
 cout << "Reference\n";
 for (unsigned i = 0; i < refInfo.positions.size(); i++)
   cout << i << " " << refInfo.positions[i] << "\n";
@@ -508,7 +523,7 @@ cout << "Full linear scaledPeaks\n";
 for (unsigned i = 0; i < scaledPeaks.size(); i++)
   cout << i << " " << scaledPeaks[i] << "\n";
 cout << "\n";
-*/
+/* */
   
     // Run the regular Needleman-Wunsch matching.
     penaltyFactor.resize(scaledPeaks.size(), 1.);
@@ -530,7 +545,7 @@ cout << "\n";
     match.distMatch = 0.f;
 
     dynprog.run(refInfo.positions, penaltyFactor, scaledPeaks, 
-      fullPenalties, match);
+      partialPenalties, match);
 
 cout << "Full linear match:\n";
 cout << match.str() << "\n";
@@ -541,7 +556,7 @@ cout << match.str() << "\n";
       continue;
     }
 
-    // Regress quadraticall on all bogie peaks.
+    // Regress quadratically on all bogie peaks.
     Align::regressTrain(times, refInfo.positions, true, true, match);
 
 cout << "Full quadratic match:\n";
