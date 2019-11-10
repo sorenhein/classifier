@@ -353,8 +353,8 @@ bool Align::scaleLastBogies(
   for (unsigned i = 0; i < numBogies; i++)
     bt = prev(bt);
 
-cout << "Partial motion parameters:\n";
-cout << sOffset << ", " << lastSpeed << "\n\n";
+// cout << "Partial motion parameters:\n";
+// cout << sOffset << ", " << lastSpeed << "\n\n";
 
   Align::distributeBogies(bogieTimes, bt, sOffset, lastSpeed, scaledPeaks);
   /*
@@ -469,8 +469,10 @@ cout << "Trying train " << refTrain << endl;
 
 cout << "Partial match:\n";
 cout << match.str() << "\n";
+    /*
     for (unsigned i = 0; i < scaledPeaks.size(); i++)
       cout << "i " << i << ": " << match.actualToRef[i] << endl;
+      */
     
     // Regress linearly on the few scaledPeaks.
     vector<float> backTimes;
@@ -479,8 +481,8 @@ cout << match.str() << "\n";
 
     Align::regressTrain(backTimes, refInfo.positions, false, false, match);
 
-cout << "6-peak parameters:\n";
-cout << match.motion.estimate[0] << ", " << match.motion.estimate[1] << "\n\n";
+// cout << "6-peak parameters:\n";
+// cout << match.motion.estimate[0] << ", " << match.motion.estimate[1] << "\n\n";
 
     // Distribute all the bogies with these motion parameters.
     // Kludge: Make up my mind, probably scale bogieTimes already.
@@ -502,8 +504,17 @@ cout << "\n";
   
     // Run the regular Needleman-Wunsch matching.
     penaltyFactor.resize(scaledPeaks.size(), 1.);
-    match.numAdd = 0;
-    match.numDelete = refInfo.positions.size() - scaledPeaks.size();
+    if (refInfo.positions.size() >= scaledPeaks.size())
+    {
+      match.numAdd = 0;
+      match.numDelete = refInfo.positions.size() - scaledPeaks.size();
+    }
+    else
+    {
+      match.numAdd = scaledPeaks.size() - refInfo.positions.size();
+      match.numDelete = 0;
+    }
+
     match.actualToRef.resize(scaledPeaks.size());
 
     match.dist = 0.f;
@@ -873,8 +884,10 @@ string Align::strMatches(const string& title) const
 
 string Align::strRegress(const Control& control) const
 {
-  stringstream ss;
+  if (matches.empty())
+    return "No matches";
 
+  stringstream ss;
   const auto& bestAlign = matches.front();
 
   if (control.verboseRegressMatch())

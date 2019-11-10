@@ -418,6 +418,8 @@ accelDetect.extract();
     if (! align.realign(trainDB, traceData.countrySensor, peaksInfo))
       THROW(ERR_NO_ALIGN_MATCHES, "No alignment matches");
 
+    timers[thid].stop(TIMER_ALIGN);
+
     cout << "True train " << traceData.trainTrue << " at " <<
       fixed << setprecision(2) << traceData.speed << " m/s\n\n";
 
@@ -438,7 +440,7 @@ accelDetect.extract();
         control.pickAny(), s);
     }
 
-    timers[thid].stop(TIMER_ALIGN);
+    timers[thid].stop(TIMER_REGRESS);
 
     string trainDetected;
     float distDetected;
