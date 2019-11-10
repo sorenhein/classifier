@@ -38,6 +38,9 @@ class Align
     bool promisingPartial(
       const vector<int>& actualToRef) const;
 
+    unsigned getGoodCount(
+      const vector<int>& actualToRef) const;
+
     bool alignFronts(
       const PeaksInfo& refInfo,
       const PeaksInfo& peaksInfo,

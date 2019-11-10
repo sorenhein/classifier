@@ -16,11 +16,6 @@
 #define DYN_DEFAULT_REF 80
 #define DYN_DEFAULT_SEEN 80
 
-// This is an optimization in which not the whole matrix is filled
-// out, only a band around the diagonal.
-
-#define DYN_RANGE 8
-
 
 DynProg::DynProg()
 {
@@ -59,10 +54,8 @@ void DynProg::initNeedlemanWunsch(
 
   for (unsigned i = 0; i < match.numDelete; i++)
     penaltyRef[i] = penalties.earlyShift;
-    // penaltyRef[i] = EARLY_SHIFTS_PENALTY;
   for (unsigned i = match.numDelete; i < refSize; i++)
     penaltyRef[i] = penalties.deletion;
-    // penaltyRef[i] = DELETE_PENALTY;
 
   // This the penalty marginal for adding (spurious?) seen peaks.
   if (seenSize > lenPenaltySeen)
@@ -73,7 +66,6 @@ void DynProg::initNeedlemanWunsch(
 
   for (unsigned j = 0; j < seenSize; j++)
     penaltySeen[j] = penalties.insertion * seenPenaltyFactor[j];
-    // penaltySeen[j] = INSERT_PENALTY * seenPenaltyFactor[j];
 
   // The first matrix dimension is refPeaks, the second is the seen one.
   // We can imagine the first index as the row index.
@@ -122,13 +114,14 @@ void DynProg::initNeedlemanWunsch(
 void DynProg::fillNeedlemanWunsch(
   const vector<float>& refPeaks,
   const vector<float>& scaledPeaks,
+  const unsigned dynRange,
   Alignment& match)
 {
   // Run the dynamic programming.
   for (unsigned i = 1; i < lenMatrixRefUsed; i++)
   {
-    const unsigned jmin = (i < DYN_RANGE+1 ? 1 : i - DYN_RANGE);
-    const unsigned jmax = min(i+DYN_RANGE, lenMatrixSeenUsed-1);
+    const unsigned jmin = (i < dynRange+1 ? 1 : i - dynRange);
+    const unsigned jmax = min(i+dynRange, lenMatrixSeenUsed-1);
 
     // We could go 1 .. lenMatrixSeenUsed, but this optimization 
     // is sufficient.
@@ -269,7 +262,7 @@ void DynProg::run(
     refPeaks.size(), scaledPeaks.size(), match);
 
   // Fill the matrix with distances and origins.
-  DynProg::fillNeedlemanWunsch(refPeaks, scaledPeaks, match);
+  DynProg::fillNeedlemanWunsch(refPeaks, scaledPeaks, penalties.dynRange, match);
 
   // Walk back through the matrix.
   DynProg::backtrackNeedlemanWunsch(match);

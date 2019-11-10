@@ -390,12 +390,17 @@ struct DynamicPenalties
   // reference peaks.  Everything else being OK, these would be
   // spurious peaks.
   float insertion;
+
+  // This is an optimization only.  Not the whole N-W matrix is filled
+  // in, but only a band around the diagonal.
+  unsigned dynRange;
 };
 
 static DynamicPenalties fullPenalties =
 {
   0.25f, 5.f, 
-  5.f
+  5.f,
+  8
 };
 
 static DynamicPenalties partialPenalties =
@@ -403,7 +408,8 @@ static DynamicPenalties partialPenalties =
   // When matching partials from bogies, we just want to use all
   // the bogies.
   0.f, 0.f, 
-  20.f
+  20.f,
+  20
 };
 
 // These factors help to cut down the number of alignments.  If the

@@ -88,6 +88,21 @@ bool Align::promisingPartial(const vector<int>& actualToRef) const
 }
 
 
+unsigned Align::getGoodCount(const vector<int>& actualToRef) const
+{
+  for (unsigned i = 0; i < actualToRef.size(); i++)
+  {
+    const int j = actualToRef.size() - i - 1;
+    if (actualToRef[j] == -1 ||
+        (actualToRef[j]) % 2 != (j % 2))
+    {
+      return i;
+    }
+  }
+  return actualToRef.size();
+}
+
+
 bool Align::alignFronts(
   const PeaksInfo& refInfo,
   const PeaksInfo& peaksInfo,
@@ -500,8 +515,11 @@ if (times.empty())
     match.numCars = trainDB.numCars(match.trainNo);
     match.numAxles = trainDB.numAxles(match.trainNo);
 
-    // if (! Align::trainMightFit(peaksInfo, sensorCountry, trainDB, match))
-      // continue;
+    // trainMightFit is too much, but probably shouldn't have a lot more
+    // bogie peaks than reference peaks...
+
+    if (! trainDB.isInCountry(match.trainNo, sensorCountry))
+      continue;
 
     const PeaksInfo& refInfo = trainDB.getRefInfo(match.trainNo);
 
@@ -511,10 +529,8 @@ cout << "Trying train " << refTrain << endl;
       continue;
 
     // Run partial Needleman-Wunsch matching.
-    penaltyFactor.resize(scaledPeaks.size(), 1.);
-    match.numAdd = 0;
-    match.numDelete = refInfo.positions.size() - scaledPeaks.size();
-    match.actualToRef.resize(scaledPeaks.size());
+    Align::setupDynRun(refInfo.positions.size(), scaledPeaks.size(),
+      penaltyFactor, match);
 
     dynprog.run(refInfo.positions, penaltyFactor, scaledPeaks, 
       partialPenalties, match);
@@ -555,26 +571,6 @@ cout << "\n";
     Align::setupDynRun(refInfo.positions.size(), scaledPeaks.size(),
       penaltyFactor, match);
 
-    /*
-    penaltyFactor.resize(scaledPeaks.size(), 1.);
-    if (refInfo.positions.size() >= scaledPeaks.size())
-    {
-      match.numAdd = 0;
-      match.numDelete = refInfo.positions.size() - scaledPeaks.size();
-    }
-    else
-    {
-      match.numAdd = scaledPeaks.size() - refInfo.positions.size();
-      match.numDelete = 0;
-    }
-
-    match.actualToRef.resize(scaledPeaks.size());
-
-    match.dist = 0.f;
-    match.distOther = 0.f;
-    match.distMatch = 0.f;
-    */
-
     dynprog.run(refInfo.positions, penaltyFactor, scaledPeaks, 
       partialPenalties, match);
 
@@ -584,7 +580,49 @@ cout << match.str() << "\n";
     if (! Align::promisingPartial(match.actualToRef))
     {
       cout << "Failed the plausible match test\n";
-      continue;
+cout << "Supposedly full match:\n";
+cout << match.str() << "\n";
+/* */
+    for (unsigned i = 0; i < scaledPeaks.size(); i++)
+      cout << "i " << i << ": " << match.actualToRef[i] << endl;
+/* */
+
+      // Regress linearly on the as many scaledPeaks as reasonable.
+      const unsigned goodScales = Align::getGoodCount(match.actualToRef);
+cout << "goodScales " << goodScales << endl;
+
+      Align::getPartialMatch(times, scaledPeaks, goodScales,
+        refInfo.positions, match);
+
+      Align::distributeBogies(bogieTimes, bogieTimes.cbegin(),
+        match.motion.estimate[0], match.motion.estimate[1] / 2000.f, scaledPeaks);
+
+cout << "Final linear scaledPeaks\n";
+for (unsigned i = 0; i < scaledPeaks.size(); i++)
+  cout << i << " " << scaledPeaks[i] << "\n";
+cout << "\n";
+
+      // One last Needleman-Wunsch run.
+      Align::setupDynRun(refInfo.positions.size(), scaledPeaks.size(),
+        penaltyFactor, match);
+
+      dynprog.run(refInfo.positions, penaltyFactor, scaledPeaks, 
+        partialPenalties, match);
+      
+cout << "Final linear match:\n";
+cout << match.str() << "\n";
+
+cout << "Final match:\n";
+cout << match.str() << "\n";
+/* */
+    for (unsigned i = 0; i < scaledPeaks.size(); i++)
+      cout << "i " << i << ": " << match.actualToRef[i] << endl;
+
+      if (! Align::promisingPartial(match.actualToRef))
+      {
+        cout << "Failed the plausible match test\n";
+        continue;
+      }
     }
 
     // Regress quadratically on all bogie peaks.

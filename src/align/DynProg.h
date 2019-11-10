@@ -52,6 +52,7 @@ class DynProg
     void fillNeedlemanWunsch(
       const vector<float>& refPeaks,
       const vector<float>& scaledPeaks,
+      const unsigned dynRange,
       Alignment& alignment);
 
     void backtrackNeedlemanWunsch(Alignment& match);
