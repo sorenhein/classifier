@@ -94,6 +94,17 @@ class Align
       const vector<float>& v,
       const string& text) const;
 
+    void alignIteration(
+      const vector<float>& refPositions,
+      const DynamicPenalties& penalties,
+      const vector<float>& timesSeen,
+      const list<BogieTimes>& bogieTimes,
+      const unsigned scaledCount,
+      const string& text,
+      vector<float>& penaltyFactor,
+      vector<float>& scaledPeaks,
+      Alignment& match);
+
     Motion const * getMatchingMotion(const string& trainName) const;
 
     void getBoxTraces(

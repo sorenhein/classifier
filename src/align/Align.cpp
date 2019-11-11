@@ -497,6 +497,38 @@ void Align::printVector(
 }
 
 
+void Align::alignIteration(
+  const vector<float>& refPositions,
+  const DynamicPenalties& penalties,
+  const vector<float>& timesSeen,
+  const list<BogieTimes>& bogieTimes,
+  const unsigned scaledCount,
+  const string& text,
+  vector<float>& penaltyFactor,
+  vector<float>& scaledPeaks,
+  Alignment& match)
+{
+  // Regress linearly on the scaledPeaks.
+  Align::getPartialMatch(timesSeen, scaledPeaks, scaledCount,
+    refPositions, match);
+
+  // Distribute all the bogies with these motion parameters.
+  // Kludge: Make up my mind, probably scale bogieTimes already.
+  // Don't scale back and forth.
+  Align::distributeBogies(bogieTimes, bogieTimes.cbegin(),
+    match.motion.estimate[0], match.motion.estimate[1] / 2000.f, scaledPeaks);
+
+  // Run the regular Needleman-Wunsch matching.
+  Align::setupDynRun(refPositions.size(), scaledPeaks.size(),
+    penaltyFactor, match);
+
+  dynprog.run(refPositions, penaltyFactor, scaledPeaks, penalties, match); 
+
+  Align::printVector(scaledPeaks, text);
+  cout << text << ":\n" << match.str() << "\n";
+}
+
+
 bool Align::realign(
   const TrainDB& trainDB,
   const string& sensorCountry,
@@ -557,26 +589,9 @@ Align::printVector(refInfo.positions, "Reference");
 
 Align::printMatch(match, scaledPeaks.size(), "Partial match");
     
-    // Regress linearly on the few scaledPeaks.
-    Align::getPartialMatch(times, scaledPeaks, scaledPeaks.size(), 
-      refInfo.positions, match);
-
-    // Distribute all the bogies with these motion parameters.
-    // Kludge: Make up my mind, probably scale bogieTimes already.
-    // Don't scale back and forth.
-    Align::distributeBogies(bogieTimes, bogieTimes.cbegin(),
-      match.motion.estimate[0], match.motion.estimate[1] / 2000.f, scaledPeaks);
-
-// Align::printVector(scaledPeaks, "Full linear scaledPeaks");
-  
-    // Run the regular Needleman-Wunsch matching.
-    Align::setupDynRun(refInfo.positions.size(), scaledPeaks.size(),
-      penaltyFactor, match);
-
-    dynprog.run(refInfo.positions, penaltyFactor, scaledPeaks, 
-      partialPenalties, match);
-
-cout << "Full linear match:\n" << match.str() << "\n";
+    Align::alignIteration(refInfo.positions, partialPenalties,
+      times, bogieTimes, scaledPeaks.size(), "Full linear match", penaltyFactor,
+      scaledPeaks, match);
 
     if (! Align::promisingPartial(match.actualToRef))
     {
@@ -587,19 +602,10 @@ Align::printMatch(match, scaledPeaks.size(), "Supposedly full match");
       // Regress linearly on the as many scaledPeaks as reasonable.
       const unsigned goodScales = Align::getGoodCount(match.actualToRef);
 
-      Align::getPartialMatch(times, scaledPeaks, goodScales,
-        refInfo.positions, match);
+      Align::alignIteration(refInfo.positions, partialPenalties,
+        times, bogieTimes, goodScales, "Final linear match", penaltyFactor,
+        scaledPeaks, match);
 
-      Align::distributeBogies(bogieTimes, bogieTimes.cbegin(),
-        match.motion.estimate[0], match.motion.estimate[1] / 2000.f, scaledPeaks);
-
-      // One last Needleman-Wunsch run.
-      Align::setupDynRun(refInfo.positions.size(), scaledPeaks.size(),
-        penaltyFactor, match);
-
-      dynprog.run(refInfo.positions, penaltyFactor, scaledPeaks, 
-        partialPenalties, match);
-      
 Align::printMatch(match, scaledPeaks.size(), "Final linear match");
 
       if (! Align::promisingPartial(match.actualToRef))
