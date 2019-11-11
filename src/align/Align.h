@@ -85,6 +85,15 @@ class Align
       vector<float>& penaltyFactor,
       Alignment& match) const;
 
+    void printMatch(
+      const Alignment& match,
+      const unsigned len,
+      const string& text) const;
+
+    void printVector(
+      const vector<float>& v,
+      const string& text) const;
+
     Motion const * getMatchingMotion(const string& trainName) const;
 
     void getBoxTraces(

@@ -463,24 +463,37 @@ void Align::setupDynRun(
   UNUSED(refSize);
 
   penaltyFactor.resize(seenSize, 1.);
-  // if (refSize >= seenSize)
-  // {
-    match.numAdd = 0;
-    // match.numDelete = refSize - seenSize;
-    match.numDelete = 0;
-  // }
-  // else
-  // {
-    // match.numAdd = seenSize - refSize;
-    // match.numAdd = 0;
-    // match.numDelete = 0;
-  // }
+  match.numAdd = 0;
+  match.numDelete = 0;
 
   match.actualToRef.resize(seenSize);
 
   match.dist = 0.f;
   match.distOther = 0.f;
   match.distMatch = 0.f;
+}
+
+
+void Align::printMatch(
+  const Alignment& match,
+  const unsigned len,
+  const string& text) const
+{
+  cout << text << "\n";
+  cout << match.str() << "\n";
+  for (unsigned i = 0; i < len; i++)
+    cout << "i " << i << ": " << match.actualToRef[i] << endl;
+}
+
+
+void Align::printVector(
+  const vector<float>& v,
+  const string& text) const
+{
+  cout << text << "\n";
+  for (unsigned i = 0; i < v.size(); i++)
+    cout << i << " " << v[i] << "\n";
+  cout << "\n";
 }
 
 
@@ -540,17 +553,9 @@ cout << "Trying train " << refTrain << endl;
     if (! Align::promisingPartial(match.actualToRef))
       continue;
 
-cout << "Reference\n";
-for (unsigned i = 0; i < refInfo.positions.size(); i++)
-  cout << i << " " << refInfo.positions[i] << "\n";
-cout << "\n";
+Align::printVector(refInfo.positions, "Reference");
 
-cout << "Partial match:\n";
-cout << match.str() << "\n";
-/* */
-    for (unsigned i = 0; i < scaledPeaks.size(); i++)
-      cout << "i " << i << ": " << match.actualToRef[i] << endl;
-/* */
+Align::printMatch(match, scaledPeaks.size(), "Partial match");
     
     // Regress linearly on the few scaledPeaks.
     Align::getPartialMatch(times, scaledPeaks, scaledPeaks.size(), 
@@ -562,17 +567,7 @@ cout << match.str() << "\n";
     Align::distributeBogies(bogieTimes, bogieTimes.cbegin(),
       match.motion.estimate[0], match.motion.estimate[1] / 2000.f, scaledPeaks);
 
-/*
-cout << "Reference\n";
-for (unsigned i = 0; i < refInfo.positions.size(); i++)
-  cout << i << " " << refInfo.positions[i] << "\n";
-cout << "\n";
-  
-cout << "Full linear scaledPeaks\n";
-for (unsigned i = 0; i < scaledPeaks.size(); i++)
-  cout << i << " " << scaledPeaks[i] << "\n";
-cout << "\n";
-*/
+// Align::printVector(scaledPeaks, "Full linear scaledPeaks");
   
     // Run the regular Needleman-Wunsch matching.
     Align::setupDynRun(refInfo.positions.size(), scaledPeaks.size(),
@@ -581,35 +576,22 @@ cout << "\n";
     dynprog.run(refInfo.positions, penaltyFactor, scaledPeaks, 
       partialPenalties, match);
 
-cout << "Full linear match:\n";
-cout << match.str() << "\n";
+cout << "Full linear match:\n" << match.str() << "\n";
 
     if (! Align::promisingPartial(match.actualToRef))
     {
       cout << "Failed the plausible match test\n";
-cout << "Supposedly full match:\n";
-cout << match.str() << "\n";
-/* */
-    for (unsigned i = 0; i < scaledPeaks.size(); i++)
-      cout << "i " << i << ": " << match.actualToRef[i] << endl;
-/* */
+
+Align::printMatch(match, scaledPeaks.size(), "Supposedly full match");
 
       // Regress linearly on the as many scaledPeaks as reasonable.
       const unsigned goodScales = Align::getGoodCount(match.actualToRef);
-cout << "goodScales " << goodScales << endl;
 
       Align::getPartialMatch(times, scaledPeaks, goodScales,
         refInfo.positions, match);
 
       Align::distributeBogies(bogieTimes, bogieTimes.cbegin(),
         match.motion.estimate[0], match.motion.estimate[1] / 2000.f, scaledPeaks);
-
-/*
-cout << "Final linear scaledPeaks\n";
-for (unsigned i = 0; i < scaledPeaks.size(); i++)
-  cout << i << " " << scaledPeaks[i] << "\n";
-cout << "\n";
-*/
 
       // One last Needleman-Wunsch run.
       Align::setupDynRun(refInfo.positions.size(), scaledPeaks.size(),
@@ -618,12 +600,7 @@ cout << "\n";
       dynprog.run(refInfo.positions, penaltyFactor, scaledPeaks, 
         partialPenalties, match);
       
-cout << "Final linear match:\n";
-cout << match.str() << "\n";
-
-/* */
-    for (unsigned i = 0; i < scaledPeaks.size(); i++)
-      cout << "i " << i << ": " << match.actualToRef[i] << endl;
+Align::printMatch(match, scaledPeaks.size(), "Final linear match");
 
       if (! Align::promisingPartial(match.actualToRef))
       {
@@ -635,8 +612,7 @@ cout << match.str() << "\n";
     // Regress quadratically on all bogie peaks.
     Align::regressTrain(times, refInfo.positions, true, true, match);
 
-cout << "Full quadratic match:\n";
-cout << match.str() << "\n";
+cout << "Full quadratic match:\n" << match.str() << "\n";
 
     matches.push_back(match);
   }

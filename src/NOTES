@@ -11,6 +11,14 @@ sensor00:
  8 "Have 0 matches"
  7 Others.  5 are too-long matches, 2 are probably misses.
 
+all sensors:
+  29 correct
+1506 "Have 0 bogie matches"
+ 138 "Have 0 matches"
+  33 others
+
+
+
 Explore throws exceptions that limit the performance of the old algo.
 
 From peaks to trains
