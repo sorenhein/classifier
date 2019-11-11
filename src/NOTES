@@ -1,3 +1,16 @@
+Ideas:
+0. First clean up code in Align
+1. DynProg incapable of treating bogie pairs differently
+2. Quiet needs to deal with 4-6 wheels in the end piece
+3. Sometimes get matches with very long trains.  Look at #wheels
+   before time 0, and limit this to maybe 8
+
+sensor00:
+13 correct
+44 "Have 0 bogie matches"
+ 8 "Have 0 matches"
+ 7 Others.  5 are too-long matches, 2 are probably misses.
+
 Explore throws exceptions that limit the performance of the old algo.
 
 From peaks to trains

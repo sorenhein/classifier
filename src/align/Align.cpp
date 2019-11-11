@@ -540,6 +540,11 @@ cout << "Trying train " << refTrain << endl;
     if (! Align::promisingPartial(match.actualToRef))
       continue;
 
+cout << "Reference\n";
+for (unsigned i = 0; i < refInfo.positions.size(); i++)
+  cout << i << " " << refInfo.positions[i] << "\n";
+cout << "\n";
+
 cout << "Partial match:\n";
 cout << match.str() << "\n";
 /* */
@@ -637,6 +642,9 @@ cout << match.str() << "\n";
   }
 
   sort(matches.begin(), matches.end());
+
+if (matches.empty())
+  cout << "Have 0 matches\n";
 
   return (! matches.empty());
 }

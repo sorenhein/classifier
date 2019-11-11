@@ -409,7 +409,7 @@ static DynamicPenalties partialPenalties =
   // the bogies.
   0.f, 0.f, 
   20.f,
-  20
+  80
 };
 
 // These factors help to cut down the number of alignments.  If the
