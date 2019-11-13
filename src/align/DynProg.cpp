@@ -115,6 +115,7 @@ void DynProg::fillNeedlemanWunsch(
   const vector<float>& refPeaks,
   const vector<float>& scaledPeaks,
   const unsigned dynRange,
+  const bool parityFlag,
   Alignment& match)
 {
   // Run the dynamic programming.
@@ -150,7 +151,25 @@ void DynProg::fillNeedlemanWunsch(
       else
         ins = matrix[i][j-1].dist + penaltySeen[j + match.numAdd- 1];
 
-      if (matchVal <= del)
+      if (parityFlag && ((i + match.numDelete + j + match.numAdd) % 2))
+      {
+        // Only match axles to the right parity within a bogie.
+        // This only makes sense when scaledPeaks are known to come from
+        // bogies.
+        if (del <= ins)
+        {
+          // The deletion of a reference peak wins.
+          matrix[i][j].origin = NW_DELETE;
+          matrix[i][j].dist = del;
+        }
+        else
+        {
+          // The insertion of a spurious peak wins.
+          matrix[i][j].origin = NW_INSERT;
+        matrix[i][j].dist = ins;
+        }
+      }
+      else if (matchVal <= del)
       {
         if (matchVal <= ins)
         {
@@ -238,6 +257,7 @@ void DynProg::run(
   const vector<float>& penaltyFactor,
   const vector<float>& scaledPeaks,
   const DynamicPenalties& penalties,
+  const bool parityFlag,
   Alignment& match)
 {
   // https://en.wikipedia.org/wiki/Needleman%E2%80%93Wunsch_algorithm
@@ -262,7 +282,8 @@ void DynProg::run(
     refPeaks.size(), scaledPeaks.size(), match);
 
   // Fill the matrix with distances and origins.
-  DynProg::fillNeedlemanWunsch(refPeaks, scaledPeaks, penalties.dynRange, match);
+  DynProg::fillNeedlemanWunsch(refPeaks, scaledPeaks, penalties.dynRange, 
+    parityFlag, match);
 
   // Walk back through the matrix.
   DynProg::backtrackNeedlemanWunsch(match);

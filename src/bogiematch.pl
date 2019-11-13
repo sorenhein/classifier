@@ -30,6 +30,11 @@ for my $file (@ARGV)
     chomp $line;
     $line =~ s///g;
 
+    $hashMap{$sensor}{nobogie}++ if 
+      (length($line) >= 18 && $line eq 'Have 0 bogie times');
+    $hashMap{$sensor}{noalign}++ if 
+      (length($line) >= 14 && $line eq 'Have 0 matches');
+
     next unless length($line) >= 18;
     next unless substr($line, 0, 18) eq "True train (bogie)";
 
@@ -49,17 +54,28 @@ for my $file (@ARGV)
   close $fh;
 }
 
-printf "%-10s%6s%6s\n", "Sensor", "count", "good";
+printf "%-10s%6s%6s%6s%6s%6s\n", 
+  "Sensor", "count", "good", "nobog", "noal", "other";
 my $sumcount = 0;
 my $sumgood = 0;
+my $sumbogie = 0;
+my $sumalign = 0;
 for my $s (sort keys %hashMap)
 {
-  my $v = ($hashMap{$s}{good} || 0);
-  printf "%-10s%6d%6d\n", $s, $hashMap{$s}{count}, $v;
+  my $g = ($hashMap{$s}{good} || 0);
+  my $b = ($hashMap{$s}{nobogie} || 0);
+  my $m = ($hashMap{$s}{noalign} || 0);
+  my $other = $hashMap{$s}{count} - $g - $b - $m;
+  printf "%-10s%6d%6d%6d%6d%6d\n", 
+    $s, $hashMap{$s}{count}, $g, $b, $m, $other;
   $sumcount += $hashMap{$s}{count};
-  $sumgood += $v;
+  $sumgood += $g;
+  $sumbogie += $b;
+  $sumalign += $m;
 }
 
-print "-" x 22, "\n";
-printf "%-10s%6d%6d\n", "Total", $sumcount, $sumgood;
+print "-" x 40, "\n";
+printf "%-10s%6d%6d%6d%6d%6d\n", 
+  "Total", $sumcount, $sumgood, $sumbogie, $sumalign,
+    $sumcount - $sumgood - $sumbogie - $sumalign;
 

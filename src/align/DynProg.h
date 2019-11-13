@@ -53,6 +53,7 @@ class DynProg
       const vector<float>& refPeaks,
       const vector<float>& scaledPeaks,
       const unsigned dynRange,
+      const bool parityFlag,
       Alignment& alignment);
 
     void backtrackNeedlemanWunsch(Alignment& match);
@@ -69,6 +70,7 @@ class DynProg
       const vector<float>& penaltyFactor,
       const vector<float>& scaledPeaks,
       const DynamicPenalties& penalties,
+      const bool parityFlag,
       Alignment& alignment);
 };
 

@@ -58,7 +58,9 @@ bool Align::trainMightFit(
 
 
 // TODO Could go in Alignment
-bool Align::promisingPartial(const vector<int>& actualToRef) const
+bool Align::promisingPartial(
+  const vector<int>& actualToRef,
+  const bool allowAddFlag) const
 {
   unsigned numAdd = 0;
   unsigned numEvenParityErrors = 0;
@@ -67,7 +69,10 @@ bool Align::promisingPartial(const vector<int>& actualToRef) const
   for (unsigned i = 0; i < actualToRef.size(); i++)
   {
     if (actualToRef[i] == -1)
+    {
       numAdd++;
+      continue;
+    }
 
     if (i % 2 == 0)
     {
@@ -82,7 +87,7 @@ bool Align::promisingPartial(const vector<int>& actualToRef) const
     cout << "align check " << numAdd << ", " <<
       numEvenParityErrors << ", " << numOddParityErrors << "\n";
 
-  return (numAdd == 0 && 
+  return ((allowAddFlag || numAdd == 0) && 
       numEvenParityErrors == 0 && 
       numOddParityErrors == 0);
 }
@@ -413,7 +418,7 @@ bool Align::realign(
 
     // Run Needleman-Wunsch matching.
     dynprog.run(refInfo.positions, peaksInfo.penaltyFactor, scaledPeaks, 
-      fullPenalties, match);
+      fullPenalties, false, match);
     matches.push_back(match);
   }
 
@@ -522,7 +527,7 @@ void Align::alignIteration(
   Align::setupDynRun(refPositions.size(), scaledPeaks.size(),
     penaltyFactor, match);
 
-  dynprog.run(refPositions, penaltyFactor, scaledPeaks, penalties, match); 
+  dynprog.run(refPositions, penaltyFactor, scaledPeaks, penalties, true, match); 
 
   Align::printVector(scaledPeaks, text);
   cout << text << ":\n" << match.str() << "\n";
@@ -580,9 +585,16 @@ cout << "Trying train " << refTrain << endl;
       penaltyFactor, match);
 
     dynprog.run(refInfo.positions, penaltyFactor, scaledPeaks, 
-      partialPenalties, match);
+      partialPenalties, true, match);
 
-    if (! Align::promisingPartial(match.actualToRef))
+/*
+cout << "align:\n";
+for (unsigned i = 0; i < match.actualToRef.size(); i++)
+  if (match.actualToRef[i] != -1)
+    cout << i << ": " << match.actualToRef[i] << "\n";
+    */
+
+    if (! Align::promisingPartial(match.actualToRef, false))
       continue;
 
 Align::printVector(refInfo.positions, "Reference");
@@ -593,7 +605,7 @@ Align::printMatch(match, scaledPeaks.size(), "Partial match");
       times, bogieTimes, scaledPeaks.size(), "Full linear match", penaltyFactor,
       scaledPeaks, match);
 
-    if (! Align::promisingPartial(match.actualToRef))
+    if (! Align::promisingPartial(match.actualToRef, true))
     {
       cout << "Failed the plausible match test\n";
 
@@ -608,7 +620,7 @@ Align::printMatch(match, scaledPeaks.size(), "Supposedly full match");
 
 Align::printMatch(match, scaledPeaks.size(), "Final linear match");
 
-      if (! Align::promisingPartial(match.actualToRef))
+      if (! Align::promisingPartial(match.actualToRef, true))
       {
         cout << "Failed the plausible match test\n";
         continue;

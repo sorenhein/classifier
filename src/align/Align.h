@@ -36,7 +36,8 @@ class Align
       const Alignment& match) const;
 
     bool promisingPartial(
-      const vector<int>& actualToRef) const;
+      const vector<int>& actualToRef,
+      const bool allowAddFlag) const;
 
     unsigned getGoodCount(
       const vector<int>& actualToRef) const;
