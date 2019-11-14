@@ -39,6 +39,8 @@ class Align
       const vector<int>& actualToRef,
       const bool allowAddFlag) const;
 
+    bool plausibleCounts(const Alignment& match) const;
+
     unsigned getGoodCount(
       const vector<int>& actualToRef) const;
 

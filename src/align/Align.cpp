@@ -93,6 +93,49 @@ bool Align::promisingPartial(
 }
 
 
+bool Align::plausibleCounts(const Alignment& match) const
+{
+  // There should not be many unmatched bogies in the reference signal.
+  if (match.numAdd > 2)
+  {
+    cout << match.numDelete << " deletions, " <<
+      match.numAdd << " additions\n";
+
+cout << "align:\n";
+for (unsigned i = 0; i < match.actualToRef.size(); i++)
+  if (match.actualToRef[i] != -1)
+    cout << i << ": " << match.actualToRef[i] << "\n";
+
+    return false;
+  }
+
+  unsigned firstRefMatch = numeric_limits<unsigned>::max();
+  for (unsigned i = 0; i < match.actualToRef.size(); i++)
+  {
+    if (match.actualToRef[i] != -1)
+    {
+      firstRefMatch = match.actualToRef[i];
+      break;
+    }
+  }
+
+  // There should not be many leading reference peaks that are missing.
+  if (firstRefMatch > 8)
+  {
+    cout << firstRefMatch << " is first match\n";
+
+cout << "align:\n";
+for (unsigned i = 0; i < match.actualToRef.size(); i++)
+  if (match.actualToRef[i] != -1)
+    cout << i << ": " << match.actualToRef[i] << "\n";
+
+    return false;
+  }
+
+  return true;
+}
+
+
 unsigned Align::getGoodCount(const vector<int>& actualToRef) const
 {
   for (unsigned i = 0; i < actualToRef.size(); i++)
@@ -573,6 +616,13 @@ if (times.empty())
     if (! trainDB.isInCountry(match.trainNo, sensorCountry))
       continue;
 
+    // Shouldn't be many spurious bogies.
+    if (match.numAxles + 2 < peaksInfo.numPeaks)
+    {
+      cout << "FLAGGING " << match.numAxles << ", " << peaksInfo.numPeaks << endl;
+      // continue;
+    }
+
     const PeaksInfo& refInfo = trainDB.getRefInfo(match.trainNo);
 
 cout << "Trying train " << refTrain << endl;
@@ -625,6 +675,12 @@ Align::printMatch(match, scaledPeaks.size(), "Final linear match");
         cout << "Failed the plausible match test\n";
         continue;
       }
+    }
+
+    if (! Align::plausibleCounts(match))
+    {
+      cout << "Implausible match counts\n";
+      continue;
     }
 
     // Regress quadratically on all bogie peaks.
