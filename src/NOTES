@@ -1,3 +1,22 @@
+Order:
+- 6 peaks
+- set up dyn run
+- dyn run
+- give up if ! promising partial
+- regress on 6 peaks
+
+- spread all peaks
+- set up dyn run
+- dyn run
+- if no change in a2r, can stop
+- regress
+- cut off on jump
+- regress again
+
+- can repeat this 1-2 times
+
+
+
 Ideas:
 0. When residuals look as if we've lost alignment, stop
 1. First clean up code in Align

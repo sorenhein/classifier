@@ -159,6 +159,8 @@ class Align
       const bool storeFlag,
       Alignment& match) const;
 
+    void stopAtLargeJump(Alignment& match);
+
 
   public:
 

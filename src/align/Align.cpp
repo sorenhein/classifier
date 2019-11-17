@@ -545,6 +545,27 @@ void Align::printVector(
 }
 
 
+void Align::stopAtLargeJump(Alignment& match)
+{
+  for (unsigned i = 1; i < match.actualToRef.size(); i++)
+  {
+    unsigned j = match.actualToRef.size() - 1 - i;
+    if (match.actualToRef[i] == -1)
+      break;
+
+    if (abs(match.residuals[j].value - match.residuals[j+1].value) > 3.f &&
+        match.residuals[j].value * match.residuals[j+1].value < 0.f)
+    {
+      // Opposite signs, large jump.
+cout << "Found large jump at " << j << endl;
+      for (unsigned k = 0; k <= j; k++)
+        match.actualToRef[k] = -1;
+      break;
+    }
+  }
+}
+
+
 void Align::alignIteration(
   const vector<float>& refPositions,
   const DynamicPenalties& penalties,
@@ -570,7 +591,10 @@ void Align::alignIteration(
   Align::setupDynRun(refPositions.size(), scaledPeaks.size(),
     penaltyFactor, match);
 
-  dynprog.run(refPositions, penaltyFactor, scaledPeaks, penalties, true, match); 
+  dynprog.run(refPositions, penaltyFactor, scaledPeaks, penalties, 
+    true, match); 
+
+  Align::stopAtLargeJump(match);
 
   Align::printVector(scaledPeaks, text);
   cout << text << ":\n" << match.str() << "\n";
