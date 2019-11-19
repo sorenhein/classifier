@@ -1,5 +1,10 @@
 Order:
 - 6 peaks
+- Guess speed (actually average of bogie distances?)
+
+- Can then go directly to spreading all peaks;
+  if first time, mark a number of numAdd (delete?)
+
 - set up dyn run
 - dyn run
 - give up if ! promising partial
