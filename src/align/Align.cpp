@@ -550,6 +550,7 @@ void Align::stopAtLargeJump(Alignment& match)
   for (unsigned i = 1; i < match.actualToRef.size(); i++)
   {
     unsigned j = match.actualToRef.size() - 1 - i;
+    // TODO Should be j
     if (match.actualToRef[i] == -1)
       break;
 
@@ -563,6 +564,42 @@ cout << "Found large jump at " << j << endl;
       break;
     }
   }
+}
+
+
+unsigned Align::cutoff(Alignment& match)
+{
+  // Returns the number of plausible matches from the back.
+  bool cutFlag = false;
+  unsigned cutPos = 0;
+  for (unsigned i = 1; i < match.actualToRef.size(); i++)
+  {
+    unsigned j = match.actualToRef.size() - 1 - i;
+    if (match.actualToRef[j] == -1)
+    {
+      cutFlag = true;
+      cutPos = j;
+      break;
+    }
+
+    if (abs(match.residuals[j].value - match.residuals[j+1].value) > 3.f &&
+        match.residuals[j].value * match.residuals[j+1].value < 0.f)
+    {
+      // Opposite signs, large jump.
+cout << "Found large cutoff at " << j << endl;
+      cutFlag = true;
+      cutPos = j;
+      break;
+    }
+  }
+
+  if (cutFlag)
+  {
+    for (unsigned i = 0; i <= cutPos; i++)
+      match.actualToRef[i] = -1;
+  }
+
+  return match.actualToRef.size() - 1 - cutPos;
 }
 
 
@@ -598,6 +635,50 @@ void Align::alignIteration(
 
   Align::printVector(scaledPeaks, text);
   cout << text << ":\n" << match.str() << "\n";
+}
+
+
+bool Align::iterate(
+  const vector<float>& refPositions,
+  const DynamicPenalties& penalties,
+  const vector<float>& timesSeen,
+  const list<BogieTimes>& bogieTimes,
+  Alignment& match)
+{
+  // The starting point is a new set of motion parameters.
+  // Returns true if there is no change in alignment.
+
+  // Distribute all the bogies with these motion parameters.
+  // Kludge: Make up my mind, probably scale bogieTimes already.
+  // Don't scale back and forth.
+  vector<float> scaledPeaks;
+  Align::distributeBogies(bogieTimes, bogieTimes.cbegin(),
+    match.motion.estimate[0], match.motion.estimate[1] / 2000.f, scaledPeaks);
+
+  // Run the regular Needleman-Wunsch matching.
+  vector<float> penaltyFactor;
+  Align::setupDynRun(refPositions.size(), scaledPeaks.size(),
+    penaltyFactor, match);
+
+  dynprog.run(refPositions, penaltyFactor, scaledPeaks, penalties, 
+    true, match); 
+
+  if (! match.dynChangeFlag)
+    return true;
+
+  // Regress linearly on the scaledPeaks.
+  // TODO Figure out count, maybe set add/delete in match
+  Align::getPartialMatch(timesSeen, scaledPeaks, scaledPeaks.size(),
+    refPositions, match);
+
+  // Cut off when we hit -1 or a large jump suggesting a skipped bogie.
+  const unsigned numPlausible = Align::cutoff(match);
+  
+  // Rerun regression.
+  // TODO Figure out count, maybe set add/delete in match
+  Align::getPartialMatch(timesSeen, scaledPeaks, numPlausible,
+    refPositions, match);
+  return false;
 }
 
 

@@ -161,6 +161,16 @@ class Align
 
     void stopAtLargeJump(Alignment& match);
 
+    unsigned cutoff(Alignment& match);
+
+    bool iterate(
+      const vector<float>& refPositions,
+      const DynamicPenalties& penalties,
+      const vector<float>& timesSeen,
+      const list<BogieTimes>& bogieTimes,
+      Alignment& match);
+
+
 
   public:
 
