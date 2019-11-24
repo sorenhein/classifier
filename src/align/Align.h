@@ -69,6 +69,11 @@ class Align
       Alignment& match,
       vector<float>& scaledPeaks) const;
 
+    bool bootstrapMotion(
+      const PeaksInfo& refInfo,
+      const list<BogieTimes>& bogieTimes,
+      Alignment& match) const;
+
     bool scaleLastBogies(
       const PeaksInfo& refInfo,
       const list<BogieTimes>& bogieTimes,
@@ -168,7 +173,8 @@ class Align
       const DynamicPenalties& penalties,
       const vector<float>& timesSeen,
       const list<BogieTimes>& bogieTimes,
-      Alignment& match);
+      Alignment& match,
+      unsigned& numPlausible);
 
 
 

@@ -391,6 +391,34 @@ void Align::distributeBogies(
 
 #define LAST_DIST_LIMIT 0.5
 
+bool Align::bootstrapMotion(
+  const PeaksInfo& refInfo,
+  const list<BogieTimes>& bogieTimes,
+  Alignment& match) const
+{
+  // Just the last bogie.
+  if (bogieTimes.empty())
+    return false;
+
+  const unsigned lr = refInfo.positions.size();
+  const BogieTimes& lastBogie = bogieTimes.back();
+
+  // Align the last two wheels.
+  match.motion.estimate[1] = 
+    2000.f * (refInfo.positions[lr-1] - refInfo.positions[lr-2]) /
+    (lastBogie.second - lastBogie.first);
+
+  match.motion.estimate[0] = 
+    refInfo.positions[lr-1] - 
+      match.motion.estimate[1] * lastBogie.second / 2000.f;
+
+cout << "bootstrap motion " << setw(15) << "" <<
+  match.motion.estimate[0] << " m, " <<
+  match.motion.estimate[1] << " m/s" << endl;
+
+  return true;
+}
+
 bool Align::scaleLastBogies(
   const PeaksInfo& refInfo,
   const list<BogieTimes>& bogieTimes,
@@ -492,11 +520,11 @@ void Align::getPartialMatch(
   for (unsigned i = 0; i < scaledPeaks.size(); i++)
     backTimes.push_back(times[times.size() - scaledPeaks.size() + i]);
 
-  Align::regressTrain(backTimes, refPositions, false, false, match);
+  Align::regressTrain(backTimes, refPositions, false, true, match);
 
-cout << "6-peak parameters:\n";
-cout << match.motion.estimate[0] << ", " << match.motion.estimate[1] << "\n\n";
-
+cout << "motion parameters for " << scaledBackCount << " peaks: " <<
+  match.motion.estimate[0] << " m, " << match.motion.estimate[1] << 
+  " m/s\n\n";
 }
 
 
@@ -551,7 +579,7 @@ void Align::stopAtLargeJump(Alignment& match)
   {
     unsigned j = match.actualToRef.size() - 1 - i;
     // TODO Should be j
-    if (match.actualToRef[i] == -1)
+    if (match.actualToRef[j] == -1)
       break;
 
     if (abs(match.residuals[j].value - match.residuals[j+1].value) > 3.f &&
@@ -571,7 +599,7 @@ unsigned Align::cutoff(Alignment& match)
 {
   // Returns the number of plausible matches from the back.
   bool cutFlag = false;
-  unsigned cutPos = 0;
+  unsigned cutPos = numeric_limits<unsigned>::max();
   for (unsigned i = 1; i < match.actualToRef.size(); i++)
   {
     unsigned j = match.actualToRef.size() - 1 - i;
@@ -582,8 +610,20 @@ unsigned Align::cutoff(Alignment& match)
       break;
     }
 
-    if (abs(match.residuals[j].value - match.residuals[j+1].value) > 3.f &&
-        match.residuals[j].value * match.residuals[j+1].value < 0.f)
+    if ((j & 1) && match.actualToRef[j-1]+1 != match.actualToRef[j])
+    {
+      // Dynamic programming aligns across bogies.
+cout << "Found in-bogie jump at " << j << endl;
+      cutFlag = true;
+      cutPos = j;
+      break;
+    }
+
+    const float rleft = match.residualsActual[j].value;
+    const float rright = match.residualsActual[j+1].value;
+
+    if (abs(rleft - rright) >5.f ||
+        (abs(rleft - rright) > 3.f && rleft * rright < 0.f))
     {
       // Opposite signs, large jump.
 cout << "Found large cutoff at " << j << endl;
@@ -599,7 +639,10 @@ cout << "Found large cutoff at " << j << endl;
       match.actualToRef[i] = -1;
   }
 
-  return match.actualToRef.size() - 1 - cutPos;
+  if (cutPos < match.actualToRef.size())
+    return match.actualToRef.size() - 1 - cutPos;
+  else
+    return match.actualToRef.size();
 }
 
 
@@ -643,7 +686,8 @@ bool Align::iterate(
   const DynamicPenalties& penalties,
   const vector<float>& timesSeen,
   const list<BogieTimes>& bogieTimes,
-  Alignment& match)
+  Alignment& match,
+  unsigned& numPlausible)
 {
   // The starting point is a new set of motion parameters.
   // Returns true if there is no change in alignment.
@@ -668,14 +712,59 @@ bool Align::iterate(
 
   // Regress linearly on the scaledPeaks.
   // TODO Figure out count, maybe set add/delete in match
+  match.motion.estimate[2] = 0.f;
   Align::getPartialMatch(timesSeen, scaledPeaks, scaledPeaks.size(),
     refPositions, match);
 
+  // Uncompactify the residuals for easier reference.
+  match.residualsActual.resize(scaledPeaks.size());
+  unsigned p = 0;
+  for (unsigned i = 0; i < scaledPeaks.size(); i++)
+  {
+    if (match.actualToRef[i] != -1)
+    {
+      match.residualsActual[i] = match.residuals[p];
+      p++;
+    }
+  }
+
+cout << setw(6) << "" << setw(8) << "ref" <<
+  setw(8) << "resid" << 
+  setw(8) << "time" << 
+  setw(8) << "scaled" <<
+  setw(6) << "a2r" << "\n";
+for (unsigned i = 0; i < refPositions.size(); i++)
+{
+  cout << setw(6) << left << i <<
+    setw(8) << right << fixed << setprecision(2) << refPositions[i];
+  if (i >= scaledPeaks.size())
+    cout << "\n";
+  else
+  {
+    if (match.actualToRef[i] == -1 &&
+        abs(match.residualsActual[i].value) > 10000.)
+      cout << setw(8) << "-";
+    else
+      cout << setw(8) << match.residualsActual[i].value;
+
+    cout <<
+      setw(8) << timesSeen[i] << 
+      setw(8) << scaledPeaks[i] << 
+      setw(6) << match.actualToRef[i] << endl;
+  }
+}
+cout << "\n";
+
   // Cut off when we hit -1 or a large jump suggesting a skipped bogie.
-  const unsigned numPlausible = Align::cutoff(match);
+  numPlausible = Align::cutoff(match);
+cout << "numPlausible: " << numPlausible << endl;
+  if (numPlausible <= 2)
+    return true;
   
   // Rerun regression.
   // TODO Figure out count, maybe set add/delete in match
+  match.numAdd = scaledPeaks.size() - numPlausible;
+
   Align::getPartialMatch(timesSeen, scaledPeaks, numPlausible,
     refPositions, match);
   return false;
@@ -731,7 +820,43 @@ if (times.empty())
     const PeaksInfo& refInfo = trainDB.getRefInfo(match.trainNo);
 
 cout << "Trying train " << refTrain << endl;
+if (refTrain == "ICET_DEU_56_N")
+  cout << "HERE\n";
+    
+/* */
+    if (! Align::bootstrapMotion(refInfo, bogieTimes, match))
+      continue;
 
+    unsigned iter = 0;
+    bool doneFlag = false;
+    unsigned numPlausible = numeric_limits<unsigned>::max();
+    do
+    {
+      if (Align::iterate(refInfo.positions, partialPenalties,
+          times, bogieTimes, match, numPlausible))
+      {
+        cout << "done " << iter << ":\n" << match.str() << "\n";
+        doneFlag = true;
+        break;
+      }
+      else
+      {
+        cout << "iter " << iter << ":\n" << match.str() << "\n";
+        iter++;
+      }
+    }
+    while (iter < 3);
+
+    if (! doneFlag || numPlausible <= 2) 
+    {
+cout << "Match failed\n\n";
+      continue;
+    }
+/* */
+
+
+
+/*
     if (! Align::scaleLastBogies(refInfo, bogieTimes, 3, scaledPeaks))
       continue;
 
@@ -741,13 +866,6 @@ cout << "Trying train " << refTrain << endl;
 
     dynprog.run(refInfo.positions, penaltyFactor, scaledPeaks, 
       partialPenalties, true, match);
-
-/*
-cout << "align:\n";
-for (unsigned i = 0; i < match.actualToRef.size(); i++)
-  if (match.actualToRef[i] != -1)
-    cout << i << ": " << match.actualToRef[i] << "\n";
-    */
 
     if (! Align::promisingPartial(match.actualToRef, false))
       continue;
@@ -787,6 +905,7 @@ Align::printMatch(match, scaledPeaks.size(), "Final linear match");
       cout << "Implausible match counts\n";
       continue;
     }
+*/
 
     // Regress quadratically on all bogie peaks.
     Align::regressTrain(times, refInfo.positions, true, true, match);

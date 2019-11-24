@@ -49,7 +49,9 @@ struct Alignment
 
   Motion motion;
 
-  vector<RegrEntry> residuals;
+  vector<RegrEntry> residuals; // Compactly stored
+
+  vector<RegrEntry> residualsActual; // Aligned to actuals
 
   vector<RegrEntry> topResiduals;
 
