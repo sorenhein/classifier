@@ -35,15 +35,6 @@ class Align
       const TrainDB& trainDB,
       const Alignment& match) const;
 
-    bool promisingPartial(
-      const vector<int>& actualToRef,
-      const bool allowAddFlag) const;
-
-    bool plausibleCounts(const Alignment& match) const;
-
-    unsigned getGoodCount(
-      const vector<int>& actualToRef) const;
-
     bool alignFronts(
       const PeaksInfo& refInfo,
       const PeaksInfo& peaksInfo,
@@ -74,12 +65,6 @@ class Align
       const list<BogieTimes>& bogieTimes,
       Alignment& match) const;
 
-    bool scaleLastBogies(
-      const PeaksInfo& refInfo,
-      const list<BogieTimes>& bogieTimes,
-      const unsigned numBogies,
-      vector<float>& scaledPeaks) const;
-
     void getPartialMatch(
       const vector<float>& times,
       const vector<float>& scaledPeaks,
@@ -92,26 +77,6 @@ class Align
       const unsigned seenSize,
       vector<float>& penaltyFactor,
       Alignment& match) const;
-
-    void printMatch(
-      const Alignment& match,
-      const unsigned len,
-      const string& text) const;
-
-    void printVector(
-      const vector<float>& v,
-      const string& text) const;
-
-    void alignIteration(
-      const vector<float>& refPositions,
-      const DynamicPenalties& penalties,
-      const vector<float>& timesSeen,
-      const list<BogieTimes>& bogieTimes,
-      const unsigned scaledCount,
-      const string& text,
-      vector<float>& penaltyFactor,
-      vector<float>& scaledPeaks,
-      Alignment& match);
 
     Motion const * getMatchingMotion(const string& trainName) const;
 
@@ -163,8 +128,6 @@ class Align
       const bool accelFlag,
       const bool storeFlag,
       Alignment& match) const;
-
-    void stopAtLargeJump(Alignment& match);
 
     unsigned cutoff(Alignment& match);
 
