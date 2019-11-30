@@ -75,6 +75,11 @@ class AccelDetect
 
     void estimateScale();
 
+    bool getMulti(
+      list<Extremum>& minima,
+      list<Extremum>::iterator& minit1,
+      list<Extremum>::iterator& minit2) const;
+
     bool below(
       const bool minFlag,
       const float level,

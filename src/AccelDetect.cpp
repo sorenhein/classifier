@@ -661,6 +661,43 @@ void AccelDetect::setExtrema(
 }
 
 
+bool AccelDetect::getMulti(
+  list<Extremum>& minima,
+  list<Extremum>::iterator& minit1,
+  list<Extremum>::iterator& minit2) const
+{
+  // There are probably several bogies in the interval.
+
+  // Discard minima that are not deep enough.
+  const float amplLimit = 0.5f * minima.begin()->ampl;
+  list<Extremum>::iterator bit = prev(minima.end());
+  while (bit != minima.begin() && bit ->ampl > amplLimit)
+    bit--;
+  if (bit == minima.begin())
+    return false;
+  minima.erase(bit, minima.end());
+  if (minima.size() < 2)
+    return false;
+
+  // Could make sure we have an even number.
+  // Sort them back into temporal order.
+  minima.sort([](const Extremum& m1, const Extremum& m2)
+  {
+    return (m1.origin > m2.origin);
+  });
+
+  cout << "Minima now\n";
+  for (auto& m: minima)
+    cout << m.str(offset);
+  cout << "\n";
+
+
+  minit2 = minima.begin();
+  minit1 = next(minit2);
+  return true;
+}
+
+
 bool AccelDetect::getLimits(
   unsigned& lower,
   unsigned& upper,
@@ -724,10 +761,14 @@ bool AccelDetect::getLimits(
 
   if (minima.size() >= 3 && minit3->ampl < 0.5f * minit1->ampl)
   {
-    cout << "Third-largest minimum should be almost positive.\n";
-    return false;
+    if (! AccelDetect::getMulti(minima, minit1, minit2))
+    {
+      cout << "Third-largest minimum should be almost positive.\n";
+      return false;
+    }
   }
 
+  // Not necessarily the next maximum.  Not sure what's best here.
   list<Extremum>::iterator maxit = maxima.begin();
   while (maxit != maxima.end() && maxit->index < minit2->index)
     maxit++;
