@@ -401,7 +401,7 @@ void Explore::findSpeedBumps(
 
   for (unsigned bend: bogieEnds)
   {
-    if (bend - activeLen < tol)
+    if (bend < activeLen + tol)
       lowerExt = 0;
     else
       lowerExt = bend - activeLen - tol;

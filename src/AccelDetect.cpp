@@ -722,7 +722,7 @@ bool AccelDetect::getLimits(
     return false;
   }
 
-  if (minima.size() >= 3 && minit3->ampl < 0.2f * minit1->ampl)
+  if (minima.size() >= 3 && minit3->ampl < 0.5f * minit1->ampl)
   {
     cout << "Third-largest minimum should be almost positive.\n";
     return false;
