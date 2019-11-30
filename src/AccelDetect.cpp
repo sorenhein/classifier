@@ -671,7 +671,7 @@ bool AccelDetect::getMulti(
   // Discard minima that are not deep enough.
   const float amplLimit = 0.5f * minima.begin()->ampl;
   list<Extremum>::iterator bit = prev(minima.end());
-  while (bit != minima.begin() && bit ->ampl > amplLimit)
+  while (bit != minima.begin() && prev(bit)->ampl > amplLimit)
     bit--;
   if (bit == minima.begin())
     return false;
