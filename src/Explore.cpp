@@ -107,6 +107,69 @@ void Explore::filter(
 }
 
 
+void Explore::setupGaussian(const float& sigma)
+{
+  const unsigned lobe = static_cast<unsigned>(3.f * sigma);
+
+  gaussian.clear();
+  gaussian.resize(lobe+1);
+
+  const float factor = 1.f / (2.f * sigma * sigma);
+  gaussian[0] = 1.f;
+  float sum = 1.f;
+  for (unsigned i = 1; i <= lobe; i++)
+  {
+    gaussian[i] = exp(- (i*i * factor));
+    sum += 2.f * gaussian[i]; // Positive and negative lobe
+  }
+
+  for (unsigned i = 0; i <= lobe; i++)
+    gaussian[i] /= sum;
+}
+
+
+float Explore::filterEdgeGaussian(
+  const vector<float>& accel,
+  const unsigned pos,
+  const unsigned lobe) const
+{
+  float f = gaussian[0] * accel[pos];
+  float coeffSum = gaussian[0];
+
+  for (unsigned j = 1; j <= lobe; j++)
+  {
+    f += gaussian[j] * (accel[pos-j] + accel[pos+j]);
+    coeffSum += 2.f * gaussian[j];
+  }
+  return f / coeffSum;
+}
+
+
+void Explore::filterGaussian(
+  const vector<float>& integrand,
+  vector<float>& result)
+{
+  result.resize(integrand.size());
+
+  // Front and back.
+  const unsigned al = integrand.size();
+  const unsigned lobe = gaussian.size()-1;
+  for (unsigned i = 0; i <= lobe; i++)
+  {
+    result[i] = Explore::filterEdgeGaussian(integrand, i, i);
+    result[al-i-1] = Explore::filterEdgeGaussian(integrand, al-i-1, i);
+  }
+
+  // Center.
+  for (unsigned i = lobe+1; i < al-lobe-1; i++)
+  {
+    result[i] = gaussian[0] * integrand[i];
+    for (unsigned j = 1; j <= lobe; j++)
+      result[i] += gaussian[j] * (integrand[i+j] + integrand[i-j]);
+  }
+}
+
+
 void Explore::integrate(
   const vector<float>& accel,
   const unsigned start,
@@ -449,6 +512,16 @@ void Explore::correlate(
   PeaksInfo& peaksInfo,
   list<BogieTimes>& bogieTimes)
 {
+  // Explore::setupGaussian(5.f);
+
+/*
+cout << "Gfilter\n";
+for (unsigned i = 0; i < gaussian.size(); i++)
+  cout << i << ";" << gaussian[i] << endl;
+cout << "\n";
+*/
+
+  // Explore::filterGaussian(accel, filtered);
   Explore::filter(accel, filtered);
 
   if (data.empty())
@@ -464,6 +537,20 @@ void Explore::correlate(
   vector<float> speed;
   speed.resize(len);
   Explore::integrate(filtered, s, e, 2000.f, speed);
+
+cout << "Gauss\n";
+float pos = 0.f;
+for (unsigned i = 7000; i < 7800; i++)
+{
+  cout << i << ";" << accel[i] << ";" << filtered[i];
+  if (i >= s && i < s+speed.size())
+  {
+    pos += speed[i-s];
+    cout << ";" << speed[i-s] << ";" << pos;
+  }
+  cout << "\n";
+}
+cout << "\n";
 
 /*
   cout << "Speed\n";
@@ -522,33 +609,33 @@ cout << "Filtering the bogie correlation" << endl;
   Explore::filter(bogieConv, bogieFilt);
 
   AccelDetect accelDetect;
-cout << "Logging the filtered signal" << endl;
+  cout << "Logging the filtered signal" << endl;
   accelDetect.log(bogieFilt, 0, accel.size());
-cout << "Extracting correlation peaks, " << bogieFilt[s+upper] << endl;
+  cout << "Extracting correlation peaks, " << bogieFilt[s+upper] << endl;
   accelDetect.extractCorr(bogieFilt[s+upper], "accel");
-cout << "Extracted correlation peaks" << endl;
+  cout << "Extracted correlation peaks" << endl;
 
   list<unsigned> bogieEnds;
   Explore::findCorrelationPeaks(accelDetect.getPeaks(), 
-    bogieFilt[s+upper], spacing, bogieEnds);
+      bogieFilt[s+upper], spacing, bogieEnds);
 
-cout << "Bogie end positions\n";
-for (auto b: bogieEnds)
-  cout << b << "\n";
-cout << endl;
+  cout << "Bogie end positions\n";
+  for (auto b: bogieEnds)
+    cout << b << "\n";
+  cout << endl;
 
   Explore::findSpeedBumps(filtered, bogieEnds, upper-lower, 2000.f, bogieTimes);
 
-cout << "Speed bumps\n";
-unsigned prev = 0;
-for (auto b: bogieTimes)
-{
-  cout << setw(4) << b.first << setw(6) << b.first-prev << "\n";
-  prev = b.first;
-  cout << setw(4) << b.second << setw(6) << b.second-prev << "\n";
-  prev = b.second;
-}
-cout << endl;
+  cout << "Speed bumps\n";
+  unsigned prev = 0;
+  for (auto b: bogieTimes)
+  {
+    cout << setw(4) << b.first << setw(6) << b.first-prev << "\n";
+    prev = b.first;
+    cout << setw(4) << b.second << setw(6) << b.second-prev << "\n";
+    prev = b.second;
+  }
+  cout << endl;
 
   UNUSED(peaksInfo);
 }

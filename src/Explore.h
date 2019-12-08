@@ -36,17 +36,30 @@ class Explore
       vector<Correlate> correlates;
     };
 
+    vector<float> gaussian;
+
     vector<float> filtered;
 
     vector<Datum> data;
 
+
+    void setupGaussian(const float& sigma);
 
     float filterEdge(
       const vector<float>& accel,
       const unsigned pos,
       const unsigned lobe) const;
 
+    float filterEdgeGaussian(
+      const vector<float>& accel,
+      const unsigned pos,
+      const unsigned lobe) const;
+
     void filter(
+      const vector<float>& integrand,
+      vector<float>& result);
+
+    void filterGaussian(
       const vector<float>& integrand,
       vector<float>& result);
 

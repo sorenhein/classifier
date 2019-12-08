@@ -1,30 +1,4 @@
-Order:
-- 6 peaks
-- Guess speed (actually average of bogie distances?)
-
-- Can then go directly to spreading all peaks;
-  if first time, mark a number of numAdd (delete?)
-
-- set up dyn run
-- dyn run
-- give up if ! promising partial
-- regress on 6 peaks
-
-- spread all peaks
-- set up dyn run
-- dyn run
-- if no change in a2r, can stop
-- regress
-- cut off on jump
-- regress again
-
-- can repeat this 1-2 times
-
-
-
 Ideas:
-0. When residuals look as if we've lost alignment, stop
-1. First clean up code in Align
 2. Quiet needs to deal with 4-6 wheels in the end piece
 3. Sometimes get matches with very long trains.  Look at #wheels
    before time 0, and limit this to maybe 8
