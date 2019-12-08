@@ -356,22 +356,23 @@ for (unsigned i = interval.first; i < interval.first + interval.len; i++)
   rawAccel[i-interval.first] = accel[i];
   */
 
+    // Integrate and condition the signal.
+    runFilter(traceData.sampleRate, interval.first, interval.len, thid, 
+      filter);
+
 Explore explore;
 PeakPtrs pptmp;
 explore.log(actives, pptmp);
 PeaksInfo peaksInfoTmp;
 list<BogieTimes> bogieTimes;
-explore.correlate(accel, peaksInfoTmp, bogieTimes);
+explore.correlate(accel, filter.getDeflection(), interval.first,
+  peaksInfoTmp, bogieTimes);
 
 Align alignExpl;
 alignExpl.realign(trainDB, traceData.countrySensor, bogieTimes);
 cout << "True train (bogie) " << traceData.trainTrue << " at " <<
   fixed << setprecision(2) << traceData.speed << " m/s\n\n";
 cout << alignExpl.strRegress(control);
-
-    // Integrate and condition the signal.
-    runFilter(traceData.sampleRate, interval.first, interval.len, thid, 
-      filter);
 
 /*
 cout << "ACCEL\n";

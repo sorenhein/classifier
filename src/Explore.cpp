@@ -190,6 +190,21 @@ void Explore::integrate(
 }
 
 
+void Explore::differentiate(
+  const vector<float>& position,
+  const float sampleRate,
+  vector<float>& speed) const
+{
+  // As speed is in 0.01 m/s, we need this factor to get back from
+  // the position to speed.
+  const float factor = sampleRate / 100.f;
+
+  speed[0] = 0.f;
+  for (unsigned i = 0; i < position.size(); i++)
+    speed[i] = factor * (position[i] - position[i-1]);
+}
+
+
 void Explore::correlateFixed(
   const QuietInterval& first,
   const QuietInterval& second,
@@ -357,7 +372,6 @@ unsigned Explore::powerOfTwo(const unsigned len) const
 void Explore::setCorrelands(
   const vector<float>& accel,
   const unsigned len,
-  const unsigned start,
   const unsigned lower,
   const unsigned upper,
   vector<float>& bogieRev,
@@ -369,15 +383,15 @@ void Explore::setCorrelands(
   wheel2Rev.resize(len);
 
   // Reversed in preparation for convolution.
-  for (unsigned i = start+lower; i < start+upper; i++)
-    bogieRev[start+upper-1-i] = accel[i];
+  for (unsigned i = lower; i < upper; i++)
+    bogieRev[upper-1-i] = accel[i];
 
-  const unsigned mid = (start+lower + start+upper) / 2;
-  for (unsigned i = mid; i < start+upper; i++)
-    wheel2Rev[start+upper-1-i] = accel[i];
+  const unsigned mid = (lower + upper) / 2;
+  for (unsigned i = mid; i < upper; i++)
+    wheel2Rev[upper-1-i] = accel[i];
 
-  for (unsigned i = start+lower; i < mid; i++)
-    wheel1Rev[start+upper-1-i] = accel[i];
+  for (unsigned i = lower; i < mid; i++)
+    wheel1Rev[upper-1-i] = accel[i];
 
 /*
   cout << "Correlands\n";
@@ -417,6 +431,8 @@ void Explore::findCorrelationPeaks(
   const unsigned spacingLo = static_cast<unsigned>(spacing * 0.75f);
   const unsigned spacingHi = static_cast<unsigned>(spacing * 1.25f);
 
+cout << "Spacing " << spacing << endl;
+
   while (true)
   {
     const float level0 = pit0->getValue();
@@ -428,16 +444,20 @@ void Explore::findCorrelationPeaks(
     const unsigned diff10 = pos1 - pos0;
     const unsigned diff21 = pos2 - pos1;
 
+cout << "pos1 " << pos1 << ", levels " << level0 << ", " << level1 << ", " << level2 << ", " <<
+  diff10 << ", " << diff21 << endl;
+  
     if (level0 > 0.2f * level1 &&
-        level1 > 0.5f * ampl &&
+        level1 > 0.4f * ampl &&
         level2 > 0.2f * level1 &&
         level0 < level1 &&
-        level2 < level1 &&
-        diff10 >= spacingLo &&
-        diff10 >= spacingLo &&
-        diff21 <= spacingHi &&
-        diff10 <= spacingHi)
+        level2 < level1)
+        // diff10 >= spacingLo &&
+        // diff21 >= spacingLo &&
+        // diff21 <= spacingHi &&
+        // diff10 <= spacingHi)
     {
+cout << "HIT " << pos1 << "\n";
       // Plausible correlation peak.
       bogieEnds.push_back(pos1);
     }
@@ -505,10 +525,162 @@ cout << "--------------------------\n\n";
   }
 }
 
+
+void Explore::makeZCintervals(
+  const vector<float>& position,
+  const unsigned posStart,
+  const unsigned posEnd,
+  list<ZCinterval>& ZCmaxima,
+  list<ZCinterval>& ZCminima) const
+{
+  unsigned pStart = posStart;
+  unsigned iMax = numeric_limits<unsigned>::max();
+  float vMax = 0.f;
+  bool posFlag = (position[posStart] >= 0.f);
+  unsigned countMax = 0;
+  unsigned countMin = 0;
+
+  for (unsigned i = posStart; i < posEnd-1; i++)
+  {
+    if ((posFlag && position[i] > vMax) ||
+        (! posFlag && position[i] < vMax))
+    {
+      iMax = i;
+      vMax = position[i];
+    }
+
+    if (posFlag && (position[i+1] < 0.f || i+2 == posEnd))
+    {
+      ZCmaxima.emplace_back(ZCinterval());
+      ZCinterval& zc = ZCmaxima.back();
+      zc.start = pStart;
+      zc.end = i;
+      zc.index = iMax;
+      zc.value = vMax;
+      zc.count = countMax++;
+      pStart = i+1;
+      vMax = 0.f;
+      posFlag = false;
+    }
+    else if (! posFlag && (position[i+1] >= 0.f || i+2 == posEnd))
+    {
+      ZCminima.emplace_back(ZCinterval());
+      ZCinterval& zc = ZCminima.back();
+      zc.start = pStart;
+      zc.end = i;
+      zc.index = iMax;
+      zc.value = vMax;
+      zc.count = countMin++;
+      pStart = i+1;
+      posFlag = true;
+    }
+  }
+}
+
+
+bool Explore::getLimits(
+  const vector<float>& position, 
+  const unsigned offset, 
+  const unsigned start, 
+  const unsigned end, 
+  unsigned& lower,
+  unsigned& upper,
+  unsigned& spacing) const
+{
+  if (start < offset)
+  {
+    cout << "Explore::getLimits: Odd start\n";
+    return false;
+  }
+
+  list<ZCinterval> ZCmaxima;
+  list<ZCinterval> ZCminima;
+  Explore::makeZCintervals(position, start-offset, end-offset,
+    ZCmaxima, ZCminima);
+
+  if (ZCminima.size() < 2)
+  {
+    cout << "Explore::getLimits: Too few ZC minima\n";
+    return false;
+  }
+
+  list<ZCinterval> ZCminimaSorted = ZCminima;
+  ZCminimaSorted.sort([](const ZCinterval& zc1, const ZCinterval& zc2)
+  {
+    return (zc1.value < zc2.value);
+  });
+
+  auto zcit1 = ZCminimaSorted.begin();
+  auto zcit2 = next(zcit1);
+
+  if (zcit1->count+1 == zcit2->count)
+  {
+    // Order is 1, 2
+  }
+  else if (zcit2->count+1 == zcit1->count)
+  {
+    // Swap the order
+    auto tmp = zcit1;
+    zcit1 = zcit2;
+    zcit2 = zcit1;
+  }
+  else
+  {
+    cout << "Explore::getLimits: Leading minima are not neighbors\n";
+    return false;
+  }
+
+  const float ratio = zcit1->value / zcit2->value;
+  if (ratio < 0.5f || ratio > 2.0f)
+  {
+    cout << "Explore::getLimits: Leading minima are different heights\n";
+    return false;
+  }
+
+  const unsigned i1 = zcit1->index;
+  auto zcmaxit = ZCmaxima.begin();
+  if (zcmaxit->index > i1)
+  {
+    cout << "Explore::getLimits: No leading maximum for first minimum\n";
+    return false;
+  }
+
+  while (zcmaxit != ZCmaxima.end() && next(zcmaxit)->index < i1)
+    zcmaxit++;
+
+  if (zcmaxit == ZCmaxima.end())
+  {
+    cout << "Explore::getLimits: No leading maximum for first minimum\n";
+    return false;
+  }
+
+  lower = zcmaxit->index + offset;
+
+  const unsigned i2 = zcit2->index;
+  while (zcmaxit != ZCmaxima.end() && next(zcmaxit)->index < i2)
+    zcmaxit++;
+
+  if (zcmaxit == ZCmaxima.end())
+  {
+    cout << "Explore::getLimits: No trailing maximum for first minimum\n";
+    return false;
+  }
+
+  upper = next(zcmaxit)->index + offset;
+
+  spacing = zcit2->index - zcit1->index;
+
+  cout << "Returning " << lower << ", " << upper << ", " << spacing << "\n";
+  return true;
+}
+
+
 #include "FFT.h"
 
 void Explore::correlate(
   const vector<float>& accel,
+  const vector<float>& position,
+  const unsigned offset,
   PeaksInfo& peaksInfo,
   list<BogieTimes>& bogieTimes)
 {
@@ -522,7 +694,10 @@ cout << "\n";
 */
 
   // Explore::filterGaussian(accel, filtered);
-  Explore::filter(accel, filtered);
+  // Explore::filter(accel, filtered);
+  // If OK, then we don't need filtered.
+  filtered = accel;
+  // Explore::filter(accel, filtered);
 
   if (data.empty())
     return;
@@ -534,23 +709,36 @@ cout << "\n";
   const unsigned e = s + len;
 
   // Integrate the bogie into a rough speed segment.
+  // vector<float> speedAll;
+  // speedAll.resize(position.size());
+  // Explore::differentiate(position, 2000.f, speedAll);
+
+  /*
   vector<float> speed;
   speed.resize(len);
-  Explore::integrate(filtered, s, e, 2000.f, speed);
+  for (unsigned i = 0; i < len; i++)
+    speed[i] = speedAll[i+s];
+    */
 
-cout << "Gauss\n";
-float pos = 0.f;
-for (unsigned i = 7000; i < 7800; i++)
-{
-  cout << i << ";" << accel[i] << ";" << filtered[i];
-  if (i >= s && i < s+speed.size())
-  {
-    pos += speed[i-s];
-    cout << ";" << speed[i-s] << ";" << pos;
-  }
-  cout << "\n";
-}
+  // Explore::integrate(filtered, s, e, 2000.f, speed);
+  // Explore::differentiate(position, s, e, 2000.f, speed);
+
 cout << "\n";
+cout << "accel " << accel.size() << endl;
+// cout << "speedAll " << speedAll.size() << endl;
+cout << "position " << position.size() << endl << endl;
+// cout << "speed " << speed.size() << endl;
+
+/*
+cout << "Gauss\n";
+for (unsigned i = offset; i < 8000; i++)
+{
+  cout << i << ";" << position[i-offset] << ";" <<
+    speedAll[i-offset] << ";" <<
+    filtered[i] << "\n";
+}
+cout << endl;
+*/
 
 /*
   cout << "Speed\n";
@@ -558,12 +746,25 @@ cout << "\n";
     cout << s+i << ";" << speed[i] << endl;
 */
 
+
+  // New approach, 2019-12-08:
+  // - Segment position into zero-crossings.
+  // - Go from the tops before and after the bogie.
+  unsigned lower, upper, spacing;
+  if (Explore::getLimits(position, offset, s, e, lower, upper, spacing))
+    cout << "Got pos limits " << lower << " and " << upper << endl;
+  else
+  {
+    cout << "Bad pos limits\n";
+    return;
+  }
+
+/*
   // Find the main peaks in this narrow speed segment.
   AccelDetect speedDetect;
   speedDetect.log(speed, s, len);
   speedDetect.extract("speed");
 
-  unsigned lower, upper, spacing;
   if (speedDetect.getLimits(lower, upper, spacing))
     cout << "Got limits " << s+lower << " and " << s+upper << endl;
   else
@@ -571,6 +772,7 @@ cout << "\n";
     cout << "Bad limits\n";
     return;
   }
+*/
 
   const unsigned fftlen = Explore::powerOfTwo(filtered.size());
   if (fftlen == 0)
@@ -587,7 +789,7 @@ cout << "\n";
 
 cout << "Setting correlands" << endl;
   vector<float> bogieRev, wheel1Rev, wheel2Rev;
-  Explore::setCorrelands(accelPad, fftlen, s, lower, upper,
+  Explore::setCorrelands(accelPad, fftlen, lower, upper,
     bogieRev, wheel1Rev, wheel2Rev);
 
   FFT fft;
@@ -608,16 +810,23 @@ cout << "Filtering the bogie correlation" << endl;
   vector<float> bogieFilt;
   Explore::filter(bogieConv, bogieFilt);
 
+/*
+cout << "bogie conv\n";
+for (unsigned i = 0; i < accel.size(); i++)
+  cout << i << ";" << bogieConv[i] << ";" << bogieFilt[i] << "\n";
+cout << endl;
+*/
+
   AccelDetect accelDetect;
   cout << "Logging the filtered signal" << endl;
   accelDetect.log(bogieFilt, 0, accel.size());
-  cout << "Extracting correlation peaks, " << bogieFilt[s+upper] << endl;
-  accelDetect.extractCorr(bogieFilt[s+upper], "accel");
+  cout << "Extracting correlation peaks, " << bogieFilt[upper] << endl;
+  accelDetect.extractCorr(bogieFilt[upper], "accel");
   cout << "Extracted correlation peaks" << endl;
 
   list<unsigned> bogieEnds;
   Explore::findCorrelationPeaks(accelDetect.getPeaks(), 
-      bogieFilt[s+upper], spacing, bogieEnds);
+      bogieFilt[upper], spacing, bogieEnds);
 
   cout << "Bogie end positions\n";
   for (auto b: bogieEnds)

@@ -36,6 +36,15 @@ class Explore
       vector<Correlate> correlates;
     };
 
+    struct ZCinterval
+    {
+      unsigned start;
+      unsigned end; // Inclusive
+      unsigned index; // Of extremum
+      float value; // Including sign
+      unsigned count; // Interval number
+    };
+
     vector<float> gaussian;
 
     vector<float> filtered;
@@ -70,6 +79,11 @@ class Explore
       const float sampleRate,
       vector<float>& speed) const;
 
+    void differentiate(
+      const vector<float>& position,
+      const float sampleRate,
+      vector<float>& speed) const;
+
     void correlateFixed(
       const QuietInterval& first,
       const QuietInterval& second,
@@ -101,7 +115,6 @@ class Explore
     void setCorrelands(
       const vector<float>& accel,
       const unsigned len,
-      const unsigned start,
       const unsigned lower,
       const unsigned upper,
       vector<float>& bogieRev,
@@ -121,6 +134,23 @@ class Explore
       const float sampleRate,
       list<BogieTimes>& speedBumps);
 
+    void makeZCintervals(
+      const vector<float>& position,
+      const unsigned posStart,
+      const unsigned posEnd,
+      list<ZCinterval>& ZCmaxima,
+      list<ZCinterval>& ZCminima) const;
+
+    bool getLimits(
+      const vector<float>& position,
+      const unsigned offset,
+      const unsigned start,
+      const unsigned end,
+      unsigned& lower,
+      unsigned& upper,
+      unsigned& spacing) const;
+
+
     string strHeader() const;
 
   public:
@@ -137,6 +167,8 @@ class Explore
 
     void correlate(
       const vector<float>& accel,
+      const vector<float>& position,
+      const unsigned offset,
       PeaksInfo& peaksInfo,
       list<BogieTimes>& bogieTimes);
 

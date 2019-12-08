@@ -1,3 +1,11 @@
+2019-12-08
+----------
+For -c 00 -p 064317 we're almost through.
+Once we have bogie end positions, we could go by downward zero crossings
+in position (~ maximum negative speed) as the position of the peak.
+So keep the zero crossings around.  Or even do them globally.
+
+
 Ideas:
 2. Quiet needs to deal with 4-6 wheels in the end piece
 3. Sometimes get matches with very long trains.  Look at #wheels
