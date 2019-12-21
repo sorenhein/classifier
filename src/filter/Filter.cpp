@@ -21,6 +21,69 @@ void Filter::reset()
 }
 
 
+void Filter::setupGaussian(const float& sigma)
+{
+  const unsigned lobe = static_cast<unsigned>(3.f * sigma);
+
+  gaussian.clear();
+  gaussian.resize(lobe+1);
+
+  const float factor = 1.f / (2.f * sigma * sigma);
+  gaussian[0] = 1.f;
+  float sum = 1.f;
+  for (unsigned i = 1; i <= lobe; i++)
+  {
+    gaussian[i] = exp(- (i*i * factor));
+    sum += 2.f * gaussian[i]; // Positive and negative lobe
+  }
+
+  for (unsigned i = 0; i <= lobe; i++)
+    gaussian[i] /= sum;
+}
+
+
+float Filter::filterEdgeGaussian(
+  const vector<float>& integrand,
+  const unsigned pos,
+  const unsigned lobe) const
+{
+  float f = gaussian[0] * integrand[pos];
+  float coeffSum = gaussian[0];
+
+  for (unsigned j = 1; j <= lobe; j++)
+  {
+    f += gaussian[j] * (integrand[pos-j] + integrand[pos+j]);
+    coeffSum += 2.f * gaussian[j];
+  }
+  return f / coeffSum;
+}
+
+
+void Filter::filterGaussian(
+  const vector<float>& integrand,
+  vector<float>& result) const
+{
+  result.resize(integrand.size());
+
+  // Front and back.
+  const unsigned al = integrand.size();
+  const unsigned lobe = gaussian.size()-1;
+  for (unsigned i = 0; i <= lobe; i++)
+  {
+    result[i] = Filter::filterEdgeGaussian(integrand, i, i);
+    result[al-i-1] = Filter::filterEdgeGaussian(integrand, al-i-1, i);
+  }
+
+  // Center.
+  for (unsigned i = lobe+1; i < al-lobe-1; i++)
+  {
+    result[i] = gaussian[0] * integrand[i];
+    for (unsigned j = 1; j <= lobe; j++)
+      result[i] += gaussian[j] * (integrand[i+j] + integrand[i-j]);
+  }
+}
+
+
 void Filter::integrateFloat(
   const vector<float>& integrand,
   const float sampleRate,
@@ -281,6 +344,9 @@ void Filter::process(
   synthSpeed.resize(lenInterval);
   synthPos.resize(lenInterval);
 
+  Filter::setupGaussian(5.f);
+  Filter::filterGaussian(accelFloat, accelGaussian);
+
   // First we low-pass filter the acceleration in order to remove
   // some of the jitter.
   Filter::filterFloat(Butterworth5LPF_float, accelFloat);
@@ -347,6 +413,12 @@ for (unsigned i = 0; i < synthPos.size(); i++)
 vector<float>& Filter::getAccel()
 {
   return accelFloat;
+}
+
+
+vector<float>& Filter::getAccelGaussian()
+{
+  return accelGaussian;
 }
 
 

@@ -14,13 +14,26 @@ class Filter
 {
   private:
 
+    vector<float> gaussian;
     vector<float> accelFloat;
+    vector<float> accelGaussian;
     vector<float> synthSpeed;
     vector<float> synthPos;
 
     unsigned startInterval;
     unsigned lenInterval;
 
+
+    void setupGaussian(const float& sigma);
+
+    float filterEdgeGaussian(
+      const vector<float>& integrand,
+      const unsigned pos,
+      const unsigned lobe) const;
+
+    void filterGaussian(
+      const vector<float>& integrand,
+      vector<float>& result) const;
 
     void integrateFloat(
       const vector<float>& integrand,
@@ -76,6 +89,7 @@ class Filter
       const unsigned len);
 
     vector<float>& getAccel();
+    vector<float>& getAccelGaussian();
 
     const vector<float>& getDeflection() const;
 
