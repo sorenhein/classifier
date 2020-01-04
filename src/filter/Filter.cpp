@@ -33,7 +33,7 @@ void Filter::setupGaussian(const float& sigma)
   float sum = 1.f;
   for (unsigned i = 1; i <= lobe; i++)
   {
-    gaussian[i] = exp(- (i*i * factor));
+    gaussian[i] = static_cast<float>(exp(- (i*i * factor)));
     sum += 2.f * gaussian[i]; // Positive and negative lobe
   }
 

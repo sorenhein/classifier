@@ -329,7 +329,7 @@ void run(
     // Write directly into filter storage.
     Filter filter;
     vector<float>& accel = filter.getAccel();
-    vector<float>& accelGaussian = filter.getAccel();
+    // vector<float>& accelGaussian = filter.getAccel();
 
     // Read the trace.
     runRead(traceData.filenameFull, thid, accel);
