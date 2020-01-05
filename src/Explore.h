@@ -128,18 +128,27 @@ class Explore
       list<unsigned>& bogieEnds);
 
     void findSpeedBumps(
-      const vector<float>& accel,
+      const vector<float>& position,
+      const unsigned offset,
       const list<unsigned>& bogieEnds,
       const unsigned activeLen,
-      const float sampleRate,
       list<BogieTimes>& speedBumps);
 
     void makeZCintervals(
       const vector<float>& position,
       const unsigned posStart,
       const unsigned posEnd,
+      const float level,
       list<ZCinterval>& ZCmaxima,
       list<ZCinterval>& ZCminima) const;
+
+    bool getMinima(
+      const vector<float>& position,
+      const unsigned offset,
+      const unsigned start,
+      const unsigned end,
+      unsigned& min1index,
+      unsigned& min2index) const;
 
     bool getLimits(
       const vector<float>& position,
@@ -148,7 +157,9 @@ class Explore
       const unsigned end,
       unsigned& lower,
       unsigned& upper,
-      unsigned& spacing) const;
+      unsigned& spacing,
+      unsigned& min1index,
+      unsigned& min2index) const;
 
 
     string strHeader() const;

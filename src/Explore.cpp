@@ -472,10 +472,10 @@ cout << "HIT " << pos1 << "\n";
 
 
 void Explore::findSpeedBumps(
-  const vector<float>& accel, 
+  const vector<float>& position, 
+  const unsigned offset,
   const list<unsigned>& bogieEnds, 
   const unsigned activeLen,
-  const float sampleRate,
   list<BogieTimes>& speedBumps)
 {
   // Add 20%
@@ -489,8 +489,8 @@ void Explore::findSpeedBumps(
     else
       lowerExt = bend - activeLen - tol;
     
-    if (bend + tol >= accel.size())
-      upperExt = accel.size();
+    if (bend + tol >= position.size())
+      upperExt = position.size();
     else
       upperExt = bend + tol;
 
@@ -498,6 +498,22 @@ cout << "Trying bogie end " << bend << ", range " <<
   lowerExt << " to " << upperExt << endl;
 cout << "--------------------------\n\n";
 
+  unsigned min1index, min2index;
+  if (Explore::getMinima(position, offset, lowerExt, upperExt,
+      min1index, min2index))
+  {
+    cout << "Minima " << min1index << " and " << min2index << endl;
+      speedBumps.emplace_back(BogieTimes());
+      BogieTimes& bp = speedBumps.back();
+      bp.first = min1index;
+      bp.second = min2index;
+  }
+  else
+  {
+    cout << "No two minima\n";
+    return;
+  }
+/*
     // Integrate the bogie into a rough speed segment.
     vector<float> speed;
     speed.resize(upperExt - lowerExt);
@@ -522,6 +538,7 @@ cout << "--------------------------\n\n";
     }
     else
       cout << "Bad limits\n";
+*/
   }
 }
 
@@ -530,13 +547,14 @@ void Explore::makeZCintervals(
   const vector<float>& position,
   const unsigned posStart,
   const unsigned posEnd,
+  const float level,
   list<ZCinterval>& ZCmaxima,
   list<ZCinterval>& ZCminima) const
 {
   unsigned pStart = posStart;
   unsigned iMax = numeric_limits<unsigned>::max();
   float vMax = 0.f;
-  bool posFlag = (position[posStart] >= 0.f);
+  bool posFlag = (position[posStart] >= level);
   unsigned countMax = 0;
   unsigned countMin = 0;
 
@@ -549,8 +567,9 @@ void Explore::makeZCintervals(
       vMax = position[i];
     }
 
-    if (posFlag && (position[i+1] < 0.f || i+2 == posEnd))
+    if (posFlag && (position[i+1] < level || i+2 == posEnd))
     {
+      // Crossing downward, coming from a maximum.
       ZCmaxima.emplace_back(ZCinterval());
       ZCinterval& zc = ZCmaxima.back();
       zc.start = pStart;
@@ -562,7 +581,7 @@ void Explore::makeZCintervals(
       vMax = 0.f;
       posFlag = false;
     }
-    else if (! posFlag && (position[i+1] >= 0.f || i+2 == posEnd))
+    else if (! posFlag && (position[i+1] >= level || i+2 == posEnd))
     {
       ZCminima.emplace_back(ZCinterval());
       ZCinterval& zc = ZCminima.back();
@@ -578,6 +597,77 @@ void Explore::makeZCintervals(
 }
 
 
+bool Explore::getMinima(
+  const vector<float>& position, 
+  const unsigned offset, 
+  const unsigned start, 
+  const unsigned end, 
+  unsigned& min1index,
+  unsigned& min2index) const
+{
+  if (start < offset)
+  {
+    cout << "Explore::getMinima: Odd start\n";
+    return false;
+  }
+
+  // ZCminima is an upward zero crossing, coming from a minimum.
+  list<ZCinterval> ZCmaxima;
+  list<ZCinterval> ZCminima;
+  Explore::makeZCintervals(position, start-offset, end-offset, 0.f,
+    ZCmaxima, ZCminima);
+
+  if (ZCminima.size() < 2)
+  {
+    cout << "Explore::getLimits: Too few ZC minima\n";
+    return false;
+  }
+
+  list<ZCinterval> ZCminimaSorted = ZCminima;
+  ZCminimaSorted.sort([](const ZCinterval& zc1, const ZCinterval& zc2)
+  {
+    return (zc1.value < zc2.value);
+  });
+
+  auto zcit1 = ZCminimaSorted.begin();
+  auto zcit2 = next(zcit1);
+
+  if (zcit1->count+1 == zcit2->count)
+  {
+    // Order is 1, 2
+  }
+  else if (zcit2->count+1 == zcit1->count)
+  {
+    // Swap the order
+    auto tmp = zcit1;
+    zcit1 = zcit2;
+    zcit2 = zcit1;
+  }
+  else
+  {
+    cout << "Explore::getLimits: Leading minima are not neighbors\n";
+    return false;
+  }
+
+  const float ratio = zcit1->value / zcit2->value;
+  if (ratio < 0.5f || ratio > 2.0f)
+  {
+    cout << "Explore::getLimits: Leading minima are different heights\n";
+    return false;
+  }
+
+  min1index = (zcit1->start + zcit1->end)/2 + offset;
+  min2index = (zcit2->start + zcit2->end)/2 + offset;
+
+cout << "ZC1 " << zcit1->start+offset << " to " << zcit1->end+offset << ", avg " <<
+  (zcit1->start + zcit1->end)/2+offset << "\n";
+cout << "ZC2 " << zcit2->start+offset << " to " << zcit2->end+offset << ", avg " <<
+  (zcit2->start + zcit2->end)/2+offset << "\n";
+
+  return true;
+}
+
+
 bool Explore::getLimits(
   const vector<float>& position, 
   const unsigned offset, 
@@ -585,7 +675,9 @@ bool Explore::getLimits(
   const unsigned end, 
   unsigned& lower,
   unsigned& upper,
-  unsigned& spacing) const
+  unsigned& spacing,
+  unsigned& min1index,
+  unsigned& min2index) const
 {
   if (start < offset)
   {
@@ -593,9 +685,10 @@ bool Explore::getLimits(
     return false;
   }
 
+  // ZCmaxima is a downward zero crossing, coming from a maximum.
   list<ZCinterval> ZCmaxima;
   list<ZCinterval> ZCminima;
-  Explore::makeZCintervals(position, start-offset, end-offset,
+  Explore::makeZCintervals(position, start-offset, end-offset, 0.f,
     ZCmaxima, ZCminima);
 
   if (ZCminima.size() < 2)
@@ -669,6 +762,14 @@ bool Explore::getLimits(
   upper = next(zcmaxit)->index + offset;
 
   spacing = zcit2->index - zcit1->index;
+
+  min1index = (zcit1->start + zcit1->end)/2 + offset;
+  min2index = (zcit2->start + zcit2->end)/2 + offset;
+
+cout << "ZC1 " << zcit1->start+offset << " to " << zcit1->end+offset << ", avg " <<
+  (zcit1->start + zcit1->end)/2+offset << "\n";
+cout << "ZC2 " << zcit2->start+offset << " to " << zcit2->end+offset << ", avg " <<
+  (zcit2->start + zcit2->end)/2+offset << "\n";
 
   cout << "Returning " << lower << ", " << upper << ", " << spacing << "\n";
   return true;
@@ -751,8 +852,13 @@ cout << endl;
   // - Segment position into zero-crossings.
   // - Go from the tops before and after the bogie.
   unsigned lower, upper, spacing;
-  if (Explore::getLimits(position, offset, s, e, lower, upper, spacing))
+  unsigned min1index, min2index;
+  if (Explore::getLimits(position, offset, s, e, lower, upper, spacing,
+      min1index, min2index))
+  {
     cout << "Got pos limits " << lower << " and " << upper << endl;
+    cout << "Minima " << min1index << " and " << min2index << endl;
+  }
   else
   {
     cout << "Bad pos limits\n";
@@ -796,15 +902,15 @@ cout << "Setting correlands" << endl;
   fft.setSize(fftlen);
 
   vector<float> bogieConv;
-  vector<float> wheel1Conv;
-  vector<float> wheel2Conv;
+  // vector<float> wheel1Conv;
+  // vector<float> wheel2Conv;
   bogieConv.resize(fftlen);
-  wheel1Conv.resize(fftlen);
-  wheel2Conv.resize(fftlen);
+  // wheel1Conv.resize(fftlen);
+  // wheel2Conv.resize(fftlen);
 
   fft.convolve(accelPad, bogieRev, bogieConv);
-  fft.convolve(accelPad, wheel1Rev, wheel1Conv);
-  fft.convolve(accelPad, wheel2Rev, wheel2Conv);
+  // fft.convolve(accelPad, wheel1Rev, wheel1Conv);
+  // fft.convolve(accelPad, wheel2Rev, wheel2Conv);
 
 cout << "Filtering the bogie correlation" << endl;
   vector<float> bogieFilt;
@@ -833,7 +939,7 @@ cout << endl;
     cout << b << "\n";
   cout << endl;
 
-  Explore::findSpeedBumps(filtered, bogieEnds, upper-lower, 2000.f, bogieTimes);
+  Explore::findSpeedBumps(position, offset, bogieEnds, upper-lower, bogieTimes);
 
   cout << "Speed bumps\n";
   unsigned prev = 0;
