@@ -542,6 +542,33 @@ cout << "--------------------------\n\n";
   }
 }
 
+#define REGRESS_HALF_SIZE 4
+#include "align/PolynomialRegression.h"
+
+void Explore::findExactZC(
+  const vector<float>& position,
+  const unsigned i,
+  ZCinterval& zc) const
+{
+  vector<float> x, y;
+  x.resize(2*REGRESS_HALF_SIZE+1);
+  y.resize(2*REGRESS_HALF_SIZE+1);
+
+  for (unsigned j = i-REGRESS_HALF_SIZE, k = 0; 
+      j <= i+REGRESS_HALF_SIZE; j++, k++)
+  {
+    x[k] = static_cast<float>(j);
+    y[k] = position[j];
+  }
+
+  PolynomialRegression regr;
+  vector<float> coeffs;
+  regr.fitIt(x, y, 1, coeffs);
+
+  zc.endExact = - coeffs[0] / coeffs[1];
+  zc.slopeEnd = 2000.f * coeffs[1];
+}
+  
 
 void Explore::makeZCintervals(
   const vector<float>& position,
@@ -580,6 +607,8 @@ void Explore::makeZCintervals(
       pStart = i+1;
       vMax = 0.f;
       posFlag = false;
+
+      Explore::findExactZC(position, i, zc);
     }
     else if (! posFlag && (position[i+1] >= level || i+2 == posEnd))
     {
@@ -592,6 +621,19 @@ void Explore::makeZCintervals(
       zc.count = countMin++;
       pStart = i+1;
       posFlag = true;
+
+      Explore::findExactZC(position, i, zc);
+
+      if (! ZCmaxima.empty())
+      {
+        zc.startExact = ZCmaxima.back().endExact;
+        zc.slopeStart = ZCmaxima.back().slopeEnd;
+      }
+      else
+      {
+        zc.startExact = 0.f;
+        zc.slopeStart = 0.f;
+      }
     }
   }
 }
@@ -641,7 +683,7 @@ bool Explore::getMinima(
     // Swap the order
     auto tmp = zcit1;
     zcit1 = zcit2;
-    zcit2 = zcit1;
+    zcit2 = tmp;
   }
   else
   {
@@ -661,8 +703,17 @@ bool Explore::getMinima(
 
 cout << "ZC1 " << zcit1->start+offset << " to " << zcit1->end+offset << ", avg " <<
   (zcit1->start + zcit1->end)/2+offset << "\n";
+cout << "  " << fixed << setprecision(2) << zcit1->startExact + offset <<
+  ", " << zcit1->slopeStart << "\n";
+cout << "  " << fixed << setprecision(2) << zcit1->endExact + offset <<
+  ", " << zcit1->slopeEnd << "\n";
+
 cout << "ZC2 " << zcit2->start+offset << " to " << zcit2->end+offset << ", avg " <<
   (zcit2->start + zcit2->end)/2+offset << "\n";
+cout << "  " << fixed << setprecision(2) << zcit2->startExact + offset <<
+  ", " << zcit2->slopeStart << "\n";
+cout << "  " << fixed << setprecision(2) << zcit2->endExact + offset <<
+  ", " << zcit2->slopeEnd << "\n";
 
   return true;
 }
@@ -715,7 +766,7 @@ bool Explore::getLimits(
     // Swap the order
     auto tmp = zcit1;
     zcit1 = zcit2;
-    zcit2 = zcit1;
+    zcit2 = tmp;
   }
   else
   {
@@ -785,6 +836,57 @@ void Explore::correlate(
   PeaksInfo& peaksInfo,
   list<BogieTimes>& bogieTimes)
 {
+  // Manual deconvolution.
+  vector<float> response;
+  response.resize(2048, 0.f);
+  for (unsigned i = 1500; i <= 2300; i++)
+    response[i-1000] = accel[i];
+
+  // Make the ends taper off more nicely.
+  for (unsigned i = 400; i < 500; i++)
+    response[i] = response[500] * (i-400.f) / 100.f;
+  for (unsigned i = 1300; i < 1400; i++)
+    response[i] = response[1300] * (1400.f-i) / 100.f;
+
+  vector<float> zeroes;
+  zeroes.resize(2048, 0.f);
+
+  vector<float> imprespRe, imprespIm;
+  imprespRe.resize(2048, 0.f);
+  imprespIm.resize(2048, 0.f);
+
+  FFT fftTemp;
+  fftTemp.setSize(2048);
+
+  vector<float> stimulus;
+  stimulus.resize(2048, 0.f);
+  stimulus[816] = 1.f;
+
+  cout << "Deconvolution\n";
+  for (unsigned stim = 953; stim < 954; stim++)
+  {
+  stimulus[stim-1] = 0.f;
+  stimulus[stim] = 1.f;
+
+  fftTemp.deconvolve(response, zeroes, stimulus, zeroes, 
+    imprespRe, imprespIm);
+
+  float power = 0.f;
+  for (unsigned i = 0; i < 2048; i++)
+    power += imprespRe[i] * imprespRe[i];
+
+  cout << stim << " " << power << endl;
+  }
+
+  for (unsigned i = 0; i < 2048; i++)
+  {
+    cout << i << ";" << stimulus[i] << ";" << response[i] << ";" <<
+      imprespRe[i] << ";" << imprespIm[i] << endl;
+  }
+  cout << endl;
+
+
+
   // Explore::setupGaussian(5.f);
 
 /*
@@ -826,26 +928,16 @@ cout << "\n";
 
 cout << "\n";
 cout << "accel " << accel.size() << endl;
+// for (unsigned i = 0; i < accel.size(); i++)
+  // cout << i << ";" << accel[i] << endl;
+// cout << endl;
 // cout << "speedAll " << speedAll.size() << endl;
 cout << "position " << position.size() << endl << endl;
-// cout << "speed " << speed.size() << endl;
-
-/*
-cout << "Gauss\n";
-for (unsigned i = offset; i < 8000; i++)
-{
-  cout << i << ";" << position[i-offset] << ";" <<
-    speedAll[i-offset] << ";" <<
-    filtered[i] << "\n";
-}
+for (unsigned i = 0; i < position.size(); i++)
+  cout << i+offset << ";" << position[i] << endl;
 cout << endl;
-*/
 
-/*
-  cout << "Speed\n";
-  for (unsigned i = 0; i < e-s; i++)
-    cout << s+i << ";" << speed[i] << endl;
-*/
+// cout << "speed " << speed.size() << endl;
 
 
   // New approach, 2019-12-08:
@@ -864,21 +956,6 @@ cout << endl;
     cout << "Bad pos limits\n";
     return;
   }
-
-/*
-  // Find the main peaks in this narrow speed segment.
-  AccelDetect speedDetect;
-  speedDetect.log(speed, s, len);
-  speedDetect.extract("speed");
-
-  if (speedDetect.getLimits(lower, upper, spacing))
-    cout << "Got limits " << s+lower << " and " << s+upper << endl;
-  else
-  {
-    cout << "Bad limits\n";
-    return;
-  }
-*/
 
   const unsigned fftlen = Explore::powerOfTwo(filtered.size());
   if (fftlen == 0)

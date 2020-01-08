@@ -97,6 +97,18 @@ class FFT
       const vector<float>& yimag,
       vector<float>& outreal, 
       vector<float> &outimag);
+	
+    /* 
+     * Computes the circular deconvolution of the given complex vectors. Each 
+     * vector's length must be the same.
+     */
+    void deconvolve(
+      const vector<float>& xreal, // The response
+      const vector<float>& ximag,
+      const vector<float>& yreal, // The stimulus
+      const vector<float>& yimag,
+      vector<float>& outreal, 
+      vector<float> &outimag);
 };
 
 #endif

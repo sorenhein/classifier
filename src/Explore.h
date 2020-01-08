@@ -43,6 +43,11 @@ class Explore
       unsigned index; // Of extremum
       float value; // Including sign
       unsigned count; // Interval number
+
+      float startExact;
+      float slopeStart;
+      float endExact;
+      float slopeEnd;
     };
 
     vector<float> gaussian;
@@ -133,6 +138,11 @@ class Explore
       const list<unsigned>& bogieEnds,
       const unsigned activeLen,
       list<BogieTimes>& speedBumps);
+
+    void findExactZC(
+      const vector<float>& position,
+      const unsigned i,
+      ZCinterval& zc) const;
 
     void makeZCintervals(
       const vector<float>& position,

@@ -91,6 +91,7 @@ void FFT::inverseTransform(
 }
 
 
+#include <iostream>
 void FFT::transformRadix2(
   vector<float>& real, 
   vector<float>& imag) 
@@ -105,7 +106,7 @@ void FFT::transformRadix2(
       swap(imag[i], imag[j]);
     }
   }
-	
+
   // Cooley-Tukey decimation-in-time radix-2 FFT
   for (size_t size = 2; size <= len; size *= 2) 
   {
@@ -174,6 +175,56 @@ void FFT::convolve(
   }
   inverseTransform(xr, xi);
 	
+  for (size_t i = 0; i < n; i++) 
+  {  
+    // Scaling (because this FFT implementation omits it)
+    outreal[i] = xr[i] / n;
+    outimag[i] = xi[i] / n;
+  }
+}
+
+
+void FFT::deconvolve(
+  const vector<float>& xreal, 
+  const vector<float>& ximag,
+  const vector<float>& yreal, 
+  const vector<float>& yimag,
+  vector<float>& outreal, 
+  vector<float>& outimag) 
+{
+  // Calculate x / y, so x is the response and y the stimulus.
+  size_t n = xreal.size();
+  if (n != ximag.size() || 
+    n != yreal.size() || 
+    n != yimag.size() || 
+    n != outreal.size() || 
+    n != outimag.size())
+      throw std::invalid_argument("Mismatched lengths");
+	
+  vector<float> xr = xreal;
+  vector<float> xi = ximag;
+  vector<float> yr = yreal;
+  vector<float> yi = yimag;
+  transform(xr, xi);
+  transform(yr, yi);
+	
+  for (size_t i = 0; i < n; i++) 
+  {
+    const float lensq = yr[i] * yr[i] + yi[i] * yi[i];
+    if (lensq == 0.f)
+    {
+      xr[i] = 0.f;
+      xi[i] = 0.f;
+    }
+    else
+    {
+      const float temp = xr[i] * yr[i] + xi[i] * yi[i];
+      xi[i] = (xi[i] * yr[i] - xr[i] * yi[i]) / lensq;
+      xr[i] = temp / lensq;
+    }
+  }
+  inverseTransform(xr, xi);
+
   for (size_t i = 0; i < n; i++) 
   {  
     // Scaling (because this FFT implementation omits it)
